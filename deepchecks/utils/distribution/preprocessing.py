@@ -114,7 +114,7 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
 
 
 def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-                                       min_category_size_ratio: float = 0.01, max_num_categories: int = None,
+                                       min_category_size_ratio: float = 0., max_num_categories: int = None,
                                        sort_by: str = 'dist1'
                                        ) -> Tuple[np.ndarray, np.ndarray, List]:
     """
@@ -131,7 +131,7 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         list of values from the first distribution.
     dist2: Union[np.ndarray, pd.Series]
         list of values from the second distribution.
-    min_category_size_ratio: float, default 0.01
+    min_category_size_ratio: float, default 0
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
     max_num_categories: int, default: None
