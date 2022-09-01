@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the single dataset performance report check."""
-import warnings
 from typing import List
 
 from deepchecks.core import ConditionResult
@@ -167,6 +166,17 @@ def test_regression_positive_scorers(diabetes_split_dataset_and_model):
     assert_that(result['Value'].iloc[0], close_to(3296, 1))
     assert_that(result['Value'].iloc[0], close_to(result['Value'].iloc[1] ** 2, 0.001))
     assert_that(result['Value'].iloc[2], close_to(45, 1))
+
+
+def test_regression_positive_negative_compare(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = SingleDatasetPerformance(scorers=['mae', 'rmse', 'neg_mae', 'neg_rmse'])
+    # Act
+    result = check.run(test, model).value
+    # Assert
+    assert_that(result['Value'].iloc[0], close_to(-result['Value'].iloc[2], 1))
+    assert_that(result['Value'].iloc[1], close_to(-result['Value'].iloc[3], 1))
 
 
 def test_regression_reduced(diabetes_split_dataset_and_model):

@@ -31,28 +31,29 @@ _______
 
 Binary classification:
 
-*   Accuracy 'accuracy'
-*   Precision 'precision'
-*   Recall 'recall'
+*   Accuracy ``'accuracy'``
+*   Precision ``'precision'``
+*   Recall ``'recall'``
 
 Multiclass classification averaged over the classes:
 
-*   Accuracy 'accuracy'
-*   Precision 'precision_macro'
-*   Recall 'recall_macro'
+*   Accuracy ``'accuracy'``
+*   Precision ``'precision_macro'``
+*   Recall ``'recall_macro'``
 
 Multiclass classification per class:
 
-*   F1 'f1_per_class'
-*   Precision 'precision_per_class'
-*   Recall 'recall_per_class'
+*   F1 ``'f1_per_class'``
+*   Precision ``'precision_per_class'``
+*   Recall ``'recall_per_class'``
 
 Regression:
 
-*   Negative RMSE 'neg_rmse'
-*   Negative MAE 'neg_mae'
-*   R2 'r2'
+*   Negative RMSE ``'neg_rmse'``
+*   Negative MAE ``'neg_mae'``
+*   R2 ``'r2'``
 
+.. _metrics_guide_note_regression:
 .. Note::
     Deepchecks follow the convention that greater metric value represent better performance.
     Therefore, it is recommended to only use metrics that follow
@@ -63,13 +64,13 @@ ______
 
 Classification:
 
-*   Precision 'precision_per_class'
-*   Recall 'recall_per_class'
+*   Precision ``'precision_per_class'``
+*   Recall ``'recall_per_class'``
 
 Object detection:
 
-*   Mean average precision 'average_precision_per_class'
-*   Mean average recall  'average_recall_per_class'
+*   Mean average precision ``'average_precision_per_class'``
+*   Mean average recall  ``'average_recall_per_class'``
 
 Running a Check with Default Metrics
 ____________________________________
@@ -86,8 +87,8 @@ parameter. We will demonstrate it using the
 Alternative Metrics
 ===================
 Sometimes the defaults don't fit the specifics of the use case.
-If this is the case, you can pass a list of supported metric strings or a dict in the format {``metric_name_string``: ``metric``} as a
-parameter to the check.
+If this is the case, you can pass a list of supported metric strings or a dict in the format
+{``metric_name_string``: ``metric``} as a parameter to the check.
 
 The metrics in the dict can be some of the existing:
 
@@ -129,13 +130,13 @@ __________
      - higher value represents better performance
    * - 'rmse'
      - root mean squared error
-     -
+     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
    * - 'mae'
      - mean absolute error
-     -
-   * - 'abs_mse'
-     - absolute_mean_squared_error
-     -
+     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
+   * - 'mse'
+     - mean squared error
+     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
    * - 'r2'
      - R2 score
      -

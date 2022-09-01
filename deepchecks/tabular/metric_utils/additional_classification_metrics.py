@@ -9,15 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing additional classification metrics that can be used via scorers."""
-from typing import Callable, Union
+from typing import Union
 
 import numpy as np
-from sklearn.metrics import confusion_matrix, make_scorer, mean_absolute_error, mean_squared_error
+from sklearn.metrics import confusion_matrix
 
-from deepchecks.core.errors import DeepchecksValueError
-
-__all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric',
-           'get_positive_regression_scorer']
+__all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric']
 
 from deepchecks.utils.metrics import averaging_mechanism
 
@@ -167,25 +164,3 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
     scores_per_class = _true_negative_rate_per_class(y_true, y_pred)
     weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
     return averaging_mechanism(averaging_method, scores_per_class, weights)
-
-
-def get_positive_regression_scorer(metric_name: str) -> Callable:
-    """Return a scorer based on metric_name.
-
-    Parameters
-    ----------
-    metric_name : str
-        Determines the metric the scorer will calculate
-    Returns
-    -------
-    scorer : Callable
-        A sklearn scorer which calculates the required metric.
-    """
-    if metric_name in ['mse', 'mean_squared_error']:
-        return make_scorer(mean_squared_error, squared=True)
-    elif metric_name in ['rmse', 'root_mean_squared_error']:
-        return make_scorer(mean_squared_error, squared=False)
-    elif metric_name in ['abs_mse', 'absolute_mean_squared_error']:
-        return make_scorer(mean_absolute_error)
-    else:
-        raise DeepchecksValueError(f'Unknown metric name {metric_name}')
