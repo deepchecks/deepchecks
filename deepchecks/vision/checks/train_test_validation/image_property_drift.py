@@ -199,6 +199,8 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         drifts = {}
         not_enough_samples = []
 
+        dataset_names = (context.train.name, context.test.name)
+
         for single_property in self.image_properties:
             property_name = single_property['name']
 
@@ -215,6 +217,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
                     show_categories_by=self.show_categories_by,
                     min_samples=self.min_samples,
                     with_display=context.with_display,
+                    dataset_names=dataset_names
                 )
 
                 figures[property_name] = figure

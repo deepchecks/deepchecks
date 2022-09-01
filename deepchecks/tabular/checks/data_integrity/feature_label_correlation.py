@@ -87,7 +87,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
             top_to_show = s_ppscore.head(self.n_top_features)
 
             fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show))
-            fig.add_trace(pd_series_to_trace(top_to_show, dataset_kind.value))
+            fig.add_trace(pd_series_to_trace(top_to_show, dataset_kind.value, dataset.name))
 
             text = [
                 'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
