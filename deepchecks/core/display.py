@@ -13,10 +13,13 @@
 import abc
 import html
 import io
+import multiprocessing
 import pathlib
+import platform
 import sys
 import typing as t
-from multiprocessing import get_all_start_methods, get_context
+from multiprocessing import get_all_start_methods, get_context, Process, process
+from tempfile import NamedTemporaryFile
 
 import plotly.io as pio
 from IPython.core.display import display, display_html
@@ -234,6 +237,28 @@ class DisplayableResult(abc.ABC):
         raise NotImplementedError()
 
 
+def _open_file_in_window(filename: t.Union[str, pathlib.Path], exit_after: bool = True):
+    from PyQt5.QtCore import QUrl  # pylint: disable=import-outside-toplevel
+    from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
+    from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
+    filepath = pathlib.Path(filename) if isinstance(filename, str) else filename
+    try:
+        app = QApplication.instance()
+        if app is None:
+            app = QApplication([])
+            app.lastWindowClosed.connect(app.quit)
+        web = QWebEngineView()
+        web.setWindowTitle('deepchecks')
+        web.setGeometry(0, 0, 1200, 1200)
+        web.load(QUrl.fromLocalFile(str(filepath)))
+        web.show()
+        exit_code = app.exec_()
+        if exit_after:
+            sys.exit(exit_code)
+    finally:
+        filepath.unlink()
+
+
 def display_in_gui(result: DisplayableResult):
     """Display suite result or check result in a new python gui window."""
     try:
@@ -247,41 +272,17 @@ def display_in_gui(result: DisplayableResult):
             'or use "result.save_as_html()" to save result'
         )
     else:
+        file = NamedTemporaryFile(suffix='.html', prefix='deepchecks-', delete=False)
+        result.save_as_html(io.TextIOWrapper(file))
+        filepath = file.name
 
-        def app(filename: t.Union[str, pathlib.Path], exit_after: bool = True):
-            filepath = pathlib.Path(filename) if isinstance(filename, str) else filename
-            try:
-                app = QApplication.instance()
-                if app is None:
-                    app = QApplication([])
-                    app.lastWindowClosed.connect(app.quit)
-                web = QWebEngineView()
-                web.setWindowTitle('deepchecks')
-                web.setGeometry(0, 0, 1200, 1200)
-                web.load(QUrl.fromLocalFile(str(filepath)))
-                web.show()
-                exit_code = app.exec_()
-                if exit_after:
-                    sys.exit(exit_code)
-            finally:
-                filepath.unlink()
-
-        filename = t.cast(str, result.save_as_html('deepchecks-report.html'))
-        filepath = pathlib.Path(filename).absolute()
-
-        if 'fork' in get_all_start_methods():
-            ctx = get_context('fork')
-            ctx.Process(target=app, args=(str(filepath),)).start()
+        # If running under "__filename__ == __main__" then we can spawn a new process. Else run the function directly.
+        if getattr(process.current_process(), '_inheriting', False):
+            _open_file_in_window(filepath)
         else:
-            # NOTE:
-            # it stops code execution until user does not close QtApp window.
-            # *Not sure*, but, if it is executed within jupyter kernel it
-            # might cause kernel restart. Kernel stops producing 'heartbeat'
-            # events and jupyter server decides that the kernel did 'fail'
-            # and restarts it.
-            #
-            # 'fork' process creation method is not supported only by windows
-            app(filepath, False)
+            ctx = get_context('spawn')
+            ctx.Process(target=_open_file_in_window, args=(str(filepath),)).start()
+
 
 
 def get_result_name(result) -> str:
