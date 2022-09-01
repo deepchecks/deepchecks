@@ -22,7 +22,8 @@ Controlling the metrics helps you shape the checks and suites according to the s
 Default Metrics
 ===============
 All of the checks that evaluate model performance, such as
-doc:`SingleDatasetPerformance </checks_gallery/vision/model_evaluation/plot_single_dataset_performance>`, come with default metrics.
+:doc:`SingleDatasetPerformance </checks_gallery/vision/model_evaluation/plot_single_dataset_performance>`
+come with default metrics.
 
 The default metrics by task type are:
 
