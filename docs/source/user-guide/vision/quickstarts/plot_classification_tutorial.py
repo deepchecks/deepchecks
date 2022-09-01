@@ -7,12 +7,20 @@ Classification Model Validation Tutorial
 
 In this tutorial, you will learn how to validate your **classification model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
-:doc:`examples section  </checks_gallery/vision/index>`
+:doc:`examples section  </checks_gallery/vision>`.
 
 A classification model is usually used to classify an image into one of a number of classes. Although there are
 multi label use-cases, in which the model is used to classify an image into multiple classes, most use-cases
 require the model to classify images into a single class.
 Currently deepchecks supports only single label classification (either binary or multi-class).
+
+.. code-block:: bash
+
+    # Before we start, if you don't have deepchecks vision package installed yet, run:
+    import sys
+    !{sys.executable} -m pip install "deepchecks[vision]" --quiet --upgrade # --user
+
+    # or install using pip from your python environment
 """
 
 #%%

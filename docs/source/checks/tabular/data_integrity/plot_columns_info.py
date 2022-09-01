@@ -17,7 +17,7 @@ This notebook provides an overview for using and understanding the columns info 
 
 #%%
 # What are columns info
-# ===============
+# =======================
 # The ``ColumnsInfo`` check returns the role and logical type of each column (e.g. date, categorical, numerical etc.).
 
 

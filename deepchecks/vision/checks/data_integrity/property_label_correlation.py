@@ -60,12 +60,14 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
     ----------
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     random_state: int, default: None
@@ -137,9 +139,9 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
         if context.with_display:
             top_to_show = s_ppscore.head(self.n_top_properties)
-
+            dataset = context.get_data_by_kind(dataset_kind)
             fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show))
-            fig.add_trace(pd_series_to_trace(top_to_show, dataset_kind.value))
+            fig.add_trace(pd_series_to_trace(top_to_show, dataset_kind.value, dataset.name))
 
             text = [
                 'The Predictive Power Score (PPS) is used to estimate the ability of an image property (such as '

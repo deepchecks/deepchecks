@@ -15,6 +15,14 @@ For more info, please visit the API reference page: :class:`~deepchecks.vision.V
     of the model. It is mainly used for checks that doesn't require them, such as
     :class:`~deepchecks.vision.checks.distribution.ImagePropertyDrift`
 
+Class Properties
+=================
+
+The common properties are:
+
+- **label_map** - A dictionary mapping class ids to their names.
+- **name** - The dataset name to present in the displays instead of Train or Test.
+
 Accepted Image Format
 ---------------------
 All checks in deepchecks require images in the same format. They use the :func:`~deepchecks.vision.VisionData.batch_to_images` function in order to get

@@ -50,10 +50,10 @@ our model is not missing on important information.
 from deepchecks.tabular.checks import UnusedFeatures
 from deepchecks.tabular.datasets.classification import adult
 
-train_ds, test_ds = adult.load_data()
+_, test_ds = adult.load_data()
 model = adult.load_fitted_model()
 
-result = UnusedFeatures(feature_variance_threshold=1.5).run(train_ds, test_ds, model)
+result = UnusedFeatures(feature_variance_threshold=1.5).run(test_ds, model)
 result.show()
 
 #%%
@@ -62,5 +62,5 @@ result.show()
 # We can define a condition that enforces that number of unused features with high variance is not greater than a given
 # amount, the default is 5.
 check = UnusedFeatures().add_condition_number_of_high_variance_unused_features_less_or_equal(5)
-result = check.run(train_ds, test_ds, model)
+result = check.run(test_ds, model)
 result.show(show_additional_outputs=False)

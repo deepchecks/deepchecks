@@ -132,7 +132,8 @@ class HeatmapComparison(TrainTestCheck):
 
         if context.with_display:
             # Add a display for the heatmap of the average grayscale image
-            display = [self.plot_row_of_heatmaps(train_grayscale, test_grayscale, 'Compare average image brightness')]
+            display = [self.plot_row_of_heatmaps(train_grayscale, test_grayscale, 'Compare average image brightness',
+                                                 [context.train.name, context.test.name])]
             display[0].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 255},
                                      coloraxis_colorbar={'title': 'Pixel Value'})
 
@@ -149,7 +150,8 @@ class HeatmapComparison(TrainTestCheck):
 
             if context.with_display:
                 display.append(
-                    self.plot_row_of_heatmaps(train_bbox, test_bbox, 'Compare average label bbox locations')
+                    self.plot_row_of_heatmaps(train_bbox, test_bbox, 'Compare average label bbox locations',
+                                              [context.train.name, context.test.name])
                 )
                 # bbox image values are frequency, between 0 and 100
                 display[1].update_layout(coloraxis={'colorscale': 'Inferno', 'cmin': 0, 'cmax': 100},
@@ -160,9 +162,10 @@ class HeatmapComparison(TrainTestCheck):
                            header='Heatmap Comparison')
 
     @staticmethod
-    def plot_row_of_heatmaps(train_img: np.ndarray, test_img: np.ndarray, title: str) -> go.Figure:
+    def plot_row_of_heatmaps(train_img: np.ndarray, test_img: np.ndarray, title: str, column_titles: List[str]) -> \
+            go.Figure:
         """Plot a row of heatmaps for train and test images."""
-        fig = make_subplots(rows=1, cols=2, column_titles=['Train', 'Test'])
+        fig = make_subplots(rows=1, cols=2, column_titles=column_titles)
         fig.add_trace(numpy_grayscale_to_heatmap_figure(train_img), row=1, col=1)
         fig.add_trace(numpy_grayscale_to_heatmap_figure(test_img), row=1, col=2)
         fig.update_yaxes(showticklabels=False, visible=True, fixedrange=True, automargin=True)

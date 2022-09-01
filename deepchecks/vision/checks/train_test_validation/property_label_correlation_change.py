@@ -68,12 +68,14 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
     ----------
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     per_class : bool, default: True
         boolean that indicates whether the results of this check should be calculated for all classes or per class in
         label. If True, the conditions will be run per class as well.
@@ -139,6 +141,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
 
+        dataset_names = (context.train.name, context.test.name)
         # PPS task type is inferred from label dtype. For most computer vision tasks, it's safe to assume that unless
         # the label is a float, then the task type is not regression and thus the label is cast to object dtype.
         # For the known task types (object detection, classification), classification is always selected.
@@ -180,7 +183,8 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                                                                          self.n_top_properties,
                                                                          min_pps_to_show=self.min_pps_to_show,
                                                                          random_state=self.random_state,
-                                                                         with_display=context.with_display)
+                                                                         with_display=context.with_display,
+                                                                         dataset_names=dataset_names)
         else:
             ret_value, display = get_feature_label_correlation(df_train,
                                                                'target',
@@ -190,7 +194,8 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                                                                self.n_top_properties,
                                                                min_pps_to_show=self.min_pps_to_show,
                                                                random_state=self.random_state,
-                                                               with_display=context.with_display)
+                                                               with_display=context.with_display,
+                                                               dataset_names=dataset_names)
 
         if display:
             display += text

@@ -317,3 +317,13 @@ def test_train_test_condition_pps_train_fail():
         name=f'Train features\' Predictive Power Score is less than {condition_value}',
         details='Found 1 out of 5 features in train dataset with PPS above threshold: {\'x2\': \'0.84\'}'
     ))
+
+
+def test_dataset_name(drifted_data_and_model):
+    df, df2, expected = util_generate_second_similar_dataframe_and_expected()
+
+    result = FeatureLabelCorrelationChange().run(train_dataset=Dataset(df, label='label', dataset_name='First'),
+                                                 test_dataset=Dataset(df2, label='label', dataset_name='Second'))
+
+    assert_that(result.display[0].data[0].name, 'First')
+    assert_that(result.display[0].data[1].name, 'Second')
