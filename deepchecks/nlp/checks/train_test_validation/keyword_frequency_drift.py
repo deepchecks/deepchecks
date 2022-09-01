@@ -14,6 +14,7 @@ import re
 from typing import List, Union
 
 import numpy as np
+import sklearn
 from nltk import word_tokenize
 from nltk.stem.lancaster import LancasterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -94,7 +95,10 @@ class KeywordFrequencyDrift(TrainTestCheck):
         max_test_counts = max_test_freqs * test_dataset.n_samples
 
         drift_score = self.drift_method(max_train_counts, max_test_counts, from_freqs=True)
-        vocab = vectorizer.get_feature_names_out()
+        if int(sklearn.__version__.split('.')[0]) >= 1:
+            vocab = vectorizer.get_feature_names_out()
+        else:
+            vocab = vectorizer.get_feature_names()
 
         if isinstance(self.top_n_method, List):
             top_n_idxs = [idx for idx, word in enumerate(vocab) if word in self.top_n_method]
