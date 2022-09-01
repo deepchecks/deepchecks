@@ -1050,7 +1050,7 @@ def test_cat_features_warning(iris, caplog):
     assert_that(caplog.records, has_length(1))
     
     
- def test_multiclass_label_as_integer_warning(caplog, n_samples=100, n_features=5):
+def test_multiclass_label_as_integer_warning(caplog, n_samples=100, n_features=5):
     # Test that warning is raised when the label type is integer
     # and there are more than 10 unique values
     x, *_ = make_classification(n_samples=n_samples, n_features=n_features)
