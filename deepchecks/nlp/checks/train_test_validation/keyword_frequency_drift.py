@@ -95,7 +95,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         max_test_counts = max_test_freqs * test_dataset.n_samples
 
         drift_score = self.drift_method(max_train_counts, max_test_counts, from_freqs=True)
-        if int(sklearn.__version__.split('.')[0]) >= 1:
+        if int(sklearn.__version__.split('.', maxsplit=1)[0]) >= 1:
             vocab = vectorizer.get_feature_names_out()
         else:
             vocab = vectorizer.get_feature_names()
