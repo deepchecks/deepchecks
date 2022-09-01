@@ -159,7 +159,7 @@ def test_regression(diabetes_split_dataset_and_model):
 def test_regression_positive_scorers(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
-    check = SingleDatasetPerformance(scorers=['mse', 'rmse', 'absolute_mean_squared_error'])
+    check = SingleDatasetPerformance(scorers=['mse', 'rmse', 'mae'])
     # Act
     result = check.run(test, model).value
     # Assert
