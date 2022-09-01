@@ -13,12 +13,10 @@
 import abc
 import html
 import io
-import multiprocessing
 import pathlib
-import platform
 import sys
 import typing as t
-from multiprocessing import get_all_start_methods, get_context, Process, process
+from multiprocessing import get_context, process
 from tempfile import NamedTemporaryFile
 
 import plotly.io as pio
@@ -262,9 +260,9 @@ def _open_file_in_window(filename: t.Union[str, pathlib.Path], exit_after: bool 
 def display_in_gui(result: DisplayableResult):
     """Display suite result or check result in a new python gui window."""
     try:
-        from PyQt5.QtCore import QUrl  # pylint: disable=import-outside-toplevel
-        from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
-        from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
+        from PyQt5.QtCore import QUrl  # pylint: disable=W0611,C0415 # noqa
+        from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=W0611,C0415 # noqa
+        from PyQt5.QtWidgets import QApplication  # pylint: disable=W0611,C0415 # noqa
     except ImportError:
         get_logger().error(
             'Missing packages in order to display result in GUI, '
@@ -272,9 +270,9 @@ def display_in_gui(result: DisplayableResult):
             'or use "result.save_as_html()" to save result'
         )
     else:
-        file = NamedTemporaryFile(suffix='.html', prefix='deepchecks-', delete=False)
-        result.save_as_html(io.TextIOWrapper(file))
-        filepath = file.name
+        with NamedTemporaryFile(suffix='.html', prefix='deepchecks-', delete=False) as file:
+            result.save_as_html(io.TextIOWrapper(file))
+            filepath = file.name
 
         # If running under "__filename__ == __main__" then we can spawn a new process. Else run the function directly.
         if getattr(process.current_process(), '_inheriting', False):
@@ -282,7 +280,6 @@ def display_in_gui(result: DisplayableResult):
         else:
             ctx = get_context('spawn')
             ctx.Process(target=_open_file_in_window, args=(str(filepath),)).start()
-
 
 
 def get_result_name(result) -> str:
