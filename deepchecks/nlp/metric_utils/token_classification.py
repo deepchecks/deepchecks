@@ -22,7 +22,6 @@ from deepchecks.nlp.text_data import TTokenLabel
 
 __all__ = ['get_default_token_scorers', 'validate_scorers', 'get_scorer_dict']
 
-
 DEFAULT_AVG_SCORER_NAMES = ('f1_macro', 'recall_macro', 'precision_macro')
 DEFAULT_PER_CLASS_SCORER_NAMES = ('f1_per_class', 'f1_per_class', 'f1_per_class')
 
@@ -57,10 +56,23 @@ class SpanAligner:
         self.processed_labels = None
         self.processed_predictions = None
         self.classes = set()
+        self._label_hash = 0
+        self._pred_hash = 0
+
+    @staticmethod
+    def _hash_token_annotations(token_annot: TTokenLabel) -> int:
+        """Hash token annotations to a unique integer."""
+        return hash(tuple(map(tuple, token_annot)))
 
     def fit(self, y_true: TTokenLabel, y_pred: 'TTokenPred'):
         """Fit the SpanAligner object to the labels and predictions of a specific dataset."""
+        # If fit was called in the past on the same labels and predictions, can skip fitting
+        if self._pred_hash == self._hash_token_annotations(y_pred) and \
+                self._label_hash == self._hash_token_annotations(y_true):
+            return
         self.processed_labels, self.processed_predictions = self._spans_to_token_list(y_true, y_pred)
+        self._label_hash = self._hash_token_annotations(y_true)
+        self._pred_hash = self._hash_token_annotations(y_pred)
 
         # Post process class list to match the class order received by seqeval metrics
         self.classes.discard('O')
@@ -122,8 +134,8 @@ class SpanAligner:
                                                        sorted_label_in_pred_index, mode='clip')
                 # Create a boolean array, telling us for each label_spans element whether it's prospective match in
                 # pred_spans are identical in span (start *and* end position), and in the token class itself.
-                bool_matching = np.array(list(map(hash, pred_spans)))[possible_matching_pred_index] ==\
-                    np.array(list(map(hash, label_spans)))
+                bool_matching = np.array(list(map(hash, pred_spans)))[possible_matching_pred_index] == \
+                                np.array(list(map(hash, label_spans)))
                 # Filter out predictions that do not match their corresponding labels or their threshold is too low.
                 # Predictions that where filtered are filled with 'O'.
                 sample_predictions = \
@@ -145,8 +157,9 @@ class SpanAligner:
 def make_modified_metric(metric: t.Callable[[t.List[t.List[str]], t.List[t.List[str]], t.Any], float],
                          span_aligner: SpanAligner, **kwargs) -> t.Callable:
     """Apply spans_to_token_list processing to the labels and predictions, and then pass them to the metric function."""
+
     def modified_metric(y_true: TTokenLabel, y_pred: 'TTokenPred'):
-        y_true_processed, y_pred_processed = span_aligner.fit_transform(y_true, y_pred,)
+        y_true_processed, y_pred_processed = span_aligner.fit_transform(y_true, y_pred, )
         return metric(y_true_processed, y_pred_processed, **kwargs)
 
     return modified_metric
@@ -185,17 +198,17 @@ def get_scorer_dict(span_aligner: SpanAligner,
     }
 
     return {
-            'token_accuracy': make_token_scorer(accuracy_score, span_aligner=span_aligner),
-            'token_f1_per_class':  make_token_scorer(f1_score, **common_kwargs, average=None),
-            'token_f1_macro': make_token_scorer(f1_score, **common_kwargs, average='macro'),
-            'token_f1_micro':  make_token_scorer(f1_score, **common_kwargs, average='micro'),
-            'token_precision_per_class':  make_token_scorer(precision_score, **common_kwargs, average=None),
-            'token_precision_macro': make_token_scorer(precision_score, **common_kwargs, average='macro'),
-            'token_precision_micro':  make_token_scorer(precision_score, **common_kwargs, average='micro'),
-            'token_recall_per_class':  make_token_scorer(recall_score, **common_kwargs, average=None),
-            'token_recall_macro': make_token_scorer(recall_score, **common_kwargs, average='macro'),
-            'token_recall_micro':  make_token_scorer(recall_score, **common_kwargs, average='micro'),
-           }
+        'token_accuracy': make_token_scorer(accuracy_score, span_aligner=span_aligner),
+        'token_f1_per_class': make_token_scorer(f1_score, **common_kwargs, average=None),
+        'token_f1_macro': make_token_scorer(f1_score, **common_kwargs, average='macro'),
+        'token_f1_micro': make_token_scorer(f1_score, **common_kwargs, average='micro'),
+        'token_precision_per_class': make_token_scorer(precision_score, **common_kwargs, average=None),
+        'token_precision_macro': make_token_scorer(precision_score, **common_kwargs, average='macro'),
+        'token_precision_micro': make_token_scorer(precision_score, **common_kwargs, average='micro'),
+        'token_recall_per_class': make_token_scorer(recall_score, **common_kwargs, average=None),
+        'token_recall_macro': make_token_scorer(recall_score, **common_kwargs, average='macro'),
+        'token_recall_micro': make_token_scorer(recall_score, **common_kwargs, average='micro'),
+    }
 
 
 def validate_scorers(scorers: t.List[str], span_aligner: SpanAligner):

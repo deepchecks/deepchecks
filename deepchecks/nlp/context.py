@@ -327,6 +327,8 @@ class Context(BaseContext):
         self._validated_model = False
         self._task_type = None
         self._with_display = with_display
+        # Init a span aligner object for the run
+        self._span_aligner = SpanAligner()
 
     @property
     def model(self) -> _DummyModel:
@@ -339,6 +341,11 @@ class Context(BaseContext):
     def model_name(self) -> str:
         """Return the name of the model."""
         return 'Pre-computed predictions'
+
+    @property
+    def span_aligner(self) -> SpanAligner:
+        """Return the cached SpanAligner object"""
+        return self._span_aligner
 
     @property
     def task_type(self) -> TaskType:
