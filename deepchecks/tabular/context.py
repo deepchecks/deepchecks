@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
+import sys
 import typing as t
 
 import numpy as np
@@ -58,6 +59,7 @@ class _DummyModel:
     feature_df_list: t.List[pd.DataFrame]
     predictions: pd.DataFrame
     proba: pd.DataFrame
+    classes_: t.List[t.Hashable]
 
     def __init__(self,
                  test: Dataset,
@@ -102,6 +104,7 @@ class _DummyModel:
                         probas.append(proba_df)
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
+        self.classes_ = sorted(set(self.predictions))
         self.probas = pd.concat(probas, axis=0) if probas else None
         self.feature_df_list = feature_df_list
         self.validate_data_on_predict = validate_data_on_predict
