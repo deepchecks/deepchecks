@@ -20,7 +20,7 @@ from sklearn.metrics import make_scorer
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TTokenLabel
 
-__all__ = ['get_default_token_scorers']
+__all__ = ['get_default_token_scorers', 'validate_scorers', 'get_scorer_dict']
 
 
 DEFAULT_AVG_SCORER_NAMES = ('f1_macro', 'recall_macro', 'precision_macro')
@@ -198,16 +198,20 @@ def get_scorer_dict(span_aligner: SpanAligner,
            }
 
 
-def get_default_token_scorers(scorers: t.List[str], span_aligner: SpanAligner, use_avg_defaults=True,
-                              ) -> t.Dict[str, t.Callable[[t.List[str], t.List[str]], float]]:
-    """Return the default scorers for token classification."""
+def validate_scorers(scorers: t.List[str], span_aligner: SpanAligner):
+    """Validate the given scorer list"""
     scoring_dict = get_scorer_dict(span_aligner)
-    names_to_get = scorers or (DEFAULT_AVG_SCORER_NAMES if use_avg_defaults else DEFAULT_PER_CLASS_SCORER_NAMES)
-    if not isinstance(names_to_get, Sequence):
+
+    if not isinstance(scorers, Sequence):
         raise DeepchecksValueError(f'Scorers must be a Sequence, got {type(scorers)}')
-    if not all(isinstance(name, str) for name in names_to_get):
-        raise DeepchecksValueError(f'Scorers must be a Sequence of strings, got {type(names_to_get[0])}')
-    if any(name not in scoring_dict for name in names_to_get):
+    if not all(isinstance(name, str) for name in scorers):
+        raise DeepchecksValueError(f'Scorers must be a Sequence of strings, got {type(scorers[0])}')
+    if any(name not in scoring_dict for name in scorers):
         raise DeepchecksValueError(f'Scorers must be a list of names of existing token classification metrics, which '
-                                   f'is {scoring_dict.keys()}, got {names_to_get}')
-    return {name: scoring_dict[name] for name in names_to_get}
+                                   f'is {scoring_dict.keys()}, got {scorers}')
+
+
+def get_default_token_scorers(use_avg_defaults=True) -> t.List[str]:
+    """Return the default scorers for token classification."""
+
+    return DEFAULT_AVG_SCORER_NAMES if use_avg_defaults else DEFAULT_PER_CLASS_SCORER_NAMES

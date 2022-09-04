@@ -19,7 +19,8 @@ from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
-from deepchecks.nlp.metric_utils.token_classification import get_default_token_scorers, SpanAligner
+from deepchecks.nlp.metric_utils.token_classification import get_default_token_scorers, SpanAligner, validate_scorers, \
+    get_scorer_dict
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
@@ -397,7 +398,12 @@ class Context(BaseContext):
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
         elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            scorers = get_default_token_scorers(scorers, span_aligner, use_avg_defaults)
+            scoring_dict = get_scorer_dict(span_aligner)
+            if scorers is None:
+                scorers = get_default_token_scorers(use_avg_defaults)  # Get string names of default scorers
+            else:
+                validate_scorers(scorers, span_aligner)  # Validate that use supplied scorer names are OK
+            scorers = {name: scoring_dict[name] for name in scorers}
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
                                        f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')
