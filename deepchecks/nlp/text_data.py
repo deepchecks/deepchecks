@@ -322,10 +322,11 @@ class TextData:
     @staticmethod
     def get_tokens(token_annotations: t.Sequence[t.Sequence[t.Tuple[str, int, int, t.Any]]]) -> t.Set[str]:
         """Return the token strings from token classification labels or predictions."""
-        return set().union(*[
-            set().union(*[{annotation[0]} for annotation in sample_annotation])
-            for sample_annotation in token_annotations
-        ])
+        tokens = set()
+        for sample_annotations in token_annotations:
+            for annotation in sample_annotations:
+                tokens.update(annotation[0])
+        return tokens
 
 
     @property
