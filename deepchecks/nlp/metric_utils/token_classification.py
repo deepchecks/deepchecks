@@ -121,7 +121,7 @@ class SpanAligner:
             label_spans = [(annotation[1], annotation[2]) for annotation in sample_y_true]
             pred_spans = [(annotation[1], annotation[2]) for annotation in sample_y_pred]
 
-            # Here we want to find the prediction spans that match specific label spans, and discard to rest.
+            # Here we want to find the prediction spans that match specific label spans, and discard the rest.
             # We want to do that in O(N*log(N)) - assuming both lists are of length N approximately. Thus, the use of
             # np.searchsorted
             if len(sample_y_true) > 0:
