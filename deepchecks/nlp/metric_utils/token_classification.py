@@ -15,7 +15,6 @@ from collections.abc import Sequence
 import numpy as np
 from seqeval.metrics import accuracy_score, f1_score, precision_score, recall_score
 from seqeval.scheme import Token
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -29,7 +28,10 @@ DEFAULT_PER_CLASS_SCORER_NAMES = ('f1_per_class', 'f1_per_class', 'f1_per_class'
 
 
 class SpanAligner:
-    """An object for transforming the labels and predictions of a specific dataset"""
+    """An object for transforming the labels and predictions of a specific dataset.
+
+    Labels come in the deepchecks accepted format and are returned as a list of lists of string annotations.
+    """
 
     def __init__(self, strict_alignment: bool = True, proba_threshold: float = 0.):
         """Initialize the SpanAligner object.
@@ -47,10 +49,8 @@ class SpanAligner:
         if not strict_alignment:
             # TODO: Implement non-strict alignment, probably using https://github.com/biocore-ntnu/ncls or similar
             raise NotImplementedError('Non Strict alignment is not yet implemented')
-        if not isinstance(proba_threshold, float):
-            raise TypeError('proba_threshold must be a float')
-        if proba_threshold < 0 or proba_threshold > 1:
-            raise ValueError('proba_threshold must be between 0 and 1')
+        if (not isinstance(proba_threshold, float)) or (proba_threshold < 0) or (proba_threshold > 1):
+            raise TypeError('proba_threshold must be a float between 0 and 1')
 
         self.strict_alignment = strict_alignment
         self.proba_threshold = proba_threshold
@@ -66,12 +66,16 @@ class SpanAligner:
         self.classes.discard('O')
         self.classes = sorted(list(self.classes))
 
+    def get_transformed(self) -> t.Tuple[t.List[t.List[str]], t.List[t.List[str]]]:
+        """Get the precomputed transformed labels and predictions."""
+        return self.processed_labels, self.processed_predictions
+
     def fit_transform(self, y_true: TTokenLabel, y_pred: 'TTokenPred'
                       ) -> t.Tuple[t.List[t.List[str]], t.List[t.List[str]]]:
         """Fit (if necessary) and transform the labels and predictions of a specific dataset."""
         if self.processed_labels is None or self.processed_predictions is None:
             self.fit(y_true, y_pred)
-        return self.processed_labels, self.processed_predictions
+        return self.get_transformed()
 
     def _spans_to_token_list(self, y_true: TTokenLabel, y_pred: 'TTokenPred',
                              ) -> t.Tuple[t.List[t.List[str]], t.List[t.List[str]]]:
@@ -80,41 +84,52 @@ class SpanAligner:
         Parameters:
         -----------
             y_true: TTokenLabel
-                Labels as provided by the user in the accepted format
+                Labels as provided by the user in the accepted deepchecks format (TTokenLabel, detailed in TextData)
             y_pred: TTokenPred
-                Predictions as provided by the user in the accepted format
+                Predictions as provided by the user in the accepted format (TTokenPred, detailed in _shared_docs.py)
 
         Returns:
         --------
-            A tuple of processed labels and processed predictions.
+            A tuple of processed labels and processed predictions, each a list of lists of string annotations.
         """
         if not len(y_true) == len(y_pred):
-            raise DeepchecksValueError(f'Must have both a label entry and a prediction entry for each sample, but found '
-                                       f'{len(y_true)} label entries and {len(y_pred)} prediction entries')
+            raise DeepchecksValueError(f'Must have both a label entry and a prediction entry for each sample, but '
+                                       f'found {len(y_true)} label entries and {len(y_pred)} prediction entries')
 
         labels = []
         predictions = []
         for sample_idx in range(len(y_true)):
+            # Sort label and predictions by the starting position of the span
             sample_y_true = sorted(y_true[sample_idx], key=lambda x: x[1])
             sample_y_pred = sorted(y_pred[sample_idx], key=lambda x: x[1])
             sample_labels = [annotation[0] for annotation in sample_y_true]
             labels.append(sample_labels)
 
+            # A list of the spans, sorted by their starting position
             label_spans = [(annotation[1], annotation[2]) for annotation in sample_y_true]
             pred_spans = [(annotation[1], annotation[2]) for annotation in sample_y_pred]
 
+            # Here we want to find the prediction spans that match specific label spans, and discard to rest.
+            # We want to do that in O(N*log(N)) - assuming both lists are of length N approximately. Thus, the use of
+            # np.searchsorted
             if len(sample_y_true) > 0:
-                # Indices of where to place elements of pred_spans in label_spans so that it's sorted
-                sorted_index = np.searchsorted(list(map(lambda x: x[0], pred_spans)),
-                                               list(map(lambda x: x[0], label_spans)), side='left')
-                # Elements of sample_y_pred that match their counterparts in label_spans
-                pred_index = np.take(np.arange(len(pred_spans)), sorted_index, mode='clip')
-                bool_matching = np.array(list(map(hash, pred_spans)))[pred_index] == np.array(list(map(hash, label_spans)))
+                # Indices of where to place elements of label_spans in pred_spans so that pred_spans is still sorted.
+                sorted_label_in_pred_index = np.searchsorted(list(map(lambda x: x[0], pred_spans)),
+                                                             list(map(lambda x: x[0], label_spans)), side='left')
+                # Take the indices of the elements of pred_spans that are currently in these positions, meaning
+                # the prospective matches for each of the elements of label_spans
+                possible_matching_pred_index = np.take(np.arange(len(pred_spans)),
+                                                       sorted_label_in_pred_index, mode='clip')
+                # Create a boolean array, telling us for each label_spans element whether it's prospective match in
+                # pred_spans are identical in span (start *and* end position), and in the token class itself.
+                bool_matching = np.array(list(map(hash, pred_spans)))[possible_matching_pred_index] ==\
+                    np.array(list(map(hash, label_spans)))
                 # Filter out predictions that do not match their corresponding labels or their threshold is too low.
                 # Predictions that where filtered are filled with 'O'.
                 sample_predictions = \
-                    [sample_y_pred[pred_index[idx]][0] if
-                     ((sample_y_pred[pred_index[idx]][3] >= self.proba_threshold) and bool_matching[idx]) else 'O'
+                    [sample_y_pred[possible_matching_pred_index[idx]][0] if
+                     ((sample_y_pred[possible_matching_pred_index[idx]][3] >= self.proba_threshold)
+                      and bool_matching[idx]) else 'O'
                      for idx in range(len(sample_y_true))]
             else:
                 sample_predictions = []
