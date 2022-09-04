@@ -104,8 +104,9 @@ class _DummyModel:
                         probas.append(proba_df)
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
-        self.classes_ = sorted(set(self.predictions))
         self.probas = pd.concat(probas, axis=0) if probas else None
+        self.classes_ = None if self.probas is None else sorted(set(self.predictions))
+
         self.feature_df_list = feature_df_list
         self.validate_data_on_predict = validate_data_on_predict
 
