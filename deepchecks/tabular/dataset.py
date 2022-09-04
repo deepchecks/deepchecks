@@ -49,9 +49,11 @@ class Dataset:
         label column provided either as a string with the name of an existing column in the DataFrame or a label
         object including the label data (pandas Series/DataFrame or a numpy array) that will be concatenated to the
         data in the DataFrame. in case of label data the following logic is applied to set the label name:
+
         - Series: takes the series name or 'target' if name is empty
         - DataFrame: expect single column in the dataframe and use its name
         - numpy: use 'target'
+
     features : t.Optional[t.Sequence[Hashable]] , default: None
         List of names for the feature columns in the DataFrame.
     cat_features : t.Optional[t.Sequence[Hashable]] , default: None
@@ -116,7 +118,8 @@ class Dataset:
             datetime_args: t.Optional[t.Dict] = None,
             max_categorical_ratio: float = 0.01,
             max_categories: int = None,
-            label_type: str = None
+            label_type: str = None,
+            dataset_name: t.Optional[str] = None
     ):
 
         if len(df) == 0:
@@ -246,6 +249,11 @@ class Dataset:
         self._max_categories = max_categories
 
         self._classes = None
+
+        if isinstance(dataset_name, str) or (dataset_name is None):
+            self.name = dataset_name
+        else:
+            raise DeepchecksValueError('The dataset_name parameter accepts a string or None.')
 
         if self._label_name in self.features:
             raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
@@ -439,7 +447,7 @@ class Dataset:
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories, label_type=label_type)
+                   max_categories=self._max_categories, label_type=label_type, dataset_name=self.name)
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:

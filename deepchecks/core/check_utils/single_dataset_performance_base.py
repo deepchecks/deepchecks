@@ -13,8 +13,9 @@ from abc import ABC
 from typing import Dict, List, Optional
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, SingleDatasetBaseCheck
-from deepchecks.core.checks import CheckConfig, ReduceMixin  # pylint: disable=unused-import
+from deepchecks.core.checks import CheckConfig  # pylint: disable=unused-import
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import format_number
 

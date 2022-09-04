@@ -74,13 +74,13 @@ train_ds, test_ds = classification_dataset_from_directory(
     root='./EuroSAT/euroSAT/', object_type='VisionData', image_extension='jpg')
 
 #%%
-# Running Deepchecks' train_test_validation suite
-# ===============================================
+# Running Deepchecks' ``train_test_validation`` suite
+# ====================================================
 # That's it, we have just defined the classification data object and are ready can run the different deepchecks suites
 # and checks. Here we will demonstrate how to run train_test_validation suite:
 #
 # for additional information on the different suites and checks available see our
-# :doc:`check gallery </checks_gallery/vision>`
+# :doc:`Vision Checks </checks_gallery/vision>` gallery.
 
 from deepchecks.vision.suites import train_test_validation
 
@@ -88,7 +88,7 @@ suite = train_test_validation()
 result = suite.run(train_ds, test_ds)
 
 #%%
-# Observing the Results:
+# Observing the Results
 # ======================
 # The results can be saved as a html file with the following code:
 
@@ -100,7 +100,7 @@ result.save_as_html('output.html')
 result.show()
 
 #%%
-# Understanding the Results:
+# Understanding the Results
 # ===========================
 # Looking at the results we see two checks whose conditions have failed:
 #
@@ -111,7 +111,7 @@ result.show()
 # and the prevailing green of some forest images. We may wish to remove some of these duplicate images but for this
 # dataset they make sense.
 #
-# The second failure is more interesting. The :doc:`Feature Label Correlation Change
+# The second failure is more interesting. The :doc:`Property Label Correlation Change
 # </checks_gallery/vision/train_test_validation/plot_property_label_correlation_change>` check computes various
 # :doc:`image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using

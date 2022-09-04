@@ -114,7 +114,7 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
 
 
 def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-                                       min_category_size_ratio: float = 0, max_num_categories: int = None,
+                                       min_category_size_ratio: float = 0., max_num_categories: int = None,
                                        sort_by: str = 'dist1'
                                        ) -> Tuple[np.ndarray, np.ndarray, List]:
     """
@@ -131,7 +131,7 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         list of values from the first distribution.
     dist2: Union[np.ndarray, pd.Series]
         list of values from the second distribution.
-    min_category_size_ratio: float, default 0.01
+    min_category_size_ratio: float, default 0
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
     max_num_categories: int, default: None
@@ -159,8 +159,9 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         list of all categories that the percentages represent.
 
     """
-    categories_list = list(set(dist1).union(set(dist2)))
     dist1_counter, dist2_counter = Counter(dist1), Counter(dist2)
+    size_dist1, size_dist2 = len(dist1), len(dist2)
+    categories_list = list(set(dist1_counter.keys()) | (set(dist2_counter.keys())))
 
     if max_num_categories is not None and len(categories_list) > max_num_categories:
         if sort_by == 'dist1':
@@ -177,18 +178,18 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         categories_list = [x[0] for x in sorted(sort_by_counter.items(), key=lambda x: (-x[1], x[0]))][
                           :max_num_categories]
         dist1_counter = Counter({k: dist1_counter[k] for k in categories_list})
-        dist1_counter[OTHER_CATEGORY_NAME] = len(dist1) - sum(dist1_counter.values())
+        dist1_counter[OTHER_CATEGORY_NAME] = size_dist1 - sum(dist1_counter.values())
         dist2_counter = Counter({k: dist2_counter[k] for k in categories_list})
-        dist2_counter[OTHER_CATEGORY_NAME] = len(dist2) - sum(dist2_counter.values())
+        dist2_counter[OTHER_CATEGORY_NAME] = size_dist2 - sum(dist2_counter.values())
 
     for cat in copy.deepcopy(categories_list):
-        if dist1_counter[cat] < len(dist1) * min_category_size_ratio:
+        if dist1_counter[cat] < size_dist1 * min_category_size_ratio:
             dist1_counter[OTHER_CATEGORY_NAME] += dist1_counter[cat]
             dist2_counter[OTHER_CATEGORY_NAME] += dist2_counter[cat]
             categories_list.remove(cat)
 
-    if dist1_counter[OTHER_CATEGORY_NAME] > min_category_size_ratio or \
-            dist2_counter[OTHER_CATEGORY_NAME] > min_category_size_ratio:
+    if dist1_counter[OTHER_CATEGORY_NAME] > (min_category_size_ratio * size_dist1) or \
+            dist2_counter[OTHER_CATEGORY_NAME] > (min_category_size_ratio * size_dist2):
         categories_list.append(OTHER_CATEGORY_NAME)
 
     # aligns both counts to the same index

@@ -114,3 +114,13 @@ def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, device):
     brightness_diff = result.value["diff"]
     assert_that(brightness_diff.mean(), close_to(1.095, 0.001))
     assert_that(brightness_diff.max(), close_to(9, 0.001))
+
+
+def test_dataset_name(mnist_dataset_train, mnist_dataset_test, device):
+    mnist_dataset_train.name = 'Ref'
+    mnist_dataset_test.name = 'Win'
+
+    result = HeatmapComparison().run(mnist_dataset_train, mnist_dataset_test, device=device)
+
+    assert_that(result.display[0].layout.annotations[0].text, 'Ref')
+    assert_that(result.display[0].layout.annotations[1].text, 'Win')

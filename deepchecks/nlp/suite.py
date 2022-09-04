@@ -42,6 +42,8 @@ class Suite(BaseSuite):
         test_predictions: Optional[TTextPred] = None,
         train_probabilities: Optional[TTextProba] = None,
         test_probabilities: Optional[TTextProba] = None,
+        random_state: int = 42,
+        n_samples: Optional[int] = 10_000
     ) -> SuiteResult:
         """Run all checks.
 
@@ -61,6 +63,10 @@ class Suite(BaseSuite):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
+        random_state : int, default 42
+            A seed to set for pseudo-random functions, primarily sampling.
+        n_samples: int, default: 10_000
+            The number of samples to use within the checks.
 
         {prediction_formats:2*indent}
 
@@ -77,6 +83,8 @@ class Suite(BaseSuite):
             train_proba=train_probabilities,
             test_proba=test_probabilities,
             with_display=with_display,
+            n_samples=n_samples,
+            random_state=random_state
         )
 
         progress_bar = create_progress_bar(

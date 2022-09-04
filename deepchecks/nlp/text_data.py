@@ -87,17 +87,22 @@ class TextData:
     ):
 
         # Require explicitly setting task type if label is provided
-        if task_type is None:
+        if task_type in [None, 'other']:
             if label is not None:
-                raise DeepchecksValueError('task_type must be set when label is provided')
-            self._task_type = None
+                if isinstance(label, t.Sequence):
+                    if pd.notnull(label).any():
+                        raise DeepchecksValueError('task_type must be set when label is provided')
+                else:
+                    raise DeepchecksValueError('task_type must be set when label is provided')
+
+            self._task_type = TaskType.OTHER
         elif task_type == 'text_classification':
             self._task_type = TaskType.TEXT_CLASSIFICATION
         elif task_type == 'token_classification':
             self._task_type = TaskType.TOKEN_CLASSIFICATION
         else:
             raise DeepchecksNotSupportedError(f'task_type {task_type} is not supported, must be one of '
-                                              f'text_classification, token_classification')
+                                              f'text_classification, token_classification, other')
 
         self._validate_text(raw_text)
         self._text = raw_text
@@ -179,25 +184,12 @@ class TextData:
                     'label for displays, but the same effect can be achieved by passing the intended labels in the '
                     'label argument.'
                 )
-            found_classes = self.classes
-            if len(found_classes) != len(classes):
-                raise DeepchecksValueError('classes must be the same length as the number of classes in the label')
 
             self._classes = list(classes)
 
     def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None, label: t.Optional[TTextLabel] = None,
              index: t.Optional[t.Sequence[int]] = None) -> TDataset:
-        """Create a copy of this Dataset with new data.
-
-        Parameters
-        ----------
-        new_data (TTextDataset): new data from which new dataset will be created
-
-        Returns
-        -------
-        Dataset
-            new dataset instance
-        """
+        """Create a copy of this Dataset with new data."""
         cls = type(self)
         if raw_text is None:
             raw_text = self.text
@@ -205,7 +197,10 @@ class TextData:
             label = self.label
         if index is None:
             index = self.index
-        return cls(raw_text, label, self._task_type.value, self.classes, self.name, index)
+        get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
+        new_copy = cls(raw_text, label, self._task_type.value, self.classes, self.name, index)
+        get_logger().disabled = False
+        return new_copy
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:

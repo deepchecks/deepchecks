@@ -16,7 +16,7 @@ a pythonic value. Then, a condition can be defined on that value to determine if
 3. `Check Display <#check-display>`__
 4. `Defining a Condition <#defining-a-condition>`__
 5. `Base Checks Types <#base-checks-types>`__
-6. :doc:`Custom Check Templates </user-guide/vision/custom_check_templates>`
+6. :ref:`vision__custom_check_templates`
 
 Vision Checks Structure
 ========================
@@ -55,7 +55,7 @@ The Batch objects contains processed data from the dataloader, such as the image
 For some checks, such as the one shown in this example, the Context object is not needed.
 
 For more examples of using the Context and Batch objects for different types of base checks, see the
-`Custom Check Templates <../../../user-guide/vision/custom_check_templates.html>`__ guide.
+:ref:`vision__custom_check_templates` guide.
 
 Check Example
 --------------

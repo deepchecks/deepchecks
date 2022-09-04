@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing additional classification metrics that can be used via scorers."""
-
 from typing import Union
 
 import numpy as np

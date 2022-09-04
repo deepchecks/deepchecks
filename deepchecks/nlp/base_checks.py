@@ -37,6 +37,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         with_display: bool = True,
         predictions: Optional[TTextPred] = None,
         probabilities: Optional[TTextProba] = None,
+        random_state: int = 42,
+        n_samples: Optional[int] = 10_000
     ) -> CheckResult:
         """Run check.
 
@@ -52,6 +54,10 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             predictions on dataset
         probabilities: Union[TTextProba, None] , default: None
             probabilities on dataset
+        random_state : int, default 42
+            A seed to set for pseudo-random functions, primarily sampling.
+        n_samples: int, default: 10_000
+            The number of samples to use within the check.
 
         {prediction_formats:2*indent}
         """
@@ -61,6 +67,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             with_display=with_display,
             train_pred=predictions,
             train_proba=probabilities,
+            n_samples=n_samples,
+            random_state=random_state
         )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
         context.finalize_check_result(result, self, DatasetKind.TRAIN)
@@ -91,6 +99,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_predictions: Optional[TTextPred] = None,
         train_probabilities: Optional[TTextProba] = None,
         test_probabilities: Optional[TTextProba] = None,
+        random_state: int = 42,
+        n_samples: Optional[int] = 10_000
     ) -> CheckResult:
         """Run check.
 
@@ -112,6 +122,10 @@ class TrainTestCheck(TrainTestBaseCheck):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
+        random_state : int, default 42
+            A seed to set for pseudo-random functions, primarily sampling.
+        n_samples: int, default: 10_000
+            The number of samples to use within the check.
 
         {prediction_formats:2*indent}
         """
@@ -123,6 +137,8 @@ class TrainTestCheck(TrainTestBaseCheck):
             test_pred=test_predictions,
             train_proba=train_probabilities,
             test_proba=test_probabilities,
+            n_samples=n_samples,
+            random_state=random_state,
             with_display=with_display,
         )
         result = self.run_logic(context)

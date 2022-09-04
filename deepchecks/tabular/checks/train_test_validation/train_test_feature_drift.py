@@ -14,20 +14,19 @@ import warnings
 from collections import OrderedDict
 from typing import Dict, List, Union
 
-import numpy as np
+import pandas as pd
 
 from deepchecks.core import CheckResult
-from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
-from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']
 
 
-class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
+class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
@@ -86,7 +85,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: str, default: "l2_weighted"
+    aggregation_method: str, default: 'l2_weighted'
         argument for the reduce_output functionality, decides how to aggregate the drift scores for a
         collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
         Possible values are:
@@ -227,6 +226,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
                 categorical_drift_method=self.categorical_drift_method,
                 ignore_na=self.ignore_na,
                 with_display=context.with_display,
+                dataset_names=(train_dataset.name, test_dataset.name)
             )
             values_dict[column] = {
                 'Drift score': value,
@@ -267,27 +267,10 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        drift_values = [col['Drift score'] for col in check_result.value.values()]
-        feature_names = list(check_result.value.keys())
-        if self.aggregation_method == 'none':
-            return dict(zip(feature_names, drift_values))
-        elif self.aggregation_method == 'mean':
-            return {'Mean Drift Score': np.mean(drift_values)}
-        elif self.aggregation_method == 'max':
-            return {'Max Drift Score': np.max(drift_values)}
-
-        feature_importance = [col['Importance'] for col in check_result.value.values()]
-        if self.aggregation_method in ['weighted', 'l2_weighted'] and None in feature_importance:
-            get_logger().warning(
-                    'Failed to calculate feature importance to all features, using uniform mean instead.')
-            return {'Mean Drift Score': np.mean(drift_values)}
-        elif self.aggregation_method == 'weighted':
-            return {'Weighted Drift Score': np.sum(np.array(drift_values) * np.array(feature_importance))}
-        elif self.aggregation_method == 'l2_weighted':
-            sum_drift_fi = np.array(drift_values) + np.array(feature_importance)
-            return {'L2 Weighted Drift Score': np.linalg.norm(sum_drift_fi) - np.linalg.norm(feature_importance)}
-        else:
-            raise DeepchecksValueError(f'Unknown aggregation method: {self.aggregation_method}')
+        feature_importance = [column_info['Importance'] for column_info in check_result.value.values()]
+        feature_importance = None if None in feature_importance else feature_importance
+        values = pd.Series({column: info['Drift score'] for column, info in check_result.value.items()})
+        return self.feature_reduce(self.aggregation_method, values, feature_importance, 'Drift Score')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
                                             max_allowed_numeric_score: float = 0.1,

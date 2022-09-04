@@ -64,6 +64,8 @@ What is a problematic result?
    feature to be the time relative to the local time zone, thus fixing its
    predictive power and improving the model's overall performance.
 
+.. _plot_tabular_feature_label_correlation_change__how_is_the_predictive_power_score_pps_calculated:
+
 How is the Predictive Power Score (PPS) calculated?
 ===================================================
 The features' predictive score results in a numeric score between 0 (feature

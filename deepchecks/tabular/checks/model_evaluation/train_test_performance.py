@@ -19,11 +19,12 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_utils.class_performance_utils import (
     get_condition_class_performance_imbalance_ratio_less_than, get_condition_test_performance_greater_than,
     get_condition_train_test_relative_degradation_less_than)
-from deepchecks.core.checks import CheckConfig, DatasetKind, ReduceMixin
+from deepchecks.core.checks import CheckConfig, DatasetKind
+from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
 from deepchecks.utils.docref import doclink
-from deepchecks.utils.plot import colors
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['TrainTestPerformance']
@@ -47,7 +48,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
     Notes
     -----
     Scorers are a convention of sklearn to evaluate a model.
-    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_
+    `See scorers documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`__
     A scorer is a function which accepts (model, X, y_true) and returns a float result which is the score.
     For every scorer higher scores are better than lower scores.
 
@@ -112,9 +113,13 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 
         if context.with_display:
+            results_df_for_display = results_df.copy()
+            results_df_for_display['Dataset']\
+                .replace({DEFAULT_DATASET_NAMES[0]: train_dataset.name, DEFAULT_DATASET_NAMES[1]: test_dataset.name},
+                         inplace=True)
             figs = []
-            data_scorers_per_class = results_df[results_df['Class'].notna()]
-            data_scorers_per_dataset = results_df[results_df['Class'].isna()].drop(columns=['Class'])
+            data_scorers_per_class = results_df_for_display[results_df['Class'].notna()]
+            data_scorers_per_dataset = results_df_for_display[results_df['Class'].isna()].drop(columns=['Class'])
             for data in [data_scorers_per_dataset, data_scorers_per_class]:
                 if data.shape[0] == 0:
                     continue
@@ -127,7 +132,8 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
                     facet_col='Metric',
                     facet_col_spacing=0.05,
                     hover_data=['Number of samples'],
-                    color_discrete_map={'Train': colors['Train'], 'Test': colors['Test']},
+                    color_discrete_map={train_dataset.name: colors[DEFAULT_DATASET_NAMES[0]],
+                                        test_dataset.name: colors[DEFAULT_DATASET_NAMES[1]]},
                 )
                 if 'Class' in data.columns:
                     fig.update_xaxes(tickprefix='Class ', tickangle=60)

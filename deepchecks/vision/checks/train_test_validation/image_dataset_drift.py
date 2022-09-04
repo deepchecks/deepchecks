@@ -42,10 +42,12 @@ class ImageDatasetDrift(TrainTestCheck):
         List of properties. Replaces the default deepchecks properties.
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of:
+
         - 'numeric' - for continuous ordinal outputs.
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
+
+        For more on image / label properties, see the guide about :doc:`/user-guide/vision/vision_properties`
     n_top_properties : int , default: 3
         Amount of properties to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
@@ -60,9 +62,11 @@ class ImageDatasetDrift(TrainTestCheck):
     show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
+
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
+
     test_size : float , default: 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
     min_meaningful_drift_score : float , default 0.05
@@ -141,6 +145,7 @@ class ImageDatasetDrift(TrainTestCheck):
             else:
                 categorical_features.append(prop['name'])
 
+        dataset_names = (context.train.name, context.test.name)
         values_dict, displays = run_whole_dataset_drift(
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=numeric_features,
             cat_features=categorical_features, sample_size=sample_size, random_state=context.random_state,
@@ -148,7 +153,8 @@ class ImageDatasetDrift(TrainTestCheck):
             min_feature_importance=self.min_feature_importance,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by, min_meaningful_drift_score=self.min_meaningful_drift_score,
-            with_display=context.with_display
+            with_display=context.with_display,
+            dataset_names=dataset_names
         )
 
         if displays:

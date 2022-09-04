@@ -10,12 +10,14 @@
 #
 """Utils module containing utilities for checks working with scorers."""
 import typing as t
+import warnings
 from numbers import Number
 
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.metrics import f1_score, get_scorer, make_scorer, precision_score, recall_score
+from sklearn.metrics import (f1_score, get_scorer, make_scorer, mean_absolute_error, mean_squared_error,
+                             precision_score, recall_score)
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
@@ -41,7 +43,6 @@ __all__ = [
     'init_validate_scorers',
     'get_default_scorers'
 ]
-
 
 DEFAULT_BINARY_SCORERS = {
     'Accuracy': 'accuracy',
@@ -73,10 +74,21 @@ DEFAULT_SCORERS_DICT = {
     TaskType.REGRESSION: DEFAULT_REGRESSION_SCORERS
 }
 
+_regression_scorers_lower_is_better_dict = {
+    'mean_squared_error': make_scorer(mean_squared_error, squared=True),
+    'mse': make_scorer(mean_squared_error, squared=True),
+    'root_mean_squared_error': make_scorer(mean_squared_error, squared=False),
+    'rmse': make_scorer(mean_squared_error, squared=False),
+    'mae': make_scorer(mean_absolute_error),
+    'mean_absolute_error': make_scorer(mean_absolute_error),
+}
 
-_func_dict = {
-    'neg_rmse': 'neg_root_mean_squared_error',
-    'neg_mae': 'neg_mean_absolute_error',
+_regression_scorers_higher_is_better_dict = {
+    'neg_rmse': get_scorer('neg_root_mean_squared_error'),
+    'neg_mae': get_scorer('neg_mean_absolute_error'),
+}
+
+_classification_scorers_dict = {
     'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
     'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
     'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
@@ -97,6 +109,10 @@ _func_dict = {
     'tnr_weighted': make_scorer(true_negative_rate_metric, averaging_method='weighted'),
 }
 
+_str_to_scorer_dict = {**_regression_scorers_higher_is_better_dict,
+                       **_regression_scorers_lower_is_better_dict,
+                       **_classification_scorers_dict}
+
 
 class DeepcheckScorer:
     """Encapsulate scorer function with extra methods.
@@ -115,10 +131,13 @@ class DeepcheckScorer:
 
     def __init__(self, scorer: t.Union[str, t.Callable], name: str = None):
         if isinstance(scorer, str):
-            formated_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace('specificity', 'tnr')\
+            formatted_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace('specificity', 'tnr') \
                 .replace(' ', '_')
-            if formated_scorer_name in _func_dict:
-                self.scorer = _func_dict[formated_scorer_name]
+            if formatted_scorer_name in _regression_scorers_lower_is_better_dict:
+                warnings.warn(f'Deepchecks checks assume higher metric values represent better performance. '
+                              f'{formatted_scorer_name} does not follow that convention.')
+            if formatted_scorer_name in _str_to_scorer_dict:
+                self.scorer = _str_to_scorer_dict[formatted_scorer_name]
             else:
                 try:
                     self.scorer = get_scorer(scorer)

@@ -16,9 +16,9 @@ from typing import Dict
 import torch
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from deepchecks.core.checks import ReduceMixin
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck, VisionData
 from deepchecks.vision.utils.image_functions import draw_bboxes, prepare_thumbnail
@@ -127,6 +127,7 @@ class NewLabels(TrainTestCheck, ReduceMixin):
                     label_name=test_data.label_id_to_name(class_id),
                     images=images_combine,
                     count=format_number(num_occurrences),
+                    dataset_name=context.test.name,
                     id=sid
                 )
                 displays.append(html)
@@ -214,7 +215,7 @@ HTML_TEMPLATE = """
 </style>
 <h3><b>Label  "{label_name}"</b></h3>
 <div>
-Appears {count} times in test set.
+Appears {count} times in {dataset_name} set.
 </div>
 <div class="{id}-container">
     <div class="{id}-row">

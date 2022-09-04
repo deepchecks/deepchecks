@@ -21,6 +21,7 @@ from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
 from deepchecks.utils.logger import get_logger
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT, PropertiesInputType
@@ -147,8 +148,13 @@ class Context(BaseContext):
         # from the same VisionData object), and if there is a random_state the shuffle will always have same result
         if train:
             train = train.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
+            if train.name is None:
+                train.name = DEFAULT_DATASET_NAMES[0]
+
         if test:
             test = test.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
+            if test.name is None:
+                test.name = DEFAULT_DATASET_NAMES[1]
 
         self._train = train
         self._test = test

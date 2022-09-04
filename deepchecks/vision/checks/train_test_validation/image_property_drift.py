@@ -18,6 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
@@ -30,7 +31,7 @@ __all__ = ['ImagePropertyDrift']
 TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift')
 
 
-class ImagePropertyDrift(TrainTestCheck):
+class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
     """
     Calculate drift between train dataset and test dataset per image property, using statistical measures.
 
@@ -43,12 +44,14 @@ class ImagePropertyDrift(TrainTestCheck):
     ----------
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
-        Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - 'numeric' - for continuous ordinal outputs.
-        - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
-        For more on image / label properties, see the :ref:`property guide </user-guide/vision/vision_properties.rst>`
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -64,14 +67,22 @@ class ImagePropertyDrift(TrainTestCheck):
     show_categories_by: str, default: 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
+
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
+
     classes_to_display : Optional[List[float]], default: None
         List of classes to display. The distribution of the properties would include only samples belonging (or
         containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
     min_samples: int, default: 30
         Minimum number of samples needed in each dataset needed to calculate the drift.
+    aggregation_method: str, default: 'max'
+        argument for the reduce_output functionality, decides how to aggregate the individual properties drift scores
+        for a collective score between 0 and 1. Possible values are:
+        'mean': Mean of all properties scores.
+        'none': No averaging. Return a dict with a drift score for each property.
+        'max': Maximum of all the properties drift scores.
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
@@ -86,6 +97,7 @@ class ImagePropertyDrift(TrainTestCheck):
             show_categories_by: str = 'largest_difference',
             classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
+            aggregation_method: str = 'max',
             max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
@@ -106,6 +118,7 @@ class ImagePropertyDrift(TrainTestCheck):
         self.show_categories_by = show_categories_by
         self.classes_to_display = classes_to_display
         self.min_samples = min_samples
+        self.aggregation_method = aggregation_method
 
         self._train_properties = None
         self._test_properties = None
@@ -186,6 +199,8 @@ class ImagePropertyDrift(TrainTestCheck):
         drifts = {}
         not_enough_samples = []
 
+        dataset_names = (context.train.name, context.test.name)
+
         for single_property in self.image_properties:
             property_name = single_property['name']
 
@@ -202,6 +217,7 @@ class ImagePropertyDrift(TrainTestCheck):
                     show_categories_by=self.show_categories_by,
                     min_samples=self.min_samples,
                     with_display=context.with_display,
+                    dataset_names=dataset_names
                 )
 
                 figures[property_name] = figure
@@ -231,6 +247,10 @@ class ImagePropertyDrift(TrainTestCheck):
             display=displays,
             header='Image Property Drift'
         )
+
+    def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
+        """Return prediction drift score per prediction property."""
+        return self.property_reduce(self.aggregation_method, pd.Series(check_result.value), 'Drift Score')
 
     def add_condition_drift_score_less_than(
             self: TImagePropertyDrift,
