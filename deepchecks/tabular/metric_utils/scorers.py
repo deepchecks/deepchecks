@@ -41,19 +41,23 @@ __all__ = [
     'MULTICLASS_SCORERS_NON_AVERAGE',
     'DeepcheckScorer',
     'init_validate_scorers',
-    'get_default_scorers'
+    'get_default_scorers',
+    'regression_scorers_lower_is_better_dict',
+    'regression_scorers_higher_is_better_dict',
+    'binary_scorers_dict',
+    'multiclass_scorers_dict'
 ]
 
 DEFAULT_BINARY_SCORERS = {
     'Accuracy': 'accuracy',
-    'Precision': make_scorer(precision_score, zero_division=0),
-    'Recall': make_scorer(recall_score, zero_division=0)
+    'Precision': 'precision',
+    'Recall': 'recall',
 }
 
 DEFAULT_MULTICLASS_SCORERS = {
     'Accuracy': 'accuracy',
-    'Precision - Macro Average': make_scorer(precision_score, average='macro', zero_division=0),
-    'Recall - Macro Average': make_scorer(recall_score, average='macro', zero_division=0),
+    'Precision - Macro Average': 'precision_macro',
+    'Recall - Macro Average': 'recall_macro',
 }
 
 MULTICLASS_SCORERS_NON_AVERAGE = {
@@ -74,7 +78,7 @@ DEFAULT_SCORERS_DICT = {
     TaskType.REGRESSION: DEFAULT_REGRESSION_SCORERS
 }
 
-_regression_scorers_lower_is_better_dict = {
+regression_scorers_lower_is_better_dict = {
     'mean_squared_error': make_scorer(mean_squared_error, squared=True),
     'mse': make_scorer(mean_squared_error, squared=True),
     'root_mean_squared_error': make_scorer(mean_squared_error, squared=False),
@@ -83,35 +87,45 @@ _regression_scorers_lower_is_better_dict = {
     'mean_absolute_error': make_scorer(mean_absolute_error),
 }
 
-_regression_scorers_higher_is_better_dict = {
+regression_scorers_higher_is_better_dict = {
     'neg_rmse': get_scorer('neg_root_mean_squared_error'),
     'neg_mae': get_scorer('neg_mean_absolute_error'),
 }
 
-_classification_scorers_dict = {
+binary_scorers_dict = {
+    'precision': make_scorer(precision_score, zero_division=0),
+    'recall': make_scorer(recall_score, zero_division=0),
+    'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
+    'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
+    'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
+}
+multiclass_scorers_dict = {
+    'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
+    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0),
     'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
     'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
     'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
     'fpr_per_class': make_scorer(false_positive_rate_metric, averaging_method='per_class'),
-    'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
+
     'fpr_macro': make_scorer(false_positive_rate_metric, averaging_method='macro'),
     'fpr_micro': make_scorer(false_positive_rate_metric, averaging_method='micro'),
     'fpr_weighted': make_scorer(false_positive_rate_metric, averaging_method='weighted'),
     'fnr_per_class': make_scorer(false_negative_rate_metric, averaging_method='per_class'),
-    'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
+
     'fnr_macro': make_scorer(false_negative_rate_metric, averaging_method='macro'),
     'fnr_micro': make_scorer(false_negative_rate_metric, averaging_method='micro'),
     'fnr_weighted': make_scorer(false_negative_rate_metric, averaging_method='weighted'),
     'tnr_per_class': make_scorer(true_negative_rate_metric, averaging_method='per_class'),
-    'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
+
     'tnr_macro': make_scorer(true_negative_rate_metric, averaging_method='macro'),
     'tnr_micro': make_scorer(true_negative_rate_metric, averaging_method='micro'),
     'tnr_weighted': make_scorer(true_negative_rate_metric, averaging_method='weighted'),
 }
 
-_str_to_scorer_dict = {**_regression_scorers_higher_is_better_dict,
-                       **_regression_scorers_lower_is_better_dict,
-                       **_classification_scorers_dict}
+_str_to_scorer_dict = {**regression_scorers_higher_is_better_dict,
+                       **regression_scorers_lower_is_better_dict,
+                       **multiclass_scorers_dict,
+                       **binary_scorers_dict}
 
 
 class DeepcheckScorer:
@@ -133,7 +147,7 @@ class DeepcheckScorer:
         if isinstance(scorer, str):
             formatted_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace('specificity', 'tnr') \
                 .replace(' ', '_')
-            if formatted_scorer_name in _regression_scorers_lower_is_better_dict:
+            if formatted_scorer_name in regression_scorers_lower_is_better_dict:
                 warnings.warn(f'Deepchecks checks assume higher metric values represent better performance. '
                               f'{formatted_scorer_name} does not follow that convention.')
             if formatted_scorer_name in _str_to_scorer_dict:
@@ -211,7 +225,7 @@ class DeepcheckScorer:
                 raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return np.ndarray of number kind '
                                                   f'but got: {kind}')
             # Validate returns value for each class
-            if len(result) != len(single_label_data):
+            if len(result) < len(single_label_data):
                 raise errors.DeepchecksValueError(f'Found {len(single_label_data)} classes, but scorer {self.name} '
                                                   f'returned only {len(result)} elements in the score array value')
         elif not isinstance(result, Number):
