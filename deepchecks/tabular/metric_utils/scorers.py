@@ -224,9 +224,9 @@ class DeepcheckScorer:
                 raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return np.ndarray of number kind '
                                                   f'but got: {kind}')
             # Validate returns value for each class
-            if len(result) < len(single_label_data):
+            if len(result) == len(single_label_data):
                 raise errors.DeepchecksValueError(f'Found {len(single_label_data)} classes, but scorer {self.name} '
-                                                  f'returned only {len(result)} elements in the score array value')
+                                                  f'returned {len(result)} elements in the score array value')
         elif not isinstance(result, Number):
             raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number or np.ndarray '
                                               f'but got: {type(result).__name__}')
