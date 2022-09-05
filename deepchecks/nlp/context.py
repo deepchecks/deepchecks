@@ -19,6 +19,8 @@ from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
+from deepchecks.nlp.metric_utils.token_classification import get_default_token_scorers, SpanAligner, validate_scorers, \
+    get_scorer_dict
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
@@ -26,7 +28,8 @@ from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 __all__ = [
     'Context',
     'TTextPred',
-    'TTextProba'
+    'TTextProba',
+    'TTokenPred'
 ]
 
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
@@ -202,17 +205,12 @@ class _DummyModel(BasicModel):
                 if len(token_pred) != 4:
                     raise ValidationError(f'Check requires token classification for {dataset.name} to have '
                                           f'4 entries')
-                if dataset.has_label() and (token_pred[0] not in dataset.classes):
-                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                          f'classes in {dataset.classes}, which are the labels in the dataset. '
-                                          f'Found class {token_pred[0]}. Classes are defined by the first entry in '
-                                          f'the token prediction tuples')
                 if not isinstance(token_pred[1], int) or not isinstance(token_pred[2], int):
                     raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                          f'int indices representing the start and end of the token, at the second'
-                                          f'and third entry in the token prediction tuples')
+                                          f'int indices representing the start and end of the token at the second'
+                                          f' and third entry in the token prediction tuples')
                 if not token_pred[1] < token_pred[2]:
-                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
+                    raise ValidationError(f'Check requires token classification predictions for {dataset.name} to have '
                                           f'token span start before span end')
                 if not isinstance(token_pred[3], float) or (token_pred[3] < 0. or token_pred[3] > 1.):
                     raise ValidationError(f'Check requires token classification for {dataset.name} to have '
@@ -329,6 +327,8 @@ class Context(BaseContext):
         self._validated_model = False
         self._task_type = None
         self._with_display = with_display
+        # Init a span aligner object for the run
+        self._span_aligner = SpanAligner()
 
     @property
     def model(self) -> _DummyModel:
@@ -341,6 +341,11 @@ class Context(BaseContext):
     def model_name(self) -> str:
         """Return the name of the model."""
         return 'Pre-computed predictions'
+
+    @property
+    def span_aligner(self) -> SpanAligner:
+        """Return the cached SpanAligner object."""
+        return self._span_aligner
 
     @property
     def task_type(self) -> TaskType:
@@ -371,7 +376,8 @@ class Context(BaseContext):
 
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
-                    use_avg_defaults=True) -> t.List[DeepcheckScorer]:
+                    use_avg_defaults=True,
+                    span_aligner: t.Optional[SpanAligner] = None) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers in a given priority.
 
         If receive `scorers` use them,
@@ -383,9 +389,11 @@ class Context(BaseContext):
         scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
             List of scorers to use. If None, use default scorers.
             Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
-        use_avg_defaults : bool, default True
+        use_avg_defaults : bool, default: True
             If no scorers were provided, for classification, determines whether to use default scorers that return
             an averaged metric, or default scorers that return a metric per class.
+        span_aligner: t.Optional[SpanAligner], default: None
+            A SpanAligner object for processing the raw token classification annotations to the seqeval accepted format
         Returns
         -------
         List[DeepcheckScorer]
@@ -397,7 +405,12 @@ class Context(BaseContext):
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
         elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            scorers = []  # TODO: Complete that
+            scoring_dict = get_scorer_dict(span_aligner)
+            if scorers is None:
+                scorers = get_default_token_scorers(use_avg_defaults)  # Get string names of default scorers
+            else:
+                validate_scorers(scorers, span_aligner)  # Validate that use supplied scorer names are OK
+            scorers = {name: scoring_dict[name] for name in scorers}
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
                                        f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')

@@ -57,3 +57,52 @@ def test_init_mismatched_task_type():
         raises(DeepchecksValueError,
                r'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.')
     )
+
+
+def test_wrong_token_label_format():
+    # Arrange
+    text = ['a', 'b', 'c']
+
+    label_structure_error = \
+        r'label must be a Sequence of Sequences of \(str, int, int\) tuples, where the string is the token ' \
+        r'label, the first int is the start of the token span in the raw text and the second int is the end of ' \
+        r'the token span.'
+
+    label = [[('B-PER', 'a', 4)],
+             [('B-PER', 0, 4), ('B-GEO', 14, 20), ('B-GEO', 25, 30)],
+             []]
+    assert_that(
+        calling(TextData).with_args(text, label, task_type='token_classification'),
+        raises(DeepchecksValueError, label_structure_error)
+    )
+
+    label = [[('B-PER', 1)],
+             [('B-PER', 0), ('B-GEO', 14), ('B-GEO', 25)],
+             []]
+    assert_that(
+        calling(TextData).with_args(text, label, task_type='token_classification'),
+        raises(DeepchecksValueError, label_structure_error)
+    )
+
+    label = [[('B-PER', 3.5, 4)],
+             [('B-PER', 0, 4), ('B-GEO', 14, 20), ('B-GEO', 25, 30)],
+             []]
+    assert_that(
+        calling(TextData).with_args(text, label, task_type='token_classification'),
+        raises(DeepchecksValueError, label_structure_error)
+    )
+
+    label = [[('B-PER', 5, 4)],
+             [('B-PER', 0, 4), ('B-GEO', 14, 20), ('B-GEO', 25, 30)],
+             []]
+    assert_that(
+        calling(TextData).with_args(text, label, task_type='token_classification'),
+        raises(DeepchecksValueError, 'Check requires token classification labels to have '
+                                     'token span start before span end')
+    )
+
+    label = [1, 2, 3]
+    assert_that(
+        calling(TextData).with_args(text, label, task_type='token_classification'),
+        raises(DeepchecksValueError, label_structure_error)
+    )
