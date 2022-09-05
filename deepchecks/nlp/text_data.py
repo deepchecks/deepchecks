@@ -165,10 +165,15 @@ class TextData:
                 raise DeepchecksValueError(token_class_error)
 
             for sample_label in label:
+                if not all(len(x) == 3 for x in sample_label):
+                    raise DeepchecksValueError(token_class_error)
                 if not all(
                         isinstance(x[0], str) and isinstance(x[1], int) and isinstance(x[2], int) for x in sample_label
                 ):
                     raise DeepchecksValueError(token_class_error)
+                if not all(x[1] < x[2] for x in sample_label):
+                    raise DeepchecksValueError('Check requires token classification labels to have '
+                                               'token span start before span end')
 
         self._label = label
 

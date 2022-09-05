@@ -223,7 +223,7 @@ def make_token_scorer(metric: t.Callable[[t.List[t.List[str]], t.List[t.List[str
 
 
 def validate_scorers(scorers: t.List[str], span_aligner: SpanAligner):
-    """Validate the given scorer list"""
+    """Validate the given scorer list."""
     scoring_dict = get_scorer_dict(span_aligner)
 
     if not isinstance(scorers, Sequence):
@@ -238,5 +238,4 @@ def validate_scorers(scorers: t.List[str], span_aligner: SpanAligner):
 
 def get_default_token_scorers(use_avg_defaults=True) -> t.List[str]:
     """Return the default scorers for token classification."""
-
     return DEFAULT_AVG_SCORER_NAMES if use_avg_defaults else DEFAULT_PER_CLASS_SCORER_NAMES

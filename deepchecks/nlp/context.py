@@ -207,10 +207,10 @@ class _DummyModel(BasicModel):
                                           f'4 entries')
                 if not isinstance(token_pred[1], int) or not isinstance(token_pred[2], int):
                     raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                          f'int indices representing the start and end of the token, at the second'
-                                          f'and third entry in the token prediction tuples')
+                                          f'int indices representing the start and end of the token at the second'
+                                          f' and third entry in the token prediction tuples')
                 if not token_pred[1] < token_pred[2]:
-                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
+                    raise ValidationError(f'Check requires token classification predictions for {dataset.name} to have '
                                           f'token span start before span end')
                 if not isinstance(token_pred[3], float) or (token_pred[3] < 0. or token_pred[3] > 1.):
                     raise ValidationError(f'Check requires token classification for {dataset.name} to have '
@@ -344,7 +344,7 @@ class Context(BaseContext):
 
     @property
     def span_aligner(self) -> SpanAligner:
-        """Return the cached SpanAligner object"""
+        """Return the cached SpanAligner object."""
         return self._span_aligner
 
     @property
