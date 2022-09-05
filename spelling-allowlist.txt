@@ -116,3 +116,6 @@ rstrip
 multilabel
 Multilabel
 punkt
+TTokenPred
+seqeval
+searchsorted

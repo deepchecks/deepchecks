@@ -185,7 +185,7 @@ class SpanAligner:
                 # Create a boolean array, telling us for each label_spans element whether it's prospective match in
                 # pred_spans are identical in span (start *and* end position), and in the token class itself.
                 bool_matching = np.array(list(map(hash, pred_spans)))[possible_matching_pred_index] == \
-                                np.array(list(map(hash, label_spans)))
+                    np.array(list(map(hash, label_spans)))
                 # Filter out predictions that do not match their corresponding labels or their threshold is too low.
                 # Predictions that where filtered are filled with 'O'.
                 sample_predictions = \
