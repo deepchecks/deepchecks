@@ -93,6 +93,7 @@ regression_scorers_higher_is_better_dict = {
 }
 
 binary_scorers_dict = {
+    'accuracy': get_scorer('accuracy'),
     'precision': make_scorer(precision_score, zero_division=0),
     'recall': make_scorer(recall_score, zero_division=0),
     'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
@@ -100,23 +101,21 @@ binary_scorers_dict = {
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
 }
 multiclass_scorers_dict = {
+    'accuracy': get_scorer('accuracy'),
     'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
     'recall_macro': make_scorer(recall_score, average='macro', zero_division=0),
     'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
     'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
     'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
     'fpr_per_class': make_scorer(false_positive_rate_metric, averaging_method='per_class'),
-
     'fpr_macro': make_scorer(false_positive_rate_metric, averaging_method='macro'),
     'fpr_micro': make_scorer(false_positive_rate_metric, averaging_method='micro'),
     'fpr_weighted': make_scorer(false_positive_rate_metric, averaging_method='weighted'),
     'fnr_per_class': make_scorer(false_negative_rate_metric, averaging_method='per_class'),
-
     'fnr_macro': make_scorer(false_negative_rate_metric, averaging_method='macro'),
     'fnr_micro': make_scorer(false_negative_rate_metric, averaging_method='micro'),
     'fnr_weighted': make_scorer(false_negative_rate_metric, averaging_method='weighted'),
     'tnr_per_class': make_scorer(true_negative_rate_metric, averaging_method='per_class'),
-
     'tnr_macro': make_scorer(true_negative_rate_metric, averaging_method='macro'),
     'tnr_micro': make_scorer(true_negative_rate_metric, averaging_method='micro'),
     'tnr_weighted': make_scorer(true_negative_rate_metric, averaging_method='weighted'),
