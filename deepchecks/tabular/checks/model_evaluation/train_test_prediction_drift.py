@@ -21,6 +21,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot, get_drift_plot_sidenote)
 
@@ -172,6 +173,13 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 train_prediction = train_prediction[:, [1]]
                 test_prediction = test_prediction[:, [1]]
         else:
+            if context.task_type == TaskType.MULTICLASS:
+                get_logger().warning(
+                    'deepchecks infers label to be multiclass and auto plot class prediction drift. '
+                    'It is recommended to plot prediction probabilities instead, in order to '
+                    'produce meaningful results. To do so, add "drift_mode=\'proba\'" '
+                    'to TrainTestPredictionDrift check'
+                )
             train_prediction = np.array(model.predict(train_dataset.features_columns)).reshape((-1, 1))
             test_prediction = np.array(model.predict(test_dataset.features_columns)).reshape((-1, 1))
 

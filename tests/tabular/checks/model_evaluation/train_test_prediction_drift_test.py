@@ -221,3 +221,18 @@ def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
         details='Found 2 classes with model predicted probability Earth Mover\'s '
                 'Distance drift score above threshold: 0.05.'
     ))
+
+
+def test_multiclass_without_prob_warning(caplog, iris_split_dataset_and_model_rf):
+    # Test that warning is raised when task type inferred
+    # as multiclass and drift_mode='proba' is not passed
+    # as parameter
+    train, test, model = iris_split_dataset_and_model_rf
+    check = TrainTestPredictionDrift()
+    check.run(train, test, model)
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message), equal_to(
+        'deepchecks infers label to be multiclass and auto plot class prediction drift. '
+        'It is recommended to plot prediction probabilities instead, in order to '
+        'produce meaningful results. To do so, add "drift_mode=\'proba\'" '
+        'to TrainTestPredictionDrift check')
