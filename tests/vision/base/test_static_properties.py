@@ -11,20 +11,20 @@
 #
 
 from copy import copy
+
 import numpy as np
 from hamcrest import assert_that, calling, close_to, contains_exactly, equal_to, raises
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.image_properties import default_image_properties
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ImagePropertyOutliers, PropertyLabelCorrelationChange
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.utils.image_functions import crop_image
-from deepchecks.vision.utils.image_properties import aspect_ratio
+from deepchecks.vision.utils.image_properties import aspect_ratio, default_image_properties
 from deepchecks.vision.utils.vision_properties import calc_vision_properties
 from deepchecks.vision.vision_data import VisionData
-
-from tests.vision.checks.train_test_validation.property_label_correlation_change_test import get_coco_batch_to_images_with_bias_one_class
 from tests.base.utils import equal_condition_result
+from tests.vision.checks.train_test_validation.property_label_correlation_change_test import \
+    get_coco_batch_to_images_with_bias_one_class
 
 
 def rand_prop(batch):
