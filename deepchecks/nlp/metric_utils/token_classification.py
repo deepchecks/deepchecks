@@ -27,6 +27,8 @@ DEFAULT_PER_CLASS_SCORER_NAMES = ('f1_per_class', 'f1_per_class', 'f1_per_class'
 
 
 TSpanAligner = t.TypeVar('TSpanAligner', bound='SpanAligner')
+if t.TYPE_CHECKING:
+    from deepchecks.nlp.context import TTokenPred  # pylint: disable=unused-import # noqa: F401
 
 
 def get_scorer_dict(span_aligner: TSpanAligner,
