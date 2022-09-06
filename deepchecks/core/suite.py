@@ -142,7 +142,7 @@ class SuiteResult(DisplayableResult):
         """
         if isinstance(kind, Sequence):
             if len(kind) == 0:
-                raise ValueError("Empty sequence is not allowed")
+                raise ValueError('Empty sequence is not allowed')
             kind = tuple(kind)
         elif isinstance(kind, type) and issubclass(kind, BaseCheck):
             kind = (kind,)
