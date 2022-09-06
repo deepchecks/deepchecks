@@ -13,7 +13,7 @@ from hamcrest import assert_that, calling, raises, close_to
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import SingleDatasetPerformance
+from deepchecks.nlp.checks import SingleDatasetPerformance, KeywordFrequencyDrift
 
 CLASSIFICATION_ERROR_FORMAT = r'Check requires classification for Train to be ' \
                               r'either a sequence that can be cast to a 1D numpy array of shape' \
@@ -192,3 +192,14 @@ def test_sampling(text_classification_dataset_mock):
     # Assert
     assert_that(result.value.values[0][-1], close_to(0.75, 0.001))
     assert_that(result_sampled.value.values[0][-1], close_to(0.25, 0.001))
+
+
+def test_same_dataset(text_classification_dataset_mock):
+    # Arrange
+    check = KeywordFrequencyDrift()
+
+    # Act
+    result = check.run(text_classification_dataset_mock, text_classification_dataset_mock)
+
+    # Assert
+    assert_that(result.value['drift_score'], close_to(0.0, 0.001))

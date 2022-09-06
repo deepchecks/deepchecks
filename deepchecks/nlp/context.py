@@ -34,6 +34,7 @@ __all__ = [
 
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
 
 TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Union[str, int]]]]
@@ -86,6 +87,16 @@ class _DummyModel(BasicModel):
                                               'of the rum method, while the probabilities argument of the run method'
                                               ' should be left empty.')
 
+        # If both datasets have the same name, modify their index and warn
+        if train is not None and test is not None:
+            # check if datasets have same indexes
+            if set(train.index) & set(test.index):
+                train.index = map(lambda x: f'train-{x}', list(train.index))
+                test.index = map(lambda x: f'test-{x}', list(test.index))
+                get_logger().warning('train and test datasets have common index - adding "train"/"test"'
+                                     ' prefixes. To avoid that provide datasets with no common indexes '
+                                     'or pass the model object instead of the predictions.')
+
         for dataset, y_pred, y_proba in zip([train, test],
                                             [y_pred_train, y_pred_test],
                                             [y_proba_train, y_proba_test]):
@@ -98,7 +109,7 @@ class _DummyModel(BasicModel):
                 if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
                     if (y_pred is None) and (y_proba is not None):
                         if dataset.is_multilabel:
-                            y_pred = (np.array(y_proba) > 0.5) * 1
+                            y_pred = (np.array(y_proba) > 0.5) * 1  # TODO: Replace with user-configurable threshold
                         else:
                             y_pred = np.argmax(np.array(y_proba), axis=-1)
 
@@ -111,11 +122,11 @@ class _DummyModel(BasicModel):
                     if y_proba is not None:
                         ensure_predictions_proba(y_proba, y_pred)
                         y_proba_dict = dict(zip(dataset.index, y_proba))
-                        probas[dataset.name] = y_proba_dict
+                        probas.update({dataset.name: y_proba_dict})
 
                 if y_pred is not None:
                     y_pred_dict = dict(zip(dataset.index, y_pred))
-                    predictions[dataset.name] = y_pred_dict
+                    predictions.update({dataset.name: y_pred_dict})
 
         self.predictions = predictions
         self.probas = probas
@@ -304,8 +315,6 @@ class Context(BaseContext):
             if test_dataset.has_label() and train_dataset.has_label() and not \
                     TextData.datasets_share_task_type(train_dataset, test_dataset):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
-            if train_dataset.name == test_dataset.name:
-                raise DatasetValidationError('train_dataset and test_dataset must have different names')
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')

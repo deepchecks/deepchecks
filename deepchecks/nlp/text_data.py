@@ -69,7 +69,7 @@ class TextData:
 
     _text: t.Sequence[str]
     _label: TTextLabel
-    _index: t.Sequence[int]
+    index: t.Sequence[t.Any]
     _task_type: t.Optional[TaskType]
     _has_label: bool
     _is_multilabel: bool = False
@@ -83,7 +83,7 @@ class TextData:
             task_type: t.Optional[str] = None,
             classes: t.Optional[t.Sequence[str]] = None,
             dataset_name: t.Optional[str] = None,
-            index: t.Optional[t.Sequence[int]] = None,
+            index: t.Optional[t.Sequence[t.Any]] = None,
     ):
 
         # Require explicitly setting task type if label is provided
@@ -113,7 +113,7 @@ class TextData:
         elif len(index) != len(raw_text):
             raise DeepchecksValueError('index must be the same length as raw_text')
 
-        self._index = index
+        self.index = index
 
         if dataset_name is not None:
             if not isinstance(dataset_name, str):
@@ -292,17 +292,6 @@ class TextData:
         return self._label
 
     @property
-    def index(self) -> t.Sequence[int]:
-        """Return sequence of sample indices.
-
-        Returns
-        -------
-        t.Sequence[int]
-            Sequence of sample indices.
-        """
-        return self._index
-
-    @property
     def classes(self) -> t.Optional[t.List[t.Union[str, int]]]:
         """Return the classes from label column in list. if no label column defined, return empty list.
 
@@ -332,7 +321,6 @@ class TextData:
             for annotation in sample_annotations:
                 tokens.update(annotation[0])
         return tokens
-
 
     @property
     def num_classes(self) -> int:
@@ -387,7 +375,7 @@ class TextData:
         """
         if not isinstance(obj, cls):
             raise DeepchecksValueError(f'{obj} is not a {cls.__name__} instance')
-        return obj
+        return obj.copy()
 
     @classmethod
     def datasets_share_task_type(cls, *datasets: 'TextData') -> bool:
