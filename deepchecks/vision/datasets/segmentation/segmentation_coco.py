@@ -63,7 +63,7 @@ class CocoSegmentationData(SegmentationData):
         See SegmentationData for more details on format.
         """
         normalized_batch = [F.normalize(img.unsqueeze(0).float()/255,
-                                        mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)) for img in batch[0]]
+                                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for img in batch[0]]
 
         predictions = [model(img)["out"].squeeze(0).detach() for img in normalized_batch]
         predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]

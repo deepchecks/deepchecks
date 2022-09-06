@@ -1,23 +1,19 @@
 """
 .. _vision_detection_tutorial:
 
-==========================
-Object Detection Tutorial
-==========================
+===============================
+Semantic Segmentation Tutorial
+===============================
 
-In this tutorial, you will learn how to validate your **object detection model** using deepchecks test suites.
+In this tutorial, you will learn how to validate your **semantic segmentation model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
 :doc:`examples section  </checks_gallery/vision/index>`
 
 If you just want to see the output of this tutorial, jump to :ref:`observing_the_result` section.
 
-An object detection tasks usually consist of two parts:
-
-- Object Localization, where the model predicts the location of an object in the image,
-- Object Classification, where the model predicts the class of the detected object.
-
-The common output of an object detection model is a list of bounding boxes around the objects, and
-their classes.
+A semantic segmentation task is a task where every pixel of the image is labeled with a single class.
+Therefore, the common output of these tasks is an image of identical size to the input, with a vector for each pixel
+of the probability for each class.
 
 .. code-block:: bash
 
@@ -51,7 +47,7 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.models.detection import _utils as det_utils
 from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
 
-from deepchecks.vision.detection_data import DetectionData
+from deepchecks.vision.segmentation_data import SegmentationData
 
 #%%
 # Load Data
@@ -231,7 +227,7 @@ print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
 print("Example output of a label shape from the dataloader ", batch[1][0])
 
 #%%
-# Implementing the DetectionData class
+# Implementing the SegmentationData class
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
 # predictions. In order to do that, those must be in a pre-defined format, according to the task type.
