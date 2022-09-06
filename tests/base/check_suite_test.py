@@ -237,21 +237,21 @@ def test_results_selection_by_check_type():
     suite_result = SuiteResult('test', [result1, result2, result3, failure])
 
     assert_that(
-        suite_result.select_results_by_check_kind(tabular_checks.IsSingleValue),
+        suite_result.select_results_by_check_type(tabular_checks.IsSingleValue),
         contains_exactly(
             same_instance(result1),
             same_instance(result2)
         )
     )
     assert_that(
-        suite_result.select_results_by_check_kind(tabular_checks.ColumnsInfo),
+        suite_result.select_results_by_check_type(tabular_checks.ColumnsInfo),
         contains_exactly(
             same_instance(result3),
             same_instance(failure)
         )
     )
     assert_that(
-        suite_result.select_results_by_check_kind((tabular_checks.ColumnsInfo, tabular_checks.IsSingleValue)),
+        suite_result.select_results_by_check_type((tabular_checks.ColumnsInfo, tabular_checks.IsSingleValue)),
         contains_exactly(
             same_instance(result1),
             same_instance(result2),

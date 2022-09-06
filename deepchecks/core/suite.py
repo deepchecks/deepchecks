@@ -115,15 +115,15 @@ class SuiteResult(DisplayableResult):
                 output.append(result)
         return output
 
-    def select_results_by_check_kind(
+    def select_results_by_check_type(
         self,
-        kind: Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
+        check_type: Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
     ) -> List['check_types.BaseCheckResult']:
         """Select results by check type(s).
 
         Parameters
         ==========
-        kind : Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
+        check_type : Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
             a check type(s), results of which to return
 
         Returns
@@ -140,20 +140,20 @@ class SuiteResult(DisplayableResult):
         >> check_results = suite_result.select_results_by_check_kind(IsSingleValue)
         >>
         """
-        if isinstance(kind, Sequence):
-            if len(kind) == 0:
+        if isinstance(check_type, Sequence):
+            if len(check_type) == 0:
                 raise ValueError('Empty sequence is not allowed')
-            kind = tuple(kind)
-        elif isinstance(kind, type) and issubclass(kind, BaseCheck):
-            kind = (kind,)
+            check_type = tuple(check_type)
+        elif isinstance(check_type, type) and issubclass(check_type, BaseCheck):
+            check_type = (check_type,)
         else:
-            t = type(kind).__name__
-            raise TypeError(f'Unsupported type of "kind" parameter - {t}')
+            t = type(check_type).__name__
+            raise TypeError(f'Unsupported type of "check_type" parameter - {t}')
 
         return [
             r
             for r in self.results
-            if isinstance(r.check, kind)
+            if isinstance(r.check, check_type)
         ]
 
     def __repr__(self):
