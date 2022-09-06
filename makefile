@@ -169,7 +169,7 @@ requirements: $(ENV)
 
 	@$(PIP) install -U pip
 	@$(PIP) install -q \
-		wheel setuptools \
+		wheel setuptools setuptools_scm \
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)
