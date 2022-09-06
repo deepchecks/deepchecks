@@ -35,7 +35,9 @@ jobs:
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.8"
+    - name: Setup upterm session
+      uses: lhotari/action-upterm@v1
     - name: Set Up Env
       run: make env
     - name: pip freeze
