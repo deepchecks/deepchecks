@@ -137,7 +137,7 @@ class SuiteResult(DisplayableResult):
         >> from deepchecks.tabular.checks import IsSingleValue
         >>
         >> suite_result = data_integrity(...)
-        >> check_results = suite_result.select_results_by_check_kind(IsSingleValue)
+        >> check_results = suite_result.select_results_by_check_type(IsSingleValue)
         >>
         """
         if isinstance(check_type, Sequence):
