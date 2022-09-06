@@ -12,6 +12,7 @@ from hamcrest import assert_that, close_to, has_items, has_length
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
+from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice
 from deepchecks.vision.metrics_utils.scorers import calculate_metrics
 
 
@@ -60,3 +61,13 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100, get_mean_val=False,
                 zeroed_negative=False), has_items([-1]))
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
+
+
+def test_segemntation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device):
+    metric = MeanDice()
+    for batch in segmentation_coco_train_visiondata:
+        label = segmentation_coco_train_visiondata.batch_to_labels(batch)
+        prediction = segmentation_coco_train_visiondata.infer_on_batch(
+            batch, trained_segmentation_deeplabv3_mobilenet_model, device)
+        metric.update((prediction, label))
+    assert_that(metric.compute()[0], close_to(0.979, 0.001))
