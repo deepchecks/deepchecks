@@ -115,6 +115,47 @@ class SuiteResult(DisplayableResult):
                 output.append(result)
         return output
 
+    def select_results_by_check_kind(
+        self,
+        kind: Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
+    ) -> List['check_types.BaseCheckResult']:
+        """Select results by check type(s).
+
+        Parameters
+        ==========
+        kind : Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
+            a check type(s), results of which to return
+
+        Returns
+        =======
+        List['check_types.BaseCheckResult']:
+            list of results and failures
+
+        Examples
+        ========
+        >> from deepchecks.tabular.suites import data_integrity
+        >> from deepchecks.tabular.checks import IsSingleValue
+        >>
+        >> suite_result = data_integrity(...)
+        >> check_results = suite_result.select_results_by_check_kind(IsSingleValue)
+        >>
+        """
+        if isinstance(kind, Sequence):
+            if len(kind) == 0:
+                raise ValueError("Empty sequence is not allowed")
+            kind = tuple(kind)
+        elif isinstance(kind, type) and issubclass(kind, BaseCheck):
+            kind = (kind,)
+        else:
+            t = type(kind).__name__
+            raise TypeError(f'Unsupported type of "kind" parameter - {t}')
+
+        return [
+            r
+            for r in self.results
+            if isinstance(r.check, kind)
+        ]
+
     def __repr__(self):
         """Return default __repr__ function uses value."""
         return self.name

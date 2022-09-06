@@ -12,7 +12,7 @@
 import random
 from typing import List
 
-from hamcrest import all_of, assert_that, calling, equal_to, has_entry, has_items, has_length, instance_of, is_, raises
+from hamcrest import all_of, assert_that, calling, equal_to, has_entry, has_items, has_length, instance_of, is_, raises, contains_exactly, same_instance
 
 from deepchecks import __version__
 from deepchecks.core import CheckFailure, CheckResult, ConditionCategory, ConditionResult, SuiteResult
@@ -223,3 +223,41 @@ def test_config():
     conf_suite_mod = BaseSuite.from_config(suite_mod)
     assert_that(conf_suite_mod.name, equal_to('Model Evaluation Suite'))
     assert_that(conf_suite_mod.checks.values(), has_length(check_amount))
+
+
+def test_results_selection_by_check_type():
+    result1 = CheckResult(0, 'check1')
+    result1.check = tabular_checks.IsSingleValue()
+    result2 = CheckResult(0, 'check2')
+    result2.check = tabular_checks.IsSingleValue()
+    result3 = CheckResult(0, 'check3')
+    result3.check = tabular_checks.ColumnsInfo()
+    failure = CheckFailure(tabular_checks.ColumnsInfo(), DeepchecksValueError(''))
+
+    suite_result = SuiteResult('test', [result1, result2, result3, failure])
+
+    assert_that(
+        suite_result.select_results_by_check_kind(tabular_checks.IsSingleValue),
+        contains_exactly(
+            same_instance(result1),
+            same_instance(result2)
+        )
+    )
+    assert_that(
+        suite_result.select_results_by_check_kind(tabular_checks.ColumnsInfo),
+        contains_exactly(
+            same_instance(result3),
+            same_instance(failure)
+        )
+    )
+    assert_that(
+        suite_result.select_results_by_check_kind((tabular_checks.ColumnsInfo, tabular_checks.IsSingleValue)),
+        contains_exactly(
+            same_instance(result1),
+            same_instance(result2),
+            same_instance(result3),
+            same_instance(failure)
+        )
+    )
+
+
