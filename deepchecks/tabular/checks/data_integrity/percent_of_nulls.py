@@ -45,14 +45,15 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         argument for the reduce_output functionality, decides how to aggregate the drift scores for a
         collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
         Possible values are:
+        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
+        L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
+        value between 0 and sqrt(n_features).
         'weighted': Weighted mean based on feature importance, provides a robust estimation on how
         much the drift will affect the model's performance.
-        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
-         L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
-         value between 0 and sqrt(n_features).
         'mean': Mean of all drift scores.
-        'none': No averaging. Return a dict with a drift score for each feature.
         'max': Maximum of all the features drift scores.
+        'none': No averaging. Return a dict with a drift score for each feature.
+        'top_5' No averaging. Return a dict with a drift score for top 5 features based on feature importance.
     """
 
     def __init__(
@@ -75,7 +76,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=False)
         data = dataset.features_columns
 
-        feature_importance = context.feature_importance if context.feature_importance \
+        feature_importance = context.feature_importance if context.feature_importance is not None \
             else pd.Series(index=list(data.columns), dtype=object)
 
         result_data = [[col, data[col].isna().sum(), feature_importance[col]] for col in data.columns]
