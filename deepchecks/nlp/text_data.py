@@ -308,6 +308,8 @@ class TextData:
                     label_set = set(self._label)
             elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
                 label_set = self.get_tokens(self._label)
+            elif self.task_type == TaskType.OTHER:
+                return None
             else:
                 raise DeepchecksValueError(f'Task type {self.task_type} is not supported.')
             self._classes = sorted(list(label_set))
