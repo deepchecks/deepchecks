@@ -100,6 +100,7 @@ binary_scorers_dict = {
     'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
 }
+
 multiclass_scorers_dict = {
     'accuracy': get_scorer('accuracy'),
     'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
