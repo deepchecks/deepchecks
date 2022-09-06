@@ -23,9 +23,10 @@ class MeanDice(Metric):
     See more: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, threshold: float = 0.5, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {'dice': 0, 'count': 0})
+        self.threshold = threshold
 
     def reset(self) -> None:
         """Reset metric state."""
@@ -37,15 +38,20 @@ class MeanDice(Metric):
         y_pred, y = output
 
         for i in range(len(y)):
+            pred_onehot = torch.where(y_pred[i] > self.threshold, 1.0, 0.0)
+            y_gt_i = y[i].clone().unsqueeze(0).type(torch.int64)
+            gt_onehot = torch.zeros_like(pred_onehot)
+            gt_onehot.scatter_(0, y_gt_i, 1.0)
+            tp_onehot = gt_onehot * pred_onehot
+
+            tp_count_per_class = torch.sum(tp_onehot, dim=[1, 2])
+            gt_count_per_class = torch.sum(gt_onehot, dim=[1, 2])
+            pred_count_per_class = torch.sum(pred_onehot, dim=[1, 2])
+
+            dice_per_class = 2 * tp_count_per_class / (gt_count_per_class + pred_count_per_class)
+
             for class_id in [int(x) for x in torch.unique(y[i])]:
-                y_pred_i = (y_pred[i].argmax(0) == class_id).numpy()
-                y_i = (y[i] == class_id).numpy()
-
-                tp = np.logical_and(y_pred_i, y_i).sum()
-                y_pred_i_count = y_pred_i.sum()
-                y_i_count = y_i.sum()
-
-                self._evals[class_id]['dice'] += (2*tp) / (y_pred_i_count + y_i_count)
+                self._evals[class_id]['dice'] += dice_per_class[class_id]
                 self._evals[class_id]['count'] += 1
 
     def compute(self):
