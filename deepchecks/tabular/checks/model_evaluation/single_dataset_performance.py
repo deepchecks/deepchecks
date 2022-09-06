@@ -54,7 +54,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
 
         results = []
-        classes = model.classes_ if hasattr(model, 'classes_') else dataset.classes
+        classes = dataset.classes
         label = cast(pd.Series, dataset.label_col)
         n_samples = label.groupby(label).count()
         for scorer in scorers:
@@ -63,7 +63,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
                 results.append([pd.NA, scorer.name, scorer_value, len(label)])
             else:
                 results.extend(
-                    [[class_name, scorer.name, class_score, n_samples.get(class_name, pd.NA)]
+                    [[class_name, scorer.name, class_score, n_samples[class_name]]
                      for class_score, class_name in zip(scorer_value, classes)])
         results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value', 'Number of samples'])
 
