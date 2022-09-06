@@ -20,12 +20,14 @@ from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['TrainTestFeatureDrift']
 
 
+@docstrings
 class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
@@ -86,18 +88,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
     aggregation_method: str, default: 'l2_weighted'
-        argument for the reduce_output functionality, decides how to aggregate the drift scores for a
-        collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
-        Possible values are:
-        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
-        L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
-        value between 0 and sqrt(n_features).
-        'weighted': Weighted mean based on feature importance, provides a robust estimation on how
-        much the drift will affect the model's performance.
-        'mean': Mean of all drift scores.
-        'max': Maximum of all the features drift scores.
-        'none': No averaging. Return a dict with a drift score for each feature.
-        'top_5' No averaging. Return a dict with a drift score for top 5 features based on feature importance.
+        {feature_aggregation_method_argument:2*indent}
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42

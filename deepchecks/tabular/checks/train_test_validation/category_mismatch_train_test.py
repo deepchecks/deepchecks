@@ -16,6 +16,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_number, format_percent
@@ -24,6 +25,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['CategoryMismatchTrainTest']
 
 
+@docstrings
 class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
     """Find new categories in the test set.
 
@@ -38,18 +40,7 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
     max_new_categories_to_show : int , default: 5
         maximum new categories to show in feature
     aggregation_method: str, default: 'max'
-        argument for the reduce_output functionality, decides how to aggregate the drift scores for a
-        collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
-        Possible values are:
-        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
-        L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
-        value between 0 and sqrt(n_features).
-        'weighted': Weighted mean based on feature importance, provides a robust estimation on how
-        much the drift will affect the model's performance.
-        'mean': Mean of all drift scores.
-        'max': Maximum of all the features drift scores.
-        'none': No averaging. Return a dict with a drift score for each feature.
-        'top_5' No averaging. Return a dict with a drift score for top 5 features based on feature importance.
+        {feature_aggregation_method_argument:2*indent}
     """
 
     def __init__(

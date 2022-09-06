@@ -23,6 +23,7 @@ from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
@@ -31,6 +32,7 @@ __all__ = ['ImagePropertyDrift']
 TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift')
 
 
+@docstrings
 class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
     """
     Calculate drift between train dataset and test dataset per image property, using statistical measures.
@@ -78,11 +80,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
     min_samples: int, default: 30
         Minimum number of samples needed in each dataset needed to calculate the drift.
     aggregation_method: str, default: 'max'
-        argument for the reduce_output functionality, decides how to aggregate the individual properties drift scores
-        for a collective score between 0 and 1. Possible values are:
-        'mean': Mean of all properties scores.
-        'none': No averaging. Return a dict with a drift score for each property.
-        'max': Maximum of all the properties drift scores.
+        {property_aggregation_method_argument:2*indent}
     max_num_categories: int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """

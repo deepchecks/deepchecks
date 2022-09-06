@@ -58,19 +58,7 @@ class ReduceFeatureMixin(ReduceMixin):
     @staticmethod
     def feature_reduce(aggregation_method: str, value_per_feature: pd.Series, feature_importance: Optional[np.array],
                        score_name: str) -> Dict[str, float]:
-        """Return an aggregated drift score based on aggregation method defined.
-
-        include the following aggregation options:
-        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
-        L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
-        value between 0 and sqrt(n_features).
-        'weighted': Weighted mean based on feature importance, provides a robust estimation on how
-        much the drift will affect the model's performance.
-        'mean': Mean of all drift scores.
-        'max': Maximum of all the features drift scores.
-        'none': No averaging. Return a dict with a drift score for each feature.
-        'top_5' No averaging. Return a dict with a drift score for top 5 features based on feature importance.
-        """
+        """Return an aggregated drift score based on aggregation method defined."""
         if aggregation_method == 'none':
             return dict(value_per_feature)
         elif aggregation_method == 'mean':
@@ -104,13 +92,7 @@ class ReducePropertyMixin(ReduceMixin):
 
     @staticmethod
     def property_reduce(aggregation_method: str, value_per_property: pd.Series, score_name: str) -> Dict[str, float]:
-        """Return an aggregated drift score based on aggregation method defined.
-
-        include the following aggregation options:
-        'mean': Mean of all drift scores.
-        'none': No averaging. Return a dict with a drift score for each feature.
-        'max': Maximum of all the features drift scores.
-        """
+        """Return an aggregated drift score based on aggregation method defined."""
         if aggregation_method == 'none':
             return dict(value_per_property)
         elif aggregation_method == 'mean':
