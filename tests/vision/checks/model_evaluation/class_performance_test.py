@@ -18,7 +18,7 @@ from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.checks import ClassPerformance
-from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
+from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUATING_FUNCTIONS
 from tests.base.utils import equal_condition_result
 from tests.common import assert_class_performance_display
 
@@ -490,7 +490,7 @@ def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, mock_train
 def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_visiondata,
                                             mock_trained_yolov5_object_detection, device):
     # Arrange
-    scorers = [name + '_per_class' for name in AVAILABLE_EVALUTING_FUNCTIONS.keys()]
+    scorers = [name + '_per_class' for name in AVAILABLE_EVALUATING_FUNCTIONS.keys()]
     check = ClassPerformance(alternative_metrics=scorers)
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata,
@@ -498,14 +498,14 @@ def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_vis
     # Assert
     assert_that(result.value, has_length(589))
     assert_that(result.display, has_length(greater_than(0)))
-    assert_that(set(result.value['Metric']), equal_to(set(AVAILABLE_EVALUTING_FUNCTIONS.keys())))
+    assert_that(set(result.value['Metric']), equal_to(set(AVAILABLE_EVALUATING_FUNCTIONS.keys())))
 
 
 def test_coco_deepchecks_scorer_list_strings_averaging(coco_train_visiondata, coco_test_visiondata,
                                                    mock_trained_yolov5_object_detection, device):
     for avg_method in ['macro', 'micro', 'weighted']:
         # Arrange
-        scorers = [name + '_' + avg_method for name in AVAILABLE_EVALUTING_FUNCTIONS.keys()]
+        scorers = [name + '_' + avg_method for name in AVAILABLE_EVALUATING_FUNCTIONS.keys()]
         check = ClassPerformance(alternative_metrics=scorers)
         # Act
         result = check.run(coco_train_visiondata, coco_test_visiondata,

@@ -18,7 +18,7 @@ from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
 from deepchecks.utils.metrics import averaging_mechanism
-from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
+from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUATING_FUNCTIONS
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
@@ -49,10 +49,10 @@ class TpFpFn(Metric, MetricMixin):
         self.iou_thres = iou_thres
         self.confidence_thres = confidence_thres
         if isinstance(evaluating_function, str):
-            evaluating_function = AVAILABLE_EVALUTING_FUNCTIONS.get(evaluating_function)
+            evaluating_function = AVAILABLE_EVALUATING_FUNCTIONS.get(evaluating_function)
             if evaluating_function is None:
                 raise ValueError(
-                    f"Expected evaluating_function one of {list(AVAILABLE_EVALUTING_FUNCTIONS.keys())},"
+                    f"Expected evaluating_function one of {list(AVAILABLE_EVALUATING_FUNCTIONS.keys())},"
                     f" received: {evaluating_function}")
         self.evaluating_function = evaluating_function
         self.averaging_method = averaging_method

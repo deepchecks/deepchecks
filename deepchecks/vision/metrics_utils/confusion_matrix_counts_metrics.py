@@ -59,5 +59,5 @@ def _calc_fnr(tp: float, fp: float, fn: float) -> float:
     return fn / (tp + fn)
 
 
-AVAILABLE_EVALUTING_FUNCTIONS = {"recall": _calc_recall, "fpr": _calc_fpr,
-                                 "fnr": _calc_fnr, "precision": _calc_precision, "f1": _calc_f1}
+AVAILABLE_EVALUATING_FUNCTIONS = {"recall": _calc_recall, "fpr": _calc_fpr,
+                                  "fnr": _calc_fnr, "precision": _calc_precision, "f1": _calc_f1}
