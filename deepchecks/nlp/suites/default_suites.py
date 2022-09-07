@@ -14,16 +14,12 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-import warnings
-from typing import Callable, Dict, List, Union
 
 from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import KeywordFrequencyDrift, SingleDatasetPerformance
 
 __all__ = ['train_test_validation',
            'model_evaluation', 'full_suite']
-
-from deepchecks.utils.typing import Hashable
 
 
 def train_test_validation(n_samples: int = None,

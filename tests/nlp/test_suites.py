@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the default suites"""
-from hamcrest import assert_that, calling, raises, close_to
-
 from deepchecks.nlp.suites import full_suite
 from tests.conftest import get_expected_results_length, validate_suite_result
 
@@ -18,7 +16,7 @@ from tests.conftest import get_expected_results_length, validate_suite_result
 def test_full_suite(movie_reviews_data):
     # Arrange
     train_data, test_data = movie_reviews_data
-    args = dict(train_dataset=train_data, test_dataset=train_data)
+    args = dict(train_dataset=train_data, test_dataset=test_data)
 
     # Act
     suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
