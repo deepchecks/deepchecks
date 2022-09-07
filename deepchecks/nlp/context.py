@@ -19,8 +19,8 @@ from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
-from deepchecks.nlp.metric_utils.token_classification import get_default_token_scorers, SpanAligner, validate_scorers, \
-    get_scorer_dict
+from deepchecks.nlp.metric_utils.token_classification import (SpanAligner, get_default_token_scorers, get_scorer_dict,
+                                                              validate_scorers)
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType

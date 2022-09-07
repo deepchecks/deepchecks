@@ -15,6 +15,7 @@ from typing import List, Union
 
 import numpy as np
 import sklearn
+from nltk import download as nltk_download
 from nltk import word_tokenize
 from nltk.stem.lancaster import LancasterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -71,6 +72,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
             self.drift_method = cramers_v
         else:
             raise DeepchecksValueError(f'drift_method must be one of: PSI, cramer_v, found {drift_method}')
+        nltk_download('punkt')
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
