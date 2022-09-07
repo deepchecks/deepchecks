@@ -72,7 +72,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
             self.drift_method = cramers_v
         else:
             raise DeepchecksValueError(f'drift_method must be one of: PSI, cramer_v, found {drift_method}')
-        nltk_download('punkt')
+        nltk_download('punkt', quiet=True)
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -131,7 +131,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         result = {'drift_score': drift_score, 'top_n_diffs': dict(zip(top_n_words, top_n_diffs))}
         return CheckResult(value=result, display=display, header='Keyword Frequency Drift')
 
-    def add_condition_drift_score_less_than(self, threshold: float):
+    def add_condition_drift_score_less_than(self, threshold: float = 0.2):
         """Add condition - require drift score to be less than the threshold."""
         def condition(value) -> ConditionResult:
             drift_score = value['drift_score']

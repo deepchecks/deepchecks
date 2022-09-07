@@ -44,7 +44,7 @@ def text_multilabel_classification_dataset_mock():
 
 def download_nltk_resources():
     """Download nltk resources"""
-    nltk_download('movie_reviews')
+    nltk_download('movie_reviews', quiet=True)
 
 
 @pytest.fixture(scope='session')
