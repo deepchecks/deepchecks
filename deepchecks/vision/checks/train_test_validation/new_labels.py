@@ -13,6 +13,7 @@ import string
 from secrets import choice
 from typing import Dict
 
+import numpy as np
 import torch
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
