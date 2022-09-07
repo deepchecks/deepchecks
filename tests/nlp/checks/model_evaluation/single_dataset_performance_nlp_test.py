@@ -10,10 +10,11 @@
 #
 """Test for the nlp SingleDatasetPerformance check"""
 
-from hamcrest import assert_that, close_to, calling, raises, equal_to
+from hamcrest import assert_that, close_to, calling, raises, equal_to, has_items
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
+from tests.base.utils import equal_condition_result
 
 
 def test_run_with_scorer(text_classification_dataset_mock):
@@ -148,3 +149,34 @@ def test_run_with_scorer_token_per_class(text_token_classification_dataset_mock)
     assert_that(result.value.values[1][0], equal_to('B-GEO'))
     assert_that(result.value.values[2][-1], close_to(1., 0.001))
     assert_that(result.value.values[2][0], equal_to('B-PER'))
+
+
+def test_condition(text_classification_string_class_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance().add_condition_greater_than(0.7)
+
+    # Act
+    result = check.run(text_classification_string_class_dataset_mock,
+                       predictions=['wise', 'wise', 'meh'])
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Failed for metrics: [\'F1\', \'Precision\', \'Recall\']',
+                               name='Selected metrics scores are greater than 0.7')
+    ))
+
+
+def test_reduce(text_classification_string_class_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_per_class']).add_condition_greater_than(0.7)
+
+    # Act
+    result = check.run(text_classification_string_class_dataset_mock,
+                       predictions=['wise', 'wise', 'meh'])
+    reduce_result = result.reduce_output()
+
+    # Assert
+    assert_that(reduce_result['f1_meh'], close_to(0.666, 0.001))
+    assert_that(reduce_result['f1_wise'], close_to(0.666, 0.001))
