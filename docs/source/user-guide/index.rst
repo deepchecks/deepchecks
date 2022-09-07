@@ -48,6 +48,15 @@ Vision
     vision/custom_check_templates
     vision/using_precomputed_predictions_vision
 
+NLP
+-------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: NLP
+
+    nlp/coming_soon
+
 
 .. _user_guide__integrations:
 

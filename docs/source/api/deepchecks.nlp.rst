@@ -1,4 +1,4 @@
-deepchecks.vision
+deepchecks.nlp
 ==================
 
 .. automodule:: deepchecks.nlp

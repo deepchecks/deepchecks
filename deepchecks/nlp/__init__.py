@@ -10,10 +10,14 @@
 #
 """Package for nlp functionality."""
 from .base_checks import SingleDatasetCheck, TrainTestCheck
+from .context import Context
 from .suite import Suite
+from .text_data import TextData
 
 __all__ = [
-    "SingleDatasetCheck",
-    "TrainTestCheck",
-    "Suite",
+    'TextData',
+    'SingleDatasetCheck',
+    'TrainTestCheck',
+    'Suite',
+    'Context'
 ]

@@ -10,4 +10,9 @@
 #
 """Module containing metrics utils for nlp tasks."""
 
-__all__ = []
+from deepchecks.nlp.metric_utils.scorers import infer_on_text_data, init_validate_scorers
+from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
+                                                              validate_scorers)
+
+__all__ = ['get_default_token_scorers', 'validate_scorers', 'get_scorer_dict', 'init_validate_scorers',
+           'infer_on_text_data']
