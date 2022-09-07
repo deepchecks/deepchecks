@@ -39,7 +39,7 @@ DATA_DIR = Path(__file__).absolute().parent
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
     """Load the lraspp_mobilenet_v3_large model and return it."""
     model = lraspp_mobilenet_v3_large(pretrained=pretrained, progress=False)
-    model.eval()
+    _ = model.eval()
 
     return model
 
