@@ -13,7 +13,6 @@ from deepchecks.utils.decorators import Substitution
 
 _shared_docstrings = {}
 
-
 _shared_docstrings['additional_context_params'] = """
 feature_importance: pd.Series , default: None
     pass manual features importance
@@ -35,5 +34,19 @@ features_importance: Optional[pd.Series] , default: None
         Use 'feature_importance' instead.
 """.strip('\n')
 
+_shared_docstrings['feature_aggregation_method_argument'] = """
+argument for the reduce_output functionality, decides how to aggregate the drift scores for a
+collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
+Possible values are:
+'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
+L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
+value between 0 and sqrt(n_features).
+'weighted': Weighted mean based on feature importance, provides a robust estimation on how
+much the drift will affect the model's performance.
+'mean': Mean of all drift scores.
+'max': Maximum of all the features drift scores.
+'none': No averaging. Return a dict with a drift score for each feature.
+'top_5' No averaging. Return a dict with a drift score for top 5 features based on feature importance.
+""".strip('\n')
 
 docstrings = Substitution(**_shared_docstrings)

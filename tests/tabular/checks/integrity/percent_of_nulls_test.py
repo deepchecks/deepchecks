@@ -11,10 +11,8 @@
 """Tests for Percent Of Nulls check."""
 import numpy as np
 import pandas as pd
-from hamcrest import *
-
-from deepchecks.core.check_result import CheckResult
 from deepchecks.tabular.checks.data_integrity import PercentOfNulls
+from hamcrest import *
 from tests.base.utils import equal_condition_result
 
 
@@ -26,14 +24,14 @@ def test_percent_of_nulls():
     # Assert
     assert_that(result.display, has_length(greater_than(0)))
     assert_that(result.value, has_length(2))
-    assert_that(result.value.iloc[0,0], equal_to(0.5))
+    assert_that(result.value.iloc[0, 0], equal_to(0.5))
     assert_that(result.value.iloc[1, 0], equal_to(0.25))
     assert_that(result.reduce_output(), np.mean(result.value.iloc[:, 0]))
 
 
 def test_percent_of_nulls_without_display():
     # Arrange
-    df = pd.DataFrame({'foo': ['a','b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
+    df = pd.DataFrame({'foo': ['a', 'b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
     # Act
     result = PercentOfNulls().run(df, with_display=False)
     # Assert
@@ -46,7 +44,7 @@ def test_percent_of_nulls_without_display():
 def test_percent_of_nulls_with_columns_of_categorical_dtype():
     # Arrange
     t = pd.CategoricalDtype(categories=['b', 'a'])
-    df = pd.DataFrame({'foo': ['a','b', np.nan, None], 'bar': [None, 'a', 'b', 'a']}, dtype=t)
+    df = pd.DataFrame({'foo': ['a', 'b', np.nan, None], 'bar': [None, 'a', 'b', 'a']}, dtype=t)
     # Act
     result = PercentOfNulls().run(df)
     # Assert
@@ -58,7 +56,7 @@ def test_percent_of_nulls_with_columns_of_categorical_dtype():
 
 def test_reduce_output_method_none():
     # Arrange
-    df = pd.DataFrame({'foo': ['a','b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
+    df = pd.DataFrame({'foo': ['a', 'b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
     # Act
     result = PercentOfNulls(aggregation_method='none').run(df)
     # Assert
@@ -70,7 +68,7 @@ def test_reduce_output_method_none():
 
 def test_exclude_parameter():
     # Arrange
-    df = pd.DataFrame({'foo': ['a','b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
+    df = pd.DataFrame({'foo': ['a', 'b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
     # Act
     result = PercentOfNulls(ignore_columns=['foo']).run(df)
     # Assert
@@ -80,7 +78,7 @@ def test_exclude_parameter():
 
 def test_columns_parameter():
     # Arrange
-    df = pd.DataFrame({'foo': ['a','b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
+    df = pd.DataFrame({'foo': ['a', 'b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
     # Act
     result = PercentOfNulls(columns=['foo']).run(df)
     # Assert
@@ -88,9 +86,20 @@ def test_columns_parameter():
     assert_that(result.value.iloc[0, 0], equal_to(0.5))
 
 
+def test_aggregation_parameter(adult_split_dataset_and_model):
+    # Arrange
+    train_ds, test_ds, model = adult_split_dataset_and_model
+    # Act
+    result = PercentOfNulls(aggregation_method='top_5').run(dataset=test_ds, model=model)
+    # Assert
+    assert_that(max(result.value['Percent of nulls in sample']), equal_to(0))
+    assert_that(result.value['Percent of nulls in sample'], has_length(14))
+    assert_that(result.reduce_output(), has_length(5))
+
+
 def test_condition():
     # Arrange
-    df = pd.DataFrame({'foo': ['a','b'], 'bar': ['a', 'a']})
+    df = pd.DataFrame({'foo': ['a', 'b'], 'bar': ['a', 'a']})
     check = PercentOfNulls().add_condition_percent_of_nulls_not_greater_than(0.01)
     # Act
     check_result = check.run(df)
@@ -105,7 +114,7 @@ def test_condition():
 
 def test_not_passing_condition():
     # Arrange
-    df = pd.DataFrame({'foo': ['a','b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
+    df = pd.DataFrame({'foo': ['a', 'b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
     check = PercentOfNulls().add_condition_percent_of_nulls_not_greater_than(0.01)
     # Act
     check_result = check.run(df)
