@@ -166,7 +166,7 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
     return averaging_mechanism(averaging_method, scores_per_class, weights)
 
 
-def roc_auc_per_class(y_true, y_pred, classes=None) -> np.ndarray:
+def roc_auc_per_class(y_true, y_pred, classes=None, class_subset=None) -> np.ndarray:
     """Receives predictions and true labels and returns the ROC AUC score for each class.
 
     Parameters
@@ -176,7 +176,9 @@ def roc_auc_per_class(y_true, y_pred, classes=None) -> np.ndarray:
     y_pred : array-like of shape (n_samples, n_classes)
         Predicted label probabilities.
     classes: array-like of shape (n_classes,), default: None
-        A sequence of the dataset classes
+        A sequence containing a sorted sequence of all the classes in the dataset
+    class_subset: array-like of, default: None
+        The subset of classes to display
 
     Returns
     -------
@@ -194,4 +196,8 @@ def roc_auc_per_class(y_true, y_pred, classes=None) -> np.ndarray:
             f'Number of given labels, {len(classes)}, not equal to the number '
             f'of columns in \'y_pred\', {y_pred.shape[1]}'
         )
-    return np.array([roc_auc_score(y_true == class_name, y_pred[:, i]) for i, class_name in enumerate(classes)])
+    if class_subset is None:
+        class_subset = classes
+    class_subset = set(class_subset)
+    return np.array([roc_auc_score(y_true == class_name, y_pred[:, i]) if class_name in class_subset else None
+                     for i, class_name in enumerate(classes)])

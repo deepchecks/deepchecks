@@ -13,7 +13,7 @@ import re
 from typing import List
 
 import numpy as np
-from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, instance_of, raises
+from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, instance_of, raises, equal_to
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.metrics import jaccard_score, make_scorer
 from sklearn.model_selection import train_test_split
@@ -297,13 +297,19 @@ def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     check = TrainTestPerformance(scorers=['fpr_per_class', 'fnr_per_class', 'specificity_per_class', 'fnr_macro',
                                           'roc_auc_per_class'])
     # Act
-    result = check.run(train, test, model).reduce_output()
+    check_result = check.run(train, test, model)
+    check_value = check_result.value
+    result = check_result.reduce_output()
     # Assert
     assert_that(result['fpr'], close_to(0.070, 0.001))
     assert_that(result['fnr'], close_to(0.035, 0.001))
     assert_that(result['specificity'], close_to(0.929, 0.001))
     assert_that(result['fnr_macro'], close_to(result['fnr'], 0.001))
     assert_that(result['roc_auc'], close_to(0.992, 0.001))
+
+    per_class_df = check_value[check_value['Metric'] == 'roc_auc']
+    assert_that(per_class_df.loc[per_class_df.Dataset == 'Train', 'Class'].values[1], equal_to(1.))
+    assert_that(per_class_df.loc[per_class_df.Dataset == 'Train', 'Value'].values[1], close_to(0.997, 0.001))
 
 
 def test_regression_alt_scores_list(diabetes_split_dataset_and_model):

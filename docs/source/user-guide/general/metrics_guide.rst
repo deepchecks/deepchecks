@@ -156,11 +156,11 @@ ______________
      - scikit-learn
    * - ‘roc_auc’
      - Area Under the Receiver Operating Characteristic Curve (ROC AUC) - binary
-     - for multiclass options check
+     - for multiclass averaging options see
        `scikit-learn's documentation <https://scikit-learn.org/stable/modules/model_evaluation.html>`__
    * - ‘roc_auc_per_class’
      - Area Under the Receiver Operating Characteristic Curve (ROC AUC) - score per class
-     - for multiclass & averaging options check
+     - for multiclass averaging options see
        `scikit-learn's documentation <https://scikit-learn.org/stable/modules/model_evaluation.html>`__
    * - 'f1'
      - F-1 - binary
