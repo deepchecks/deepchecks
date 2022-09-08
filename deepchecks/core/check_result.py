@@ -347,16 +347,13 @@ class CheckResult(BaseCheckResult, DisplayableResult):
 
     def to_wandb(
         self,
-        dedicated_run: Optional[bool] = None,
         **kwargs
     ):
         """Send result to wandb.
 
         Parameters
         ----------
-        dedicated_run : bool, default True
-            whether to create a separate wandb run or not
-            (deprecated parameter, does not have any effect anymore)
+
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
@@ -366,12 +363,6 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         # doing import within method to prevent premature ImportError
         assert self.check is not None
         from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
-
-        if dedicated_run is not None:
-            get_logger().warning(
-                '"dedicated_run" parameter is deprecated and does not have effect anymore. '
-                'It will be remove in next versions.'
-            )
 
         wandb_kwargs = {'config': {'header': self.get_header(), **self.check.metadata()}}
         wandb_kwargs.update(**kwargs)
@@ -568,14 +559,11 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             unpicklable=False
         )
 
-    def to_wandb(self, dedicated_run: Optional[bool] = None, **kwargs):
+    def to_wandb(self, **kwargs):
         """Send check result to wandb.
 
         Parameters
         ----------
-        dedicated_run : bool, default True
-            whether to create a separate wandb run or not
-            (deprecated parameter, does not have any effect anymore)
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).
@@ -585,12 +573,6 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         # doing import within method to prevent premature ImportError
         assert self.check is not None
         from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
-
-        if dedicated_run is not None:
-            get_logger().warning(
-                '"dedicated_run" parameter is deprecated and does not have effect anymore. '
-                'It will be remove in next versions.'
-            )
 
         wandb_kwargs = {'config': {'header': self.get_header(), **self.check.metadata()}}
         wandb_kwargs.update(**kwargs)
