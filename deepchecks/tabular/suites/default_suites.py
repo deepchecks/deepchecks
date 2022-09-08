@@ -245,8 +245,6 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_tabular_performance_report`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.PerformanceReport`
            * - :ref:`plot_tabular_roc_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RocReport`
            * - :ref:`plot_tabular_confusion_matrix_report`

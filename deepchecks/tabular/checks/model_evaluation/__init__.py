@@ -34,7 +34,6 @@ __all__ = [
     'ModelInfo',
     'MultiModelPerformanceReport',
     'TrainTestPerformance',
-    'PerformanceReport',
     'RegressionErrorDistribution',
     'RegressionSystematicError',
     'RocReport',
@@ -45,5 +44,3 @@ __all__ = [
     'UnusedFeatures',
     'SingleDatasetPerformance'
 ]
-
-from .performance_report import PerformanceReport
