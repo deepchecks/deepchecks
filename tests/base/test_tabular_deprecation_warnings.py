@@ -79,12 +79,3 @@ def test_deprecation_performance_report_warning():
                                                 'performance check instead'):
         _ = PerformanceReport()
 
-
-def test_simple_model_args_warning():
-    with pytest.warns(DeprecationWarning, match='simple_model_type is deprecated. please use strategy instead'):
-        _ = SimpleModelComparison(simple_model_type='uniform')
-
-
-def test_simple_model_strategy_warning():
-    with pytest.warns(DeprecationWarning, match='strategy random is deprecated. please use stratified instead.'):
-        _ = SimpleModelComparison(strategy='random')

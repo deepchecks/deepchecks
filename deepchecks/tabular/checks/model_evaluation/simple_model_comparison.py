@@ -43,11 +43,6 @@ _allowed_strategies = (
     'tree'
 )
 
-_depr_strategies = {
-    'random': 'stratified',
-    'constant': 'most_frequent',
-}
-
 
 class SimpleModelComparison(TrainTestCheck):
     """Compare given model score to simple model score (according to given model type).
@@ -63,8 +58,6 @@ class SimpleModelComparison(TrainTestCheck):
            predictions uniformly at random from the list of values in y.
         * `most_frequent`: in regression is mean value, in classification the most common value. (Previously 'constant')
         * `tree`: runs a simple decision tree.
-    simple_model_type : str , default: most_frequent
-        Deprecated. Please use strategy instead.
     alternative_scorers : Dict[str, Callable], default: None
         An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
         For description about scorers see Notes below.
@@ -113,7 +106,6 @@ class SimpleModelComparison(TrainTestCheck):
     def __init__(
         self,
         strategy: str = 'most_frequent',
-        simple_model_type: str = None,
         alternative_scorers: Dict[str, Callable] = None,
         max_gain: float = 50,
         max_depth: int = 3,
@@ -125,23 +117,7 @@ class SimpleModelComparison(TrainTestCheck):
         self.max_gain = max_gain
         self.max_depth = max_depth
         self.random_state = random_state
-
-        if simple_model_type is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: simple_model_type is deprecated. please use strategy instead.',
-                DeprecationWarning
-            )
-            self.strategy = simple_model_type
-        else:
-            self.strategy = strategy
-
-        if self.strategy in _depr_strategies:
-            warnings.warn(
-                f'{self.__class__.__name__}: strategy {self.strategy} is deprecated. '
-                f'please use { _depr_strategies[self.strategy] } instead.',
-                DeprecationWarning
-            )
-            self.strategy = _depr_strategies[self.strategy]
+        self.strategy = strategy
 
         if self.strategy not in _allowed_strategies:
             raise DeepchecksValueError(
