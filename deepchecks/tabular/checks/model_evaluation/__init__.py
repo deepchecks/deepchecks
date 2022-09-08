@@ -12,7 +12,6 @@
 from .boosting_overfit import BoostingOverfit
 from .calibration_score import CalibrationScore
 from .confusion_matrix_report import ConfusionMatrixReport
-from .model_error_analysis import ModelErrorAnalysis
 from .model_inference_time import ModelInferenceTime
 from .model_info import ModelInfo
 from .multi_model_performance_report import MultiModelPerformanceReport
@@ -31,7 +30,6 @@ __all__ = [
     'BoostingOverfit',
     'CalibrationScore',
     'ConfusionMatrixReport',
-    'ModelErrorAnalysis',
     'ModelInferenceTime',
     'ModelInfo',
     'MultiModelPerformanceReport',

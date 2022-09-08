@@ -14,7 +14,7 @@ from deepchecks.tabular.checks.data_integrity import PercentOfNulls
 from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
                              FeatureLabelCorrelation, IsSingleValue, MixedDataTypes, MixedNulls, OutlierSampleDetection,
                              SpecialCharacters, StringLengthOutOfBounds, StringMismatch)
-from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
+from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport,
                                ModelInferenceTime, ModelInfo, MultiModelPerformanceReport, PerformanceReport,
                                RegressionErrorDistribution, RegressionSystematicError, RocReport, SegmentPerformance,
                                SimpleModelComparison, SingleDatasetPerformance, TrainTestPerformance,
@@ -78,6 +78,5 @@ __all__ = [
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
     'WeakSegmentsPerformance',
-    'ModelErrorAnalysis',
     'SingleDatasetPerformance'
 ]
