@@ -23,8 +23,7 @@ __all__ = ['default_image_properties',
            'mean_blue_relative_intensity',
            'mean_green_relative_intensity',
            'get_size',
-           'get_dimension',
-           'get_column_type']
+           'get_dimension']
 
 
 def aspect_ratio(batch: List[np.ndarray]) -> List[float]:
