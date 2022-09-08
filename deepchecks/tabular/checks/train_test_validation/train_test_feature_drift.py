@@ -93,8 +93,6 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
         Random seed for sampling.
-    max_num_categories: int, default: None
-        Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
@@ -113,21 +111,12 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             aggregation_method='l2_weighted',
             n_samples: int = 100_000,
             random_state: int = 42,
-            max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.margin_quantile_filter = margin_quantile_filter
-        if max_num_categories is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
-                'and max_num_categories_for_display instead',
-                DeprecationWarning
-            )
-            max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
-            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
@@ -266,9 +255,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
                                             max_allowed_numeric_score: float = 0.1,
-                                            allowed_num_features_exceeding_threshold: int = 0,
-                                            max_allowed_psi_score: float = None,
-                                            max_allowed_earth_movers_score: float = None):
+                                            allowed_num_features_exceeding_threshold: int = 0):
         """
         Add condition - require drift score to be less than the threshold.
 
@@ -284,33 +271,12 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             The max threshold for the numeric variable drift score
         allowed_num_features_exceeding_threshold: int , default: 0
             Determines the number of features with drift score above threshold needed to fail the condition.
-        max_allowed_psi_score: float, default None
-            Deprecated. Please use max_allowed_categorical_score instead
-        max_allowed_earth_movers_score: float, default None
-            Deprecated. Please use max_allowed_numeric_score instead
 
         Returns
         -------
         ConditionResult
             False if more than allowed_num_features_exceeding_threshold drift scores are above threshold, True otherwise
         """
-        if max_allowed_psi_score is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_allowed_psi_score is deprecated. please use '
-                f'max_allowed_categorical_score instead',
-                DeprecationWarning
-            )
-            if max_allowed_categorical_score is not None:
-                max_allowed_categorical_score = max_allowed_psi_score
-        if max_allowed_earth_movers_score is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_allowed_earth_movers_score is deprecated. please use '
-                f'max_allowed_numeric_score instead',
-                DeprecationWarning
-            )
-            if max_allowed_numeric_score is not None:
-                max_allowed_numeric_score = max_allowed_earth_movers_score
-
         condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score, 'column', 'columns',
                                     allowed_num_features_exceeding_threshold)
 

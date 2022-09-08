@@ -97,8 +97,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     max_classes_to_display: int, default: 3
         Max number of classes to show in the display when drift is computed on the class probabilities for
         classification tasks.
-    max_num_categories: int, default: None
-        Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
@@ -113,7 +111,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             ignore_na: bool = True,
             aggregation_method: str = 'max',
             max_classes_to_display: int = 3,
-            max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -123,14 +120,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         if self.drift_mode not in ('auto', 'proba', 'prediction'):
             raise DeepchecksValueError('drift_mode must be one of "auto", "proba", "prediction"')
         self.margin_quantile_filter = margin_quantile_filter
-        if max_num_categories is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
-                'and max_num_categories_for_display instead',
-                DeprecationWarning
-            )
-            max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
-            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
@@ -236,9 +225,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             return {'Weighted Drift Score': np.sum(np.array(drift_values) * class_weight)}
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
-                                            max_allowed_numeric_score: float = 0.075,
-                                            max_allowed_psi_score: float = None,
-                                            max_allowed_earth_movers_score: float = None):
+                                            max_allowed_numeric_score: float = 0.075):
         """
         Add condition - require drift score to be less than a certain threshold.
 
@@ -254,32 +241,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             the max threshold for the categorical variable drift score
         max_allowed_numeric_score: float ,  default: 0.1
             the max threshold for the numeric variable drift score
-        max_allowed_psi_score: float, default None
-            Deprecated. Please use max_allowed_categorical_score instead
-        max_allowed_earth_movers_score: float, default None
-            Deprecated. Please use max_allowed_numeric_score instead
         Returns
         -------
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
-        if max_allowed_psi_score is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_allowed_psi_score is deprecated. please use '
-                f'max_allowed_categorical_score instead',
-                DeprecationWarning
-            )
-            if max_allowed_categorical_score is not None:
-                max_allowed_categorical_score = max_allowed_psi_score
-        if max_allowed_earth_movers_score is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_allowed_earth_movers_score is deprecated. please use '
-                f'max_allowed_numeric_score instead',
-                DeprecationWarning
-            )
-            if max_allowed_numeric_score is not None:
-                max_allowed_numeric_score = max_allowed_earth_movers_score
-
         def condition(result: Dict) -> ConditionResult:
             drift_score_dict = result['Drift score']
             # Move to dict for easier looping
