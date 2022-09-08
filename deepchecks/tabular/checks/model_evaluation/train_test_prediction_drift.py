@@ -10,7 +10,6 @@
 #
 """Module contains Train Test label Drift check."""
 
-import warnings
 from typing import Dict
 
 import numpy as np

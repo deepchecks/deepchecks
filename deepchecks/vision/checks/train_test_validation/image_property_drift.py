@@ -10,7 +10,6 @@
 #
 """Module contains Image Property Drift check."""
 import typing as t
-import warnings
 from collections import defaultdict
 
 import pandas as pd

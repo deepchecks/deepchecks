@@ -14,7 +14,6 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-import warnings
 from typing import Any, Dict, List, Tuple
 
 from ignite.metrics import Metric

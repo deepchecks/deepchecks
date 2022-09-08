@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating the properties used in Vision checks."""
-import warnings
 from enum import Enum
 from itertools import chain
 

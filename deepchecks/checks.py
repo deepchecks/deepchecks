@@ -34,7 +34,6 @@ __all__ = [
     'SpecialCharacters',
     'StringLengthOutOfBounds',
     'StringMismatchComparison',
-    'DominantFrequencyChange',
     'DataDuplicates',
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
@@ -68,7 +67,6 @@ __all__ = [
 
     # performance checks
     'TrainTestPerformance',
-    'PerformanceReport',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',

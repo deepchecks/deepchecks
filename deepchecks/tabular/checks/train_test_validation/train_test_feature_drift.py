@@ -10,7 +10,6 @@
 #
 """Module contains Train Test Drift check."""
 
-import warnings
 from collections import OrderedDict
 from typing import Dict, List, Union
 

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-import warnings
+
 from typing import Dict
 
 from deepchecks.core import CheckResult, ConditionResult

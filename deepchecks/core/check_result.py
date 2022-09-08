@@ -35,7 +35,6 @@ from deepchecks.core.serialization.check_result.html import CheckResultSerialize
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as CheckResultIPythonSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
-from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
@@ -353,7 +352,6 @@ class CheckResult(BaseCheckResult, DisplayableResult):
 
         Parameters
         ----------
-
         kwargs: Keyword arguments to pass to wandb.init.
                 Default project name is deepchecks.
                 Default config is the check metadata (params, train/test/ name etc.).

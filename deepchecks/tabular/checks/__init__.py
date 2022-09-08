@@ -14,11 +14,10 @@ from deepchecks.tabular.checks.data_integrity import PercentOfNulls
 from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
                              FeatureLabelCorrelation, IsSingleValue, MixedDataTypes, MixedNulls, OutlierSampleDetection,
                              SpecialCharacters, StringLengthOutOfBounds, StringMismatch)
-from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport,
-                               ModelInferenceTime, ModelInfo, MultiModelPerformanceReport,
-                               RegressionErrorDistribution, RegressionSystematicError, RocReport, SegmentPerformance,
-                               SimpleModelComparison, SingleDatasetPerformance, TrainTestPerformance,
-                               TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
+from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelInferenceTime, ModelInfo,
+                               MultiModelPerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
+                               RocReport, SegmentPerformance, SimpleModelComparison, SingleDatasetPerformance,
+                               TrainTestPerformance, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, NewLabelTrainTest,

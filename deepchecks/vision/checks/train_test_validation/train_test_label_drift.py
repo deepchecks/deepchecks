@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-import warnings
 from collections import OrderedDict, defaultdict
 from typing import Any, Dict, List
 

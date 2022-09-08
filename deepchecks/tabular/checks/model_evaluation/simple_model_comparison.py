@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING, Callable, Dict, Hashable, List
 
