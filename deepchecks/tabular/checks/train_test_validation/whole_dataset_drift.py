@@ -56,8 +56,6 @@ class WholeDatasetDrift(TrainTestCheck):
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
     min_meaningful_drift_score : float , default 0.05
         Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
-    max_num_categories: int, default: None
-        Deprecated. Please use max_num_categories_for_display instead
     """
 
     def __init__(
@@ -70,20 +68,12 @@ class WholeDatasetDrift(TrainTestCheck):
             random_state: int = 42,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
-            max_num_categories: int = None,
             **kwargs
     ):
         super().__init__(**kwargs)
 
         self.n_top_columns = n_top_columns
         self.min_feature_importance = min_feature_importance
-        if max_num_categories is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_num_categories is deprecated. please use '
-                f'max_num_categories_for_display instead',
-                DeprecationWarning
-            )
-            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.sample_size = sample_size
