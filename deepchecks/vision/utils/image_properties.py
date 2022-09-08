@@ -132,16 +132,3 @@ default_image_properties = [
     {'name': 'Mean Green Relative Intensity', 'method': mean_green_relative_intensity, 'output_type': 'numerical'},
     {'name': 'Mean Blue Relative Intensity', 'method': mean_blue_relative_intensity, 'output_type': 'numerical'}
 ]
-
-
-def get_column_type(output_type):
-    """Get column type to use in drift functions."""
-    # TODO: smarter mapping based on data?
-    # NOTE/TODO: this function is kept only for backward compatibility, remove it later
-    mapper = {
-        'continuous': 'numerical',
-        'discrete': 'categorical',
-        'numerical': 'numerical',
-        'categorical': 'categorical'
-    }
-    return mapper[output_type]

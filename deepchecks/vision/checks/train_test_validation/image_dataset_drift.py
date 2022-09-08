@@ -18,7 +18,7 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, Dat
 from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
-from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
+from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImageDatasetDrift']
@@ -139,7 +139,7 @@ class ImageDatasetDrift(TrainTestCheck):
         numeric_features = []
         categorical_features = []
         for prop in self.image_properties:
-            col_type = get_column_type(prop['output_type'])
+            col_type = prop['output_type']
             if col_type == 'numerical':
                 numeric_features.append(prop['name'])
             else:

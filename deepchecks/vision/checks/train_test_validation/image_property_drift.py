@@ -23,7 +23,7 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_p
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
-from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
+from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyDrift']
@@ -195,7 +195,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
                     train_column=df_train[property_name],
                     test_column=df_test[property_name],
                     value_name=property_name,
-                    column_type=get_column_type(single_property['output_type']),
+                    column_type=single_property['output_type'],
                     margin_quantile_filter=self.margin_quantile_filter,
                     max_num_categories_for_drift=self.max_num_categories_for_drift,
                     min_category_size_ratio=self.min_category_size_ratio,
