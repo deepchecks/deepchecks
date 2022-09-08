@@ -139,8 +139,8 @@ class Dataset:
                 
         if len(duplicated_columns) > 1:
             raise DeepchecksValueError(
-                f"Data has {len(duplicated_columns)} duplicate columns."
-                "Change the duplicate column names or remove them from the data dataframe."
+                f"Data has {len(duplicated_columns)} duplicate columns. "
+                "Change the duplicate column names or remove them from the data. "
                 f"Duplicated columns: {duplicated_columns}"
             )
 
