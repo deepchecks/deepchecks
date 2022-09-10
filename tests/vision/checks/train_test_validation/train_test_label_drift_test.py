@@ -78,7 +78,6 @@ def test_no_drift_object_segmentation(segmentation_coco_train_visiondata, device
     ))
 
 
-
 def test_reduce_output_no_drift_object_detection(coco_train_visiondata, device):
     # Arrange
     check = TrainTestLabelDrift(categorical_drift_method='PSI')
