@@ -21,6 +21,7 @@ from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
                                                                  DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES,
@@ -31,6 +32,7 @@ from deepchecks.vision.vision_data import TaskType
 __all__ = ['TrainTestLabelDrift']
 
 
+@docstrings
 class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
@@ -95,11 +97,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     aggregation_method: str, default: 'none'
-        argument for the reduce_output functionality, decides how to aggregate the individual properties drift scores
-        for a collective score between 0 and 1. Possible values are:
-        'mean': Mean of all properties scores.
-        'none': No averaging. Return a dict with a drift score for each property.
-        'max': Maximum of all the properties drift scores.
+        {property_aggregation_method_argument:2*indent}
     max_num_categories : int, default: None
         Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """

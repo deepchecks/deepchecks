@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all tabular checks."""
+from deepchecks.tabular.checks.data_integrity import PercentOfNulls
+
 from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
                              FeatureLabelCorrelation, IsSingleValue, MixedDataTypes, MixedNulls, OutlierSampleDetection,
                              SpecialCharacters, StringLengthOutOfBounds, StringMismatch)
@@ -38,6 +40,7 @@ __all__ = [
     'NewLabelTrainTest',
     'ConflictingLabels',
     'OutlierSampleDetection',
+    'PercentOfNulls',
 
     # methodology checks
     'BoostingOverfit',
