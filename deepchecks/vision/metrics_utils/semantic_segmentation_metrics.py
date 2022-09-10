@@ -52,7 +52,7 @@ class MeanDice(Metric):
         """Compute metric value."""
         sorted_classes = [int(class_id) for class_id in sorted(self._evals.keys())]
         max_class = max(sorted_classes)
-        scores_per_class = -np.ones(max_class + 1)
+        scores_per_class = np.empty(max_class + 1)*np.nan
 
         for class_id in sorted_classes:
             count = self._evals[class_id]['count']
