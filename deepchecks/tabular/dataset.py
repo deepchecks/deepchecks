@@ -546,6 +546,13 @@ class Dataset:
     def _infer_label_type(label_col: pd.Series):
         if is_categorical(label_col, max_categorical_ratio=0.05):
             if label_col.nunique(dropna=True) > 2:
+                if infer_dtype(label_col) == 'integer' \
+                        and label_col.nunique() >= 5:
+                    get_logger().warning(
+                        'Integer label has many unique values. In this case, deepchecks automatically '
+                        'infers label to be multiclass. If your label is a regression label and not multiclass, '
+                        'please use "label_type=\'regression_label\'" when initializing your Dataset.'
+                    )
                 return TaskType.MULTICLASS
             else:
                 return TaskType.BINARY
