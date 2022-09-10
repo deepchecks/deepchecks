@@ -164,12 +164,12 @@ def test_segmentation_coco_and_condition(segmentation_coco_train_visiondata,
         'Area': has_length(5),
         'Aspect Ratio': has_items(
             has_entries({
-                'start': -np.inf, 'stop': close_to(0.76, 0.01), 'count': 2, 'display_range': '(-inf, 0.76)',
-                'metrics': has_entries({'Dice': equal_to(0)})
+                'start': -np.inf, 'stop': close_to(0.73, 0.01), 'count': 2, 'display_range': '(-inf, 0.73)',
+                'metrics': has_entries({'Dice': equal_to(-1)})
             }),
             has_entries({
-                'start': close_to(0.76, 0.01), 'stop': close_to(1.09, 0.01), 'count': 2, 'display_range': '[0.76, 1.09)',
-                'metrics': has_entries({'Dice': close_to(-0.41, 0.01)})
+                'start': close_to(0.73, 0.01), 'stop': close_to(0.76, 0.01), 'count': 2, 'display_range': '[0.73, 0.76)',
+                'metrics': has_entries({'Dice': close_to(0.94, 0.01)})
             })
         )
     }))
