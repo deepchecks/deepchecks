@@ -4,6 +4,20 @@
 
 Regression Systematic Error
 ***************************
+This notebook provides an overview for using and understanding the Regression Systematic Error check.
+
+**Structure:**
+
+* `What is the the Regression Systematic Error check? <#what-is-the-regression-systematic-error-check>`__
+* `Generate data & model <#generate-data-model>`__
+* `Run the check <#run-the-check>`__
+
+
+What is the Regression Systematic Error check?
+==================================================
+The ``RegressionSystematicError`` check looks for a systematic error in model predictions.
+If the errors distribution is non-zero mean, it indicates the presence of a systematic error.
+
 """
 
 #%%
@@ -18,8 +32,8 @@ from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import RegressionSystematicError
 
 #%%
-# Generating data
-# ===============
+# Generate data & model
+# ======================
 
 diabetes_df = load_diabetes(return_X_y=False, as_frame=True).frame
 train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
@@ -32,11 +46,8 @@ clf = GradientBoostingRegressor(random_state=0)
 _ = clf.fit(train.data[train.features], train.data[train.label_name])
 
 #%%
-# Running RegressionSystematicError check
-# =======================================
+# Run the check
+# ==============
 
 check = RegressionSystematicError()
-
-#%%
-
 check.run(test, clf)
