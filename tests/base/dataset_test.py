@@ -1052,7 +1052,7 @@ def test_cat_features_warning(iris, caplog):
     
 def test_multiclass_label_as_integer_warning(caplog, n_samples=100, n_features=5):
     # Test that warning is raised when the label type is integer
-    # and there are more than 10 unique values
+    # and there are more than 5 unique values
     x, *_ = make_classification(n_samples=n_samples, n_features=n_features)
     df = pd.DataFrame(x, columns=[f'X{i}' for i in range(n_features)])
     df['target'] = np.random.randint(0, 15, n_samples)
