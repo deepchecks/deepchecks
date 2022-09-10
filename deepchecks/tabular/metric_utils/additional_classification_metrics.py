@@ -12,9 +12,9 @@
 from typing import Union
 
 import numpy as np
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix, roc_auc_score
 
-__all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric']
+__all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric', 'roc_auc_per_class']
 
 from deepchecks.utils.metrics import averaging_mechanism
 
@@ -164,3 +164,40 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
     scores_per_class = _true_negative_rate_per_class(y_true, y_pred)
     weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
     return averaging_mechanism(averaging_method, scores_per_class, weights)
+
+
+def roc_auc_per_class(y_true, y_pred, classes=None, class_subset=None) -> np.ndarray:
+    """Receives predictions and true labels and returns the ROC AUC score for each class.
+
+    Parameters
+    ----------
+    y_true : array-like of shape (n_samples,)
+        True labels.
+    y_pred : array-like of shape (n_samples, n_classes)
+        Predicted label probabilities.
+    classes: array-like of shape (n_classes,), default: None
+        A sequence containing a sorted sequence of all the classes in the dataset
+    class_subset: array-like of, default: None
+        The subset of classes to display
+
+    Returns
+    -------
+    roc_auc : np.ndarray
+        The ROC AUC score for each class.
+    """
+    unique_labels = np.unique(np.array(y_true))
+    if classes is not None:
+        if not set(classes) | set(unique_labels) == set(classes):
+            raise ValueError('y_true should contain only labels present in the provided classes list.')
+    else:
+        classes = unique_labels
+    if len(classes) != y_pred.shape[1]:
+        raise ValueError(
+            f'Number of given labels, {len(classes)}, not equal to the number '
+            f'of columns in \'y_pred\', {y_pred.shape[1]}'
+        )
+    if class_subset is None:
+        class_subset = classes
+    class_subset = set(class_subset)
+    return np.array([roc_auc_score(y_true == class_name, y_pred[:, i]) if class_name in class_subset else None
+                     for i, class_name in enumerate(classes)])

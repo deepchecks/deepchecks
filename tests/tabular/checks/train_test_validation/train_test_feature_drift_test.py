@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test drift."""
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_item, has_length, is_not
-
 from deepchecks.tabular.checks import TrainTestFeatureDrift
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_item, has_length, is_not
 from tests.base.utils import equal_condition_result
 
 
@@ -187,7 +186,8 @@ def test_drift_with_nulls(drifted_data_with_nulls):
     # PSI with ignore_na=False:
 
     # Act
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0, ignore_na=False)
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0,
+                                  ignore_na=False)
     result = check.run(train, test)
     # Assert
     assert_that(result.value, has_entries({
@@ -225,6 +225,19 @@ def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
     # Assert
     assert_that(aggregated_result.keys(), has_item('Weighted Drift Score'))
     assert_that(aggregated_result['Weighted Drift Score'], close_to(0.1195, 0.01))
+
+
+def test_top5_aggregation_drift_with_model(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method='top_5')
+
+    # Act
+    aggregated_result = check.run(train, test, model).reduce_output()
+    # Assert
+    assert_that(aggregated_result.keys(), has_length(4))
+    assert_that(aggregated_result.keys(), has_item('numeric_with_drift'))
+    assert_that(aggregated_result['numeric_with_drift'], close_to(0.343, 0.01))
 
 
 def test_l2_aggregation_drift_with_model(drifted_data_and_model):
@@ -334,7 +347,7 @@ def test_drift_no_model(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0)\
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0) \
         .add_condition_drift_score_less_than()
 
     # Act
