@@ -191,7 +191,7 @@ class CocoSegmentationDataset(VisionDataset):
                 polygons = label.open('r').read().strip().splitlines()
                 relevant_labels = [polygon.split()[0] for polygon in polygons]
                 relevant_labels = [class_id for class_id in relevant_labels if int(class_id) in
-                                   COCO_TO_PASCAL_VOC.keys()]
+                                   COCO_TO_PASCAL_VOC]
 
                 if len(relevant_labels) > 0:
                     images.append(all_images[i])
@@ -228,7 +228,7 @@ class CocoSegmentationDataset(VisionDataset):
             for label_str in label_file.open('r').read().strip().splitlines():
                 label = np.array(label_str.split(), dtype=np.float32)
                 class_id = int(label[0])
-                if class_id in COCO_TO_PASCAL_VOC.keys():
+                if class_id in COCO_TO_PASCAL_VOC:
                     # Transform normalized coordinates to un-normalized
                     coordinates = (label[1:].reshape(-1, 2) * np.array([image.width, image.height])).reshape(
                         -1).tolist()
