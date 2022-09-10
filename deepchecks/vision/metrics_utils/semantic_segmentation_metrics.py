@@ -39,7 +39,7 @@ class MeanDice(Metric):
         for i in range(len(y)):
             for class_id in [int(x) for x in torch.unique(y[i])]:
                 y_pred_i = (y_pred[i].argmax(0) == class_id).numpy()
-                y_i = (y[i] == class_id).numpy()
+                y_i = (y[i] == class_id).cpu().numpy()
 
                 tp = np.logical_and(y_pred_i, y_i).sum()
                 y_pred_i_count = y_pred_i.sum()
