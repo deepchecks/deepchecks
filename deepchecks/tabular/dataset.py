@@ -547,7 +547,7 @@ class Dataset:
         if is_categorical(label_col, max_categorical_ratio=0.05):
             if label_col.nunique(dropna=True) > 2:
                 if infer_dtype(label_col) == 'integer' \
-                        and label_col.nunique() > 10:
+                        and label_col.nunique() >= 5:
                     get_logger().warning(
                         'Integer label has many unique values. In this case, deepchecks automatically '
                         'infers label to be multiclass. If your label is a regression label and not multiclass, '
