@@ -54,11 +54,9 @@ class MeanDice(Metric):
         max_class = max(sorted_classes)
         scores_per_class = -np.ones(max_class + 1)
 
-        ret = []
         for class_id in sorted_classes:
             count = self._evals[class_id]['count']
             dice = self._evals[class_id]['dice']
             mean_dice = dice / count if count != 0 else 0
-            # ret.append(mean_dice)
             scores_per_class[class_id] = mean_dice
         return scores_per_class

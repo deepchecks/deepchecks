@@ -65,7 +65,7 @@ class CocoSegmentationData(SegmentationData):
         normalized_batch = [F.normalize(img.unsqueeze(0).float()/255,
                                         mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for img in batch[0]]
 
-        predictions = [model(img)["out"].squeeze(0).detach() for img in normalized_batch]
+        predictions = [model(img)['out'].squeeze(0).detach() for img in normalized_batch]
         predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
 
         return predictions
@@ -287,7 +287,7 @@ class CocoSegmentationDataset(VisionDataset):
 
             try:
                 # remove coco128 README.txt so that it does not come in docs
-                os.remove("coco128segments/coco128/README.txt")
+                os.remove('coco128segments/coco128/README.txt')
             except:  # pylint: disable=bare-except # noqa
                 pass
         return CocoSegmentationDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]),

@@ -26,7 +26,6 @@ from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.detection.coco import COCOData
 from deepchecks.vision.datasets.segmentation import segmentation_coco
-from deepchecks.vision.datasets.segmentation.segmentation_coco import CocoSegmentationData
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
 from deepchecks.vision.vision_data import TaskType, VisionData
