@@ -16,6 +16,7 @@ README.rst @shir22
 requirements/ @ItayGabbay
 deepchecks/core/ @deepchecks/dev-team
 tests/base @deepchecks/dev-team
+tests/serialization @deepchecks/dev-team
 
 deepchecks/core/check_utils/ @deepchecks/algo-team
 deepchecks/utils/distribution @deepchecks/algo-team
