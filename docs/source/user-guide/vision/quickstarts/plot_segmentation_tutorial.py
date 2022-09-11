@@ -107,7 +107,7 @@ print("Image values", batch[0][0])
 print("-" * 80)
 
 print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
-print("Example output of a label shape from the dataloader ", batch[1][0])
+print("Example output of a label shape from the dataloader ", batch[1][0].shape)
 
 
 # %%
