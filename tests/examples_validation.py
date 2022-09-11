@@ -10,6 +10,7 @@
 #
 import inspect
 import os
+import pathlib
 import sys
 from urllib.parse import urlparse
 
@@ -24,7 +25,7 @@ from deepchecks.vision.checks.data_integrity.abstract_property_outliers import A
 
 checks_dirs = ["deepchecks/tabular/checks", "deepchecks/vision/checks"]
 
-ignored_classes = [tabular_checks.PerformanceReport, AbstractPropertyOutliers]
+ignored_classes = [AbstractPropertyOutliers]
 
 
 def test_read_more_link(check_class, compiled_dir: str):
@@ -80,8 +81,9 @@ def validate_dir(checks_path, examples_path):
 #         print(f"Example {path} does not have a single H1 tag")
 
 
-SOURCE_DIR = "docs/source/checks"
-COMPILED_DIR = "docs/build/html"
+CURRENT_DIR = pathlib.Path(__file__).parent.resolve()
+SOURCE_DIR = os.path.join(CURRENT_DIR, "../docs/source/checks")
+COMPILED_DIR = os.path.join(CURRENT_DIR, "../docs/build/html")
 
 valid = True
 for x in checks_dirs:
