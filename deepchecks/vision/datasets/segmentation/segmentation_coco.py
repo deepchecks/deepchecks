@@ -73,7 +73,7 @@ class CocoSegmentationData(SegmentationData):
 
     def batch_to_images(self, batch) -> Sequence[np.ndarray]:
         """Convert the batch to a list of images, where each image is a 3D numpy array in the format (H, W, C)."""
-        return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
+        return [tensor.cpu().numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
 
 def _batch_collate(batch):
