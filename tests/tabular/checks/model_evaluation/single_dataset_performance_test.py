@@ -15,7 +15,7 @@ from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks import SingleDatasetPerformance
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.metric_utils.scorers import DEFAULT_REGRESSION_SCORERS, MULTICLASS_SCORERS_NON_AVERAGE
+from deepchecks.tabular.metric_utils.scorers import DEFAULT_REGRESSION_SCORERS, DEFAULT_MULTICLASS_SCORERS
 from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
@@ -51,12 +51,10 @@ def test_dataset_no_label(iris_dataset_no_label, iris_adaboost):
     )
 
 
-def assert_classification_result(result, dataset: Dataset):
-    for class_name in dataset.classes:
-        class_df = result.loc[result['Class'] == class_name]
-        for metric in MULTICLASS_SCORERS_NON_AVERAGE.keys():
-            metric_row = class_df.loc[class_df['Metric'] == metric]
-            assert_that(metric_row['Value'].iloc[0], close_to(1, 0.3))
+def assert_multiclass_classification_result(result):
+    for metric in DEFAULT_MULTICLASS_SCORERS.keys():
+        metric_row = result.loc[result['Metric'] == metric]
+        assert_that(metric_row['Value'].iloc[0], close_to(1, 0.3))
 
 
 def test_classification(iris_split_dataset_and_model):
@@ -66,7 +64,7 @@ def test_classification(iris_split_dataset_and_model):
     # Act
     result = check.run(test, model)
     # Assert
-    assert_classification_result(result.value, test)
+    assert_multiclass_classification_result(result.value)
 
 
 def test_classification_reduce(iris_split_dataset_and_model):
@@ -76,7 +74,7 @@ def test_classification_reduce(iris_split_dataset_and_model):
     # Act
     result = check.run(test, model).reduce_output()
     # Assert
-    assert_that(result, has_entries({'F1_0': 1, 'Precision_2': 1, 'Recall_1': 1}))
+    assert_that(result, has_entries({'Accuracy': 0.92, 'Precision - Macro Average': close_to(0.92, 0.01)}))
 
 
 def test_classification_reduce_macro(iris_split_dataset_and_model):
@@ -86,7 +84,8 @@ def test_classification_reduce_macro(iris_split_dataset_and_model):
     # Act
     result = check.run(test, model).reduce_output()
     # Assert
-    assert_that(result, has_entries({'awesome_f1_0': 1, 'awesome_f1_macro': close_to(0.9131, 0.001)}))
+    assert_that(result[('awesome_f1', '0')], close_to(1, 0.01))
+    assert_that(result['awesome_f1_macro'], close_to(0.9131, 0.001))
 
 
 def test_classification_without_display(iris_split_dataset_and_model):
@@ -96,7 +95,7 @@ def test_classification_without_display(iris_split_dataset_and_model):
     # Act
     result = check.run(test, model, with_display=False)
     # Assert
-    assert_classification_result(result.value, test)
+    assert_multiclass_classification_result(result.value)
     assert_that(result.display, has_length(0))
 
 
@@ -108,11 +107,11 @@ def test_classification_binary(iris_dataset_single_class_labeled):
     clf = RandomForestClassifier(random_state=0)
     clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
     check = SingleDatasetPerformance()
-
     # Act
     result = check.run(test_ds, clf).value
     # Assert
-    assert_classification_result(result, test_ds)
+    assert_that(max(result['Value']), close_to(1, 0.01))
+    assert_that(list(result['Metric']), has_items('Accuracy', 'Recall'))
 
 
 def test_classification_string_labels(iris_labeled_dataset):
@@ -128,7 +127,7 @@ def test_classification_string_labels(iris_labeled_dataset):
     # Act
     result = check.run(iris_labeled_dataset, iris_adaboost).value
     # Assert
-    assert_classification_result(result, iris_labeled_dataset)
+    assert_multiclass_classification_result(result)
 
 
 def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
@@ -141,7 +140,7 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     # Act
     result = check.run(iris_labeled_dataset, iris_adaboost).value
     # Assert
-    assert_classification_result(result, iris_labeled_dataset)
+    assert_multiclass_classification_result(result)
 
 
 def test_regression(diabetes_split_dataset_and_model):
@@ -194,14 +193,28 @@ def test_regression_reduced(diabetes_split_dataset_and_model):
 def test_condition_all_score_not_passed(iris_split_dataset_and_model):
     # Arrange
     _, test, model = iris_split_dataset_and_model
-    check = SingleDatasetPerformance().add_condition_greater_than(0.8)
+    check = SingleDatasetPerformance().add_condition_greater_than(0.99)
     # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(test, model))
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Failed for metrics: [\'Precision\', \'Recall\']',
-                               name='Selected metrics scores are greater than 0.8')
+                               details='Failed for metrics: [\'Accuracy\', \'Precision - Macro Average\', \'Recall - Macro Average\']',
+                               name='Selected metrics scores are greater than 0.99')
+    ))
+
+
+def test_condition_score_not_passed_class_mode(iris_split_dataset_and_model):
+    # Arrange
+    _, test, model = iris_split_dataset_and_model
+    check = SingleDatasetPerformance(scorers=['Precision_per_class']).add_condition_greater_than(0.99, class_mode=1)
+    # Act
+    result: List[ConditionResult] = check.conditions_decision(check.run(test, model))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Failed for metrics: [\'Precision\']',
+                               name='Selected metrics scores are greater than 0.99')
     ))
 
 
