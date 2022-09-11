@@ -88,11 +88,11 @@ suite.run(train_dataset=ds_train, test_dataset=ds_test, model=rf_clf)
 # Run the integrity suite
 # -----------------------
 # If you still haven't started modeling and just have a single dataset, you
-# can use the ``single_dataset_integrity``:
+# can use the ``data_integrity``:
 
-from deepchecks.tabular.suites import single_dataset_integrity
+from deepchecks.tabular.suites import data_integrity
 
-integ_suite = single_dataset_integrity()
+integ_suite = data_integrity()
 integ_suite.run(ds_train)
 
 #%%

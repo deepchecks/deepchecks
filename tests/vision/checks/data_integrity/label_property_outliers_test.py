@@ -98,7 +98,7 @@ def test_property_outliers_check_mnist(mnist_dataset_train, device):
     properties = [{
         'name': 'test',
         'method': lambda labels: labels.tolist(),
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = LabelPropertyOutliers(label_properties=properties)
     # Act
@@ -142,7 +142,7 @@ def test_run_on_custom_task_with_custom_properties(coco_train_custom_task, devic
     properties = [{
         'name': 'test',
         'method': custom_property,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
 
     # Act - Assert check runs without exception
@@ -172,7 +172,7 @@ def test_string_property_exception(mnist_dataset_train, device):
     image_properties = [{
         'name': 'test',
         'method': string_property,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = LabelPropertyOutliers(label_properties=image_properties)
     # Act - Assert check raise exception
@@ -188,7 +188,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
     image_properties = [{
         'name': 'test',
         'method': too_many_property,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = LabelPropertyOutliers(label_properties=image_properties)
     # Act - Assert check raise exception
