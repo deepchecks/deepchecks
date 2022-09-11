@@ -10,7 +10,6 @@
 #
 import inspect
 import os
-import pathlib
 import sys
 from urllib.parse import urlparse
 
@@ -81,9 +80,8 @@ def validate_dir(checks_path, examples_path):
 #         print(f"Example {path} does not have a single H1 tag")
 
 
-CURRENT_DIR = pathlib.Path(__file__).parent.resolve()
-SOURCE_DIR = os.path.join(CURRENT_DIR, "../docs/source/checks")
-COMPILED_DIR = os.path.join(CURRENT_DIR, "../docs/build/html")
+SOURCE_DIR = "docs/source/checks"
+COMPILED_DIR = "docs/build/html"
 
 valid = True
 for x in checks_dirs:
