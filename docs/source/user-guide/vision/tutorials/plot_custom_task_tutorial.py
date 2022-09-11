@@ -288,7 +288,7 @@ def classes_in_labels(labels: List[torch.Tensor]) -> List[int]:
 
 # We will pass this object as parameter to checks that are using label properties
 label_properties = [
-    {'name': '# Detections per Label', 'method': number_of_detections, 'output_type': 'discrete'},
+    {'name': '# Detections per Label', 'method': number_of_detections, 'output_type': 'categorical'},
     {'name': 'Classes in Labels', 'method': classes_in_labels, 'output_type': 'class_id'}
 ]
 
