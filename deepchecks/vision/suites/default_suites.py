@@ -14,7 +14,6 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-import warnings
 from typing import Any, Dict, List, Tuple
 
 from ignite.metrics import Metric
@@ -27,7 +26,7 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  
                                       PropertyLabelCorrelationChange, SimpleModelComparison, TrainTestLabelDrift,
                                       TrainTestPredictionDrift)
 
-__all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'integrity_validation', 'data_integrity']
+__all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']
 
 
 def train_test_validation(n_top_show: int = 5,
@@ -227,20 +226,6 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
         ImageSegmentPerformance(**kwargs).add_condition_score_from_mean_ratio_greater_than(),
         ModelErrorAnalysis(**kwargs)
     )
-
-
-def integrity_validation(**kwargs) -> Suite:
-    """Create a suite that is meant to validate integrity of the data.
-
-    .. deprecated:: 0.7.0
-            `integrity_validation` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
-            `data_integrity` suite.
-    """
-    warnings.warn(
-        'the integrity_validation suite is deprecated, use the data_integrity suite instead',
-        DeprecationWarning
-    )
-    return data_integrity(**kwargs)
 
 
 def data_integrity(image_properties: List[Dict[str, Any]] = None,

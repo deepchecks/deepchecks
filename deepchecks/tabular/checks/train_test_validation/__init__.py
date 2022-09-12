@@ -16,7 +16,6 @@ from .category_mismatch_train_test import CategoryMismatchTrainTest
 from .datasets_size_comparison import DatasetsSizeComparison
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
-from .dominant_frequency_change import DominantFrequencyChange
 from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .index_leakage import IndexTrainTestLeakage
 from .new_label_train_test import NewLabelTrainTest
@@ -31,7 +30,6 @@ __all__ = [
     'DatasetsSizeComparison',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
-    'DominantFrequencyChange',
     'IdentifierLabelCorrelation',
     'IndexTrainTestLeakage',
     'NewLabelTrainTest',

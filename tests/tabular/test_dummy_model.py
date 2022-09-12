@@ -17,7 +17,6 @@ from deepchecks.core.check_result import CheckResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.tabular.base_checks import TrainTestCheck
-from deepchecks.tabular.checks.model_evaluation.model_error_analysis import ModelErrorAnalysis
 from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import RegressionErrorDistribution
 from deepchecks.tabular.checks.model_evaluation.roc_report import RocReport
 from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import SimpleModelComparison
@@ -44,29 +43,6 @@ def _dummify_model(train, test, model):
             y_proba_test = model.predict_proba(test.features_columns)
 
     return y_pred_train, y_pred_test, y_proba_train, y_proba_test
-
-
-# copied from model_error_analysis_test
-# also tests passing just proba
-def test_model_error_analysis_condition_fail(iris_labeled_dataset, iris_adaboost):
-    _, _, y_proba_train, y_proba_test = \
-        _dummify_model(iris_labeled_dataset, iris_labeled_dataset, iris_adaboost)
-    # Act
-    check_result = ModelErrorAnalysis().add_condition_segments_performance_relative_difference_less_than(
-    ).run(iris_labeled_dataset, iris_labeled_dataset,
-          y_proba_train=y_proba_train, y_proba_test=y_proba_test)
-    condition_result = check_result.conditions_results
-
-    # Assert
-    assert_that(condition_result, has_items(
-        equal_condition_result(
-            is_pass=False,
-            name='The performance difference of the detected segments is less than 5%',
-            details='Accuracy difference for failed features: {\'petal length (cm)\': \'10.91%\', '
-                    '\'petal width (cm)\': \'8.33%\'}',
-            category=ConditionCategory.WARN
-        )
-    ))
 
 
 # copied from roc_report_test

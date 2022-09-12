@@ -19,6 +19,7 @@ from deepchecks.core.checks import DatasetKind
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
@@ -28,6 +29,7 @@ __all__ = ['PercentOfNulls']
 TPercentOfNulls = t.TypeVar('TPercentOfNulls', bound='PercentOfNulls')
 
 
+@docstrings
 class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
     """Percent of 'Null' values in each column.
 
@@ -42,17 +44,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
     max_features_to_show : int , default: 5
         maximum features with to show, showing top features based on percent of nulls.
     aggregation_method: str, default: 'max'
-        argument for the reduce_output functionality, decides how to aggregate the drift scores for a
-        collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
-        Possible values are:
-        'weighted': Weighted mean based on feature importance, provides a robust estimation on how
-        much the drift will affect the model's performance.
-        'l2_weighted': L2 norm over the combination of drift scores and feature importance, minus the
-         L2 norm of feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a
-         value between 0 and sqrt(n_features).
-        'mean': Mean of all drift scores.
-        'none': No averaging. Return a dict with a drift score for each feature.
-        'max': Maximum of all the features drift scores.
+        {feature_aggregation_method_argument:2*indent}
     """
 
     def __init__(
@@ -75,7 +67,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=False)
         data = dataset.features_columns
 
-        feature_importance = context.feature_importance if context.feature_importance \
+        feature_importance = context.feature_importance if context.feature_importance is not None \
             else pd.Series(index=list(data.columns), dtype=object)
 
         result_data = [[col, data[col].isna().sum(), feature_importance[col]] for col in data.columns]

@@ -24,7 +24,7 @@ from deepchecks.vision.checks.data_integrity.abstract_property_outliers import A
 
 checks_dirs = ["deepchecks/tabular/checks", "deepchecks/vision/checks"]
 
-ignored_classes = [tabular_checks.PerformanceReport, AbstractPropertyOutliers, tabular_checks.ModelErrorAnalysis]
+ignored_classes = [AbstractPropertyOutliers]
 
 
 def test_read_more_link(check_class, compiled_dir: str):

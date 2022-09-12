@@ -9,16 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Module importing all tabular checks."""
+from deepchecks.tabular.checks.data_integrity import PercentOfNulls
+
 from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
                              FeatureLabelCorrelation, IsSingleValue, MixedDataTypes, MixedNulls, OutlierSampleDetection,
                              SpecialCharacters, StringLengthOutOfBounds, StringMismatch)
-from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelErrorAnalysis,
-                               ModelInferenceTime, ModelInfo, MultiModelPerformanceReport, PerformanceReport,
-                               RegressionErrorDistribution, RegressionSystematicError, RocReport, SegmentPerformance,
-                               SimpleModelComparison, SingleDatasetPerformance, TrainTestPerformance,
-                               TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
+from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelInferenceTime, ModelInfo,
+                               MultiModelPerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
+                               RocReport, SegmentPerformance, SimpleModelComparison, SingleDatasetPerformance,
+                               TrainTestPerformance, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
-                                    DateTrainTestLeakageOverlap, DominantFrequencyChange, FeatureLabelCorrelationChange,
+                                    DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, NewLabelTrainTest,
                                     StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
                                     TrainTestSamplesMix, WholeDatasetDrift)
@@ -32,12 +33,12 @@ __all__ = [
     'SpecialCharacters',
     'StringLengthOutOfBounds',
     'StringMismatchComparison',
-    'DominantFrequencyChange',
     'DataDuplicates',
     'CategoryMismatchTrainTest',
     'NewLabelTrainTest',
     'ConflictingLabels',
     'OutlierSampleDetection',
+    'PercentOfNulls',
 
     # methodology checks
     'BoostingOverfit',
@@ -65,7 +66,6 @@ __all__ = [
 
     # performance checks
     'TrainTestPerformance',
-    'PerformanceReport',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',
@@ -75,6 +75,5 @@ __all__ = [
     'RegressionErrorDistribution',
     'MultiModelPerformanceReport',
     'WeakSegmentsPerformance',
-    'ModelErrorAnalysis',
     'SingleDatasetPerformance'
 ]

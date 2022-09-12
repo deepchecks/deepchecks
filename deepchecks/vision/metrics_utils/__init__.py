@@ -10,7 +10,7 @@
 #
 """Module containing metrics utils."""
 
-from .confusion_matrix_counts_metrics import AVAILABLE_EVALUTING_FUNCTIONS
+from .confusion_matrix_counts_metrics import AVAILABLE_EVALUATING_FUNCTIONS
 from .custom_scorer import CustomClassificationScorer
 from .detection_precision_recall import AveragePrecisionRecall, ObjectDetectionAveragePrecision
 from .detection_tp_fp_fn_calc import ObjectDetectionTpFpFn, TpFpFn
@@ -24,6 +24,6 @@ __all__ = [
     'AveragePrecisionRecall',
     'ObjectDetectionTpFpFn',
     'TpFpFn',
-    'AVAILABLE_EVALUTING_FUNCTIONS',
+    'AVAILABLE_EVALUATING_FUNCTIONS',
     'CustomClassificationScorer',
 ]
