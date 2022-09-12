@@ -16,11 +16,11 @@ from numbers import Number
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.metrics import (get_scorer, make_scorer, mean_absolute_error, mean_squared_error)
+from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 try:
-    from deepchecks_metrics import f1_score, recall_score, precision_score  # noqa: F401
+    from deepchecks_metrics import f1_score, precision_score, recall_score  # noqa: F401
 except ImportError:
     from sklearn.metrics import f1_score, recall_score, precision_score  # noqa: F401  pylint: disable=ungrouped-imports
 
