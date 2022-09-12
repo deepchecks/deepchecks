@@ -65,7 +65,7 @@ Prediction Format
     labels and the predictions, this matrix must follow the convention that the i-th element represents the class
     probabilities for the class in the i-th position in the sorted array of class names. The sorted array of class names
     is the result of sorting the set of all class names present in the label and prediction, namely
-    ``sorted(set(y_true).union(set(y_pred)))``.
+    ``sorted(list(set(y_true).union(set(y_pred))))``.
 
 Single Class Predictions
 """"""""""""""""""""""""
