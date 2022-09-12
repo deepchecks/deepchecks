@@ -15,6 +15,8 @@ from typing import Tuple
 import numpy as np
 import torch
 from ignite.metrics import Metric
+from deepchecks.vision.metrics_utils.semantic_segmentation_metric_utils import format_segmentation_masks, \
+    segmentation_counts_per_class
 
 
 class MeanDice(Metric):
@@ -38,15 +40,9 @@ class MeanDice(Metric):
         y_pred, y = output
 
         for i in range(len(y)):
-            pred_onehot = torch.where(y_pred[i] > self.threshold, 1.0, 0.0)
-            y_gt_i = y[i].clone().unsqueeze(0).type(torch.int64)
-            gt_onehot = torch.zeros_like(pred_onehot)
-            gt_onehot.scatter_(0, y_gt_i, 1.0)
-            tp_onehot = gt_onehot * pred_onehot
-
-            tp_count_per_class = torch.sum(tp_onehot, dim=[1, 2])
-            gt_count_per_class = torch.sum(gt_onehot, dim=[1, 2])
-            pred_count_per_class = torch.sum(pred_onehot, dim=[1, 2])
+            gt_onehot, pred_onehot = format_segmentation_masks(y[i], y_pred[i], self.threshold)
+            tp_count_per_class, gt_count_per_class, pred_count_per_class = segmentation_counts_per_class(
+                gt_onehot, pred_onehot)
 
             dice_per_class = 2 * tp_count_per_class / (gt_count_per_class + pred_count_per_class)
 
@@ -64,3 +60,6 @@ class MeanDice(Metric):
             mean_dice = dice / count if count != 0 else 0
             ret.append(mean_dice)
         return ret
+
+
+

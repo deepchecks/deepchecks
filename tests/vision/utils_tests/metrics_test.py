@@ -63,7 +63,7 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
 
 
-def test_segemntation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device):
+def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device):
     metric = MeanDice()
     for batch in segmentation_coco_train_visiondata:
         label = segmentation_coco_train_visiondata.batch_to_labels(batch)
