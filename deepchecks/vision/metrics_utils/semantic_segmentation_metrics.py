@@ -64,4 +64,46 @@ class MeanDice(Metric):
         return ret
 
 
+class MeanIoU(Metric):
+    """Metric that calculates the mean IoU metric for each class.
 
+    See more: https://en.wikipedia.org/wiki/Jaccard_index
+    """
+
+    def __init__(self, threshold: float = 0.5, smooth=1e-3, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._evals = defaultdict(lambda: {'iou': 0, 'count': 0})
+        self.threshold = threshold
+        self.smooth = smooth
+
+    def reset(self) -> None:
+        """Reset metric state."""
+        super().reset()
+        self._evals = defaultdict(lambda: {'iou': 0, 'count': 0})
+
+    def update(self, output: Tuple[torch.Tensor, torch.Tensor]):
+        """Update metric with batch of samples."""
+        y_pred, y = output
+
+        for i in range(len(y)):
+            gt_onehot, pred_onehot = format_segmentation_masks(y[i], y_pred[i], self.threshold)
+            tp_count_per_class, gt_count_per_class, pred_count_per_class = segmentation_counts_per_class(
+                gt_onehot, pred_onehot)
+
+            iou_per_class = (tp_count_per_class + self.smooth) / \
+                            (gt_count_per_class + pred_count_per_class - tp_count_per_class + self.smooth)
+
+            for class_id in [int(x) for x in torch.unique(y[i])]:
+                self._evals[class_id]['iou'] += iou_per_class[class_id]
+                self._evals[class_id]['count'] += 1
+
+    def compute(self):
+        """Compute metric value."""
+        sorted_classes = [int(class_id) for class_id in sorted(self._evals.keys())]
+        ret = []
+        for class_id in sorted_classes:
+            count = self._evals[class_id]['count']
+            iou = self._evals[class_id]['iou']
+            mean_iou = iou / count if count != 0 else 0
+            ret.append(mean_iou)
+        return ret
