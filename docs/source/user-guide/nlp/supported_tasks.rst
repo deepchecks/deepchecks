@@ -1,4 +1,4 @@
-.. _supported_tasks:
+.. _nlp_supported_tasks:
 
 ===================================
 Working with Labels and Predictions
@@ -33,60 +33,70 @@ While labels are passed when constructing the :class:`TextData <text_data.TextDa
 separately to the ``run`` method of the check / suite. Labels and predictions must be in the format detailed in this
 section, according to the task type.
 
-Label Formats
---------------
+Text Classification
+-------------------
 
-* **Text Classification** Label - For text classification the accepted label format differs between multilabel and
+Label Format
+~~~~~~~~~~~~
+
+* For text classification the accepted label format differs between multilabel and
   single label cases. For single label data, the label should be passed as a sequence of labels, with one entry
   per sample that can be either a string or an integer. For multilabel data, the label should be passed as a
   sequence of sequences, with the sequence for each sample being a binary vector, representing the presence of
   the i-th label in that sample.
-* **Token Classification** Label - For token classification the accepted label format is a sequence of sequences,
-  with the inner sequence containing tuples in the following format: (class_name, span_start, span_end).
-  span_start and span_end are the start and end character indices of the token within the text, as it was
-  passed to the raw_text argument. Each outer sequence contains the sequence of tokens for each sample.
 
 >>> text_classification_label_multiclass = [0, 0, 1, 2]
 >>> text_classification_label_multilabel = [[0, 0, 1], [0, 1, 1], [1, 0, 1], [0, 0, 0]]
->>> token_classification_label = [[('class_1', 0, 2), ('class_2', 7, 10)], [('class_2', 42, 54)], []]
 
-Prediction Formats
--------------------
+Prediction Format
+~~~~~~~~~~~~~~~~~
 
-The accepted formats for providing model predictions and probabilities are detailed below
+Single Class Predictions
+""""""""""""""""""""""""
 
-**Text Classification**
-
-*Single Class Predictions*
-
-* predictions - A sequence of class names or indices with one entry per sample, matching the set of classes
+* **predictions** - A sequence of class names or indices with one entry per sample, matching the set of classes
   present in the labels.
-* probabilities - A sequence of sequences with each element containing the vector of class probabilities for
+* **probabilities** - A sequence of sequences with each element containing the vector of class probabilities for
   each sample. Each such vector should have one probability per class according to the class (sorted) order, and
   the probabilities should sum to 1 for each sample.
 
 >>> predictions = ['class_1', 'class_1', 'class_2']
 >>> probabilities = [[0.2, 0.8], [0.5, 0.5], [0.3, 0.7]]
 
-*Multilabel Predictions*
+Multilabel Predictions
+""""""""""""""""""""""
 
-* predictions - A sequence of sequences with each element containing a binary vector denoting the presence of
+* **predictions** - A sequence of sequences with each element containing a binary vector denoting the presence of
   the i-th class for the given sample. Each such vector should have one binary indicator per class according to
   the class (sorted) order. More than one class can be present for each sample.
-* probabilities - A sequence of sequences with each element containing the vector of class probabilities for
+* **probabilities** - A sequence of sequences with each element containing the vector of class probabilities for
   each sample. Each such vector should have one probability per class according to the class (sorted) order, and
   the probabilities should range from 0 to 1 for each sample, but are not required to sum to 1.
 
 >>> predictions = [[0, 0, 1], [0, 1, 1]]
 >>> probabilities = [[0.2, 0.3, 0.8], [0.4, 0.9, 0.6]]
 
-**Token Classification**
+Token Classification
+--------------------
 
-* predictions - A sequence of sequences, with the inner sequence containing tuples in the following
+Label Format
+~~~~~~~~~~~~
+
+* For token classification the accepted label format is a sequence of sequences,
+  with the inner sequence containing tuples in the following format: (class_name, span_start, span_end).
+  span_start and span_end are the start and end character indices of the token within the text, as it was
+  passed to the raw_text argument. Each outer sequence contains the sequence of tokens for each sample.
+
+>>> token_classification_label = [[('class_1', 0, 2), ('class_2', 7, 10)], [('class_2', 42, 54)], []]
+
+Prediction Format
+~~~~~~~~~~~~~~~~~
+
+* **predictions** - A sequence of sequences, with the inner sequence containing tuples in the following
   format: (class_name, span_start, span_end, class_probability). span_start and span_end are the start and end
   character indices  of the token within the text, as it was passed to the raw_text argument. Each upper level
   sequence contains a sequence of tokens for each sample.
-* probabilities - No probabilities should be passed for Token Classification tasks. Passing probabilities will
+* **probabilities** - No probabilities should be passed for Token Classification tasks. Passing probabilities will
   result in an error.
 
 >>> predictions = [[('class_1', 0, 2, 0.8), ('class_2', 7, 10, 0.9)], [('class_2', 42, 54, 0.4)], []]

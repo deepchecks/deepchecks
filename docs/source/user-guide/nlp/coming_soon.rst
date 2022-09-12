@@ -1,4 +1,4 @@
-.. _coming_soon:
+'.. _coming_soon:
 
 =================================
 Deepchecks for NLP - Coming Soon!
