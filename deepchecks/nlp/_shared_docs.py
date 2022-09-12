@@ -62,7 +62,7 @@ _shared_docstrings = {'prediction_formats': """
 
         **Token Classification**
 
-        >>> predictions = [('class_1', 0, 2, 0.5), ('class_2', 7, 10, 0.8)]
+        >>> predictions = [[('class_1', 0, 2, 0.8), ('class_2', 7, 10, 0.9)], [('class_2', 42, 54, 0.4)], []]
 
 """.strip('\n')}
 
