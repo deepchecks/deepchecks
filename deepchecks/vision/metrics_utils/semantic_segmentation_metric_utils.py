@@ -12,7 +12,7 @@ def format_segmentation_masks(y_true, y_pred, threshold):
 
 def segmentation_counts_per_class(y_true_onehot, y_pred_onehot):
     """Compute the ground truth, predicted and intersection areas per class for segmentation metrics"""
-    tp_onehot = y_true_onehot * y_pred_onehot
+    tp_onehot = torch.logical_and(y_true_onehot, y_pred_onehot)
     tp_count_per_class = torch.sum(tp_onehot, dim=[1, 2])
     gt_count_per_class = torch.sum(y_true_onehot, dim=[1, 2])
     pred_count_per_class = torch.sum(y_pred_onehot, dim=[1, 2])
