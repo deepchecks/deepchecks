@@ -13,6 +13,7 @@ from collections import defaultdict
 from typing import Tuple
 
 import torch
+import numpy as np
 from ignite.metrics import Metric
 
 from deepchecks.vision.metrics_utils.semantic_segmentation_metric_utils import (format_segmentation_masks,
@@ -61,13 +62,15 @@ class MeanDice(Metric):
     def compute(self):
         """Compute metric value."""
         sorted_classes = [int(class_id) for class_id in sorted(self._evals.keys())]
-        ret = []
+        max_class = max(sorted_classes)
+        scores_per_class = np.empty(max_class + 1) * np.nan
+
         for class_id in sorted_classes:
             count = self._evals[class_id]['count']
             dice = self._evals[class_id]['dice']
             mean_dice = dice / count if count != 0 else 0
-            ret.append(mean_dice)
-        return ret
+            scores_per_class[class_id] = mean_dice
+        return scores_per_class
 
 
 class MeanIoU(Metric):
@@ -112,10 +115,11 @@ class MeanIoU(Metric):
     def compute(self):
         """Compute metric value."""
         sorted_classes = [int(class_id) for class_id in sorted(self._evals.keys())]
-        ret = []
+        max_class = max(sorted_classes)
+        scores_per_class = np.empty(max_class + 1) * np.nan
         for class_id in sorted_classes:
             count = self._evals[class_id]['count']
             iou = self._evals[class_id]['iou']
             mean_iou = iou / count if count != 0 else 0
-            ret.append(mean_iou)
-        return ret
+            scores_per_class[class_id] = mean_iou
+        return scores_per_class

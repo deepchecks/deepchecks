@@ -73,7 +73,7 @@ def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmen
             batch, trained_segmentation_deeplabv3_mobilenet_model, device)
         dice.update((prediction, label))
         iou.update((prediction, label))
-    assert_that(dice.compute()[0], close_to(0.979, 0.001))
-    assert_that(iou.compute()[0], close_to(0.96, 0.001))
+    assert_that(dice.compute()[0], close_to(0.973, 0.001))
+    assert_that(iou.compute()[0], close_to(0.948, 0.001))
 
 
