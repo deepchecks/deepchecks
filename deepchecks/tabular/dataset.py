@@ -141,7 +141,7 @@ class Dataset:
             raise DeepchecksValueError(
                 f"Data has {len(duplicated_columns)} duplicate columns. "
                 "Change the duplicate column names or remove them from the data. "
-                f"Duplicated column names: {duplicated_columns}"
+                f"Duplicate column names: {duplicated_columns}"
             )
 
         # Validations
