@@ -24,6 +24,7 @@ from deepchecks import tabular  # pylint: disable=unused-import; it is used for 
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
+                                                                               roc_auc_per_class,
                                                                                true_negative_rate_metric)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.logger import get_logger
@@ -108,6 +109,7 @@ multiclass_scorers_dict = {
     'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
     'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
     'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
+    'roc_auc_per_class': make_scorer(roc_auc_per_class, needs_proba=True),
     'fpr_per_class': make_scorer(false_positive_rate_metric, averaging_method='per_class'),
     'fpr_macro': make_scorer(false_positive_rate_metric, averaging_method='macro'),
     'fpr_micro': make_scorer(false_positive_rate_metric, averaging_method='micro'),
@@ -204,7 +206,7 @@ class DeepcheckScorer:
             # We expect the perfect score to be equal for all the classes, so takes the first one
             first_score = score[0]
             if any(score != first_score):
-                get_logger().warning('Scorer %s return different perfect score for differect classes', self.name)
+                get_logger().warning('Scorer %s return different perfect score for different classes', self.name)
             return first_score
         return score
 
