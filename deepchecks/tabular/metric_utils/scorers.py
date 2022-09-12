@@ -20,9 +20,9 @@ from sklearn.metrics import (get_scorer, make_scorer, mean_absolute_error, mean_
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 try:
-    from deepchecks_metrics import f1_score, recall_score, precision_scpre
+    from deepchecks_metrics import f1_score, recall_score, precision_score  # noqa: F401
 except ImportError:
-    from sklearn.metrics import f1_score, recall_score, precision_score
+    from sklearn.metrics import f1_score, recall_score, precision_score  # noqa: F401  pylint: disable=ungrouped-imports
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
