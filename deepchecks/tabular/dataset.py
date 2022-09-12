@@ -137,11 +137,11 @@ class Dataset:
             if frequency > 1:
                 duplicated_columns.append(column)
                 
-        if len(duplicated_columns) > 1:
+        if len(duplicated_columns) >= 1:
             raise DeepchecksValueError(
                 f"Data has {len(duplicated_columns)} duplicate columns. "
                 "Change the duplicate column names or remove them from the data. "
-                f"Duplicated columns: {duplicated_columns}"
+                f"Duplicated column names: {duplicated_columns}"
             )
 
         # Validations
