@@ -45,11 +45,27 @@ Label Format
   sequence of sequences, with the sequence for each sample being a binary vector, representing the presence of
   the i-th label in that sample.
 
->>> text_classification_label_multiclass = [0, 0, 1, 2]
+>>> text_classification_label_multiclass = ['class_0', 'class_0', 'class_1', 'class_2']
 >>> text_classification_label_multilabel = [[0, 0, 1], [0, 1, 1], [1, 0, 1], [0, 0, 0]]
+
+.. note::
+
+    For multilabel tasks, in order for deepchecks to use string names for the different classes (rather than just noting
+    the classes id in the label matrix) you may pass a list of the class names to the ``classes`` argument
+    of the :class:`TextData <text_data.TextData>` constructor method. This list of names, having the same length as the
+    number of rows in the label matrix, will be used to name the multilabel classes throughout deepchecks.
 
 Prediction Format
 ~~~~~~~~~~~~~~~~~
+
+.. note::
+
+    Class probabilities (and for multilabel tasks, also predictions) are always provided as a matrix of
+    (n_samples, n_classes). In order to understand which column corresponds to each of the class names present in the
+    labels and the predictions, this matrix must follow the convention that the i-th element represents the class
+    probabilities for the class in the i-th position in the sorted array of class names. The sorted array of class names
+    is the result of sorting the set of all class names present in the label and prediction, namely
+    ``sorted(set(y_true).union(set(y_pred)))``.
 
 Single Class Predictions
 """"""""""""""""""""""""
@@ -61,6 +77,7 @@ Single Class Predictions
   the probabilities should sum to 1 for each sample.
 
 >>> predictions = ['class_1', 'class_1', 'class_2']
+>>> # Note that even in the binary case the probability must be specified for each class, as is the case in this example
 >>> probabilities = [[0.2, 0.8], [0.5, 0.5], [0.3, 0.7]]
 
 Multilabel Predictions
