@@ -26,4 +26,3 @@ def segmentation_counts_micro(y_true_onehot, y_pred_onehot):
     gt_count_per_class = torch.sum(y_true_onehot)
     pred_count_per_class = torch.sum(y_pred_onehot)
     return tp_count_per_class, gt_count_per_class, pred_count_per_class
-

@@ -63,7 +63,8 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
 
 
-def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device):
+def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
+                              device):
     dice = MeanDice()
     iou = MeanIoU()
     for batch in segmentation_coco_train_visiondata:

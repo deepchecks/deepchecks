@@ -12,11 +12,11 @@
 from collections import defaultdict
 from typing import Tuple
 
-import numpy as np
 import torch
 from ignite.metrics import Metric
-from deepchecks.vision.metrics_utils.semantic_segmentation_metric_utils import format_segmentation_masks, \
-    segmentation_counts_per_class
+
+from deepchecks.vision.metrics_utils.semantic_segmentation_metric_utils import (format_segmentation_masks,
+                                                                                segmentation_counts_per_class)
 
 
 class MeanDice(Metric):
@@ -31,7 +31,7 @@ class MeanDice(Metric):
         smoothing factor to prevent division by zero when the mask is empty.
     """
 
-    def __init__(self, threshold: float = 0.5, smooth=1e-3, *args, **kwargs):
+    def __init__(self, *args, threshold: float = 0.5, smooth=1e-3, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {'dice': 0, 'count': 0})
         self.threshold = threshold
@@ -82,7 +82,7 @@ class MeanIoU(Metric):
         smoothing factor to prevent division by zero when the mask is empty.
     """
 
-    def __init__(self, threshold: float = 0.5, smooth=1e-3, *args, **kwargs):
+    def __init__(self, *args, threshold: float = 0.5, smooth=1e-3, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {'iou': 0, 'count': 0})
         self.threshold = threshold
