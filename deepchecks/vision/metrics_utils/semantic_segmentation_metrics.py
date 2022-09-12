@@ -25,10 +25,11 @@ class MeanDice(Metric):
     See more: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
     """
 
-    def __init__(self, threshold: float = 0.5, *args, **kwargs):
+    def __init__(self, threshold: float = 0.5, smooth=1e-3, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._evals = defaultdict(lambda: {'dice': 0, 'count': 0})
         self.threshold = threshold
+        self.smooth = smooth
 
     def reset(self) -> None:
         """Reset metric state."""
@@ -44,7 +45,8 @@ class MeanDice(Metric):
             tp_count_per_class, gt_count_per_class, pred_count_per_class = segmentation_counts_per_class(
                 gt_onehot, pred_onehot)
 
-            dice_per_class = 2 * tp_count_per_class / (gt_count_per_class + pred_count_per_class)
+            dice_per_class = (2 * tp_count_per_class + self.smooth) / \
+                             (gt_count_per_class + pred_count_per_class + self.smooth)
 
             for class_id in [int(x) for x in torch.unique(y[i])]:
                 self._evals[class_id]['dice'] += dice_per_class[class_id]
