@@ -12,7 +12,7 @@ You can read more about the different checks and suites for computer vision use 
 If you just want to see the output of this tutorial, jump to :ref:`observing_the_result` section.
 
 A semantic segmentation task is a task where every pixel of the image is labeled with a single class.
-Therefore, the common output of these tasks is an image of identical size to the input, with a vector for each pixel
+Therefore, a common output of these tasks is an image of identical size to the input, with a vector for each pixel
 of the probability for each class.
 
 .. code-block:: bash
