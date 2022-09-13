@@ -93,10 +93,10 @@ detection_dict = {
 }
 
 semantic_segmentation_dict = {
-    'dice': MeanDice,
+    'dice_per_class': MeanDice,
     'dice_macro': lambda: MeanDice(average='macro'),
     'dice_micro': lambda: MeanDice(average='micro'),
-    'iou': MeanIoU,
+    'iou_per_class': MeanIoU,
     'iou_macro': lambda: MeanIoU(average='macro'),
     'iou_micro': lambda: MeanIoU(average='micro')
 }
