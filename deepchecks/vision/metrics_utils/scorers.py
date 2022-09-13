@@ -53,7 +53,7 @@ def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
 
 def get_default_semantic_segmentation_scorers() -> t.Dict[str, Metric]:
     return {
-        'Dice': semantic_segmentation_dict['dice']()
+        'Dice': semantic_segmentation_dict['dice_per_class']()
     }
 
 

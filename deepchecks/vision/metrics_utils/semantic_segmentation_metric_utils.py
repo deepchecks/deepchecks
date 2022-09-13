@@ -1,8 +1,20 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module containing utils for semantic segmentation metrics utils."""
+
 import torch
 
 
 def format_segmentation_masks(y_true: torch.Tensor, y_pred: torch.Tensor, threshold):
-    """Bring the ground truth and the prediction masks to the same format (C, W, H) with values 1.0 or 0.0"""
+    """Bring the ground truth and the prediction masks to the same format (C, W, H) with values 1.0 or 0.0."""
     pred_onehot = torch.where(y_pred > threshold, 1.0, 0.0)
     y_gt_i = y_true.clone().unsqueeze(0).type(torch.int64)
     gt_onehot = torch.zeros_like(pred_onehot)
@@ -11,7 +23,7 @@ def format_segmentation_masks(y_true: torch.Tensor, y_pred: torch.Tensor, thresh
 
 
 def segmentation_counts_per_class(y_true_onehot: torch.Tensor, y_pred_onehot: torch.Tensor):
-    """Compute the ground truth, predicted and intersection areas per class for segmentation metrics"""
+    """Compute the ground truth, predicted and intersection areas per class for segmentation metrics."""
     tp_onehot = torch.logical_and(y_true_onehot, y_pred_onehot)
     tp_count_per_class = torch.sum(tp_onehot, dim=[1, 2])
     gt_count_per_class = torch.sum(y_true_onehot, dim=[1, 2])
@@ -20,7 +32,7 @@ def segmentation_counts_per_class(y_true_onehot: torch.Tensor, y_pred_onehot: to
 
 
 def segmentation_counts_micro(y_true_onehot: torch.Tensor, y_pred_onehot: torch.Tensor):
-    """Compute the micro averaged ground truth, predicted and intersection areas for segmentation metrics"""
+    """Compute the micro averaged ground truth, predicted and intersection areas for segmentation metrics."""
     tp_onehot = torch.logical_and(y_true_onehot, y_pred_onehot)
     tp_count_per_class = torch.sum(tp_onehot).unsqueeze_(0)
     gt_count_per_class = torch.sum(y_true_onehot).unsqueeze_(0)
