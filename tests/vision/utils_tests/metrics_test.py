@@ -65,15 +65,25 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5
 
 def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
                               device):
-    dice = MeanDice()
-    iou = MeanIoU()
+    dice_per_class = MeanDice()
+    dice_micro = MeanDice(average='micro')
+    dice_macro = MeanDice(average='macro')
+    iou_per_class = MeanIoU()
+    iou_micro = MeanIoU(average='micro')
+    iou_macro = MeanIoU(average='macro')
+
     for batch in segmentation_coco_train_visiondata:
         label = segmentation_coco_train_visiondata.batch_to_labels(batch)
         prediction = segmentation_coco_train_visiondata.infer_on_batch(
             batch, trained_segmentation_deeplabv3_mobilenet_model, device)
-        dice.update((prediction, label))
-        iou.update((prediction, label))
-    assert_that(dice.compute()[0], close_to(0.973, 0.001))
-    assert_that(iou.compute()[0], close_to(0.948, 0.001))
-
-
+        dice_per_class.update((prediction, label))
+        dice_micro.update((prediction, label))
+        dice_macro.update((prediction, label))
+        iou_per_class.update((prediction, label))
+        iou_micro.update((prediction, label))
+        iou_macro.update((prediction, label))
+    assert_that(dice_per_class.compute()[0], close_to(0.973, 0.001))
+    assert_that(dice_per_class.compute(), has_length(17))
+    assert_that(dice_micro.compute(), close_to(0.951, 0.001))
+    assert_that(dice_macro.compute(), close_to(0.655, 0.001))
+    assert_that(iou_per_class.compute()[0], close_to(0.948, 0.001))

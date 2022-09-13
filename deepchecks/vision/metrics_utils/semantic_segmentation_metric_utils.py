@@ -22,7 +22,7 @@ def segmentation_counts_per_class(y_true_onehot: torch.Tensor, y_pred_onehot: to
 def segmentation_counts_micro(y_true_onehot: torch.Tensor, y_pred_onehot: torch.Tensor):
     """Compute the micro averaged ground truth, predicted and intersection areas for segmentation metrics"""
     tp_onehot = torch.logical_and(y_true_onehot, y_pred_onehot)
-    tp_count_per_class = torch.sum(tp_onehot)
-    gt_count_per_class = torch.sum(y_true_onehot)
-    pred_count_per_class = torch.sum(y_pred_onehot)
+    tp_count_per_class = torch.sum(tp_onehot).unsqueeze_(0)
+    gt_count_per_class = torch.sum(y_true_onehot).unsqueeze_(0)
+    pred_count_per_class = torch.sum(y_pred_onehot).unsqueeze_(0)
     return tp_count_per_class, gt_count_per_class, pred_count_per_class
