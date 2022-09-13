@@ -7,7 +7,7 @@ Semantic Segmentation Tutorial
 
 In this tutorial, you will learn how to validate your **semantic segmentation model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
-:doc:`examples section  </checks_gallery/vision/index>`
+:doc:`examples section  </checks_gallery/vision/index>`.
 
 If you just want to see the output of this tutorial, jump to :ref:`observing_the_result` section.
 
@@ -76,7 +76,7 @@ fix.show()
 
 #%%
 # .. image :: /_static/images/tutorials/segmentation_5_examples.png
-#     :alt: COCO images with segmenation labels
+#     :alt: COCO images with segmentation labels
 #
 # Downloading a Pre-trained Model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,7 +185,7 @@ suite = model_evaluation()
 result = suite.run(training_data, test_data, model, device=device)
 
 # %%
-# .. _observing_the_result:
+# .. _vision_segmentation_tutorial__observing_the_result:
 #
 # Observing the results:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
