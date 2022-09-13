@@ -29,6 +29,7 @@ concurrency:
 
 env:
   DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY: "true"
+  FAIL_ON_DEEPCHECKS_DEPRECATION_WARNINGS: "true"
   WANDB_MODE: "offline"
 
 jobs:

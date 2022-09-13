@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Deepchecks."""
+import os
 import sys
 import types
 import warnings
@@ -127,10 +128,13 @@ class _SubstituteModule(types.ModuleType):
     def __getattribute__(self, name):
         routines = object.__getattribute__(self, 'ROUTINES')
         if name in routines:
+            deprecation_warning = 'Ability to import base tabular functionality from the `deepchecks` package ' \
+                                  'directly is deprecated, please import from `deepchecks.tabular` instead'
+
+            if os.environ.get('FAIL_ON_DEEPCHECKS_DEPRECATION_WARNINGS') == 'true':
+                raise DeprecationWarning(deprecation_warning)
             warnings.warn(
-                'Ability to import base tabular functionality from '
-                'the `deepchecks` package directly is deprecated, please '
-                'import from `deepchecks.tabular` instead',
+                deprecation_warning,
                 DeprecationWarning
             )
         return object.__getattribute__(self, name)
