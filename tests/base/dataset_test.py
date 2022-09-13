@@ -1055,23 +1055,25 @@ def test_dataset_duplicate_column_names_validation(iris: pd.DataFrame):
     validation raises `DeepchecksValueError` when the data has duplicate column names.
     """
 
+    iris_copy = iris.copy()
+
     # Duplicate column names
-    columns = ["sepal length (cm)", "sepal width (cm)", "sepal length (cm)",
-               "sepal width (cm)", "target"]
-    
-    duplicated_columns = ["sepal length (cm)", "sepal width (cm)"]
+    columns = ['sepal length (cm)', 'sepal width (cm)', 'sepal length (cm)',
+               'sepal width (cm)', 'target']
+
+    duplicated_columns = ['sepal length (cm)', 'sepal width (cm)']
 
     # data now has duplicate column names
-    iris.columns = columns
+    iris_copy.columns = columns
 
     args = {
-        "df": iris
+        'df': iris_copy
     }
 
     validation_exception_message = (
-        f"Data has {len(duplicated_columns)} duplicate columns. "
-        "Change the duplicate column names or remove them from the data. "
-        f"Duplicate column names: {duplicated_columns}"
+        f'Data has {len(duplicated_columns)} duplicate columns. '
+        'Change the duplicate column names or remove them from the data. '
+        f'Duplicate column names: {duplicated_columns}'
     )
 
     assert_that(
