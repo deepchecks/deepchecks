@@ -82,7 +82,7 @@ fix.show()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # In this tutorial, we will download a pre-trained LRSAPP model and a MobileNetV3 Large backbone
 # from the official PyTorch repository. For more details, please refer to the
-# `official documentation <https://pytorch.org/vision/main/models/generated/torchvision.models.segmentation.lraspp_mobilenet_v3_large.html>`_.
+# `official documentation <https://pytorch.org/vision/main/models/generated/torchvision.models.segmentation.lraspp_mobilenet_v3_large.html>`__.
 
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
