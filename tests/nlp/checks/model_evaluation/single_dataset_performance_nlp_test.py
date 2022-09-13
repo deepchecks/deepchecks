@@ -1,0 +1,182 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Test for the nlp SingleDatasetPerformance check"""
+
+from hamcrest import assert_that, close_to, calling, raises, equal_to, has_items
+
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
+from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
+from tests.base.utils import equal_condition_result
+
+
+def test_run_with_scorer(text_classification_dataset_mock):
+    """Test that the check runs with a scorer override"""
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_macro'])
+
+    # Act
+    result = check.run(text_classification_dataset_mock,
+                       predictions=[0, 1, 1])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
+
+
+def test_run_with_scorer_proba(text_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_macro', 'roc_auc'])
+
+    # Act
+    result = check.run(text_classification_dataset_mock,
+                       probabilities=[[0.9, 0.1], [0.1, 0.9], [0.05, 0.95]])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
+    assert_that(result.value.values[1][-1], close_to(0.75, 0.001))
+
+
+def test_run_with_scorer_proba_too_many_classes(text_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_macro'])
+
+    # Act & Assert
+    assert_that(
+        calling(check.run).with_args(text_classification_dataset_mock,
+                                     probabilities=[[0.1, 0.4, 0.5], [0.9, 0.05, 0.05], [0.9, 0.01, 0.09]]),
+        raises(ValidationError, 'Check requires classification probabilities for Train dataset to have 2 columns, '
+                                'same as the number of classes')
+    )
+
+
+def test_run_with_illegal_scorer(text_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_mean'])
+
+    # Act & Assert
+    assert_that(
+        calling(check.run).with_args(text_classification_dataset_mock,
+                                     predictions=[0, 1, 1]),
+        raises(DeepchecksValueError, 'Scorer name f1_mean is unknown. See metric guide for a list'
+                                     ' of allowed scorer names.')
+    )
+
+
+def test_run_default_scorer_string_class(text_classification_string_class_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance()
+
+    # Act
+    result = check.run(text_classification_string_class_dataset_mock,
+                       predictions=['wise', 'wise', 'meh'])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
+
+
+def test_run_with_scorer_multilabel(text_multilabel_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_macro'])
+
+    # Act
+    result = check.run(text_multilabel_classification_dataset_mock,
+                       predictions=[[0, 0, 1], [1, 0, 1], [0, 1, 0]])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.777, 0.001))
+
+
+def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_dataset_mock):
+    # Arrange
+    text_multilabel_classification_dataset_mock_copy = text_multilabel_classification_dataset_mock.copy()
+    text_multilabel_classification_dataset_mock_copy._classes = ['a', 'b', 'c']
+    check = SingleDatasetPerformance(scorers=['f1_per_class'])
+
+    # Act
+    result = check.run(text_multilabel_classification_dataset_mock_copy,
+                       predictions=[[0, 0, 1], [1, 0, 1], [0, 1, 0]])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(1.0, 0.001))
+    assert_that(result.value.values[0][0], equal_to('a'))
+
+
+def test_run_with_scorer_token(text_token_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['token_f1_macro'])
+
+    # Act
+    result = check.run(text_token_classification_dataset_mock,
+                       predictions=[[('B-PER', 0, 4, 0.5)],
+                                    [('B-PER', 0, 4, 0.7), ('B-GEO', 14, 19, 0.8), ('B-GEO', 25, 30, 0.9)],
+                                    []])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.833, 0.001))
+
+    # Act
+    result = check.run(text_token_classification_dataset_mock,
+                       predictions=[[('B-PER', 0, 4, 0.5)],
+                                    [('B-PER', 0, 4, 0.7), ('B-GEO', 14, 20, 0.8), ('B-GEO', 25, 30, 0.9)],
+                                    []])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(1, 0.001))
+
+
+def test_run_with_scorer_token_per_class(text_token_classification_dataset_mock):
+
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['token_recall_per_class'])
+
+    # Act
+    result = check.run(text_token_classification_dataset_mock,
+                       predictions=[[('B-PER', 0, 4, 0.5)],
+                                    [('B-PER', 0, 4, 0.7), ('B-GEO', 14, 20, 0.8), ('B-DATE', 25, 30, 0.9)],
+                                    [('B-GEO', 14, 19, 0.8)]])
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0., 0.001))
+    assert_that(result.value.values[0][0], equal_to('B-DATE'))
+    assert_that(result.value.values[1][-1], close_to(0.5, 0.001))
+    assert_that(result.value.values[1][0], equal_to('B-GEO'))
+    assert_that(result.value.values[2][-1], close_to(1., 0.001))
+    assert_that(result.value.values[2][0], equal_to('B-PER'))
+
+
+def test_condition(text_classification_string_class_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance().add_condition_greater_than(0.7)
+
+    # Act
+    result = check.run(text_classification_string_class_dataset_mock,
+                       predictions=['wise', 'wise', 'meh'])
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Failed for metrics: [\'F1\', \'Precision\', \'Recall\']',
+                               name='Selected metrics scores are greater than 0.7')
+    ))
+
+
+def test_reduce(text_classification_string_class_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_per_class']).add_condition_greater_than(0.7)
+
+    # Act
+    result = check.run(text_classification_string_class_dataset_mock,
+                       predictions=['wise', 'wise', 'meh'])
+    reduce_result = result.reduce_output()
+
+    # Assert
+    assert_that(reduce_result['f1_meh'], close_to(0.666, 0.001))
+    assert_that(reduce_result['f1_wise'], close_to(0.666, 0.001))

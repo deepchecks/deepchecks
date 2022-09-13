@@ -168,8 +168,8 @@ requirements: $(ENV)
 	fi;
 
 	@$(PIP) install -U pip
+	@$(PIP) install wheel setuptools setuptools_scm
 	@$(PIP) install -q \
-		wheel setuptools \
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)

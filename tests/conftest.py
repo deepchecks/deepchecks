@@ -43,6 +43,8 @@ from deepchecks.tabular.datasets.regression import avocado
 from deepchecks.utils.logger import set_verbosity
 
 from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
+from .nlp.nlp_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
+
 
 set_verbosity(logging.WARNING)
 

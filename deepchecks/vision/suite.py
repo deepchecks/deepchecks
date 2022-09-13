@@ -19,7 +19,6 @@ from torch import nn
 
 from deepchecks.core.check_result import BaseCheckResult, CheckFailure
 from deepchecks.core.checks import DatasetKind
-from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision._shared_docs import docstrings
@@ -231,7 +230,3 @@ class Suite(BaseSuite):
                         results[index_of_kind] = result
                     except Exception as exp:
                         results[index_of_kind] = CheckFailure(check, exp, type_suffix)
-
-    @classmethod
-    def _get_unsupported_failure(cls, check, msg):
-        return CheckFailure(check, DeepchecksNotSupportedError(msg))

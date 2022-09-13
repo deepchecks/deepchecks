@@ -13,6 +13,7 @@ import string
 from secrets import choice
 from typing import Dict
 
+import numpy as np
 import torch
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
@@ -48,7 +49,7 @@ def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
     image = data.batch_to_images(batch)[0]
     if data.task_type == TaskType.OBJECT_DETECTION:
         formatted_labels_of_image = data.batch_to_labels(batch)[0].numpy()
-        bboxes_of_class_id = torch.tensor([x for x in formatted_labels_of_image if x[0] == class_id])
+        bboxes_of_class_id = torch.tensor(np.array([x for x in formatted_labels_of_image if x[0] == class_id]))
         image = draw_bboxes(image, bboxes_of_class_id, copy_image=False, border_width=5)
 
     image_thumbnail = prepare_thumbnail(

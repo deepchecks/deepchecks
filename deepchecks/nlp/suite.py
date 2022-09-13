@@ -12,58 +12,63 @@
 # pylint: disable=broad-except
 from typing import Optional, Tuple, Union
 
-import numpy as np
-import pandas as pd
-
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.suite import BaseSuite, SuiteResult
-from deepchecks.tabular._shared_docs import docstrings
-from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from deepchecks.tabular.context import Context
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.decorators import deprecate_kwarg
+from deepchecks.nlp._shared_docs import docstrings
+from deepchecks.nlp.base_checks import SingleDatasetCheck, TrainTestCheck
+from deepchecks.nlp.context import Context, TTextPred, TTextProba
+from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.ipython import create_progress_bar
-from deepchecks.utils.typing import BasicModel
 
 __all__ = ['Suite']
 
 
 class Suite(BaseSuite):
-    """Tabular suite to run checks of types: TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck."""
+    """NLP suite to run checks of types: TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck."""
 
     @classmethod
     def supported_checks(cls) -> Tuple:
         """Return tuple of supported check types of this suite."""
-        return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
+        return TrainTestCheck, SingleDatasetCheck
 
-    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @docstrings
     def run(
         self,
-        train_dataset: Union[Dataset, pd.DataFrame, None] = None,
-        test_dataset: Union[Dataset, pd.DataFrame, None] = None,
-        model: Optional[BasicModel] = None,
-        feature_importance: Optional[pd.Series] = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = 120,
+        train_dataset: Union[TextData, None] = None,
+        test_dataset: Union[TextData, None] = None,
         with_display: bool = True,
-        y_pred_train: Optional[np.ndarray] = None,
-        y_pred_test: Optional[np.ndarray] = None,
-        y_proba_train: Optional[np.ndarray] = None,
-        y_proba_test: Optional[np.ndarray] = None,
+        train_predictions: Optional[TTextPred] = None,
+        test_predictions: Optional[TTextPred] = None,
+        train_probabilities: Optional[TTextProba] = None,
+        test_probabilities: Optional[TTextProba] = None,
+        random_state: int = 42,
+        n_samples: Optional[int] = 10_000
     ) -> SuiteResult:
         """Run all checks.
 
         Parameters
         ----------
-        train_dataset: Optional[Union[Dataset, pd.DataFrame]] , default None
-            object, representing data an estimator was fitted on
-        test_dataset : Optional[Union[Dataset, pd.DataFrame]] , default None
-            object, representing data an estimator predicts on
-        model : Optional[BasicModel] , default None
-            A scikit-learn-compatible fitted estimator instance
-        {additional_context_params:2*indent}
+        train_dataset: Union[TextData, None] , default: None
+            TextData object, representing data an estimator was fitted on
+        test_dataset: Union[TextData, None] , default: None
+            TextData object, representing data an estimator predicts on
+        with_display : bool , default: True
+            flag that determines if checks will calculate display (redundant in some checks).
+        train_predictions: Union[TTextPred, None] , default: None
+            predictions on train dataset
+        test_predictions: Union[TTextPred, None] , default: None
+            predictions on test dataset
+        train_probabilities: Union[TTextProba, None] , default: None
+            probabilities on train dataset
+        test_probabilities: Union[TTextProba, None] , default: None
+            probabilities on test_dataset dataset
+        random_state : int, default 42
+            A seed to set for pseudo-random functions, primarily sampling.
+        n_samples: int, default: 10_000
+            The number of samples to use within the checks.
+
+        {prediction_formats:2*indent}
 
         Returns
         -------
@@ -71,17 +76,15 @@ class Suite(BaseSuite):
             All results by all initialized checks
         """
         context = Context(
-            train_dataset,
-            test_dataset,
-            model,
-            feature_importance=feature_importance,
-            feature_importance_force_permutation=feature_importance_force_permutation,
-            feature_importance_timeout=feature_importance_timeout,
+            train_dataset=train_dataset,
+            test_dataset=test_dataset,
+            train_pred=train_predictions,
+            test_pred=test_predictions,
+            train_proba=train_probabilities,
+            test_proba=test_probabilities,
             with_display=with_display,
-            y_pred_train=y_pred_train,
-            y_pred_test=y_pred_test,
-            y_proba_train=y_proba_train,
-            y_proba_test=y_proba_test,
+            n_samples=n_samples,
+            random_state=random_state
         )
 
         progress_bar = create_progress_bar(
@@ -116,7 +119,7 @@ class Suite(BaseSuite):
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
-                    if test_dataset is not None:
+                    if train_dataset is not None:
                         try:
                             check_result = check.run_logic(context, dataset_kind=DatasetKind.TEST)
                             context.finalize_check_result(check_result, check, DatasetKind.TEST)
@@ -128,14 +131,6 @@ class Suite(BaseSuite):
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:
                         msg = 'Check is irrelevant if dataset is not supplied'
-                        results.append(Suite._get_unsupported_failure(check, msg))
-                elif isinstance(check, ModelOnlyCheck):
-                    if model is not None:
-                        check_result = check.run_logic(context)
-                        context.finalize_check_result(check_result, check)
-                        results.append(check_result)
-                    else:
-                        msg = 'Check is irrelevant if model is not supplied'
                         results.append(Suite._get_unsupported_failure(check, msg))
                 else:
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')

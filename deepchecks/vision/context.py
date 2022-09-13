@@ -17,6 +17,7 @@ from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind, SuiteResult
+from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
 from deepchecks.utils.logger import get_logger
@@ -30,7 +31,7 @@ __all__ = ['Context']
 
 
 @docstrings
-class Context:
+class Context(BaseContext):
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
@@ -168,25 +169,6 @@ class Context:
     # Validations note: We know train & test fit each other so all validations can be run only on train
 
     @property
-    def with_display(self) -> bool:
-        """Return the with_display flag."""
-        return self._with_display
-
-    @property
-    def train(self) -> VisionData:
-        """Return train if exists, otherwise raise error."""
-        if self._train is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without train dataset')
-        return self._train
-
-    @property
-    def test(self) -> VisionData:
-        """Return test if exists, otherwise raise error."""
-        if self._test is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without test dataset')
-        return self._test
-
-    @property
     def model(self) -> nn.Module:
         """Return & validate model if model exists, otherwise raise error."""
         if self._model is None:
@@ -224,11 +206,16 @@ class Context:
         """Return whether there is test dataset defined."""
         return self._test is not None
 
+    @property
+    def task_type(self):
+        """Return task type."""
+        return self.train.task_type
+
     def assert_task_type(self, *expected_types: TaskType):
         """Assert task_type matching given types."""
-        if self.train.task_type not in expected_types:
+        if self.task_type not in expected_types:
             raise ModelValidationError(
-                f'Check is irrelevant for task of type {self.train.task_type}')
+                f'Check is irrelevant for task of type {self.task_type}')
         return True
 
     def assert_predictions_valid(self, kind: DatasetKind = None):
@@ -236,15 +223,6 @@ class Context:
         error = self._prediction_formatter_error.get(kind)
         if error:
             raise DeepchecksValueError(error)
-
-    def get_data_by_kind(self, kind: DatasetKind):
-        """Return the relevant VisionData by given kind."""
-        if kind == DatasetKind.TRAIN:
-            return self.train
-        elif kind == DatasetKind.TEST:
-            return self.test
-        else:
-            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
     def add_is_sampled_footnote(self, result: Union[CheckResult, SuiteResult], kind: DatasetKind = None):
         """Get footnote to display when the datasets are sampled."""
