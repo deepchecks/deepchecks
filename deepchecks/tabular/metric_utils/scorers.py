@@ -16,14 +16,19 @@ from numbers import Number
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
-from sklearn.metrics import (f1_score, get_scorer, make_scorer, mean_absolute_error, mean_squared_error,
-                             precision_score, recall_score)
+from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
+
+try:
+    from deepchecks_metrics import f1_score, precision_score, recall_score  # noqa: F401
+except ImportError:
+    from sklearn.metrics import f1_score, recall_score, precision_score  # noqa: F401  pylint: disable=ungrouped-imports
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
+                                                                               roc_auc_per_class,
                                                                                true_negative_rate_metric)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.logger import get_logger
@@ -104,10 +109,18 @@ binary_scorers_dict = {
 multiclass_scorers_dict = {
     'accuracy': get_scorer('accuracy'),
     'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
-    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0),
+    'precision_micro': make_scorer(precision_score, average='micro', zero_division=0),
+    'precision_weighted': make_scorer(precision_score, average='weighted', zero_division=0),
     'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
+    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0),
+    'recall_micro': make_scorer(recall_score, average='micro', zero_division=0),
+    'recall_weighted': make_scorer(recall_score, average='weighted', zero_division=0),
     'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
+    'f1_macro': make_scorer(f1_score, average='macro', zero_division=0),
+    'f1_micro': make_scorer(f1_score, average='micro', zero_division=0),
+    'f1_weighted': make_scorer(f1_score, average='weighted', zero_division=0),
     'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
+    'roc_auc_per_class': make_scorer(roc_auc_per_class, needs_proba=True),
     'fpr_per_class': make_scorer(false_positive_rate_metric, averaging_method='per_class'),
     'fpr_macro': make_scorer(false_positive_rate_metric, averaging_method='macro'),
     'fpr_micro': make_scorer(false_positive_rate_metric, averaging_method='micro'),
@@ -204,7 +217,7 @@ class DeepcheckScorer:
             # We expect the perfect score to be equal for all the classes, so takes the first one
             first_score = score[0]
             if any(score != first_score):
-                get_logger().warning('Scorer %s return different perfect score for differect classes', self.name)
+                get_logger().warning('Scorer %s return different perfect score for different classes', self.name)
             return first_score
         return score
 
