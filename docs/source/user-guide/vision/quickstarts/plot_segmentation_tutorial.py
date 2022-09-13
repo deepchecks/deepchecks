@@ -38,7 +38,7 @@ import torchvision.transforms.functional as F
 # %%
 # Load Data
 # ~~~~~~~~~
-# The model in this tutorial is used to detect different objects in images, based on the Pascal VOC dataset.
+# The model in this tutorial is used to detect different objects in images (labels based on the Pascal VOC dataset).
 # The model is trained to identify 20 different objects (person, bicycle etc.) and background.
 # The dataset itself is the COCO128 dataset with semantic segmentation labels, mapped to the Pascal VOC labels
 # (Originally, the COCO dataset includes more labels, but those has been filtered out)
