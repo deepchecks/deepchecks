@@ -47,7 +47,6 @@ each pixel is an integer correlating with the relevant class_id.
 .. code-block:: python
 
     from deepchecks.vision import SegmentationData
-    import torch.nn.functional as F
     import torch
     import numpy as np
 
