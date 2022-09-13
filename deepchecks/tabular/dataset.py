@@ -136,7 +136,7 @@ class Dataset:
         for column, frequency in columns_frequency_counter.items():
             if frequency > 1:
                 duplicated_columns.append(column)
-                
+
         if len(duplicated_columns) >= 1:
             raise DeepchecksValueError(
                 f"Data has {len(duplicated_columns)} duplicate columns. "
