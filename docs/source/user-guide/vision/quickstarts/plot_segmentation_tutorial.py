@@ -175,7 +175,7 @@ test_data.validate_format(model, device=device)
 
 # %%
 # Running Deepchecks' model evaluation suite on our data and model!
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Now that we have defined the task class, we can validate the model with the model evaluation suite of deepchecks.
 # This can be done with this simple few lines of code:
 
