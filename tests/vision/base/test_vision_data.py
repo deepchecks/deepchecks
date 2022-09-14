@@ -19,15 +19,22 @@ from hamcrest import all_of, assert_that, calling, contains_exactly, equal_to, h
 from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import DeepchecksNotImplementedError, DeepchecksValueError, ValidationError
+from deepchecks.vision import SegmentationData
 from deepchecks.vision.classification_data import ClassificationData
 from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.classification.mnist import MNISTData
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.detection.coco import COCOData
+from deepchecks.vision.datasets.segmentation import segmentation_coco
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.utils.transformations import AlbumentationsTransformations, ImgaugTransformations
 from deepchecks.vision.vision_data import TaskType, VisionData
 from tests.vision.vision_conftest import run_update_loop
+
+
+class SimpleSegmentationData(SegmentationData):
+    def batch_to_labels(self, batch):
+        return batch[1]
 
 
 class SimpleDetectionData(DetectionData):
@@ -50,15 +57,18 @@ def test_vision_data_task_type_inference():
     # Arrange
     mnist_loader = t.cast(DataLoader, mnist.load_dataset(train=True, object_type='DataLoader'))
     coco_loader = t.cast(DataLoader, coco.load_dataset(train=True, object_type='DataLoader'))
+    segmentation_coco_loader = t.cast(DataLoader, segmentation_coco.load_dataset(train=True, object_type='DataLoader'))
 
     # Act
     second_classification_dataset = SimpleClassificationData(mnist_loader)
     detection_dataset = SimpleDetectionData(coco_loader)
+    segmentation_dataset = SimpleSegmentationData(segmentation_coco_loader)
     base_dataset = VisionData(mnist_loader)
 
     # Assert
     assert_that(second_classification_dataset.task_type == TaskType.CLASSIFICATION)
     assert_that(detection_dataset.task_type == TaskType.OBJECT_DETECTION)
+    assert_that(segmentation_dataset.task_type == TaskType.SEMANTIC_SEGMENTATION)
     assert_that(base_dataset.task_type == TaskType.OTHER)
 
 
@@ -131,11 +141,6 @@ def test_vision_data_n_of_samples_per_class_inference_for_detection_dataset():
     )
 
 
-# def test_vision_data_n_of_samples_per_class_inference_for_segmentation_dataset():
-#     # TODO:
-#     pass
-
-
 def test_vision_data_label_comparison_with_different_datasets():
     # Arrange
     coco_dataset = t.cast(COCOData, coco.load_dataset(train=True, object_type='VisionData'))
@@ -173,6 +178,35 @@ def test_vision_data_label_comparison_for_detection_task():
 
     first_dataset = SimpleDetectionData(first_loader)
     second_dataset = SimpleDetectionData(second_loader)
+
+    # Act
+    # it must not raise an error
+    first_dataset.validate_shared_label(second_dataset)
+
+
+def test_vision_data_label_comparison_for_segmentation_task():
+    # Arrange
+    loader = t.cast(DataLoader, segmentation_coco.load_dataset(train=True, object_type="DataLoader"))
+
+    first_X, first_label = loader.dataset[0]
+    second_X, second_label = None, None
+
+    for index in range(len(loader.dataset)):
+        X, y = loader.dataset[index]
+        if len(y) != len(first_label):
+            second_X, second_label = X, y
+
+    assert second_label is not None, "All images have same number of bboxes, cannot perform the test"
+
+    def batch_collate(batch):
+        imgs, labels = zip(*batch)
+        return list(imgs), list(labels)
+
+    first_loader = DataLoader([(first_X, first_label), ], collate_fn=batch_collate)
+    second_loader = DataLoader([(second_X, second_label), ], collate_fn=batch_collate)
+
+    first_dataset = SimpleSegmentationData(first_loader)
+    second_dataset = SimpleSegmentationData(second_loader)
 
     # Act
     # it must not raise an error
@@ -411,6 +445,94 @@ def test_detection_data_bad_implementation():
                 raises(ValidationError,
                        'Check requires detection predictions to be a sequence of 2D tensors, when '
                        'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
+
+
+def test_segmentation_data():
+    coco_dataset = segmentation_coco.load_dataset(object_type='DataLoader')
+    batch = None
+    model = None
+    device = None
+    segmentation_data = SegmentationData(coco_dataset)
+    assert_that(calling(segmentation_data.batch_to_labels).with_args(batch),
+                raises(DeepchecksNotImplementedError, 'batch_to_labels\(\) must be implemented in a subclass'))
+    assert_that(calling(segmentation_data.infer_on_batch).with_args(batch, model, device),
+                raises(DeepchecksNotImplementedError, 'infer_on_batch\(\) must be implemented in a subclass'))
+
+
+def test_segmentation_data_bad_implementation():
+    coco_dataset = segmentation_coco.load_dataset(object_type='DataLoader')
+
+    class DummySegmentationData(SegmentationData):
+        dummy_batch = False
+
+        def batch_to_images(self, batch):
+            if self.dummy_batch:
+                return batch[0]
+
+            raise DeepchecksNotImplementedError('batch_to_images() must be implemented in a subclass')
+
+        def batch_to_labels(self, batch):
+            if self.dummy_batch:
+                return batch[1]
+
+            raise DeepchecksNotImplementedError('batch_to_labels() must be implemented in a subclass')
+
+        def infer_on_batch(self, batch, model, device):
+            if self.dummy_batch:
+                return batch
+
+            raise DeepchecksNotImplementedError('infer_on_batch() must be implemented in a subclass')
+
+    segmentation_data = DummySegmentationData(coco_dataset)
+
+    segmentation_data.dummy_batch = True
+
+    # Assert label validations:
+    def label_to_batch(labels, images=[torch.Tensor([1, 2, 3])]):
+        return [images, labels]
+
+    assert_that(calling(segmentation_data.validate_label).with_args(label_to_batch(7)),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation labels to be a sequence with an entry '
+                       'for each sample'))
+    assert_that(calling(segmentation_data.validate_label).with_args(label_to_batch([], [])),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation label to be a non-empty list'))
+    assert_that(calling(segmentation_data.validate_label).with_args(label_to_batch([8])),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation label to be of type torch.Tensor'))
+    assert_that(calling(segmentation_data.validate_label).with_args(label_to_batch([torch.Tensor(8)])),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation label to be of same width and height'
+                       ' as the corresponding image'))
+
+    # Assert prediction validations:
+    assert_that(calling(segmentation_data.validate_prediction).with_args(7, None, None),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation predictions to be a sequence with an entry'
+                       ' for each sample'))
+    assert_that(calling(segmentation_data.validate_prediction).with_args([], None, None),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation predictions to be a non-empty sequence'))
+    assert_that(calling(segmentation_data.validate_prediction).with_args([8], None, None),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation predictions to be of type torch.Tensor'))
+    assert_that(calling(segmentation_data.validate_prediction).with_args([torch.Tensor([[1, 2], [1, 2]])], None, None),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation predictions to be a 3D tensor, but got'
+                       'a tensor with 2 dimensions'))
+    assert_that(
+        calling(segmentation_data.validate_inferred_batch_predictions).with_args([torch.Tensor([[[1, 2], [1, 2]]])], 2),
+        raises(ValidationError,
+               'Deepchecks requires semantic segmentation predictions to have 2 classes'))
+    assert_that(calling(segmentation_data.validate_inferred_batch_predictions).with_args(
+        [torch.Tensor([[[0.1]], [[0.1]], [[0.7]]])], 3),
+                raises(ValidationError,
+                       'Deepchecks requires semantic segmentation predictions to be a probability '
+                       'distribution and sum to 1 for each row'))
+
+    # Assert that raises no exception:
+    segmentation_data.validate_inferred_batch_predictions([torch.Tensor([[[0.1]], [[0.1]], [[0.7]]])], 3, 0.11)
 
 
 def test_vision_data_initialization_from_dataset_instance(coco_train_dataloader: DataLoader):
