@@ -11,7 +11,7 @@
 """Module contains the domain classifier drift check."""
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
+from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
 
@@ -110,7 +110,7 @@ class MultivariateDrift(TrainTestCheck):
         </span>
         """
 
-        values_dict, displays = run_whole_dataset_drift(
+        values_dict, displays = run_multivariable_drift(
             train_dataframe=train_dataset.features_columns,
             test_dataframe=test_dataset.features_columns,
             numerical_features=numerical_features,
