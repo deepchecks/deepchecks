@@ -268,18 +268,17 @@ def test_not_existing_results_selection_by_check_type():
 
 
 def test_suite_results_selection(iris_split_dataset_and_model_custom):
-    iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
+    iris_train, iris_test, _ = iris_split_dataset_and_model_custom
 
     suite = Suite(
         "test",
         tabular_checks.IsSingleValue(),
-        tabular_checks.ModelErrorAnalysis()
+        tabular_checks.ModelInfo()
     )
 
     suite_result = suite.run(
         train_dataset=iris_train,
         test_dataset=iris_test,
-        model=iris_model
     )
 
     assert_that(
@@ -290,7 +289,7 @@ def test_suite_results_selection(iris_split_dataset_and_model_custom):
         )
     )
     assert_that(
-        suite_result.select_results_by_check_type(tabular_checks.ModelErrorAnalysis),
+        suite_result.select_results_by_check_type(tabular_checks.ModelInfo),
         contains_exactly(instance_of(CheckFailure))
     )
 
