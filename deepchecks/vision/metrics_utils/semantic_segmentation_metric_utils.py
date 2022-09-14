@@ -17,7 +17,7 @@ def format_segmentation_masks(y_true: torch.Tensor, y_pred: torch.Tensor, thresh
     """Bring the ground truth and the prediction masks to the same format (C, W, H) with values 1.0 or 0.0."""
     pred_onehot = torch.where(y_pred > threshold, 1.0, 0.0)
     y_gt_i = y_true.clone().unsqueeze(0).type(torch.int64)
-    gt_onehot = torch.zeros_like(pred_onehot)
+    gt_onehot = torch.zeros_like(pred_onehot, device=y_gt_i.device)
     gt_onehot.scatter_(0, y_gt_i, 1.0)
     return gt_onehot, pred_onehot
 
