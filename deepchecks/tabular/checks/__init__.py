@@ -22,7 +22,7 @@ from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeCompa
                                     DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, NewLabelTrainTest,
                                     StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
-                                    TrainTestSamplesMix, WholeDatasetDrift)
+                                    TrainTestSamplesMix, WholeDatasetDrift, MultivariateDrift)
 
 __all__ = [
     # integrity checks
@@ -63,6 +63,7 @@ __all__ = [
     'TrainTestLabelDrift',
     'WholeDatasetDrift',
     'TrainTestPredictionDrift',
+    'MultivariateDrift',
 
     # performance checks
     'TrainTestPerformance',
