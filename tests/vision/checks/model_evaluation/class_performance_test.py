@@ -67,6 +67,22 @@ def test_mnist_largest(mnist_dataset_train, mnist_dataset_test, mock_trained_mni
     ))
 
 
+def test_coco_segmentation(segmentation_coco_train_visiondata, segmentation_coco_test_visiondata,
+                           trained_segmentation_deeplabv3_mobilenet_model, device):
+    # Arrange
+    check = ClassPerformance(n_to_show=2, show_only='largest')
+
+    # Act
+    result = check.run(segmentation_coco_train_visiondata, segmentation_coco_test_visiondata,
+                       trained_segmentation_deeplabv3_mobilenet_model,
+                       device=device, n_samples=None)
+
+    # Assert
+    assert_that(set(result.value['Class']), has_length(6))
+    assert_that(result.value, has_length(11))
+    assert_that(result.value.iloc[0]['Value'], close_to(0.97, 0.01))
+
+
 def test_mnist_largest_without_display(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
     check = ClassPerformance(n_to_show=2, show_only='largest')
