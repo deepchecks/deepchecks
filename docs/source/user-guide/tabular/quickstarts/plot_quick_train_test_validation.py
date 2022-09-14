@@ -180,11 +180,11 @@ suite_result.show()
 # We can run a single check on a dataset, and see the results.
 
 # If we want to run only that check (possible with or without condition)
-from deepchecks.tabular.checks import WholeDatasetDrift
+from deepchecks.tabular.checks import MultivariateDrift
 
-check_with_condition = WholeDatasetDrift().add_condition_overall_drift_value_less_than(0.4)
+check_with_condition = MultivariateDrift().add_condition_overall_drift_value_less_than(0.4)
 # or just the check without the condition:
-# check = WholeDatasetDrift()
+# check = MultivariateDrift()
 dataset_drift_result = check_with_condition.run(train_ds, test_ds)
 
 #%%
@@ -203,13 +203,13 @@ dataset_drift_result.passed_conditions()
 # To create our own suite, we can simply write all of the checks, and add optional conditions.
 
 from deepchecks.tabular import Suite
-from deepchecks.tabular.checks import TrainTestFeatureDrift, WholeDatasetDrift, \
+from deepchecks.tabular.checks import TrainTestFeatureDrift, MultivariateDrift, \
  TrainTestPredictionDrift, TrainTestLabelDrift
 
 drift_suite = Suite('drift suite',
 TrainTestFeatureDrift().add_condition_drift_score_less_than(
   max_allowed_categorical_score=0.2, max_allowed_numeric_score=0.1),
-WholeDatasetDrift().add_condition_overall_drift_value_less_than(0.4),
+MultivariateDrift().add_condition_overall_drift_value_less_than(0.4),
 TrainTestLabelDrift(),
 TrainTestPredictionDrift()
 )
