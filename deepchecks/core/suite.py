@@ -31,9 +31,9 @@ from deepchecks.core.serialization.suite_result.html import SuiteResultSerialize
 from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_random_string, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
-from deepchecks.utils.logger import get_logger
 
 from . import common
 
@@ -118,7 +118,7 @@ class SuiteResult(DisplayableResult):
 
     def select_results_by_check_type(
         self,
-        check_type: "TCheckTypes"
+        check_type: 'TCheckTypes'
     ) -> List['check_types.BaseCheckResult']:
         """Select results by check type(s).
 
@@ -523,15 +523,15 @@ class BaseSuite:
             raise DeepchecksValueError(f'No index {index} in suite')
         self.checks.pop(index)
         return self
-    
-    def select_checks_by_type(self, check_type: "TCheckTypes") -> List[BaseCheck]:
+
+    def select_checks_by_type(self, check_type: 'TCheckTypes') -> List[BaseCheck]:
         """Select check instances by type(s).
-        
+
         Parameters
         ==========
         check_type : Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
             check types
-        
+
         Returns
         =======
         List[BaseCheck]
@@ -544,12 +544,12 @@ class BaseSuite:
 
     def remove_checks_by_type(self, check_type: 'TCheckTypes') -> List[BaseCheck]:
         """Remove given check types from a suite.
-        
+
         Parameters
         ==========
         check_type : Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
             check types
-        
+
         Returns
         =======
         List[BaseCheck] : list of removed check instances
@@ -724,7 +724,7 @@ def select_check_by_type(
 
     available_types = set()
     output = []
-    
+
     for instance in checks:
         if isinstance(instance, BaseCheck):
             available_types.add(type(instance))
@@ -738,7 +738,7 @@ def select_check_by_type(
     diff = set(check_type).difference(available_types)
 
     if diff:
-        template = warning_template or "Next check types are not present in sequence: %s"
+        template = warning_template or 'Next check types are not present in sequence: %s'
         get_logger().warning(template, ', '.join(it.__name__ for it in diff))
-    
+
     return output

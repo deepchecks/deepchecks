@@ -273,14 +273,15 @@ def test_suite_results_selection(iris_split_dataset_and_model_custom):
     suite = Suite(
         "test",
         tabular_checks.IsSingleValue(),
-        tabular_checks.ModelErrorAnalysis())
+        tabular_checks.ModelErrorAnalysis()
+    )
 
     suite_result = suite.run(
-        train_dataset=iris_train, 
+        train_dataset=iris_train,
         test_dataset=iris_test,
         model=iris_model
     )
-    
+
     assert_that(
         suite_result.select_results_by_check_type(tabular_checks.IsSingleValue),
         contains_exactly(
@@ -347,7 +348,7 @@ def test_check_removal_by_type():
     )
     assert_that(suite.checks, has_length(initial_length - 1))
     assert_that(suite.checks, not_(has_value(instance_of(tabular_checks.IdentifierLabelCorrelation))))
-    
+
     assert_that(
         suite.remove_checks_by_type(tabular_checks.DataDuplicates),
         contains_exactly(

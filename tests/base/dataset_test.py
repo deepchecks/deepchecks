@@ -1048,8 +1048,8 @@ def test_cat_features_warning(iris, caplog):
     # Test that warning is not raised when cat_features is not None
     Dataset(iris, cat_features=[])
     assert_that(caplog.records, has_length(1))
-    
-    
+
+
 def test_multiclass_label_as_integer_warning(caplog, n_samples=100, n_features=5):
     # Test that warning is raised when the label type is integer
     # and there are more than 5 unique values
@@ -1095,4 +1095,3 @@ def test_dataset_duplicate_column_names_validation(iris: pd.DataFrame):
         calling(Dataset).with_args(**args),
         raises(DeepchecksValueError, matching=has_string(validation_exception_message))
     )
-    
