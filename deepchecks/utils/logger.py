@@ -55,7 +55,7 @@ def set_verbosity(level: int):
     >>> deepchecks.set_verbosity(logging.ERROR)
     """
     _logger.setLevel(level)
-    if level == logging.ERROR:
+    if level >= logging.ERROR:
         warnings.filterwarnings(
             action='ignore',
             message=r'.*',
