@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test Prediction Drift check."""
-import warnings
 from collections import OrderedDict, defaultdict
 from typing import Any, Dict, List
 
@@ -106,8 +105,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     aggregation_method: str, default: 'none'
         {property_aggregation_method_argument:2*indent}
-    max_num_categories: int, default: None
-        Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
@@ -120,7 +117,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
             aggregation_method: str = 'none',
-            max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -128,15 +124,6 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         self.prediction_properties = prediction_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.categorical_drift_method = categorical_drift_method
-
-        if max_num_categories is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
-                'and max_num_categories_for_display instead',
-                DeprecationWarning
-            )
-            max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
-            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
@@ -265,10 +252,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         return self.property_reduce(self.aggregation_method, pd.Series(value_per_property), 'Drift Score')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
-                                            max_allowed_numeric_score: float = 0.075,
-                                            max_allowed_psi_score: float = None,
-                                            max_allowed_earth_movers_score: float = None
-                                            ) -> 'TrainTestPredictionDrift':
+                                            max_allowed_numeric_score: float = 0.075) -> 'TrainTestPredictionDrift':
         """
         Add condition - require prediction properties drift score to be less than the threshold.
 
@@ -284,32 +268,12 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
             the max threshold for the categorical variable drift score
         max_allowed_numeric_score: float ,  default: 0.075
             the max threshold for the numeric variable drift score
-        max_allowed_psi_score: float, default None
-            Deprecated. Please use max_allowed_categorical_score instead
-        max_allowed_earth_movers_score: float, default None
-            Deprecated. Please use max_allowed_numeric_score instead
+
         Returns
         -------
         ConditionResult
             False if any property has passed the max threshold, True otherwise
         """
-        if max_allowed_psi_score is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_allowed_psi_score is deprecated. please use '
-                f'max_allowed_categorical_score instead',
-                DeprecationWarning
-            )
-            if max_allowed_categorical_score is not None:
-                max_allowed_categorical_score = max_allowed_psi_score
-        if max_allowed_earth_movers_score is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_allowed_earth_movers_score is deprecated. please use '
-                f'max_allowed_numeric_score instead',
-                DeprecationWarning
-            )
-            if max_allowed_numeric_score is not None:
-                max_allowed_numeric_score = max_allowed_earth_movers_score
-
         condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score,
                                     'prediction property', 'prediction properties')
 

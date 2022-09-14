@@ -10,7 +10,6 @@
 #
 """Module contains Image Property Drift check."""
 import typing as t
-import warnings
 from collections import defaultdict
 
 import pandas as pd
@@ -24,7 +23,7 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_p
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
-from deepchecks.vision.utils.image_properties import default_image_properties, get_column_type
+from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyDrift']
@@ -81,8 +80,6 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         Minimum number of samples needed in each dataset needed to calculate the drift.
     aggregation_method: str, default: 'max'
         {property_aggregation_method_argument:2*indent}
-    max_num_categories: int, default: None
-        Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
@@ -96,20 +93,11 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
             aggregation_method: str = 'max',
-            max_num_categories: int = None,  # Deprecated
             **kwargs
     ):
         super().__init__(**kwargs)
         self.image_properties = image_properties if image_properties else default_image_properties
         self.margin_quantile_filter = margin_quantile_filter
-        if max_num_categories is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_num_categories is deprecated. please use max_num_categories_for_drift '
-                'and max_num_categories_for_display instead',
-                DeprecationWarning
-            )
-            max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
-            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
@@ -207,7 +195,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
                     train_column=df_train[property_name],
                     test_column=df_test[property_name],
                     value_name=property_name,
-                    column_type=get_column_type(single_property['output_type']),
+                    column_type=single_property['output_type'],
                     margin_quantile_filter=self.margin_quantile_filter,
                     max_num_categories_for_drift=self.max_num_categories_for_drift,
                     min_category_size_ratio=self.min_category_size_ratio,

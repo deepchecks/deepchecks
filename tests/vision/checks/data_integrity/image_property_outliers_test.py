@@ -132,7 +132,7 @@ def test_string_property_exception(mnist_dataset_train, device):
     image_properties = [{
         'name': 'test',
         'method': string_property,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = ImagePropertyOutliers(image_properties=image_properties)
     # Act - Assert check raise exception
@@ -148,7 +148,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
     image_properties = [{
         'name': 'test',
         'method': too_many_property,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = ImagePropertyOutliers(image_properties=image_properties)
     # Act - Assert check raise exception
@@ -164,7 +164,7 @@ def test_property_with_nones(mnist_dataset_train, device):
     image_properties = [{
         'name': 'test',
         'method': property_with_none,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = ImagePropertyOutliers(image_properties=image_properties)
     # Act

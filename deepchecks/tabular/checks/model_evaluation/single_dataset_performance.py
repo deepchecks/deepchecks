@@ -51,12 +51,15 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
-        scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
+        scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []
         classes = dataset.classes
         label = cast(pd.Series, dataset.label_col)
-        n_samples = label.groupby(label).count()
+        if context.with_display:
+            n_samples = label.groupby(label).count()
+        else:
+            n_samples = dict(zip(classes, [None] * len(classes)))
         for scorer in scorers:
             scorer_value = scorer(model, dataset)
             if isinstance(scorer_value, Number):
@@ -94,9 +97,9 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""
-        result = {row['Metric'] + '_' + str(row['Class']): row['Value'] for _, row in check_result.value.iterrows()}
-        for key in [key for key in result.keys() if key.endswith('_<NA>')]:
-            result[key.replace('_<NA>', '')] = result.pop(key)
+        result = {(row['Metric'], str(row['Class'])): row['Value'] for _, row in check_result.value.iterrows()}
+        for key in [key for key in result.keys() if key[1] == '<NA>']:
+            result[key[0]] = result.pop(key)
         return result
 
     def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all') -> SDP:
@@ -123,15 +126,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
                 if metric not in check_result.Metric.unique():
                     raise DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in '
                                                f'this check are: {check_result.Metric.unique()}.')
-
-                class_val = check_result[check_result.Metric == metric].groupby('Class').Value
-                class_gt = class_val.apply(lambda x: x > threshold)
+                metric_result = check_result[check_result['Metric'] == metric]
                 if class_mode == 'all':
-                    metrics_pass.append(all(class_gt))
+                    metrics_pass.append(min(metric_result['Value']) > threshold)
                 elif class_mode == 'any':
-                    metrics_pass.append(any(class_gt))
-                elif class_mode in class_val.groups:
-                    metrics_pass.append(class_gt[class_val.indices[class_mode]].item())
+                    metrics_pass.append(max(metric_result['Value']) > threshold)
+                elif str(class_mode) in [str(x) for x in metric_result['Class'].unique()]:
+                    metrics_pass.append(metric_result['Value'][class_mode] > threshold)
                 else:
                     raise DeepchecksValueError(f'class_mode expected be one of the classes in the check results or any '
                                                f'or all, received {class_mode}.')

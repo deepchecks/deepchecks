@@ -15,7 +15,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from hamcrest import (all_of, assert_that, calling, contains_exactly, equal_to, greater_than, has_item, has_length,
-                      has_property, instance_of, is_, not_none, raises)
+                      has_property, instance_of, is_, not_none, raises, has_string)
 from sklearn.datasets import load_iris, make_classification
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -1048,4 +1048,51 @@ def test_cat_features_warning(iris, caplog):
     # Test that warning is not raised when cat_features is not None
     Dataset(iris, cat_features=[])
     assert_that(caplog.records, has_length(1))
+    
+    
+def test_multiclass_label_as_integer_warning(caplog, n_samples=100, n_features=5):
+    # Test that warning is raised when the label type is integer
+    # and there are more than 5 unique values
+    x, *_ = make_classification(n_samples=n_samples, n_features=n_features)
+    df = pd.DataFrame(x, columns=[f'X{i}' for i in range(n_features)])
+    df['target'] = np.random.randint(0, 15, n_samples)
+    Dataset(df, label='target', cat_features=[])
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message), equal_to(
+        'Attributes such as "label_type" are not mandatory, but in a case of ordinal integers, '
+        'the task type can be inferred both as multiclass and regression, '
+        'so it\'s recommended to declare directly. '
+        'Auto inferring label type as multiclass.')
 
+def test_dataset_duplicate_column_names_validation(iris: pd.DataFrame):
+    """
+    Function checks whether the Dataset object's duplicate column name
+    validation raises `DeepchecksValueError` when the data has duplicate column names.
+    """
+
+    iris_copy = iris.copy()
+
+    # Duplicate column names
+    columns = ['sepal length (cm)', 'sepal width (cm)', 'sepal length (cm)',
+               'sepal width (cm)', 'target']
+
+    duplicated_columns = ['sepal length (cm)', 'sepal width (cm)']
+
+    # data now has duplicate column names
+    iris_copy.columns = columns
+
+    args = {
+        'df': iris_copy
+    }
+
+    validation_exception_message = (
+        f'Data has {len(duplicated_columns)} duplicate columns. '
+        'Change the duplicate column names or remove them from the data. '
+        f'Duplicate column names: {duplicated_columns}'
+    )
+
+    assert_that(
+        calling(Dataset).with_args(**args),
+        raises(DeepchecksValueError, matching=has_string(validation_exception_message))
+    )
+    

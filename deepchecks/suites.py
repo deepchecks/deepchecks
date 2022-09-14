@@ -26,8 +26,6 @@ warnings.warn(
 
 
 __all__ = [
-    'single_dataset_integrity',
-    'train_test_leakage',
     'train_test_validation',
     'model_evaluation',
     'full_suite',

@@ -146,9 +146,9 @@ df.columns
 # opposed to a division into a train and test, for example) - and use it to create a
 # new suite object:
 
-from deepchecks.tabular.suites import single_dataset_integrity
+from deepchecks.tabular.suites import data_integrity
 
-integ_suite = single_dataset_integrity()
+integ_suite = data_integrity()
 
 #%%
 # We will now run that suite on our data. While running on the native DataFrame is possible in some cases, it is
