@@ -9,9 +9,9 @@ In this tutorial, you will learn how to validate your **object detection model**
 You can read more about the different checks and suites for computer vision use cases at the
 :doc:`examples section  </checks_gallery/vision/index>`
 
-If you just want to see the output of this tutorial, jump to :ref:`observing_the_result` section.
+If you just want to see the output of this tutorial, jump to the :ref:`observing the results <vision_segmentation_tutorial__observing_the_result>` section.
 
-An object detection tasks usually consists of two parts:
+An object detection tasks usually consist of two parts:
 
 - Object Localization, where the model predicts the location of an object in the image,
 - Object Classification, where the model predicts the class of the detected object.
@@ -131,12 +131,12 @@ data_transforms = A.Compose([
 
 dataset = TomatoDataset(root=os.path.join(os.path.curdir, 'tomato-detection/data'),
                         transforms=data_transforms)
-train_set, val_set = torch.utils.data.random_split(dataset,
+train_set, test_set = torch.utils.data.random_split(dataset,
                                                     [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)],
                                                     generator=torch.Generator().manual_seed(42))
-val_set.transforms = A.Compose([ToTensorV2()])
+test_set.transforms = A.Compose([ToTensorV2()])
 train_loader = DataLoader(train_set, batch_size=64, collate_fn=(lambda batch: tuple(zip(*batch))))
-val_loader = DataLoader(val_set, batch_size=64, collate_fn=(lambda batch: tuple(zip(*batch))))
+test_loader = DataLoader(test_set, batch_size=64, collate_fn=(lambda batch: tuple(zip(*batch))))
 
 #%%
 # Visualize a Few Images
@@ -212,7 +212,7 @@ _ = model.eval()
 #%%
 # Validating the Model With Deepchecks
 # =====================================
-# Now, after we have the training data, validation data and the model, we can validate the model with
+# Now, after we have the training data, test data and the model, we can validate the model with
 # deepchecks test suites.
 #
 # Visualize the Data Loader and the Model Outputs
@@ -228,7 +228,7 @@ print("Image values", batch[0][0])
 print("-"*80)
 
 print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
-print("Example output of a label shape from the dataloader ", batch[1][0])
+print("Example output of a label from the dataloader ", batch[1][0])
 
 #%%
 # Implementing the DetectionData class
@@ -326,10 +326,10 @@ LABEL_MAP = {
     1: 'Tomato'
 }
 training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
-val_data = TomatoData(data_loader=val_loader, label_map=LABEL_MAP)
+test_data = TomatoData(data_loader=test_loader, label_map=LABEL_MAP)
 
 training_data.validate_format(model, device=device)
-val_data.validate_format(model, device=device)
+test_data.validate_format(model, device=device)
 
 # And observe the output:
 
@@ -342,7 +342,7 @@ val_data.validate_format(model, device=device)
 from deepchecks.vision.suites import full_suite
 
 suite = full_suite()
-result = suite.run(training_data, val_data, model, device=device)
+result = suite.run(training_data, test_data, model, device=device)
 
 #%%
 # .. _observing_the_result:
