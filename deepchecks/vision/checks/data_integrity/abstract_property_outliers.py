@@ -79,7 +79,20 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
 
+        self._were_properties_given = properties_list is not None
         self._properties_results = None
+
+    def config(self, include_version: bool = True):
+        if self._were_properties_given is True:
+            raise ValueError("properties cannot be serialized")
+        return self._prepare_config(
+            params={
+                "iqr_percentiles": self.iqr_percentiles,
+                "iqr_scale": self.iqr_scale,
+                "n_show_top": self.n_show_top
+            },
+            include_version=include_version
+        )
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""
