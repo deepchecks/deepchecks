@@ -15,7 +15,7 @@ This notebook provides an overview for using and understanding the Multi Model P
 
 What is the Multi Model Performance Report?
 ===========================================
-The ``MultiModelPerformanceReport`` check produce a summary of performance scores for multiple models
+The ``MultiModelPerformanceReport`` check produces a summary of performance scores for multiple models
 on test datasets. The default scorers that are used are F1, Precision and Recall for Classification
 and Negative Root Mean Square Error, Negative Mean Absolute Error and R2 for Regression.
 """
