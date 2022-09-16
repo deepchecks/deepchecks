@@ -22,8 +22,7 @@ __all__ = ['ClassImbalance']
 
 
 class ClassImbalance(SingleDatasetCheck):
-    """Check if a dataset is imbalanced by looking at the target variable's
-    distribution.
+    """Check if a dataset is imbalanced by looking at the target variable's distribution.
 
     Parameters
     ----------
@@ -59,7 +58,6 @@ class ClassImbalance(SingleDatasetCheck):
             in format {label: number_of_uniques} display is a series with labels
             and their normalized count
         """
-
         df = context.get_data_by_kind(dataset_kind)
         label = df.label_col
         if df.label_col.nunique(dropna=self.ignore_nan) == 1:
@@ -83,8 +81,8 @@ class ClassImbalance(SingleDatasetCheck):
             )
             fig = px.bar(vc_ser_plot, x=vc_ser_plot.index, y=vc_ser_plot.values,
                          text=vc_ser_plot.values.astype(str),
-                         title="Class Label Distribution").update_layout(
-                yaxis_title="Frequency", height=400,
+                         title='Class Label Distribution').update_layout(
+                yaxis_title='Frequency', height=400,
                 xaxis=xaxis_layout)
             fig.update_traces(textposition='outside')
             fig.update_layout(yaxis_range=[0, 1])
@@ -100,9 +98,9 @@ class ClassImbalance(SingleDatasetCheck):
         return CheckResult(vc_ser.to_dict(), display=display)
 
     def add_condition_class_ratio_less_than(self, class_imbalance_ratio_th: float = 0.1):
-        """
-        Add condition - requires the ratio for least frequent label to most frequent label
-        to be less than or equal to threshold.
+        """Condition - ratio between least to most frequent labels.
+
+        This ratio is compared to class_imbalance_ratio_th.
 
         Parameters
         ----------
