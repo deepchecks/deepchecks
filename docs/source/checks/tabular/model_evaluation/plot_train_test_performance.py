@@ -4,7 +4,7 @@
 
 Train Test Performance
 **********************
-This notebooks provides an overview for using and understanding train test performance check.
+This notebook provides an overview for using and understanding train test performance check.
 
 **Structure:**
 
@@ -21,7 +21,7 @@ This check helps you compare your model's performance between the train and test
 Scorers are a convention of sklearn to evaluate a model,
 it is a function which accepts (model, X, y_true) and returns a float result which is the score.
 A sklearn convention is that higher scores are better than lower scores. For additional details `see scorers
-documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`__.
+documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_.
 
 The default scorers that are used are F1, Percision, and Recall for Classification
 and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression.
