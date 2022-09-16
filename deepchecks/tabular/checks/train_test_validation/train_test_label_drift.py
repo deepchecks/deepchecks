@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Train Test label Drift check."""
-import warnings
+
 from typing import Dict
 
 from deepchecks.core import CheckResult, ConditionResult
@@ -71,8 +71,6 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    max_num_categories: int, default: None
-        Deprecated. Please use max_num_categories_for_drift and max_num_categories_for_display instead
     """
 
     def __init__(
@@ -84,19 +82,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
             ignore_na: bool = True,
-            max_num_categories: int = None,
             **kwargs
     ):
         super().__init__(**kwargs)
         self.margin_quantile_filter = margin_quantile_filter
-        if max_num_categories is not None:
-            warnings.warn(
-                'max_num_categories is deprecated. please use max_num_categories_for_drift and '
-                'max_num_categories_for_display instead',
-                DeprecationWarning
-            )
-            max_num_categories_for_drift = max_num_categories_for_drift or max_num_categories
-            max_num_categories_for_display = max_num_categories_for_display or max_num_categories
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
@@ -149,9 +138,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         return {'Label Drift Score': check_result.value['Drift score']}
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
-                                            max_allowed_numeric_score: float = 0.1,
-                                            max_allowed_psi_score: float = None,
-                                            max_allowed_earth_movers_score: float = None):
+                                            max_allowed_numeric_score: float = 0.1):
         """
         Add condition - require drift score to be less than the threshold.
 
@@ -165,32 +152,11 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             the max threshold for the categorical variable drift score
         max_allowed_numeric_score: float ,  default: 0.1
             the max threshold for the numeric variable drift score
-        max_allowed_psi_score: float, default None
-            Deprecated. Please use max_allowed_categorical_score instead
-        max_allowed_earth_movers_score: float, default None
-            Deprecated. Please use max_allowed_numeric_score instead
         Returns
         -------
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
-        if max_allowed_psi_score is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_allowed_psi_score is deprecated. please use '
-                f'max_allowed_categorical_score instead',
-                DeprecationWarning
-            )
-            if max_allowed_categorical_score is not None:
-                max_allowed_categorical_score = max_allowed_psi_score
-        if max_allowed_earth_movers_score is not None:
-            warnings.warn(
-                f'{self.__class__.__name__}: max_allowed_earth_movers_score is deprecated. please use '
-                f'max_allowed_numeric_score instead',
-                DeprecationWarning
-            )
-            if max_allowed_numeric_score is not None:
-                max_allowed_numeric_score = max_allowed_earth_movers_score
-
         def condition(result: Dict) -> ConditionResult:
             drift_score = result['Drift score']
             method = result['Method']

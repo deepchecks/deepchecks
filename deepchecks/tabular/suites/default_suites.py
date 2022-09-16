@@ -14,7 +14,6 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-import warnings
 from typing import Callable, Dict, List, Union
 
 from deepchecks.tabular import Suite
@@ -30,25 +29,9 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
                                        TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
 
-__all__ = ['single_dataset_integrity', 'train_test_leakage', 'train_test_validation',
-           'model_evaluation', 'full_suite']
+__all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'full_suite']
 
 from deepchecks.utils.typing import Hashable
-
-
-def single_dataset_integrity(**kwargs) -> Suite:
-    """
-    Create a suite that is meant to detect integrity issues within a single dataset (Deprecated).
-
-    .. deprecated:: 0.7.0
-            `single_dataset_integrity` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
-            `data_integrity` suite.
-    """
-    warnings.warn(
-        'the single_dataset_integrity suite is deprecated, use the data_integrity suite instead',
-        DeprecationWarning
-    )
-    return data_integrity(**kwargs)
 
 
 def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
@@ -143,20 +126,6 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
         FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold(),
         IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal()
     )
-
-
-def train_test_leakage(**kwargs) -> Suite:
-    """Create a suite for detecting data leakage between the training dataset and the test dataset (Deprecated).
-
-    .. deprecated:: 0.7.0
-        `train_test_leakage` is deprecated and will be removed in deepchecks 0.8 version, it is replaced by
-        `train_test_validation` suite.
-    """
-    warnings.warn(
-        'the train_test_leakage suite is deprecated, use the train_test_validation suite instead',
-        DeprecationWarning
-    )
-    return train_test_validation(**kwargs)
 
 
 def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
@@ -275,8 +244,6 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_tabular_performance_report`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.PerformanceReport`
            * - :ref:`plot_tabular_roc_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RocReport`
            * - :ref:`plot_tabular_confusion_matrix_report`

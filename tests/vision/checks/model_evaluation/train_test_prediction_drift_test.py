@@ -120,7 +120,7 @@ def test_with_drift_segmentation(segmentation_coco_train_visiondata, segmentatio
             {'Drift score': equal_to(0),
              'Method': equal_to('Cramer\'s V')}
         ), 'Number of Classes Per Image': has_entries(
-            {'Drift score': equal_to(0),
+            {'Drift score': close_to(0.1, 0.01),
              'Method': equal_to('Earth Mover\'s Distance')}
         ), 'Segment Area (in pixels)': has_entries(
             {'Drift score': close_to(0.03, 0.01),
@@ -219,7 +219,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     def prop(predictions):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
     alternative_measurements = [
-        {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
+        {'name': 'test', 'method': prop, 'output_type': 'numerical'}]
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', prediction_properties=alternative_measurements)
 
     # Act

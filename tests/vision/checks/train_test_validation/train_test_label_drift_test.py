@@ -55,6 +55,29 @@ def test_no_drift_object_detection(coco_train_visiondata, device):
     ))
 
 
+def test_no_drift_object_segmentation(segmentation_coco_train_visiondata, device):
+    # Arrange
+    check = TrainTestLabelDrift()
+
+    # Act
+    result = check.run(segmentation_coco_train_visiondata, segmentation_coco_train_visiondata, device=device)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Samples Per Class': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Cramer\'s V')}
+        ), 'Segment Area (in pixels)': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Earth Mover\'s Distance')}
+        ), 'Number of Classes Per Image': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Earth Mover\'s Distance')}
+        )
+        }
+    ))
+
+
 def test_reduce_output_no_drift_object_detection(coco_train_visiondata, device):
     # Arrange
     check = TrainTestLabelDrift(categorical_drift_method='PSI')
@@ -107,7 +130,8 @@ def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_tes
 
 def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
+                                min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
@@ -131,7 +155,8 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
 
 def test_with_drift_object_detection_without_display(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
+                                min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata,
@@ -243,7 +268,7 @@ def test_with_drift_object_detection_alternative_properties(coco_train_visiondat
         return [int(x[0][0]) if len(x) != 0 else 0 for x in labels]
 
     alternative_properties = [
-        {'name': 'test', 'method': prop, 'output_type': 'continuous'}]
+        {'name': 'test', 'method': prop, 'output_type': 'numerical'}]
     check = TrainTestLabelDrift(label_properties=alternative_properties)
 
     # Act

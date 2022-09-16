@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 from hamcrest import (all_of, any_of, assert_that, calling, contains_exactly, equal_to, has_entries, has_key,
-                      has_length, has_properties, instance_of, is_, raises)
+                      has_length, has_properties, instance_of, is_, raises, empty)
 from hamcrest.core.matcher import Matcher
 
 from deepchecks.core import CheckResult
@@ -61,6 +61,21 @@ def test_outliers_check_coco(coco_train_visiondata, device):
     }))
 
 
+def test_outliers_check_coco_segmentation(segmentation_coco_train_visiondata, device):
+    # Act
+    result = LabelPropertyOutliers().run(segmentation_coco_train_visiondata, device=device)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'Number of Classes Per Image': has_entries({
+            'indices': [8, 3],
+            'lower_limit': is_(2),
+            'upper_limit': is_(2)
+        }),
+        'Segment Area (in pixels)': instance_of(dict),
+    }))
+
+
 def test_outliers_check_coco_without_display(coco_train_visiondata, device):
     # Act
     result = LabelPropertyOutliers().run(coco_train_visiondata, device=device, with_display=False)
@@ -83,7 +98,7 @@ def test_property_outliers_check_mnist(mnist_dataset_train, device):
     properties = [{
         'name': 'test',
         'method': lambda labels: labels.tolist(),
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = LabelPropertyOutliers(label_properties=properties)
     # Act
@@ -127,7 +142,7 @@ def test_run_on_custom_task_with_custom_properties(coco_train_custom_task, devic
     properties = [{
         'name': 'test',
         'method': custom_property,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
 
     # Act - Assert check runs without exception
@@ -157,7 +172,7 @@ def test_string_property_exception(mnist_dataset_train, device):
     image_properties = [{
         'name': 'test',
         'method': string_property,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = LabelPropertyOutliers(label_properties=image_properties)
     # Act - Assert check raise exception
@@ -173,7 +188,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
     image_properties = [{
         'name': 'test',
         'method': too_many_property,
-        'output_type': 'discrete'
+        'output_type': 'categorical'
     }]
     check = LabelPropertyOutliers(label_properties=image_properties)
     # Act - Assert check raise exception

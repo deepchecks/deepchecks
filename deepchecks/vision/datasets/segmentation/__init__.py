@@ -8,4 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Contains unit tests for the vision package deprecation warnings."""
+"""Module for segmentation datasets and models."""
+from . import segmentation_coco
+
+__all__ = ["segmentation_coco"]

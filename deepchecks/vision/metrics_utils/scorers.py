@@ -26,7 +26,7 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)
-from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice
+from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
@@ -53,7 +53,7 @@ def get_default_object_detection_scorers() -> t.Dict[str, Metric]:
 
 def get_default_semantic_segmentation_scorers() -> t.Dict[str, Metric]:
     return {
-        'Dice': semantic_segmentation_dict['dice'](),
+        'Dice': semantic_segmentation_dict['dice_per_class']()
     }
 
 
@@ -93,7 +93,12 @@ detection_dict = {
 }
 
 semantic_segmentation_dict = {
-    'dice': MeanDice
+    'dice_per_class': MeanDice,
+    'dice_macro': lambda: MeanDice(average='macro'),
+    'dice_micro': lambda: MeanDice(average='micro'),
+    'iou_per_class': MeanIoU,
+    'iou_macro': lambda: MeanIoU(average='macro'),
+    'iou_micro': lambda: MeanIoU(average='micro')
 }
 
 
@@ -138,6 +143,8 @@ def get_scorers_dict(
                         scorer = DeepcheckScorer(metric_name)
                         needs_proba = isinstance(scorer, _ProbaScorer)
                         converted_met = CustomClassificationScorer(scorer.run_on_pred, needs_proba=needs_proba)
+                elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+                    converted_met = semantic_segmentation_dict[metric_name]()
                 else:
                     raise DeepchecksNotSupportedError(
                         f'Unsupported metric: {name} of type {type(metric).__name__} was given.')
