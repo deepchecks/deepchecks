@@ -24,7 +24,7 @@ the normal distribution, which may imply a certain cause of error deforming the 
 
 #%%
 # Imports
-# =======
+# ========
 
 from sklearn.datasets import load_diabetes
 from sklearn.ensemble import GradientBoostingRegressor
@@ -39,7 +39,7 @@ from deepchecks.tabular.checks import RegressionErrorDistribution
 
 #%%
 # Generate data & model
-# ----------------
+# ----------------------
 
 diabetes_df = load_diabetes(return_X_y=False, as_frame=True).frame
 train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
@@ -61,21 +61,21 @@ check.run(test, clf)
 
 #%%
 # Skewing the data
-# ----------------
+# ------------------
 
 test.data[test.label_name] = 150
 
 
 #%%
 # Run the check - abnormal distribution
-# =====================================
+# =======================================
 
 check = RegressionErrorDistribution()
 check.run(test, clf)
 
 #%%
 # Define a condition
-# ------------------
+# --------------------
 # Since we artificially skewed the target variable, the kurtosis would be bigger than
 # the previous check, which implies a certain cause of error.
 

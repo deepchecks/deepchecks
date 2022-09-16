@@ -3,7 +3,7 @@
 .. _plot_tabular_single_dataset_performance:
 
 Single Dataset Performance
-**********************
+*****************************
 This notebook provides an overview for using and understanding single dataset performance check.
 
 **Structure:**
@@ -15,7 +15,7 @@ This notebook provides an overview for using and understanding single dataset pe
 * `Using a custom scorer <#using-a-custom-scorer>`__
 
 What is the purpose of the check?
-=================================
+==================================
 This check is designed for evaluating a model's performance on a labeled dataset based on a scorer or multiple scorers.
 
 Scorers are a convention of sklearn to evaluate a model,
@@ -29,7 +29,7 @@ and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Re
 
 #%%
 # Generate data & model
-# =====================
+# ======================
 
 from deepchecks.tabular.datasets.classification.iris import load_data, load_fitted_model
 
@@ -38,7 +38,7 @@ model = load_fitted_model()
 
 #%%
 # Run the check
-# =============
+# ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
 # the full list of possible scorers can be seen at scorers.py.
@@ -51,7 +51,7 @@ result.show()
 
 #%%
 # Define a condition
-# ==================
+# ===================
 # We can define on our check a condition to validate that the different metric scores are above a certain threshold.
 # Using the ``class_mode`` argument we can define select a sub set of the classes to use for the condition.
 #
