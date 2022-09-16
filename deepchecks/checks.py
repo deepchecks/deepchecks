@@ -31,6 +31,7 @@ __all__ = [
     'StringMismatch',
     'MixedDataTypes',
     'IsSingleValue',
+    'ClassImbalance',
     'SpecialCharacters',
     'StringLengthOutOfBounds',
     'StringMismatchComparison',
