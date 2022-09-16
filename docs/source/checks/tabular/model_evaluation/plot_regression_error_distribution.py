@@ -77,7 +77,7 @@ check.run(test, clf)
 # Define a condition
 # ------------------
 # Since we artificially skewed the target variable, the kurtosis would be bigger than
-# the previous check, and imply for a certain cause of error.
+# the previous check, which implies a certain cause of error.
 
 check = RegressionErrorDistribution()
 check.add_condition_kurtosis_greater_than(0.1).run(test, clf)
