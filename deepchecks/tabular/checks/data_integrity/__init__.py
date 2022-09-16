@@ -16,6 +16,7 @@ from .feature_feature_correlation import FeatureFeatureCorrelation
 from .feature_label_correlation import FeatureLabelCorrelation
 from .identifier_label_correlation import IdentifierLabelCorrelation
 from .is_single_value import IsSingleValue
+from .class_imbalance import ClassImbalance
 from .mixed_data_types import MixedDataTypes
 from .mixed_nulls import MixedNulls
 from .outlier_sample_detection import OutlierSampleDetection
@@ -34,6 +35,7 @@ __all__ = [
     'StringLengthOutOfBounds',
     'DataDuplicates',
     'ConflictingLabels',
+    'ClassImbalance',
     'OutlierSampleDetection',
     'FeatureLabelCorrelation',
     'FeatureFeatureCorrelation',
