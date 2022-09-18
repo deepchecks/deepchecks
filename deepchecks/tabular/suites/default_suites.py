@@ -22,12 +22,13 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
                                        FeatureFeatureCorrelation, FeatureLabelCorrelation,
                                        FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
-                                       IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, NewLabelTrainTest,
-                                       OutlierSampleDetection, RegressionErrorDistribution, RegressionSystematicError,
-                                       RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
-                                       StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
-                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
-                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, MultivariateDrift)
+                                       IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
+                                       NewLabelTrainTest, OutlierSampleDetection, RegressionErrorDistribution,
+                                       RegressionSystematicError, RocReport, SimpleModelComparison, SpecialCharacters,
+                                       StringLengthOutOfBounds, StringMismatch, StringMismatchComparison,
+                                       TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPerformance,
+                                       TrainTestPredictionDrift, TrainTestSamplesMix, UnusedFeatures,
+                                       WeakSegmentsPerformance)
 
 __all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'full_suite']
 

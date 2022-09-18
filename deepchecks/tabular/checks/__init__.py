@@ -20,9 +20,9 @@ from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatri
                                TrainTestPerformance, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
-                                    IdentifierLabelCorrelation, IndexTrainTestLeakage, NewLabelTrainTest,
-                                    StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
-                                    TrainTestSamplesMix, MultivariateDrift, WholeDatasetDrift)
+                                    IdentifierLabelCorrelation, IndexTrainTestLeakage, MultivariateDrift,
+                                    NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift,
+                                    TrainTestLabelDrift, TrainTestSamplesMix, WholeDatasetDrift)
 
 __all__ = [
     # integrity checks

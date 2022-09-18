@@ -18,12 +18,12 @@ from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
 from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .index_leakage import IndexTrainTestLeakage
+from .multivariate_drift import MultivariateDrift
 from .new_label_train_test import NewLabelTrainTest
 from .string_mismatch_comparison import StringMismatchComparison
 from .train_test_feature_drift import TrainTestFeatureDrift
 from .train_test_label_drift import TrainTestLabelDrift
 from .train_test_samples_mix import TrainTestSamplesMix
-from .multivariate_drift import MultivariateDrift
 from .whole_dataset_drift import WholeDatasetDrift
 
 __all__ = [
