@@ -19,9 +19,7 @@ What is the ROC Report check?
 ==============================
 The ``ROCReport`` check calculates the ROC curve for each class.
 The ROC curve is a plot of TPR (true positive rate) with respect to FPR (false positive rate)
-at various thresholds.
-Thr ROC curve is one of many tools for checking model performance or compare multiple
-models.
+at various thresholds (ROC curve https://deepchecks.com/glossary/roc-receiver-operating-characteristic-curve__).
 """
 
 #%%
