@@ -15,6 +15,7 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
+from deepchecks_metrics.classification import jaccard_score
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
@@ -93,17 +94,35 @@ regression_scorers_lower_is_better_dict = {
 }
 
 regression_scorers_higher_is_better_dict = {
+    'neg_mse': make_scorer('neg_mean_squared_error'),
     'neg_rmse': get_scorer('neg_root_mean_squared_error'),
     'neg_mae': get_scorer('neg_mean_absolute_error'),
+    'r2': get_scorer('r2'),
+    'explained_variance': get_scorer('explained_variance_score'),
+    'max_error': get_scorer('max_error'),
+    'neg_mean_squared_log_error': get_scorer('neg_mean_squared_log_error'),
+    'neg_median_absolute_error': get_scorer('neg_median_absolute_error'),
+    'neg_mean_poisson_deviance': get_scorer('neg_mean_poisson_deviance'),
+    'neg_mean_gamma_deviance': get_scorer('neg_mean_gamma_deviance'),
+    'neg_mean_absolute_percentage_error': get_scorer('neg_mean_absolute_percentage_error'),
+    'd2_absolute_error_score': get_scorer('d2_absolute_error_score'),
+    'd2_pinball_score': get_scorer('d2_pinball_score'),
+    'd2_tweedie_score': get_scorer('d2_tweedie_score')
 }
 
 binary_scorers_dict = {
     'accuracy': get_scorer('accuracy'),
+    'balanced_accuracy': get_scorer('balanced_accuracy'),
+    'average_precision': get_scorer('average_precision'),
+    'neg_brier_score': get_scorer('neg_brier_score'),
     'precision': make_scorer(precision_score, zero_division=0),
     'recall': make_scorer(recall_score, zero_division=0),
     'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
     'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
+    'jaccard': make_scorer(jaccard_score, zero_division=0),
+    'roc_auc': get_scorer('roc_auc'),
+    'neg_log_loss': get_scorer('neg_log_loss')
 }
 
 multiclass_scorers_dict = {
@@ -133,6 +152,14 @@ multiclass_scorers_dict = {
     'tnr_macro': make_scorer(true_negative_rate_metric, averaging_method='macro'),
     'tnr_micro': make_scorer(true_negative_rate_metric, averaging_method='micro'),
     'tnr_weighted': make_scorer(true_negative_rate_metric, averaging_method='weighted'),
+    'roc_auc_ovr': get_scorer('roc_auc_ovr'),
+    'roc_auc_ovo': get_scorer('roc_auc_ovo'),
+    'roc_auc_ovr_weighted': get_scorer('roc_auc_ovr_weighted'),
+    'roc_auc_ovo_weighted': get_scorer('roc_auc_ovo_weighted'),
+    'jaccard_macro':  make_scorer(jaccard_score, average='macro', zero_division=0),
+    'jaccard_micro':  make_scorer(jaccard_score, average='micro', zero_division=0),
+    'jaccard_weighted':  make_scorer(jaccard_score, average='weighted', zero_division=0),
+    'jaccard_per_class':  make_scorer(jaccard_score, average=None, zero_division=0),
 }
 
 _str_to_scorer_dict = {**regression_scorers_higher_is_better_dict,
