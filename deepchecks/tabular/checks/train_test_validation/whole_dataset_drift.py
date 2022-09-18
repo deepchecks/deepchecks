@@ -17,8 +17,7 @@ from deepchecks.tabular.checks.train_test_validation import MultivariateDrift
 
 class WholeDatasetDrift(MultivariateDrift):
     """
-    Calculate drift between the entire train and test datasets
-    using a model trained to distinguish between them.
+    Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 
     .. deprecated:: 0.9
         The WholeDatasetDrift check is deprecated and will be removed in the 0.11 version. Please use the
