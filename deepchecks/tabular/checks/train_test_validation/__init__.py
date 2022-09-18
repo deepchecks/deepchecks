@@ -18,6 +18,7 @@ from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
 from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .index_leakage import IndexTrainTestLeakage
+from .multivariate_drift import MultivariateDrift
 from .new_label_train_test import NewLabelTrainTest
 from .string_mismatch_comparison import StringMismatchComparison
 from .train_test_feature_drift import TrainTestFeatureDrift
@@ -38,5 +39,6 @@ __all__ = [
     'TrainTestFeatureDrift',
     'TrainTestLabelDrift',
     'TrainTestSamplesMix',
-    'WholeDatasetDrift',
+    'MultivariateDrift',
+    'WholeDatasetDrift'
 ]
