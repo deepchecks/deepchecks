@@ -57,7 +57,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        dataset = context.get_data_by_kind(dataset_kind).train.sample(self.n_samples, random_state=self.random_state)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         model = context.model
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
