@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains all data integrity checks."""
+from .class_imbalance import ClassImbalance
 from .columns_info import ColumnsInfo
 from .conflicting_labels import ConflictingLabels
 from .data_duplicates import DataDuplicates
@@ -34,6 +35,7 @@ __all__ = [
     'StringLengthOutOfBounds',
     'DataDuplicates',
     'ConflictingLabels',
+    'ClassImbalance',
     'OutlierSampleDetection',
     'FeatureLabelCorrelation',
     'FeatureFeatureCorrelation',
