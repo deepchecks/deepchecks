@@ -8,7 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The New York City Airbnb 2019 Open Data is a dataset containing varius details about a listed unit, when the goal
+"""Module for loading the New York City Airbnb 2019 Open Dataset.
+
+The New York City Airbnb 2019 Open Data is a dataset containing varius details about a listed unit, when the goal
 is to predict the rental price of a unit.
 
 This dataset contains the details for units listed in NYC during 2019, was adapted from the following open kaggle
@@ -82,7 +84,6 @@ import typing as t
 
 import pandas as pd
 
-from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
@@ -140,7 +141,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return train, test
 
 
-def load_fitted_model():
+def load_fitted_model(pretrained=False):  # pylint: disable=unused-argument
     """Load and return a fitted regression model to predict the price in the Airbnb dataset.
 
     Returns
