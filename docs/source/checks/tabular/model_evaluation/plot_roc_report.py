@@ -6,6 +6,7 @@ ROC Report
 **********
 This notebook provides an overview for using and understanding the ROC Report check.
 
+
 **Structure:**
 
 * `What is the ROC Report check? <#what-is-the-roc-report-check>`__
@@ -17,12 +18,15 @@ This notebook provides an overview for using and understanding the ROC Report ch
 What is the ROC Report check?
 ==============================
 The ``ROCReport`` check calculates the ROC curve for each class.
-
+The ROC curve is a plot of TPR (true positive rate) with respect to FPR (false positive rate)
+at various thresholds.
+Thr ROC curve is one of many tools for checking model performance or compare multiple
+models.
 """
 
 #%%
 # Imports
-# =======
+# ========
 
 import warnings
 
@@ -42,7 +46,7 @@ warnings.formatwarning = custom_formatwarning
 
 #%%
 # Generate data & model
-# =====================
+# ======================
 
 iris = load_iris(as_frame=True)
 clf = LogisticRegression(penalty='none')
@@ -57,7 +61,7 @@ ds = Dataset(pd.concat([X_test, y_test], axis=1),
 
 #%%
 # Run the Check
-# ===============
+# ================
 
 check = RocReport()
 check.run(ds, clf)
@@ -65,7 +69,7 @@ check.run(ds, clf)
 
 #%%
 # Define a condition
-# ==================
+# ===================
 # A condition for minimum allowed AUC score per class can be defined.
 # Here, we define minimum AUC score to be 0.7.
 

@@ -3,7 +3,7 @@
 .. _plot_tabular_multi_model_performance_report:
 
 Multi Model Performance Report
-******************************
+********************************
 This notebook provides an overview for using and understanding the Multi Model Performance Report check.
 
 **Structure:**
@@ -14,19 +14,23 @@ This notebook provides an overview for using and understanding the Multi Model P
 
 
 What is the Multi Model Performance Report?
+<<<<<<< HEAD
+=============================================
+=======
 ===========================================
-The ``MultiModelPerformanceReport`` check produce a summary of performance scores for multiple models
+>>>>>>> f4b3669b28960b7b25a04699cd17b84983a0be0d
+The ``MultiModelPerformanceReport`` check produces a summary of performance scores for multiple models
 on test datasets. The default scorers that are used are F1, Precision and Recall for Classification
-and Negative Root Mean Square Error, Negative Mean Absolute Error and R2 for Regression.
+and Negative RMSE (Root Mean Square Error), Negative MAE (Mean Absolute Error) and R2 for Regression.
 """
 
 #%%
 # Multiclass check
-# ================
+# ==================
 
 #%%
 # Imports
-# --------
+# ---------
 
 from sklearn.datasets import load_iris
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
@@ -38,7 +42,7 @@ from deepchecks.tabular.checks import MultiModelPerformanceReport
 
 #%%
 # Generate data & model
-# --------------------
+# -----------------------
 iris = load_iris(as_frame=True)
 train, test = train_test_split(iris.frame, test_size=0.33, random_state=42)
 
@@ -53,12 +57,12 @@ clf3 = DecisionTreeClassifier().fit(features, label)
 
 #%%
 # Run the check
-# --------------
+# ----------------
 MultiModelPerformanceReport().run(train_ds, test_ds, [clf1, clf2, clf3])
 
 #%%
 # Regression check
-# ================
+# =================
 
 
 #%%
@@ -70,7 +74,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 #%%
 # Generate data & model
-# --------------------
+# -----------------------
 diabetes = load_diabetes(as_frame=True)
 train, test = train_test_split(diabetes.frame, test_size=0.33, random_state=42)
 
@@ -85,5 +89,5 @@ clf3 = DecisionTreeRegressor().fit(features, label)
 
 #%%
 # Run the check
-# --------------
+# ----------------
 MultiModelPerformanceReport().run(train_ds, test_ds, [clf1, clf2, clf3])

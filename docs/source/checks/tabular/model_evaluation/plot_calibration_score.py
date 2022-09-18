@@ -3,7 +3,7 @@
 .. _plot_tabular_calibration_score:
 
 Calibration Score
-*****************
+*******************
 This notebook provides an overview for using and understanding the Calibration Score check.
 
 **Structure:**
@@ -14,11 +14,16 @@ This notebook provides an overview for using and understanding the Calibration S
 
 
 What is the Calibration Score check?
-==================================================
+======================================
 The ``CalibrationScore`` check calculates the calibration curve with brier score for each class.
+Calibration refers to the relationship between the model probabilities for one label
+to the ground truth (the label). For instance, a probability of 0.7 for class A represents that there is
+70% chance the true label of this sample is actually class A.
+
 Calibration curves (also known as reliability diagrams) compare how well the
-probabilistic predictions of a binary classifier are calibrated. It plots the true
-frequency of the positive label against its predicted probability, for binned predictions.
+probabilistic predictions of the classifier are calibrated by plotting the true
+frequency of one label against its predicted probability.
+
 The Brier score metric may be used to assess how well a classifier is calibrated
 (`Brier score <https://en.wikipedia.org/wiki/Brier_score>`_).
 
@@ -49,29 +54,29 @@ warnings.formatwarning = custom_formatwarning
 
 #%%
 # Binary Classification
-# =====================
+# =======================
 
 #%%
 # Generate data & model
-# --------------------
+# -----------------------
 
 train_ds, test_ds = adult.load_data()
 model = adult.load_fitted_model()
 
 #%%
 # Run the check
-# --------------------
+# ----------------
 
 check = CalibrationScore()
 check.run(test_ds, model)
 
 #%%
 # Multi-class classification
-# ==========================
+# ============================
 
 
 # Generate data & model
-# --------------------
+# -----------------------
 iris = load_iris(as_frame=True)
 clf = LogisticRegression()
 frame = iris.frame
@@ -85,6 +90,6 @@ ds = Dataset(pd.concat([X_test, y_test], axis=1),
 
 #%%
 # Run the check
-# --------------------
+# ----------------
 check = CalibrationScore()
 check.run(ds, clf)

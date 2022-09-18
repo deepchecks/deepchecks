@@ -53,7 +53,7 @@ from deepchecks.tabular.datasets.classification import adult
 train_ds, test_ds = adult.load_data()
 model = adult.load_fitted_model()
 
-result = UnusedFeatures(feature_variance_threshold=1.5).run(train_ds, test_ds, model)
+result = UnusedFeatures(feature_variance_threshold=1.5).run(train_ds, model)
 result.show()
 
 #%%

@@ -3,7 +3,7 @@
 .. _plot_tabular_model_inference_time:
 
 Model Inference Time
-********************
+*********************
 This notebook provides an overview for using and understanding the Model Inference Time check.
 
 **Structure:**
@@ -15,8 +15,12 @@ This notebook provides an overview for using and understanding the Model Inferen
 
 
 What is the Model Inference Time check?
-=======================================
+========================================
 The ``ModelInferenceTime`` check measures the model's average inference time (in seconds) per sample.
+Inference time is an important metric for prediction models, especially in real-time applications and
+data streaming processes, where a fast runtime can affect the user's experience or the overall system
+load.
+
 """
 
 #%%
@@ -48,8 +52,8 @@ check.run(test_ds, clf)
 
 #%%
 # Define a condition
-# ==================
-# A condition for the average model inference time can also be passed as a parameter.
-# Here, we define the threshold to be 0.00001.
-check = ModelInferenceTime().add_condition_inference_time_less_than(0.00001)
+# ===================
+# A condition for the average inference time per sample can be defined.
+# Here, we define the threshold to be 0.00001 seconds.
+check = ModelInferenceTime().add_condition_inference_time_less_than(value=0.00001)
 check.run(test_ds, clf)
