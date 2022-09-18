@@ -41,6 +41,10 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
         maximum new categories to show in feature
     aggregation_method: str, default: 'max'
         {feature_aggregation_method_argument:2*indent}
+    n_samples : int , default: 10_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -50,6 +54,8 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
             max_features_to_show: int = 5,
             max_new_categories_to_show: int = 5,
             aggregation_method='max',
+            n_samples: int = 10_000_000,
+            random_state: int = 42,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -58,6 +64,8 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
         self.max_features_to_show = max_features_to_show
         self.max_new_categories_to_show = max_new_categories_to_show
         self.aggregation_method = aggregation_method
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -68,8 +76,8 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
             value is a dataframe that lists new categories for each cat feature with its count
             displays a dataframe that shows columns with new categories
         """
-        test_dataset = context.test
-        train_dataset = context.train
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         cat_features = train_dataset.cat_features
 
         test_df = select_from_dataframe(test_dataset.data, self.columns, self.ignore_columns)
