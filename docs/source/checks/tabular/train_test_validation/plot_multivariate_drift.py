@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_whole_dataset_drift:
+.. _plot_tabular_multivariate_drift:
 
-Whole Dataset Drift
+Multivariate Drift
 *******************
 
-This notebooks provides an overview for using and understanding the whole
-dataset drift check.
+This notebooks provides an overview for using and understanding the multivariate
+drift check.
 
 **Structure:**
 
@@ -25,7 +25,7 @@ over time.
 A multivariate drift is a drift that occurs in more than one feature at a time,
 and may even affect the relationships between those features, which are undetectable by
 univariate drift methods.
-The whole dataset drift check tries to detect multivariate drift between the two input datasets.
+The multivariate drift check tries to detect multivariate drift between the two input datasets.
 
 For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
@@ -71,9 +71,9 @@ train_ds.label_name
 #%%
 # Run the Check
 # =============
-from deepchecks.tabular.checks import WholeDatasetDrift
+from deepchecks.tabular.checks import MultivariateDrift
 
-check = WholeDatasetDrift()
+check = MultivariateDrift()
 check.run(train_dataset=train_ds, test_dataset=test_ds)
 
 #%%
@@ -100,7 +100,7 @@ test_drifted_ds = Dataset(test_drifted_df, label=label_name, cat_features=test_d
 
 #%%
 
-check = WholeDatasetDrift()
+check = MultivariateDrift()
 check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 
 #%%
@@ -111,11 +111,11 @@ check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 #
 # Define a Condition
 # ==================
-# Now, we define a condition that enforce the whole dataset drift score must be
+# Now, we define a condition that enforce the multivariate drift score must be
 # below 0.1. A condition is deepchecks' way to validate model and data quality,
 # and let you know if anything goes wrong.
 
-check = WholeDatasetDrift()
+check = MultivariateDrift()
 check.add_condition_overall_drift_value_less_than(0.1)
 check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 

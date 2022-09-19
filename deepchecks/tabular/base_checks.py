@@ -24,7 +24,6 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
-from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.typing import BasicModel
 
 __all__ = [
@@ -40,7 +39,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = Context
 
-    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @docstrings
     def run(
         self,
@@ -96,7 +94,6 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = Context
 
-    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @docstrings
     def run(
         self,
@@ -153,7 +150,6 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     context_type = Context
 
-    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @docstrings
     def run(
         self,

@@ -131,7 +131,7 @@ If the classifier can easily predict which sample is from which dataset, it woul
 The main advantage of this method is that it can also uncover covariate drift, meaning drift in the data that does not
 affect the distribution of each individual variable, but does affect the relationship between them.
 
-In deepchecks (in checks :doc:`Whole Dataset Drift</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>` and
+In deepchecks (in checks :doc:`Multivariate Drift</checks_gallery/tabular/train_test_validation/plot_multivariate_drift>` and
 :doc:`Image Dataset Drift</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`) we merge
 the train and the test sets, and assign label 0 to samples that come from the training set, and 1 to those who are
 from the test set. Then, we train a binary classifer of type
@@ -150,7 +150,7 @@ Tabular Data
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
 :doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>` which uses
-`univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Whole Dataset Drift check</checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`
+`univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Multivariate Drift check</checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
 For drift in your label's distribution, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`,
@@ -252,12 +252,12 @@ Tabular Checks
     check = TrainTestFeatureDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`WholeDatasetDrift </checks_gallery/tabular/train_test_validation/plot_whole_dataset_drift>`:
+:doc:`MultivariateDrift </checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`:
 
 .. code-block:: python
 
-    from deepchecks.tabular.checks import WholeDatasetDrift
-    check = WholeDatasetDrift()
+    from deepchecks.tabular.checks import MultivariateDrift
+    check = MultivariateDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
 :doc:`TrainTestLabelDrift </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`:
