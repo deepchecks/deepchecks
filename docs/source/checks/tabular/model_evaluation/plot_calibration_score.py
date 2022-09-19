@@ -59,7 +59,11 @@ warnings.formatwarning = custom_formatwarning
 #%%
 # Generate data & model
 # -----------------------
-
+# The dataset is the adult dataset which can be downloaded from the UCI machine
+# learning repository.
+#
+# Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml].
+# Irvine, CA: University of California, School of Information and Computer Science.
 train_ds, test_ds = adult.load_data()
 model = adult.load_fitted_model()
 

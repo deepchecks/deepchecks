@@ -14,11 +14,7 @@ This notebook provides an overview for using and understanding the Model Info ch
 
 
 What is the Model Info check?
-<<<<<<< HEAD
-===============================
-=======
-===========================
->>>>>>> f4b3669b28960b7b25a04699cd17b84983a0be0d
+================================
 The ``ModelInfo`` check produces a summary for the model parameters (number of estimators,
 learning rate, verbosity etc.).
 
