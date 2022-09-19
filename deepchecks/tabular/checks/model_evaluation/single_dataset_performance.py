@@ -54,7 +54,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []
-        classes = dataset.classes
+        classes = context.classes
         label = cast(pd.Series, dataset.label_col)
         if context.with_display:
             n_samples = label.groupby(label).count()

@@ -68,7 +68,7 @@ def test_dataset_no_shared_label(iris_labeled_dataset):
 def assert_classification_result(result, dataset: Dataset):
     for dataset_name in ['Test', 'Train']:
         dataset_df = result.loc[result['Dataset'] == dataset_name]
-        for class_name in dataset.classes:
+        for class_name in dataset.classes_in_label_col:
             class_df = dataset_df.loc[dataset_df['Class'] == class_name]
             for metric in MULTICLASS_SCORERS_NON_AVERAGE.keys():
                 metric_row = class_df.loc[class_df['Metric'] == metric]

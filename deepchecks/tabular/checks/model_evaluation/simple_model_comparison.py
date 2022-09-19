@@ -161,7 +161,8 @@ class SimpleModelComparison(TrainTestCheck):
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             n_samples = test_label.groupby(test_label).count()
-            classes = [clazz for clazz in test_dataset.classes if clazz in train_dataset.classes]
+            classes = [clazz for clazz in test_dataset.classes_in_label_col
+                       if clazz in train_dataset.classes_in_label_col]
 
             display_array = []
             # Dict in format { Scorer : Dict { Class : Dict { Origin/Simple : score } } }

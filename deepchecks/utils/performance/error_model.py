@@ -25,7 +25,7 @@ from sklearn.tree import DecisionTreeRegressor
 from deepchecks import tabular
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Dataset
-from deepchecks.utils.features import _calculate_feature_importance
+from deepchecks.tabular.utils.feature_importance import _calculate_feature_importance
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_number, format_percent
 

@@ -675,22 +675,13 @@ def test_train_test_split_changed(iris):
     assert_that(test_ds.n_samples, 10)
 
 
-def test_inferred_label_type_cat(diabetes_df):
-    # Arrange
-    label = diabetes_df['target'].rename('actual')
-    data = diabetes_df.drop('target', axis=1)
-    dataset = Dataset(data, label)
-    # Assert
-    assert_that(dataset.label_type.value, is_('regression'))
-
-
-def test_inferred_label_type_reg(iris):
+def test_inferred_label_type_multiclass(iris):
     # Arrange
     label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label)
+    dataset = Dataset(data, label, label_type='multiclass')
     # Assert
-    assert_that(dataset.label_type.value, is_('multiclass'))
+    assert_that(dataset.label_type.value, equal_to('multiclass'))
 
 
 def test_set_label_type(iris):
@@ -699,7 +690,7 @@ def test_set_label_type(iris):
     data = iris.drop('target', axis=1)
     dataset = Dataset(data, label, label_type='regression_label')
     # Assert
-    assert_that(dataset.label_type.value, is_('regression'))
+    assert_that(dataset.label_type.value, equal_to('regression'))
 
 
 def test_label_series_name_already_exists(iris):
@@ -710,8 +701,8 @@ def test_label_series_name_already_exists(iris):
 
     # Act & Assert
     assert_that(calling(Dataset).with_args(data, label=label),
-                raises(DeepchecksValueError, r'Data has column with name "sepal length \(cm\)", use pandas rename to '
-                                             r'change label name or remove the column from the dataframe'))
+                raises(DeepchecksValueError, r'Data has column with name "sepal length \(cm\)", change label column '
+                                             r'name or provide the column label name as str'))
 
 
 def test_label_series_without_name_default_name_exists(iris):
@@ -721,8 +712,8 @@ def test_label_series_without_name_default_name_exists(iris):
     # Act & Assert
     assert_that(iris.columns, has_item('target'))
     assert_that(calling(Dataset).with_args(iris, label=label),
-                raises(DeepchecksValueError, r'Can\'t set default label name "target" since it already exists in the '
-                                             r'dataframe\. use pandas name parameter to give the label a unique name'))
+                raises(DeepchecksValueError, 'Data has column with name "target", change label column name or '
+                                             'provide the column label name as str'))
 
 
 def test_label_is_numpy_array(iris):
@@ -783,7 +774,7 @@ def test_label_dataframe_with_multi_columns(iris):
 
     # Act & Assert
     assert_that(calling(Dataset).with_args(iris, label=label),
-                raises(DeepchecksValueError, 'Label must have a single column'))
+                raises(DeepchecksValueError, 'Provide label as a Series or a DataFrame with a single column.'))
 
 
 def test_label_numpy_multi_2d_array(iris):
@@ -1048,21 +1039,7 @@ def test_cat_features_warning(iris, caplog):
     # Test that warning is not raised when cat_features is not None
     Dataset(iris, cat_features=[])
     assert_that(caplog.records, has_length(1))
-    
-    
-def test_multiclass_label_as_integer_warning(caplog, n_samples=100, n_features=5):
-    # Test that warning is raised when the label type is integer
-    # and there are more than 5 unique values
-    x, *_ = make_classification(n_samples=n_samples, n_features=n_features)
-    df = pd.DataFrame(x, columns=[f'X{i}' for i in range(n_features)])
-    df['target'] = np.random.randint(0, 15, n_samples)
-    Dataset(df, label='target', cat_features=[])
-    assert_that(caplog.records, has_length(1))
-    assert_that(caplog.records[0].message), equal_to(
-        'Attributes such as "label_type" are not mandatory, but in a case of ordinal integers, '
-        'the task type can be inferred both as multiclass and regression, '
-        'so it\'s recommended to declare directly. '
-        'Auto inferring label type as multiclass.')
+
 
 def test_dataset_duplicate_column_names_validation(iris: pd.DataFrame):
     """
