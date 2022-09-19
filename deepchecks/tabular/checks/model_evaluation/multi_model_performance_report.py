@@ -33,11 +33,20 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
     alternative_scorers : Dict[str, Callable] , default: None
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None, **kwargs):
+    def __init__(self, alternative_scorers: Dict[str, Callable] = None,
+                 n_samples: int = 1_000_000,
+                 random_state: int = 42,
+                 **kwargs):
         super().__init__(**kwargs)
         self.alternative_scorers = alternative_scorers
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, multi_context: ModelComparisonContext):
         """Run check logic."""
@@ -49,7 +58,7 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
             results = []
 
             for context, model_name in zip(multi_context, multi_context.models.keys()):
-                test = context.test
+                test = context.test.sample(self.n_samples, random_state=self.random_state)
                 model = context.model
                 label = cast(pd.Series, test.label_col)
                 n_samples = label.groupby(label).count()

@@ -17,7 +17,25 @@ __all__ = ['DateTrainTestLeakageOverlap']
 
 
 class DateTrainTestLeakageOverlap(TrainTestCheck):
-    """Check test data that is dated earlier than the latest date in train."""
+    """Check test data that is dated earlier than the latest date in train.
+
+    Parameters
+    ----------
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
+    """
+
+    def __init__(
+        self,
+        n_samples: int = 1_000_000,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -33,8 +51,8 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
         DeepchecksValueError
             If one of the datasets is not a Dataset instance with an date
         """
-        train_dataset = context.train
-        test_dataset = context.test
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
         train_dataset.assert_datetime()
         train_date = train_dataset.datetime_col
