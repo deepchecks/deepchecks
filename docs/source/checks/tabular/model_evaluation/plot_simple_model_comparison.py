@@ -4,7 +4,7 @@
 
 Simple Model Comparison
 ***********************
-This notebooks provides an overview for using and understanding simple model comparison check.
+This notebook provides an overview for using and understanding simple model comparison check.
 
 **Structure:**
 
