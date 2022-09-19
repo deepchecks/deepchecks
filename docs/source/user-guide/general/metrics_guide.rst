@@ -166,7 +166,7 @@ ______________
      - F-1 - binary
      -
    * - 'f1_per_class'
-     - F-1  per class - no averaging
+     - F-1 per class - no averaging
      -
    * - 'f1_macro'
      - F-1 - macro averaging
@@ -174,6 +174,15 @@ ______________
    * - 'f1_micro'
      - F-1 - micro averaging
      -
+   * - 'f1_weighted'
+     - F-1 - macro, weighted by support
+     -
+   * - 'precision'
+     - precision
+     - suffixes apply as with 'f1'
+   * - 'recall' , 'sensitivity'
+     - recall (sensitivity)
+     - suffixes apply as with 'f1'
    * - 'fpr'
      - False Positive Rate - binary
      - suffixes apply as with 'f1'
@@ -183,13 +192,24 @@ ______________
    * - 'tnr', 'specificity'
      - True Negative Rate - binary
      - suffixes apply as with 'f1'
-   * - 'precision'
-     - precision
-     - suffixes apply as with 'f1'
-   * - 'recall' , 'sensitivity'
-     - recall (sensitivity)
-     - suffixes apply as with 'f1'
-
+   * - 'roc_auc'
+     - AUC - binary
+     -
+   * - 'roc_auc_per_class'
+     - AUC per class - no averaging
+     -
+   * - 'roc_auc_ovr'
+     - AUC - One-vs-rest
+     -
+   * - 'roc_auc_ovo'
+     - AUC - One-vs-One
+     -
+   * - 'roc_auc_ovr_weighted'
+     - AUC - One-vs-rest, weighted by support
+     -
+   * - 'roc_auc_ovo_weighted'
+     - AUC - One-vs-One, weighted by support
+     -
 
 Object Detection
 ________________
