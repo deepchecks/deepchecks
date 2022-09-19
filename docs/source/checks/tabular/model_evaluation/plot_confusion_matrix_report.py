@@ -4,11 +4,27 @@
 
 Confusion Matrix Report
 ***********************
+This notebook provides an overview for using and understanding the Confusion Matrix Report check.
+
+
+**Structure:**
+
+* `What is the Confusion Matrix Report? <#what-is-the-confusion-matrix-report>`__
+* `Generate data & model <#generate-data-model>`__
+* `Run the check <#run-the-check>`__
+
+
+What is the Confusion Matrix Report?
+======================================
+The ``ConfusionMatrixReport`` produces a confusion matrix visualization which summarizes the
+performance of the model. The confusion matrix contains the TP (true positive), FP (false positive),
+TN (true negative) and FN (false negative), from which we can derive the relevant metrics,
+such as accuracy, precision, recall etc. (`confusion matrix <https://en.wikipedia.org/wiki/Confusion_matrix>`__).
 """
 
 #%%
 # Imports
-# =======
+# =========
 
 import pandas as pd
 from sklearn.datasets import load_iris
@@ -19,8 +35,8 @@ from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import ConfusionMatrixReport
 
 #%%
-# Generating data
-# ===============
+# Generate data & model
+# =======================
 
 iris = load_iris(as_frame=True)
 clf = AdaBoostClassifier()
@@ -34,11 +50,8 @@ ds = Dataset(pd.concat([X_test, y_test], axis=1),
             label='target')
 
 #%%
-# Running ``confusion_matrix_report`` check
-# =========================================
+# Run the check
+# ===============
 
 check = ConfusionMatrixReport()
-
-#%%
-
 check.run(ds, clf)
