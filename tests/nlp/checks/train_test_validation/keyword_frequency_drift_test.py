@@ -34,7 +34,6 @@ def test_top_freqs(movie_reviews_data_positive, movie_reviews_data_negative):
     assert_that(result.value['drift_score'], close_to(0.438, 0.001))
 
 
-
 def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_negative):
     result = KeywordFrequencyDrift()\
         .add_condition_drift_score_less_than(0.3)\
