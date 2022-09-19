@@ -64,6 +64,8 @@ class SimpleModelComparison(TrainTestCheck):
         the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
     max_depth : int , default: 3
         the max depth of the tree (used only if simple model type is tree).
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
     random_state : int , default: 42
         the random state (used only if simple model type is tree or random).
 
@@ -108,6 +110,7 @@ class SimpleModelComparison(TrainTestCheck):
         alternative_scorers: Dict[str, Callable] = None,
         max_gain: float = 50,
         max_depth: int = 3,
+        n_samples: int = 1_000_000,
         random_state: int = 42,
         **kwargs
     ):
@@ -115,6 +118,7 @@ class SimpleModelComparison(TrainTestCheck):
         self.alternative_scorers = alternative_scorers
         self.max_gain = max_gain
         self.max_depth = max_depth
+        self.n_samples = n_samples
         self.random_state = random_state
         self.strategy = strategy
 
@@ -139,8 +143,8 @@ class SimpleModelComparison(TrainTestCheck):
         DeepchecksValueError
             If the object is not a Dataset instance.
         """
-        train_dataset = context.train
-        test_dataset = context.test
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
         test_label = test_dataset.label_col
         task_type = context.task_type
         model = context.model
