@@ -29,6 +29,9 @@ from deepchecks.vision.utils.image_functions import prepare_thumbnail
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
 
+if t.TYPE_CHECKING:
+    from deepchecks.core.checks import CheckConfig
+
 __all__ = ['AbstractPropertyOutliers']
 
 THUMBNAIL_SIZE = (200, 200)
@@ -82,7 +85,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self._were_properties_given = properties_list is not None
         self._properties_results = None
 
-    def config(self, include_version: bool = True):
+    def config(self, include_version: bool = True) -> 'CheckConfig':
+        """Return check instance configuration dictionary."""
         if self._were_properties_given is True:
             raise ValueError("properties cannot be serialized")
         return self._prepare_config(
