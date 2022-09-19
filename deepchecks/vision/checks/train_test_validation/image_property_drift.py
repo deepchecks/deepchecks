@@ -106,9 +106,28 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         self.min_samples = min_samples
         self.aggregation_method = aggregation_method
 
+        self._were_properties_given = image_properties is not None
+
         self._train_properties = None
         self._test_properties = None
         self._class_to_string = None
+    
+    def config(self, include_version: bool = True):
+        if self._were_properties_given is True:
+            raise ValueError("image properties cannot be serialized")
+        return self._prepare_config(
+            include_version=include_version,
+            params={
+                'margin_quantile_filter': self.margin_quantile_filter,
+                'max_num_categories_for_drift': self.max_num_categories_for_drift,
+                'min_category_size_ratio': self.min_category_size_ratio,
+                'max_num_categories_for_display': self.max_num_categories_for_display,
+                'show_categories_by': self.show_categories_by,
+                'classes_to_display': self.classes_to_display,
+                'min_samples': self.min_samples,
+                'aggregation_method': self.aggregation_method,
+            }
+        )
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
