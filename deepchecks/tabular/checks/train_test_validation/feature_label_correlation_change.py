@@ -52,6 +52,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         dictionary of additional parameters for the ppscore predictor function
     n_top_features : int , default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
+    n_samples : int , default: 100_000
+        number of samples to use for this check.
     random_state : int , default: None
         Random state for the ppscore.predictors function
     min_pps_to_show: float, default 0.05
@@ -60,12 +62,14 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
 
     def __init__(self, ppscore_params=None,
                  n_top_features: int = 5,
+                 n_samples: int = 100_000,
                  random_state: int = None,
                  min_pps_to_show: float = 0.05,
                  **kwargs):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
         self.n_top_features = n_top_features
+        self.n_samples = n_samples
         self.random_state = random_state
         self.min_pps_to_show = min_pps_to_show
 
@@ -83,8 +87,8 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        train_dataset = context.train
-        test_dataset = context.test
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
         train_dataset.assert_features()
         relevant_columns = train_dataset.features + [train_dataset.label_name]

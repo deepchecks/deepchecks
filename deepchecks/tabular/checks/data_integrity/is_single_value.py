@@ -35,6 +35,10 @@ class IsSingleValue(SingleDatasetCheck):
         on columns variable.
     ignore_nan : bool, default True
         Whether to ignore NaN values in a column when counting the number of unique values.
+    n_samples : int , default: 10_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -42,12 +46,16 @@ class IsSingleValue(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         ignore_nan: bool = True,
+        n_samples: int = 10_000_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.ignore_nan = ignore_nan
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -59,7 +67,7 @@ class IsSingleValue(SingleDatasetCheck):
             display is a series with columns that have only one unique
         """
         # Validate parameters
-        df = context.get_data_by_kind(dataset_kind).data
+        df = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state).data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         num_unique_per_col = df.nunique(dropna=self.ignore_nan)
