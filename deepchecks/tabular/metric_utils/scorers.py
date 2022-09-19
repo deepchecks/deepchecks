@@ -15,15 +15,15 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
-from deepchecks_metrics.classification import jaccard_score
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
 try:
-    from deepchecks_metrics import f1_score, precision_score, recall_score  # noqa: F401
+    from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
 except ImportError:
-    from sklearn.metrics import f1_score, recall_score, precision_score  # noqa: F401  pylint: disable=ungrouped-imports
+    from sklearn.metrics import \
+        f1_score, recall_score, precision_score, jaccard_score  # noqa: F401  pylint: disable=ungrouped-imports
 
 from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
@@ -98,16 +98,12 @@ regression_scorers_higher_is_better_dict = {
     'neg_rmse': get_scorer('neg_root_mean_squared_error'),
     'neg_mae': get_scorer('neg_mean_absolute_error'),
     'r2': get_scorer('r2'),
-    'explained_variance': get_scorer('explained_variance_score'),
+    'explained_variance': get_scorer('explained_variance'),
     'max_error': get_scorer('max_error'),
     'neg_mean_squared_log_error': get_scorer('neg_mean_squared_log_error'),
     'neg_median_absolute_error': get_scorer('neg_median_absolute_error'),
     'neg_mean_poisson_deviance': get_scorer('neg_mean_poisson_deviance'),
-    'neg_mean_gamma_deviance': get_scorer('neg_mean_gamma_deviance'),
-    'neg_mean_absolute_percentage_error': get_scorer('neg_mean_absolute_percentage_error'),
-    'd2_absolute_error_score': get_scorer('d2_absolute_error_score'),
-    'd2_pinball_score': get_scorer('d2_pinball_score'),
-    'd2_tweedie_score': get_scorer('d2_tweedie_score')
+    'neg_mean_gamma_deviance': get_scorer('neg_mean_gamma_deviance')
 }
 
 binary_scorers_dict = {
