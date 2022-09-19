@@ -12,8 +12,6 @@
 import timeit
 import typing as t
 
-import numpy as np
-
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
@@ -31,14 +29,16 @@ class ModelInferenceTime(SingleDatasetCheck):
 
     Parameters
     ----------
-    n_samples : int , default: 1000
-        number of samples to use for inference, but if actual
-        dataset is smaller then all samples will be used
+    n_samples : int , default: 1_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
-    def __init__(self, n_samples: int = 1000, **kwargs):
+    def __init__(self, n_samples: int = 1_000, random_state: int = 42, **kwargs):
         super().__init__(**kwargs)
         self.n_samples = n_samples
+        self.random_state = random_state
         if n_samples == 0 or n_samples < 0:
             raise DeepchecksValueError('n_samples cannot be le than 0!')
 
@@ -63,7 +63,7 @@ class ModelInferenceTime(SingleDatasetCheck):
         prediction_method = model.predict  # type: ignore
 
         n_samples = len(df) if len(df) < self.n_samples else self.n_samples
-        df = df.sample(n=n_samples, random_state=np.random.randint(n_samples))
+        df = df.sample(n=n_samples, random_state=self.random_state)
 
         result = timeit.timeit(
             'predict(*args)',
