@@ -30,7 +30,7 @@ from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
 
 if t.TYPE_CHECKING:
-    from deepchecks.core.checks import CheckConfig
+    from deepchecks.core.checks import CheckConfig  # pylint: disable=unused-import
 
 __all__ = ['AbstractPropertyOutliers']
 
@@ -88,12 +88,12 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
     def config(self, include_version: bool = True) -> 'CheckConfig':
         """Return check instance configuration dictionary."""
         if self._were_properties_given is True:
-            raise ValueError("properties cannot be serialized")
+            raise ValueError('properties cannot be serialized')
         return self._prepare_config(
             params={
-                "iqr_percentiles": self.iqr_percentiles,
-                "iqr_scale": self.iqr_scale,
-                "n_show_top": self.n_show_top
+                'iqr_percentiles': self.iqr_percentiles,
+                'iqr_scale': self.iqr_scale,
+                'n_show_top': self.n_show_top
             },
             include_version=include_version
         )

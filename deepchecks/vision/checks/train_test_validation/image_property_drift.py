@@ -27,7 +27,7 @@ from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 if t.TYPE_CHECKING:
-    from deepchecks.core.checks import CheckConfig
+    from deepchecks.core.checks import CheckConfig  # pylint: disable=unused-import
 
 __all__ = ['ImagePropertyDrift']
 
@@ -118,7 +118,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
     def config(self, include_version: bool = True) -> 'CheckConfig':
         """Return check instance configuration dictionary."""
         if self._were_properties_given is True:
-            raise ValueError("image properties cannot be serialized")
+            raise ValueError('image properties cannot be serialized')
         return self._prepare_config(
             include_version=include_version,
             params={
