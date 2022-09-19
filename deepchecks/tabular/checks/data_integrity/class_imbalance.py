@@ -16,8 +16,8 @@ import plotly.express as px
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.typing import Hashable
 from deepchecks.utils.strings import format_number
+from deepchecks.utils.typing import Hashable
 
 __all__ = ['ClassImbalance']
 
