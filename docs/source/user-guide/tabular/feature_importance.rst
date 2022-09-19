@@ -94,5 +94,5 @@ Before running the permutation feature importance, deepchecks predicts the calcu
 is bigger than ``feature_importance_timeout``, the process will be skipped.
 Configuring this parameter to 0 will ensure the calculation is always skipped.
 
->>> check = WholeDatasetDrift()
+>>> check = MultivariateDrift()
 >>> check.run(ds_train, ds_test, model, feature_importance_timeout=0)

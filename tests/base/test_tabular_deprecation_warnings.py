@@ -13,9 +13,15 @@
 import pytest
 
 from deepchecks.tabular.checks import SegmentPerformance
+from deepchecks.tabular.checks import WholeDatasetDrift
 
 
 def test_deprecation_segment_performance_warning():
     with pytest.warns(DeprecationWarning, match='The SegmentPerformance check is deprecated and will be removed in the '
                                                 '0.11 version. Please use the WeakSegmentsPerformance check instead.'):
         _ = SegmentPerformance()
+
+def test_deprecation_whole_dataset_drift_warning():
+    with pytest.warns(DeprecationWarning, match='The WholeDatasetDrift check is deprecated and will be removed in the '
+                                                '0.11 version. Please use the MultivariateDrift check instead.'):
+        _ = WholeDatasetDrift()
