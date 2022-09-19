@@ -31,7 +31,6 @@ This notebook provides an overview for using and understanding the Class Imbalan
 # use regularization and adjust the label weight.
 
 
-
 # %%
 # Imports
 # =========
