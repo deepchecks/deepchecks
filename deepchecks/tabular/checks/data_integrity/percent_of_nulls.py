@@ -45,6 +45,10 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         maximum features with to show, showing top features based on percent of nulls.
     aggregation_method: str, default: 'max'
         {feature_aggregation_method_argument:2*indent}
+    n_samples : int , default: 100_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -53,6 +57,8 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
             ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
             max_features_to_show: int = 5,
             aggregation_method='max',
+            n_samples: int = 100_000,
+            random_state: int = 42,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -60,10 +66,12 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         self.ignore_columns = ignore_columns
         self.max_features_to_show = max_features_to_show
         self.aggregation_method = aggregation_method
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Run check logic."""
-        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=False)
         data = dataset.features_columns
 
