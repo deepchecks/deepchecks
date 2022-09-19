@@ -23,7 +23,6 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
-from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
@@ -156,7 +155,6 @@ class Context:
     {additional_context_params:indent}
     """
 
-    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     def __init__(
         self,
         train: t.Union[Dataset, pd.DataFrame, None] = None,

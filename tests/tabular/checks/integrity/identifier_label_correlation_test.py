@@ -141,7 +141,7 @@ def test_condition_pps_pass():
 def test_condition_pps_fail():
     df, expected = generate_dataframe_and_expected()
 
-    check = IdentifierLabelCorrelation().add_condition_pps_less_or_equal(0.2)
+    check = IdentifierLabelCorrelation(n_samples=None).add_condition_pps_less_or_equal(0.2)
 
     # Act
     result = check.conditions_decision(check.run(Dataset(df, label='label', datetime_name='x2', index_name='x3',
