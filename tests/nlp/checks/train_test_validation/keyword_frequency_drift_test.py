@@ -18,20 +18,20 @@ from tests.base.utils import equal_condition_result
 def test_with_defaults_no_drift(movie_reviews_data):
     train_data, test_data = movie_reviews_data
     result = KeywordFrequencyDrift().run(train_data, test_data)
-    assert_that(result.value['drift_score'], close_to(0.301, 0.05))
+    assert_that(result.value['drift_score'], close_to(0.326, 0.001))
 
 
 def test_with_keywords(movie_reviews_data_positive, movie_reviews_data_negative):
     keywords_list = ['good', 'bad', 'cartoon', 'recommend']
     result = KeywordFrequencyDrift(top_n_method=keywords_list).run(movie_reviews_data_positive, movie_reviews_data_negative)
-    assert_that(result.value['drift_score'], close_to(0.399, 0.05))
+    assert_that(result.value['drift_score'], close_to(0.438, 0.001))
     assert_that(result.display[1].data[0].x.tolist(), contains_exactly('bad', 'cartoon', 'good', 'recommend'))
 
 
 def test_top_freqs(movie_reviews_data_positive, movie_reviews_data_negative):
     result = KeywordFrequencyDrift(top_n_method='top_freq')\
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
-    assert_that(result.value['drift_score'], close_to(0.399, 0.05))
+    assert_that(result.value['drift_score'], close_to(0.438, 0.001))
 
 
 def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_negative):
@@ -41,11 +41,11 @@ def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_n
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
-        details='The drift score 0.43 is not less than the threshold 0.3',
+        details='The drift score 0.44 is not less than the threshold 0.3',
         name='Drift Score is Less Than 0.3'))
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=True,
-        details='The drift score 0.43 is less than the threshold 0.8',
+        details='The drift score 0.44 is less than the threshold 0.8',
         name='Drift Score is Less Than 0.8'))
 
 
@@ -55,7 +55,7 @@ def test_top_n_diff_condition(movie_reviews_data_positive, movie_reviews_data_ne
         .add_condition_top_n_differences_less_than(1.1)\
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
 
-    expected_keywords = ['rap', 'regret', 'sorry', 'cusack', 'hackm']
+    expected_keywords = ['hyp', 'regret', 'sorry', 'cusack', 'hackm']
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         details=f'Failed for the keywords: {expected_keywords}',

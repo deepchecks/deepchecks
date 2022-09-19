@@ -17,6 +17,7 @@ import numpy as np
 import sklearn
 from nltk import download as nltk_download
 from nltk import word_tokenize
+from nltk.corpus import stopwords
 from nltk.stem.lancaster import LancasterStemmer
 from sklearn.feature_extraction.text import TfidfVectorizer
 
@@ -73,6 +74,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         else:
             raise DeepchecksValueError(f'drift_method must be one of: PSI, cramer_v, found {drift_method}')
         nltk_download('punkt', quiet=True)
+        self.stopword_list = stopwords.words('english')
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -84,7 +86,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         all_data = tokenized_train + tokenized_test
 
         vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', tokenizer=_identity_tokenizer, min_df=2,
-                                     preprocessor=_identity_tokenizer, binary=True)
+                                     preprocessor=_identity_tokenizer, binary=True, stop_words=self.stopword_list)
         vectorizer.fit(all_data)
         train_freqs = vectorizer.transform(tokenized_train)
         max_train_freqs = np.array(train_freqs.max(axis=0).todense()).reshape(-1)
