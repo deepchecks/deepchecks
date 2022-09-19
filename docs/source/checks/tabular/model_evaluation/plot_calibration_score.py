@@ -25,7 +25,7 @@ probabilistic predictions of the classifier are calibrated by plotting the true
 frequency of one label against its predicted probability.
 
 The Brier score metric may be used to assess how well a classifier is calibrated
-(`Brier score <https://en.wikipedia.org/wiki/Brier_score>`_).
+(`Brier score <https://en.wikipedia.org/wiki/Brier_score>`__).
 
 """
 
@@ -56,7 +56,7 @@ warnings.formatwarning = custom_formatwarning
 # Binary Classification
 # =======================
 
-#%%
+
 # Generate data & model
 # -----------------------
 # The dataset is the adult dataset which can be downloaded from the UCI machine
