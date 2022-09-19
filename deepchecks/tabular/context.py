@@ -26,8 +26,6 @@ from deepchecks.tabular.utils.task_inference import get_possible_classes
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
-from deepchecks.utils.decorators import deprecate_kwarg
-from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.typing import BasicModel
@@ -160,18 +158,18 @@ class Context:
     """
 
     def __init__(
-        self,
-        train: t.Union[Dataset, pd.DataFrame, None] = None,
-        test: t.Union[Dataset, pd.DataFrame, None] = None,
-        model: t.Optional[BasicModel] = None,
-        feature_importance: t.Optional[pd.Series] = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = 120,
-        with_display: bool = True,
-        y_pred_train: t.Optional[np.ndarray] = None,
-        y_pred_test: t.Optional[np.ndarray] = None,
-        y_proba_train: t.Optional[np.ndarray] = None,
-        y_proba_test: t.Optional[np.ndarray] = None,
+            self,
+            train: t.Union[Dataset, pd.DataFrame, None] = None,
+            test: t.Union[Dataset, pd.DataFrame, None] = None,
+            model: t.Optional[BasicModel] = None,
+            feature_importance: t.Optional[pd.Series] = None,
+            feature_importance_force_permutation: bool = False,
+            feature_importance_timeout: int = 120,
+            with_display: bool = True,
+            y_pred_train: t.Optional[np.ndarray] = None,
+            y_pred_test: t.Optional[np.ndarray] = None,
+            y_proba_train: t.Optional[np.ndarray] = None,
+            y_proba_test: t.Optional[np.ndarray] = None,
     ):
         # Validations
         if train is None and test is None and model is None:
@@ -206,7 +204,7 @@ class Context:
                                          'initialize it as train')
         self._calculated_importance = feature_importance is not None or model is None
         if model is None and \
-           not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
+                not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train)
