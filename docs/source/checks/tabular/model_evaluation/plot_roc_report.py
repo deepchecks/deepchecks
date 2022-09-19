@@ -4,11 +4,27 @@
 
 ROC Report
 **********
+This notebook provides an overview for using and understanding the ROC Report check.
+
+
+**Structure:**
+
+* `What is the ROC Report check? <#what-is-the-roc-report-check>`__
+* `Generate data & model <#generate-data-model>`__
+* `Run the check <#run-the-check>`__
+* `Define a condition <#define-a-condition>`__
+
+
+What is the ROC Report check?
+==============================
+The ``ROCReport`` check calculates the ROC curve for each class.
+The ROC curve is a plot of TPR (true positive rate) with respect to FPR (false positive rate)
+at various thresholds (`ROC curve <https://deepchecks.com/glossary/roc-receiver-operating-characteristic-curve>`__).
 """
 
 #%%
 # Imports
-# =======
+# ========
 
 import warnings
 
@@ -27,8 +43,8 @@ def custom_formatwarning(msg, *args, **kwargs):
 warnings.formatwarning = custom_formatwarning
 
 #%%
-# Generating data
-# ===============
+# Generate data & model
+# ======================
 
 iris = load_iris(as_frame=True)
 clf = LogisticRegression(penalty='none')
@@ -42,11 +58,18 @@ ds = Dataset(pd.concat([X_test, y_test], axis=1),
             label='target')
 
 #%%
-# Running ``roc_report`` Check
-# ============================
+# Run the Check
+# ================
 
 check = RocReport()
+check.run(ds, clf)
+
 
 #%%
+# Define a condition
+# ===================
+# A condition for minimum allowed AUC score per class can be defined.
+# Here, we define minimum AUC score to be 0.7.
 
-check.run(ds, clf)
+check = RocReport()
+check.add_condition_auc_greater_than(0.7).run(ds, clf)

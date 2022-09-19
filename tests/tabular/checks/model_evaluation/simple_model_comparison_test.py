@@ -221,7 +221,7 @@ def test_condition_pass_for_new_test_classes(kiss_dataset_and_model):
 def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = diabetes_split_dataset_and_model
-    check = SimpleModelComparison(strategy='stratified').add_condition_gain_greater_than()
+    check = SimpleModelComparison(strategy='stratified', n_samples=None).add_condition_gain_greater_than()
 
     # Act
     check_result = check.run(train_ds, test_ds, clf)

@@ -28,10 +28,6 @@ y_proba_train: Optional[np.ndarray] , default: None
     Array of the model prediction probabilities over the train dataset.
 y_proba_test: Optional[np.ndarray] , default: None
     Array of the model prediction probabilities over the test dataset.
-features_importance: Optional[pd.Series] , default: None
-    pass manual features importance
-    .. deprecated:: 0.8.1
-        Use 'feature_importance' instead.
 """.strip('\n')
 
 _shared_docstrings['feature_aggregation_method_argument'] = """

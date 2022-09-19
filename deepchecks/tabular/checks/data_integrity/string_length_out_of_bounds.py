@@ -60,6 +60,10 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         Maximum length of outlier to show in results. If an outlier is longer it is trimmed and added '...'
     samples_per_range_to_show : int , default: 3
         Number of outlier samples to show in results per outlier range found.
+    n_samples : int , default: 10_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -76,6 +80,8 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         n_top_columns: int = 10,
         outlier_length_to_show: int = 50,
         samples_per_range_to_show: int = 3,
+        n_samples: int = 10_000_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -91,10 +97,12 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         self.min_unique_values = min_unique_values
         self.outlier_length_to_show = outlier_length_to_show
         self.samples_per_range_to_show = samples_per_range_to_show
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         display_format = []

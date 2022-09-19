@@ -46,6 +46,10 @@ class MixedNulls(SingleDatasetCheck):
         Columns to ignore, if none given checks based on columns variable
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
+    n_samples : int , default: 10_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -55,6 +59,8 @@ class MixedNulls(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
+        n_samples: int = 10_000_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -63,6 +69,8 @@ class MixedNulls(SingleDatasetCheck):
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -75,7 +83,7 @@ class MixedNulls(SingleDatasetCheck):
             display is DataFrame with columns ('Column Name', 'Value', 'Count', 'Percentage') for any column that
             has more than 1 null values.
         """
-        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         df = dataset.data
 
         df = select_from_dataframe(df, self.columns, self.ignore_columns)

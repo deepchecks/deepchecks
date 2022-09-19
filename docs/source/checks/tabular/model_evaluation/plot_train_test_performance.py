@@ -3,8 +3,8 @@
 .. _plot_tabular_train_test_performance:
 
 Train Test Performance
-**********************
-This notebooks provides an overview for using and understanding train test performance check.
+***********************
+This notebook provides an overview for using and understanding train test performance check.
 
 **Structure:**
 
@@ -15,7 +15,7 @@ This notebooks provides an overview for using and understanding train test perfo
 * `Using a custom scorer <#using-a-custom-scorer>`__
 
 What is the purpose of the check?
-=================================
+==================================
 This check helps you compare your model's performance between the train and test datasets based on multiple scorers.
 
 Scorers are a convention of sklearn to evaluate a model,
@@ -23,13 +23,13 @@ it is a function which accepts (model, X, y_true) and returns a float result whi
 A sklearn convention is that higher scores are better than lower scores. For additional details `see scorers
 documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`__.
 
-The default scorers that are used are F1, Percision, and Recall for Classification
+The default scorers that are used are F1, Precision, and Recall for Classification
 and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression.
 """
 
 #%%
 # Generate data & model
-# =====================
+# ======================
 
 from deepchecks.tabular.datasets.classification.iris import load_data, load_fitted_model
 
@@ -38,7 +38,7 @@ model = load_fitted_model()
 
 #%%
 # Run the check
-# =============
+# ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
 # the full list of possible scorers can be seen at scorers.py.
@@ -51,7 +51,7 @@ result.show()
 
 #%%
 # Define a condition
-# ==================
+# ===================
 # We can define on our check a condition that will validate that our model doesn't degrade
 # on new data.
 #
@@ -66,7 +66,7 @@ result.show(show_additional_outputs=False)
 
 #%%
 # Using a custom scorer
-# =========================
+# =======================
 # In addition to the built-in scorers, we can define our own scorer based on sklearn api
 # and run it using the check alongside other scorers:
 
