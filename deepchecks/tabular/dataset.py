@@ -11,6 +11,7 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
+import warnings
 from collections import Counter
 
 import numpy as np
@@ -91,8 +92,8 @@ class Dataset:
         Used to determine the task type. If None, inferred based on label column and model.
         Possible values are: multiclass, binary and regression.
     label_classes: t.List, default: None
-        Relevant only for classification tasks. The possible label classes, for binary classification, the last
-        argument in the list is considered the positive class.
+        Relevant only for classification tasks. The list of all possible classes in the order they appear at the
+        models' probabilities per class vector (alphanumeric order).
     """
 
     _features: t.List[Hashable]
@@ -277,8 +278,8 @@ class Dataset:
                 self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
 
         if label_type in ['classification_label', 'regression_label']:
-            get_logger().warning('%s value for label type is deprecated, '
-                                 'allowed task types are multiclass, binary and regression', label_type)
+            warnings.warn(f'{label_type} value for label type is deprecated, allowed task types are multiclass,'
+                          f' binary and regression.', DeprecationWarning, stacklevel=2)
             self._label_type = TaskType.REGRESSION if label_type == 'regression_label' else TaskType.MULTICLASS
         elif label_type in [task.value for task in TaskType]:
             self._label_type = TaskType(label_type)
@@ -289,8 +290,15 @@ class Dataset:
             self._label_type = None
 
         if label_classes is not None:
-            if not isinstance(label_classes, t.List) or any(isinstance(x, t.Sequence) for x in label_classes):
-                raise DeepchecksValueError('label_classes must be a flat list')
+            if not isinstance(label_classes, t.List) or len(set(label_classes)) != len(label_classes) or \
+                    any(isinstance(x, t.Sequence) and not isinstance(x, str) for x in label_classes):
+                raise DeepchecksValueError('label_classes must be a flat list of unique values.')
+            if label is not None and not set(self.label_col).issubset(set(label_classes)):
+                raise DeepchecksValueError('label_classes does not contain all labels found in label column.')
+            if label_classes != sorted(label_classes):
+                raise DeepchecksValueError('label_classes order must correspond to the required order of the model\'s '
+                                           'probabilities per class (alphanumeric order). For additional details see'
+                                           'https://docs.deepchecks.com/dev/user-guide/tabular/supported_models.html')
         self._label_classes = label_classes
 
         unassigned_cols = [col for col in self._features if col not in self._cat_features]
@@ -764,7 +772,7 @@ class Dataset:
             Sorted classes
         """
         if self.has_label():
-            return tuple(sorted(self.data[self.label_name].dropna().unique().tolist()))
+            return tuple(sorted(self.data[self.label_name].dropna().unique()))
         else:
             return tuple()
 

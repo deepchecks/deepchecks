@@ -25,8 +25,9 @@ from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel
 
 
+# pylint: disable=protected-access
 def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Dataset',
-                         test_dataset: Optional['tabular.Dataset'] = None, force_multiclass: bool = False) \
+                         test_dataset: Optional['tabular.Dataset'] = None, force_classification: bool = False) \
         -> Optional[List]:
     """Return the list of allowed classes for classification tasks or None for regression.
 
@@ -38,7 +39,7 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
         Train Dataset of task
     test_dataset : Optional['tabular.Dataset'], default = None
         Test Dataset of task
-    force_multiclass: bool, default = False
+    force_classification: bool, default = False
         Whether to disable the auto infer for task type and return all observed label values.
     Returns
     -------
@@ -49,12 +50,19 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
                                                           not isinstance(test_dataset, tabular.Dataset)):
         raise DeepchecksValueError('train_dataset and test_dataset must be of type tabular.Dataset')
 
+    if train_dataset._label_classes is not None:
+        if hasattr(model, 'classes_') and len(model.classes_) > 0 and \
+                list(model.classes_) != train_dataset._label_classes:
+            raise DeepchecksValueError('Model output classes and train dataset label classes do not match')
+        return train_dataset._label_classes
+
     if hasattr(model, 'classes_') and len(model.classes_) > 0:
         return list(model.classes_)
-    if model is not None and not hasattr(model, 'predict_proba') and not force_multiclass:
+
+    if model is not None and not hasattr(model, 'predict_proba') and not force_classification:
         if is_string_column(train_dataset.label_col):
-            raise DeepchecksValueError('Model was identified as a regression model, but label column was '
-                                       'found to contain strings.')
+            raise DeepchecksValueError('Classification models must contain \'predict_proba\' functionality, see'
+                                       'https://docs.deepchecks.com/dev/user-guide/tabular/supported_models.html')
         if isinstance(model, ClassifierMixin):
             raise DeepchecksValueError('Model is a sklearn classification model but lacks the predict_proba method. '
                                        'Please train the model with probability=True.')
@@ -68,10 +76,10 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
         observed_labels += list(model.predict(train_dataset.features_columns))
         if test_dataset is not None:
             observed_labels += list(model.predict(test_dataset.features_columns))
-        return sorted(set(observed_labels))
-    elif is_categorical(pd.Series(observed_labels), max_categorical_ratio=0.05) or force_multiclass:
-        return sorted(set(observed_labels))
-    else:
+        return sorted(pd.unique(observed_labels))
+    elif is_categorical(pd.Series(observed_labels), max_categorical_ratio=0.05) or force_classification:
+        return sorted(pd.unique(observed_labels))
+    else:  # if regression
         return None
 
 

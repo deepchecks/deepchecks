@@ -144,6 +144,10 @@ __________
 
 Classification
 ______________
+.. Note::
+    For classification tasks, Deepchecks require the model's output probabilities per class and a list of all
+    possible classes (in the same order). See :ref:`link <_supported_models__predictions_format>`
+    for additional information.
 .. list-table::
    :widths: 25 75 75
    :header-rows: 1

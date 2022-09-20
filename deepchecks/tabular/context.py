@@ -214,11 +214,7 @@ class Context:
         if feature_importance is not None and not isinstance(feature_importance, pd.Series):
             raise DeepchecksValueError('feature_importance must be a pandas Series')
 
-        if train is not None and train._label_classes is not None:
-            if model is not None and hasattr(model, 'classes_') and list(model.classes_) != train._label_classes:
-                raise DeepchecksValueError('Model output classes and train dataset label classes do not match')
-            self._classes = train._label_classes
-        elif train is not None and train.has_label() and train._label_type != TaskType.REGRESSION:
+        if train is not None and train.has_label() and train._label_type != TaskType.REGRESSION:
             self._classes = get_possible_classes(model, train, test, train._label_type is not None)
         else:
             self._classes = None
@@ -292,7 +288,8 @@ class Context:
         elif len(self._classes) > 2:
             return TaskType.MULTICLASS
         else:
-            raise DatasetValidationError(f'Found only one class in label column: {self._classes}.')
+            raise DatasetValidationError('Found only one class in label column, pass the full list of possible'
+                                         'label classes via the label_classes argument in the Dataset initialization.')
 
     @property
     def feature_importance(self) -> t.Optional[pd.Series]:
