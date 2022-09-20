@@ -39,6 +39,8 @@ class SpecialCharacters(SingleDatasetCheck):
         Number of most common special-only samples to show in results
     n_top_columns : int , optional
         amount of columns to show ordered by feature importance (date, index, label are first)
+    n_samples: int = 10_000_000,
+        random_state: int = 42,
     """
 
     def __init__(
@@ -47,6 +49,8 @@ class SpecialCharacters(SingleDatasetCheck):
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_most_common: int = 2,
         n_top_columns: int = 10,
+        n_samples: int = 10_000_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -54,6 +58,8 @@ class SpecialCharacters(SingleDatasetCheck):
         self.ignore_columns = ignore_columns
         self.n_most_common = n_most_common
         self.n_top_columns = n_top_columns
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -64,7 +70,7 @@ class SpecialCharacters(SingleDatasetCheck):
             value is dict of column as key and percent of special characters samples as value
             display is DataFrame with ('invalids') for any column with special_characters chars.
         """
-        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
 
         # Result value: { Column Name: pct}

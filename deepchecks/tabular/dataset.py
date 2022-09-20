@@ -467,13 +467,13 @@ class Dataset:
                    convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
                    max_categories=self._max_categories, label_type=label_type, dataset_name=self.name)
 
-    def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
+    def sample(self: TDataset, n_samples: t.Optional[int], replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
         Parameters
         ----------
-        n_samples : int
+        n_samples : t.Optional[int]
             Number of samples to draw.
         replace : bool, default: False
             Whether to sample with replacement.
@@ -492,6 +492,10 @@ class Dataset:
             data_to_sample = self.data[valid_idx]
         else:
             data_to_sample = self.data
+
+        if n_samples is None:
+            return self.copy(data_to_sample)
+
         n_samples = min(n_samples, len(data_to_sample))
         return self.copy(data_to_sample.sample(n_samples, replace=replace, random_state=random_state))
 
@@ -1221,6 +1225,8 @@ class Dataset:
 
     def is_sampled(self, n_samples: int):
         """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
+        if n_samples is None:
+            return False
         return len(self) > n_samples
 
 

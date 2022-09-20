@@ -5,7 +5,7 @@
 Boosting Overfit
 ****************
 
-This notebooks provides an overview for using and understanding the boosting overfit check.
+This notebook provides an overview for using and understanding the boosting overfit check.
 
 **Structure:**
 
@@ -40,11 +40,12 @@ and the default condition, if added, will fail.
 Supported Models
 ----------------
 Currently the check supports the following models:
-- AdaBoost (sklearn)
-- GradientBoosting (sklearn)
-- XGBoost (xgboost)
-- LGBM (lightgbm)
-- CatBoost (catboost)
+
+*   AdaBoost (sklearn)
+*   GradientBoosting (sklearn)
+*   XGBoost (xgboost)
+*   LGBM (lightgbm)
+*   CatBoost (catboost)
 
 Generate data & model
 =====================

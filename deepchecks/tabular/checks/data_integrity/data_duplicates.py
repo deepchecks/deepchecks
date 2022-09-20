@@ -36,6 +36,10 @@ class DataDuplicates(SingleDatasetCheck):
         based on columns variable.
     n_to_show : int , default: 5
         number of most common duplicated samples to show.
+    n_samples : int , default: 10_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -43,12 +47,16 @@ class DataDuplicates(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_to_show: int = 5,
+        n_samples: int = 10_000_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_to_show = n_to_show
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind):
         """Run check.
@@ -58,7 +66,7 @@ class DataDuplicates(SingleDatasetCheck):
         CheckResult
             percentage of duplicates and display of the top n_to_show most duplicated.
         """
-        df = context.get_data_by_kind(dataset_kind).data
+        df = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state).data
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)

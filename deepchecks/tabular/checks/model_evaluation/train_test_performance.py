@@ -44,6 +44,10 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
     reduce: Union[Callable, str], default: 'mean'
         An optional argument only used for the reduce_output function when using
         per-class scorers.
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
 
     Notes
     -----
@@ -83,15 +87,19 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
     def __init__(self,
                  scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
                  reduce: Union[Callable, str] = 'mean',
+                 n_samples: int = 1_000_000,
+                 random_state: int = 42,
                  **kwargs):
         super().__init__(**kwargs)
         self.scorers = scorers
         self.reduce = reduce
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
-        train_dataset = context.train
-        test_dataset = context.test
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
         model = context.model
         scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}

@@ -29,9 +29,9 @@ model = iris.load_fitted_model()
 # Run a Check
 # -----------
 
-from deepchecks.tabular.checks import WholeDatasetDrift
+from deepchecks.tabular.checks import MultivariateDrift
 
-result = WholeDatasetDrift().add_condition_overall_drift_value_less_than(
+result = MultivariateDrift().add_condition_overall_drift_value_less_than(
 ).run(train_dataset, test_dataset, model)
 
 #%%

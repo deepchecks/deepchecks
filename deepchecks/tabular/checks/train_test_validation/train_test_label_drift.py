@@ -71,6 +71,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
+    n_samples : int , default: 100_000
+        Number of samples to use for drift computation and plot.
+    random_state : int , default: 42
+        Random seed for sampling.
     """
 
     def __init__(
@@ -82,6 +86,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
             ignore_na: bool = True,
+            n_samples: int = 100_000,
+            random_state: int = 42,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -92,6 +98,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
         self.ignore_na = ignore_na
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -102,8 +110,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-        train_dataset = context.train
-        test_dataset = context.test
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
         drift_score, method, display = calc_drift_and_plot(
             train_column=train_dataset.label_col,

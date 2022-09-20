@@ -52,6 +52,8 @@ class UnusedFeatures(SingleDatasetCheck):
     n_top_unused_to_show : int , default: 15
         The max number of unused features to show in the check display, from among
         unused features that have higher variance then is defined by feature_variance_threshold.
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
     random_state : int , default: 42
         The random state to use for permutation feature importance and PCA.
     """
@@ -62,6 +64,7 @@ class UnusedFeatures(SingleDatasetCheck):
         feature_variance_threshold: float = 0.4,
         n_top_fi_to_show: int = 5,
         n_top_unused_to_show: int = 15,
+        n_samples: int = 1_000_000,
         random_state: int = 42,
         **kwargs
     ):
@@ -70,6 +73,7 @@ class UnusedFeatures(SingleDatasetCheck):
         self.feature_variance_threshold = feature_variance_threshold
         self.n_top_fi_to_show = n_top_fi_to_show
         self.n_top_unused_to_show = n_top_unused_to_show
+        self.n_samples = n_samples
         self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
@@ -85,7 +89,7 @@ class UnusedFeatures(SingleDatasetCheck):
                     A dictionary of features that are considered unimportant. The dictionary contains two keys:
                     'high variance' and 'low variance'. Each key contains a list of features.
         """
-        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         _ = context.model  # validate model
 
         feature_importance = context.feature_importance

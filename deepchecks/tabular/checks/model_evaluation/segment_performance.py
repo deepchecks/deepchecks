@@ -47,6 +47,10 @@ class SegmentPerformance(SingleDatasetCheck):
         If is not given a default scorer (per the model type) will be used.
     max_segments : int , default: 10
         maximal number of segments to split the values into.
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     feature_1: Optional[Hashable]
@@ -60,6 +64,8 @@ class SegmentPerformance(SingleDatasetCheck):
         feature_2: Optional[Hashable] = None,
         alternative_scorer: Tuple[str, Union[str, Callable]] = None,
         max_segments: int = 10,
+        n_samples: int = 1_000_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -72,6 +78,8 @@ class SegmentPerformance(SingleDatasetCheck):
 
         self.feature_1 = feature_1
         self.feature_2 = feature_2
+        self.n_samples = n_samples
+        self.random_state = random_state
 
         if not isinstance(max_segments, int) or max_segments < 0:
             raise DeepchecksValueError('"num_segments" must be positive integer')
@@ -81,7 +89,7 @@ class SegmentPerformance(SingleDatasetCheck):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         model = context.model
         scorer = context.get_single_scorer(self.alternative_scorer)
         dataset.assert_features()
