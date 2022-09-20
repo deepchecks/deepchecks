@@ -44,7 +44,7 @@ class Batch:
         self._labels = None
         self._predictions = None
         self._images = None
-        self._vision_properties_cache = dict.fromkeys([p.value for p in PropertiesInputType])
+        self._vision_properties_cache = dict.fromkeys(PropertiesInputType)
 
     @property
     def labels(self):
@@ -134,19 +134,19 @@ class Batch:
         properties_list = validate_properties(properties_list)
         # if there are no cached properties at all, calculate all the properties on the list,
         # else calculate only those that were not yet calculated.
-        if self._vision_properties_cache[input_type.value] is None:
-            if input_type.value in self._context.static_properties_input_types(self._dataset_kind):
+        if self._vision_properties_cache[input_type] is None:
+            if input_type in self._context.static_properties_input_types(self._dataset_kind):
                 self._vision_properties_cache = self._do_static_prop()
             else:
                 data = self._get_relevant_data_for_properties(input_type)
-                self._vision_properties_cache[input_type.value] = calc_vision_properties(data, properties_list)
+                self._vision_properties_cache[input_type] = calc_vision_properties(data, properties_list)
         else:
             properties_to_calc = [p for p in properties_list if p['name'] not in
-                                  self._vision_properties_cache[input_type.value].keys()]
+                                  self._vision_properties_cache[input_type].keys()]
             if len(properties_to_calc) > 0:
                 data = self._get_relevant_data_for_properties(input_type)
-                self._vision_properties_cache[input_type.value].update(calc_vision_properties(data, properties_to_calc))
-        return self._vision_properties_cache[input_type.value]
+                self._vision_properties_cache[input_type].update(calc_vision_properties(data, properties_to_calc))
+        return self._vision_properties_cache[input_type]
 
 
 T = TypeVar('T')
