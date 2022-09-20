@@ -88,7 +88,7 @@ class Dataset:
         The maximum number of categories in a column in order for it to be inferred as a categorical
         feature. if None, uses is_categorical default inference mechanism.
     label_type : str , default: None
-        Used to determine the task type. If None, inferred based on label column and model.
+        Used to determine the task type. If None, inferred when running a check based on label column and model.
         Possible values are: 'multiclass', 'binary' and 'regression'.
     label_classes: t.List, default: None
         Relevant only for classification tasks. The possible label classes, for binary classification, the last
