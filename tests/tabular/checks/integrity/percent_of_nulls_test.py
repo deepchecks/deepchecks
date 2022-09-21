@@ -11,8 +11,9 @@
 """Tests for Percent Of Nulls check."""
 import numpy as np
 import pandas as pd
-from deepchecks.tabular.checks.data_integrity import PercentOfNulls
 from hamcrest import *
+
+from deepchecks.tabular.checks.data_integrity import PercentOfNulls
 from tests.base.utils import equal_condition_result
 
 

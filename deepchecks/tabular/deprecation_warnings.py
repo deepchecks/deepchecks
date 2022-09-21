@@ -24,3 +24,10 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.* label type is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

@@ -37,7 +37,8 @@ def test_label_with_one_unique_label():
         calling(ClassImbalance().run).with_args(ds),
         raises(
             DatasetValidationError,
-            'Class contains only one unique label'
+            'Found only one class in label column, pass the full list of possible '
+            'label classes via the label_classes argument in the Dataset initialization.'
         )
     )
 
@@ -120,7 +121,7 @@ def test_condition_input_validation():
     ds = Dataset(pd.DataFrame(data), label='label', label_type='regression_label')
     assert_that(
         calling(ClassImbalance().run).with_args(ds),
-        raises(ModelValidationError, 'Check is irrelevant for regressions tasks'))
+        raises(ModelValidationError, 'Check is irrelevant for regression tasks'))
 
 
 def test_ignore_nan_false():
