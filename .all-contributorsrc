@@ -15,6 +15,72 @@
         "doc",
         "ideas"
       ]
+    },
+    {
+      "login": "matanper",
+      "name": "matanper",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9868530?v=4",
+      "profile": "https://github.com/matanper",
+      "contributions": [
+        "doc",
+        "ideas",
+        "code"
+      ]
+    },
+    {
+      "login": "JKL98ISR",
+      "name": "JKL98ISR",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26321553?v=4",
+      "profile": "https://github.com/JKL98ISR",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "yromanyshyn",
+      "name": "Yurii Romanyshyn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71635444?v=4",
+      "profile": "https://github.com/yromanyshyn",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
+    },
+    {
+       "login": "noamzbr",
+       "name": "Noam Bressler",
+       "avatar_url": "https://avatars.githubusercontent.com/u/17730502?v=4",
+       "profile": "https://github.com/noamzbr",
+       "contributions": [
+        "code",
+        "doc",
+        "ideas"
+        ]
+    },
+    {
+      "login": "nirhutnik",
+      "name": "Nir Hutnik",
+      "avatar_url": "https://avatars.githubusercontent.com/u/92314933?v=4",
+      "profile": "https://github.com/nirhutnik",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "Nadav-Barak",
+      "name": "Nadav-Barak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67195469?v=4",
+      "profile": "https://github.com/Nadav-Barak",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
     }
   ],
   "projectName": "deepchecks",
