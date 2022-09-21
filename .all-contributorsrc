@@ -4,5 +4,19 @@
   ],
   "imageSize": 70,
   "contributorsPerLine": 7,
-  "contributors": []
+  "contributors": [
+    {
+      "login": "the",
+      "name": "Thomas Eichmann",
+      "avatar_url": "https://avatars.githubusercontent.com/u/41003?v=4",
+      "profile": "https://www.thomaseichmann.com",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
+    }
+  ],
+  "projectName": "deepchecks",
+  "projectOwner": "deepchecks"
 }
