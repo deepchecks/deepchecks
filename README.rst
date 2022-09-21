@@ -378,8 +378,6 @@ The package currently supports tabular data and is in *beta release* for the `Co
 .. |colab badge image| image:: /docs/source/_static/colab-badge.svg
    :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_colab
 
-🙏🏻 Contributors
-====================
 
 .. raw:: html
 
