@@ -35,8 +35,9 @@
       </a>
    </p>
 
-|build| |Documentation Status| |pkgVersion| |pyVersions|
-|Maintainability| |Coverage Status|
+
+|GitHub stars| |build| |Documentation Status| |pkgVersion| |pyVersions|
+|Maintainability| |Coverage Status| |all-contributors badge|
 
 .. raw:: html
 
@@ -363,6 +364,9 @@ The package currently supports tabular data and is in *beta release* for the `Co
    improvements, open an issue, or share feedback.
 
 
+
+.. |GitHub stars| image:: https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=social&label=Star&maxAge=2592000
+   :target: https://GitHub.com/deepchecks/deepchecks/stargazers/
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
 .. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=stable
    :target: https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=badge
@@ -383,6 +387,9 @@ The package currently supports tabular data and is in *beta release* for the `Co
 ================
 
 Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/docs/en/emoji-key>`__):
+
+.. |all-contributors badge| image:: https://img.shields.io/badge/all_contributors-30-orange.svg?style=flat-round
+   :target: https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst
 
 .. raw:: html
 
