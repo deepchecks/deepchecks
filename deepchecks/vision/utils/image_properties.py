@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the image formatter class for the vision module."""
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 
 import numpy as np
 from skimage.color import rgb2gray
@@ -68,6 +68,11 @@ def _sizes(batch: List[np.ndarray]):
     return [get_size(img) for img in batch]
 
 
+def _sizes_array(batch: List[np.ndarray]):
+    """Return an array of height and width per image (Nx2)."""
+    return np.array(_sizes(batch))
+
+
 def _rgb_relative_intensity_mean(batch: List[np.ndarray]) -> List[Tuple[float, float, float]]:
     """Calculate normalized mean for each channel (rgb) in image.
 
@@ -88,6 +93,11 @@ def _rgb_relative_intensity_mean(batch: List[np.ndarray]) -> List[Tuple[float, f
     """
     return [_normalize_pixelwise(img).mean(axis=(1, 2)) if not _is_grayscale(img) else (None, None, None)
             for img in batch]
+
+
+def _rgb_relative_intensity_mean_array(batch: List[np.ndarray]) -> np.ndarray:
+    """Returns the _rgb_relative_intensity_mean result as array"""
+    return np.array(_rgb_relative_intensity_mean(batch))
 
 
 def _normalize_pixelwise(img: np.ndarray) -> np.ndarray:
@@ -120,6 +130,26 @@ def get_size(img) -> Tuple[int, int]:
 def get_dimension(img) -> int:
     """Return the number of dimensions of the image (grayscale = 1, RGB = 3)."""
     return img.shape[2]
+
+
+def calc_default_image_properties(batch: List[np.ndarray]) -> Dict:
+    """Speed up the calculation for the default image properties by sharing common actions."""
+    results_dict = {}
+    sizes_array = _sizes_array(batch)
+    results_dict['Aspect Ratio'] = list(sizes_array[:, 0] / sizes_array[:, 1])
+    results_dict['Area'] = list(sizes_array[:, 0] * sizes_array[:, 1])
+
+    grayscale_images = [rgb2gray(img) if _is_grayscale(img) else img for img in batch]
+    results_dict['Brightness'] = [image.mean() for image in grayscale_images]
+    results_dict['RMS Contrast'] = [image.std() for image in grayscale_images]
+
+    rgb_intensities = _rgb_relative_intensity_mean_array(batch)
+    results_dict['Mean Red Relative Intensity'] = rgb_intensities[:, 0].tolist()
+    results_dict['Mean Green Relative Intensity'] = rgb_intensities[:, 1].tolist()
+    results_dict['Mean Blue Relative Intensity'] = rgb_intensities[:, 2].tolist()
+
+    return results_dict
+
 
 
 default_image_properties = [

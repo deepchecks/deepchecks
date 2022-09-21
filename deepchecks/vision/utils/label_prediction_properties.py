@@ -9,16 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing measurements for labels and predictions."""
-from typing import List, Sequence
+from typing import List, Sequence, Union
 
 import torch
 
 # Labels
 
 
-def _get_samples_per_class_classification(labels: torch.Tensor) -> List[int]:
+def _get_samples_per_class_classification(labels: Union[torch.Tensor, List]) -> List[int]:
     """Return a list containing the class per image in batch."""
-    return labels.tolist()
+    return labels if isinstance(labels, List) else labels.tolist()
 
 
 def _get_samples_per_class_object_detection(labels: List[torch.Tensor]) -> List[List[int]]:
