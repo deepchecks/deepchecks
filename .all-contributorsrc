@@ -4,5 +4,18 @@
   ],
   "imageSize": 70,
   "contributorsPerLine": 7,
-  "contributors": []
+  "contributors": [
+    {
+      "login": "ItayGabbay",
+      "name": "Itay Gabbay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20860465?v=4",
+      "profile": "https://github.com/ItayGabbay",
+      "contributions": [
+        "code",
+        "doc"
+      ]
+    }
+  ],
+  "projectName": "deepchecks",
+  "projectOwner": "deepchecks"
 }
