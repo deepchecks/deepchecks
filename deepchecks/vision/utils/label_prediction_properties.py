@@ -72,8 +72,10 @@ DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES = [
 
 # Predictions
 
-def _get_samples_per_pred_class_classification(predictions: torch.Tensor) -> List[int]:
+def _get_samples_per_pred_class_classification(predictions: Union[torch.Tensor, List]) -> List[int]:
     """Return a list containing the classes in batch."""
+    if isinstance(predictions, List):
+        predictions = torch.stack(predictions)
     return torch.argmax(predictions, dim=1).tolist()
 
 
