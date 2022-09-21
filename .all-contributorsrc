@@ -15,6 +15,17 @@
         "doc",
         "ideas"
       ]
+    },
+    {
+      "login": "Nadav-Barak",
+      "name": "Nadav-Barak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67195469?v=4",
+      "profile": "https://github.com/Nadav-Barak",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
     }
   ],
   "projectName": "deepchecks",
