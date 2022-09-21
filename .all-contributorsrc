@@ -37,7 +37,29 @@
         "code",
         "doc"
       ]
-    }
+    },
+    {
+      "login": "yromanyshyn",
+      "name": "Yurii Romanyshyn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71635444?v=4",
+      "profile": "https://github.com/yromanyshyn",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
+    },
+    {
+       "login": "noamzbr",
+       "name": "Noam Bressler",
+       "avatar_url": "https://avatars.githubusercontent.com/u/17730502?v=4",
+       "profile": "https://github.com/noamzbr",
+       "contributions": [
+        "code",
+        "doc",
+        "ideas"
+        ]
+      }
   ],
   "projectName": "deepchecks",
   "projectOwner": "deepchecks"
