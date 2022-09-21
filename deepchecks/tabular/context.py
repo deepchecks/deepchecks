@@ -288,7 +288,7 @@ class Context:
         elif len(self._classes) > 2:
             return TaskType.MULTICLASS
         else:
-            raise DatasetValidationError('Found only one class in label column, pass the full list of possible'
+            raise DatasetValidationError('Found only one class in label column, pass the full list of possible '
                                          'label classes via the label_classes argument in the Dataset initialization.')
 
     @property

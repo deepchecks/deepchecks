@@ -78,9 +78,9 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
         observed_labels += list(model.predict(train_dataset.features_columns))
         if test_dataset is not None:
             observed_labels += list(model.predict(test_dataset.features_columns))
-        return sorted(pd.unique(observed_labels))
+        return sorted(pd.Series(observed_labels).dropna().unique())
     elif is_categorical(pd.Series(observed_labels), max_categorical_ratio=0.05) or force_classification:
-        return sorted(pd.unique(observed_labels))
+        return sorted(pd.Series(observed_labels).dropna().unique())
     else:  # if regression
         return None
 
