@@ -21,7 +21,7 @@ Accepted Label Format
 ---------------------
 
 Deepchecks' checks use the :func:`~deepchecks.vision.DetectionData.batch_to_labels` function in order to get the labels in the correct format.
-The accepted label format for is a a list of length N containing tensors of shape (B, 5), where N is the number
+The accepted label format is a a list of length N containing tensors of shape (B, 5), where N is the number
 of samples within a batch, B is the number of bounding boxes in the sample and each bounding box is represented by 5 values:
 ``(class_id, x_min, y_min, w, h)``.
 
@@ -49,7 +49,7 @@ Example
 --------
 
 Assuming we have implemented a torch DataLoader whose underlying __getitem__ method returns a tuple of the form:
-``(images, bboxes)``. ``image`` is a tensor of shape (N, C, H, W) in which the images pixel values are normalized to
+``(images, bboxes)``. ``images`` is a tensor of shape (N, C, H, W) in which the images pixel values are normalized to
 [0, 1] range based on the mean and std of the ImageNet dataset. ``bboxes`` is a tensor of shape (N, B, 5) in which
 each box arrives in the format: ``(class_id, x_min, y_min, x_max, y_max)``. Additionally, we are using Yolo as a model.
 

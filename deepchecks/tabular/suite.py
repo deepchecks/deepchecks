@@ -22,7 +22,6 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.decorators import deprecate_kwarg
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
 
@@ -37,7 +36,6 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
-    @deprecate_kwarg(old_name='features_importance', new_name='feature_importance')
     @docstrings
     def run(
         self,

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import (all_of, any_of, assert_that, calling, contains_exactly, equal_to, has_entries, has_key,
+from hamcrest import (all_of, any_of, assert_that, calling, contains_exactly, empty, equal_to, has_entries, has_key,
                       has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
@@ -58,6 +58,21 @@ def test_outliers_check_coco(coco_train_visiondata, device):
             'upper_limit': is_(20.125)
         }),
         'Bounding Box Area (in pixels)': instance_of(dict),
+    }))
+
+
+def test_outliers_check_coco_segmentation(segmentation_coco_train_visiondata, device):
+    # Act
+    result = LabelPropertyOutliers().run(segmentation_coco_train_visiondata, device=device)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        'Number of Classes Per Image': has_entries({
+            'indices': [8, 3],
+            'lower_limit': is_(2),
+            'upper_limit': is_(2)
+        }),
+        'Segment Area (in pixels)': instance_of(dict),
     }))
 
 

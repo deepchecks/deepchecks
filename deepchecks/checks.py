@@ -31,6 +31,7 @@ __all__ = [
     'StringMismatch',
     'MixedDataTypes',
     'IsSingleValue',
+    'ClassImbalance',
     'SpecialCharacters',
     'StringLengthOutOfBounds',
     'StringMismatchComparison',
@@ -64,6 +65,7 @@ __all__ = [
     'TrainTestLabelDrift',
     'WholeDatasetDrift',
     'TrainTestPredictionDrift',
+    'MultivariateDrift',
 
     # performance checks
     'TrainTestPerformance',

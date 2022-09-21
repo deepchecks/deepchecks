@@ -14,9 +14,10 @@ import numpy as np
 import sklearn
 from deepdiff import DeepDiff
 from hamcrest import assert_that, instance_of
+from sklearn.base import BaseEstimator
 
 from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
-from deepchecks.tabular.datasets.regression import avocado, wine_quality
+from deepchecks.tabular.datasets.regression import airbnb, avocado, wine_quality
 from deepchecks.utils.model import get_model_of_pipeline
 
 
@@ -39,10 +40,12 @@ def assert_dataset_module(dataset_module):
     # The models were trained on python 3.8, therefore tests for equality of pretrained only on this version
     python_minor_version = sys.version_info[1]
     if python_minor_version == 8:
-        if sklearn.__version__ != dataset_module._MODEL_VERSION:
-            raise Exception(f'Can\'t test pretrained model for non matching sklearn version {sklearn.__version__}')
+        if hasattr(dataset_module, '_MODEL_VERSION'):
+            if sklearn.__version__ != dataset_module._MODEL_VERSION:
+                raise Exception(f'Can\'t test pretrained model for non matching sklearn version {sklearn.__version__}')
         pretrained_model = dataset_module.load_fitted_model(pretrained=True)
-        assert_sklearn_model_params_equals(pretrained_model, trained_model)
+        if isinstance(pretrained_model, BaseEstimator):
+            assert_sklearn_model_params_equals(pretrained_model, trained_model)
         assert_model_predict_on_data(pretrained_model, train, test)
 
 
@@ -72,3 +75,7 @@ def test_model_predict_on_lending_club():
 
 def test_model_predict_on_wine_quality():
     assert_dataset_module(wine_quality)
+
+
+def test_model_predict_on_airbnb():
+    assert_dataset_module(airbnb)

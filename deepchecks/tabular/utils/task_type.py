@@ -12,9 +12,7 @@
 
 from enum import Enum
 
-__all__ = [
-    'TaskType'
-]
+__all__ = ['TaskType']
 
 
 class TaskType(Enum):

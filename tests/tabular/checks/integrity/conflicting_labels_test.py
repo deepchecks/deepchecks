@@ -46,8 +46,8 @@ def test_label_ambiguity_empty():
     data = {
         'col1': [1, 1, 1, 2, 2, 2]*100,
         'col2': [1, 1, 1, 2, 2, 2]*100,
-        'col3': [1, 1, 1, 2, 2, 2]*100,
-        'label': [1, 1, 1, 1, 1, 1]*100
+        'col3': [1, 2, 1, 2, 2, 2]*100,
+        'label': [1, 2, 1, 1, 1, 1]*100
     }
     ds = Dataset(pd.DataFrame(data), label='label')
     check = ConflictingLabels()

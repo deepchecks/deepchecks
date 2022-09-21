@@ -13,6 +13,8 @@ import logging
 
 __all__ = ['get_logger', 'get_verbosity', 'set_verbosity']
 
+import warnings
+
 _logger = logging.getLogger('deepchecks')
 
 _stream_handler = logging.StreamHandler()
@@ -53,3 +55,9 @@ def set_verbosity(level: int):
     >>> deepchecks.set_verbosity(logging.ERROR)
     """
     _logger.setLevel(level)
+    if level >= logging.ERROR:
+        warnings.filterwarnings(
+            action='ignore',
+            message=r'.*',
+            module=r'deepchecks.*'
+        )

@@ -15,7 +15,7 @@ from typing import Any, Dict, List
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-from deepchecks.core.check_utils.whole_dataset_drift_utils import run_whole_dataset_drift
+from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision.utils.image_properties import default_image_properties
@@ -146,7 +146,7 @@ class ImageDatasetDrift(TrainTestCheck):
                 categorical_features.append(prop['name'])
 
         dataset_names = (context.train.name, context.test.name)
-        values_dict, displays = run_whole_dataset_drift(
+        values_dict, displays = run_multivariable_drift(
             train_dataframe=df_train, test_dataframe=df_test, numerical_features=numeric_features,
             cat_features=categorical_features, sample_size=sample_size, random_state=context.random_state,
             test_size=self.test_size, n_top_columns=self.n_top_properties,

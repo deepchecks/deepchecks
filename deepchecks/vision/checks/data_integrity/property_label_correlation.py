@@ -16,8 +16,7 @@ from typing import Any, Dict, Hashable, List, Optional, TypeVar
 import pandas as pd
 
 import deepchecks.ppscore as pps
-from deepchecks import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core import DatasetKind
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.utils.dataframes import is_float_column

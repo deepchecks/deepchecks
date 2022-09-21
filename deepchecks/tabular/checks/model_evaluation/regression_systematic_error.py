@@ -21,7 +21,25 @@ __all__ = ['RegressionSystematicError']
 
 
 class RegressionSystematicError(SingleDatasetCheck):
-    """Check the regression systematic error."""
+    """Check the regression systematic error.
+
+    Parameters
+    ----------
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
+    """
+
+    def __init__(
+        self,
+        n_samples: int = 1_000_000,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -37,7 +55,7 @@ class RegressionSystematicError(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         context.assert_regression_task()
         y_test = dataset.label_col
         x_test = dataset.features_columns

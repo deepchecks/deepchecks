@@ -14,6 +14,7 @@ these are images, labels, or predictions) to a format deepchecks can work with.
     VisionData
     ClassificationData
     DetectionData
+    SegmentationData
 
 Why Is This Important?
 ========================
@@ -38,7 +39,8 @@ vision module, and just implement there 3 functions:
 
 Please see specific examples in the :doc:`VisionData </user-guide/vision/data-classes/VisionData>`,
 :doc:`ClassificationData </user-guide/vision/data-classes/ClassificationData>`,
-and :doc:`DetectionData </user-guide/vision/data-classes/DetectionData>` classes.
+:doc:`DetectionData </user-guide/vision/data-classes/DetectionData>`,
+and :doc:`SegmentationData </user-guide/vision/data-classes/SegmentationData>` classes.
 
 Validating Your Data Class Implementation
 =========================================

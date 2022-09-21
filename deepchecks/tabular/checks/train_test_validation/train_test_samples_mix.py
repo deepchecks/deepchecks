@@ -27,7 +27,25 @@ __all__ = ['TrainTestSamplesMix']
 
 
 class TrainTestSamplesMix(TrainTestCheck):
-    """Detect samples in the test data that appear also in training data."""
+    """Detect samples in the test data that appear also in training data.
+
+    Parameters
+    ----------
+    n_samples : int , default: 10_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
+    """
+
+    def __init__(
+        self,
+        n_samples: int = 10_000_000,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -43,8 +61,8 @@ class TrainTestSamplesMix(TrainTestCheck):
         DeepchecksValueError
             If the data is not a Dataset instance
         """
-        test_dataset = context.test
-        train_dataset = context.train
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
 
         train_dataset.assert_features()
         test_dataset.assert_features()

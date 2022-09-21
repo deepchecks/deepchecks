@@ -22,12 +22,13 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
                                        FeatureFeatureCorrelation, FeatureLabelCorrelation,
                                        FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
-                                       IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, NewLabelTrainTest,
-                                       OutlierSampleDetection, RegressionErrorDistribution, RegressionSystematicError,
-                                       RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
-                                       StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
-                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
-                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance, WholeDatasetDrift)
+                                       IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
+                                       NewLabelTrainTest, OutlierSampleDetection, RegressionErrorDistribution,
+                                       RegressionSystematicError, RocReport, SimpleModelComparison, SpecialCharacters,
+                                       StringLengthOutOfBounds, StringMismatch, StringMismatchComparison,
+                                       TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPerformance,
+                                       TrainTestPredictionDrift, TrainTestSamplesMix, UnusedFeatures,
+                                       WeakSegmentsPerformance)
 
 __all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'full_suite']
 
@@ -167,8 +168,8 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
              - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift`
            * - :ref:`plot_tabular_train_test_label_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestLabelDrift`
-           * - :ref:`plot_tabular_whole_dataset_drift`
-             - :class:`~deepchecks.tabular.checks.train_test_validation.WholeDatasetDrift`
+           * - :ref:`plot_tabular_multivariate_drift`
+             - :class:`~deepchecks.tabular.checks.train_test_validation.MultivariateDrift`
 
     Parameters
     ----------
@@ -222,7 +223,7 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
         .add_condition_feature_pps_in_train_less_than(),
         TrainTestFeatureDrift(**kwargs).add_condition_drift_score_less_than(),
         TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
-        WholeDatasetDrift(**kwargs).add_condition_overall_drift_value_less_than(),
+        MultivariateDrift(**kwargs).add_condition_overall_drift_value_less_than(),
     )
 
 

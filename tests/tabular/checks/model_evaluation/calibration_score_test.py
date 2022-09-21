@@ -44,11 +44,7 @@ def test_regresion_model(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
     assert_that(
         calling(CalibrationScore().run).with_args(train, clf),
-        raises(
-            ModelValidationError,
-            r'Check is relevant for models of type \[\'multiclass\', \'binary\'\], '
-            r'but received model of type \'regression\'')
-    )
+        raises(ModelValidationError, 'Check is irrelevant for regression tasks'))
 
 
 def test_model_info_object(iris_labeled_dataset, iris_adaboost):

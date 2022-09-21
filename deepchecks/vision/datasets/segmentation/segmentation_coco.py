@@ -36,10 +36,11 @@ __all__ = ['load_dataset', 'load_model', 'CocoSegmentationData', 'CocoSegmentati
 DATA_DIR = Path(__file__).absolute().parent
 
 
+#  pylint: disable=unused-argument)
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
     """Load the lraspp_mobilenet_v3_large model and return it."""
     model = lraspp_mobilenet_v3_large(pretrained=pretrained, progress=False)
-    model.eval()
+    _ = model.eval()
 
     return model
 
@@ -62,17 +63,17 @@ class CocoSegmentationData(SegmentationData):
 
         See SegmentationData for more details on format.
         """
-        normalized_batch = [F.normalize(img.unsqueeze(0).float()/255,
-                                        mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)) for img in batch[0]]
+        normalized_batch = [F.normalize(img.unsqueeze(0).float() / 255,
+                                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for img in batch[0]]
 
-        predictions = [model(img)["out"].squeeze(0).detach() for img in normalized_batch]
+        predictions = [model(img)['out'].squeeze(0).detach() for img in normalized_batch]
         predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
 
         return predictions
 
     def batch_to_images(self, batch) -> Sequence[np.ndarray]:
         """Convert the batch to a list of images, where each image is a 3D numpy array in the format (H, W, C)."""
-        return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
+        return [tensor.cpu().numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
 
 def _batch_collate(batch):
@@ -163,7 +164,6 @@ class CocoSegmentationDataset(VisionDataset):
     """
 
     TRAIN_FRACTION = 0.5
-    CAT_LIST = [0, 5, 2, 16, 9, 44, 6, 3, 17, 62, 21, 67, 18, 19, 4, 1, 64, 20, 63, 7, 72]
 
     def __init__(
             self,
@@ -190,7 +190,8 @@ class CocoSegmentationDataset(VisionDataset):
             if label.exists():
                 polygons = label.open('r').read().strip().splitlines()
                 relevant_labels = [polygon.split()[0] for polygon in polygons]
-                relevant_labels = [class_id for class_id in relevant_labels if int(class_id) in self.CAT_LIST]
+                relevant_labels = [class_id for class_id in relevant_labels if int(class_id) in
+                                   COCO_TO_PASCAL_VOC]
 
                 if len(relevant_labels) > 0:
                     images.append(all_images[i])
@@ -226,8 +227,8 @@ class CocoSegmentationDataset(VisionDataset):
         if label_file is not None:
             for label_str in label_file.open('r').read().strip().splitlines():
                 label = np.array(label_str.split(), dtype=np.float32)
-                class_id = int(label[0]) + 1
-                if class_id in self.CAT_LIST:
+                class_id = int(label[0])
+                if class_id in COCO_TO_PASCAL_VOC:
                     # Transform normalized coordinates to un-normalized
                     coordinates = (label[1:].reshape(-1, 2) * np.array([image.width, image.height])).reshape(
                         -1).tolist()
@@ -236,7 +237,7 @@ class CocoSegmentationDataset(VisionDataset):
                     ImageDraw.Draw(mask).polygon(coordinates, outline=1, fill=1)
                     # Add to list
                     masks.append(np.array(mask, dtype=bool))
-                    classes.append(self.CAT_LIST.index(class_id))
+                    classes.append(COCO_TO_PASCAL_VOC[class_id])
 
         if self.transforms is not None:
             # Albumentations accepts images as numpy
@@ -287,107 +288,123 @@ class CocoSegmentationDataset(VisionDataset):
 
             try:
                 # remove coco128 README.txt so that it does not come in docs
-                os.remove("coco128segments/coco128/README.txt")
+                os.remove('coco128segments/coco128/README.txt')
             except:  # pylint: disable=bare-except # noqa
                 pass
         return CocoSegmentationDataset(coco_dir, folder, train=train, transforms=A.Compose([ToTensorV2()]),
                                        test_mode=test_mode)
 
 
+# COCO label map:
 _ORIG_LABEL_MAP = {
-    1: 'person',
-    2: 'bicycle',
-    3: 'car',
-    4: 'motorcycle',
-    5: 'airplane',
-    6: 'bus',
-    7: 'train',
-    8: 'truck',
-    9: 'boat',
-    10: 'traffic light',
-    11: 'fire hydrant',
-    12: 'street sign',
-    13: 'stop sign',
-    14: 'parking meter',
-    15: 'bench',
-    16: 'bird',
-    17: 'cat',
-    18: 'dog',
-    19: 'horse',
-    20: 'sheep',
-    21: 'cow',
-    22: 'elephant',
-    23: 'bear',
-    24: 'zebra',
-    25: 'giraffe',
-    26: 'hat',
-    27: 'backpack',
-    28: 'umbrella',
-    29: 'shoe',
-    30: 'eye glasses',
-    31: 'handbag',
-    32: 'tie',
-    33: 'suitcase',
-    34: 'frisbee',
-    35: 'skis',
-    36: 'snowboard',
-    37: 'sports ball',
-    38: 'kite',
-    39: 'baseball bat',
-    40: 'baseball glove',
-    41: 'skateboard',
-    42: 'surfboard',
-    43: 'tennis racket',
-    44: 'bottle',
-    45: 'plate',
-    46: 'wine glass',
-    47: 'cup',
-    48: 'fork',
-    49: 'knife',
-    50: 'spoon',
-    51: 'bowl',
-    52: 'banana',
-    53: 'apple',
-    54: 'sandwich',
-    55: 'orange',
-    56: 'broccoli',
-    57: 'carrot',
-    58: 'hot dog',
-    59: 'pizza',
-    60: 'donut',
-    61: 'cake',
-    62: 'chair',
-    63: 'couch',
-    64: 'potted plant',
-    65: 'bed',
-    66: 'mirror',
-    67: 'dining table',
-    68: 'window',
-    69: 'desk',
-    70: 'toilet',
-    71: 'door',
-    72: 'tv',
-    73: 'laptop',
-    74: 'mouse',
-    75: 'remote',
-    76: 'keyboard',
-    77: 'cell phone',
-    78: 'microwave',
-    79: 'oven',
-    80: 'toaster',
-    81: 'sink',
-    82: 'refrigerator',
-    83: 'blender',
-    84: 'book',
-    85: 'clock',
-    86: 'vase',
-    87: 'scissors',
-    88: 'teddy bear',
-    89: 'hair drier',
-    90: 'toothbrush',
-    91: 'hair brush',
+    0: 'person',
+    1: 'bicycle',
+    2: 'car',
+    3: 'motorcycle',
+    4: 'airplane',
+    5: 'bus',
+    6: 'train',
+    7: 'truck',
+    8: 'boat',
+    9: 'traffic light',
+    10: 'fire hydrant',
+    11: 'stop sign',
+    12: 'parking meter',
+    13: 'bench',
+    14: 'bird',
+    15: 'cat',
+    16: 'dog',
+    17: 'horse',
+    18: 'sheep',
+    19: 'cow',
+    20: 'elephant',
+    21: 'bear',
+    22: 'zebra',
+    23: 'giraffe',
+    24: 'backpack',
+    25: 'umbrella',
+    26: 'handbag',
+    27: 'tie',
+    28: 'suitcase',
+    29: 'frisbee',
+    30: 'skis',
+    31: 'snowboard',
+    32: 'sports ball',
+    33: 'kite',
+    34: 'baseball bat',
+    35: 'baseball glove',
+    36: 'skateboard',
+    37: 'surfboard',
+    38: 'tennis racket',
+    39: 'bottle',
+    40: 'wine glass',
+    41: 'cup',
+    42: 'fork',
+    43: 'knife',
+    44: 'spoon',
+    45: 'bowl',
+    46: 'banana',
+    47: 'apple',
+    48: 'sandwich',
+    49: 'orange',
+    50: 'broccoli',
+    51: 'carrot',
+    52: 'hot dog',
+    53: 'pizza',
+    54: 'donut',
+    55: 'cake',
+    56: 'chair',
+    57: 'couch',
+    58: 'potted plant',
+    59: 'bed',
+    60: 'dining table',
+    61: 'toilet',
+    62: 'tv',
+    63: 'laptop',
+    64: 'mouse',
+    65: 'remote',
+    66: 'keyboard',
+    67: 'cell phone',
+    68: 'microwave',
+    69: 'oven',
+    70: 'toaster',
+    71: 'sink',
+    72: 'refrigerator',
+    73: 'book',
+    74: 'clock',
+    75: 'vase',
+    76: 'scissors',
+    77: 'teddy bear',
+    78: 'hair drier',
+    79: 'toothbrush',
 }
 
-LABEL_MAP = {CocoSegmentationDataset.CAT_LIST.index(k): v for k, v in _ORIG_LABEL_MAP.items() if k in
-             CocoSegmentationDataset.CAT_LIST}
-LABEL_MAP[0] = 'background'
+# Pascal VOC label map:
+LABEL_MAP = {0: 'background', 1: 'airplane', 2: 'bicycle', 3: 'bird', 4: 'boat', 5: 'bottle', 6: 'bus', 7: 'car',
+             8: 'cat', 9: 'chair', 10: 'cow', 11: 'dining table', 12: 'dog', 13: 'horse', 14: 'motorcycle',
+             15: 'person', 16: 'potted plant', 17: 'sheep', 18: 'couch', 19: 'train', 20: 'tv'}
+
+
+COCO_TO_PASCAL_VOC = {
+    # None: 0,  # background
+    4: 1,  # airplane
+    1: 2,  # bicycle
+    14: 3,  # bird
+    8: 4,  # boat
+    39: 5,  # bottle
+    5: 6,  # bus
+    2: 7,  # car
+    15: 8,  # cat
+    56: 9,  # chair
+    19: 10,  # cow
+    60: 11,  # dining-table
+    16: 12,  # dog
+    17: 13,  # horse
+    3: 14,  # motorbike
+    0: 15,  # person
+    58: 16,  # potted-plant
+    18: 17,  # sheep
+    57: 18,  # sofa
+    6: 19,  # train
+    62: 20  # tv-monitor
+}

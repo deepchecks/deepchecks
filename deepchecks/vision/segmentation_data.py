@@ -179,7 +179,7 @@ class SegmentationData(VisionData):
             raise ValidationError('Deepchecks requires semantic segmentation predictions to be a sequence with an entry'
                                   ' for each sample')
         if len(batch_predictions) == 0:
-            raise ValidationError('Deepchecks requires semantic segmentation predictions to be a non-empty list')
+            raise ValidationError('Deepchecks requires semantic segmentation predictions to be a non-empty sequence')
         for prediction in batch_predictions:
             if not isinstance(prediction, torch.Tensor):
                 raise ValidationError(
@@ -187,9 +187,9 @@ class SegmentationData(VisionData):
             if len(prediction.shape) != 3:
                 raise ValidationError('Deepchecks requires semantic segmentation predictions to be a 3D tensor, but got'
                                       f'a tensor with {len(prediction.shape)} dimensions')
-            if n_classes and prediction.shape[2] != n_classes:
+            if n_classes and prediction.shape[0] != n_classes:
                 raise ValidationError(f'Deepchecks requires semantic segmentation predictions to have {n_classes} '
-                                      f'columns')
+                                      'classes')
             if abs(float(prediction[:, 0, 0].sum(dim=0)) - 1) > eps:
                 raise ValidationError('Deepchecks requires semantic segmentation predictions to be a probability '
                                       'distribution and sum to 1 for each row')

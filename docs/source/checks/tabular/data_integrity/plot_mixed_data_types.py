@@ -28,8 +28,9 @@ We will run the check on the adult dataset which can be downloaded from the
 `deepchecks.tabular.datasets`, and introduce to it some data type mixing in order to show the check's result.
 """
 
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 from deepchecks.tabular.datasets.classification import adult
 
 # Prepare functions to insert mixed data types

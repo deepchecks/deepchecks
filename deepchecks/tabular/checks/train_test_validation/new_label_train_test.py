@@ -25,7 +25,25 @@ __all__ = ['NewLabelTrainTest']
 
 
 class NewLabelTrainTest(TrainTestCheck, ReduceMixin):
-    """Find new labels in test."""
+    """Find new labels in test.
+
+    Parameters
+    ----------
+    n_samples : int , default: 10_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
+    """
+
+    def __init__(
+        self,
+        n_samples: int = 10_000_000,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.n_samples = n_samples
+        self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -41,8 +59,8 @@ class NewLabelTrainTest(TrainTestCheck, ReduceMixin):
         DeepchecksValueError
             If the datasets are not a Dataset instance or do not contain label column
         """
-        test_dataset = context.test
-        train_dataset = context.train
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         context.assert_classification_task()
 
         n_test_samples = test_dataset.n_samples

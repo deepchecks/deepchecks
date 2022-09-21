@@ -16,7 +16,9 @@ from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
-                                                                 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES)
+                                                                 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
+                                                                 DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES,
+                                                                 DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES)
 from deepchecks.vision.utils.vision_properties import calc_vision_properties, validate_properties
 
 
@@ -33,8 +35,10 @@ def test_default_properties():
     validate_properties(default_image_properties)
     validate_properties(DEFAULT_CLASSIFICATION_LABEL_PROPERTIES)
     validate_properties(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES)
+    validate_properties(DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES)
     validate_properties(DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES)
     validate_properties(DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES)
+    validate_properties(DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES)
 
 
 def test_validate_properties_with_instance_of_incorrect_type_provided():
@@ -69,6 +73,7 @@ def test_validate_properties_with_incorrect_property_dict_structure():
         detects_incorrect_property_dict_structure(property_name=property['name'])
     )
 
+
 def test_validate_properties_with_bad_name_field():
     # Arrange
     def prop(predictions):
@@ -88,6 +93,7 @@ def test_validate_properties_with_bad_name_field():
             r"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
             r"Next keys are missed \['name'\]")
     )
+
 
 def test_validate_properties_with_incorrect_property_output_type():
     property = DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES[0].copy()

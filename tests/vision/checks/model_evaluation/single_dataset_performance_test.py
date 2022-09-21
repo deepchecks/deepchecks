@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 
+from hamcrest import assert_that, close_to, has_length
+from ignite.metrics import Accuracy, Precision
+from sklearn.metrics import cohen_kappa_score
+
 from deepchecks.core import ConditionCategory
 from deepchecks.vision.checks import SingleDatasetPerformance
 from deepchecks.vision.metrics_utils import ObjectDetectionTpFpFn
 from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationScorer
-from hamcrest import assert_that, close_to, has_length
-from ignite.metrics import Accuracy, Precision
-from sklearn.metrics import cohen_kappa_score
 from tests.base.utils import equal_condition_result
 
 
@@ -73,6 +74,17 @@ def test_classification_custom_scorer(mnist_dataset_test, mock_trained_mnist, de
 
     # Assert
     assert_that(result.value.Value.mean(), close_to(0.979, 0.001))
+
+
+def test_segmentation_many_scorers(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
+                                   device):
+    check = SingleDatasetPerformance(scorers=['dice_per_class', 'dice_macro', 'iou_micro'])
+    result = check.run(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
+                       device=device, with_display=False).value
+
+    assert_that(result[result['Metric'] == 'dice']['Value'].mean(), close_to(0.655, 0.001))
+    assert_that(result[result['Metric'] == 'dice_macro']['Value'], close_to(0.655, 0.001))
+    assert_that(result[result['Metric'] == 'iou_micro']['Value'], close_to(0.948, 0.001))
 
 
 def test_condition_greater_than(mnist_dataset_test, mock_trained_mnist, device):

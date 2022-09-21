@@ -19,7 +19,7 @@ import boto3
 import joblib
 import pandas as pd
 
-from deepchecks import Suite
+from deepchecks.tabular import Suite
 from deepchecks.base import Dataset
 from deepchecks.suites import OverallSuite
 

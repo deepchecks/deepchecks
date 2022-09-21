@@ -55,6 +55,29 @@ def test_no_drift_object_detection(coco_train_visiondata, device):
     ))
 
 
+def test_no_drift_object_segmentation(segmentation_coco_train_visiondata, device):
+    # Arrange
+    check = TrainTestLabelDrift()
+
+    # Act
+    result = check.run(segmentation_coco_train_visiondata, segmentation_coco_train_visiondata, device=device)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Samples Per Class': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Cramer\'s V')}
+        ), 'Segment Area (in pixels)': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Earth Mover\'s Distance')}
+        ), 'Number of Classes Per Image': has_entries(
+            {'Drift score': 0,
+             'Method': equal_to('Earth Mover\'s Distance')}
+        )
+        }
+    ))
+
+
 def test_reduce_output_no_drift_object_detection(coco_train_visiondata, device):
     # Arrange
     check = TrainTestLabelDrift(categorical_drift_method='PSI')

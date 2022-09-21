@@ -41,11 +41,7 @@ def test_multiclass_model(iris_split_dataset_and_model):
     _, test, clf = iris_split_dataset_and_model
     assert_that(
         calling(RegressionErrorDistribution().run).with_args(test, clf),
-        raises(
-            ModelValidationError,
-            r'Check is relevant for models of type \[\'regression\'\], '
-            r'but received model of type \'multiclass\'')
-    )
+        raises(ModelValidationError, 'Check is irrelevant for classification tasks'))
 
 
 def test_regression_error_distribution(diabetes_split_dataset_and_model):

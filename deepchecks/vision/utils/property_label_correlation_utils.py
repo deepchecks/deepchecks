@@ -11,8 +11,8 @@
 """Module for property label correlation utils."""
 from typing import List
 
-from deepchecks import Context
 from deepchecks.core import DatasetKind
+from deepchecks.tabular import Context
 from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.vision_properties import PropertiesInputType

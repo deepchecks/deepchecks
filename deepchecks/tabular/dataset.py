@@ -11,6 +11,8 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
+import warnings
+from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -20,9 +22,11 @@ from sklearn.model_selection import train_test_split
 from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.tabular.utils.feature_inference import (infer_categorical_features, infer_numerical_features,
+                                                        is_categorical)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import infer_categorical_features, infer_numerical_features, is_categorical
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
@@ -31,6 +35,7 @@ __all__ = ['Dataset']
 
 TDataset = t.TypeVar('TDataset', bound='Dataset')
 DatasetReprFmt = t.Union[L['string'], L['html']]  # noqa: F821
+DEFAULT_LABEL_NAME = 'target'
 
 
 class Dataset:
@@ -85,8 +90,11 @@ class Dataset:
         The maximum number of categories in a column in order for it to be inferred as a categorical
         feature. if None, uses is_categorical default inference mechanism.
     label_type : str , default: None
-        Used to assume target model type if not found on model. Values ('classification_label', 'regression_label')
-        If None then label type is inferred from label using is_categorical logic.
+        Used to determine the task type. If None, inferred when running a check based on label column and model.
+        Possible values are: 'multiclass', 'binary' and 'regression'.
+    label_classes: t.List, default: None
+        Relevant only for classification tasks. The list of all possible classes in the order they appear at the
+        models' probabilities per class vector (in alphanumeric order).
     """
 
     _features: t.List[Hashable]
@@ -102,7 +110,7 @@ class Dataset:
     _max_categorical_ratio: float
     _max_categories: int
     _label_type: t.Optional[TaskType]
-    _classes: t.Tuple[str, ...]
+    _label_classes: t.List
 
     def __init__(
             self,
@@ -119,65 +127,54 @@ class Dataset:
             max_categorical_ratio: float = 0.01,
             max_categories: int = None,
             label_type: str = None,
-            dataset_name: t.Optional[str] = None
+            label_classes: t.List = None,
+            dataset_name: t.Optional[str] = None,
     ):
 
         if len(df) == 0:
             raise DeepchecksValueError('Can\'t create a Dataset object with an empty dataframe')
         self._data = pd.DataFrame(df).copy()
 
+        # Checking for duplicate columns
+        duplicated_columns = [key for key, value in Counter(self._data.columns).items() if value > 1]
+        if len(duplicated_columns) >= 1:
+            raise DeepchecksValueError(
+                f"Data has {len(duplicated_columns)} duplicate columns. "
+                "Change the duplicate column names or remove them from the data. "
+                f"Duplicate column names: {duplicated_columns}"
+            )
+
         # Validations
         if label is None:
-            label_name = None
+            self._label_name = None
         elif isinstance(label, (pd.Series, pd.DataFrame, np.ndarray)):
-            label_name = None
-            if isinstance(label, pd.Series):
-                # Set label name if exists
-                if label.name is not None:
-                    label_name = label.name
-                    if label_name in self._data.columns:
-                        raise DeepchecksValueError(f'Data has column with name "{label_name}", use pandas rename to'
-                                                   f' change label name or remove the column from the dataframe')
-            elif isinstance(label, pd.DataFrame):
-                # Validate shape
-                if label.shape[1] > 1:
-                    raise DeepchecksValueError('Label must have a single column')
-                # Set label name
-                label_name = label.columns[0]
-                label = label[label_name]
-                if label_name in self._data.columns:
-                    raise DeepchecksValueError(f'Data has column with name "{label_name}", change label column '
-                                               f'or remove the column from the data dataframe')
+            if isinstance(label, pd.DataFrame):
+                if label.shape[1] != 1:
+                    raise DeepchecksValueError('Provide label as a Series or a DataFrame with a single column.')
+                label = label.iloc[:, 0]
             elif isinstance(label, np.ndarray):
-                # Validate label shape
                 if len(label.shape) > 2:
                     raise DeepchecksValueError('Label must be either column vector or row vector')
                 elif len(label.shape) == 2:
                     if all(x != 1 for x in label.shape):
                         raise DeepchecksValueError('Label must be either column vector or row vector')
                     label = np.squeeze(label)
+                label = pd.Series(label)
 
-            # Validate length of label
             if label.shape[0] != self._data.shape[0]:
                 raise DeepchecksValueError('Number of samples of label and data must be equal')
+            pd.testing.assert_index_equal(self._data.index, label.index)
 
-            # If no label found to set, then set default name
-            if label_name is None:
-                label_name = 'target'
-                if label_name in self._data.columns:
-                    raise DeepchecksValueError('Can\'t set default label name "target" since it already exists in '
-                                               'the dataframe. use pandas name parameter to give the label a '
-                                               'unique name')
-            # Set label data in dataframe
-            if isinstance(label, pd.Series):
-                pd.testing.assert_index_equal(self._data.index, label.index)
-                self._data[label_name] = label
-            else:
-                self._data[label_name] = np.array(label).reshape(-1, 1)
+            self._label_name = DEFAULT_LABEL_NAME if label.name is None or label.name == 0 else label.name
+            if self._label_name in self._data.columns:
+                raise DeepchecksValueError(f'Data has column with name "{self._label_name}", change label column name '
+                                           f'or provide the column label name as str')
+            self._data[self._label_name] = label
+
         elif isinstance(label, Hashable):
-            label_name = label
-            if label_name not in self._data.columns:
-                raise DeepchecksValueError(f'label column {label_name} not found in dataset columns')
+            if label not in self._data.columns:
+                raise DeepchecksValueError(f'label column {label} not found in dataset columns')
+            self._label_name = label
         else:
             raise DeepchecksValueError(f'Unsupported type for label: {type(label).__name__}')
 
@@ -233,11 +230,10 @@ class Dataset:
             self._features = list(features)
         else:
             self._features = [x for x in self._data.columns if x not in
-                              {label_name,
+                              {self._label_name,
                                index_name if not set_index_from_dataframe_index else None,
                                datetime_name if not set_datetime_from_dataframe_index else None}]
 
-        self._label_name = label_name
         self._index_name = index_name
         self._set_index_from_dataframe_index = set_index_from_dataframe_index
         self._convert_datetime = convert_datetime
@@ -247,8 +243,6 @@ class Dataset:
 
         self._max_categorical_ratio = max_categorical_ratio
         self._max_categories = max_categories
-
-        self._classes = None
 
         if isinstance(dataset_name, str) or (dataset_name is None):
             self.name = dataset_name
@@ -284,21 +278,31 @@ class Dataset:
             else:
                 self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
 
-        if label_type and self._label_name:
-            if label_type == 'regression_label':
-                self._label_type = TaskType.REGRESSION
-            elif label_type == 'classification_label':
-                if self.data[self._label_name].nunique() > 2:
-                    self._label_type = TaskType.MULTICLASS
-                else:
-                    self._label_type = TaskType.BINARY
-            else:
-                get_logger().warning('Label type %s is not valid, auto inferring label type.'
-                                     ' Possible values are regression_label or classification_label.', label_type)
-        if self._label_name and not hasattr(self, "label_type"):
-            self._label_type = self._infer_label_type(self.data[self._label_name])
-        elif not hasattr(self, "label_type"):
+        if label_type in ['classification_label', 'regression_label']:
+            warnings.warn(f'{label_type} value for label type is deprecated, allowed task types are multiclass,'
+                          f' binary and regression.', DeprecationWarning, stacklevel=2)
+            self._label_type = TaskType.REGRESSION if label_type == 'regression_label' else TaskType.MULTICLASS
+        elif label_type in [task.value for task in TaskType]:
+            self._label_type = TaskType(label_type)
+        elif label_type is not None:
+            raise DeepchecksValueError(f'allowed value for label type are {[task.value for task in TaskType]},'
+                                       f' received {label_type}.')
+        else:
             self._label_type = None
+
+        if label_classes is not None:
+            if not isinstance(label_classes, t.List) or \
+                    any(isinstance(x, t.Sequence) and not isinstance(x, str) for x in label_classes) or \
+                    len(set(label_classes)) != len(label_classes):
+                raise DeepchecksValueError('label_classes must be a flat list of unique values.')
+            if label is not None and not set(self.label_col).issubset(set(label_classes)):
+                raise DeepchecksValueError('label_classes does not contain all labels found in label column.')
+            if label_classes != sorted(label_classes):
+                reference = doclink('supported-prediction-format', template='For additional details see {link}')
+                raise DeepchecksValueError('label_classes order must correspond to the required order of the model\'s '
+                                           'probabilities per class (alphanumeric order). For additional details see'
+                                           f'{reference}')
+        self._label_classes = label_classes
 
         unassigned_cols = [col for col in self._features if col not in self._cat_features]
         self._numerical_features = infer_numerical_features(self._data[unassigned_cols])
@@ -432,12 +436,7 @@ class Dataset:
         features = [feat for feat in self._features if feat in new_data.columns]
         cat_features = [feat for feat in self.cat_features if feat in new_data.columns]
         label_name = self._label_name if self._label_name in new_data.columns else None
-        if self._label_type == TaskType.REGRESSION:
-            label_type = 'regression_label'
-        elif self._label_type in [TaskType.BINARY, TaskType.MULTICLASS]:
-            label_type = 'classification_label'
-        else:
-            label_type = None
+        label_type = None if self._label_type is None else self._label_type.value
         index = self._index_name if self._index_name in new_data.columns else None
         date = self._datetime_name if self._datetime_name in new_data.columns else None
 
@@ -447,15 +446,16 @@ class Dataset:
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories, label_type=label_type, dataset_name=self.name)
+                   max_categories=self._max_categories, label_type=label_type, label_classes=self._label_classes,
+                   dataset_name=self.name)
 
-    def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
+    def sample(self: TDataset, n_samples: t.Optional[int], replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
         Parameters
         ----------
-        n_samples : int
+        n_samples : t.Optional[int]
             Number of samples to draw.
         replace : bool, default: False
             Whether to sample with replacement.
@@ -474,6 +474,10 @@ class Dataset:
             data_to_sample = self.data[valid_idx]
         else:
             data_to_sample = self.data
+
+        if n_samples is None:
+            return self.copy(data_to_sample)
+
         n_samples = min(n_samples, len(data_to_sample))
         return self.copy(data_to_sample.sample(n_samples, replace=replace, random_state=random_state))
 
@@ -762,7 +766,7 @@ class Dataset:
         return list(self._numerical_features)
 
     @property
-    def classes(self) -> t.Tuple[str, ...]:
+    def classes_in_label_col(self) -> t.Tuple[str, ...]:
         """Return the classes from label column in sorted list. if no label column defined, return empty list.
 
         Returns
@@ -770,12 +774,10 @@ class Dataset:
         t.Tuple[str, ...]
             Sorted classes
         """
-        if self._classes is None:
-            if self.has_label():
-                self._classes = tuple(sorted(self.data[self.label_name].dropna().unique().tolist()))
-            else:
-                self._classes = tuple()
-        return self._classes
+        if self.has_label():
+            return tuple(sorted(self.data[self.label_name].dropna().unique()))
+        else:
+            return tuple()
 
     @property
     def columns_info(self) -> t.Dict[Hashable, str]:
@@ -1118,7 +1120,7 @@ class Dataset:
             dataset_columns_info.append([
                 label_name,
                 infer_dtype(label_column, skipna=True),
-                t.cast(str, self.label_type.value).capitalize() + " LABEL",
+                '' if self.label_type is None else self.label_type.value.capitalize() + " LABEL",
                 ''
             ])
 
@@ -1203,6 +1205,8 @@ class Dataset:
 
     def is_sampled(self, n_samples: int):
         """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
+        if n_samples is None:
+            return False
         return len(self) > n_samples
 
 

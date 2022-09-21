@@ -20,8 +20,8 @@ from sklearn.pipeline import Pipeline
 
 from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.utils.features import (_calculate_feature_importance, calculate_feature_importance_or_none,
-                                       column_importance_sorter_df, column_importance_sorter_dict)
+from deepchecks.tabular.utils.feature_importance import (_calculate_feature_importance, calculate_feature_importance_or_none,
+                                                         column_importance_sorter_df, column_importance_sorter_dict)
 
 
 def test_adaboost(iris_split_dataset_and_model):

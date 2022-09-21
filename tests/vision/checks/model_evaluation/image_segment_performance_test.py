@@ -147,3 +147,29 @@ def test_coco_and_condition(coco_train_visiondata, mock_trained_yolov5_object_de
                     "'Ratio': 0.44}"
         )
     ))
+
+
+def test_segmentation_coco_and_condition(segmentation_coco_train_visiondata,
+                                         trained_segmentation_deeplabv3_mobilenet_model, device):
+    # Arrange
+    check = ImageSegmentPerformance()
+    # Act
+    result = check.run(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device=device)
+    # Assert result
+    assert_that(result.value, has_entries({
+        'Mean Blue Relative Intensity': has_length(5),
+        'Mean Green Relative Intensity': has_length(5),
+        'Mean Red Relative Intensity': has_length(5),
+        'Brightness': has_length(5),
+        'Area': has_length(5),
+        'Aspect Ratio': has_items(
+            has_entries({
+                'start': -np.inf, 'stop': close_to(0.73, 0.01), 'count': 2, 'display_range': '(-inf, 0.73)',
+                'metrics': has_entries({'Dice': close_to(0.9, 0.01)})
+            }),
+            has_entries({
+                'start': close_to(0.73, 0.01), 'stop': close_to(0.76, 0.01), 'count': 2, 'display_range': '[0.73, 0.76)',
+                'metrics': has_entries({'Dice': close_to(0.94, 0.01)})
+            })
+        )
+    }))
