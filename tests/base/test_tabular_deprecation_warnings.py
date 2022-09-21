@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the tabular package deprecation warnings."""
-
+import pandas as pd
 import pytest
 
-from deepchecks.tabular.checks import SegmentPerformance
-from deepchecks.tabular.checks import WholeDatasetDrift
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks import SegmentPerformance, WholeDatasetDrift
 
 
 def test_deprecation_segment_performance_warning():
@@ -21,7 +21,15 @@ def test_deprecation_segment_performance_warning():
                                                 '0.11 version. Please use the WeakSegmentsPerformance check instead.'):
         _ = SegmentPerformance()
 
+
 def test_deprecation_whole_dataset_drift_warning():
     with pytest.warns(DeprecationWarning, match='The WholeDatasetDrift check is deprecated and will be removed in the '
                                                 '0.11 version. Please use the MultivariateDrift check instead.'):
         _ = WholeDatasetDrift()
+
+
+def test_deprecation_label_type_dataset():
+    with pytest.warns(DeprecationWarning, match='regression_label value for label type is deprecated, allowed task '
+                                                'types are multiclass, binary and regression.'):
+        df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
+        Dataset(df, label='b', label_type='regression_label')

@@ -9,87 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Test metrics utils"""
-from hamcrest import assert_that, calling, close_to, equal_to, raises
+from hamcrest import assert_that, close_to
 from sklearn.metrics import make_scorer
-from sklearn.svm import SVC
 
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
-from deepchecks.tabular.metric_utils.scorers import task_type_check
-from deepchecks.tabular.utils.task_type import TaskType
-
-
-def test_task_type_check_binary(iris_dataset_single_class, iris_random_forest_single_class):
-    res = task_type_check(iris_random_forest_single_class, iris_dataset_single_class)
-
-    assert_that(res, equal_to(TaskType.BINARY))
-
-
-def test_task_type_check_multiclass(iris_split_dataset_and_model_rf):
-    train_ds, _, clf = iris_split_dataset_and_model_rf
-
-    res = task_type_check(clf, train_ds)
-
-    assert_that(res, equal_to(TaskType.MULTICLASS))
-
-
-def test_task_type_check_regression(diabetes, diabetes_model):
-    train_ds, _, = diabetes
-
-    res = task_type_check(diabetes_model, train_ds)
-
-    assert_that(res, equal_to(TaskType.REGRESSION))
-
-
-def test_task_type_not_sklearn_regression(diabetes):
-    class RegressionModel:
-        def predict(self, x):
-            return [0] * len(x)
-
-    train_ds, _, = diabetes
-
-    res = task_type_check(RegressionModel(), train_ds)
-
-    assert_that(res, equal_to(TaskType.REGRESSION))
-
-
-def test_task_type_not_sklearn_binary(iris_dataset_single_class):
-    class ClassificationModel:
-        def predict(self, x):
-            return [0] * len(x)
-
-        def predict_proba(self, x):
-            return [[1, 0]] * len(x)
-
-    res = task_type_check(ClassificationModel(), iris_dataset_single_class)
-
-    assert_that(res, equal_to(TaskType.BINARY))
-
-
-def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
-    class ClassificationModel:
-        def predict(self, x):
-            return [0] * len(x)
-
-        def predict_proba(self, x):
-            return [[1, 0]] * len(x)
-
-    res = task_type_check(ClassificationModel(), iris_labeled_dataset)
-
-    assert_that(res, equal_to(TaskType.MULTICLASS))
-
-
-def test_task_type_check_class_with_no_proba(iris_dataset_single_class):
-    clf = SVC().fit(iris_dataset_single_class.data[iris_dataset_single_class.features],
-                    iris_dataset_single_class.data[iris_dataset_single_class.label_name])
-
-    assert_that(calling(task_type_check).with_args(clf, iris_dataset_single_class),
-                raises(DeepchecksValueError,
-                       r'Model is a sklearn classification model \(a subclass of ClassifierMixin\), but lacks the'
-                       r' predict_proba method. Please train the model with probability=True, or skip \/ ignore this'
-                       r' check.'))
 
 
 def test_lending_club_false_positive_rate_scorer_binary(lending_club_split_dataset_and_model):

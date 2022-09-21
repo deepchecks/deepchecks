@@ -182,7 +182,7 @@ class SegmentPerformance(SingleDatasetCheck):
             for k, v in self.alternative_scorer.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'tabular-builtin-metrics',
+                        'supported-metrics-by-string',
                         template='For a list of built-in scorers please refer to {link}. '
                     )
                     raise ValueError(

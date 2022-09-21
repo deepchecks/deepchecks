@@ -17,7 +17,7 @@ from hamcrest import assert_that, instance_of
 from sklearn.base import BaseEstimator
 
 from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
-from deepchecks.tabular.datasets.regression import avocado, wine_quality, airbnb
+from deepchecks.tabular.datasets.regression import airbnb, avocado, wine_quality
 from deepchecks.utils.model import get_model_of_pipeline
 
 
