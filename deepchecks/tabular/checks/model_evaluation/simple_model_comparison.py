@@ -271,7 +271,7 @@ class SimpleModelComparison(TrainTestCheck):
             for k, v in self.alternative_scorers.items():
                 if callable(v):
                     reference = doclink(
-                        'tabular-builtin-metrics',
+                        'supported-metrics-by-string',
                         template='For a list of built-in scorers please refer to {link}. '
                     )
                     raise ValueError(

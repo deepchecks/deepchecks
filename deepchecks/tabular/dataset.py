@@ -26,6 +26,7 @@ from deepchecks.tabular.utils.feature_inference import (infer_categorical_featur
                                                         is_categorical)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
@@ -93,7 +94,7 @@ class Dataset:
         Possible values are: 'multiclass', 'binary' and 'regression'.
     label_classes: t.List, default: None
         Relevant only for classification tasks. The list of all possible classes in the order they appear at the
-        models' probabilities per class vector (alphanumeric order).
+        models' probabilities per class vector (in alphanumeric order).
     """
 
     _features: t.List[Hashable]
@@ -290,15 +291,17 @@ class Dataset:
             self._label_type = None
 
         if label_classes is not None:
-            if not isinstance(label_classes, t.List) or len(set(label_classes)) != len(label_classes) or \
-                    any(isinstance(x, t.Sequence) and not isinstance(x, str) for x in label_classes):
+            if not isinstance(label_classes, t.List) or \
+                    any(isinstance(x, t.Sequence) and not isinstance(x, str) for x in label_classes) or \
+                    len(set(label_classes)) != len(label_classes):
                 raise DeepchecksValueError('label_classes must be a flat list of unique values.')
             if label is not None and not set(self.label_col).issubset(set(label_classes)):
                 raise DeepchecksValueError('label_classes does not contain all labels found in label column.')
             if label_classes != sorted(label_classes):
+                reference = doclink('supported-prediction-format', template='For additional details see {link}')
                 raise DeepchecksValueError('label_classes order must correspond to the required order of the model\'s '
                                            'probabilities per class (alphanumeric order). For additional details see'
-                                           'https://docs.deepchecks.com/dev/user-guide/tabular/supported_models.html')
+                                           f'{reference}')
         self._label_classes = label_classes
 
         unassigned_cols = [col for col in self._features if col not in self._cat_features]

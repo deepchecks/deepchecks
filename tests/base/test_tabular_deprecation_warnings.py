@@ -13,8 +13,7 @@ import pandas as pd
 import pytest
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import SegmentPerformance
-from deepchecks.tabular.checks import WholeDatasetDrift
+from deepchecks.tabular.checks import SegmentPerformance, WholeDatasetDrift
 
 
 def test_deprecation_segment_performance_warning():

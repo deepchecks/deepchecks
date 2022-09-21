@@ -21,6 +21,7 @@ from deepchecks import tabular
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.utils.feature_inference import is_categorical
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel
 
@@ -61,8 +62,9 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
 
     if model is not None and not hasattr(model, 'predict_proba') and not force_classification:
         if is_string_column(train_dataset.label_col):
-            raise DeepchecksValueError('Classification models must contain \'predict_proba\' functionality, see'
-                                       'https://docs.deepchecks.com/dev/user-guide/tabular/supported_models.html')
+            reference = doclink('supported-prediction-format', template='For additional details see {link}')
+            raise DeepchecksValueError(f'Classification models must contain \'predict_proba\' functionality. '
+                                       f'{reference}')
         if isinstance(model, ClassifierMixin):
             raise DeepchecksValueError('Model is a sklearn classification model but lacks the predict_proba method. '
                                        'Please train the model with probability=True.')

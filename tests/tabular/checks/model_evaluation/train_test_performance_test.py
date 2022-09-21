@@ -13,7 +13,7 @@ import re
 from typing import List
 
 import numpy as np
-from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, instance_of, raises, equal_to
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_items, has_length, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.metrics import jaccard_score, make_scorer
 from sklearn.model_selection import train_test_split
