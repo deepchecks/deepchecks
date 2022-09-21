@@ -11,7 +11,7 @@
 """Module importing all tabular checks."""
 from deepchecks.tabular.checks.data_integrity import PercentOfNulls
 
-from .data_integrity import (ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
+from .data_integrity import (ClassImbalance, ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
                              FeatureLabelCorrelation, IsSingleValue, MixedDataTypes, MixedNulls, OutlierSampleDetection,
                              SpecialCharacters, StringLengthOutOfBounds, StringMismatch)
 from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelInferenceTime, ModelInfo,
@@ -30,6 +30,7 @@ __all__ = [
     'StringMismatch',
     'MixedDataTypes',
     'IsSingleValue',
+    'ClassImbalance',
     'SpecialCharacters',
     'StringLengthOutOfBounds',
     'StringMismatchComparison',
