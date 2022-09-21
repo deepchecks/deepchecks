@@ -155,7 +155,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         model = context.model
 
         drift_score_dict, drift_display_dict = {}, {}
-        method, classes = None, train_dataset.classes
+        method, classes = None, train_dataset.classes_in_label_col
 
         # Flag for computing drift on the probabilities rather than the predicted labels
         proba_drift = ((context.task_type == TaskType.BINARY) and (self.drift_mode == 'auto')) or \

@@ -16,6 +16,7 @@ import plotly.express as px
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['ClassImbalance']
@@ -28,9 +29,6 @@ class ClassImbalance(SingleDatasetCheck):
     ----------
     n_top_labels : int , default: 5
         Number of labels to show in display graph
-    class_imbalance_ratio_th : float , default: 0.1
-        The ratio between the least frequent and the most frequent labels.
-        If the ratio is lower or equal this value, the dataset is considered imbalanced.
     ignore_nan : bool, default True
         Whether to ignore NaN values in the target variable when counting
         the number of unique values.
@@ -39,13 +37,11 @@ class ClassImbalance(SingleDatasetCheck):
     def __init__(
             self,
             n_top_labels: int = 5,
-            class_imbalance_ratio_th=0.1,
             ignore_nan: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
         self.n_top_labels = n_top_labels
-        self.class_imbalance_ratio_th = class_imbalance_ratio_th
         self.ignore_nan = ignore_nan
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
@@ -62,7 +58,9 @@ class ClassImbalance(SingleDatasetCheck):
         label = df.label_col
         if df.label_col.nunique(dropna=self.ignore_nan) == 1:
             raise DatasetValidationError('Class contains only one unique label')
-        vc_ser = label.value_counts(normalize=True)
+        context.assert_classification_task()
+
+        vc_ser = label.value_counts(normalize=True, dropna=self.ignore_nan)
         vc_ser = vc_ser.round(2)
 
         if context.with_display:
@@ -112,7 +110,7 @@ class ClassImbalance(SingleDatasetCheck):
 
         def threshold_condition(result: t.Dict[Hashable, float]) -> ConditionResult:
             class_ratio = result[list(result.keys())[-1]] / result[list(result.keys())[0]]
-            details = f'The ratio is {round(class_ratio, 2)}'
+            details = f'The ratio is {format_number(class_ratio)}'
             if class_ratio >= class_imbalance_ratio_th:
                 return ConditionResult(ConditionCategory.WARN, details)
 

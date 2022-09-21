@@ -13,7 +13,7 @@ import re
 from typing import List
 
 import numpy as np
-from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, instance_of, raises, equal_to
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_items, has_length, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.metrics import jaccard_score, make_scorer
 from sklearn.model_selection import train_test_split
@@ -68,7 +68,7 @@ def test_dataset_no_shared_label(iris_labeled_dataset):
 def assert_classification_result(result, dataset: Dataset):
     for dataset_name in ['Test', 'Train']:
         dataset_df = result.loc[result['Dataset'] == dataset_name]
-        for class_name in dataset.classes:
+        for class_name in dataset.classes_in_label_col:
             class_df = dataset_df.loc[dataset_df['Class'] == class_name]
             for metric in MULTICLASS_SCORERS_NON_AVERAGE.keys():
                 metric_row = class_df.loc[class_df['Metric'] == metric]

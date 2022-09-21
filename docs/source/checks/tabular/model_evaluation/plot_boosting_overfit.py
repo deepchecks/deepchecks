@@ -60,8 +60,8 @@ Irvine, CA: University of California, School of Information and Computer Science
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from deepchecks.tabular.datasets.classification import adult
 from deepchecks.tabular import Dataset
+from deepchecks.tabular.datasets.classification import adult
 
 train_df, val_df = adult.load_data(data_format='Dataframe')
 

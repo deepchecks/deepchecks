@@ -19,7 +19,11 @@ What is the Confusion Matrix Report?
 The ``ConfusionMatrixReport`` produces a confusion matrix visualization which summarizes the
 performance of the model. The confusion matrix contains the TP (true positive), FP (false positive),
 TN (true negative) and FN (false negative), from which we can derive the relevant metrics,
+<<<<<<< HEAD
 such as accuracy, precision, recall etc. (confusion matrix https://en.wikipedia.org/wiki/Confusion_matrix__).
+=======
+such as accuracy, precision, recall etc. (`confusion matrix <https://en.wikipedia.org/wiki/Confusion_matrix>`__).
+
 """
 
 #%%

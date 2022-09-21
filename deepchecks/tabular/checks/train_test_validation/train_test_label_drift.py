@@ -117,7 +117,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
             train_column=train_dataset.label_col,
             test_column=test_dataset.label_col,
             value_name=train_dataset.label_name,
-            column_type='categorical' if train_dataset.label_type != TaskType.REGRESSION else 'numerical',
+            column_type='categorical' if context.task_type != TaskType.REGRESSION else 'numerical',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,

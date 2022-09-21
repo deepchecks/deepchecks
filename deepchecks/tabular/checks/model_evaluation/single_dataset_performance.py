@@ -62,7 +62,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []
-        classes = dataset.classes
+        classes = context.classes
         label = cast(pd.Series, dataset.label_col)
         if context.with_display:
             n_samples = label.groupby(label).count()
@@ -94,7 +94,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'tabular-builtin-metrics',
+                        'supported-metrics-by-string',
                         template='For a list of built-in scorers please refer to {link}'
                     )
                     raise ValueError(

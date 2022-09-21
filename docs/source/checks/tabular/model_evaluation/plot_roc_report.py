@@ -19,7 +19,11 @@ What is the ROC Report check?
 ==============================
 The ``ROCReport`` check calculates the ROC curve for each class.
 The ROC curve is a plot of TPR (true positive rate) with respect to FPR (false positive rate)
+<<<<<<< HEAD
 at various thresholds (ROC curve https://deepchecks.com/glossary/roc-receiver-operating-characteristic-curve__).
+=======
+at various thresholds (`ROC curve <https://deepchecks.com/glossary/roc-receiver-operating-characteristic-curve>`__).
+>>>>>>> 1e5057b8e9bea52f48e55e09cf9e378d0bae45be
 """
 
 #%%
@@ -73,3 +77,4 @@ check.run(ds, clf)
 
 check = RocReport()
 check.add_condition_auc_greater_than(0.7).run(ds, clf)
+
