@@ -400,7 +400,7 @@ Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/d
   <tbody>
     <tr>
       <td align="center"><a href="https://github.com/ItayGabbay"><img src="https://avatars.githubusercontent.com/u/20860465?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Itay Gabbay</b></sub></a><br /><a href="#code-ItayGabbay" title="Code">💻</a> <a href="#doc-ItayGabbay" title="Documentation">📖</a> <a href="#ideas-ItayGabbay" title="Ideas, Planning, & Feedback">🤔</a></td>
-      <td align="center"><a href="https://github.com/noamzbr"><img src="https://avatars.githubusercontent.com/u/17730502?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Noam Bressler</b></sub></a><br /><a href="#code-noamzbr" title="Code">💻</a> <a href="#doc-noamzbr" title="Documentation">📖</a></td>
+      <td align="center"><a href="https://github.com/noamzbr"><img src="https://avatars.githubusercontent.com/u/17730502?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Noam Bressler</b></sub></a><br /><a href="#code-noamzbr" title="Code">💻</a> <a href="#doc-noamzbr" title="Documentation">📖</a> <a href="#ideas-noamzbr" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
