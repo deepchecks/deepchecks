@@ -394,20 +394,21 @@ Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/d
 .. raw:: html
 
    <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-   <!-- prettier-ignore-start -->
-   <!-- markdownlint-disable -->
-   <table>
-     <tbody>
-       <tr>
-         <td align="center"><a href="https://github.com/ItayGabbay"><img src="https://avatars.githubusercontent.com/u/20860465?v=4?s=70" width="70px;" alt=""/><br /><sub><b>Itay Gabbay</b></sub></a><br /><a href="#code-ItayGabbay" title="Code">💻</a> <a href="#doc-ItayGabbay" title="Documentation">📖</a> <a href="#ideas-ItayGabbay" title="Ideas, Planning, & Feedback">🤔</a></td>
-       </tr>
-     </tbody>
-   </table>
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center"><a href="https://github.com/ItayGabbay"><img src="https://avatars.githubusercontent.com/u/20860465?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Itay Gabbay</b></sub></a><br /><a href="#code-ItayGabbay" title="Code">💻</a> <a href="#doc-ItayGabbay" title="Documentation">📖</a> <a href="#ideas-ItayGabbay" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center"><a href="https://github.com/nirhutnik"><img src="https://avatars.githubusercontent.com/u/92314933?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nir Hutnik</b></sub></a><br /><a href="#code-nirhutnik" title="Code">💻</a> <a href="#doc-nirhutnik" title="Documentation">📖</a> <a href="#ideas-nirhutnik" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+  </tbody>
+</table>
 
-   <!-- markdownlint-restore -->
-   <!-- prettier-ignore-end -->
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
 
-   <!-- ALL-CONTRIBUTORS-LIST:END -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
    
 This project follows the `all-contributors <https://allcontributors.org>`__ specification.
 Contributions of any kind are welcome!
