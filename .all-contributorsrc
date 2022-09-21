@@ -2,7 +2,21 @@
   "files": [
     "README.rst"
   ],
-  "imageSize": 70,
+  "imageSize": 100,
   "contributorsPerLine": 7,
-  "contributors": []
+  "contributors": [
+    {
+      "login": "ItayGabbay",
+      "name": "Itay Gabbay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20860465?v=4",
+      "profile": "https://github.com/ItayGabbay",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    }
+  ],
+  "projectName": "deepchecks",
+  "projectOwner": "deepchecks"
 }

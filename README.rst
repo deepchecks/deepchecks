@@ -35,8 +35,9 @@
       </a>
    </p>
 
-|build| |Documentation Status| |pkgVersion| |pyVersions|
-|Maintainability| |Coverage Status|
+
+|GitHub stars| |build| |Documentation Status| |pkgVersion| |pyVersions|
+|Maintainability| |Coverage Status| |all-contributors badge|
 
 .. raw:: html
 
@@ -363,6 +364,9 @@ The package currently supports tabular data and is in *beta release* for the `Co
    improvements, open an issue, or share feedback.
 
 
+
+.. |GitHub stars| image:: https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=social&label=Star&maxAge=2592000
+   :target: https://GitHub.com/deepchecks/deepchecks/stargazers/
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
 .. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=stable
    :target: https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=badge
@@ -379,13 +383,31 @@ The package currently supports tabular data and is in *beta release* for the `Co
    :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_colab
 
 
+✨ Contributors
+================
+
+Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/docs/en/emoji-key>`__):
+
+.. |all-contributors badge| image:: https://img.shields.io/badge/all_contributors-30-orange.svg?style=flat-round
+   :target: https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst
+
 .. raw:: html
 
    <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
    <!-- prettier-ignore-start -->
    <!-- markdownlint-disable -->
+   <table>
+     <tbody>
+       <tr>
+         <td align="center"><a href="https://github.com/ItayGabbay"><img src="https://avatars.githubusercontent.com/u/20860465?v=4?s=70" width="70px;" alt=""/><br /><sub><b>Itay Gabbay</b></sub></a><br /><a href="#code-ItayGabbay" title="Code">💻</a> <a href="#doc-ItayGabbay" title="Documentation">📖</a> <a href="#ideas-ItayGabbay" title="Ideas, Planning, & Feedback">🤔</a></td>
+       </tr>
+     </tbody>
+   </table>
 
    <!-- markdownlint-restore -->
    <!-- prettier-ignore-end -->
 
    <!-- ALL-CONTRIBUTORS-LIST:END -->
+   
+This project follows the `all-contributors <https://allcontributors.org>`__ specification.
+Contributions of any kind are welcome!
