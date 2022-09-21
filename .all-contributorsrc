@@ -15,6 +15,17 @@
         "doc",
         "ideas"
       ]
+    },
+    {
+      "login": "JKL98ISR",
+      "name": "JKL98ISR",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26321553?v=4",
+      "profile": "https://github.com/JKL98ISR",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
     }
   ],
   "projectName": "deepchecks",
