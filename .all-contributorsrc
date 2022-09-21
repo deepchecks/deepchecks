@@ -15,6 +15,17 @@
         "doc",
         "ideas"
       ]
+    },
+    {
+      "login": "yromanyshyn",
+      "name": "Yurii Romanyshyn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71635444?v=4",
+      "profile": "https://github.com/yromanyshyn",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
     }
   ],
   "projectName": "deepchecks",
