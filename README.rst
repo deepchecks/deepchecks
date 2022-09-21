@@ -396,7 +396,7 @@ Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/d
    <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
    <!-- prettier-ignore-start -->
    <!-- markdownlint-disable -->
-   <tabldffe>
+   <table>
       <tbody>
          <tr>
             <td align="center"><a href="https://github.com/ItayGabbay"><img src="https://avatars.githubusercontent.com/u/20860465?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Itay Gabbay</b></sub></a><br /><a href="#code-ItayGabbay" title="Code">💻</a> <a href="#doc-ItayGabbay" title="Documentation">📖</a> <a href="#ideas-ItayGabbay" title="Ideas, Planning, & Feedback">🤔</a></td>
