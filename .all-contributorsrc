@@ -2,6 +2,7 @@
   "files": [
     "README.rst"
   ],
+  "skipCi": "true",
   "imageSize": 100,
   "contributorsPerLine": 7,
   "contributors": [
@@ -50,15 +51,15 @@
       ]
     },
     {
-       "login": "noamzbr",
-       "name": "Noam Bressler",
-       "avatar_url": "https://avatars.githubusercontent.com/u/17730502?v=4",
-       "profile": "https://github.com/noamzbr",
-       "contributions": [
+      "login": "noamzbr",
+      "name": "Noam Bressler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17730502?v=4",
+      "profile": "https://github.com/noamzbr",
+      "contributions": [
         "code",
         "doc",
         "ideas"
-        ]
+      ]
     },
     {
       "login": "nirhutnik",
@@ -80,6 +81,45 @@
         "code",
         "doc",
         "ideas"
+      ]
+    },
+    {
+      "login": "TheSolY",
+      "name": "Sol",
+      "avatar_url": "https://avatars.githubusercontent.com/u/99395146?v=4",
+      "profile": "https://github.com/TheSolY",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "DanArlowski",
+      "name": "DanArlowski",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59116108?v=4",
+      "profile": "http://www.linkedin.com/in/dan-arlowski",
+      "contributions": [
+        "code",
+        "infra"
+      ]
+    },
+    {
+      "login": "benisraeldan",
+      "name": "DBI",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42312361?v=4",
+      "profile": "https://github.com/benisraeldan",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "OrlyShmorly",
+      "name": "OrlyShmorly",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110338263?v=4",
+      "profile": "https://github.com/OrlyShmorly",
+      "contributions": [
+        "design"
       ]
     }
   ],
