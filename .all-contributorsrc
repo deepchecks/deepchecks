@@ -50,15 +50,15 @@
       ]
     },
     {
-       "login": "noamzbr",
-       "name": "Noam Bressler",
-       "avatar_url": "https://avatars.githubusercontent.com/u/17730502?v=4",
-       "profile": "https://github.com/noamzbr",
-       "contributions": [
+      "login": "noamzbr",
+      "name": "Noam Bressler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17730502?v=4",
+      "profile": "https://github.com/noamzbr",
+      "contributions": [
         "code",
         "doc",
         "ideas"
-        ]
+      ]
     },
     {
       "login": "nirhutnik",
@@ -76,6 +76,17 @@
       "name": "Nadav-Barak",
       "avatar_url": "https://avatars.githubusercontent.com/u/67195469?v=4",
       "profile": "https://github.com/Nadav-Barak",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "TheSolY",
+      "name": "Sol",
+      "avatar_url": "https://avatars.githubusercontent.com/u/99395146?v=4",
+      "profile": "https://github.com/TheSolY",
       "contributions": [
         "code",
         "doc",
