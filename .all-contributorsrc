@@ -59,7 +59,29 @@
         "doc",
         "ideas"
         ]
-      }
+    },
+    {
+      "login": "nirhutnik",
+      "name": "Nir Hutnik",
+      "avatar_url": "https://avatars.githubusercontent.com/u/92314933?v=4",
+      "profile": "https://github.com/nirhutnik",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "Nadav-Barak",
+      "name": "Nadav-Barak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67195469?v=4",
+      "profile": "https://github.com/Nadav-Barak",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    }
   ],
   "projectName": "deepchecks",
   "projectOwner": "deepchecks"
