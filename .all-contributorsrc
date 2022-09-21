@@ -15,6 +15,17 @@
         "doc",
         "ideas"
       ]
+    },
+    {
+      "login": "nirhutnik",
+      "name": "Nir Hutnik",
+      "avatar_url": "https://avatars.githubusercontent.com/u/92314933?v=4",
+      "profile": "https://github.com/nirhutnik",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
     }
   ],
   "projectName": "deepchecks",
