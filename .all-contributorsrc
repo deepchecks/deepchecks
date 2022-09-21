@@ -4,5 +4,19 @@
   ],
   "imageSize": 70,
   "contributorsPerLine": 7,
-  "contributors": []
+  "contributors": [
+    {
+      "login": "matanper",
+      "name": "matanper",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9868530?v=4",
+      "profile": "https://github.com/matanper",
+      "contributions": [
+        "doc",
+        "ideas",
+        "code"
+      ]
+    }
+  ],
+  "projectName": "deepchecks",
+  "projectOwner": "deepchecks"
 }
