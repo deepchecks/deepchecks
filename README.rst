@@ -382,10 +382,17 @@ The package currently supports tabular data and is in *beta release* for the `Co
 .. raw:: html
 
    <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-   <!-- prettier-ignore-start -->
-   <!-- markdownlint-disable -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center"><a href="https://www.thomaseichmann.com"><img src="https://avatars.githubusercontent.com/u/41003?v=4?s=70" width="70px;" alt=""/><br /><sub><b>Thomas Eichmann</b></sub></a><br /><a href="#ideas-the" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-the" title="Code">💻</a> <a href="#doc-the" title="Documentation">📖</a></td>
+    </tr>
+  </tbody>
+</table>
 
-   <!-- markdownlint-restore -->
-   <!-- prettier-ignore-end -->
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
 
-   <!-- ALL-CONTRIBUTORS-LIST:END -->
+<!-- ALL-CONTRIBUTORS-LIST:END -->
