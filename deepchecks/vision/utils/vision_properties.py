@@ -119,13 +119,14 @@ def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPE
     indices = list(static_props.keys())
     input_types = list(static_props[indices[0]].keys())
     props_cache = {input_type: {prop_name: [] for prop_name in list(static_props[indices[0]][input_type].keys())}
-                   for input_type in input_types}
+                   for input_type in input_types if static_props[indices[0]][input_type]}
 
     for input_type in input_types:
-        for prop_name in list(static_props[indices[0]][input_type].keys()):
-            prop_vals = [static_props[index][input_type][prop_name] for index in indices]
-            if input_type == PropertiesInputType.PARTIAL_IMAGES.value:
-                prop_vals = list(chain.from_iterable(prop_vals))
-            props_cache[input_type][prop_name] = prop_vals
+        if static_props[indices[0]][input_type]:
+            for prop_name in list(static_props[indices[0]][input_type].keys()):
+                prop_vals = [static_props[index][input_type][prop_name] for index in indices]
+                if input_type == PropertiesInputType.PARTIAL_IMAGES:
+                    prop_vals = list(chain.from_iterable(prop_vals))
+                props_cache[input_type][prop_name] = prop_vals
 
     return props_cache

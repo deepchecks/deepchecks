@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 
+from hamcrest import assert_that, close_to, has_length
+from ignite.metrics import Accuracy, Precision
+from sklearn.metrics import cohen_kappa_score
+
 from deepchecks.core import ConditionCategory
 from deepchecks.vision.checks import SingleDatasetPerformance
 from deepchecks.vision.metrics_utils import ObjectDetectionTpFpFn
 from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationScorer
-from hamcrest import assert_that, close_to, has_length
-from ignite.metrics import Accuracy, Precision
-from sklearn.metrics import cohen_kappa_score
 from tests.base.utils import equal_condition_result
 
 

@@ -16,8 +16,8 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.strings import format_list, format_number, format_percent, get_ellipsis, is_string_column
 from deepchecks.utils.typing import Hashable
 

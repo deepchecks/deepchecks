@@ -12,11 +12,10 @@
 
 from .scorers import (DEFAULT_BINARY_SCORERS, DEFAULT_MULTICLASS_SCORERS, DEFAULT_REGRESSION_SCORERS,
                       DEFAULT_SCORERS_DICT, MULTICLASS_SCORERS_NON_AVERAGE, DeepcheckScorer, TaskType,
-                      get_default_scorers, init_validate_scorers, task_type_check)
+                      get_default_scorers, init_validate_scorers)
 
 __all__ = [
     'TaskType',
-    'task_type_check',
     'DEFAULT_SCORERS_DICT',
     'DEFAULT_REGRESSION_SCORERS',
     'DEFAULT_BINARY_SCORERS',

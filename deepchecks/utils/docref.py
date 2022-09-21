@@ -18,7 +18,8 @@ __all__ = ['doclink']
 # TODO:
 links = {
     'default': {
-        'tabular-builtin-metrics': 'https://docs.deepchecks.com/en/stable/user-guide/general/metrics_guide.html#list-of-supported-strings',  # pylint: disable=line-too-long  # noqa
+        'supported-metrics-by-string': 'https://docs.deepchecks.com/en/stable/user-guide/general/metrics_guide.html#list-of-supported-strings', # pylint: disable=line-too-long  # noqa
+        'supported-prediction-format': 'https://docs.deepchecks.com/en/stable/user-guide/tabular/supported_models.html#supported-tasks-and-predictions-format' # pylint: disable=line-too-long  # noqa
     },
     # '0.0.1': {},  # noqa
     # '0.0.2': {},  # noqa
@@ -26,19 +27,36 @@ links = {
 
 
 def doclink(
-    name: str,
-    default: t.Optional[str] = None,
-    template: t.Optional[str] = None,
-    package_version: str = __version__
+        name: str,
+        default_link: t.Optional[str] = None,
+        template: t.Optional[str] = None,
+        package_version: str = __version__
 ) -> str:
-    """Get documentation link."""
+    """Get documentation link.
+
+    Parameters
+    ----------
+    name: str
+        the name of the required link as appears in the links' dictionary.
+    default_link: t.Optional[str], default: None
+        default like to use if no link corresponding to name was found.
+    template: t.Optional[str], default: None
+        a string template in which to incorporate the link.
+    package_version: str
+        which version of the docs to use
+
+    Returns
+    -------
+    str
+        The template text incorporated with the relevant link
+    """
     index = (
         links[package_version]
         if package_version in links
         else (links.get('default') or {})
     )
 
-    link = index.get(name) or default
+    link = index.get(name) or default_link
 
     if link is None:
         return ''
