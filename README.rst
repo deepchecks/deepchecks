@@ -379,6 +379,11 @@ The package currently supports tabular data and is in *beta release* for the `Co
    :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_colab
 
 
+✨ Contributors
+================
+
+Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/docs/en/emoji-key>`__):
+
 .. raw:: html
 
    <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
@@ -392,7 +397,10 @@ The package currently supports tabular data and is in *beta release* for the `Co
      </tbody>
    </table>
 
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
+   <!-- markdownlint-restore -->
+   <!-- prettier-ignore-end -->
 
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+   <!-- ALL-CONTRIBUTORS-LIST:END -->
+   
+This project follows the `all-contributors <https://allcontributors.org>`__ specification.
+Contributions of any kind are welcome!
