@@ -45,6 +45,8 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         dictionary of additional parameters for the ppscore.predictors function
     n_top_features : int , default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
+    n_samples : int , default: 100_000
+        number of samples to use for this check.
     random_state : int , default: None
         Random state for the ppscore.predictors function
     """
@@ -53,12 +55,14 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         self,
         ppscore_params: t.Optional[t.Dict[t.Any, t.Any]] = None,
         n_top_features: int = 5,
+        n_samples: int = 100_000,
         random_state: t.Optional[int] = None,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
         self.n_top_features = n_top_features
+        self.n_samples = n_samples
         self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
@@ -75,7 +79,7 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset.assert_features()
         relevant_columns = dataset.features + [dataset.label_name]
 

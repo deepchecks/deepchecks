@@ -96,6 +96,10 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     max_classes_to_display: int, default: 3
         Max number of classes to show in the display when drift is computed on the class probabilities for
         classification tasks.
+    n_samples : int , default: 100_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
@@ -110,6 +114,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             ignore_na: bool = True,
             aggregation_method: str = 'max',
             max_classes_to_display: int = 3,
+            n_samples: int = 100_000,
+            random_state: int = 42,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -127,6 +133,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.ignore_na = ignore_na
         self.max_classes_to_display = max_classes_to_display
         self.aggregation_method = aggregation_method
+        self.n_samples = n_samples
+        self.random_state = random_state
         if self.aggregation_method not in ('weighted', 'mean', 'none', 'max'):
             raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "none", "max"')
 
@@ -142,12 +150,12 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         if (self.drift_mode == 'proba') and (context.task_type == TaskType.REGRESSION):
             raise DeepchecksValueError('probability_drift="proba" is not supported for regression tasks')
 
-        train_dataset = context.train
-        test_dataset = context.test
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
         model = context.model
 
         drift_score_dict, drift_display_dict = {}, {}
-        method, classes = None, train_dataset.classes
+        method, classes = None, train_dataset.classes_in_label_col
 
         # Flag for computing drift on the probabilities rather than the predicted labels
         proba_drift = ((context.task_type == TaskType.BINARY) and (self.drift_mode == 'auto')) or \

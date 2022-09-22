@@ -144,17 +144,25 @@ class BoostingOverfit(TrainTestCheck):
         Name to be displayed in the plot on y-axis. must be used together with 'scorer'
     num_steps : int , default: 20
         Number of splits of the model iterations to check.
+    n_samples : int , default: 1_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
     """
 
     def __init__(
         self,
         alternative_scorer: Tuple[str, Union[str, Callable]] = None,
         num_steps: int = 20,
+        n_samples: int = 1_000_000,
+        random_state: int = 42,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.alternative_scorer = dict([alternative_scorer]) if alternative_scorer else None
         self.num_steps = num_steps
+        self.n_samples = n_samples
+        self.random_state = random_state
 
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
             raise DeepchecksValueError('num_steps must be an integer larger than 1')
@@ -167,8 +175,8 @@ class BoostingOverfit(TrainTestCheck):
         CheckResult
             The score value on the test dataset.
         """
-        train_dataset = context.train
-        test_dataset = context.test
+        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
+        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
         model = context.model
 
         # Get default scorer
@@ -239,7 +247,7 @@ class BoostingOverfit(TrainTestCheck):
             for k, v in self.alternative_scorer.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'tabular-builtin-metrics',
+                        'supported-metrics-by-string',
                         template='For a list of built-in scorers please refer to {link}. '
                     )
                     raise ValueError(

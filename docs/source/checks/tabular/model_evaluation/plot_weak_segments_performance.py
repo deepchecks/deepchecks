@@ -3,7 +3,7 @@
 Weak Segments Performance
 *************************
 
-This notebooks provides an overview for using and understanding the weak segment performance check.
+This notebook provides an overview for using and understanding the weak segment performance check.
 
 **Structure:**
 

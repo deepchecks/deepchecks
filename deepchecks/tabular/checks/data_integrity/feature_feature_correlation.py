@@ -41,7 +41,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         Columns to ignore, if none given checks based on columns variable.
     show_n_top_columns : int , optional
         amount of columns to show ordered by the highest correlation, default: 10
-    n_samples : int , default: 10000
+    n_samples : int , default: 10_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
@@ -52,7 +52,7 @@ class FeatureFeatureCorrelation(SingleDatasetCheck):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         show_n_top_columns: int = 10,
-        n_samples: int = 10000,
+        n_samples: int = 10_000,
         random_state: int = 42,
         **kwargs
     ):

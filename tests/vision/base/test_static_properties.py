@@ -20,7 +20,7 @@ from deepchecks.vision.checks import ImagePropertyOutliers, PropertyLabelCorrela
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import aspect_ratio, default_image_properties
-from deepchecks.vision.utils.vision_properties import calc_vision_properties
+from deepchecks.vision.utils.vision_properties import calc_vision_properties, PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
 from tests.vision.checks.train_test_validation.property_label_correlation_change_test import \
@@ -86,10 +86,10 @@ def _create_static_properties(train: VisionData, test: VisionData, image_propert
                         bbox_props_list.append(calc_vision_properties(imgs, image_properties))
                     bbox_props = {k: [dic[k] for dic in bbox_props_list] for k in bbox_props_list[0]}
                     static_bbox_prop = vision_props_to_static_format(indexes, bbox_props)
-                    static_prop.update({k: {'images': static_image_prop[k],
-                                            'partial_images': static_bbox_prop[k]} for k in indexes})
+                    static_prop.update({k: {PropertiesInputType.IMAGES: static_image_prop[k],
+                                            PropertiesInputType.PARTIAL_IMAGES: static_bbox_prop[k]} for k in indexes})
                 else:
-                    static_prop.update({k: {'images': static_image_prop[k]} for k in indexes})
+                    static_prop.update({k: {PropertiesInputType.IMAGES: static_image_prop[k]} for k in indexes})
         else:
             static_prop = None
         static_props.append(static_prop)
@@ -146,6 +146,7 @@ def test_object_detection_bad_prop(coco_train_visiondata, coco_test_visiondata):
         train_dataset=coco_train_visiondata, test_dataset=coco_test_visiondata,
         train_properties={'0': {'ahhh': 0, 'partial_images': [1, 2]}}, test_properties=test_props)), \
         raises(DeepchecksValueError, 'bad batch images')
+
 
 def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange

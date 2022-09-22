@@ -114,3 +114,4 @@ coco128
 callables
 rstrip
 VOC
+jaccard
