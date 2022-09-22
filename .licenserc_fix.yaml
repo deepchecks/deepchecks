@@ -34,6 +34,7 @@ header:
     - 'DESCRIPTION.rst'
     - 'CITATION.cff'
     - 'deepchecks/core/resources/requirejs.min.js'
+    - '.all-contributorsrc'
   comment: on-failure
 
 dependency:

@@ -35,8 +35,9 @@
       </a>
    </p>
 
-|build| |Documentation Status| |pkgVersion| |pyVersions|
-|Maintainability| |Coverage Status|
+
+|GitHub stars| |build| |Documentation Status| |pkgVersion| |pyVersions|
+|Maintainability| |Coverage Status| |all-contributors badge|
 
 .. raw:: html
 
@@ -363,6 +364,9 @@ The package currently supports tabular data and is in *beta release* for the `Co
    improvements, open an issue, or share feedback.
 
 
+
+.. |GitHub stars| image:: https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=social&label=Star&maxAge=2592000
+   :target: https://GitHub.com/deepchecks/deepchecks/stargazers/
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
 .. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=stable
    :target: https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=badge
@@ -377,3 +381,45 @@ The package currently supports tabular data and is in *beta release* for the `Co
    :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_binder
 .. |colab badge image| image:: /docs/source/_static/colab-badge.svg
    :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_colab
+
+
+✨ Contributors
+================
+
+Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/docs/en/emoji-key>`__):
+
+.. |all-contributors badge| image:: https://img.shields.io/badge/all_contributors-30-orange.svg?style=flat-round
+   :target: https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst
+
+.. raw:: html
+
+   <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+   <!-- prettier-ignore-start -->
+   <!-- markdownlint-disable -->
+   <table>
+      <tbody>
+         <tr>
+            <td align="center"><a href="https://github.com/ItayGabbay"><img src="https://avatars.githubusercontent.com/u/20860465?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Itay Gabbay</b></sub></a><br /><a href="#code-ItayGabbay" title="Code">💻</a> <a href="#doc-ItayGabbay" title="Documentation">📖</a> <a href="#ideas-ItayGabbay" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="https://github.com/matanper"><img src="https://avatars.githubusercontent.com/u/9868530?v=4?s=100" width="100px;" alt=""/><br /><sub><b>matanper</b></sub></a><br /><a href="#doc-matanper" title="Documentation">📖</a> <a href="#ideas-matanper" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-matanper" title="Code">💻</a></td>
+            <td align="center"><a href="https://github.com/JKL98ISR"><img src="https://avatars.githubusercontent.com/u/26321553?v=4?s=100" width="100px;" alt=""/><br /><sub><b>JKL98ISR</b></sub></a><br /><a href="#ideas-JKL98ISR" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-JKL98ISR" title="Code">💻</a> <a href="#doc-JKL98ISR" title="Documentation">📖</a></td>
+            <td align="center"><a href="https://github.com/yromanyshyn"><img src="https://avatars.githubusercontent.com/u/71635444?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Yurii Romanyshyn</b></sub></a><br /><a href="#ideas-yromanyshyn" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-yromanyshyn" title="Code">💻</a> <a href="#doc-yromanyshyn" title="Documentation">📖</a></td>
+            <td align="center"><a href="https://github.com/noamzbr"><img src="https://avatars.githubusercontent.com/u/17730502?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Noam Bressler</b></sub></a><br /><a href="#code-noamzbr" title="Code">💻</a> <a href="#doc-noamzbr" title="Documentation">📖</a> <a href="#ideas-noamzbr" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="https://github.com/nirhutnik"><img src="https://avatars.githubusercontent.com/u/92314933?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nir Hutnik</b></sub></a><br /><a href="#code-nirhutnik" title="Code">💻</a> <a href="#doc-nirhutnik" title="Documentation">📖</a> <a href="#ideas-nirhutnik" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="https://github.com/Nadav-Barak"><img src="https://avatars.githubusercontent.com/u/67195469?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nadav-Barak</b></sub></a><br /><a href="#code-Nadav-Barak" title="Code">💻</a> <a href="#doc-Nadav-Barak" title="Documentation">📖</a> <a href="#ideas-Nadav-Barak" title="Ideas, Planning, & Feedback">🤔</a></td>
+         </tr>
+         <tr>
+            <td align="center"><a href="https://github.com/TheSolY"><img src="https://avatars.githubusercontent.com/u/99395146?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Sol</b></sub></a><br /><a href="#code-TheSolY" title="Code">💻</a> <a href="#doc-TheSolY" title="Documentation">📖</a> <a href="#ideas-TheSolY" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="http://www.linkedin.com/in/dan-arlowski"><img src="https://avatars.githubusercontent.com/u/59116108?v=4?s=100" width="100px;" alt=""/><br /><sub><b>DanArlowski</b></sub></a><br /><a href="#code-DanArlowski" title="Code">💻</a> <a href="#infra-DanArlowski" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+            <td align="center"><a href="https://github.com/benisraeldan"><img src="https://avatars.githubusercontent.com/u/42312361?v=4?s=100" width="100px;" alt=""/><br /><sub><b>DBI</b></sub></a><br /><a href="#code-benisraeldan" title="Code">💻</a></td>
+            <td align="center"><a href="https://github.com/OrlyShmorly"><img src="https://avatars.githubusercontent.com/u/110338263?v=4?s=100" width="100px;" alt=""/><br /><sub><b>OrlyShmorly</b></sub></a><br /><a href="#design-OrlyShmorly" title="Design">🎨</a></td>
+         </tr>
+      </tbody>
+   </table>
+
+   <!-- markdownlint-restore -->
+   <!-- prettier-ignore-end -->
+
+   <!-- ALL-CONTRIBUTORS-LIST:END -->
+   
+This project follows the `all-contributors <https://allcontributors.org>`__ specification.
+Contributions of any kind are welcome!

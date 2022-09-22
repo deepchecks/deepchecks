@@ -14,7 +14,7 @@ ipython>=5.5.0,<8; python_version < '3.8'
 ipykernel>=4.10.1; python_version < '3.8'
 ipywidgets>=7.5.0,<8; python_version < '3.8'
 
-typing_extensions>=3.7.4.3
+typing_extensions>=4.0.0
 tqdm>=4.62.3
 category-encoders>=2.3.0
 
