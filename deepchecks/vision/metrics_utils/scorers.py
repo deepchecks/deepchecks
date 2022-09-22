@@ -139,10 +139,8 @@ def get_scorers_dict(
                 elif task_type == TaskType.CLASSIFICATION:
                     if metric_name in classification_dict:
                         converted_met = classification_dict[metric_name]()
-                    else:  # TODO: fix this flow
-                        scorer = DeepcheckScorer(metric_name, None)
-                        needs_proba = isinstance(scorer, _ProbaScorer)
-                        converted_met = CustomClassificationScorer(scorer.run_on_pred, needs_proba=needs_proba)
+                    else:
+                        converted_met = CustomClassificationScorer(metric)
                 elif task_type == TaskType.SEMANTIC_SEGMENTATION:
                     converted_met = semantic_segmentation_dict[metric_name]()
                 else:

@@ -176,7 +176,7 @@ class DeepcheckScorer:
         sklearn scorer name or callable
     possible_classes: t.Optional[t.List]
         possible classes output for model. None for regression tasks.
-    name : str
+    name : str, default = None
         scorer name
     """
 

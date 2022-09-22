@@ -62,8 +62,8 @@ class _DummyModel:
 
     def __init__(self,
                  test: Dataset,
-                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]],
-                 y_proba_test: np.ndarray,
+                 y_proba_test: t.Optional[np.ndarray],
+                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]] = None,
                  train: t.Union[Dataset, None] = None,
                  y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
                  y_proba_train: t.Union[np.ndarray, None] = None,
@@ -101,6 +101,7 @@ class _DummyModel:
                         proba_df = pd.DataFrame(data=y_proba)
                         proba_df.index = dataset.data.index
                         probas.append(proba_df)
+
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None

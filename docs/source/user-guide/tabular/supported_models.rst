@@ -72,10 +72,10 @@ model's class or create a wrapper class that implements the required interfaces 
 model. Below is a general structure of such wrapper class.
 
 >>> class MyModelWrapper:
-...     def predict(X: pd.DataFrame) -> np.ndarray:
+...     def predict(self, data: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API.
 ...         ...
-...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
+...     def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API, only required for classification tasks.
 ...         ...
 ...     @property
