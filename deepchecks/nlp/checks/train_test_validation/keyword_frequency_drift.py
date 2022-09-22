@@ -74,6 +74,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         else:
             raise DeepchecksValueError(f'drift_method must be one of: PSI, cramer_v, found {drift_method}')
         nltk_download('punkt', quiet=True)
+        nltk_download('stopwords', quiet=True)
         self.stopword_list = stopwords.words('english')
 
     def run_logic(self, context: Context) -> CheckResult:
