@@ -18,11 +18,9 @@ import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Metric, Precision, Recall
-from sklearn.metrics._scorer import _ProbaScorer
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)

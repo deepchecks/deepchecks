@@ -102,7 +102,6 @@ class _DummyModel:
                         proba_df.index = dataset.data.index
                         probas.append(proba_df)
 
-
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
         self.probas = pd.concat(probas, axis=0) if probas else None
         self.feature_df_list = feature_df_list

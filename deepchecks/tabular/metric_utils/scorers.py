@@ -241,6 +241,7 @@ class DeepcheckScorer:
                     self.indexes_to_pad_around = None
 
             def predict(self, data: pd.DataFrame) -> np.ndarray:
+                """Convert labels to 0/1 if model is a binary classifier."""
                 if len(self.possible_classes) == 2:
                     transfer_func = np.vectorize(lambda x: 0 if x == self.possible_classes[0] else 1)
                     return transfer_func(np.asarray(self.user_model.predict(data)))
@@ -248,6 +249,7 @@ class DeepcheckScorer:
                     return self.user_model.predict(data)
 
             def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
+                """Pad probabilities per class to match the length of possible classes."""
                 probabilities_per_class = self.user_model.predict_proba(data)
                 if self.indexes_to_pad_around is not None:
                     padded_probabilities_per_class = np.zeros((len(data), len(self.possible_classes)))
