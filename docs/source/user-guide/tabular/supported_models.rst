@@ -35,7 +35,8 @@ the predictions must be in the following format based on the task type:
 .. Note::
     For classification tasks, Deepchecks require the list of all possible classes in the order they appear at the
     ``probabilities per class`` vector (alphanumeric order). It can either be inferred based on provided data and model
-    or supplied via the Dataset's ``label_class`` argument.
+    or supplied via the Dataset's ``label_class`` argument. For binary classification, the class with the greater
+    alphanumeric value is considered the positive class.
 
 .. _supported_models__passing_a_model:
 

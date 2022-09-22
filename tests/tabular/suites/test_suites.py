@@ -9,7 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """builtin suites tests"""
-#pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name
+import typing as t
+from datetime import datetime
+
+import pandas as pd
+import pytest
+from catboost import CatBoostClassifier, CatBoostRegressor
+from lightgbm import LGBMClassifier, LGBMRegressor
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.model_selection import train_test_split
+from xgboost import XGBClassifier, XGBRegressor
+
+from deepchecks.tabular import Dataset, suites
+from tests.conftest import get_expected_results_length, validate_suite_result
+# pylint: disable=redefined-outer-name
 import typing as t
 from datetime import datetime
 
@@ -50,29 +64,33 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
 
 
 def test_generic_suite(
-    iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-    diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
-    iris_split_dataset_and_model_single_feature : t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-        kiss_dataset_and_model, wierd_classification_dataset_and_model, wierd_regression_dataset_and_model
+        iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
+        diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
+        iris_split_dataset_and_model_single_feature: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
+        kiss_dataset_and_model, wierd_classification_dataset_and_model, wierd_regression_dataset_and_model,
+        adult_split_dataset_and_model
 ):
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
     kiss_train, kiss_test, kiss_model = kiss_dataset_and_model
     wierd_classification_train, wierd_classification_test, wierd_classification_model = wierd_classification_dataset_and_model
     wierd_regression_train, wierd_regression_test, wierd_regression_model = wierd_regression_dataset_and_model
-    iris_train_single, iris_test_single, iris_model_single= iris_split_dataset_and_model_single_feature
+    iris_train_single, iris_test_single, iris_model_single = iris_split_dataset_and_model_single_feature
+    adult_train, adult_test, adult_model = adult_split_dataset_and_model
     suite = suites.full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
 
     arguments = (
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single, model=iris_model_single),
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single),
         dict(train_dataset=kiss_train, test_dataset=kiss_test, model=kiss_model),
-        dict(train_dataset=wierd_classification_train, test_dataset=wierd_classification_test, model=wierd_classification_model),
+        dict(train_dataset=wierd_classification_train, test_dataset=wierd_classification_test,
+             model=wierd_classification_model),
         dict(train_dataset=wierd_regression_train, test_dataset=wierd_regression_test, model=wierd_regression_model),
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model, with_display=False),
         dict(train_dataset=iris_train, test_dataset=iris_test),
         dict(train_dataset=iris_train, model=iris_model),
+        dict(train_dataset=adult_train, test_dataset=adult_test, model=adult_model),
         dict(train_dataset=diabetes_train, model=diabetes_model),
         dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model),
         dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model, with_display=False),
@@ -86,12 +104,12 @@ def test_generic_suite(
 
 
 def test_generic_boost(
-    iris_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, CatBoostClassifier],
-    iris_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, XGBClassifier],
-    iris_split_dataset_and_model_lgbm : t.Tuple[Dataset, Dataset, LGBMClassifier],
-    diabetes_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, CatBoostRegressor],
-    diabetes_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, XGBRegressor],
-    diabetes_split_dataset_and_model_cat : t.Tuple[Dataset, Dataset, LGBMRegressor],
+        iris_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, CatBoostClassifier],
+        iris_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, XGBClassifier],
+        iris_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, LGBMClassifier],
+        diabetes_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, CatBoostRegressor],
+        diabetes_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, XGBRegressor],
+        diabetes_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, LGBMRegressor],
 ):
     iris_cat_train, iris_cat_test, iris_cat_model = iris_split_dataset_and_model_cat
     iris_xgb_train, iris_xgb_test, iris_xgb_model = iris_split_dataset_and_model_xgb
@@ -119,8 +137,8 @@ def test_generic_boost(
 
 
 def test_generic_custom(
-    iris_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
-    diabetes_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+        iris_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+        diabetes_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
 ):
     iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model_custom
