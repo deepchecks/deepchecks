@@ -9,9 +9,28 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module with methods for fast calculations."""
+import typing as t
+
 import numpy as np
+
+from deepchecks.core.errors import DeepchecksValueError
 
 
 def fast_sum_by_row(matrix: np.ndarray) -> np.array:
     """Faster alternative to np.sum(matrix, axis=1)."""
     return np.matmul(matrix, np.ones(matrix.shape[1]))
+
+
+def convert_into_flat_list(sequence: t.Sequence):
+    """Convert a sequence into a flat list."""
+    if not is_sequence(sequence):
+        raise DeepchecksValueError('Trying to convert a non sequence into a flat list.')
+    result = []
+    for x in sequence:
+        result += list(x) if is_sequence(x) else [x]
+    return result
+
+
+def is_sequence(x) -> bool:
+    """Check if a variable is a sequence."""
+    return isinstance(x, (t.Sequence, np.ndarray)) and not isinstance(x, str)

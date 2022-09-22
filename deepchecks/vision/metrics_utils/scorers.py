@@ -18,11 +18,9 @@ import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Metric, Precision, Recall
-from sklearn.metrics._scorer import _ProbaScorer
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)
@@ -140,9 +138,7 @@ def get_scorers_dict(
                     if metric_name in classification_dict:
                         converted_met = classification_dict[metric_name]()
                     else:
-                        scorer = DeepcheckScorer(metric_name)
-                        needs_proba = isinstance(scorer, _ProbaScorer)
-                        converted_met = CustomClassificationScorer(scorer.run_on_pred, needs_proba=needs_proba)
+                        converted_met = CustomClassificationScorer(metric)
                 elif task_type == TaskType.SEMANTIC_SEGMENTATION:
                     converted_met = semantic_segmentation_dict[metric_name]()
                 else:

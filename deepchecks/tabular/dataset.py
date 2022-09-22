@@ -25,6 +25,7 @@ from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupporte
 from deepchecks.tabular.utils.feature_inference import (infer_categorical_features, infer_numerical_features,
                                                         is_categorical)
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.array_math import is_sequence
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
@@ -291,8 +292,7 @@ class Dataset:
             self._label_type = None
 
         if label_classes is not None:
-            if not isinstance(label_classes, t.List) or \
-                    any(isinstance(x, t.Sequence) and not isinstance(x, str) for x in label_classes) or \
+            if not isinstance(label_classes, t.List) or any(is_sequence(x) for x in label_classes) or \
                     len(set(label_classes)) != len(label_classes):
                 raise DeepchecksValueError('label_classes must be a flat list of unique values.')
             if label is not None and not set(self.label_col).issubset(set(label_classes)):

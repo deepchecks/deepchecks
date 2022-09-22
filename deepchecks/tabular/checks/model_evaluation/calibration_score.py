@@ -60,7 +60,7 @@ class CalibrationScore(SingleDatasetCheck):
         context.assert_classification_task()
         ds_x = dataset.features_columns
         ds_y = dataset.label_col
-        dataset_classes = context.classes
+        dataset_classes = dataset.classes_in_label_col
         model = t.cast(ClassificationModel, context.model)
 
         # Expect predict_proba to return in order of the sorted classes.

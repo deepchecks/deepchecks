@@ -32,8 +32,8 @@ def test_calculate_importance_with_kwargs(iris_split_dataset_and_model):
     train_ds, _, adaboost = iris_split_dataset_and_model
 
     # Act
-    fi = calculate_feature_importance(adaboost, train_ds, n_repeats=30, mask_high_variance_features=False, n_samples=10_000,
-                                      alternative_scorer=DeepcheckScorer('accuracy'))
+    fi = calculate_feature_importance(adaboost, train_ds, n_repeats=30, mask_high_variance_features=False,
+                                      n_samples=10_000, alternative_scorer=DeepcheckScorer('accuracy', [0, 1, 2]))
 
     # Assert
     assert_that(fi.sum(), close_to(1, 0.000001))
