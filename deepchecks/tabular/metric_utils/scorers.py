@@ -229,7 +229,7 @@ class DeepcheckScorer:
         """Convert labels to 0/1 if model is a binary classifier, update classes_ property and pad probas."""
 
         class MyModelWrapper:
-            """Convert labels to 0/1 if model is a binary classifier and add classes_ property."""
+            """Convert labels to 0/1 if model is a binary classifier, update classes_ property and pad probas."""
 
             def __init__(self, user_model, possible_classes):
                 self.user_model = user_model
