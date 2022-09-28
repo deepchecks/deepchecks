@@ -314,8 +314,8 @@ def calc_drift_and_plot(train_column: pd.Series,
         test_dist = np.array(test_column.dropna().values).reshape(-1)
 
     if len(train_dist) < min_samples or len(test_dist) < min_samples:
-        raise NotEnoughSamplesError(f'For drift need {min_samples} samples but got {len(train_dist)} for train '
-                                    f'and {len(test_dist)} for test')
+        raise NotEnoughSamplesError(f'For drift calculations a minimum of {min_samples} samples are needed but '
+                                    f'got {len(train_dist)} for train and {len(test_dist)} for test')
 
     if column_type == 'numerical':
         scorer_name = 'Earth Mover\'s Distance'
