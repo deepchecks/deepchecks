@@ -10,6 +10,7 @@
 #
 """Module contains AbstractPropertyOutliers check."""
 import string
+import sys
 import typing as t
 import warnings
 from abc import abstractmethod
@@ -22,6 +23,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
+from deepchecks.utils.function import initvars
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
@@ -73,6 +75,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                  iqr_scale: float = 1.5,
                  **kwargs):
         super().__init__(**kwargs)
+        self._is_non_default_properties = properties_list is not None
         self.properties_list = properties_list
         self.property_input_type = property_input_type
         self.iqr_percentiles = iqr_percentiles
@@ -80,6 +83,23 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self.n_show_top = n_show_top
 
         self._properties_results = None
+
+    def config(self, include_version):
+        params=initvars(self, include_defaults=True)
+        if self._is_non_default_properties:
+            if isinstance(self.properties_list, dict):
+                for value in self.properties_list.values():
+                    if not isinstance(value, str):
+                        raise ValueError(
+                            'Only default properties or properties by name are allowed when serializing check instances'
+                        )
+        else:
+            params.pop('properties_list')
+        sys.stderr.write(f"{params}\n")
+        return self._prepare_config(
+            params=params,
+            include_version=include_version
+        )
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""
