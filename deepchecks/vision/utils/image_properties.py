@@ -96,7 +96,7 @@ def _rgb_relative_intensity_mean(batch: List[np.ndarray]) -> List[Tuple[float, f
 
 
 def _rgb_relative_intensity_mean_array(batch: List[np.ndarray]) -> np.ndarray:
-    """Returns the _rgb_relative_intensity_mean result as array"""
+    """Return the _rgb_relative_intensity_mean result as array."""
     return np.array(_rgb_relative_intensity_mean(batch))
 
 
