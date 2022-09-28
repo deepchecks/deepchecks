@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the image formatter class for the vision module."""
-from typing import List, Tuple, Dict
+from typing import Dict, List, Tuple
 
 import numpy as np
 from skimage.color import rgb2gray
@@ -149,7 +149,6 @@ def calc_default_image_properties(batch: List[np.ndarray]) -> Dict:
     results_dict['Mean Blue Relative Intensity'] = rgb_intensities[:, 2].tolist()
 
     return results_dict
-
 
 
 default_image_properties = [
