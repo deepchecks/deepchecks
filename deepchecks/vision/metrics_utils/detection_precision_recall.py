@@ -18,6 +18,7 @@ import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
@@ -51,7 +52,9 @@ class AveragePrecisionRecall(Metric, MetricMixin):
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: str = "ap", **kwargs):
+                 return_option: str = "ap",
+                 average: str = 'none',
+                 **kwargs):
         super().__init__(*args, **kwargs)
 
         self.return_option = return_option
@@ -63,6 +66,10 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
         self.max_detections_per_class = max_dets
         self.area_range = area_range
+        if average in ['none', 'micro', 'macro', 'weighted']:
+            self.average = average
+        else:
+            raise DeepchecksValueError('average should be one of: none, micro, macro, weighted')
 
     @reinit__is_reduced
     def reset(self):
@@ -300,7 +307,8 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         return res
 
     def get_classes_scores_at(self, res: np.ndarray, iou: float = None, area: str = None, max_dets: int = None,
-                              get_mean_val: bool = True, zeroed_negative: bool = True):
+                              get_mean_val: bool = True, zeroed_negative: bool = True, class_weights: np.ndarray = None
+                              ):
         """Get the mean value of the classes scores and the result values.
 
         Parameters
@@ -317,18 +325,30 @@ class AveragePrecisionRecall(Metric, MetricMixin):
             get mean value if True, if False get per class
         zeroed_negative : bool, default: True
             if getting the class results list set negative (-1) values to 0
+        class_weights : np.array, default None
+            The class weights for weighted macro averaging. If None, gives equal weights to all the classes.
 
         Returns
         -------
         Union[List[float], float]
            The mean value of the classes scores or the scores list.
         """
+
         res = self.filter_res(res, iou, area, max_dets)
+
         with warnings.catch_warnings():
             warnings.simplefilter(action="ignore", category=RuntimeWarning)
             res = np.nanmean(res[:, :, :], axis=0)
             if get_mean_val:
-                return np.nanmean(res[res > -1])
+                filtered_res = res[~np.isnan(res) & (res > -1)]
+                num_classes = filtered_res.shape[-1]
+                if class_weights is None:
+                    class_weights = np.empty(num_classes)
+                    class_weights.fill(1 / num_classes)
+                if len(class_weights) != num_classes:
+                    raise DeepchecksValueError('The class weights shape must match the number of classes')
+                weighted_result = np.dot(filtered_res, class_weights)
+                return weighted_result
             if zeroed_negative:
                 res = res.clip(min=0)
             return res[0][0]
