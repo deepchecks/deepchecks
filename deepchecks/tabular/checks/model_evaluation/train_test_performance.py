@@ -106,7 +106,6 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
 
         results = []
         for dataset_name, dataset in datasets.items():
-            classes = dataset.classes
             label = cast(pd.Series, dataset.label_col)
             n_samples = label.groupby(label).count()
             for scorer in scorers:
@@ -116,7 +115,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
                 else:
                     results.extend(
                         [[dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
-                            for class_score, class_name in zip(scorer_value, classes)])
+                            for class_score, class_name in zip(scorer_value, dataset.classes_in_label_col)])
 
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 
@@ -175,7 +174,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'tabular-builtin-metrics',
+                        'supported-metrics-by-string',
                         template='For a list of built-in scorers please refer to {link}'
                     )
                     raise ValueError(

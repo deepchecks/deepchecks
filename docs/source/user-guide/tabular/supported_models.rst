@@ -28,8 +28,15 @@ the predictions must be in the following format based on the task type:
   for each sample in the dataset. Predicted values are required for all task types.
 
 * **Probabilities per class**: should be provided as an |array-like| of shape ``(n_samples, n_classes)``
-  containing the predicted probability of each class per sample. Probabilities per class are only required for
-  classification tasks.
+  containing the predicted probability of each possible class for each sample in the dataset. The probabilities
+  per class should be provided in a **alphanumeric order** based on the classes names.
+  Probabilities per class are only required for classification tasks.
+
+.. Note::
+    For classification tasks, Deepchecks require the list of all possible classes in the order they appear at the
+    ``probabilities per class`` vector (alphanumeric order). It can either be inferred based on provided data and model
+    or supplied via the Dataset's ``label_class`` argument. For binary classification, the class with the greater
+    alphanumeric value is considered the positive class.
 
 .. _supported_models__passing_a_model:
 
@@ -65,10 +72,10 @@ model's class or create a wrapper class that implements the required interfaces 
 model. Below is a general structure of such wrapper class.
 
 >>> class MyModelWrapper:
-...     def predict(X: pd.DataFrame) -> np.ndarray:
+...     def predict(self, data: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API.
 ...         ...
-...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
+...     def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API, only required for classification tasks.
 ...         ...
 ...     @property

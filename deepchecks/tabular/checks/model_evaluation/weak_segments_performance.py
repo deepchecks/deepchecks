@@ -10,7 +10,7 @@
 #
 """Module of weak segments performance check."""
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -125,7 +125,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         if len(dataset.features) < 2:
             raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
+        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, context.classes)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                   validate_data_on_predict=False)
 
@@ -164,7 +164,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             for k, v in self.alternative_scorer.items():
                 if callable(v):
                     reference = doclink(
-                        'tabular-builtin-metrics',
+                        'supported-metrics-by-string',
                         template='For a list of built-in scorers please refer to {link}. ',
                     )
                     raise ValueError(
@@ -173,7 +173,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                     )
         return super().config(include_version)
 
-    def _target_encode_categorical_features_fill_na(self, dataset: Dataset) -> Dataset:
+    def _target_encode_categorical_features_fill_na(self, dataset: Dataset,
+                                                    possible_classes: Optional[List]) -> Dataset:
         values_mapping = defaultdict(list)  # mapping of per feature of original values to their encoded value
         df_aggregated = default_fill_na_per_column_type(dataset.features_columns.copy(), dataset.cat_features)
         for col in dataset.cat_features:
@@ -183,7 +184,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
 
         if len(dataset.cat_features) > 0:
             t_encoder = TargetEncoder(cols=dataset.cat_features)
-            df_encoded = t_encoder.fit_transform(df_aggregated, dataset.label_col)
+            encoded_label = dataset.label_col.map(possible_classes.index) if \
+                possible_classes is not None else dataset.label_col
+            df_encoded = t_encoder.fit_transform(df_aggregated, encoded_label)
             for col in dataset.cat_features:
                 values_mapping[col] = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()
         else:

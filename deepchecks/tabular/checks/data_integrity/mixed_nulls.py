@@ -19,9 +19,9 @@ from pandas.api.types import is_categorical_dtype
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE
 from deepchecks.utils.strings import format_percent, string_baseform
 from deepchecks.utils.typing import Hashable
 

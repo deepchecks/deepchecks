@@ -43,11 +43,7 @@ def test_regression_model(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
     assert_that(
         calling(RocReport().run).with_args(train, clf),
-        raises(
-            ModelValidationError,
-            r'Check is relevant for models of type '
-            r'\[\'multiclass\', \'binary\'\], but received model of type \'regression\'')
-    )
+        raises(ModelValidationError, 'Check is irrelevant for regression tasks'))
 
 
 def test_binary_classification(iris_binary_string_split_dataset_and_model):

@@ -1,0 +1,128 @@
+{
+  "files": [
+    "README.rst"
+  ],
+  "skipCi": "true",
+  "imageSize": 100,
+  "contributorsPerLine": 7,
+  "contributors": [
+    {
+      "login": "ItayGabbay",
+      "name": "Itay Gabbay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20860465?v=4",
+      "profile": "https://github.com/ItayGabbay",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "matanper",
+      "name": "matanper",
+      "avatar_url": "https://avatars.githubusercontent.com/u/9868530?v=4",
+      "profile": "https://github.com/matanper",
+      "contributions": [
+        "doc",
+        "ideas",
+        "code"
+      ]
+    },
+    {
+      "login": "JKL98ISR",
+      "name": "JKL98ISR",
+      "avatar_url": "https://avatars.githubusercontent.com/u/26321553?v=4",
+      "profile": "https://github.com/JKL98ISR",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "yromanyshyn",
+      "name": "Yurii Romanyshyn",
+      "avatar_url": "https://avatars.githubusercontent.com/u/71635444?v=4",
+      "profile": "https://github.com/yromanyshyn",
+      "contributions": [
+        "ideas",
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "noamzbr",
+      "name": "Noam Bressler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/17730502?v=4",
+      "profile": "https://github.com/noamzbr",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "nirhutnik",
+      "name": "Nir Hutnik",
+      "avatar_url": "https://avatars.githubusercontent.com/u/92314933?v=4",
+      "profile": "https://github.com/nirhutnik",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "Nadav-Barak",
+      "name": "Nadav-Barak",
+      "avatar_url": "https://avatars.githubusercontent.com/u/67195469?v=4",
+      "profile": "https://github.com/Nadav-Barak",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "TheSolY",
+      "name": "Sol",
+      "avatar_url": "https://avatars.githubusercontent.com/u/99395146?v=4",
+      "profile": "https://github.com/TheSolY",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
+    },
+    {
+      "login": "DanArlowski",
+      "name": "DanArlowski",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59116108?v=4",
+      "profile": "http://www.linkedin.com/in/dan-arlowski",
+      "contributions": [
+        "code",
+        "infra"
+      ]
+    },
+    {
+      "login": "benisraeldan",
+      "name": "DBI",
+      "avatar_url": "https://avatars.githubusercontent.com/u/42312361?v=4",
+      "profile": "https://github.com/benisraeldan",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "OrlyShmorly",
+      "name": "OrlyShmorly",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110338263?v=4",
+      "profile": "https://github.com/OrlyShmorly",
+      "contributions": [
+        "design"
+      ]
+    }
+  ],
+  "projectName": "deepchecks",
+  "projectOwner": "deepchecks"
+}

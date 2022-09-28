@@ -14,7 +14,6 @@ import typing as t
 import plotly.express as px
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
@@ -57,8 +56,6 @@ class ClassImbalance(SingleDatasetCheck):
         df = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
         label = df.label_col
-        if df.label_col.nunique(dropna=self.ignore_nan) == 1:
-            raise DatasetValidationError('Class contains only one unique label')
 
         vc_ser = label.value_counts(normalize=True, dropna=self.ignore_nan)
         vc_ser = vc_ser.round(2)
