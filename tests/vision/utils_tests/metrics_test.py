@@ -65,10 +65,14 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5
 
 
 def test_average_precision_recall(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
-    res = calculate_metrics({'ap': ObjectDetectionAveragePrecision()},
+    res = calculate_metrics({'ap': ObjectDetectionAveragePrecision(),
+                             'ap_macro': ObjectDetectionAveragePrecision(average='macro')},
                             coco_test_visiondata, mock_trained_yolov5_object_detection,
                             device=device)
+    # classes mean and macro are not equal due to zeroed negative
     assert_that(nanmean(res['ap']), close_to(0.396, 0.001))
+    assert_that((res['ap_macro']), close_to(0.409, 0.001))
+
 
 
 

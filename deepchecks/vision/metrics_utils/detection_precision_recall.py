@@ -71,6 +71,8 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         else:
             raise DeepchecksValueError('average should be one of: none, micro, macro, weighted')
 
+        self.get_mean_value = self.average != 'none'
+
     @reinit__is_reduced
     def reset(self):
         """Reset metric state."""
@@ -118,6 +120,9 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                     precision_list.fill(np.nan)
                     recall_list = np.empty(max_class + 1)
                     recall_list.fill(np.nan)
+                    counts_list = np.empty(max_class + 1)
+                    counts_list.fill(np.nan)
+
                     # run ap calculation per-class
                     for class_id in sorted_classes:
                         ev = self._evals[class_id]
@@ -127,18 +132,25 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                                                     np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
                         precision_list[class_id] = precision
                         recall_list[class_id] = recall
+                        counts_list[class_id] = np.nan if recall == -1 else np.sum(
+                            np.array(ev["NP"][(area_size, dets, min_iou)]))
                     reses["precision"][iou_i, area_i, dets_i] = precision_list
                     reses["recall"][iou_i, area_i, dets_i] = recall_list
+
+        if self.average == 'weighted':
+            class_counts = counts_list[~np.isnan(counts_list)]
+
+
         if self.return_option == "ap":
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
-                                                           get_mean_val=False))
+                                                           get_mean_val=self.get_mean_value))
         elif self.return_option == "ar":
             return torch.tensor(self.get_classes_scores_at(reses["recall"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
-                                                           get_mean_val=False))
+                                                           get_mean_val=self.get_mean_value))
         return [reses]
 
     def _group_detections(self, detected, ground_truth):
