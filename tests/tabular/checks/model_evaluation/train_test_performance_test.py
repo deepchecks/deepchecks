@@ -257,7 +257,7 @@ def test_condition_degradation_ratio_less_than_passed_regression(diabetes_split_
     # Assert
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details=r'',
+                               details=r'Found max degradation of 94.98% for metric Neg MAE',
                                name='Train-Test scores relative degradation is less than 1')
     ))
 
