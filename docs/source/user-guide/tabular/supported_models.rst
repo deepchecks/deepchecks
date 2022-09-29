@@ -53,7 +53,7 @@ Specifically, deepchecks requires the following methods to be implemented in the
   input features and returns :ref:`predicted values <supported_models__predictions_format>`.
 * ``predict_proba`` method which receives an |array-like|  of shape ``(n_samples, n_features)`` containing the
   input features and returns :ref:`probabilities per class <supported_models__predictions_format>`.
-  This method is required only for classification tasks.
+  This method is optional and needed only for classification tasks.
 
 Running Deepchecks With a Supported Model
 -----------------------------------------

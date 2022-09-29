@@ -93,7 +93,7 @@ regression_scorers_lower_is_better_dict = {
 }
 
 regression_scorers_higher_is_better_dict = {
-    'neg_mse': make_scorer('neg_mean_squared_error'),
+    'neg_mse': get_scorer('neg_mean_squared_error'),
     'neg_rmse': get_scorer('neg_root_mean_squared_error'),
     'neg_mae': get_scorer('neg_mean_absolute_error'),
     'r2': get_scorer('r2'),
@@ -272,6 +272,12 @@ class DeepcheckScorer:
         return MyModelWrapper(model, self.possible_classes), updated_label_col
 
     def _run_score(self, model, dataset: 'tabular.Dataset'):
+        # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
+        if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
+                                                                    'predict_proba'):
+            raise errors.DeepchecksValueError(f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
+                                              f'not provided. Please use a model with predict_proba method or '
+                                              f'manually provide predicted probabilities to the check.')
         if self.possible_classes is not None:
             updated_model, transformed_label_col = self._wrap_classification_model(model, dataset.label_col)
             return self.scorer(updated_model, dataset.features_columns, transformed_label_col)

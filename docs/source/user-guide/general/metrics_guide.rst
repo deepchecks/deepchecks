@@ -145,8 +145,10 @@ __________
 Classification
 ______________
 .. Note::
-    For classification tasks, Deepchecks require the model's output probabilities per class and a similarly ordered
+    For classification tasks, Deepchecks require an ordered
     list of all possible classes (Can also be inferred from provided data and model).
+    It is also recommended to supply the model's output probabilities per class, as some metrics and checks require
+    that.
     See :doc:`link </user-guide/tabular/supported_models>` for additional information.
 .. list-table::
    :widths: 25 75 75

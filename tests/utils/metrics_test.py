@@ -9,9 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Test metrics utils"""
-from hamcrest import assert_that, close_to
+from hamcrest import assert_that, close_to, calling, raises
 from sklearn.metrics import make_scorer
 
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
@@ -120,3 +122,26 @@ def test_iris_true_negative_rate_scorer_multiclass(iris_split_dataset_and_model)
     assert_that(sum(score_per_class) / 3, close_to(score_macro, 0.00001))
     assert_that(score_micro, close_to(0.92, 0.01))
     assert_that(score_weighted, close_to(0.936, 0.01))
+
+
+def test_auc_on_regression_task_raises_error(diabetes, diabetes_model):
+    ds, _ = diabetes
+
+    # Act & Assert
+    auc_deepchecks_scorer = DeepcheckScorer('roc_auc', possible_classes=[0, 1, 2])
+
+    assert_that(calling(auc_deepchecks_scorer).with_args(diabetes_model, ds),
+                raises(DeepchecksValueError,
+                       'Can\'t compute scorer '
+                       r'make_scorer\(roc_auc_score, needs_threshold=True\) when predicted '
+                       'probabilities are not provided. Please use a model with predict_proba method or manually '
+                       r'provide predicted probabilities to the check\.'))
+
+    auc_deepchecks_scorer = DeepcheckScorer('roc_auc_ovo', possible_classes=[0, 1, 2])
+
+    assert_that(calling(auc_deepchecks_scorer).with_args(diabetes_model, ds),
+                raises(DeepchecksValueError,
+                       'Can\'t compute scorer '
+                       r'make_scorer\(roc_auc_score, needs_proba=True, multi_class=ovo\) when predicted '
+                       'probabilities are not provided. Please use a model with predict_proba method or manually '
+                       r'provide predicted probabilities to the check\.'))
