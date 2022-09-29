@@ -88,7 +88,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             segment_minimum_size_ratio: float = 0.05,
             alternative_scorer: Dict[str, Callable] = None,
             loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
-            classes_index_order: Union[np.ndarray, pd.Series, None] = None,
             n_samples: int = 10_000,
             categorical_aggregation_threshold: float = 0.05,
             n_to_show: int = 3,
@@ -104,7 +103,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         self.n_to_show = n_to_show
         self.random_state = random_state
         self.loss_per_sample = loss_per_sample
-        self.classes_index_order = classes_index_order
         self.alternative_scorer = alternative_scorer if alternative_scorer else None
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
 
@@ -121,7 +119,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             loss_per_sample = self.loss_per_sample[list(dataset.data.index)]
         else:
             loss_per_sample = calculate_per_sample_loss(context.model, context.task_type, dataset,
-                                                        self.classes_index_order)
+                                                        context.classes)
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         if len(dataset.features) < 2:
             raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
