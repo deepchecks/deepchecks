@@ -277,7 +277,7 @@ class CocoSegmentationDataset(VisionDataset):
         folder = 'train2017'
 
         if not coco_dir.exists():
-            url = 'https://ultralytics.com/assets/coco128-segments.zip'
+            url = 'https://ndownloader.figshare.com/files/37650656'
 
             with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
                 download_and_extract_archive(
