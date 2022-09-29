@@ -121,6 +121,16 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "cemalgurpinar",
+      "name": "Cemal GURPINAR",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36713268?v=4",
+      "profile": "https://github.com/cemalgurpinar",
+      "contributions": [
+        "doc",
+        "bug"
+      ]
     }
   ],
   "projectName": "deepchecks",
