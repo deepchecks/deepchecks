@@ -121,6 +121,17 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "shir22",
+      "name": "shir22",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33841818?v=4",
+      "profile": "https://github.com/shir22",
+      "contributions": [
+        "ideas",
+        "doc",
+        "talk"
+      ]
     }
   ],
   "projectName": "deepchecks",
