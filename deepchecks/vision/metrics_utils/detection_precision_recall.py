@@ -362,7 +362,6 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         Union[List[float], float]
            The mean value of the classes scores or the scores list.
         """
-
         res = self.filter_res(res, iou, area, max_dets)
 
         with warnings.catch_warnings():
