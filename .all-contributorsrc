@@ -121,6 +121,15 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "Tak",
+      "name": "Levi Bard",
+      "avatar_url": "https://avatars.githubusercontent.com/u/142250?v=4",
+      "profile": "https://github.com/Tak",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "projectName": "deepchecks",
