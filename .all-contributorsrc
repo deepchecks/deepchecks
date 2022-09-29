@@ -223,6 +223,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "BioGeek",
+      "name": "Jeroen Van Goey",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59344?v=4",
+      "profile": "http://jeroen.vangoey.be",
+      "contributions": [
+        "bug",
+        "doc"
+      ]
     }
   ],
   "projectName": "deepchecks",
