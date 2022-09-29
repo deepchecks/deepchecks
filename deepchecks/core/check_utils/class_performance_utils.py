@@ -96,8 +96,8 @@ def get_condition_train_test_relative_degradation_less_than(threshold: float) ->
                     max_degradation_details += f' and class {class_name}.'
                 max_degradation = max_degradation_details, max_diff
 
-        if check_result.get('Class') is not None:
-            if check_result.get('Class Name') is not None:
+        if 'Class' in check_result.columns and not pd.isnull(check_result['Class']).all():
+            if 'Class Name' in check_result.columns and not pd.isnull(check_result['Class Name']).all():
                 class_column = 'Class Name'
             else:
                 class_column = 'Class'

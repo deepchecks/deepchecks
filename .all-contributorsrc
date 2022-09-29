@@ -121,6 +121,37 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "shir22",
+      "name": "shir22",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33841818?v=4",
+      "profile": "https://github.com/shir22",
+      "contributions": [
+        "ideas",
+        "doc",
+        "talk"
+      ]
+    },
+    {
+      "login": "yaronzo1",
+      "name": "yaronzo1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/107114284?v=4",
+      "profile": "https://github.com/yaronzo1",
+      "contributions": [
+        "ideas",
+        "content"
+      ]
+    },
+    {
+      "login": "ptannor",
+      "name": "ptannor",
+      "avatar_url": "https://avatars.githubusercontent.com/u/34207422?v=4",
+      "profile": "https://github.com/ptannor",
+      "contributions": [
+        "ideas",
+        "content"
+      ]
     }
   ],
   "projectName": "deepchecks",

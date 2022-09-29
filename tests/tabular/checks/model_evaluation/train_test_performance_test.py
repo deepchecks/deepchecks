@@ -248,6 +248,34 @@ def test_condition_degradation_ratio_less_than_passed(iris_split_dataset_and_mod
     ))
 
 
+def test_condition_degradation_ratio_less_than_passed_regression(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(1)
+    # Act
+    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               details=r'Found max degradation of 94.98% for metric Neg MAE',
+                               name='Train-Test scores relative degradation is less than 1')
+    ))
+
+
+def test_condition_degradation_ratio_less_than_not_passed_regression(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(0)
+    # Act
+    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details=r'3 scores failed. Found max degradation of 94.98% for metric Neg MAE',
+                               name='Train-Test scores relative degradation is less than 0')
+    ))
+
+
 def test_condition_class_performance_imbalance_ratio_less_than_not_passed(iris_split_dataset_and_model):
     # ArrangeF
     train, test, model = iris_split_dataset_and_model
