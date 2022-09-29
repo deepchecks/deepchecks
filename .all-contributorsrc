@@ -121,6 +121,17 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "Kishore-s-15",
+      "name": "S.Kishore",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56688194?v=4",
+      "profile": "https://github.com/kishore-s-15",
+      "contributions": [
+        "code",
+        "doc",
+        "bug"
+      ]
     }
   ],
   "projectName": "deepchecks",
