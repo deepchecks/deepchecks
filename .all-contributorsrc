@@ -121,6 +121,17 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "Shaypal5",
+      "name": "Shay Palachy-Affek",
+      "avatar_url": "https://avatars.githubusercontent.com/u/917954?v=4",
+      "profile": "http://www.shaypalachy.com/",
+      "contributions": [
+        "data",
+        "example",
+        "userTesting"
+      ]
     }
   ],
   "projectName": "deepchecks",
