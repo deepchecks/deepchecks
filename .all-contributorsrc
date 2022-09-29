@@ -223,6 +223,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "nirbenz",
+      "name": "Nir Ben-Zvi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4930255?v=4",
+      "profile": "http://www.nirbenzvi.com",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "projectName": "deepchecks",
