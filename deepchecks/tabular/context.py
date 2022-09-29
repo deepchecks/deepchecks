@@ -214,6 +214,7 @@ class Context:
         if feature_importance is not None and not isinstance(feature_importance, pd.Series):
             raise DeepchecksValueError('feature_importance must be a pandas Series')
 
+        self._classes = None
         self._train = train
         self._test = test
         self._model = model
@@ -261,9 +262,9 @@ class Context:
     def classes(self) -> t.List:
         """Return ordered list of possible label classes for classification tasks or None for regression."""
         if self._classes is None:
-            if self._train is not None and self._train.has_label() and self._train._label_type != TaskType.REGRESSION:
+            if self._train is not None and self._train.has_label() and self._train.label_type != TaskType.REGRESSION:
                 self._classes = get_possible_classes(self._model, self._train, self._test,
-                                                     self._train._label_type is not None)
+                                                     self._train.label_type is not None)
             else:
                 self._classes = None
 
