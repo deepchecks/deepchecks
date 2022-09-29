@@ -223,6 +223,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "julienschuermans",
+      "name": "Julien Schuermans",
+      "avatar_url": "https://avatars.githubusercontent.com/u/14927054?v=4",
+      "profile": "https://github.com/julienschuermans",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "projectName": "deepchecks",
