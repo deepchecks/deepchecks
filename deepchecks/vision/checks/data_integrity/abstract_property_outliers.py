@@ -10,7 +10,6 @@
 #
 """Module contains AbstractPropertyOutliers check."""
 import string
-import sys
 import typing as t
 import warnings
 from abc import abstractmethod
@@ -23,7 +22,6 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
-from deepchecks.utils.function import initvars
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
@@ -75,7 +73,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                  iqr_scale: float = 1.5,
                  **kwargs):
         super().__init__(**kwargs)
-        self._is_non_default_properties = properties_list is not None
         self.properties_list = properties_list
         self.property_input_type = property_input_type
         self.iqr_percentiles = iqr_percentiles
