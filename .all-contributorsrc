@@ -121,6 +121,15 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "daavoo",
+      "name": "David de la Iglesia Castro",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12677733?v=4",
+      "profile": "https://github.com/daavoo",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "projectName": "deepchecks",
