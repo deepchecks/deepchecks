@@ -113,6 +113,12 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                                      len(self.area_ranges_names),
                                      len(self.max_detections_per_class),
                                      max_class + 1))}
+
+        classes_counts = -np.ones((len(self.iou_thresholds),
+                                   len(self.area_ranges_names),
+                                   len(self.max_detections_per_class),
+                                   max_class + 1))
+
         for iou_i, min_iou in enumerate(self.iou_thresholds):
             for dets_i, dets in enumerate(self.max_detections_per_class):
                 for area_i, area_size in enumerate(self.area_ranges_names):
@@ -126,31 +132,40 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                     # run ap calculation per-class
                     for class_id in sorted_classes:
                         ev = self._evals[class_id]
+                        class_counts = np.nansum(np.array(ev["NP"][(area_size, dets, min_iou)]))
                         precision, recall = \
                             self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
                                                     np.array(ev["matched"][(area_size, dets, min_iou)]),
-                                                    np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
+                                                    class_counts)
                         precision_list[class_id] = precision
                         recall_list[class_id] = recall
-                        counts_list[class_id] = np.nan if recall == -1 else np.sum(
-                            np.array(ev["NP"][(area_size, dets, min_iou)]))
+                        counts_list[class_id] = np.nan if recall == -1 else class_counts
                     reses["precision"][iou_i, area_i, dets_i] = precision_list
                     reses["recall"][iou_i, area_i, dets_i] = recall_list
+                    classes_counts[iou_i, area_i, dets_i] = counts_list
 
         if self.average == 'weighted':
-            class_counts = counts_list[~np.isnan(counts_list)]
-
+            classes_counts = self.filter_res(classes_counts,
+                                             area=self.area_ranges_names[0], max_dets=self.max_detections_per_class[0])
+            classes_counts = np.nanmean(classes_counts, axis=(0, 1, 2))
+            classes_counts = classes_counts[~np.isnan(classes_counts)]
+            class_weights = 1.0 / classes_counts
+            class_weights = class_weights / np.sum(class_weights)
+        else:
+            class_weights = None
 
         if self.return_option == "ap":
             return torch.tensor(self.get_classes_scores_at(reses["precision"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
-                                                           get_mean_val=self.get_mean_value))
+                                                           get_mean_val=self.get_mean_value,
+                                                           class_weights=class_weights))
         elif self.return_option == "ar":
             return torch.tensor(self.get_classes_scores_at(reses["recall"],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
-                                                           get_mean_val=self.get_mean_value))
+                                                           get_mean_val=self.get_mean_value,
+                                                           class_weights=class_weights))
         return [reses]
 
     def _group_detections(self, detected, ground_truth):
