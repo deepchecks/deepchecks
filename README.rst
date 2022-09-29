@@ -413,6 +413,8 @@ Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/d
             <td align="center"><a href="https://github.com/benisraeldan"><img src="https://avatars.githubusercontent.com/u/42312361?v=4?s=100" width="100px;" alt="DBI"/><br /><sub><b>DBI</b></sub></a><br /><a href="#code-benisraeldan" title="Code">💻</a></td>
             <td align="center"><a href="https://github.com/OrlyShmorly"><img src="https://avatars.githubusercontent.com/u/110338263?v=4?s=100" width="100px;" alt="OrlyShmorly"/><br /><sub><b>OrlyShmorly</b></sub></a><br /><a href="#design-OrlyShmorly" title="Design">🎨</a></td>
             <td align="center"><a href="https://github.com/shir22"><img src="https://avatars.githubusercontent.com/u/33841818?v=4?s=100" width="100px;" alt="shir22"/><br /><sub><b>shir22</b></sub></a><br /><a href="#ideas-shir22" title="Ideas, Planning, & Feedback">🤔</a> <a href="#doc-shir22" title="Documentation">📖</a> <a href="#talk-shir22" title="Talks">📢</a></td>
+            <td align="center"><a href="https://github.com/yaronzo1"><img src="https://avatars.githubusercontent.com/u/107114284?v=4?s=100" width="100px;" alt="yaronzo1"/><br /><sub><b>yaronzo1</b></sub></a><br /><a href="#ideas-yaronzo1" title="Ideas, Planning, & Feedback">🤔</a> <a href="#content-yaronzo1" title="Content">🖋</a></td>
+            <td align="center"><a href="https://github.com/ptannor"><img src="https://avatars.githubusercontent.com/u/34207422?v=4?s=100" width="100px;" alt="ptannor"/><br /><sub><b>ptannor</b></sub></a><br /><a href="#ideas-ptannor" title="Ideas, Planning, & Feedback">🤔</a> <a href="#content-ptannor" title="Content">🖋</a></td>
          </tr>
       </tbody>
       <tfoot>
@@ -422,8 +424,7 @@ Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/d
 
    <!-- markdownlint-restore -->
    <!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+   <!-- ALL-CONTRIBUTORS-LIST:END -->
    
 This project follows the `all-contributors <https://allcontributors.org>`__ specification.
 Contributions of any kind are welcome!
