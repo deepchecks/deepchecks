@@ -283,7 +283,8 @@ class CocoSegmentationDataset(VisionDataset):
                 download_and_extract_archive(
                     url,
                     download_root=str(root),
-                    extract_root=str(extract_dir)
+                    extract_root=str(extract_dir),
+                    filename='coco128-segments.zip'
                 )
 
             try:
