@@ -84,23 +84,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         self._properties_results = None
 
-    def config(self, include_version):
-        params=initvars(self, include_defaults=True)
-        if self._is_non_default_properties:
-            if isinstance(self.properties_list, dict):
-                for value in self.properties_list.values():
-                    if not isinstance(value, str):
-                        raise ValueError(
-                            'Only default properties or properties by name are allowed when serializing check instances'
-                        )
-        else:
-            params.pop('properties_list')
-        sys.stderr.write(f"{params}\n")
-        return self._prepare_config(
-            params=params,
-            include_version=include_version
-        )
-
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""
         data = context.get_data_by_kind(dataset_kind)
