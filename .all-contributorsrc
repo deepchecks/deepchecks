@@ -121,6 +121,16 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "avitzd",
+      "name": "avitzd",
+      "avatar_url": "https://avatars.githubusercontent.com/u/84308273?v=4",
+      "profile": "https://github.com/avitzd",
+      "contributions": [
+        "eventOrganizing",
+        "video"
+      ]
     }
   ],
   "projectName": "deepchecks",
