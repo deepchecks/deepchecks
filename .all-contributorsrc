@@ -121,6 +121,17 @@
       "contributions": [
         "design"
       ]
+    },
+    {
+      "login": "DanBasson",
+      "name": "DanBasson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46203939?v=4",
+      "profile": "https://github.com/DanBasson",
+      "contributions": [
+        "doc",
+        "bug",
+        "example"
+      ]
     }
   ],
   "projectName": "deepchecks",
