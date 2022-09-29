@@ -152,6 +152,77 @@
         "ideas",
         "content"
       ]
+    },
+    {
+      "login": "avitzd",
+      "name": "avitzd",
+      "avatar_url": "https://avatars.githubusercontent.com/u/84308273?v=4",
+      "profile": "https://github.com/avitzd",
+      "contributions": [
+        "eventOrganizing",
+        "video"
+      ]
+    },
+    {
+      "login": "DanBasson",
+      "name": "DanBasson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46203939?v=4",
+      "profile": "https://github.com/DanBasson",
+      "contributions": [
+        "doc",
+        "bug",
+        "example"
+      ]
+    },
+    {
+      "login": "Kishore-s-15",
+      "name": "S.Kishore",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56688194?v=4",
+      "profile": "https://github.com/kishore-s-15",
+      "contributions": [
+        "code",
+        "doc",
+        "bug"
+      ]
+    },
+    {
+      "login": "Shaypal5",
+      "name": "Shay Palachy-Affek",
+      "avatar_url": "https://avatars.githubusercontent.com/u/917954?v=4",
+      "profile": "http://www.shaypalachy.com/",
+      "contributions": [
+        "data",
+        "example",
+        "userTesting"
+      ]
+    },
+    {
+      "login": "cemalgurpinar",
+      "name": "Cemal GURPINAR",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36713268?v=4",
+      "profile": "https://github.com/cemalgurpinar",
+      "contributions": [
+        "doc",
+        "bug"
+      ]
+    },
+    {
+      "login": "daavoo",
+      "name": "David de la Iglesia Castro",
+      "avatar_url": "https://avatars.githubusercontent.com/u/12677733?v=4",
+      "profile": "https://github.com/daavoo",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Tak",
+      "name": "Levi Bard",
+      "avatar_url": "https://avatars.githubusercontent.com/u/142250?v=4",
+      "profile": "https://github.com/Tak",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "projectName": "deepchecks",
