@@ -47,7 +47,9 @@ class AveragePrecisionRecall(Metric, MetricMixin):
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
     return_option: str, default: 'ap'
-        ap: ap only, ar: ar only, None: all (not ignite compliant)
+        ap: ap only, ar: ar only, None: all (not ignite compliant).
+    average: str, default: none
+        The method for averaging over the classes. If none, returns the result per class.
     """
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
@@ -66,10 +68,10 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
         self.max_detections_per_class = max_dets
         self.area_range = area_range
-        if average in ['none', 'micro', 'macro', 'weighted']:
+        if average in ['none', 'macro', 'weighted']:
             self.average = average
         else:
-            raise DeepchecksValueError('average should be one of: none, micro, macro, weighted')
+            raise DeepchecksValueError('average should be one of: none, macro, weighted')
 
         self.get_mean_value = self.average != 'none'
 
