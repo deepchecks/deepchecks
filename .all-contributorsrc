@@ -223,6 +223,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "shivshankardayal",
+      "name": "Shiv Shankar Dayal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/322451?v=4",
+      "profile": "https://ashtavakra.org",
+      "contributions": [
+        "infra"
+      ]
     }
   ],
   "projectName": "deepchecks",
