@@ -223,6 +223,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "RonItay",
+      "name": "RonItay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33497483?v=4",
+      "profile": "https://github.com/RonItay",
+      "contributions": [
+        "bug",
+        "code"
+      ]
     }
   ],
   "projectName": "deepchecks",
