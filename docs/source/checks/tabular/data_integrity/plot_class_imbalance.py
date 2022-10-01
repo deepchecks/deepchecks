@@ -3,32 +3,32 @@
 .. _plot_tabular_class_imbalance:
 
 Class Imbalance
-***************
+****************
 
 This notebook provides an overview for using and understanding the Class Imbalance check.
 
 **Structure:**
 
 * `What is the Class Imbalance check <#what-is-the-class-imbalance-check>`__
-* `Generate data <#generate-datal>`__
+* `Generate data <#generate-data>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
+
+
+What is the Class Imbalance check
+====================================
+The ``ClassImbalance`` check produces a distribution of the target variable.
+An indication for an imbalanced dataset is a biased class distribution across
+one or multiple labels.
+
+An imbalanced dataset posses its own challenges, namely learning the characteristics of
+the minority label, scarce minority instances for both train and test and defining the
+right evaluation metric.
+
+Albeit, there are many techniques to address with these challenges, including artificially increasing
+the minority sample size with SMOTE (over-sampling), drop instances from the majority class (under-sampling),
+use regularization and adjust the label weight.
 """
-
-# %%
-# What is the Class Imbalance check
-# ====================================
-# The ``ClassImbalance`` check produces a distribution of the target variable.
-# An indication for an imbalanced dataset is a biased class distribution across
-# one or multiple labels.
-
-# An imbalanced dataset posses its own challenges, namely learning the characteristics of
-# the minority label, scarce minority instances for both train and test and defining the
-# right evaluation metric.
-
-# Albeit, there are many techniques to address with these challenges, including artificially increasing
-# the minority sample size with SMOTE (over-sampling), drop instances from the majority class (under-sampling),
-# use regularization and adjust the label weight.
 
 
 # %%
