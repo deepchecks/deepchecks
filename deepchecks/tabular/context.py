@@ -62,8 +62,8 @@ class _DummyModel:
 
     def __init__(self,
                  test: Dataset,
-                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]],
-                 y_proba_test: np.ndarray,
+                 y_proba_test: t.Optional[np.ndarray],
+                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]] = None,
                  train: t.Union[Dataset, None] = None,
                  y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
                  y_proba_train: t.Union[np.ndarray, None] = None,
@@ -355,7 +355,7 @@ class Context:
             A list of initialized & validated scorers.
         """
         scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
-        return init_validate_scorers(scorers, self.model, self.train)
+        return init_validate_scorers(scorers, self.model, self.train, self.classes)
 
     def get_single_scorer(self,
                           scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
@@ -384,7 +384,7 @@ class Context:
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train)[0]
+        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.classes)[0]
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant Dataset by given kind."""

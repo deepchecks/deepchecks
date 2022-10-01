@@ -72,10 +72,6 @@ The properties' predictive score results in a numeric score between 0 (feature h
 no predictive power) and 1 (feature can fully predict the label alone).
 
 The process of calculating the PPS is the following:
-
-The properties' predictive score results in a numeric score between 0 (feature has no predictive power) and 1 (feature can fully predict the label alone).
-
-The process of calculating the PPS is the following:
 """
 #%%
 # 1. Extract from the data only the label and the feature being tested

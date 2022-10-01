@@ -22,7 +22,7 @@ from sklearn.pipeline import Pipeline
 from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer, get_default_scorers, init_validate_scorers
-from deepchecks.tabular.utils.task_inference import infer_task_type
+from deepchecks.tabular.utils.task_inference import get_possible_classes, infer_task_type
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
@@ -263,7 +263,8 @@ def _calc_permutation_importance(
         default_scorers = get_default_scorers(task_type)
         scorer_name = next(iter(default_scorers))
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
-        scorer = init_validate_scorers(single_scorer_dict, model, dataset)[0]
+        possible_classes = get_possible_classes(model, dataset)
+        scorer = init_validate_scorers(single_scorer_dict, model, dataset, possible_classes)[0]
 
     start_time = time.time()
     scorer(model, dataset_sample)

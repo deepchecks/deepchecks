@@ -35,7 +35,8 @@ the predictions must be in the following format based on the task type:
 .. Note::
     For classification tasks, Deepchecks require the list of all possible classes in the order they appear at the
     ``probabilities per class`` vector (alphanumeric order). It can either be inferred based on provided data and model
-    or supplied via the Dataset's ``label_class`` argument.
+    or supplied via the Dataset's ``label_class`` argument. For binary classification, the class with the greater
+    alphanumeric value is considered the positive class.
 
 .. _supported_models__passing_a_model:
 
@@ -71,10 +72,10 @@ model's class or create a wrapper class that implements the required interfaces 
 model. Below is a general structure of such wrapper class.
 
 >>> class MyModelWrapper:
-...     def predict(X: pd.DataFrame) -> np.ndarray:
+...     def predict(self, data: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API.
 ...         ...
-...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
+...     def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API, only required for classification tasks.
 ...         ...
 ...     @property
