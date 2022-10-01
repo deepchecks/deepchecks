@@ -232,6 +232,55 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "nirbenz",
+      "name": "Nir Ben-Zvi",
+      "avatar_url": "https://avatars.githubusercontent.com/u/4930255?v=4",
+      "profile": "http://www.nirbenzvi.com",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
+    },
+    {
+      "login": "shivshankardayal",
+      "name": "Shiv Shankar Dayal",
+      "avatar_url": "https://avatars.githubusercontent.com/u/322451?v=4",
+      "profile": "https://ashtavakra.org",
+      "contributions": [
+        "infra"
+      ]
+    },
+    {
+      "login": "RonItay",
+      "name": "RonItay",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33497483?v=4",
+      "profile": "https://github.com/RonItay",
+      "contributions": [
+        "bug",
+        "code"
+      ]
+    },
+    {
+      "login": "BioGeek",
+      "name": "Jeroen Van Goey",
+      "avatar_url": "https://avatars.githubusercontent.com/u/59344?v=4",
+      "profile": "http://jeroen.vangoey.be",
+      "contributions": [
+        "bug",
+        "doc"
+      ]
+    },
+    {
+      "login": "idow09",
+      "name": "idow09",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10072365?v=4",
+      "profile": "https://about.me/ido.weiss",
+      "contributions": [
+        "bug",
+        "example"
+      ]
     }
   ],
   "projectName": "deepchecks",
