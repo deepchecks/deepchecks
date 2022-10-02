@@ -3,7 +3,7 @@
 .. _plot_tabular_class_imbalance:
 
 Class Imbalance
-****************
+***************
 
 This notebook provides an overview for using and understanding the Class Imbalance check.
 
