@@ -386,7 +386,7 @@ class Context:
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
         return init_validate_scorers(single_scorer_dict, self.model, self.train, self.classes)[0]
 
-    def get_data_by_kind(self, kind: DatasetKind):
+    def get_data_by_kind(self, kind: DatasetKind) -> Dataset:
         """Return the relevant Dataset by given kind."""
         if kind == DatasetKind.TRAIN:
             return self.train
