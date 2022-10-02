@@ -19,6 +19,8 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
+from deepchecks.utils.docref import doclink
+
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
 except ImportError:
@@ -275,9 +277,13 @@ class DeepcheckScorer:
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
         if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
                                                                     'predict_proba'):
-            raise errors.DeepchecksValueError(f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
-                                              f'not provided. Please use a model with predict_proba method or '
-                                              f'manually provide predicted probabilities to the check.')
+            doclink_str = doclink('supported_models',
+                                  template='For more information please refer to the Supported Models guide {link}')
+            raise errors.DeepchecksValueError(
+                f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
+                f'not provided. Please use a model with predict_proba method or '
+                f'manually provide predicted probabilities to the check. '
+                f'{doclink_str}')
         if self.possible_classes is not None:
             updated_model, transformed_label_col = self._wrap_classification_model(model, dataset.label_col)
             return self.scorer(updated_model, dataset.features_columns, transformed_label_col)
