@@ -71,7 +71,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         if average in ['none', 'macro', 'weighted']:
             self.average = average
         else:
-            raise DeepchecksValueError('average should be one of: none, macro, weighted')
+            raise DeepchecksValueError('average should be one of: \'none\', \'macro\', \'weighted\'')
 
         self.get_mean_value = self.average != 'none'
 
