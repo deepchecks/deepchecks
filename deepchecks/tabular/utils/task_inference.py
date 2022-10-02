@@ -65,11 +65,10 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
             get_logger().warning('Model classes attribute does not contain all observed labels in train and test data.')
         observed_labels += list(model.classes_)
 
-    if model is not None and not hasattr(model, 'predict_proba'):
-        if isinstance(model, ClassifierMixin):
+    if model is not None:  # classification model without classes_ attribute
+        if not hasattr(model, 'predict_proba') and isinstance(model, ClassifierMixin):
             raise DeepchecksValueError('Model is a sklearn classification model but lacks the predict_proba method. '
                                        'Please train the model with probability=True.')
-    if model is not None:  # classification model without classes_ attribute
         observed_labels += convert_into_flat_list(model.predict(train_dataset.features_columns))
         if test_dataset is not None:
             observed_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
