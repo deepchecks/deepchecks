@@ -11,9 +11,10 @@
 """Tests for weak segment performance check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, has_items, has_length
+from hamcrest import assert_that, close_to, equal_to, has_items, has_length, calling, raises
 from sklearn.metrics import f1_score, make_scorer
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import WeakSegmentsPerformance
 from tests.base.utils import equal_condition_result
 
@@ -100,3 +101,16 @@ def test_regression_categorical_features_avocado(avocado_split_dataset_and_model
     assert_that(segments[segments['Feature1'] == 'type']['Feature1 range'].iloc[0], equal_to(['organic']))
     assert_that(segments[segments['Feature1'] == 'type'].iloc[0, 0], close_to(-0.362,0.01))
     assert_that(segments.iloc[0, 0], close_to(-0.379, 0.01))
+
+
+def test_classes_do_not_match_proba(kiss_dataset_and_model):
+    # Arrange
+    _, val, model = kiss_dataset_and_model
+    check = WeakSegmentsPerformance()
+
+    # Act & Assert
+    assert_that(calling(check.run).with_args(val, model),
+                raises(DeepchecksValueError,
+                       r'Predicted probabilities shape \(2, 3\) does not match the number of classes found in'
+                       r' the labels \[1, 2, 3, 5\].')
+                )
