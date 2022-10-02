@@ -30,6 +30,7 @@ def initvars(
     obj: object,
     include_defaults: bool = False,
     include_kwargs: bool = False,
+    include_properties: bool = False,
 ) -> Dict[Any, Any]:
     """Return object __dict__ variables that was passed throw constructor (__init__ method).
 
@@ -60,6 +61,12 @@ def initvars(
 
     if not include_kwargs:
         arguments.pop('kwargs', None)
+
+    if not include_properties:
+        arguments.pop('properties_list', None)
+        arguments.pop('image_properties', None)
+        arguments.pop('label_properties', None)
+        arguments.pop('prediction_properties', None)
 
     return arguments
 
