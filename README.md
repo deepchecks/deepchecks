@@ -40,9 +40,10 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 [![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-28-orange.svg?style=flat-round)](https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
+<!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
-[![all-contributors
-badge](https://img.shields.io/badge/all_contributors-28-orange.svg?style=flat-round)](https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
 
 <h1 align="center">
    Testing and Validating ML Models & Data
@@ -81,7 +82,8 @@ pip install deepchecks -U --user
 ```
 
 
-> *Note: Computer Vision Install*
+> Note: Computer Vision Install
+>
 > To install deepchecks together with the **Computer Vision Submodule** that 
 > is currently in *beta release*, replace 
 > ``deepchecks`` with ``"deepchecks[vision]"`` as follows:   
@@ -150,7 +152,7 @@ Which will result in a report that looks like this:
 
 Note:
 
-- Results can be [displayed](https://docs.deepchecks.com/dev/user-guide/general/showing_results.html) in various manners, or [exported]((https://docs.deepchecks.com/dev/user-guide/general/export_save_results.html)) to an html report, saved as JSON, or integrated with other tools (e.g. wandb).
+- Results can be [displayed](https://docs.deepchecks.com/dev/user-guide/general/showing_results.html) in various manners, or [exported](https://docs.deepchecks.com/dev/user-guide/general/export_save_results.html) to an html report, saved as JSON, or integrated with other tools (e.g. wandb).
 - Other suites that run only on the data (``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
 See the [full code tutorials
