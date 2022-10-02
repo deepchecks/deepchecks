@@ -18,6 +18,7 @@ import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
 
 
@@ -46,29 +47,39 @@ class AveragePrecisionRecall(Metric, MetricMixin):
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
     return_option: str, default: 'ap'
-        ap: ap only, ar: ar only, None: all (not ignite compliant)
+        ap: ap only, ar: ar only, None: all (not ignite compliant).
+    average: str, default: none
+        The method for averaging over the classes. If none, returns the result per class.
     """
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
-                 return_option: str = "ap", **kwargs):
+                 return_option: str = 'ap',
+                 average: str = 'none',
+                 **kwargs):
         super().__init__(*args, **kwargs)
 
         self.return_option = return_option
         if self.return_option is not None:
             max_dets = [max_dets[-1]]
-            self.area_ranges_names = ["all"]
+            self.area_ranges_names = ['all']
         else:
-            self.area_ranges_names = ["small", "medium", "large", "all"]
+            self.area_ranges_names = ['small', 'medium', 'large', 'all']
         self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
         self.max_detections_per_class = max_dets
         self.area_range = area_range
+        if average in ['none', 'macro', 'weighted']:
+            self.average = average
+        else:
+            raise DeepchecksValueError('average should be one of: \'none\', \'macro\', \'weighted\'')
+
+        self.get_mean_value = self.average != 'none'
 
     @reinit__is_reduced
     def reset(self):
         """Reset metric state."""
         super().reset()
-        self._evals = defaultdict(lambda: {"scores": [], "matched": [], "NP": []})
+        self._evals = defaultdict(lambda: {'scores': [], 'matched': [], 'NP': []})
         self.i = 0
 
     @reinit__is_reduced
@@ -85,7 +96,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
             self._group_detections(detected, ground_truth)
             self.i += 1
 
-    @sync_all_reduce("_evals")
+    @sync_all_reduce('_evals')
     def compute(self):
         """Compute metric value."""
         # now reduce accumulations
@@ -93,17 +104,23 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         max_class = max(sorted_classes)
         for class_id in sorted_classes:
             acc = self._evals[class_id]
-            acc["scores"] = _dict_conc(acc["scores"])
-            acc["matched"] = _dict_conc(acc["matched"])
-            acc["NP"] = _dict_conc(acc["NP"])
-        reses = {"precision": -np.ones((len(self.iou_thresholds),
+            acc['scores'] = _dict_conc(acc['scores'])
+            acc['matched'] = _dict_conc(acc['matched'])
+            acc['NP'] = _dict_conc(acc['NP'])
+        reses = {'precision': -np.ones((len(self.iou_thresholds),
                                         len(self.area_ranges_names),
                                         len(self.max_detections_per_class),
                                         max_class + 1)),
-                 "recall": -np.ones((len(self.iou_thresholds),
+                 'recall': -np.ones((len(self.iou_thresholds),
                                      len(self.area_ranges_names),
                                      len(self.max_detections_per_class),
                                      max_class + 1))}
+
+        classes_counts = -np.ones((len(self.iou_thresholds),
+                                   len(self.area_ranges_names),
+                                   len(self.max_detections_per_class),
+                                   max_class + 1))
+
         for iou_i, min_iou in enumerate(self.iou_thresholds):
             for dets_i, dets in enumerate(self.max_detections_per_class):
                 for area_i, area_size in enumerate(self.area_ranges_names):
@@ -111,53 +128,72 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                     precision_list.fill(np.nan)
                     recall_list = np.empty(max_class + 1)
                     recall_list.fill(np.nan)
+                    counts_list = np.empty(max_class + 1)
+                    counts_list.fill(np.nan)
+
                     # run ap calculation per-class
                     for class_id in sorted_classes:
                         ev = self._evals[class_id]
+                        class_counts = np.nansum(np.array(ev['NP'][(area_size, dets, min_iou)]))
                         precision, recall = \
-                            self._compute_ap_recall(np.array(ev["scores"][(area_size, dets, min_iou)]),
-                                                    np.array(ev["matched"][(area_size, dets, min_iou)]),
-                                                    np.sum(np.array(ev["NP"][(area_size, dets, min_iou)])))
+                            self._compute_ap_recall(np.array(ev['scores'][(area_size, dets, min_iou)]),
+                                                    np.array(ev['matched'][(area_size, dets, min_iou)]),
+                                                    class_counts)
                         precision_list[class_id] = precision
                         recall_list[class_id] = recall
-                    reses["precision"][iou_i, area_i, dets_i] = precision_list
-                    reses["recall"][iou_i, area_i, dets_i] = recall_list
-        if self.return_option == "ap":
-            return torch.tensor(self.get_classes_scores_at(reses["precision"],
+                        counts_list[class_id] = np.nan if recall == -1 else class_counts
+                    reses['precision'][iou_i, area_i, dets_i] = precision_list
+                    reses['recall'][iou_i, area_i, dets_i] = recall_list
+                    classes_counts[iou_i, area_i, dets_i] = counts_list
+
+        if self.average == 'weighted':
+            classes_counts = self.filter_res(classes_counts,
+                                             area=self.area_ranges_names[0], max_dets=self.max_detections_per_class[0])
+            classes_counts = np.nanmean(classes_counts, axis=(0, 1, 2))
+            classes_counts = classes_counts[~np.isnan(classes_counts)]
+            class_weights = 1.0 / classes_counts
+            class_weights = class_weights / np.sum(class_weights)
+        else:
+            class_weights = None
+
+        if self.return_option == 'ap':
+            return torch.tensor(self.get_classes_scores_at(reses['precision'],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
-                                                           get_mean_val=False))
-        elif self.return_option == "ar":
-            return torch.tensor(self.get_classes_scores_at(reses["recall"],
+                                                           get_mean_val=self.get_mean_value,
+                                                           class_weights=class_weights))
+        elif self.return_option == 'ar':
+            return torch.tensor(self.get_classes_scores_at(reses['recall'],
                                                            max_dets=self.max_detections_per_class[0],
                                                            area=self.area_ranges_names[0],
-                                                           get_mean_val=False))
+                                                           get_mean_val=self.get_mean_value,
+                                                           class_weights=class_weights))
         return [reses]
 
     def _group_detections(self, detected, ground_truth):
         """Group gts and dts on a imageXclass basis."""
         # Calculating pairwise IoUs on classes
         bb_info = self.group_class_detection_label(detected, ground_truth)
-        ious = {k: self.calc_pairwise_ious(v["detected"], v["ground_truth"]) for k, v in bb_info.items()}
+        ious = {k: self.calc_pairwise_ious(v['detected'], v['ground_truth']) for k, v in bb_info.items()}
 
         for class_id in ious.keys():
             image_evals = self._evaluate_image(
-                bb_info[class_id]["detected"],
-                bb_info[class_id]["ground_truth"],
+                bb_info[class_id]['detected'],
+                bb_info[class_id]['ground_truth'],
                 ious[class_id]
             )
 
             acc = self._evals[class_id]
-            acc["scores"].append(image_evals["scores"])
-            acc["matched"].append(image_evals["matched"])
-            acc["NP"].append(image_evals["NP"])
+            acc['scores'].append(image_evals['scores'])
+            acc['matched'].append(image_evals['matched'])
+            acc['NP'].append(image_evals['NP'])
 
     def _evaluate_image(self, detections, ground_truths, ious):
         """Evaluate image."""
         # Sort detections by decreasing confidence
         confidences = self.get_confidences(detections)
         areas = self.get_detection_areas(detections)
-        sorted_confidence_ids = np.argsort(confidences, kind="stable")[::-1]
+        sorted_confidence_ids = np.argsort(confidences, kind='stable')[::-1]
         orig_ious = ious
         orig_gt = ground_truths
         ground_truth_area = np.array(self.get_labels_areas(ground_truths))
@@ -173,7 +209,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                 ground_truth_to_ignore = [self._is_ignore_area(gt_area, area_size) for gt_area in ground_truth_area]
 
                 # sort gts by ignore last
-                gt_sort = np.argsort(ground_truth_to_ignore, kind="stable")
+                gt_sort = np.argsort(ground_truth_to_ignore, kind='stable')
                 ground_truths = [orig_gt[idx] for idx in gt_sort]
                 ground_truth_to_ignore = [ground_truth_to_ignore[idx] for idx in gt_sort]
 
@@ -198,7 +234,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                          if not detections_to_ignore[d_idx]]
                     n_gts[(area_size, top_n_detections, min_iou)] = \
                         len([g_idx for g_idx in range(len(ground_truths)) if not ground_truth_to_ignore[g_idx]])
-        return {"scores": scores, "matched": matched, "NP": n_gts}
+        return {'scores': scores, 'matched': matched, 'NP': n_gts}
 
     def _get_best_matches(self, dt, min_iou, ground_truths, ground_truth_to_ignore, ious):
         ground_truth_matched = {}
@@ -237,7 +273,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
                                             endpoint=True)
 
         # sort in descending score order
-        inds = np.argsort(-scores, kind="mergesort")
+        inds = np.argsort(-scores, kind='mergesort')
 
         scores = scores[inds]
         matched = matched[inds]
@@ -251,7 +287,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
             # make precision monotonically decreasing
             i_pr = np.maximum.accumulate(pr[::-1])[::-1]
 
-            rec_idx = np.searchsorted(rc, recall_thresholds, side="left")
+            rec_idx = np.searchsorted(rc, recall_thresholds, side='left')
 
             # get interpolated precision values at the evaluation thresholds
             i_pr = np.array([i_pr[r] if r < len(i_pr) else 0 for r in rec_idx])
@@ -261,11 +297,11 @@ class AveragePrecisionRecall(Metric, MetricMixin):
 
     def _is_ignore_area(self, area_bb, area_size):
         """Generate ignored gt list by area_range."""
-        if area_size == "small":
+        if area_size == 'small':
             return not area_bb < self.area_range[0]
-        if area_size == "medium":
+        if area_size == 'medium':
             return not self.area_range[0] <= area_bb <= self.area_range[1]
-        if area_size == "large":
+        if area_size == 'large':
             return not area_bb > self.area_range[1]
         return False
 
@@ -279,7 +315,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         iou : float, default: None
             filter by iou threshold
         area : str, default: None
-            filter by are range name ["small", "medium", "large", "all"]
+            filter by are range name ['small', 'medium', 'large', 'all']
         max_dets : int, default: None
             filter by max detections
 
@@ -300,7 +336,8 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         return res
 
     def get_classes_scores_at(self, res: np.ndarray, iou: float = None, area: str = None, max_dets: int = None,
-                              get_mean_val: bool = True, zeroed_negative: bool = True):
+                              get_mean_val: bool = True, zeroed_negative: bool = True, class_weights: np.ndarray = None
+                              ):
         """Get the mean value of the classes scores and the result values.
 
         Parameters
@@ -310,13 +347,15 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         iou : float, default: None
             filter by iou threshold
         area : str, default: None
-            filter by are range name ["small", "medium", "large", "all"]
+            filter by are range name ['small', 'medium', 'large', 'all']
         max_dets : int, default: None
             filter by max detections
         get_mean_val : bool, default: True
             get mean value if True, if False get per class
         zeroed_negative : bool, default: True
             if getting the class results list set negative (-1) values to 0
+        class_weights : np.array, default None
+            The class weights for weighted macro averaging. If None, gives equal weights to all the classes.
 
         Returns
         -------
@@ -324,11 +363,20 @@ class AveragePrecisionRecall(Metric, MetricMixin):
            The mean value of the classes scores or the scores list.
         """
         res = self.filter_res(res, iou, area, max_dets)
+
         with warnings.catch_warnings():
-            warnings.simplefilter(action="ignore", category=RuntimeWarning)
+            warnings.simplefilter(action='ignore', category=RuntimeWarning)
             res = np.nanmean(res[:, :, :], axis=0)
             if get_mean_val:
-                return np.nanmean(res[res > -1])
+                filtered_res = res[~np.isnan(res) & (res > -1)]
+                num_classes = filtered_res.shape[-1]
+                if class_weights is None:
+                    class_weights = np.empty(num_classes)
+                    class_weights.fill(1 / num_classes)
+                if len(class_weights) != num_classes:
+                    raise DeepchecksValueError('The class weights shape must match the number of classes')
+                weighted_result = np.dot(filtered_res, class_weights)
+                return weighted_result
             if zeroed_negative:
                 res = res.clip(min=0)
             return res[0][0]
