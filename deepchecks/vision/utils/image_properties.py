@@ -132,18 +132,29 @@ def get_dimension(img) -> int:
     return img.shape[2]
 
 
-def calc_default_image_properties(batch: List[np.ndarray]) -> Dict:
+def sample_pixels(image: np.ndarray, n_pixels: int):
+    """Sample the image to improve runtime, expected image format H,W,C."""
+    flat_image = image.reshape((-1, image.shape[-1]))
+    pixel_idxs = np.random.choice(flat_image.shape[0], n_pixels)
+    sampled_image = flat_image[pixel_idxs, np.newaxis, :]
+    return sampled_image
+
+
+def calc_default_image_properties(batch: List[np.ndarray], sample_n_pixels: int = 10000) -> Dict:
     """Speed up the calculation for the default image properties by sharing common actions."""
     results_dict = {}
     sizes_array = _sizes_array(batch)
     results_dict['Aspect Ratio'] = list(sizes_array[:, 0] / sizes_array[:, 1])
     results_dict['Area'] = list(sizes_array[:, 0] * sizes_array[:, 1])
 
-    grayscale_images = [img if _is_grayscale(img) else rgb2gray(img) for img in batch]
+    np.random.seed(0)
+    sampled_images = [sample_pixels(img, sample_n_pixels) for img in batch]
+
+    grayscale_images = [img if _is_grayscale(img) else rgb2gray(img) for img in sampled_images]
     results_dict['Brightness'] = [image.mean() for image in grayscale_images]
     results_dict['RMS Contrast'] = [image.std() for image in grayscale_images]
 
-    rgb_intensities = _rgb_relative_intensity_mean_array(batch)
+    rgb_intensities = _rgb_relative_intensity_mean_array(sampled_images)
     results_dict['Mean Red Relative Intensity'] = rgb_intensities[:, 0].tolist()
     results_dict['Mean Green Relative Intensity'] = rgb_intensities[:, 1].tolist()
     results_dict['Mean Blue Relative Intensity'] = rgb_intensities[:, 2].tolist()

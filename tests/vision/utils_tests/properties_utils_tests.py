@@ -37,7 +37,7 @@ def test_calc_default_image_properties(coco_train_visiondata):
     assert_that(results.keys(), contains_exactly(
         'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
         'Mean Red Relative Intensity', 'Mean Green Relative Intensity', 'Mean Blue Relative Intensity'))
-    assert_that(sum(results['Brightness']), close_to(15.56, 0.01))
+    assert_that(sum(results['Brightness']), close_to(15.53, 0.01))
 
 
 def test_default_properties():
