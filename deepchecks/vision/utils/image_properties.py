@@ -139,7 +139,7 @@ def calc_default_image_properties(batch: List[np.ndarray]) -> Dict:
     results_dict['Aspect Ratio'] = list(sizes_array[:, 0] / sizes_array[:, 1])
     results_dict['Area'] = list(sizes_array[:, 0] * sizes_array[:, 1])
 
-    grayscale_images = [rgb2gray(img) if _is_grayscale(img) else img for img in batch]
+    grayscale_images = [img if _is_grayscale(img) else rgb2gray(img) for img in batch]
     results_dict['Brightness'] = [image.mean() for image in grayscale_images]
     results_dict['RMS Contrast'] = [image.std() for image in grayscale_images]
 

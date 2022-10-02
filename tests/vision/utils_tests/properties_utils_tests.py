@@ -12,7 +12,7 @@
 from hamcrest import assert_that, calling, close_to, contains_exactly, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, calc_default_image_properties
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
@@ -25,6 +25,15 @@ from deepchecks.vision.utils.vision_properties import calc_vision_properties, va
 def test_calc_properties(coco_train_visiondata):
     images = coco_train_visiondata.batch_to_images(next(iter(coco_train_visiondata.data_loader)))
     results = calc_vision_properties(images, default_image_properties)
+    assert_that(results.keys(), contains_exactly(
+        'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
+        'Mean Red Relative Intensity', 'Mean Green Relative Intensity', 'Mean Blue Relative Intensity'))
+    assert_that(sum(results['Brightness']), close_to(15.56, 0.01))
+
+
+def test_calc_default_image_properties(coco_train_visiondata):
+    images = coco_train_visiondata.batch_to_images(next(iter(coco_train_visiondata.data_loader)))
+    results = calc_default_image_properties(images)
     assert_that(results.keys(), contains_exactly(
         'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
         'Mean Red Relative Intensity', 'Mean Green Relative Intensity', 'Mean Blue Relative Intensity'))
