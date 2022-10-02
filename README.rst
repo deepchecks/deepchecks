@@ -116,7 +116,7 @@ Head over to one of our following quickstart tutorials, and have deepchecks runn
   auto_quickstarts/plot_quick_data_integrity.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
-- `Full Suite (many checks) Quickstart (iris data) <https://docs.deepchecks.com/en/stable/user-guide/tabular/
+- `Full Suite (many checks) Quickstart (iris data) <https://docs.deepchecks.com/stable/user-guide/tabular/
   auto_quickstarts/plot_quickstart_in_5_minutes.html?
   utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`__
 
@@ -169,13 +169,13 @@ See the `full code tutorials here`_.
    utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out
 
 .. _datasets:
-   https://docs.deepchecks.com/en/stable/
+   https://docs.deepchecks.com/stable/
    user-guide/tabular/dataset_object.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_suite
 
 .. _supported model:
-   https://docs.deepchecks.com/en/stable/
+   https://docs.deepchecks.com/stable/
    user-guide/supported_models.html
    ?utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_suite 
@@ -192,7 +192,7 @@ details about the existing checks and the parameters they can receive
 can be found in our `API Reference`_.
 
 .. _API Reference:
-   https://docs.deepchecks.com/en/stable/
+   https://docs.deepchecks.com/stable/
    api/index.html?
    utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_check
@@ -348,15 +348,15 @@ The package currently supports tabular data and is in *beta release* for the `Co
 ====================
 
 -  `https://docs.deepchecks.com/ <https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
-   - HTML documentation (stable release)
--  `https://docs.deepchecks.com/en/latest <https://docs.deepchecks.com/en/latest/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
    - HTML documentation (latest release)
+-  `https://docs.deepchecks.com/dev <https://docs.deepchecks.com/dev/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`__
+   - HTML documentation (dev version - git main branch)
 
 👭 Community
 ================
 
 -  Join our `Slack
-   Community <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg>`__
+   Community <https://www.deepchecks.com/slack>`__
    to connect with the maintainers and follow users and interesting
    discussions
 -  Post a `Github
@@ -378,9 +378,9 @@ The package currently supports tabular data and is in *beta release* for the `Co
    :target: https://coveralls.io/github/deepchecks/deepchecks?branch=main
 
 .. |binder badge image| image:: /docs/source/_static/binder-badge.svg
-   :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_binder
+   :target: https://docs.deepchecks.com/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_binder
 .. |colab badge image| image:: /docs/source/_static/colab-badge.svg
-   :target: https://docs.deepchecks.com/en/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_colab
+   :target: https://docs.deepchecks.com/stable/examples/guides/quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out_colab
 
 
 ✨ Contributors
@@ -388,7 +388,7 @@ The package currently supports tabular data and is in *beta release* for the `Co
 
 Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/docs/en/emoji-key>`__):
 
-.. |all-contributors badge| image:: https://img.shields.io/badge/all_contributors-30-orange.svg?style=flat-round
+.. |all-contributors badge| image:: https://img.shields.io/badge/all_contributors-28-orange.svg?style=flat-round
    :target: https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst
 
 .. raw:: html
@@ -397,44 +397,53 @@ Thanks goes to these wonderful people (`emoji key <https://allcontributors.org/d
    <!-- prettier-ignore-start -->
    <!-- markdownlint-disable -->
       <table>
-         <tbody>
-            <tr>
-               <td align="center"><a href="https://github.com/ItayGabbay"><img src="https://avatars.githubusercontent.com/u/20860465?v=4?s=100" width="100px;" alt="Itay Gabbay"/><br /><sub><b>Itay Gabbay</b></sub></a><br /><a href="#code-ItayGabbay" title="Code">💻</a> <a href="#doc-ItayGabbay" title="Documentation">📖</a> <a href="#ideas-ItayGabbay" title="Ideas, Planning, & Feedback">🤔</a></td>
-               <td align="center"><a href="https://github.com/matanper"><img src="https://avatars.githubusercontent.com/u/9868530?v=4?s=100" width="100px;" alt="matanper"/><br /><sub><b>matanper</b></sub></a><br /><a href="#doc-matanper" title="Documentation">📖</a> <a href="#ideas-matanper" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-matanper" title="Code">💻</a></td>
-               <td align="center"><a href="https://github.com/JKL98ISR"><img src="https://avatars.githubusercontent.com/u/26321553?v=4?s=100" width="100px;" alt="JKL98ISR"/><br /><sub><b>JKL98ISR</b></sub></a><br /><a href="#ideas-JKL98ISR" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-JKL98ISR" title="Code">💻</a> <a href="#doc-JKL98ISR" title="Documentation">📖</a></td>
-               <td align="center"><a href="https://github.com/yromanyshyn"><img src="https://avatars.githubusercontent.com/u/71635444?v=4?s=100" width="100px;" alt="Yurii Romanyshyn"/><br /><sub><b>Yurii Romanyshyn</b></sub></a><br /><a href="#ideas-yromanyshyn" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-yromanyshyn" title="Code">💻</a> <a href="#doc-yromanyshyn" title="Documentation">📖</a></td>
-               <td align="center"><a href="https://github.com/noamzbr"><img src="https://avatars.githubusercontent.com/u/17730502?v=4?s=100" width="100px;" alt="Noam Bressler"/><br /><sub><b>Noam Bressler</b></sub></a><br /><a href="#code-noamzbr" title="Code">💻</a> <a href="#doc-noamzbr" title="Documentation">📖</a> <a href="#ideas-noamzbr" title="Ideas, Planning, & Feedback">🤔</a></td>
-               <td align="center"><a href="https://github.com/nirhutnik"><img src="https://avatars.githubusercontent.com/u/92314933?v=4?s=100" width="100px;" alt="Nir Hutnik"/><br /><sub><b>Nir Hutnik</b></sub></a><br /><a href="#code-nirhutnik" title="Code">💻</a> <a href="#doc-nirhutnik" title="Documentation">📖</a> <a href="#ideas-nirhutnik" title="Ideas, Planning, & Feedback">🤔</a></td>
-               <td align="center"><a href="https://github.com/Nadav-Barak"><img src="https://avatars.githubusercontent.com/u/67195469?v=4?s=100" width="100px;" alt="Nadav-Barak"/><br /><sub><b>Nadav-Barak</b></sub></a><br /><a href="#code-Nadav-Barak" title="Code">💻</a> <a href="#doc-Nadav-Barak" title="Documentation">📖</a> <a href="#ideas-Nadav-Barak" title="Ideas, Planning, & Feedback">🤔</a></td>
-            </tr>
-            <tr>
-               <td align="center"><a href="https://github.com/TheSolY"><img src="https://avatars.githubusercontent.com/u/99395146?v=4?s=100" width="100px;" alt="Sol"/><br /><sub><b>Sol</b></sub></a><br /><a href="#code-TheSolY" title="Code">💻</a> <a href="#doc-TheSolY" title="Documentation">📖</a> <a href="#ideas-TheSolY" title="Ideas, Planning, & Feedback">🤔</a></td>
-               <td align="center"><a href="http://www.linkedin.com/in/dan-arlowski"><img src="https://avatars.githubusercontent.com/u/59116108?v=4?s=100" width="100px;" alt="DanArlowski"/><br /><sub><b>DanArlowski</b></sub></a><br /><a href="#code-DanArlowski" title="Code">💻</a> <a href="#infra-DanArlowski" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
-               <td align="center"><a href="https://github.com/benisraeldan"><img src="https://avatars.githubusercontent.com/u/42312361?v=4?s=100" width="100px;" alt="DBI"/><br /><sub><b>DBI</b></sub></a><br /><a href="#code-benisraeldan" title="Code">💻</a></td>
-               <td align="center"><a href="https://github.com/OrlyShmorly"><img src="https://avatars.githubusercontent.com/u/110338263?v=4?s=100" width="100px;" alt="OrlyShmorly"/><br /><sub><b>OrlyShmorly</b></sub></a><br /><a href="#design-OrlyShmorly" title="Design">🎨</a></td>
-               <td align="center"><a href="https://github.com/shir22"><img src="https://avatars.githubusercontent.com/u/33841818?v=4?s=100" width="100px;" alt="shir22"/><br /><sub><b>shir22</b></sub></a><br /><a href="#ideas-shir22" title="Ideas, Planning, & Feedback">🤔</a> <a href="#doc-shir22" title="Documentation">📖</a> <a href="#talk-shir22" title="Talks">📢</a></td>
-               <td align="center"><a href="https://github.com/yaronzo1"><img src="https://avatars.githubusercontent.com/u/107114284?v=4?s=100" width="100px;" alt="yaronzo1"/><br /><sub><b>yaronzo1</b></sub></a><br /><a href="#ideas-yaronzo1" title="Ideas, Planning, & Feedback">🤔</a> <a href="#content-yaronzo1" title="Content">🖋</a></td>
-               <td align="center"><a href="https://github.com/ptannor"><img src="https://avatars.githubusercontent.com/u/34207422?v=4?s=100" width="100px;" alt="ptannor"/><br /><sub><b>ptannor</b></sub></a><br /><a href="#ideas-ptannor" title="Ideas, Planning, & Feedback">🤔</a> <a href="#content-ptannor" title="Content">🖋</a></td>
-            </tr>
-            <tr>
-               <td align="center"><a href="https://github.com/avitzd"><img src="https://avatars.githubusercontent.com/u/84308273?v=4?s=100" width="100px;" alt="avitzd"/><br /><sub><b>avitzd</b></sub></a><br /><a href="#eventOrganizing-avitzd" title="Event Organizing">📋</a> <a href="#video-avitzd" title="Videos">📹</a></td>
-               <td align="center"><a href="https://github.com/DanBasson"><img src="https://avatars.githubusercontent.com/u/46203939?v=4?s=100" width="100px;" alt="DanBasson"/><br /><sub><b>DanBasson</b></sub></a><br /><a href="#doc-DanBasson" title="Documentation">📖</a> <a href="#bug-DanBasson" title="Bug reports">🐛</a> <a href="#example-DanBasson" title="Examples">💡</a></td>
-               <td align="center"><a href="https://github.com/kishore-s-15"><img src="https://avatars.githubusercontent.com/u/56688194?v=4?s=100" width="100px;" alt="S.Kishore"/><br /><sub><b>S.Kishore</b></sub></a><br /><a href="#code-Kishore-s-15" title="Code">💻</a> <a href="#doc-Kishore-s-15" title="Documentation">📖</a> <a href="#bug-Kishore-s-15" title="Bug reports">🐛</a></td>
-               <td align="center"><a href="http://www.shaypalachy.com/"><img src="https://avatars.githubusercontent.com/u/917954?v=4?s=100" width="100px;" alt="Shay Palachy-Affek"/><br /><sub><b>Shay Palachy-Affek</b></sub></a><br /><a href="#data-Shaypal5" title="Data">🔣</a> <a href="#example-Shaypal5" title="Examples">💡</a> <a href="#userTesting-Shaypal5" title="User Testing">📓</a></td>
-               <td align="center"><a href="https://github.com/cemalgurpinar"><img src="https://avatars.githubusercontent.com/u/36713268?v=4?s=100" width="100px;" alt="Cemal GURPINAR"/><br /><sub><b>Cemal GURPINAR</b></sub></a><br /><a href="#doc-cemalgurpinar" title="Documentation">📖</a> <a href="#bug-cemalgurpinar" title="Bug reports">🐛</a></td>
-               <td align="center"><a href="https://github.com/daavoo"><img src="https://avatars.githubusercontent.com/u/12677733?v=4?s=100" width="100px;" alt="David de la Iglesia Castro"/><br /><sub><b>David de la Iglesia Castro</b></sub></a><br /><a href="#code-daavoo" title="Code">💻</a></td>
-               <td align="center"><a href="https://github.com/Tak"><img src="https://avatars.githubusercontent.com/u/142250?v=4?s=100" width="100px;" alt="Levi Bard"/><br /><sub><b>Levi Bard</b></sub></a><br /><a href="#doc-Tak" title="Documentation">📖</a></td>
-            </tr>
-         </tbody>
-         <tfoot>
-            
-         </tfoot>
+        <tbody>
+          <tr>
+            <td align="center"><a href="https://github.com/ItayGabbay"><img src="https://avatars.githubusercontent.com/u/20860465?v=4?s=100" width="100px;" alt="Itay Gabbay"/><br /><sub><b>Itay Gabbay</b></sub></a><br /><a href="#code-ItayGabbay" title="Code">💻</a> <a href="#doc-ItayGabbay" title="Documentation">📖</a> <a href="#ideas-ItayGabbay" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="https://github.com/matanper"><img src="https://avatars.githubusercontent.com/u/9868530?v=4?s=100" width="100px;" alt="matanper"/><br /><sub><b>matanper</b></sub></a><br /><a href="#doc-matanper" title="Documentation">📖</a> <a href="#ideas-matanper" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-matanper" title="Code">💻</a></td>
+            <td align="center"><a href="https://github.com/JKL98ISR"><img src="https://avatars.githubusercontent.com/u/26321553?v=4?s=100" width="100px;" alt="JKL98ISR"/><br /><sub><b>JKL98ISR</b></sub></a><br /><a href="#ideas-JKL98ISR" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-JKL98ISR" title="Code">💻</a> <a href="#doc-JKL98ISR" title="Documentation">📖</a></td>
+            <td align="center"><a href="https://github.com/yromanyshyn"><img src="https://avatars.githubusercontent.com/u/71635444?v=4?s=100" width="100px;" alt="Yurii Romanyshyn"/><br /><sub><b>Yurii Romanyshyn</b></sub></a><br /><a href="#ideas-yromanyshyn" title="Ideas, Planning, & Feedback">🤔</a> <a href="#code-yromanyshyn" title="Code">💻</a> <a href="#doc-yromanyshyn" title="Documentation">📖</a></td>
+            <td align="center"><a href="https://github.com/noamzbr"><img src="https://avatars.githubusercontent.com/u/17730502?v=4?s=100" width="100px;" alt="Noam Bressler"/><br /><sub><b>Noam Bressler</b></sub></a><br /><a href="#code-noamzbr" title="Code">💻</a> <a href="#doc-noamzbr" title="Documentation">📖</a> <a href="#ideas-noamzbr" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="https://github.com/nirhutnik"><img src="https://avatars.githubusercontent.com/u/92314933?v=4?s=100" width="100px;" alt="Nir Hutnik"/><br /><sub><b>Nir Hutnik</b></sub></a><br /><a href="#code-nirhutnik" title="Code">💻</a> <a href="#doc-nirhutnik" title="Documentation">📖</a> <a href="#ideas-nirhutnik" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="https://github.com/Nadav-Barak"><img src="https://avatars.githubusercontent.com/u/67195469?v=4?s=100" width="100px;" alt="Nadav-Barak"/><br /><sub><b>Nadav-Barak</b></sub></a><br /><a href="#code-Nadav-Barak" title="Code">💻</a> <a href="#doc-Nadav-Barak" title="Documentation">📖</a> <a href="#ideas-Nadav-Barak" title="Ideas, Planning, & Feedback">🤔</a></td>
+          </tr>
+          <tr>
+            <td align="center"><a href="https://github.com/TheSolY"><img src="https://avatars.githubusercontent.com/u/99395146?v=4?s=100" width="100px;" alt="Sol"/><br /><sub><b>Sol</b></sub></a><br /><a href="#code-TheSolY" title="Code">💻</a> <a href="#doc-TheSolY" title="Documentation">📖</a> <a href="#ideas-TheSolY" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="http://www.linkedin.com/in/dan-arlowski"><img src="https://avatars.githubusercontent.com/u/59116108?v=4?s=100" width="100px;" alt="DanArlowski"/><br /><sub><b>DanArlowski</b></sub></a><br /><a href="#code-DanArlowski" title="Code">💻</a> <a href="#infra-DanArlowski" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+            <td align="center"><a href="https://github.com/benisraeldan"><img src="https://avatars.githubusercontent.com/u/42312361?v=4?s=100" width="100px;" alt="DBI"/><br /><sub><b>DBI</b></sub></a><br /><a href="#code-benisraeldan" title="Code">💻</a></td>
+            <td align="center"><a href="https://github.com/OrlyShmorly"><img src="https://avatars.githubusercontent.com/u/110338263?v=4?s=100" width="100px;" alt="OrlyShmorly"/><br /><sub><b>OrlyShmorly</b></sub></a><br /><a href="#design-OrlyShmorly" title="Design">🎨</a></td>
+            <td align="center"><a href="https://github.com/shir22"><img src="https://avatars.githubusercontent.com/u/33841818?v=4?s=100" width="100px;" alt="shir22"/><br /><sub><b>shir22</b></sub></a><br /><a href="#ideas-shir22" title="Ideas, Planning, & Feedback">🤔</a> <a href="#doc-shir22" title="Documentation">📖</a> <a href="#talk-shir22" title="Talks">📢</a></td>
+            <td align="center"><a href="https://github.com/yaronzo1"><img src="https://avatars.githubusercontent.com/u/107114284?v=4?s=100" width="100px;" alt="yaronzo1"/><br /><sub><b>yaronzo1</b></sub></a><br /><a href="#ideas-yaronzo1" title="Ideas, Planning, & Feedback">🤔</a> <a href="#content-yaronzo1" title="Content">🖋</a></td>
+            <td align="center"><a href="https://github.com/ptannor"><img src="https://avatars.githubusercontent.com/u/34207422?v=4?s=100" width="100px;" alt="ptannor"/><br /><sub><b>ptannor</b></sub></a><br /><a href="#ideas-ptannor" title="Ideas, Planning, & Feedback">🤔</a> <a href="#content-ptannor" title="Content">🖋</a></td>
+          </tr>
+          <tr>
+            <td align="center"><a href="https://github.com/avitzd"><img src="https://avatars.githubusercontent.com/u/84308273?v=4?s=100" width="100px;" alt="avitzd"/><br /><sub><b>avitzd</b></sub></a><br /><a href="#eventOrganizing-avitzd" title="Event Organizing">📋</a> <a href="#video-avitzd" title="Videos">📹</a></td>
+            <td align="center"><a href="https://github.com/DanBasson"><img src="https://avatars.githubusercontent.com/u/46203939?v=4?s=100" width="100px;" alt="DanBasson"/><br /><sub><b>DanBasson</b></sub></a><br /><a href="#doc-DanBasson" title="Documentation">📖</a> <a href="#bug-DanBasson" title="Bug reports">🐛</a> <a href="#example-DanBasson" title="Examples">💡</a></td>
+            <td align="center"><a href="https://github.com/kishore-s-15"><img src="https://avatars.githubusercontent.com/u/56688194?v=4?s=100" width="100px;" alt="S.Kishore"/><br /><sub><b>S.Kishore</b></sub></a><br /><a href="#code-Kishore-s-15" title="Code">💻</a> <a href="#doc-Kishore-s-15" title="Documentation">📖</a> <a href="#bug-Kishore-s-15" title="Bug reports">🐛</a></td>
+            <td align="center"><a href="http://www.shaypalachy.com/"><img src="https://avatars.githubusercontent.com/u/917954?v=4?s=100" width="100px;" alt="Shay Palachy-Affek"/><br /><sub><b>Shay Palachy-Affek</b></sub></a><br /><a href="#data-Shaypal5" title="Data">🔣</a> <a href="#example-Shaypal5" title="Examples">💡</a> <a href="#userTesting-Shaypal5" title="User Testing">📓</a></td>
+            <td align="center"><a href="https://github.com/cemalgurpinar"><img src="https://avatars.githubusercontent.com/u/36713268?v=4?s=100" width="100px;" alt="Cemal GURPINAR"/><br /><sub><b>Cemal GURPINAR</b></sub></a><br /><a href="#doc-cemalgurpinar" title="Documentation">📖</a> <a href="#bug-cemalgurpinar" title="Bug reports">🐛</a></td>
+            <td align="center"><a href="https://github.com/daavoo"><img src="https://avatars.githubusercontent.com/u/12677733?v=4?s=100" width="100px;" alt="David de la Iglesia Castro"/><br /><sub><b>David de la Iglesia Castro</b></sub></a><br /><a href="#code-daavoo" title="Code">💻</a></td>
+            <td align="center"><a href="https://github.com/Tak"><img src="https://avatars.githubusercontent.com/u/142250?v=4?s=100" width="100px;" alt="Levi Bard"/><br /><sub><b>Levi Bard</b></sub></a><br /><a href="#doc-Tak" title="Documentation">📖</a></td>
+          </tr>
+          <tr>
+            <td align="center"><a href="https://github.com/julienschuermans"><img src="https://avatars.githubusercontent.com/u/14927054?v=4?s=100" width="100px;" alt="Julien Schuermans"/><br /><sub><b>Julien Schuermans</b></sub></a><br /><a href="#bug-julienschuermans" title="Bug reports">🐛</a></td>
+            <td align="center"><a href="http://www.nirbenzvi.com"><img src="https://avatars.githubusercontent.com/u/4930255?v=4?s=100" width="100px;" alt="Nir Ben-Zvi"/><br /><sub><b>Nir Ben-Zvi</b></sub></a><br /><a href="#code-nirbenz" title="Code">💻</a> <a href="#ideas-nirbenz" title="Ideas, Planning, & Feedback">🤔</a></td>
+            <td align="center"><a href="https://ashtavakra.org"><img src="https://avatars.githubusercontent.com/u/322451?v=4?s=100" width="100px;" alt="Shiv Shankar Dayal"/><br /><sub><b>Shiv Shankar Dayal</b></sub></a><br /><a href="#infra-shivshankardayal" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+            <td align="center"><a href="https://github.com/RonItay"><img src="https://avatars.githubusercontent.com/u/33497483?v=4?s=100" width="100px;" alt="RonItay"/><br /><sub><b>RonItay</b></sub></a><br /><a href="#bug-RonItay" title="Bug reports">🐛</a> <a href="#code-RonItay" title="Code">💻</a></td>
+            <td align="center"><a href="http://jeroen.vangoey.be"><img src="https://avatars.githubusercontent.com/u/59344?v=4?s=100" width="100px;" alt="Jeroen Van Goey"/><br /><sub><b>Jeroen Van Goey</b></sub></a><br /><a href="#bug-BioGeek" title="Bug reports">🐛</a> <a href="#doc-BioGeek" title="Documentation">📖</a></td>
+            <td align="center"><a href="https://about.me/ido.weiss"><img src="https://avatars.githubusercontent.com/u/10072365?v=4?s=100" width="100px;" alt="idow09"/><br /><sub><b>idow09</b></sub></a><br /><a href="#bug-idow09" title="Bug reports">🐛</a> <a href="#example-idow09" title="Examples">💡</a></td>
+            <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt="Ikko Ashimine"/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="#doc-eltociear" title="Documentation">📖</a></td>
+          </tr>
+        </tbody>
+        <tfoot>
+
+        </tfoot>
    </table>
 
    <!-- markdownlint-restore -->
    <!-- prettier-ignore-end -->
 
    <!-- ALL-CONTRIBUTORS-LIST:END -->
-   
+
 This project follows the `all-contributors <https://allcontributors.org>`__ specification.
 Contributions of any kind are welcome!

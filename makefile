@@ -145,7 +145,7 @@ env: $(ENV)
 
 
 $(ENV):
-	@echo "#### Creating Python Vertual Enviroment [ $(ENV) ] ####"
+	@echo "#### Creating Python Virtual Environment [ $(ENV) ] ####"
 	@echo "external python_exe is $(ext_py)"
 	@test -d $(ENV) || $(ext_py) -m venv $(ENV)
 
