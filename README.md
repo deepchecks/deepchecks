@@ -46,7 +46,7 @@ Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch
 
 
 <h1 align="center">
-   Testing and Validating ML Models & Data
+   Tests for Continuous Validation of ML Models & Data
 </h1>
 
 
@@ -274,7 +274,6 @@ of checks and optional conditions.
 ### Environment
 
 - The deepchecks package installed
-
 - JupyterLab or Jupyter Notebook or any Python IDE
 
 
@@ -285,11 +284,8 @@ subset of the following:
 
 -  Raw data (before pre-processing such as OHE, string processing,
    etc.), with optional labels
-
 -  The model's training data with labels
-
 -  Test data (which the model isn't exposed to) with labels
-
 -  A [supported
     model](https://docs.deepchecks.com/stable/user-guide/supported_models.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_suite) (e.g. scikit-learn models, XGBoost, any model implementing the ``predict`` method in the required format)
 
