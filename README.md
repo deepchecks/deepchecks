@@ -76,21 +76,23 @@ Check out the [Deepchecks for Computer Vision & Images subpackage](deepchecks/vi
 
 ### Using pip
 
-``` {.bash}
+```bash
 pip install deepchecks -U --user
 ```
 
 
 > *Note: Computer Vision Install*
-> To install deepchecks together with the **Computer Vision Submodule** that is currently in *beta release*, replace > ``deepchecks`` with ``"deepchecks[vision]"`` as follows:   
-> ``` {.bash}
+> To install deepchecks together with the **Computer Vision Submodule** that 
+> is currently in *beta release*, replace 
+> ``deepchecks`` with ``"deepchecks[vision]"`` as follows:   
+> ```bash
 > pip install "deepchecks[vision]" -U --user
 > ```
 >  
    
 ### Using conda
 
-``` {.bash}
+```bash
 conda install -c conda-forge deepchecks
 ```
 
@@ -104,14 +106,12 @@ Head over to one of our following quickstart tutorials, and have deepchecks runn
 
 - [Train-Test Validation Quickstart (loans data)](
    https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/plot_quick_train_test_validation.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
-
 - [Data Integrity Quickstart (avocado sales data)](
    https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/plot_quick_data_integrity.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
-
 - [Model Evaluation Quickstart (wine quality data)](
    https://docs.deepchecks.com/en/stable/user-guide/tabular/auto_quickstarts/plot_quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
 
- **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
+> **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
 
 
 ### 🚀 See Our Checks Demo
@@ -133,7 +133,7 @@ Example for running a suite on given
 and with a [supported
 model](https://docs.deepchecks.com/stable/user-guide/supported_models.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_suite):
 
-``` {.python}
+```python
 from deepchecks.tabular.suites import model_evaluation
 suite = model_evaluation()
 result = suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
@@ -168,7 +168,7 @@ details about the existing checks and the parameters they can receive
 can be found in our [API
 Reference](https://docs.deepchecks.com/stable/api/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_check).
 
-``` {.python}
+```python
 from deepchecks.tabular.checks import TrainTestFeatureDrift
 import pandas as pd
 
@@ -216,7 +216,9 @@ covering all kinds of common issues, such as:
 
 - Model Error Analysis
 - Label Ambiguity
-- Data Sample Leakage and [many more
+- Data Sample Leakage 
+
+and [many more
 checks](https://docs.deepchecks.com/stable/checks_gallery/tabular.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
 
 
@@ -234,7 +236,7 @@ A condition is a function that can be added to a Check, which returns a
 pass ✓, fail ✖ or warning ! result, intended for validating the Check's
 return value. An example for adding a condition would be:
 
-``` {.python}
+```python
 from deepchecks.tabular.checks import BoostingOverfit
 BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(threshold=0.05)
 ```
@@ -298,10 +300,8 @@ the [Computer Vision subpackage](deepchecks/vision).
 
 ## 📖 Documentation
 
--   [https://docs.deepchecks.com/](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation)
-    -   HTML documentation (latest release)
--   [https://docs.deepchecks.com/dev](https://docs.deepchecks.com/dev/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation)
-    -   HTML documentation (dev version - git main branch)
+-   [https://docs.deepchecks.com/](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation) -   HTML documentation (latest release)
+-   [https://docs.deepchecks.com/dev](https://docs.deepchecks.com/dev/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation) -   HTML documentation (dev version - git main branch)
 
 
 ## 👭 Community
@@ -363,8 +363,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
          <td align="center"><a href="https://bandism.net/"><img src="https://avatars.githubusercontent.com/u/22633385?v=4?s=100" width="100px;" alt="Ikko Ashimine"/><br /><sub><b>Ikko Ashimine</b></sub></a><br /><a href="#doc-eltociear" title="Documentation">📖</a></td>
        </tr>
      </tbody>
-     <tfoot>
-
+     <tfoot> 
      </tfoot>
 </table>
 
