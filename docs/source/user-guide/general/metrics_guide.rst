@@ -229,9 +229,16 @@ ________________
    * - 'average_precision_per_class'
      - average precision for object detection
      -
+   * - 'average_precision_macro'
+     - average precision macro averaging
+     -
+   * - 'average_precision_weighted'
+     - average precision macro, weighted by support
+     -
    * - 'average_recall_per_class'
      - average recall for object detection
-     -
+     - suffixes apply as with 'average_precision'
+
 
 Custom Metrics
 ==============

@@ -14,6 +14,7 @@ from deepchecks.vision import VisionData
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.metrics_utils.scorers import calculate_metrics
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU
+from numpy import nanmean
 
 
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
@@ -61,6 +62,18 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5
     assert_that(metric.get_classes_scores_at(res['recall'], area='large', max_dets=100, get_mean_val=False,
                 zeroed_negative=False), has_items([-1]))
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
+
+
+def test_average_precision_recall(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+    res = calculate_metrics({'ap': ObjectDetectionAveragePrecision(),
+                             'ap_macro': ObjectDetectionAveragePrecision(average='macro'),
+                             'ap_weighted': ObjectDetectionAveragePrecision(average='weighted')},
+                            coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            device=device)
+    # classes mean and macro are not equal due to zeroed negative
+    assert_that(nanmean(res['ap']), close_to(0.396, 0.001))
+    assert_that(res['ap_macro'], close_to(0.409, 0.001))
+    assert_that(res['ap_weighted'], close_to(0.441, 0.001))
 
 
 def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
