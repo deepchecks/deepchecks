@@ -73,8 +73,11 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
         observed_labels += convert_into_flat_list(model.predict(train_dataset.features_columns))
         if test_dataset is not None:
             observed_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
-    if is_categorical(pd.Series(observed_labels), max_categorical_ratio=0.05) or force_classification:
-        return sorted(pd.Series(observed_labels).dropna().unique())
+        if hasattr(model, 'predict_proba'):
+            return sorted(pd.Series(observed_labels).dropna().unique())
+    label_series = pd.Series(observed_labels)
+    if is_categorical(label_series, max_categorical_ratio=0.05) or force_classification:
+        return sorted(label_series.dropna().unique())
     else:  # no model + not categorical column (regression)
         return None
 

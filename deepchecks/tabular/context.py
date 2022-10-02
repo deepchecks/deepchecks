@@ -283,11 +283,11 @@ class Context:
     @property
     def task_type(self) -> TaskType:
         """Return task type based on calculated classes argument."""
-        if self._classes is None:
+        if self.classes is None:
             return TaskType.REGRESSION
-        elif len(self._classes) == 2:
+        elif len(self.classes) == 2:
             return TaskType.BINARY
-        elif len(self._classes) > 2:
+        elif len(self.classes) > 2:
             return TaskType.MULTICLASS
         else:
             raise DatasetValidationError('Found only one class in label column, pass the full list of possible '

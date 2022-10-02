@@ -16,7 +16,6 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.preprocessing import LabelBinarizer
 
-from deepchecks.core.errors import DeepchecksNotImplementedError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.utils.task_type import TaskType
 
