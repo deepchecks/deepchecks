@@ -95,8 +95,8 @@ def test_segmentation_many_scorers(segmentation_coco_train_visiondata, trained_s
     result = check.run(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
                        device=device, with_display=False).value
 
-    assert_that(result[result['Metric'] == 'dice']['Value'].mean(), close_to(0.649, 0.001))
-    assert_that(result[result['Metric'] == 'dice_macro']['Value'], close_to(0.649, 0.001))
+    assert_that(result[result['Metric'] == 'dice']['Value'].mean(), close_to(0.649, 0.006))
+    assert_that(result[result['Metric'] == 'dice_macro']['Value'], close_to(0.649, 0.006))
     assert_that(result[result['Metric'] == 'iou_micro']['Value'], close_to(0.948, 0.001))
 
 
