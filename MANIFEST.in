@@ -4,6 +4,6 @@ include requirements/nlp-requirements.txt
 include requirements/dev-requirements.txt
 include LICENSE
 include VERSION
-include README.rst
+include README.md
 include DESCRIPTION.rst
 recursive-include deepchecks/core/resources *
