@@ -15,7 +15,6 @@ __all__ = ['get_possible_classes', 'infer_task_type']
 from typing import List, Optional
 
 import pandas as pd
-from sklearn.base import ClassifierMixin
 
 from deepchecks import tabular
 from deepchecks.core.errors import DeepchecksValueError
