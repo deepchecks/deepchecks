@@ -30,7 +30,8 @@ the predictions must be in the following format based on the task type:
 * **Probabilities per class**: should be provided as an |array-like| of shape ``(n_samples, n_classes)``
   containing the predicted probability of each possible class for each sample in the dataset. The probabilities
   per class should be provided in a **alphanumeric order** based on the classes names.
-  Probabilities per class are only required for classification tasks.
+  Probabilities per class are only relevant for classification tasks. If predicted probabilities are not supplied,
+  checks and metrics that rely on the predicted probabilities (such as ROC Curve and the AUC metric) will not run.
 
 .. Note::
     For classification tasks, Deepchecks require the list of all possible classes in the order they appear at the
@@ -53,7 +54,7 @@ Specifically, deepchecks requires the following methods to be implemented in the
   input features and returns :ref:`predicted values <supported_models__predictions_format>`.
 * ``predict_proba`` method which receives an |array-like|  of shape ``(n_samples, n_features)`` containing the
   input features and returns :ref:`probabilities per class <supported_models__predictions_format>`.
-  This method is required only for classification tasks.
+  This method is optional and relevant only for classification tasks.
 
 Running Deepchecks With a Supported Model
 -----------------------------------------
@@ -100,7 +101,7 @@ Using Pre-computed Predictions
 
 The predictions should be passed via the ``y_proba`` and ``y_pred`` arguments of the suite / check's ``run`` method in
 the :ref:`appropriate format <supported_models__predictions_format>`. ``y_pred`` receives the predicted values of
-the model and ``y_proba`` receives the probabilities per class, which is only required for classification tasks.
+the model and ``y_proba`` receives the probabilities per class, which is only relevant for classification tasks.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
 :doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
@@ -108,8 +109,9 @@ check for a regression model
 requires both train and test :ref:`predicted values <supported_models__predictions_format>`
 to be provided via the ``y_pred_train``, ``y_pred_test`` arguments.
 
-For classification tasks, predicted values are not mandatory. If not supplied,
-deepchecks will assume the predicted class is the class with the highest predicted probability.
+For classification it's recommended but not mandatory to also pass the predicted probabilities (``y_proba``). If
+predicted probabilities are not supplied, checks and metrics that rely on the predicted probabilities (such as
+ROC Curve and the AUC metric) will not run.
 
 .. Note::
     When using pre-computed predictions, if the train dataset shares indices with the test dataset we

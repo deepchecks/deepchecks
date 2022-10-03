@@ -23,7 +23,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_result import DisplayMap
-from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
 from deepchecks.tabular import Context, Dataset, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
@@ -88,7 +88,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             segment_minimum_size_ratio: float = 0.05,
             alternative_scorer: Dict[str, Callable] = None,
             loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
-            classes_index_order: Union[np.ndarray, pd.Series, None] = None,
             n_samples: int = 10_000,
             categorical_aggregation_threshold: float = 0.05,
             n_to_show: int = 3,
@@ -104,7 +103,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         self.n_to_show = n_to_show
         self.random_state = random_state
         self.loss_per_sample = loss_per_sample
-        self.classes_index_order = classes_index_order
         self.alternative_scorer = alternative_scorer if alternative_scorer else None
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
 
@@ -114,14 +112,25 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         dataset.assert_features()
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         predictions = context.model.predict(dataset.features_columns)
-        y_proba = context.model.predict_proba(dataset.features_columns) if \
-            context.task_type in [TaskType.MULTICLASS, TaskType.BINARY] else None
+        if context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
+            if not hasattr(context.model, 'predict_proba'):
+                raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'
+                                                  ' on log loss error that requires predicted probabilities, rather'
+                                                  ' than only predicted classes.')
+            y_proba = context.model.predict_proba(dataset.features_columns)
+            # If proba shape does not match label, raise error
+            if y_proba.shape[1] != len(context.classes):
+                raise DeepchecksValueError(
+                    f'Predicted probabilities shape {y_proba.shape} does not match the number of classes found in'
+                    f' the labels {context.classes}.')
+        else:
+            y_proba = None
 
         if self.loss_per_sample is not None:
             loss_per_sample = self.loss_per_sample[list(dataset.data.index)]
         else:
             loss_per_sample = calculate_per_sample_loss(context.model, context.task_type, dataset,
-                                                        self.classes_index_order)
+                                                        context.classes)
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         if len(dataset.features) < 2:
             raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
