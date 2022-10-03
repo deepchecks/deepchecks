@@ -152,12 +152,12 @@ Which will result in a report that looks like this:
 
 Note:
 
-- Results can be [displayed](https://docs.deepchecks.com/dev/user-guide/general/showing_results.html) in various manners, or [exported](https://docs.deepchecks.com/dev/user-guide/general/export_save_results.html) to an html report, saved as JSON, or integrated with other tools (e.g. wandb).
+- Results can be [displayed](https://docs.deepchecks.com/stable/user-guide/general/showing_results.html) in various manners, or [exported](https://docs.deepchecks.com/stable/user-guide/general/export_save_results.html) to an html report, saved as JSON, or integrated with other tools (e.g. wandb).
 - Other suites that run only on the data (``data_integrity``, ``train_test_validation``) don't require a model as part of the input.
 
 See the [full code tutorials
 here](
-   https://docs.deepchecks.com/dev/user-guide/tabular/auto_quickstarts/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out).
+   https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out).
 
 
 In the following section you can see an example of how the output of a single check without a condition may look.
