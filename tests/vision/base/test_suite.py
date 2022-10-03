@@ -13,7 +13,7 @@ import typing as t
 from collections import defaultdict
 
 import torch
-from hamcrest import all_of, assert_that, calling, equal_to, has_entries, instance_of, is_, raises
+from hamcrest import all_of, assert_that, calling, equal_to, has_entries, instance_of, is_, raises, contains_exactly
 from torch.utils.data import DataLoader
 
 from deepchecks.core import CheckResult, DatasetKind
@@ -266,3 +266,11 @@ def test_full_suite_execution_coco(coco_train_visiondata, coco_test_visiondata,
         result = suite.run(**args)
         length = get_expected_results_length(suite, args)
         validate_suite_result(result, length)
+
+
+def test_single_dataset(coco_train_visiondata, coco_test_visiondata,
+                        mock_trained_yolov5_object_detection, device):
+    suite = full_suite()
+    res_train = suite.run(coco_train_visiondata, coco_test_visiondata, run_single_dataset=DatasetKind.TRAIN)
+    # res_test = suite.run(coco_train_visiondata, coco_test_visiondata, run_single_dataset=DatasetKind.TEST)
+    assert_that(res_train.results, contains_exactly('Train'))
