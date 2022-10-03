@@ -113,6 +113,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         predictions = context.model.predict(dataset.features_columns)
         if context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
+            if not hasattr(context.model, 'predict_proba'):
+                raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'
+                                                  ' on log loss error that requires predicted probabilities, rather'
+                                                  ' than only predicted classes.')
             y_proba = context.model.predict_proba(dataset.features_columns)
             # If proba shape does not match label, raise error
             if y_proba.shape[1] != len(context.classes):

@@ -251,6 +251,14 @@ class DeepcheckScorer:
 
             def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
                 """Pad probabilities per class to match the length of possible classes."""
+                if not hasattr(self.user_model, 'predict_proba'):
+                    if isinstance(self.user_model, ClassifierMixin):
+                        raise errors.DeepchecksValueError('Model is a sklearn classification model but lacks the'
+                                                          ' predict_proba method. Please train the model with'
+                                                          ' probability=True.')
+                    raise errors.DeepchecksValueError('Scorer requires predicted probabilities, but the predict_proba'
+                                                      ' method was not implemented in the model, or precalculated '
+                                                      'predicted probabilities where not passed.')
                 probabilities_per_class = self.user_model.predict_proba(data)
                 if self.indexes_to_pad_around is not None:
                     padded_probabilities_per_class = np.zeros((len(data), len(self.possible_classes)))
