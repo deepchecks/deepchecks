@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 # pylint: disable=inconsistent-quotes, redefined-builtin
-from hamcrest import assert_that, calling, close_to, contains_exactly, raises
+from hamcrest import assert_that, calling, close_to, contains_exactly, raises, is_
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.utils.image_properties import default_image_properties, calc_default_image_properties
@@ -38,6 +38,13 @@ def test_calc_default_image_properties(coco_train_visiondata):
         'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
         'Mean Red Relative Intensity', 'Mean Green Relative Intensity', 'Mean Blue Relative Intensity'))
     assert_that(sum(results['Brightness']), close_to(15.53, 0.01))
+
+
+def test_calc_default_image_properties_grayscale(mnist_dataset_train):
+    images = mnist_dataset_train.batch_to_images(next(iter(mnist_dataset_train.data_loader)))
+    results = calc_default_image_properties(images)
+    assert_that(results['Mean Red Relative Intensity'][0], is_(None))
+    assert_that(sum(results['Brightness']), close_to(2061.86, 0.01))
 
 
 def test_default_properties():
