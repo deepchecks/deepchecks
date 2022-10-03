@@ -147,7 +147,6 @@ def calc_default_image_properties(batch: List[np.ndarray], sample_n_pixels: int 
     results_dict['Aspect Ratio'] = list(sizes_array[:, 0] / sizes_array[:, 1])
     results_dict['Area'] = list(sizes_array[:, 0] * sizes_array[:, 1])
 
-    np.random.seed(0)
     sampled_images = [sample_pixels(img, sample_n_pixels) for img in batch]
 
     grayscale_images = [img if _is_grayscale(img) else rgb2gray(img) for img in sampled_images]

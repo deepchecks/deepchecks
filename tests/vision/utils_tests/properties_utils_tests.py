@@ -20,6 +20,7 @@ from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIF
                                                                  DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES,
                                                                  DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES)
 from deepchecks.vision.utils.vision_properties import calc_vision_properties, validate_properties
+from numpy.random import seed
 
 
 def test_calc_properties(coco_train_visiondata):
@@ -32,6 +33,7 @@ def test_calc_properties(coco_train_visiondata):
 
 
 def test_calc_default_image_properties(coco_train_visiondata):
+    seed(0)
     images = coco_train_visiondata.batch_to_images(next(iter(coco_train_visiondata.data_loader)))
     results = calc_default_image_properties(images)
     assert_that(results.keys(), contains_exactly(
@@ -41,6 +43,7 @@ def test_calc_default_image_properties(coco_train_visiondata):
 
 
 def test_calc_default_image_properties_grayscale(mnist_dataset_train):
+    seed(0)
     images = mnist_dataset_train.batch_to_images(next(iter(mnist_dataset_train.data_loader)))
     results = calc_default_image_properties(images)
     assert_that(results['Mean Red Relative Intensity'][0], is_(None))
