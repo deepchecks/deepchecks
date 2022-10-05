@@ -92,7 +92,7 @@ def test_label_imbalance_condition_warn():
 
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details='The ratio is 0.5',
+                               details='The ratio between least to most frequent label is 0.5',
                                name='The ratio between least frequent label to most frequent label '
                                     'is less than or equal 0.1',
                                category=ConditionCategory.WARN)
