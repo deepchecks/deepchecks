@@ -15,16 +15,13 @@ __all__ = ['get_possible_classes', 'infer_task_type']
 from typing import List, Optional
 
 import pandas as pd
-from sklearn.base import ClassifierMixin
 
 from deepchecks import tabular
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.utils.feature_inference import is_categorical
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.array_math import convert_into_flat_list
-from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel
 
 
@@ -67,23 +64,16 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
             get_logger().warning('Model classes attribute does not contain all observed labels in train and test data.')
         observed_labels += list(model.classes_)
 
-    if model is not None and not hasattr(model, 'predict_proba') and not force_classification:  # regression model
-        if is_string_column(train_dataset.label_col):
-            reference = doclink('supported-prediction-format', template='For additional details see {link}')
-            raise DeepchecksValueError(f'Classification models must contain \'predict_proba\' functionality. '
-                                       f'{reference}')
-        if isinstance(model, ClassifierMixin):
-            raise DeepchecksValueError('Model is a sklearn classification model but lacks the predict_proba method. '
-                                       'Please train the model with probability=True.')
-        return None
-    elif model is not None:  # classification model without classes_ attribute
+    if model is not None:  # classification model without classes_ attribute
         observed_labels += convert_into_flat_list(model.predict(train_dataset.features_columns))
         if test_dataset is not None:
             observed_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
-        return sorted(pd.Series(observed_labels).dropna().unique())
-    elif is_categorical(pd.Series(observed_labels), max_categorical_ratio=0.05) or force_classification:  # no model
-        return sorted(pd.Series(observed_labels).dropna().unique())
-    else:  # no model + not categorical column (regression)
+        if hasattr(model, 'predict_proba'):  # This means it's a classification model
+            return sorted(pd.Series(observed_labels).dropna().unique())
+    label_series = pd.Series(observed_labels)
+    if is_categorical(label_series, max_categorical_ratio=0.05) or force_classification:
+        return sorted(label_series.dropna().unique())
+    else:  # no predict_proba method + not categorical column (regression)
         return None
 
 
