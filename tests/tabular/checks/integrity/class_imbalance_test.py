@@ -72,7 +72,7 @@ def test_label_imbalance_condition_pass():
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
-                               details='The ratio is 0.2',
+                               details='The ratio between least to most frequent label is 0.2',
                                name='The ratio between least frequent label to most frequent label '
                                     'is less than or equal 0.3')
     ))
