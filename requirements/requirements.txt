@@ -28,6 +28,6 @@ scipy>=1.4.1
 dataclasses>=0.6; python_version < '3.7'
 # jupyterlab-plotly extension that is used to display plotly figures in jupyterlab env
 # is incompatiable with plotly version >5.5.0 therefore sticking to the version 5.5.0 for now
-plotly==5.5.0
+plotly>5.2.0,<5.6.0
 matplotlib>=3.3.4
 pyzmq<24.0.0
