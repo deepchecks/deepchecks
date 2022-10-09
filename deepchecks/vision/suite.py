@@ -153,7 +153,8 @@ class Suite(BaseSuite):
                         results[check_idx] = CheckFailure(check, exp)
 
         # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
-        sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))]
+        sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))
+                                if value != -1]
 
         result = SuiteResult(self.name, sorted_result_values)
         context.add_is_sampled_footnote(result)
@@ -170,19 +171,22 @@ class Suite(BaseSuite):
     ):
         type_suffix = ' - Test Dataset' if dataset_kind == DatasetKind.TEST else ' - Train Dataset'
         vision_data = context.get_data_by_kind(dataset_kind)
-        if run_single_dataset in [None, dataset_kind]:
-            single_dataset_checks = {k: check for k, check in self.checks.items() if isinstance(check, SingleDatasetCheck)}
-        else:
-            single_dataset_checks = {}
+
+        single_dataset_checks = {k: check for k, check in self.checks.items() if isinstance(check, SingleDatasetCheck)}
+
+        flag_skip_single = run_single_dataset not in [None, dataset_kind]
 
         # SingleDatasetChecks have different handling, need to initialize them here (to have them ready for different
         # dataset kind)
 
         for idx, check in single_dataset_checks.items():
-            try:
-                check.initialize_run(context, dataset_kind=dataset_kind)
-            except Exception as exp:
-                results[idx] = CheckFailure(check, exp, type_suffix)
+            if flag_skip_single:
+                results[idx] = -1
+            else:
+                try:
+                    check.initialize_run(context, dataset_kind=dataset_kind)
+                except Exception as exp:
+                    results[idx] = CheckFailure(check, exp, type_suffix)
 
         # Init cache of vision_data
         vision_data.init_cache()
