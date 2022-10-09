@@ -98,5 +98,5 @@ def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmen
     assert_that(dice_per_class.compute()[0], close_to(0.973, 0.001))
     assert_that(dice_per_class.compute(), has_length(17))
     assert_that(dice_micro.compute(), close_to(0.951, 0.001))
-    assert_that(dice_macro.compute(), close_to(0.655, 0.001))
+    assert_that(dice_macro.compute(), close_to(0.649, 0.006))
     assert_that(iou_per_class.compute()[0], close_to(0.948, 0.001))

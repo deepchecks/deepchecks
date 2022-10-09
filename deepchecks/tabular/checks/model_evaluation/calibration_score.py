@@ -16,6 +16,7 @@ from sklearn.calibration import calibration_curve
 from sklearn.metrics import brier_score_loss
 
 from deepchecks.core import CheckResult
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.typing import ClassificationModel
 
@@ -64,6 +65,10 @@ class CalibrationScore(SingleDatasetCheck):
         model = t.cast(ClassificationModel, context.model)
 
         # Expect predict_proba to return in order of the sorted classes.
+        if not hasattr(context.model, 'predict_proba'):
+            raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The calibration score check '
+                                              'tests the calibration of the predicted probabilities, rather'
+                                              ' than the predicted classes.')
         y_pred = model.predict_proba(ds_x)
 
         briers_scores = {}

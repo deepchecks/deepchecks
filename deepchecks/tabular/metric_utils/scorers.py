@@ -32,6 +32,7 @@ from deepchecks.tabular.metric_utils.additional_classification_metrics import (f
                                                                                roc_auc_per_class,
                                                                                true_negative_rate_metric)
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.utils.simple_models import PerfectModel
@@ -93,7 +94,7 @@ regression_scorers_lower_is_better_dict = {
 }
 
 regression_scorers_higher_is_better_dict = {
-    'neg_mse': make_scorer('neg_mean_squared_error'),
+    'neg_mse': get_scorer('neg_mean_squared_error'),
     'neg_rmse': get_scorer('neg_root_mean_squared_error'),
     'neg_mae': get_scorer('neg_mean_absolute_error'),
     'r2': get_scorer('r2'),
@@ -250,6 +251,14 @@ class DeepcheckScorer:
 
             def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
                 """Pad probabilities per class to match the length of possible classes."""
+                if not hasattr(self.user_model, 'predict_proba'):
+                    if isinstance(self.user_model, ClassifierMixin):
+                        raise errors.DeepchecksValueError('Model is a sklearn classification model but lacks the'
+                                                          ' predict_proba method. Please train the model with'
+                                                          ' probability=True.')
+                    raise errors.DeepchecksValueError('Scorer requires predicted probabilities, but the predict_proba'
+                                                      ' method was not implemented in the model, or precalculated '
+                                                      'predicted probabilities where not passed.')
                 probabilities_per_class = self.user_model.predict_proba(data)
                 if self.indexes_to_pad_around is not None:
                     padded_probabilities_per_class = np.zeros((len(data), len(self.possible_classes)))
@@ -272,6 +281,16 @@ class DeepcheckScorer:
         return MyModelWrapper(model, self.possible_classes), updated_label_col
 
     def _run_score(self, model, dataset: 'tabular.Dataset'):
+        # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
+        if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
+                                                                    'predict_proba'):
+            doclink_str = doclink('supported_models',
+                                  template='For more information please refer to the Supported Models guide {link}')
+            raise errors.DeepchecksValueError(
+                f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
+                f'not provided. Please use a model with predict_proba method or '
+                f'manually provide predicted probabilities to the check. '
+                f'{doclink_str}')
         if self.possible_classes is not None:
             updated_model, transformed_label_col = self._wrap_classification_model(model, dataset.label_col)
             return self.scorer(updated_model, dataset.features_columns, transformed_label_col)

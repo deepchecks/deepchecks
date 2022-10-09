@@ -214,17 +214,7 @@ class Context:
         if feature_importance is not None and not isinstance(feature_importance, pd.Series):
             raise DeepchecksValueError('feature_importance must be a pandas Series')
 
-        if train is not None and train.has_label() and train._label_type != TaskType.REGRESSION:
-            self._classes = get_possible_classes(model, train, test, train._label_type is not None)
-        else:
-            self._classes = None
-
-        if self._classes is not None and infer_dtype(train.label_col) == 'integer':
-            get_logger().warning(
-                'Integer label has a few unique values. In this case, deepchecks automatically '
-                'infers label to be multiclass. If your desired task type is regression and not multiclass, '
-                'please use "label_type=\'regression\'" when initializing your Dataset.')
-
+        self._classes = None
         self._train = train
         self._test = test
         self._model = model
@@ -271,6 +261,18 @@ class Context:
     @property
     def classes(self) -> t.List:
         """Return ordered list of possible label classes for classification tasks or None for regression."""
+        if self._classes is None:
+            if self._train is not None and self._train.has_label() and self._train.label_type != TaskType.REGRESSION:
+                self._classes = get_possible_classes(self._model, self._train, self._test,
+                                                     self._train.label_type is not None)
+            else:
+                self._classes = None
+
+            if self._classes is not None and infer_dtype(self._train.label_col) == 'integer':
+                get_logger().warning(
+                    'Integer label has a few unique values. In this case, deepchecks automatically '
+                    'infers label to be multiclass. If your desired task type is regression and not multiclass, '
+                    'please use "label_type=\'regression\'" when initializing your Dataset.')
         return self._classes
 
     @property
@@ -281,11 +283,11 @@ class Context:
     @property
     def task_type(self) -> TaskType:
         """Return task type based on calculated classes argument."""
-        if self._classes is None:
+        if self.classes is None:
             return TaskType.REGRESSION
-        elif len(self._classes) == 2:
+        elif len(self.classes) == 2:
             return TaskType.BINARY
-        elif len(self._classes) > 2:
+        elif len(self.classes) > 2:
             return TaskType.MULTICLASS
         else:
             raise DatasetValidationError('Found only one class in label column, pass the full list of possible '

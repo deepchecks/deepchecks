@@ -17,6 +17,7 @@ import sklearn
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
@@ -65,6 +66,10 @@ class RocReport(SingleDatasetCheck):
         context.assert_classification_task()
         ds_y = dataset.label_col
         ds_x = dataset.features_columns
+        if not hasattr(context.model, 'predict_proba'):
+            raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The roc report check '
+                                              'needs the predicted probabilities to plot the ROC curve, instead'
+                                              ' of only predicted classes.')
         y_pred_prob = context.model.predict_proba(ds_x)
 
         dataset_classes = dataset.classes_in_label_col
