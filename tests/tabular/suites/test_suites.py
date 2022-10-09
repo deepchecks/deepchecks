@@ -13,6 +13,7 @@
 # pylint: disable=redefined-outer-name
 import typing as t
 from datetime import datetime
+from hamcrest import assert_that, has_length, contains_exactly
 
 import pandas as pd
 import pytest
@@ -23,6 +24,7 @@ from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.tabular import Dataset, suites
+from deepchecks.core import DatasetKind
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 
@@ -141,3 +143,52 @@ def test_generic_custom(
         result = suite.run(**args)
         length = get_expected_results_length(suite, args)
         validate_suite_result(result, length)
+
+
+def test_single_dataset(iris_split_dataset_and_model_custom):
+    iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
+    suite = suites.full_suite()
+    res_train = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset=DatasetKind.TRAIN)
+    expected_train_headers = ['Train Test Performance',
+                              'Feature Label Correlation Change',
+                              'Feature Label Correlation - Train Dataset',
+                              'Feature-Feature Correlation - Train Dataset',
+                              'Weak Segments Performance - Train Dataset',
+                              'ROC Report - Train Dataset',
+                              'Train Test Prediction Drift',
+                              'Simple Model Comparison',
+                              'Unused Features - Train Dataset',
+                              'Model Inference Time - Train Dataset',
+                              'Datasets Size Comparison',
+                              'New Label Train Test',
+                              'Category Mismatch Train Test',
+                              'String Mismatch Comparison',
+                              'Train Test Samples Mix',
+                              'Train Test Feature Drift',
+                              'Train Test Label Drift',
+                              'Multivariate Drift',
+                              'Single Value in Column - Train Dataset',
+                              'Special Characters - Train Dataset',
+                              'Mixed Nulls - Train Dataset',
+                              'Mixed Data Types - Train Dataset',
+                              'String Mismatch - Train Dataset',
+                              'Data Duplicates - Train Dataset',
+                              'String Length Out Of Bounds - Train Dataset',
+                              'Conflicting Labels - Train Dataset',
+                              'Confusion Matrix Report - Train Dataset',
+                              'Calibration Metric - Train Dataset',
+                              'Outlier Sample Detection - Train Dataset',
+                              'Regression Systematic Error - Train Dataset',
+                              'Regression Error Distribution - Train Dataset',
+                              'Boosting Overfit',
+                              'Date Train Test Leakage Duplicates',
+                              'Date Train Test Leakage Overlap',
+                              'Index Train Test Leakage',
+                              'Identifier Label Correlation - Train Dataset']
+
+    res_test = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset=DatasetKind.TEST)
+    res_full = suite.run(iris_train, iris_test, iris_model, with_display=False)
+    res_names = [x.get_header() for x in res_train.results]
+    assert_that(res_names, contains_exactly(*expected_train_headers))
+    assert_that(res_test.results, has_length(36))
+    assert_that(res_full.results, has_length(56))

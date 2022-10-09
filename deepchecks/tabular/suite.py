@@ -26,6 +26,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
 
+
 __all__ = ['Suite']
 
 
@@ -51,6 +52,7 @@ class Suite(BaseSuite):
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
+        run_single_dataset: Optional[DatasetKind] = None
     ) -> SuiteResult:
         """Run all checks.
 
@@ -62,6 +64,8 @@ class Suite(BaseSuite):
             object, representing data an estimator predicts on
         model : Optional[BasicModel] , default None
             A scikit-learn-compatible fitted estimator instance
+        run_single_dataset: Optional[DatasetKind], default None
+            Which dataset the single dataset checks run on, default to run on both train and test.
         {additional_context_params:2*indent}
 
         Returns
@@ -103,7 +107,7 @@ class Suite(BaseSuite):
                         msg = 'Check is irrelevant if not supplied with both train and test datasets'
                         results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, SingleDatasetCheck):
-                    if train_dataset is not None:
+                    if train_dataset is not None and (run_single_dataset in [DatasetKind.TRAIN, None]):
                         # In case of train & test, doesn't want to skip test if train fails. so have to explicitly
                         # wrap it in try/except
                         try:
@@ -115,7 +119,7 @@ class Suite(BaseSuite):
                         except Exception as exp:
                             check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
-                    if test_dataset is not None:
+                    if test_dataset is not None and (run_single_dataset in [DatasetKind.TEST, None]):
                         try:
                             check_result = check.run_logic(context, dataset_kind=DatasetKind.TEST)
                             context.finalize_check_result(check_result, check, DatasetKind.TEST)
