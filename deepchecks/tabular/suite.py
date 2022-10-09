@@ -26,7 +26,6 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
 
-
 __all__ = ['Suite']
 
 
