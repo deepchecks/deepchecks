@@ -292,7 +292,7 @@ class CocoDataset(VisionDataset):
 def download_coco128_from_ultralytics(path: Path):
     """Download coco from ultralytics using torchvision download_and_extract_archive."""
     coco_dir = path / 'coco128'
-    url = 'https://ultralytics.com/assets/coco128.zip'
+    url = 'https://ndownloader.figshare.com/files/37681632'
     md5 = '9122f91a86e530be76c52f47d2b32bbf'
 
     with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
@@ -300,7 +300,8 @@ def download_coco128_from_ultralytics(path: Path):
             url,
             download_root=str(path),
             extract_root=str(path),
-            md5=md5
+            md5=md5,
+            filename='coco128.zip'
         )
 
     # Removing the README.txt file if it exists since it causes issues with sphinx-gallery
