@@ -24,7 +24,6 @@ from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.tabular import Dataset, suites
-from deepchecks.core import DatasetKind
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 
@@ -148,7 +147,7 @@ def test_generic_custom(
 def test_single_dataset(iris_split_dataset_and_model_custom):
     iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
     suite = suites.full_suite()
-    res_train = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset=DatasetKind.TRAIN)
+    res_train = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset='Train')
     expected_train_headers = ['Train Test Performance',
                               'Feature Label Correlation Change',
                               'Feature Label Correlation - Train Dataset',
@@ -186,7 +185,7 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
                               'Index Train Test Leakage',
                               'Identifier Label Correlation - Train Dataset']
 
-    res_test = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset=DatasetKind.TEST)
+    res_test = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset='Test')
     res_full = suite.run(iris_train, iris_test, iris_model, with_display=False)
     res_names = [x.get_header() for x in res_train.results]
     assert_that(res_names, contains_exactly(*expected_train_headers))

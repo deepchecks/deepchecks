@@ -9,21 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 #
-import typing as t
 from collections import defaultdict
 
-import torch
 from hamcrest import assert_that, calling, instance_of, is_, raises, contains_exactly, has_length
-from torch.utils.data import DataLoader
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.suites.default_suites import full_suite
-from deepchecks.vision.vision_data import TaskType
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 
@@ -272,7 +267,7 @@ def test_single_dataset(coco_train_visiondata, coco_test_visiondata,
                         mock_trained_yolov5_object_detection, device):
     suite = full_suite()
     res_train = suite.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
-                          device=device, n_samples=100, with_display=False, run_single_dataset=DatasetKind.TRAIN)
+                          device=device, n_samples=100, with_display=False, run_single_dataset='Train')
     expected_train_headers = ['Class Performance',
                               'Train Test Label Drift',
                               'Feature Label Correlation Change',
@@ -292,7 +287,7 @@ def test_single_dataset(coco_train_visiondata, coco_test_visiondata,
                               'Model Error Analysis']
 
     res_test = suite.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
-                         device=device, n_samples=100, with_display=False, run_single_dataset=DatasetKind.TEST)
+                         device=device, n_samples=100, with_display=False, run_single_dataset='Test')
     res_full = suite.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
                          device=device, n_samples=100, with_display=False)
     res_names = [x.get_header() for x in res_train.results]

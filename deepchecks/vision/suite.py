@@ -57,7 +57,7 @@ class Suite(BaseSuite):
         train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
         test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
         model_name: str = '',
-        run_single_dataset: Optional[DatasetKind] = None
+        run_single_dataset: Optional[str] = None
     ) -> SuiteResult:
         """Run all checks.
 
@@ -70,8 +70,8 @@ class Suite(BaseSuite):
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
         {additional_context_params:2*indent}
-        run_single_dataset: Optional[DatasetKind], default None
-            Which dataset the single dataset checks run on, default to run on both train and test.
+        run_single_dataset: Optional[str], default None*
+            'Train', 'Test' , or None to run on both train and test.
 
         Returns
         -------
@@ -164,7 +164,7 @@ class Suite(BaseSuite):
         self,
         context: Context,
         run_train_test_checks: bool,
-        run_single_dataset: Optional[DatasetKind],
+        run_single_dataset: Optional[str],
         results: Dict[Union[str, int], BaseCheckResult],
         dataset_kind: DatasetKind,
         progressbar_factory: ProgressBarGroup
@@ -174,14 +174,14 @@ class Suite(BaseSuite):
 
         single_dataset_checks = {k: check for k, check in self.checks.items() if isinstance(check, SingleDatasetCheck)}
 
-        flag_skip_single = run_single_dataset not in [None, dataset_kind]
+        flag_skip_single = run_single_dataset not in [None, dataset_kind.value]
 
         # SingleDatasetChecks have different handling, need to initialize them here (to have them ready for different
         # dataset kind)
 
         for idx, check in single_dataset_checks.items():
             if flag_skip_single:
-                results[idx] = -1
+                results[idx] = -1           # mark skipped checks to remove later
             else:
                 try:
                     check.initialize_run(context, dataset_kind=dataset_kind)
