@@ -70,7 +70,7 @@ class Suite(BaseSuite):
         model : nn.Module , default None
             A scikit-learn-compatible fitted estimator instance
         {additional_context_params:2*indent}
-        run_single_dataset: Optional[str], default None*
+        run_single_dataset: Optional[str], default None
             'Train', 'Test' , or None to run on both train and test.
 
         Returns
