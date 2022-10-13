@@ -26,9 +26,9 @@ class ClassImbalance(SingleDatasetCheck):
 
     Parameters
     ----------
-    n_top_labels : int , default: 5
+    n_top_labels: int, default: 5
         Number of labels to show in display graph
-    ignore_nan : bool, default True
+    ignore_nan: bool, default True
         Whether to ignore NaN values in the target variable when counting
         the number of unique values.
     """
@@ -53,9 +53,9 @@ class ClassImbalance(SingleDatasetCheck):
             in format {label: number_of_uniques} display is a series with labels
             and their normalized count
         """
-        df = context.get_data_by_kind(dataset_kind)
+        dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
-        label = df.label_col
+        label = dataset.label_col
 
         vc_ser = label.value_counts(normalize=True, dropna=self.ignore_nan)
         vc_ser = vc_ser.round(2)
@@ -67,9 +67,9 @@ class ClassImbalance(SingleDatasetCheck):
                 type='category',
                 # NOTE:
                 # the range, in this case, is needed to fix a problem with
-                # too wide bars when there are only one or two of them`s on
-                # the plot, plus it also centralizes them`s on the plot
-                # The min value of the range (range(min. max)) is bigger because
+                # too wide bars when there are only one or two of them in
+                # the plot, plus it also centralizes them in the plot.
+                # The min value of the range (range(min, max)) is bigger because
                 # otherwise bars will not be centralized on the plot, they will
                 # appear on the left part of the plot (that is probably because of zero)
                 range=(-3, len(vc_ser.index) + 2)
@@ -93,13 +93,13 @@ class ClassImbalance(SingleDatasetCheck):
         return CheckResult(vc_ser.to_dict(), display=display)
 
     def add_condition_class_ratio_less_than(self, class_imbalance_ratio_th: float = 0.1):
-        """Condition - ratio between least to most frequent labels.
+        """Add condition - ratio between least to most frequent labels.
 
         This ratio is compared to class_imbalance_ratio_th.
 
         Parameters
         ----------
-        class_imbalance_ratio_th : float , default: 0.1
+        class_imbalance_ratio_th: float, default: 0.1
             threshold for least frequent label to most frequent label.
         """
         name = 'The ratio between least frequent label to most frequent label ' \
@@ -107,7 +107,7 @@ class ClassImbalance(SingleDatasetCheck):
 
         def threshold_condition(result: t.Dict[Hashable, float]) -> ConditionResult:
             class_ratio = result[list(result.keys())[-1]] / result[list(result.keys())[0]]
-            details = f'The ratio is {format_number(class_ratio)}'
+            details = f'The ratio between least to most frequent label is {format_number(class_ratio)}'
             if class_ratio >= class_imbalance_ratio_th:
                 return ConditionResult(ConditionCategory.WARN, details)
 
