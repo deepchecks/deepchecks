@@ -116,7 +116,7 @@ class MixedNulls(SingleDatasetCheck):
             else:
                 string_null_counts = {
                     repr(value).replace('\'', '"'): count
-                    for value, count in column_data.value_counts(dropna=True).iteritems()
+                    for value, count in column_data.value_counts(dropna=True).items()
                     if string_baseform(value) in null_string_list
                 }
                 nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
