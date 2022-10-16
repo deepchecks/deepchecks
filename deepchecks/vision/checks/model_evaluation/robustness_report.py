@@ -211,7 +211,7 @@ class RobustnessReport(SingleDatasetCheck):
                 .set_index('Class')
             diff = single_metric_scores.apply(lambda x: calc_percent(x.Value, x.Base), axis=1)
 
-            for index_class, diff_value in diff.sort_values().iloc[:n_classes_to_show].iteritems():
+            for index_class, diff_value in diff.sort_values().iloc[:n_classes_to_show].items():
                 aug_top_affected[metric].append({'class': index_class,
                                                  'value': single_metric_scores.at[index_class, 'Value'],
                                                  'diff': diff_value,
