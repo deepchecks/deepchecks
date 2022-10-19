@@ -12,7 +12,7 @@
 from enum import Enum
 from itertools import chain
 
-__all__ = ['PropertiesInputType', 'validate_properties']
+__all__ = ['PropertiesInputType', 'validate_properties', 'static_properties_from_df']
 
 from collections import defaultdict
 from typing import Any, Dict, List
@@ -130,3 +130,20 @@ def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPE
                 props_cache[input_type][prop_name] = prop_vals
 
     return props_cache
+
+
+def static_properties_from_df(df, image_cols=(), label_cols=(), prediction_cols=(), partial_image_cols=()):
+    """Transforms the precalculated properties to the static properties format."""
+    image_props = df.loc[:, image_cols].to_dict(orient='index')
+    label_props = df.loc[:, label_cols].to_dict(orient='index')
+    pred_props = df.loc[:, prediction_cols].to_dict(orient='index')
+    pi_props = df.loc[:, partial_image_cols].to_dict(orient='index')
+
+    static_props = {}
+    for k in df.index.to_list():
+        static_props[k] = {PropertiesInputType.IMAGES: image_props[k] if image_cols else None,
+                           PropertiesInputType.LABELS: label_props[k] if label_cols else None,
+                           PropertiesInputType.PREDICTIONS: pred_props[k] if prediction_cols else None,
+                           PropertiesInputType.PARTIAL_IMAGES: pi_props[k] if partial_image_cols else None}
+
+    return static_props

@@ -9,3 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision utilities."""
+from .vision_properties import static_properties_from_df
+
+__all__ = ['static_properties_from_df']
