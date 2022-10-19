@@ -32,6 +32,14 @@ Example for specific scenarios in which measuring properties may come in handy:
    the snow, the brightness of the image may be used to predict the label "wolf" easily. In this case, a model
    might not learn to discern wolf from dog by the animal's characteristics, but by using the background color.
 
+Passing Properties to the Checks
+================================
+The properties can be passed to the check in one of two ways:
+
+#. **Properties** - a list of functions to be calculated on the data during the check (specific format listed below)
+   passed to the check init.
+#. **Static Properties** - a dictionary with the result of pre calculated properties per sample passed to the check run.
+
 
 Deepchecks' Built-in Properties
 ===============================
@@ -210,3 +218,11 @@ implement properties which apply to the Detection task type.
   ]
 
   check = TrainTestPredictionDrift(prediction_properties=properties)
+
+
+Static Properties
+=================
+Properties can be calculated and saved ahead of time and then passed to the check. This can be useful in cases where the
+calculation on the go is not practical, for example demands extra computing resources that are not always available.
+
+
