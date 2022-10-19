@@ -239,7 +239,7 @@ image.
 Code Example
 ------------
 
-.. literalinclude:: ../../../../examples/vision/static_properties_example.py.py
+.. literalinclude:: ../../../../examples/vision/static_properties_example.py
     :language: python
     :lines: 1-17
     :tab-width: 0
