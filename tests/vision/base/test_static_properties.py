@@ -12,15 +12,16 @@
 
 from copy import copy
 
+import pandas as pd
 import numpy as np
-from hamcrest import assert_that, calling, close_to, contains_exactly, equal_to, raises
+from hamcrest import assert_that, calling, close_to, contains_exactly, contains_inanyorder, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ImagePropertyOutliers, PropertyLabelCorrelationChange
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import aspect_ratio, default_image_properties
-from deepchecks.vision.utils.vision_properties import calc_vision_properties, PropertiesInputType
+from deepchecks.vision.utils.vision_properties import calc_vision_properties, PropertiesInputType, static_properties_from_df
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
 from tests.vision.checks.train_test_validation.property_label_correlation_change_test import \
@@ -174,3 +175,17 @@ def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coc
                 '\'Brightness\': {\'clock\': \'0.5\', \'teddy bear\': \'0.5\'}, \'Mean Blue Relative Intensity\': '
                 '{\'clock\': \'0.33\'}}'
     ))
+
+
+def test_static_properties_from_df(coco_train_visiondata, device):
+    df = pd.DataFrame({'prop1': np.random.rand(coco_train_visiondata.num_samples),
+                       'prop2': np.random.rand(coco_train_visiondata.num_samples),
+                       'prop3': np.random.rand(coco_train_visiondata.num_samples)})
+    stat_prop = static_properties_from_df(df, image_cols=('prop1', 'prop2'), label_cols=('prop3', ))
+
+    assert_that(stat_prop[0].keys(), contains_inanyorder(PropertiesInputType.IMAGES,
+                                                         PropertiesInputType.LABELS,
+                                                         PropertiesInputType.PARTIAL_IMAGES,
+                                                         PropertiesInputType.PREDICTIONS))
+    assert_that(stat_prop[1][PropertiesInputType.IMAGES].keys(), contains_inanyorder('prop1', 'prop2'))
+    assert_that(stat_prop[1][PropertiesInputType.PARTIAL_IMAGES], equal_to(None))

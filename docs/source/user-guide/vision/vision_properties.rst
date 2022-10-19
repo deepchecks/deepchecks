@@ -236,5 +236,11 @@ The expected format for the static properties is the following nested dictionary
 The values per sample is a list to support the case of object detection where there might be multiple bounding boxes per
 image.
 
+Code Example
+------------
 
+.. literalinclude:: ../../../../examples/vision/static_properties_example.py.py
+    :language: python
+    :lines: 1-17
+    :tab-width: 0
 

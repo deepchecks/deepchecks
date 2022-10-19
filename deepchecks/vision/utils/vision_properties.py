@@ -15,7 +15,7 @@ from itertools import chain
 __all__ = ['PropertiesInputType', 'validate_properties', 'static_properties_from_df']
 
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from deepchecks.core.errors import DeepchecksValueError
 
@@ -132,7 +132,11 @@ def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPE
     return props_cache
 
 
-def static_properties_from_df(df, image_cols=(), label_cols=(), prediction_cols=(), partial_image_cols=()):
+def static_properties_from_df(df,
+                              image_cols: Tuple = (),
+                              label_cols: Tuple = (),
+                              prediction_cols: Tuple = (),
+                              partial_image_cols: Tuple = ()):
     """Transforms the precalculated properties to the static properties format."""
     image_props = df.loc[:, image_cols].to_dict(orient='index')
     label_props = df.loc[:, label_cols].to_dict(orient='index')
