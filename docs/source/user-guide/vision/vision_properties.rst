@@ -125,10 +125,10 @@ Customizing the Checks' Properties
 By default, checks using properties will use the :ref:`built-in properties <Deepchecks' Built-in Properties>`.
 Those default properties can be modified or overridden in one of two ways:
 
-#. **Properties** - a list of functions to be calculated on the data during the check (specific format listed below)
-   passed to the check init.
+#. **Properties** - a list of functions to be calculated on the data during the check (in the format specified above)
+   passed to the check init. :ref:`Properties format <Property Structure>`.
 #. **Pre-Calculated Properties** - a dictionary with the result of pre calculated properties per sample passed to the
-   check run.
+   check run. :ref:`Pre-calculated properties format <Pre-Calculated Properties>`.
 
 
 Properties Demonstration
@@ -248,4 +248,3 @@ Code Example
     :language: python
     :lines: 1-17
     :tab-width: 0
-
