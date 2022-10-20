@@ -290,8 +290,18 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "jhwohlgemuth",
+      "name": "Jason Wohlgemuth",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6383605?v=4",
+      "profile": "https://github.com/jhwohlgemuth",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "projectName": "deepchecks",
-  "projectOwner": "deepchecks"
+  "projectOwner": "deepchecks",
+  "commitConvention": "angular"
 }
