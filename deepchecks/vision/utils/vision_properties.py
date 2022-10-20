@@ -138,7 +138,9 @@ def static_properties_from_df(df,
                               prediction_cols: Tuple = (),
                               partial_image_cols: Tuple = ()) -> STATIC_PROPERTIES_FORMAT:
     """
-    Transform the precalculated properties to the static properties format.
+    Transform the pre-calculated properties from a DataFrame to the expected dict format.
+    
+    Read more about the excepted dict format for pre-calculated properties at X
 
     Parameters
     ----------
