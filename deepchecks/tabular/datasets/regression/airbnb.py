@@ -84,6 +84,7 @@ import typing as t
 
 import numpy as np
 import pandas as pd
+
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
@@ -153,6 +154,7 @@ def load_fitted_model(pretrained=False):  # pylint: disable=unused-argument
     test = pd.read_csv(_TEST_DATA_URL, usecols=usable_columns)
 
     class AirbnbDummyModel:
+        """Dummy model to return dummy predictions for the Airbnb dataset."""
 
         def __init__(self, all_data: pd.DataFrame):
             self._predictions = all_data
