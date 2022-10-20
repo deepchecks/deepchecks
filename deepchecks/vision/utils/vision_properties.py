@@ -140,7 +140,8 @@ def static_properties_from_df(df,
     """
     Transform the pre-calculated properties from a DataFrame to the expected dict format.
     
-    Read more about the excepted dict format for pre-calculated properties at X
+    Read more about the excepted dict format for pre-calculated properties at
+    https://docs.deepchecks.com/stable/user-guide/vision/vision_properties.html
 
     Parameters
     ----------
