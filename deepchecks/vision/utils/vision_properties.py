@@ -114,7 +114,7 @@ def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPE
     """
     Format a batch of static predictions to the format in the batch object cache.
 
-    Expects the items in all of the indices to have the same properties.
+    Expects the items in all the indices to have the same properties.
     """
     indices = list(static_props.keys())
     input_types = list(static_props[indices[0]].keys())
@@ -136,8 +136,29 @@ def static_properties_from_df(df,
                               image_cols: Tuple = (),
                               label_cols: Tuple = (),
                               prediction_cols: Tuple = (),
-                              partial_image_cols: Tuple = ()):
-    """Transform the precalculated properties to the static properties format."""
+                              partial_image_cols: Tuple = ()) -> STATIC_PROPERTIES_FORMAT:
+    """
+    Transform the precalculated properties to the static properties format.
+
+    Parameters
+    ----------
+    df: pd.Dataframe
+        A dataframe with the pre-calculated properties per sample, the indices should match those of the samples in the
+        dataset.
+    image_cols: Tuple, default: ()
+        The names of the columns containing the results of the properties calculated on images.
+    label_cols: Tuple, default: ()
+        The names of the columns containing the results of the properties calculated on labels.
+    prediction_cols: Tuple, default: ()
+        The names of the columns containing the results of the properties calculated on predictions.
+    partial_image_cols: Tuple, default: ()
+        The names of the columns containing the results of the properties calculated on partial images - images cut out
+        of the original images such as bounding boxes.
+
+    Returns
+    -------
+    The static properties in the format expected by the checks.
+    """
     image_props = df.loc[:, image_cols].to_dict(orient='index')
     label_props = df.loc[:, label_cols].to_dict(orient='index')
     pred_props = df.loc[:, prediction_cols].to_dict(orient='index')
