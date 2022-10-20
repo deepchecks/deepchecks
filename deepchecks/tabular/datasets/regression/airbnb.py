@@ -82,18 +82,20 @@ Description:
 """
 import typing as t
 
+import numpy as np
 import pandas as pd
-
 from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data', 'load_fitted_model']
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/37468900'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/37468957'
 _target = 'price'
+_predictions = 'predictions'
 _datetime = 'datestamp'
 _CAT_FEATURES = ['room_type', 'neighbourhood', 'neighbourhood_group', 'has_availability']
 _NUM_FEATURES = ['minimum_nights', 'number_of_reviews', 'reviews_per_month', 'calculated_host_listings_count',
                  'availability_365']
+_FEATURES = _NUM_FEATURES + _CAT_FEATURES
 
 
 def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
@@ -119,25 +121,21 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     train_data, test_data : Tuple[Union[deepchecks.Dataset, pd.DataFrame],Union[deepchecks.Dataset, pd.DataFrame]
         tuple if as_train_test = True. Tuple of two objects represents the dataset split to train and test sets.
     """
-    usable_columns = _NUM_FEATURES + _CAT_FEATURES + [_target] + [_datetime]
-    train = pd.read_csv(_TRAIN_DATA_URL, usecols=usable_columns).set_index(_datetime)
-    test = pd.read_csv(_TEST_DATA_URL, usecols=usable_columns).set_index(_datetime)
+    train = pd.read_csv(_TRAIN_DATA_URL).drop(_predictions, axis=1)
+    test = pd.read_csv(_TEST_DATA_URL).drop(_predictions, axis=1)
 
     if not as_train_test:
         dataset = pd.concat([train, test], axis=0)
         if data_format == 'Dataset':
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES,
-                              set_datetime_from_dataframe_index=True)
-
+                              datetime_name=_datetime, features=_FEATURES)
         return dataset
     else:
-
         if data_format == 'Dataset':
-            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES, datetime_name=_datetime,
-                            set_datetime_from_dataframe_index=True)
-            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES, datetime_name=_datetime,
-                           set_datetime_from_dataframe_index=True)
-
+            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES,
+                            datetime_name=_datetime, features=_FEATURES)
+            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES,
+                           datetime_name=_datetime, features=_FEATURES)
         return train, test
 
 
@@ -150,16 +148,31 @@ def load_fitted_model(pretrained=False):  # pylint: disable=unused-argument
         the model/pipeline that was trained on the Avocado dataset.
 
     """
-    usable_columns = [_target] + [_datetime]
+    usable_columns = [_datetime, _predictions]
     train = pd.read_csv(_TRAIN_DATA_URL, usecols=usable_columns)
     test = pd.read_csv(_TEST_DATA_URL, usecols=usable_columns)
 
     class AirbnbDummyModel:
 
         def __init__(self, all_data: pd.DataFrame):
-            self._prediction_dict = all_data.set_index(_datetime)
+            self._predictions = all_data
 
-        def predict(self, data: pd.DataFrame):
-            return self._prediction_dict.loc[data.index].values
+        def predict(self, data: pd.DataFrame) -> np.ndarray:
+            result = self._predictions[self._predictions[_datetime].isin(data[_datetime].astype(int))][_predictions]
+            return np.asarray(result)
+
+        @property
+        def feature_importances_(self) -> pd.Series:  # optional
+            return pd.Series({
+                'neighbourhood_group': 0.1,
+                'neighbourhood': 0.2,
+                'room_type': 0.1,
+                'minimum_nights': 0.1,
+                'number_of_reviews': 0.1,
+                'reviews_per_month': 0.1,
+                'calculated_host_listings_count': 0.1,
+                'availability_365': 0.1,
+                'has_availability': 0.1,
+            })
 
     return AirbnbDummyModel(pd.concat([train, test], axis=0))
