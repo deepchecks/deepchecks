@@ -34,7 +34,7 @@ Example for specific scenarios in which measuring properties may come in handy:
 
 Customizing the Checks' Properties
 ==================================
-The properties can be passed to the check in one of two ways:
+By default, checks using properties will use the :ref:`built-in properties <Deepchecks' Built-in Properties>`. Those default properties can be modified or overridden in one of two ways:
 
 #. **Properties** - a list of functions to be calculated on the data during the check (specific format listed below)
    passed to the check init.
