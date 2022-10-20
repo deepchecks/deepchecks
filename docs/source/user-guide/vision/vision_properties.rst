@@ -123,7 +123,7 @@ label/prediction.
 Customizing the Checks' Properties
 ==================================
 By default, checks using properties will use the :ref:`built-in properties <Deepchecks' Built-in Properties>`.
-Those default properties can be modified or overridden in one of two ways:
+Those default properties can be overridden in one of two ways:
 
 #. **Properties** - a list of functions to be calculated on the data during the check (in the format specified above)
    passed to the check init. :ref:`Properties format <Property Structure>`.
