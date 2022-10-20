@@ -32,15 +32,6 @@ Example for specific scenarios in which measuring properties may come in handy:
    the snow, the brightness of the image may be used to predict the label "wolf" easily. In this case, a model
    might not learn to discern wolf from dog by the animal's characteristics, but by using the background color.
 
-Customizing the Checks' Properties
-==================================
-By default, checks using properties will use the :ref:`built-in properties <Deepchecks' Built-in Properties>`. Those default properties can be modified or overridden in one of two ways:
-
-#. **Properties** - a list of functions to be calculated on the data during the check (specific format listed below)
-   passed to the check init.
-#. **Pre-Calculated Properties** - a dictionary with the result of pre calculated properties per sample passed to the
-   check run.
-
 
 Deepchecks' Built-in Properties
 ===============================
@@ -127,6 +118,18 @@ single property value, which results in a list of primitives types in the same l
 other hand for label & predictions we allow each one to have multiple primitive values (for example area of bounding
 box), which means the returned list may contain either primitives values or a lists of primitive values per
 label/prediction.
+
+
+Customizing the Checks' Properties
+==================================
+By default, checks using properties will use the :ref:`built-in properties <Deepchecks' Built-in Properties>`.
+Those default properties can be modified or overridden in one of two ways:
+
+#. **Properties** - a list of functions to be calculated on the data during the check (specific format listed below)
+   passed to the check init.
+#. **Pre-Calculated Properties** - a dictionary with the result of pre calculated properties per sample passed to the
+   check run.
+
 
 Properties Demonstration
 ========================
