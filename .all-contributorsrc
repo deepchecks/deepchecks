@@ -1,6 +1,6 @@
 {
   "files": [
-    "README.rst"
+    "README.md"
   ],
   "skipCi": "true",
   "imageSize": 100,
