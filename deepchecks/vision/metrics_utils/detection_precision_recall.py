@@ -50,12 +50,15 @@ class AveragePrecisionRecall(Metric, MetricMixin):
         ap: ap only, ar: ar only, None: all (not ignite compliant).
     average: str, default: none
         The method for averaging over the classes. If none, returns the result per class.
+    iou_range: Tuple[float, float, float], default: (0.5, 0.95, 10)
+        The closed range of the iou values (min, max (including), number of points)
     """
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
                  area_range: Tuple = (32**2, 96**2),
                  return_option: str = 'ap',
                  average: str = 'none',
+                 iou_range: Tuple[float, float, float] = (0.5, 0.95, 10),
                  **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -65,7 +68,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
             self.area_ranges_names = ['all']
         else:
             self.area_ranges_names = ['small', 'medium', 'large', 'all']
-        self.iou_thresholds = np.linspace(.5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)
+        self.iou_thresholds = np.linspace(*iou_range, endpoint=True)
         self.max_detections_per_class = max_dets
         self.area_range = area_range
         if average in ['none', 'macro', 'weighted']:

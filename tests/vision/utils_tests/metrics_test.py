@@ -76,6 +76,13 @@ def test_average_precision_recall(coco_test_visiondata: VisionData, mock_trained
     assert_that(res['ap_weighted'], close_to(0.441, 0.001))
 
 
+def test_average_precision_thresholds(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+    res = calculate_metrics({'ap': ObjectDetectionAveragePrecision(iou_range=(0.4, 0.8, 5), average='macro')},
+                            coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            device=device)
+    assert_that(res['ap'], close_to(0.514, 0.001))
+
+
 def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
                               device):
     dice_per_class = MeanDice()
