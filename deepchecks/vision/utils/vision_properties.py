@@ -137,7 +137,7 @@ def static_properties_from_df(df,
                               label_cols: Tuple = (),
                               prediction_cols: Tuple = (),
                               partial_image_cols: Tuple = ()):
-    """Transforms the precalculated properties to the static properties format."""
+    """Transform the precalculated properties to the static properties format."""
     image_props = df.loc[:, image_cols].to_dict(orient='index')
     label_props = df.loc[:, label_cols].to_dict(orient='index')
     pred_props = df.loc[:, prediction_cols].to_dict(orient='index')
