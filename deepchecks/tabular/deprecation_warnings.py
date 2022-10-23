@@ -31,3 +31,11 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.* alternative_scorers is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
