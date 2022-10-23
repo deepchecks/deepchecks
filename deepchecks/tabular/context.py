@@ -272,8 +272,8 @@ class Context:
                     self._train.label_type is None:
                 get_logger().warning(
                     'Integer label has few unique values therefore task was inferred to be multiclass. '
-                    'You can determine the task type explicitly via the label_type argument '
-                    'when initializing your Dataset.')
+                    'Initialize your Dataset with either label_type=\"multiclass\" or '
+                    'label_type=\"regression\" to confirm and resolve this warning.')
         return self._classes
 
     @property
