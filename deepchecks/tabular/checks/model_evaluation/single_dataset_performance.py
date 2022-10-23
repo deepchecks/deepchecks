@@ -74,16 +74,19 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         else:
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
-                results.extend(
-                    [[class_name, scorer.name, class_score]
-                     for class_score, class_name in zip(scorer_value, context.classes)])
+                if isinstance(scorer_value, Number):
+                    results.append([pd.NA, scorer.name, scorer_value])
+                else:
+                    results.extend(
+                        [[class_name, scorer.name, class_score]
+                         for class_score, class_name in zip(scorer_value, context.classes)])
             results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
 
             if context.with_display:
                 label = cast(pd.Series, dataset.label_col)
                 n_samples = label.groupby(label).count()
                 display_df = results_df.copy()
-                display_df['Number of samples'] = display_df.apply(lambda x: n_samples[x['Class']])
+                display_df['Number of samples'] = display_df['Class'].apply(lambda x: n_samples.get(x))
                 display = [display_df]
 
         return CheckResult(results_df, header='Single Dataset Performance', display=display)
@@ -108,9 +111,10 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""
-        result = {(row['Metric'], str(row['Class'])): row['Value'] for _, row in check_result.value.iterrows()}
-        for key in [key for key in result.keys() if key[1] == '<NA>']:
-            result[key[0]] = result.pop(key)
+        result = {}
+        for _, row in check_result.value.iterrows():
+            key = row['Metric'] if pd.isna(row.get('Class')) else (row['Metric'], str(row['Class']))
+            result[key] = row['Value']
         return result
 
     def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all') -> SDP:

@@ -79,9 +79,9 @@ def test_classification_new_classes_at_test(iris_split_dataset_and_model):
     result = check.run(test, model).value
     # Assert
     assert_that(result.loc[3],
-                has_entries({'Class': 5, 'Metric': 'precision', 'Value': equal_to(0), 'Number of samples': 1}))
+                has_entries({'Class': 5, 'Metric': 'precision', 'Value': equal_to(0)}))
     assert_that(result.loc[7],
-                has_entries({'Class': 5, 'Metric': 'roc_auc', 'Value': equal_to(0.5), 'Number of samples': 1}))
+                has_entries({'Class': 5, 'Metric': 'roc_auc', 'Value': equal_to(0.5)}))
 
 
 def test_binary_classification_adult(adult_split_dataset_and_model):
