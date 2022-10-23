@@ -81,13 +81,17 @@ Description:
          - The rental price of the unit
 """
 import typing as t
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
 
 from deepchecks.tabular.dataset import Dataset
 
-__all__ = ['load_data', 'load_fitted_model']
+__all__ = ['load_data', 'load_pre_calculated_prediction', 'load_pre_calculated_feature_importance']
+
+from numpy import ndarray
+
 _TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/37468900'
 _TEST_DATA_URL = 'https://figshare.com/ndownloader/files/37468957'
 _target = 'price'
@@ -140,41 +144,37 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return train, test
 
 
-def load_fitted_model(pretrained=False):  # pylint: disable=unused-argument
-    """Load and return a fitted regression model to predict the price in the Airbnb dataset.
+def load_pre_calculated_prediction() -> Tuple[ndarray, ndarray]:
+    """Load the pre-calculated prediction for the Airbnb NYC 2019 dataset.
 
     Returns
     -------
-    model : Joblib
-        the model/pipeline that was trained on the Avocado dataset.
-
+    predictions : Tuple(np.ndarray, np.ndarray)
+        The first element is the pre-calculated prediction for the train set.
+        The second element is the pre-calculated prediction for the test set.
     """
     usable_columns = [_datetime, _predictions]
     train = pd.read_csv(_TRAIN_DATA_URL, usecols=usable_columns)
     test = pd.read_csv(_TEST_DATA_URL, usecols=usable_columns)
+    return np.asarray(train[_predictions]), np.asarray(test[_predictions])
 
-    class AirbnbDummyModel:
-        """Dummy model to return dummy predictions for the Airbnb dataset."""
 
-        def __init__(self, all_data: pd.DataFrame):
-            self._predictions = all_data
+def load_pre_calculated_feature_importance() -> pd.Series:
+    """Load the pre-calculated feature importance for the Airbnb NYC 2019 dataset.
 
-        def predict(self, data: pd.DataFrame) -> np.ndarray:
-            result = self._predictions[self._predictions[_datetime].isin(data[_datetime].astype(int))][_predictions]
-            return np.asarray(result)
-
-        @property
-        def feature_importances_(self) -> pd.Series:  # optional
-            return pd.Series({
-                'neighbourhood_group': 0.1,
-                'neighbourhood': 0.2,
-                'room_type': 0.1,
-                'minimum_nights': 0.1,
-                'number_of_reviews': 0.1,
-                'reviews_per_month': 0.1,
-                'calculated_host_listings_count': 0.1,
-                'availability_365': 0.1,
-                'has_availability': 0.1,
-            })
-
-    return AirbnbDummyModel(pd.concat([train, test], axis=0))
+    Returns
+    -------
+    feature_importance : pd.Series
+        The feature importance for a model trained on the Airbnb NYC 2019 dataset.
+    """
+    return pd.Series({
+        'neighbourhood_group': 0.1,
+        'neighbourhood': 0.2,
+        'room_type': 0.1,
+        'minimum_nights': 0.1,
+        'number_of_reviews': 0.1,
+        'reviews_per_month': 0.1,
+        'calculated_host_listings_count': 0.1,
+        'availability_365': 0.1,
+        'has_availability': 0.1,
+    })
