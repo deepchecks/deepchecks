@@ -86,7 +86,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
                 label = cast(pd.Series, dataset.label_col)
                 n_samples = label.groupby(label).count()
                 display_df = results_df.copy()
-                display_df['Number of samples'] = display_df['Class'].apply(lambda x: n_samples.get(x))
+                display_df['Number of samples'] = display_df['Class'].apply(n_samples.get)
                 display = [display_df]
 
         return CheckResult(results_df, header='Single Dataset Performance', display=display)
