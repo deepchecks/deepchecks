@@ -11,7 +11,7 @@
 """Module containing simple comparison check."""
 import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Dict, Hashable, List, Union, Mapping
+from typing import TYPE_CHECKING, Callable, Dict, Hashable, List, Mapping, Union
 
 import numpy as np
 import pandas as pd

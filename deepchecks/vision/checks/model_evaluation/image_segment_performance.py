@@ -11,6 +11,7 @@
 """Module of segment performance check."""
 import math
 import typing as t
+import warnings
 from collections import Counter, defaultdict
 
 import numpy as np
@@ -18,8 +19,6 @@ import pandas as pd
 import plotly.express as px
 import torch
 from ignite.metrics import Metric
-
-import warnings
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory

@@ -13,7 +13,7 @@ import string
 import warnings
 from collections import defaultdict
 from random import choice
-from typing import Dict, List, Optional, Sequence, Sized, TypeVar, Union, Callable, Any
+from typing import Any, Callable, Dict, List, Optional, Sequence, Sized, TypeVar, Union
 
 import albumentations
 import imgaug

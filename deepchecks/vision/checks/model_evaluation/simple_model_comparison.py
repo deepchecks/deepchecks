@@ -10,7 +10,7 @@
 #
 """Module containing simple comparison check."""
 import warnings
-from typing import Any, Dict, Hashable, List, Union, Callable
+from typing import Any, Callable, Dict, Hashable, List, Union
 
 import numpy as np
 import pandas as pd

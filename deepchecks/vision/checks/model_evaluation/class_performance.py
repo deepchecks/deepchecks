@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import Dict, List, TypeVar, Union, Callable, Any
-
 import warnings
+from typing import Any, Callable, Dict, List, TypeVar, Union
+
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric

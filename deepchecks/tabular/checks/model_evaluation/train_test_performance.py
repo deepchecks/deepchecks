@@ -10,7 +10,7 @@
 #
 """Module containing the train test performance check."""
 from numbers import Number
-from typing import Callable, Dict, List, TypeVar, Union, cast, Mapping
+from typing import Callable, Dict, List, Mapping, TypeVar, Union, cast
 
 import pandas as pd
 import plotly.express as px

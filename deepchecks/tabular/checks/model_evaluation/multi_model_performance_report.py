@@ -10,7 +10,7 @@
 #
 """Module containing multi model performance report check."""
 import warnings
-from typing import TYPE_CHECKING, Callable, Dict, cast, Union, Mapping, List
+from typing import TYPE_CHECKING, Callable, Dict, List, Mapping, Union, cast
 
 import pandas as pd
 import plotly.express as px
