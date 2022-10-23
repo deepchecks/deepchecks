@@ -122,7 +122,7 @@ class SimpleModelComparison(TrainTestCheck):
         if alternative_scorers is not None:
             warnings.warn(f'{self.__class__.__name__}: alternative_scorers is deprecated. Please use scorers instead.',
                           DeprecationWarning)
-            self.scorers = alternative_scorers
+            self.alternative_scorers = alternative_scorers
         else:
             self.alternative_scorers = scorers
         self.max_gain = max_gain
