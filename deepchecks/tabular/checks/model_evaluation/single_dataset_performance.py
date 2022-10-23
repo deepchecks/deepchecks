@@ -19,6 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMetricClassMixin
 from deepchecks.tabular import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import format_number
 
@@ -62,26 +63,28 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []
-        classes = context.classes
-        label = cast(pd.Series, dataset.label_col)
-        if context.with_display:
-            n_samples = label.groupby(label).count()
+        display = None
+        if context.task_type == TaskType.REGRESSION:
+            for scorer in scorers:
+                scorer_value = scorer(model, dataset)
+                results.append([scorer.name, scorer_value])
+            results_df = pd.DataFrame(results, columns=['Metric', 'Value'])
+            if context.with_display:
+                display = [results_df]
         else:
-            n_samples = dict(zip(classes, [None] * len(classes)))
-        for scorer in scorers:
-            scorer_value = scorer(model, dataset)
-            if isinstance(scorer_value, Number):
-                results.append([pd.NA, scorer.name, scorer_value, len(label)])
-            else:
+            for scorer in scorers:
+                scorer_value = scorer(model, dataset)
                 results.extend(
-                    [[class_name, scorer.name, class_score, n_samples[class_name]]
-                     for class_score, class_name in zip(scorer_value, classes)])
-        results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value', 'Number of samples'])
+                    [[class_name, scorer.name, class_score]
+                     for class_score, class_name in zip(scorer_value, context.classes)])
+            results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
 
-        if context.with_display:
-            display = [results_df]
-        else:
-            display = []
+            if context.with_display:
+                label = cast(pd.Series, dataset.label_col)
+                n_samples = label.groupby(label).count()
+                display_df = results_df.copy()
+                display_df['Number of samples'] = display_df.apply(lambda x: n_samples[x['Class']])
+                display = [display_df]
 
         return CheckResult(results_df, header='Single Dataset Performance', display=display)
 
