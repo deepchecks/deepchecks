@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import Dict, List, TypeVar, Union
+from typing import Dict, List, TypeVar, Union, Callable, Any
 
+import warnings
 import pandas as pd
 import plotly.express as px
 from ignite.metrics import Metric
@@ -36,9 +37,11 @@ class ClassPerformance(TrainTestCheck):
 
     Parameters
     ----------
+    scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]], default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     alternative_metrics : Union[Dict[str, Union[Metric,str]], List[str]], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
-        should be used. If None are given, use the default metrics.
+        Deprecated, please use scorers instead.
     n_to_show : int, default: 20
         Number of classes to show in the report. If None, show all classes.
     show_only : str, default: 'largest'
@@ -57,6 +60,7 @@ class ClassPerformance(TrainTestCheck):
     """
 
     def __init__(self,
+                 scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
                  alternative_metrics: Union[Dict[str, Union[Metric, str]], List[str]] = None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
@@ -64,7 +68,12 @@ class ClassPerformance(TrainTestCheck):
                  class_list_to_show: List[int] = None,
                  **kwargs):
         super().__init__(**kwargs)
-        self.alternative_metrics = alternative_metrics
+        if alternative_metrics is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_metrics is deprecated. Please use scorers instead.',
+                          DeprecationWarning)
+            self.alternative_metrics = alternative_metrics
+        else:
+            self.alternative_metrics = scorers
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
 
