@@ -49,10 +49,12 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         random_state: int = 42,
         n_samples: Optional[int] = 10_000,
         with_display: bool = True,
+        predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
         test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
+
     ) -> CheckResult:
         """Run check.
 
@@ -66,6 +68,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         """
         assert self.context_type is not None
 
+        train_predictions = train_predictions or predictions
         with ProgressBarGroup() as progressbar_factory:
 
             with progressbar_factory.create_dummy(name='Validating Input'):

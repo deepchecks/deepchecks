@@ -48,6 +48,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
         with_display: bool = True,
+        y_pred: Optional[np.ndarray] = None,
+        y_proba: Optional[np.ndarray] = None,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
@@ -64,6 +66,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         {additional_context_params:2*indent}
         """
         assert self.context_type is not None
+        y_pred_train = y_pred_train or y_pred
+        y_proba_train = y_proba_train or y_proba
+
         context = self.context_type(  # pylint: disable=not-callable
             train=dataset,
             model=model,
