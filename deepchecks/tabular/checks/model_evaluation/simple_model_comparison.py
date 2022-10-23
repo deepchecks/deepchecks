@@ -62,7 +62,7 @@ class SimpleModelComparison(TrainTestCheck):
         Scorers to override the default scorers, find more about the supported formats at
         https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     alternative_scorers : Dict[str, Callable], default: None
-        Deprecated, please use scorers instead..
+        Deprecated, please use scorers instead.
     max_gain : float , default: 50
         the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
     max_depth : int , default: 3
