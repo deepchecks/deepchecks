@@ -19,6 +19,8 @@ import plotly.express as px
 import torch
 from ignite.metrics import Metric
 
+import warnings
+
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils import plot
@@ -62,7 +64,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
-        scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
+        scorers: t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[t.Any]] = None,
         image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
