@@ -268,11 +268,12 @@ class Context:
             else:
                 self._classes = None
 
-            if self._classes is not None and infer_dtype(self._train.label_col) == 'integer':
+            if self._classes is not None and infer_dtype(self._train.label_col) == 'integer' and \
+                    self._train.label_type is None:
                 get_logger().warning(
-                    'Integer label has a few unique values. In this case, deepchecks automatically '
-                    'infers label to be multiclass. If your desired task type is regression and not multiclass, '
-                    'please use "label_type=\'regression\'" when initializing your Dataset.')
+                    'Integer label has few unique values therefore task was inferred to be multiclass. '
+                    'You can determine the task type explicitly via the label_type argument '
+                    'when initializing your Dataset.')
         return self._classes
 
     @property
