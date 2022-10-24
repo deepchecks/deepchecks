@@ -271,9 +271,10 @@ class Context:
             if self._classes is not None and infer_dtype(self._train.label_col) == 'integer' and \
                     self._train.label_type is None:
                 get_logger().warning(
-                    'Integer label has few unique values therefore task was inferred to be multiclass. '
+                    'Due to the small number of unique labels task type was inferred as multiclass in spite of '
+                    'the label column is of type integer. '
                     'Initialize your Dataset with either label_type=\"multiclass\" or '
-                    'label_type=\"regression\" to confirm and resolve this warning.')
+                    'label_type=\"regression\" to resolve this warning.')
         return self._classes
 
     @property
