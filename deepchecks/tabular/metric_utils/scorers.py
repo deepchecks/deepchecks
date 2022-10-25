@@ -293,7 +293,18 @@ class DeepcheckScorer:
                 f'{doclink_str}')
         if self.possible_classes is not None:
             updated_model, transformed_label_col = self._wrap_classification_model(model, dataset.label_col)
-            return self.scorer(updated_model, dataset.features_columns, transformed_label_col)
+            scores = self.scorer(updated_model, dataset.features_columns, transformed_label_col)
+            # Some metrics like accuracy per class returns score only for classes exists in the data. We want to have
+            # score for each possible class
+            if isinstance(scores, t.Sized) and len(scores) < len(self.possible_classes):
+                assert len(scores) == len(dataset.classes_in_label_col)
+                class_scores = list(zip(dataset.classes_in_label_col, scores))
+                missing_classes = set(self.possible_classes) - set(dataset.classes_in_label_col)
+                class_scores.extend([(clas, np.nan) for clas in missing_classes])
+                # Sort scores by classes alphanumerically
+                class_scores.sort(key=lambda x: x[0])
+                scores = np.asarray([x[1] for x in class_scores])
+            return scores
         else:
             return self.scorer(model, dataset.features_columns, dataset.label_col)
 
@@ -332,8 +343,9 @@ class DeepcheckScorer:
                 raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return np.ndarray of number kind '
                                                   f'but got: {kind}')
             # Validate returns value for each class
-            if len(result) != len(single_label_data):
-                raise errors.DeepchecksValueError(f'Found {len(single_label_data)} classes, but scorer {self.name} '
+            expected_length = len(self.possible_classes) if self.possible_classes else len(single_label_data)
+            if len(result) != expected_length:
+                raise errors.DeepchecksValueError(f'Expected {expected_length} classes, but scorer {self.name} '
                                                   f'returned {len(result)} elements in the score array value')
         elif not isinstance(result, Number):
             raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number or np.ndarray '
