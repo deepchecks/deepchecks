@@ -32,6 +32,7 @@ from deepchecks.tabular.metric_utils.additional_classification_metrics import (f
                                                                                roc_auc_per_class,
                                                                                true_negative_rate_metric)
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.utils.simple_models import PerfectModel
@@ -39,7 +40,6 @@ from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel, ClassificationModel
 
 __all__ = [
-    'task_type_check',
     'DEFAULT_SCORERS_DICT',
     'DEFAULT_REGRESSION_SCORERS',
     'DEFAULT_BINARY_SCORERS',
@@ -94,7 +94,7 @@ regression_scorers_lower_is_better_dict = {
 }
 
 regression_scorers_higher_is_better_dict = {
-    'neg_mse': make_scorer('neg_mean_squared_error'),
+    'neg_mse': get_scorer('neg_mean_squared_error'),
     'neg_rmse': get_scorer('neg_root_mean_squared_error'),
     'neg_mae': get_scorer('neg_mean_absolute_error'),
     'r2': get_scorer('r2'),
@@ -152,10 +152,10 @@ multiclass_scorers_dict = {
     'roc_auc_ovo': get_scorer('roc_auc_ovo'),
     'roc_auc_ovr_weighted': get_scorer('roc_auc_ovr_weighted'),
     'roc_auc_ovo_weighted': get_scorer('roc_auc_ovo_weighted'),
-    'jaccard_macro':  make_scorer(jaccard_score, average='macro', zero_division=0),
-    'jaccard_micro':  make_scorer(jaccard_score, average='micro', zero_division=0),
-    'jaccard_weighted':  make_scorer(jaccard_score, average='weighted', zero_division=0),
-    'jaccard_per_class':  make_scorer(jaccard_score, average=None, zero_division=0),
+    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0),
+    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0),
+    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0),
+    'jaccard_per_class': make_scorer(jaccard_score, average=None, zero_division=0),
 }
 
 _str_to_scorer_dict = {**regression_scorers_higher_is_better_dict,
@@ -175,11 +175,13 @@ class DeepcheckScorer:
     ----------
     scorer : t.Union[str, t.Callable]
         sklearn scorer name or callable
-    name : str
+    possible_classes: t.Optional[t.List]
+        possible classes output for model. None for regression tasks.
+    name : str, default = None
         scorer name
     """
 
-    def __init__(self, scorer: t.Union[str, t.Callable], name: str = None):
+    def __init__(self, scorer: t.Union[str, t.Callable], possible_classes: t.Optional[t.List], name: str = None):
         if isinstance(scorer, str):
             formatted_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace('specificity', 'tnr') \
                 .replace(' ', '_')
@@ -201,6 +203,7 @@ class DeepcheckScorer:
             msg = f'Scorer {name if name else ""} value should be either a callable or string but got: {scorer_type}'
             raise errors.DeepchecksValueError(msg)
         self.name = name if name else get_scorer_name(scorer)
+        self.possible_classes = possible_classes
 
     @classmethod
     def filter_nulls(cls, dataset: 'tabular.Dataset') -> 'tabular.Dataset':
@@ -223,8 +226,76 @@ class DeepcheckScorer:
             return self.scorer._score_func(y_true, pred_to_use, **self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
+    def _wrap_classification_model(self, model, label_col: pd.Series):
+        """Convert labels to 0/1 if model is a binary classifier, update classes_ property and pad probas."""
+
+        class MyModelWrapper:
+            """Convert labels to 0/1 if model is a binary classifier, update classes_ property and pad probas."""
+
+            def __init__(self, user_model, possible_classes):
+                self.user_model = user_model
+                self.possible_classes = possible_classes
+                if hasattr(model, 'classes_') and len(model.classes_) > 0 \
+                        and len(model.classes_) != len(possible_classes):
+                    self.indexes_to_pad_around = [possible_classes.index(x) for x in list(model.classes_)]
+                else:
+                    self.indexes_to_pad_around = None
+
+            def predict(self, data: pd.DataFrame) -> np.ndarray:
+                """Convert labels to 0/1 if model is a binary classifier."""
+                if len(self.possible_classes) == 2:
+                    transfer_func = np.vectorize(lambda x: 0 if x == self.possible_classes[0] else 1)
+                    return transfer_func(np.asarray(self.user_model.predict(data)))
+                else:
+                    return self.user_model.predict(data)
+
+            def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
+                """Pad probabilities per class to match the length of possible classes."""
+                if not hasattr(self.user_model, 'predict_proba'):
+                    if isinstance(self.user_model, ClassifierMixin):
+                        raise errors.DeepchecksValueError('Model is a sklearn classification model but lacks the'
+                                                          ' predict_proba method. Please train the model with'
+                                                          ' probability=True.')
+                    raise errors.DeepchecksValueError('Scorer requires predicted probabilities, but the predict_proba'
+                                                      ' method was not implemented in the model, or precalculated '
+                                                      'predicted probabilities where not passed.')
+                probabilities_per_class = self.user_model.predict_proba(data)
+                if self.indexes_to_pad_around is not None:
+                    padded_probabilities_per_class = np.zeros((len(data), len(self.possible_classes)))
+                    for idx, i in enumerate(self.indexes_to_pad_around):
+                        padded_probabilities_per_class[:, i] = probabilities_per_class[:, idx]
+                    return padded_probabilities_per_class
+                elif probabilities_per_class.shape[1] != len(self.possible_classes):
+                    raise errors.ModelValidationError(
+                        f'Model probabilities per class has {probabilities_per_class.shape[1]} '
+                        f'columns while observed classes include {self.possible_classes}.')
+                else:
+                    return probabilities_per_class
+
+            @property
+            def classes_(self):
+                return np.asarray([0, 1] if len(self.possible_classes) == 2 else self.possible_classes)
+
+        updated_label_col = label_col.map({self.possible_classes[0]: 0, self.possible_classes[1]: 1}) \
+            if len(self.possible_classes) == 2 else label_col
+        return MyModelWrapper(model, self.possible_classes), updated_label_col
+
     def _run_score(self, model, dataset: 'tabular.Dataset'):
-        return self.scorer(model, dataset.features_columns, dataset.label_col)
+        # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
+        if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
+                                                                    'predict_proba'):
+            doclink_str = doclink('supported_models',
+                                  template='For more information please refer to the Supported Models guide {link}')
+            raise errors.DeepchecksValueError(
+                f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
+                f'not provided. Please use a model with predict_proba method or '
+                f'manually provide predicted probabilities to the check. '
+                f'{doclink_str}')
+        if self.possible_classes is not None:
+            updated_model, transformed_label_col = self._wrap_classification_model(model, dataset.label_col)
+            return self.scorer(updated_model, dataset.features_columns, transformed_label_col)
+        else:
+            return self.scorer(model, dataset.features_columns, dataset.label_col)
 
     def __call__(self, model, dataset: 'tabular.Dataset'):
         """Run score with labels null filtering."""
@@ -338,7 +409,8 @@ def get_default_scorers(model_type, class_avg: bool = True):
 
 def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]],
                           model: BasicModel,
-                          dataset: 'tabular.Dataset') -> t.List[DeepcheckScorer]:
+                          dataset: 'tabular.Dataset',
+                          possible_classes: t.Optional[t.List]) -> t.List[DeepcheckScorer]:
     """Initialize scorers and return all of them as deepchecks scorers.
 
     Parameters
@@ -349,11 +421,17 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         used to validate the scorers, and calculate mode_type if None.
     dataset : Dataset
         used to validate the scorers, and calculate mode_type if None.
+    possible_classes: t.Optional[t.List], default = None
+        possible classes output for model. None for regression tasks.
+    Returns
+    --------
+    scorers: t.List[DeepcheckScorer]
+        A list of initialized DeepcheckScorers.
     """
     if isinstance(scorers, t.Mapping):
-        scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
+        scorers = [DeepcheckScorer(scorer, possible_classes, name) for name, scorer in scorers.items()]
     else:
-        scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer) for scorer in scorers]
+        scorers = [DeepcheckScorer(scorer, possible_classes) for scorer in scorers]
     for s in scorers:
         s.validate_fitting(model, dataset)
     return scorers

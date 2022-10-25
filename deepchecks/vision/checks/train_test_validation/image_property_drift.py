@@ -189,7 +189,8 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
 
         for single_property in self.image_properties:
             property_name = single_property['name']
-
+            if property_name not in df_train.columns or property_name not in df_test.columns:
+                continue
             try:
                 score, _, figure = calc_drift_and_plot(
                     train_column=df_train[property_name],

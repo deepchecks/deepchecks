@@ -9,9 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """builtin suites tests"""
-#pylint: disable=redefined-outer-name
+
+# pylint: disable=redefined-outer-name
 import typing as t
 from datetime import datetime
+from hamcrest import assert_that, has_length, contains_exactly
 
 import pandas as pd
 import pytest
@@ -50,29 +52,33 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
 
 
 def test_generic_suite(
-    iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-    diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
-    iris_split_dataset_and_model_single_feature : t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-        kiss_dataset_and_model, wierd_classification_dataset_and_model, wierd_regression_dataset_and_model
+        iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
+        diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
+        iris_split_dataset_and_model_single_feature: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
+        kiss_dataset_and_model, wierd_classification_dataset_and_model, wierd_regression_dataset_and_model,
+        adult_split_dataset_and_model
 ):
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
     kiss_train, kiss_test, kiss_model = kiss_dataset_and_model
     wierd_classification_train, wierd_classification_test, wierd_classification_model = wierd_classification_dataset_and_model
     wierd_regression_train, wierd_regression_test, wierd_regression_model = wierd_regression_dataset_and_model
-    iris_train_single, iris_test_single, iris_model_single= iris_split_dataset_and_model_single_feature
+    iris_train_single, iris_test_single, iris_model_single = iris_split_dataset_and_model_single_feature
+    adult_train, adult_test, adult_model = adult_split_dataset_and_model
     suite = suites.full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
 
     arguments = (
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single, model=iris_model_single),
         dict(train_dataset=iris_train_single, test_dataset=iris_test_single),
         dict(train_dataset=kiss_train, test_dataset=kiss_test, model=kiss_model),
-        dict(train_dataset=wierd_classification_train, test_dataset=wierd_classification_test, model=wierd_classification_model),
+        dict(train_dataset=wierd_classification_train, test_dataset=wierd_classification_test,
+             model=wierd_classification_model),
         dict(train_dataset=wierd_regression_train, test_dataset=wierd_regression_test, model=wierd_regression_model),
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
         dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model, with_display=False),
         dict(train_dataset=iris_train, test_dataset=iris_test),
         dict(train_dataset=iris_train, model=iris_model),
+        dict(train_dataset=adult_train, test_dataset=adult_test, model=adult_model),
         dict(train_dataset=diabetes_train, model=diabetes_model),
         dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model),
         dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model, with_display=False),
@@ -86,12 +92,12 @@ def test_generic_suite(
 
 
 def test_generic_boost(
-    iris_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, CatBoostClassifier],
-    iris_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, XGBClassifier],
-    iris_split_dataset_and_model_lgbm : t.Tuple[Dataset, Dataset, LGBMClassifier],
-    diabetes_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, CatBoostRegressor],
-    diabetes_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, XGBRegressor],
-    diabetes_split_dataset_and_model_cat : t.Tuple[Dataset, Dataset, LGBMRegressor],
+        iris_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, CatBoostClassifier],
+        iris_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, XGBClassifier],
+        iris_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, LGBMClassifier],
+        diabetes_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, CatBoostRegressor],
+        diabetes_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, XGBRegressor],
+        diabetes_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, LGBMRegressor],
 ):
     iris_cat_train, iris_cat_test, iris_cat_model = iris_split_dataset_and_model_cat
     iris_xgb_train, iris_xgb_test, iris_xgb_model = iris_split_dataset_and_model_xgb
@@ -119,8 +125,8 @@ def test_generic_boost(
 
 
 def test_generic_custom(
-    iris_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
-    diabetes_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+        iris_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+        diabetes_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
 ):
     iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model_custom
@@ -136,3 +142,52 @@ def test_generic_custom(
         result = suite.run(**args)
         length = get_expected_results_length(suite, args)
         validate_suite_result(result, length)
+
+
+def test_single_dataset(iris_split_dataset_and_model_custom):
+    iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
+    suite = suites.full_suite()
+    res_train = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset='Train')
+    expected_train_headers = ['Train Test Performance',
+                              'Feature Label Correlation Change',
+                              'Feature Label Correlation - Train Dataset',
+                              'Feature-Feature Correlation - Train Dataset',
+                              'Weak Segments Performance - Train Dataset',
+                              'ROC Report - Train Dataset',
+                              'Train Test Prediction Drift',
+                              'Simple Model Comparison',
+                              'Unused Features - Train Dataset',
+                              'Model Inference Time - Train Dataset',
+                              'Datasets Size Comparison',
+                              'New Label Train Test',
+                              'Category Mismatch Train Test',
+                              'String Mismatch Comparison',
+                              'Train Test Samples Mix',
+                              'Train Test Feature Drift',
+                              'Train Test Label Drift',
+                              'Multivariate Drift',
+                              'Single Value in Column - Train Dataset',
+                              'Special Characters - Train Dataset',
+                              'Mixed Nulls - Train Dataset',
+                              'Mixed Data Types - Train Dataset',
+                              'String Mismatch - Train Dataset',
+                              'Data Duplicates - Train Dataset',
+                              'String Length Out Of Bounds - Train Dataset',
+                              'Conflicting Labels - Train Dataset',
+                              'Confusion Matrix Report - Train Dataset',
+                              'Calibration Metric - Train Dataset',
+                              'Outlier Sample Detection - Train Dataset',
+                              'Regression Systematic Error - Train Dataset',
+                              'Regression Error Distribution - Train Dataset',
+                              'Boosting Overfit',
+                              'Date Train Test Leakage Duplicates',
+                              'Date Train Test Leakage Overlap',
+                              'Index Train Test Leakage',
+                              'Identifier Label Correlation - Train Dataset']
+
+    res_test = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset='Test')
+    res_full = suite.run(iris_train, iris_test, iris_model, with_display=False)
+    res_names = [x.get_header() for x in res_train.results]
+    assert_that(res_names, contains_exactly(*expected_train_headers))
+    assert_that(res_test.results, has_length(36))
+    assert_that(res_full.results, has_length(56))

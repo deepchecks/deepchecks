@@ -13,7 +13,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.features import N_TOP_MESSAGE, column_importance_sorter_dict
+from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_dict
 
 __all__ = ['ColumnsInfo']
 

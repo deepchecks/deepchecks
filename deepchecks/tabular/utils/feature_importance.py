@@ -8,38 +8,30 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# pylint: disable=inconsistent-quotes
-"""Utils module containing feature importance calculations."""
 
-# TODO: move tabular functionality to the tabular sub-package
+"""Utils module containing feature importance calculations."""
 
 import time
 import typing as t
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_datetime_or_timedelta_dtype, is_float_dtype, is_numeric_dtype
 from sklearn.inspection import permutation_importance
 from sklearn.pipeline import Pipeline
 
 from deepchecks import tabular
 from deepchecks.core import errors
-from deepchecks.tabular.metric_utils.scorers import (DeepcheckScorer, get_default_scorers, init_validate_scorers,
-                                                     task_type_check)
+from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer, get_default_scorers, init_validate_scorers
+from deepchecks.tabular.utils.task_inference import get_possible_classes, infer_task_type
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 __all__ = [
     '_calculate_feature_importance',
     'calculate_feature_importance_or_none',
     'column_importance_sorter_dict',
     'column_importance_sorter_df',
-    'infer_categorical_features',
-    'infer_numerical_features',
-    'is_categorical',
     'N_TOP_MESSAGE'
 ]
 
@@ -183,7 +175,7 @@ def _calculate_feature_importance(
     # If after all importance is still none raise error
     if importance is None:
         # FIXME: better message
-        raise errors.DeepchecksValueError("Was not able to calculate features importance")
+        raise errors.DeepchecksValueError('Was not able to calculate features importance')
     return importance.fillna(0), calc_type
 
 
@@ -256,7 +248,7 @@ def _calc_permutation_importance(
         feature importance normalized to 0-1 indexed by feature names
     """
     if not dataset.has_label():
-        raise errors.DatasetValidationError("Expected dataset with label.")
+        raise errors.DatasetValidationError('Expected dataset with label.')
 
     if len(dataset.features) == 1:
         return pd.Series([1], index=dataset.features)
@@ -267,11 +259,12 @@ def _calc_permutation_importance(
     if alternative_scorer:
         scorer = alternative_scorer
     else:
-        task_type = task_type_check(model, dataset)
+        task_type = infer_task_type(model, dataset)
         default_scorers = get_default_scorers(task_type)
         scorer_name = next(iter(default_scorers))
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
-        scorer = init_validate_scorers(single_scorer_dict, model, dataset)[0]
+        possible_classes = get_possible_classes(model, dataset)
+        scorer = init_validate_scorers(single_scorer_dict, model, dataset, possible_classes)[0]
 
     start_time = time.time()
     scorer(model, dataset_sample)
@@ -355,6 +348,7 @@ def column_importance_sorter_dict(
 
     def key(name):
         return get_importance(name[0], feature_importances, dataset)
+
     cols_dict = dict(sorted(cols_dict.items(), key=key, reverse=True))
     if n_top:
         return dict(list(cols_dict.items())[:n_top])
@@ -396,124 +390,10 @@ def column_importance_sorter_df(
 
     def key(column):
         return [get_importance(name, feature_importances, ds) for name in column]
+
     if col:
         df = df.sort_values(by=[col], key=key, ascending=False)
     df = df.sort_index(key=key, ascending=False)
     if n_top:
         return df.head(n_top)
     return df
-
-
-def infer_numerical_features(df: pd.DataFrame) -> t.List[Hashable]:
-    """Infers which features are numerical.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        dataframe for which to infer numerical features
-
-    Returns
-    -------
-    List[Hashable]
-        list of numerical features
-    """
-    columns = df.columns
-    numerical_columns = []
-    for col in columns:
-        col_data = df[col]
-        if col_data.dtype == 'object':
-            # object might still be only floats, so we rest the dtype
-            col_data = pd.Series(col_data.to_list())
-        if is_numeric_dtype(col_data):
-            numerical_columns.append(col)
-    return numerical_columns
-
-
-def infer_categorical_features(
-        df: pd.DataFrame,
-        max_categorical_ratio: float = 0.01,
-        max_categories: int = None,
-        columns: t.Optional[t.List[Hashable]] = None,
-) -> t.List[Hashable]:
-    """Infers which features are categorical by checking types and number of unique values.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        dataframe for which to infer categorical features
-    max_categorical_ratio : float , default: 0.01
-    max_categories : int , default: None
-    columns : t.Optional[t.List[Hashable]] , default: None
-
-    Returns
-    -------
-    List[Hashable]
-        list of categorical features
-    """
-    categorical_dtypes = df.select_dtypes(include='category')
-
-    if len(categorical_dtypes.columns) > 0:
-        return list(categorical_dtypes.columns)
-
-    if columns is not None:
-        dataframe_columns = ensure_hashable_or_mutable_sequence(columns)
-    else:
-        dataframe_columns = df.columns
-
-    if max_categories is None:
-        return [
-            column
-            for column in dataframe_columns
-            if is_categorical(
-                t.cast(pd.Series, df[column]),
-                max_categorical_ratio)]
-    else:
-        return [
-            column
-            for column in dataframe_columns
-            if is_categorical(
-                t.cast(pd.Series, df[column]),
-                max_categorical_ratio,
-                max_categories,
-                max_categories,
-                max_categories)]
-
-
-def is_categorical(
-        column: pd.Series,
-        max_categorical_ratio: float = 0.01,
-        max_categories_type_string: int = 150,
-        max_categories_type_int: int = 30,
-        max_categories_type_float_or_datetime: int = 5
-) -> bool:
-    """Check if uniques are few enough to count as categorical.
-
-    Parameters
-    ----------
-    column : pd.Series
-        A dataframe column
-    max_categorical_ratio : float , default: 0.01
-    max_categories_type_string : int , default: 150
-    max_categories_type_int : int , default: 30
-    max_categories_type_float_or_datetime : int , default: 5
-
-    Returns
-    -------
-    bool
-        True if is categorical according to input numbers
-    """
-    n_samples = len(column.dropna())
-    if n_samples == 0:
-        get_logger().warning('Column %s only contains NaN values.', column.name)
-        return False
-
-    n_samples = np.max([n_samples, 1000])
-    n_unique = column.nunique(dropna=True)
-    if is_string_column(column):
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_string
-    elif (is_float_dtype(column) and np.max(column % 1) > 0) or is_datetime_or_timedelta_dtype(column):
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_float_or_datetime
-    elif is_numeric_dtype(column):
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_int
-    else:
-        return False

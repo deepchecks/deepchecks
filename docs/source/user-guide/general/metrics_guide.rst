@@ -144,6 +144,12 @@ __________
 
 Classification
 ______________
+.. Note::
+    For classification tasks, Deepchecks requires an ordered
+    list of all possible classes (Can also be inferred from provided data and model).
+    It is also recommended to supply the model's output probabilities per class, as they are required for some metrics and checks
+    which will not work without them.
+    See :doc:`link </user-guide/tabular/supported_models>` for additional information.
 .. list-table::
    :widths: 25 75 75
    :header-rows: 1
@@ -223,9 +229,16 @@ ________________
    * - 'average_precision_per_class'
      - average precision for object detection
      -
+   * - 'average_precision_macro'
+     - average precision macro averaging
+     -
+   * - 'average_precision_weighted'
+     - average precision macro, weighted by support
+     -
    * - 'average_recall_per_class'
      - average recall for object detection
-     -
+     - suffixes apply as with 'average_precision'
+
 
 Custom Metrics
 ==============

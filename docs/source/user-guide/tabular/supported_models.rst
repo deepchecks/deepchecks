@@ -28,8 +28,16 @@ the predictions must be in the following format based on the task type:
   for each sample in the dataset. Predicted values are required for all task types.
 
 * **Probabilities per class**: should be provided as an |array-like| of shape ``(n_samples, n_classes)``
-  containing the predicted probability of each class per sample. Probabilities per class are only required for
-  classification tasks.
+  containing the predicted probability of each possible class for each sample in the dataset. The probabilities
+  per class should be provided in a **alphanumeric order** based on the classes names.
+  Probabilities per class are only relevant for classification tasks. If predicted probabilities are not supplied,
+  checks and metrics that rely on the predicted probabilities (such as ROC Curve and the AUC metric) will not run.
+
+.. Note::
+    For classification tasks, Deepchecks require the list of all possible classes in the order they appear at the
+    ``probabilities per class`` vector (alphanumeric order). It can either be inferred based on provided data and model
+    or supplied via the Dataset's ``label_class`` argument. For binary classification, the class with the greater
+    alphanumeric value is considered the positive class.
 
 .. _supported_models__passing_a_model:
 
@@ -46,7 +54,7 @@ Specifically, deepchecks requires the following methods to be implemented in the
   input features and returns :ref:`predicted values <supported_models__predictions_format>`.
 * ``predict_proba`` method which receives an |array-like|  of shape ``(n_samples, n_features)`` containing the
   input features and returns :ref:`probabilities per class <supported_models__predictions_format>`.
-  This method is required only for classification tasks.
+  This method is optional and relevant only for classification tasks.
 
 Running Deepchecks With a Supported Model
 -----------------------------------------
@@ -65,10 +73,10 @@ model's class or create a wrapper class that implements the required interfaces 
 model. Below is a general structure of such wrapper class.
 
 >>> class MyModelWrapper:
-...     def predict(X: pd.DataFrame) -> np.ndarray:
+...     def predict(self, data: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API.
 ...         ...
-...     def predict_proba(X: pd.DataFrame) -> np.ndarray:
+...     def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
 ...         # Implement based on base model's API, only required for classification tasks.
 ...         ...
 ...     @property
@@ -93,7 +101,7 @@ Using Pre-computed Predictions
 
 The predictions should be passed via the ``y_proba`` and ``y_pred`` arguments of the suite / check's ``run`` method in
 the :ref:`appropriate format <supported_models__predictions_format>`. ``y_pred`` receives the predicted values of
-the model and ``y_proba`` receives the probabilities per class, which is only required for classification tasks.
+the model and ``y_proba`` receives the probabilities per class, which is only relevant for classification tasks.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
 :doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
@@ -101,8 +109,9 @@ check for a regression model
 requires both train and test :ref:`predicted values <supported_models__predictions_format>`
 to be provided via the ``y_pred_train``, ``y_pred_test`` arguments.
 
-For classification tasks, predicted values are not mandatory. If not supplied,
-deepchecks will assume the predicted class is the class with the highest predicted probability.
+For classification it's recommended but not mandatory to also pass the predicted probabilities (``y_proba``). If
+predicted probabilities are not supplied, checks and metrics that rely on the predicted probabilities (such as
+ROC Curve and the AUC metric) will not run.
 
 .. Note::
     When using pre-computed predictions, if the train dataset shares indices with the test dataset we

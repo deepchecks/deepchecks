@@ -19,9 +19,9 @@ from pandas.api.types import is_categorical_dtype
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.features import N_TOP_MESSAGE
 from deepchecks.utils.strings import format_percent, string_baseform
 from deepchecks.utils.typing import Hashable
 
@@ -116,7 +116,7 @@ class MixedNulls(SingleDatasetCheck):
             else:
                 string_null_counts = {
                     repr(value).replace('\'', '"'): count
-                    for value, count in column_data.value_counts(dropna=True).iteritems()
+                    for value, count in column_data.value_counts(dropna=True).items()
                     if string_baseform(value) in null_string_list
                 }
                 nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()

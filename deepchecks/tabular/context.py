@@ -13,17 +13,19 @@ import typing as t
 
 import numpy as np
 import pandas as pd
+from pandas._libs.lib import infer_dtype
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers, task_type_check
+from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
+from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
+from deepchecks.tabular.utils.task_inference import get_possible_classes
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
-from deepchecks.utils.features import calculate_feature_importance_or_none
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.typing import BasicModel
@@ -60,8 +62,8 @@ class _DummyModel:
 
     def __init__(self,
                  test: Dataset,
-                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]],
-                 y_proba_test: np.ndarray,
+                 y_proba_test: t.Optional[np.ndarray],
+                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]] = None,
                  train: t.Union[Dataset, None] = None,
                  y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
                  y_proba_train: t.Union[np.ndarray, None] = None,
@@ -156,18 +158,18 @@ class Context:
     """
 
     def __init__(
-        self,
-        train: t.Union[Dataset, pd.DataFrame, None] = None,
-        test: t.Union[Dataset, pd.DataFrame, None] = None,
-        model: t.Optional[BasicModel] = None,
-        feature_importance: t.Optional[pd.Series] = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = 120,
-        with_display: bool = True,
-        y_pred_train: t.Optional[np.ndarray] = None,
-        y_pred_test: t.Optional[np.ndarray] = None,
-        y_proba_train: t.Optional[np.ndarray] = None,
-        y_proba_test: t.Optional[np.ndarray] = None,
+            self,
+            train: t.Union[Dataset, pd.DataFrame, None] = None,
+            test: t.Union[Dataset, pd.DataFrame, None] = None,
+            model: t.Optional[BasicModel] = None,
+            feature_importance: t.Optional[pd.Series] = None,
+            feature_importance_force_permutation: bool = False,
+            feature_importance_timeout: int = 120,
+            with_display: bool = True,
+            y_pred_train: t.Optional[np.ndarray] = None,
+            y_pred_test: t.Optional[np.ndarray] = None,
+            y_proba_train: t.Optional[np.ndarray] = None,
+            y_proba_test: t.Optional[np.ndarray] = None,
     ):
         # Validations
         if train is None and test is None and model is None:
@@ -202,16 +204,17 @@ class Context:
                                          'initialize it as train')
         self._calculated_importance = feature_importance is not None or model is None
         if model is None and \
-           not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
+                not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
-        if feature_importance is not None:
-            if not isinstance(feature_importance, pd.Series):
-                raise DeepchecksValueError('feature_importance must be a pandas Series')
+        if feature_importance is not None and not isinstance(feature_importance, pd.Series):
+            raise DeepchecksValueError('feature_importance must be a pandas Series')
+
+        self._classes = None
         self._train = train
         self._test = test
         self._model = model
@@ -220,7 +223,6 @@ class Context:
         self._feature_importance_timeout = feature_importance_timeout
         self._importance_type = None
         self._validated_model = False
-        self._task_type = None
         self._with_display = with_display
 
     # Properties
@@ -257,23 +259,41 @@ class Context:
         return self._model
 
     @property
+    def classes(self) -> t.List:
+        """Return ordered list of possible label classes for classification tasks or None for regression."""
+        if self._classes is None:
+            if self._train is not None and self._train.has_label() and self._train.label_type != TaskType.REGRESSION:
+                self._classes = get_possible_classes(self._model, self._train, self._test,
+                                                     self._train.label_type is not None)
+            else:
+                self._classes = None
+
+            if self._classes is not None and infer_dtype(self._train.label_col) == 'integer' and \
+                    self._train.label_type is None:
+                get_logger().warning(
+                    'Due to the small number of unique labels task type was inferred as multiclass in spite of '
+                    'the label column is of type integer. '
+                    'Initialize your Dataset with either label_type=\"multiclass\" or '
+                    'label_type=\"regression\" to resolve this warning.')
+        return self._classes
+
+    @property
     def model_name(self):
         """Return model name."""
         return type(self.model).__name__
 
     @property
     def task_type(self) -> TaskType:
-        """Return task type if model & train & label exists. otherwise, raise error."""
-        if self._task_type is None:
-            self._task_type = task_type_check(self.model, self.train)
-        return self._task_type
-
-    @property
-    def features_importance(self) -> t.Optional[pd.Series]:
-        """Return feature importance, or None if not possible."""
-        # TODO: remove in future
-        get_logger().warning('"features_importance" property is deprecated use "feature_importance" instead')
-        return self.feature_importance
+        """Return task type based on calculated classes argument."""
+        if self.classes is None:
+            return TaskType.REGRESSION
+        elif len(self.classes) == 2:
+            return TaskType.BINARY
+        elif len(self.classes) > 2:
+            return TaskType.MULTICLASS
+        else:
+            raise DatasetValidationError('Found only one class in label column, pass the full list of possible '
+                                         'label classes via the label_classes argument in the Dataset initialization.')
 
     @property
     def feature_importance(self) -> t.Optional[pd.Series]:
@@ -294,13 +314,6 @@ class Context:
         return self._feature_importance
 
     @property
-    def features_importance_type(self) -> t.Optional[str]:
-        """Return feature importance type if feature importance is available, else None."""
-        # TODO: remove in future
-        get_logger().warning('"features_importance_type" property is deprecated use "feature_importance_type" instead')
-        return self.feature_importance_type
-
-    @property
     def feature_importance_type(self) -> t.Optional[str]:
         """Return feature importance type if feature importance is available, else None."""
         # Calling first feature_importance, because _importance_type is assigned only after feature importance is
@@ -313,36 +326,14 @@ class Context:
         """Return whether there is test dataset defined."""
         return self._test is not None
 
-    def assert_task_type(self, *expected_types: TaskType):
-        """Assert task_type matching given types.
-
-        If task_type is defined, validate it and raise error if needed, else returns True.
-        If task_type is not defined, return False.
-        """
-        # To calculate task type we need model and train. if not exists return False, means we did not validate
-        if self._model is None or self._train is None:
-            return False
-        if self.task_type not in expected_types:
-            raise ModelValidationError(
-                f'Check is relevant for models of type {[e.value.lower() for e in expected_types]}, '
-                f"but received model of type '{self.task_type.value.lower()}'"  # pylint: disable=inconsistent-quotes
-            )
-        return True
-
     def assert_classification_task(self):
         """Assert the task_type is classification."""
-        # assert_task_type makes assertion if task type exists and returns True, else returns False
-        # If not task type than check label type
-        if (not self.assert_task_type(TaskType.MULTICLASS, TaskType.BINARY) and
-                self.train.label_type == TaskType.REGRESSION):
-            raise ModelValidationError('Check is irrelevant for regressions tasks')
+        if self.task_type == TaskType.REGRESSION and self.train.has_label():
+            raise ModelValidationError('Check is irrelevant for regression tasks')
 
     def assert_regression_task(self):
         """Assert the task type is regression."""
-        # assert_task_type makes assertion if task type exists and returns True, else returns False
-        # If not task type than check label type
-        if (not self.assert_task_type(TaskType.REGRESSION) and
-                self.train.label_type != TaskType.REGRESSION):
+        if self.task_type != TaskType.REGRESSION and self.train.has_label():
             raise ModelValidationError('Check is irrelevant for classification tasks')
 
     def get_scorers(self,
@@ -368,7 +359,7 @@ class Context:
             A list of initialized & validated scorers.
         """
         scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
-        return init_validate_scorers(scorers, self.model, self.train)
+        return init_validate_scorers(scorers, self.model, self.train, self.classes)
 
     def get_single_scorer(self,
                           scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
@@ -397,9 +388,9 @@ class Context:
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train)[0]
+        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.classes)[0]
 
-    def get_data_by_kind(self, kind: DatasetKind):
+    def get_data_by_kind(self, kind: DatasetKind) -> Dataset:
         """Return the relevant Dataset by given kind."""
         if kind == DatasetKind.TRAIN:
             return self.train

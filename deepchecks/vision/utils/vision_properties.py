@@ -12,10 +12,10 @@
 from enum import Enum
 from itertools import chain
 
-__all__ = ['PropertiesInputType', 'validate_properties']
+__all__ = ['PropertiesInputType', 'validate_properties', 'static_properties_from_df']
 
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from deepchecks.core.errors import DeepchecksValueError
 
@@ -114,18 +114,64 @@ def static_prop_to_cache_format(static_props: STATIC_PROPERTIES_FORMAT) -> PROPE
     """
     Format a batch of static predictions to the format in the batch object cache.
 
-    Expects the items in all of the indices to have the same properties.
+    Expects the items in all the indices to have the same properties.
     """
     indices = list(static_props.keys())
     input_types = list(static_props[indices[0]].keys())
     props_cache = {input_type: {prop_name: [] for prop_name in list(static_props[indices[0]][input_type].keys())}
-                   for input_type in input_types}
+                   for input_type in input_types if static_props[indices[0]][input_type]}
 
     for input_type in input_types:
-        for prop_name in list(static_props[indices[0]][input_type].keys()):
-            prop_vals = [static_props[index][input_type][prop_name] for index in indices]
-            if input_type == PropertiesInputType.PARTIAL_IMAGES.value:
-                prop_vals = list(chain.from_iterable(prop_vals))
-            props_cache[input_type][prop_name] = prop_vals
+        if static_props[indices[0]][input_type]:
+            for prop_name in list(static_props[indices[0]][input_type].keys()):
+                prop_vals = [static_props[index][input_type][prop_name] for index in indices]
+                if input_type == PropertiesInputType.PARTIAL_IMAGES:
+                    prop_vals = list(chain.from_iterable(prop_vals))
+                props_cache[input_type][prop_name] = prop_vals
 
     return props_cache
+
+
+def static_properties_from_df(df,
+                              image_cols: Tuple = (),
+                              label_cols: Tuple = (),
+                              prediction_cols: Tuple = (),
+                              partial_image_cols: Tuple = ()) -> STATIC_PROPERTIES_FORMAT:
+    """
+    Transform the pre-calculated properties from a DataFrame to the expected dict format.
+
+    Read more about the excepted dict format for pre-calculated properties at
+    https://docs.deepchecks.com/stable/user-guide/vision/vision_properties.html
+
+    Parameters
+    ----------
+    df: pd.Dataframe
+        A dataframe with the pre-calculated properties per sample, the indices should match those of the samples in the
+        dataset.
+    image_cols: Tuple, default: ()
+        The names of the columns containing the results of the properties calculated on images.
+    label_cols: Tuple, default: ()
+        The names of the columns containing the results of the properties calculated on labels.
+    prediction_cols: Tuple, default: ()
+        The names of the columns containing the results of the properties calculated on predictions.
+    partial_image_cols: Tuple, default: ()
+        The names of the columns containing the results of the properties calculated on partial images - images cut out
+        of the original images such as bounding boxes.
+
+    Returns
+    -------
+    The static properties in the format expected by the checks.
+    """
+    image_props = df.loc[:, image_cols].to_dict(orient='index')
+    label_props = df.loc[:, label_cols].to_dict(orient='index')
+    pred_props = df.loc[:, prediction_cols].to_dict(orient='index')
+    pi_props = df.loc[:, partial_image_cols].to_dict(orient='index')
+
+    static_props = {}
+    for k in df.index.to_list():
+        static_props[k] = {PropertiesInputType.IMAGES: image_props[k] if image_cols else None,
+                           PropertiesInputType.LABELS: label_props[k] if label_cols else None,
+                           PropertiesInputType.PREDICTIONS: pred_props[k] if prediction_cols else None,
+                           PropertiesInputType.PARTIAL_IMAGES: pi_props[k] if partial_image_cols else None}
+
+    return static_props

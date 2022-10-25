@@ -1,5 +1,5 @@
 
-|build| |Documentation Status| |pkgVersion| |pyVersions|
+|build| |pkgVersion| |pyVersions|
 |Maintainability| |Coverage Status|
 
 ..  image:: https://raw.githubusercontent.com/deepchecks/deepchecks/main/docs/source/_static/images/general/deepchecks-logo-with-white-wide-back.png
@@ -44,8 +44,6 @@ Using conda
     conda install -c deepchecks deepchecks
 
 .. |build| image:: https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg
-.. |Documentation Status| image:: https://readthedocs.org/projects/deepchecks/badge/?version=latest
-   :target: https://docs.deepchecks.com/en/latest/?badge=latest
 .. |pkgVersion| image:: https://img.shields.io/pypi/v/deepchecks
 .. |pyVersions| image:: https://img.shields.io/pypi/pyversions/deepchecks
 .. |Maintainability| image:: https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability

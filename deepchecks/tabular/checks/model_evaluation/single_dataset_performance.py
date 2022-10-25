@@ -19,6 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMetricClassMixin
 from deepchecks.tabular import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import format_number
 
@@ -62,26 +63,31 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []
-        classes = dataset.classes
-        label = cast(pd.Series, dataset.label_col)
-        if context.with_display:
-            n_samples = label.groupby(label).count()
+        display = None
+        if context.task_type == TaskType.REGRESSION:
+            for scorer in scorers:
+                scorer_value = scorer(model, dataset)
+                results.append([scorer.name, scorer_value])
+            results_df = pd.DataFrame(results, columns=['Metric', 'Value'])
+            if context.with_display:
+                display = [results_df]
         else:
-            n_samples = dict(zip(classes, [None] * len(classes)))
-        for scorer in scorers:
-            scorer_value = scorer(model, dataset)
-            if isinstance(scorer_value, Number):
-                results.append([pd.NA, scorer.name, scorer_value, len(label)])
-            else:
-                results.extend(
-                    [[class_name, scorer.name, class_score, n_samples[class_name]]
-                     for class_score, class_name in zip(scorer_value, classes)])
-        results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value', 'Number of samples'])
+            for scorer in scorers:
+                scorer_value = scorer(model, dataset)
+                if isinstance(scorer_value, Number):
+                    results.append([pd.NA, scorer.name, scorer_value])
+                else:
+                    results.extend(
+                        [[class_name, scorer.name, class_score]
+                         for class_score, class_name in zip(scorer_value, context.classes)])
+            results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
 
-        if context.with_display:
-            display = [results_df]
-        else:
-            display = []
+            if context.with_display:
+                label = cast(pd.Series, dataset.label_col)
+                n_samples = label.groupby(label).count()
+                display_df = results_df.copy()
+                display_df['Number of samples'] = display_df['Class'].apply(n_samples.get)
+                display = [display_df]
 
         return CheckResult(results_df, header='Single Dataset Performance', display=display)
 
@@ -94,7 +100,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'tabular-builtin-metrics',
+                        'supported-metrics-by-string',
                         template='For a list of built-in scorers please refer to {link}'
                     )
                     raise ValueError(
@@ -105,9 +111,10 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""
-        result = {(row['Metric'], str(row['Class'])): row['Value'] for _, row in check_result.value.iterrows()}
-        for key in [key for key in result.keys() if key[1] == '<NA>']:
-            result[key[0]] = result.pop(key)
+        result = {}
+        for _, row in check_result.value.iterrows():
+            key = row['Metric'] if pd.isna(row.get('Class')) else (row['Metric'], str(row['Class']))
+            result[key] = row['Value']
         return result
 
     def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all') -> SDP:

@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 
+from hamcrest import assert_that, close_to, has_length
+from ignite.metrics import Accuracy, Precision
+from sklearn.metrics import make_scorer, jaccard_score
+
 from deepchecks.core import ConditionCategory
 from deepchecks.vision.checks import SingleDatasetPerformance
 from deepchecks.vision.metrics_utils import ObjectDetectionTpFpFn
 from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationScorer
-from hamcrest import assert_that, close_to, has_length
-from ignite.metrics import Accuracy, Precision
-from sklearn.metrics import cohen_kappa_score
 from tests.base.utils import equal_condition_result
 
 
@@ -66,13 +67,26 @@ def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device
 
 def test_classification_custom_scorer(mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    check = SingleDatasetPerformance(scorers={'kappa': CustomClassificationScorer(cohen_kappa_score)})
+    scorer = make_scorer(jaccard_score, average=None, zero_division=0)
+    check = SingleDatasetPerformance(scorers={'kappa': CustomClassificationScorer(scorer)})
 
     # Act
     result = check.run(mnist_dataset_test, mock_trained_mnist, device=device, n_samples=None)
 
     # Assert
-    assert_that(result.value.Value.mean(), close_to(0.979, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.963, 0.001))
+
+
+def test_classification_sklearn_scorers(mnist_dataset_test, mock_trained_mnist, device):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_per_class'])
+
+    # Act
+    result = check.run(mnist_dataset_test, mock_trained_mnist, device=device, n_samples=None)
+
+    # Assert
+    assert_that(result.value.Value.mean(), close_to(0.981, 0.001))
+    assert_that(result.value.Value, has_length(10))
 
 
 def test_segmentation_many_scorers(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
@@ -81,8 +95,8 @@ def test_segmentation_many_scorers(segmentation_coco_train_visiondata, trained_s
     result = check.run(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
                        device=device, with_display=False).value
 
-    assert_that(result[result['Metric'] == 'dice']['Value'].mean(), close_to(0.655, 0.001))
-    assert_that(result[result['Metric'] == 'dice_macro']['Value'], close_to(0.655, 0.001))
+    assert_that(result[result['Metric'] == 'dice']['Value'].mean(), close_to(0.649, 0.006))
+    assert_that(result[result['Metric'] == 'dice_macro']['Value'], close_to(0.649, 0.006))
     assert_that(result[result['Metric'] == 'iou_micro']['Value'], close_to(0.948, 0.001))
 
 

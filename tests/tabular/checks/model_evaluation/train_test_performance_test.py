@@ -13,7 +13,7 @@ import re
 from typing import List
 
 import numpy as np
-from hamcrest import assert_that, calling, close_to, greater_than, has_items, has_length, instance_of, raises, equal_to
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_items, has_length, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.metrics import jaccard_score, make_scorer
 from sklearn.model_selection import train_test_split
@@ -68,7 +68,7 @@ def test_dataset_no_shared_label(iris_labeled_dataset):
 def assert_classification_result(result, dataset: Dataset):
     for dataset_name in ['Test', 'Train']:
         dataset_df = result.loc[result['Dataset'] == dataset_name]
-        for class_name in dataset.classes:
+        for class_name in dataset.classes_in_label_col:
             class_df = dataset_df.loc[dataset_df['Class'] == class_name]
             for metric in MULTICLASS_SCORERS_NON_AVERAGE.keys():
                 metric_row = class_df.loc[class_df['Metric'] == metric]
@@ -245,6 +245,34 @@ def test_condition_degradation_ratio_less_than_passed(iris_split_dataset_and_mod
         equal_condition_result(is_pass=True,
                                details=r'Found max degradation of 17.74% for metric Recall and class 2.',
                                name='Train-Test scores relative degradation is less than 1')
+    ))
+
+
+def test_condition_degradation_ratio_less_than_passed_regression(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(1)
+    # Act
+    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=True,
+                               details=r'Found max degradation of 94.98% for metric Neg MAE',
+                               name='Train-Test scores relative degradation is less than 1')
+    ))
+
+
+def test_condition_degradation_ratio_less_than_not_passed_regression(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(0)
+    # Act
+    result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
+    # Assert
+    assert_that(result, has_items(
+        equal_condition_result(is_pass=False,
+                               details=r'3 scores failed. Found max degradation of 94.98% for metric Neg MAE',
+                               name='Train-Test scores relative degradation is less than 0')
     ))
 
 

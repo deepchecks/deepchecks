@@ -12,13 +12,11 @@ import sys
 
 import numpy as np
 import sklearn
+from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
+from deepchecks.tabular.datasets.regression import avocado, wine_quality
 from deepdiff import DeepDiff
 from hamcrest import assert_that, instance_of
 from sklearn.base import BaseEstimator
-
-from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
-from deepchecks.tabular.datasets.regression import avocado, wine_quality, airbnb
-from deepchecks.utils.model import get_model_of_pipeline
 
 
 def assert_sklearn_model_params_equals(model1, model2):
@@ -27,9 +25,9 @@ def assert_sklearn_model_params_equals(model1, model2):
     assert diff == {}
 
 
-def assert_model_predict_on_data(mode, train, test):
-    assert_that(mode.predict(train.features_columns.iloc[:1]), instance_of(np.ndarray))
-    assert_that(mode.predict(test.features_columns.iloc[:1]), instance_of(np.ndarray))
+def assert_model_predict_on_data(model, train, test):
+    assert_that(model.predict(train.features_columns.iloc[:1]), instance_of(np.ndarray))
+    assert_that(model.predict(test.features_columns.iloc[:1]), instance_of(np.ndarray))
 
 
 def assert_dataset_module(dataset_module):
@@ -75,7 +73,3 @@ def test_model_predict_on_lending_club():
 
 def test_model_predict_on_wine_quality():
     assert_dataset_module(wine_quality)
-
-
-def test_model_predict_on_airbnb():
-    assert_dataset_module(airbnb)

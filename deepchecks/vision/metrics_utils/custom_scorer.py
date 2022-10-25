@@ -12,9 +12,14 @@
 import typing as t
 
 import numpy as np
+import pandas as pd
 import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.context import _DummyModel
+from deepchecks.tabular.metric_utils import DeepcheckScorer
 
 
 class CustomClassificationScorer(Metric):
@@ -23,21 +28,17 @@ class CustomClassificationScorer(Metric):
     Custom scorers can be passed to all model evaluation related checks as can be seen in the example below.
     Parameters
     ----------
-    meric_func: Callable
-        A metric function (or loss function) that takes the ground truth and the predictions as input and returns a
-        scalar value. Specifically, the function should have the following signature
-        `metric_func(labels, y_pred, **kwargs)` where:
-        - labels: List[Hashable] are the labels per sample.
-        - predictions: Union[List[Hashable], List[np.array]] are the predictions per sample. If needs_proba argument is
-          True, then the predictions are probabilities per class otherwise it is the predicted class.
-    needs_proba: bool, default: False
-        Whether score_func requires the probabilites or not.
-    **kwargs
-        Additional parameters to be passed to score_func.
+    scorer : t.Union[str, t.Callable]
+        sklearn scorer name or deepchecks supported string o rcallable
+
+    Returns
+    --------
+    scorer: DeepcheckScorer
+        An initialized DeepcheckScorer.
 
     Examples
     --------
-    >>> from sklearn.metrics import cohen_kappa_score
+    >>> from sklearn.metrics import make_scorer, cohen_kappa_score
     ... from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationScorer
     ... from deepchecks.vision.checks.model_evaluation import SingleDatasetPerformance
     ... from deepchecks.vision.datasets.classification import mnist
@@ -45,28 +46,23 @@ class CustomClassificationScorer(Metric):
     ... mnist_model = mnist.load_model()
     ... test_ds = mnist.load_dataset(root='Data', object_type='VisionData')
     ...
-    >>> ck = CustomClassificationScorer(cohen_kappa_score)
+    >>> ck = CustomClassificationScorer(make_scorer(cohen_kappa_score))
     ...
     >>> check = SingleDatasetPerformance(scorers={'cohen_kappa_score': ck})
     ... check.run(test_ds, mnist_model).value
     """
 
     def __init__(
-        self,
-        score_func: t.Callable,
-        needs_proba: bool = False,
-        **kwargs
+            self,
+            scorer: t.Union[t.Callable, str],
     ):
         super().__init__(device="cpu")
-
-        self.score_func = score_func
-        self.needs_proba = needs_proba
-        self.kwargs = kwargs
+        self.scorer = scorer
 
     @reinit__is_reduced
     def reset(self):
         """Reset metric state."""
-        self._y_pred = []
+        self._y_proba = []
         self._y = []
 
         super().reset()
@@ -74,26 +70,28 @@ class CustomClassificationScorer(Metric):
     @reinit__is_reduced
     def update(self, output):
         """Update metric with batch of samples."""
-        y_pred, y = output
+        y_proba, y = output
 
-        if isinstance(y_pred, torch.Tensor):
-            y_pred = y_pred.cpu().detach().numpy()
+        if isinstance(y_proba, torch.Tensor):
+            y_proba = y_proba.cpu().detach().numpy()
         else:
-            y_pred = np.array(y_pred)
+            y_proba = np.array(y_proba)
         if isinstance(y, torch.Tensor):
             y = y.cpu().detach().numpy()
         else:
             y = np.array(y)
 
-        if not self.needs_proba:
-            y_pred = np.argmax(y_pred, axis=-1)
-
-        self._y_pred.append(y_pred)
+        self._y_proba.append(y_proba)
         self._y.append(y)
 
-    @sync_all_reduce("_y_pred", "_y")
+    @sync_all_reduce("_y_proba", "_y")
     def compute(self):
         """Compute metric value."""
-        y_pred = np.concatenate(self._y_pred)
+        y_proba = np.concatenate(self._y_proba)
         y = np.concatenate(self._y)
-        return self.score_func(y, y_pred, **self.kwargs)
+
+        dummy_dataset = Dataset(df=pd.DataFrame(y_proba), label=y, cat_features=[])
+        dummy_model = _DummyModel(test=dummy_dataset, y_proba_test=y_proba)
+
+        deep_checks_scorer = DeepcheckScorer(self.scorer, possible_classes=list(range(y_proba.shape[1])))
+        return deep_checks_scorer(dummy_model, dummy_dataset)

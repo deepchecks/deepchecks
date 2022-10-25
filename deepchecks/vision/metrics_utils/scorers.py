@@ -18,11 +18,9 @@ import pandas as pd
 import torch
 from ignite.engine import Engine
 from ignite.metrics import Metric, Precision, Recall
-from sklearn.metrics._scorer import _ProbaScorer
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)
@@ -89,7 +87,11 @@ detection_dict = {
     'fnr_micro': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='micro'),
     'fnr_weighted': lambda: ObjectDetectionTpFpFn(evaluating_function='fnr', averaging_method='weighted'),
     'average_precision_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ap'),
-    'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar')
+    'average_precision_macro': lambda: ObjectDetectionAveragePrecision(return_option='ap', average='macro'),
+    'average_precision_weighted': lambda: ObjectDetectionAveragePrecision(return_option='ap', average='weighted'),
+    'average_recall_per_class': lambda: ObjectDetectionAveragePrecision(return_option='ar'),
+    'average_recall_macro': lambda: ObjectDetectionAveragePrecision(return_option='ar', average='macro'),
+    'average_recall_weighted': lambda: ObjectDetectionAveragePrecision(return_option='ar', average='weighted')
 }
 
 semantic_segmentation_dict = {
@@ -140,9 +142,7 @@ def get_scorers_dict(
                     if metric_name in classification_dict:
                         converted_met = classification_dict[metric_name]()
                     else:
-                        scorer = DeepcheckScorer(metric_name)
-                        needs_proba = isinstance(scorer, _ProbaScorer)
-                        converted_met = CustomClassificationScorer(scorer.run_on_pred, needs_proba=needs_proba)
+                        converted_met = CustomClassificationScorer(metric)
                 elif task_type == TaskType.SEMANTIC_SEGMENTATION:
                     converted_met = semantic_segmentation_dict[metric_name]()
                 else:

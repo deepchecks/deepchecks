@@ -11,14 +11,15 @@
 """Contains unit tests for the single dataset performance report check."""
 from typing import List
 
+from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises, equal_to
+from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
+from sklearn.model_selection import train_test_split
+
 from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks import SingleDatasetPerformance
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.metric_utils.scorers import DEFAULT_REGRESSION_SCORERS, DEFAULT_MULTICLASS_SCORERS
-from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises
-from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-from sklearn.model_selection import train_test_split
+from deepchecks.tabular.metric_utils.scorers import DEFAULT_MULTICLASS_SCORERS, DEFAULT_REGRESSION_SCORERS
 from tests.base.utils import equal_condition_result
 
 
@@ -65,6 +66,36 @@ def test_classification(iris_split_dataset_and_model):
     result = check.run(test, model)
     # Assert
     assert_multiclass_classification_result(result.value)
+
+
+def test_classification_new_classes_at_test(iris_split_dataset_and_model):
+    # Arrange
+    _, test, model = iris_split_dataset_and_model
+    check = SingleDatasetPerformance(scorers=['precision_per_class', 'roc_auc_per_class'])
+    test_new = test.data.copy()
+    test_new.loc[test.n_samples] = [0, 1, 2, 3, 5]
+    test = test.copy(test_new)
+    # Act
+    result = check.run(test, model).value
+    # Assert
+    assert_that(result.loc[3],
+                has_entries({'Class': 5, 'Metric': 'precision', 'Value': equal_to(0)}))
+    assert_that(result.loc[7],
+                has_entries({'Class': 5, 'Metric': 'roc_auc', 'Value': equal_to(0.5)}))
+
+
+def test_binary_classification_adult(adult_split_dataset_and_model):
+    # Arrange
+    _, test, model = adult_split_dataset_and_model
+    check_binary = SingleDatasetPerformance()
+    check_multiclass = SingleDatasetPerformance(scorers=['precision_per_class'])
+    # Act
+    result_binary = check_binary.run(test, model).value
+    result_per_class = check_multiclass.run(test, model).value
+    # Assert
+    binary_precision = result_binary[result_binary['Metric'] == 'Precision'].iloc[0, 2]
+    assert_that(binary_precision, close_to(0.79, 0.01))
+    assert_that(result_per_class.iloc[1, 2], close_to(binary_precision, 0.01))
 
 
 def test_classification_reduce(iris_split_dataset_and_model):
