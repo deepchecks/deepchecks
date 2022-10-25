@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
+import warnings
 from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
 import torch
@@ -17,6 +18,7 @@ from torch import nn
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.vision._shared_docs import docstrings
@@ -67,6 +69,11 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         {additional_context_params:2*indent}
         """
         assert self.context_type is not None
+        if train_predictions is not None:
+            warnings.warn('train_predictions is deprecated, please use predictions instead.')
+        if (train_predictions is not None) and (predictions is not None):
+            raise DeepchecksValueError('Cannot accept both train_predictions and predictions, please pass the data only'
+                                       ' to predictions.')
 
         train_predictions = train_predictions or predictions
         with ProgressBarGroup() as progressbar_factory:
