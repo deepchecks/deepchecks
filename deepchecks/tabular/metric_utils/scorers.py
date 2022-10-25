@@ -297,7 +297,11 @@ class DeepcheckScorer:
             # Some metrics like accuracy per class returns score only for classes exists in the data. We want to have
             # score for each possible class
             if isinstance(scores, t.Sized) and len(scores) < len(self.possible_classes):
-                assert len(scores) == len(dataset.classes_in_label_col)
+                if len(scores) != len(dataset.classes_in_label_col):
+                    raise errors.DeepchecksValueError(
+                        f'Scorer returned {len(scores)} scores, but dataset contains '
+                        f'{len(dataset.classes_in_label_col)} classes out of '
+                        f'{len(self.possible_classes)} total possible classes. Can\'t proceed')
                 class_scores = list(zip(dataset.classes_in_label_col, scores))
                 missing_classes = set(self.possible_classes) - set(dataset.classes_in_label_col)
                 class_scores.extend([(clas, np.nan) for clas in missing_classes])
