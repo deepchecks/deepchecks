@@ -279,11 +279,15 @@ def test_non_avg_score_when_more_labels_classes_than_in_data(iris_binary_string_
     # Arrange
     test, train, model = iris_binary_string_split_dataset_and_model
     check = SingleDatasetPerformance(scorers=['F1 Per Class'])
-    iris_dataset = Dataset(test.data, label='target', label_classes=['a', 'b', 'c', 'dddd'])
+    # Add the new labels also in the START and in the END
+    iris_dataset = Dataset(test.data, label='target', label_classes=['12', 'a', 'b', 'c'])
     # Act - Not using the model directly because it contains information on number of classes, and want to check
     # for use case when the only information we have is from label_classes
     result = check.run(iris_dataset, y_pred_train=model.predict(iris_dataset.features_columns))
     # Assert
+    df = result.value
+    assert_that(df[df['Class'] == 'a']['Value'].item(), equal_to(1))
+    assert_that(df[df['Class'] == 'b']['Value'].item(), equal_to(1))
     assert_that(result.value, has_length(4))
 
     # Arrange dataset without label_classes
