@@ -11,9 +11,11 @@
 """Contains unit tests for the tabular package deprecation warnings."""
 import pandas as pd
 import pytest
+from sklearn.metrics import accuracy_score
+import warnings
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import SegmentPerformance, WholeDatasetDrift
+from deepchecks.tabular.checks import SegmentPerformance, WholeDatasetDrift, SimpleModelComparison, MultiModelPerformanceReport
 
 
 def test_deprecation_segment_performance_warning():
@@ -33,3 +35,25 @@ def test_deprecation_label_type_dataset():
                                                 'types are multiclass, binary and regression.'):
         df = pd.DataFrame({'a': [1, 2, 3], 'b': [4, 5, 6]})
         Dataset(df, label='b', label_type='regression_label')
+
+
+def test_deprecation_warning_simple_model_comparison():
+    # Test that warning is raised when alternative_scorers has value:
+    with pytest.warns(DeprecationWarning, match='alternative_scorers'):
+        _ = SimpleModelComparison(alternative_scorers={'acc': accuracy_score})
+
+    # Check to see no warnings are raised when deprecated feature doesn't exist:
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
+        _ = SimpleModelComparison()
+
+
+def test_deprecation_warning_multi_model_performance_report():
+    # Test that warning is raised when alternative_scorers has value:
+    with pytest.warns(DeprecationWarning, match='alternative_scorers'):
+        _ = MultiModelPerformanceReport(alternative_scorers={'acc': accuracy_score})
+
+    # Check to see no warnings are raised when deprecated feature doesn't exist:
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
+        _ = MultiModelPerformanceReport()

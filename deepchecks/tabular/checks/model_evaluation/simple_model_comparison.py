@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
+import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Dict, Hashable, List
+from typing import TYPE_CHECKING, Callable, Dict, Hashable, List, Mapping, Union
 
 import numpy as np
 import pandas as pd
@@ -57,9 +58,11 @@ class SimpleModelComparison(TrainTestCheck):
            predictions uniformly at random from the list of values in y.
         * `most_frequent`: in regression is mean value, in classification the most common value. (Previously 'constant')
         * `tree`: runs a simple decision tree.
+    scorers: Union[Mapping[str, Union[str, Callable]], List[str]], default: None
+        Scorers to override the default scorers, find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     alternative_scorers : Dict[str, Callable], default: None
-        An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
-        For description about scorers see Notes below.
+        Deprecated, please use scorers instead.
     max_gain : float , default: 50
         the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
     max_depth : int , default: 3
@@ -107,6 +110,7 @@ class SimpleModelComparison(TrainTestCheck):
     def __init__(
         self,
         strategy: str = 'most_frequent',
+        scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
         alternative_scorers: Dict[str, Callable] = None,
         max_gain: float = 50,
         max_depth: int = 3,
@@ -115,7 +119,12 @@ class SimpleModelComparison(TrainTestCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.alternative_scorers = alternative_scorers
+        if alternative_scorers is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_scorers is deprecated. Please use scorers instead.',
+                          DeprecationWarning)
+            self.alternative_scorers = alternative_scorers
+        else:
+            self.alternative_scorers = scorers
         self.max_gain = max_gain
         self.max_depth = max_depth
         self.n_samples = n_samples

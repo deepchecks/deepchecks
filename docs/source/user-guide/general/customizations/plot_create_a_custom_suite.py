@@ -42,14 +42,19 @@ from deepchecks.tabular.checks import *
 new_custom_suite = Suite('Simple Suite For Model Performance',
                          ModelInfo(),
                          # use custom scorers for performance report:
-                         TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(threshold=0.15 \
-                                                                                                        ).add_condition_test_performance_greater_than(0.8),
+                         TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(threshold=0.15)\
+                         .add_condition_test_performance_greater_than(0.8),
                          ConfusionMatrixReport(),
-                         SimpleModelComparison(strategy='most_frequent', \
-                          alternative_scorers={'Recall (Multiclass)': make_scorer(recall_score, average=None), \
-                                               'Precision (Multiclass)': make_scorer(precision_score, average=None)} \
-                         ).add_condition_gain_greater_than(0.3)
+                         SimpleModelComparison(strategy='most_frequent',
+                                               scorers={'Recall (Multiclass)': make_scorer(recall_score, average=None),
+                                                        'Precision (Multiclass)': make_scorer(precision_score, average=None)}
+                                               ).add_condition_gain_greater_than(0.3)
                          )
+
+# The scorers parameter can also be passed to the suite in order to override the scorers of all the checks in the suite.
+# Find more about scorers at https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html.
+
+#%%
 # Let's see the suite:
 new_custom_suite
 

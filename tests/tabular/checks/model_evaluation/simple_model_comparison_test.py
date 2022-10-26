@@ -72,7 +72,7 @@ def test_classification_random_custom_metric(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
     check = SimpleModelComparison(strategy='stratified',
-                                  alternative_scorers={'recall': make_scorer(recall_score, average=None)})
+                                  scorers={'recall': make_scorer(recall_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf)
     # Assert
@@ -84,7 +84,7 @@ def test_classification_random_custom_metric_without_display(iris_split_dataset_
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
     check = SimpleModelComparison(strategy='stratified',
-                                  alternative_scorers={'recall': make_scorer(recall_score, average=None)})
+                                  scorers={'recall': make_scorer(recall_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf, with_display=False)
     # Assert
@@ -251,8 +251,8 @@ def test_classification_tree_custom_metric(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
     check = SimpleModelComparison(strategy='tree',
-                                  alternative_scorers={'recall': make_scorer(recall_score, average=None),
-                                                       'f1': make_scorer(f1_score, average=None)})
+                                  scorers={'recall': make_scorer(recall_score, average=None),
+                                           'f1': make_scorer(f1_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
