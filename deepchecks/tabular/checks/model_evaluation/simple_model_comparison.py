@@ -173,6 +173,9 @@ class SimpleModelComparison(TrainTestCheck):
                 model_dict = defaultdict(dict)
                 for model_name, model_type, model_instance in models:
                     for class_value, class_score in scorer(model_instance, test_dataset).items():
+                        # New labels which do not exists on the model gets nan as score, skips them.
+                        if np.isnan(class_score):
+                            continue
                         model_dict[class_value][model_type] = class_score
                         if context.with_display:
                             display_array.append([model_name,

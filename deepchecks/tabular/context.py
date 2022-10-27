@@ -13,7 +13,6 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from pandas._libs.lib import infer_dtype
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
@@ -215,8 +214,8 @@ class Context:
         if feature_importance is not None and not isinstance(feature_importance, pd.Series):
             raise DeepchecksValueError('feature_importance must be a pandas Series')
 
-        self._model_classes = model_classes
-        self._task_type, self._observed_classes = infer_task_type(model, train, test, model_classes)
+        self._task_type, self._observed_classes, self._model_classes = infer_task_type(model, train, test,
+                                                                                       model_classes)
         self._train = train
         self._test = test
         self._model = model
@@ -264,11 +263,9 @@ class Context:
     def model_classes(self) -> t.List:
         """Return ordered list of possible label classes for classification tasks or None for regression."""
         if self._model_classes is None and self.task_type != TaskType.REGRESSION:
-            if self.model and hasattr(self._model, 'classes_') and len(self._model.classes_) > 0:
-                self._model_classes = sorted(self._model.classes_)
-            else:
-                self._model_classes = self._observed_classes
-                get_logger().warning('Could not find model\'s classes, using the observed classes')
+            # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
+            self._model_classes = self._observed_classes
+            get_logger().warning('Could not find model\'s classes, using the observed classes')
         return self._model_classes
 
     @property
@@ -289,7 +286,7 @@ class Context:
                 permutation_kwargs = {'timeout': self._feature_importance_timeout}
                 dataset = self.test if self.have_test() else self.train
                 importance, importance_type = calculate_feature_importance_or_none(
-                    self._model, dataset, self.model_classes, self.task_type,
+                    self._model, dataset, self.model_classes, self._observed_classes, self.task_type,
                     self._feature_importance_force_permutation, permutation_kwargs
                 )
                 self._feature_importance = importance
@@ -346,7 +343,7 @@ class Context:
             A list of initialized & validated scorers.
         """
         scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
-        return init_validate_scorers(scorers, self.model, self.train, self.model_classes)
+        return init_validate_scorers(scorers, self.model, self.train, self.model_classes, self._observed_classes)
 
     def get_single_scorer(self,
                           scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
@@ -375,7 +372,8 @@ class Context:
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.model_classes)[0]
+        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.model_classes,
+                                     self._observed_classes)[0]
 
     def get_data_by_kind(self, kind: DatasetKind) -> Dataset:
         """Return the relevant Dataset by given kind."""

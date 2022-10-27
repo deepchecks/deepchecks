@@ -128,7 +128,7 @@ def test_auc_on_regression_task_raises_error(diabetes, diabetes_model):
     ds, _ = diabetes
 
     # Act & Assert
-    auc_deepchecks_scorer = DeepcheckScorer('roc_auc', model_classes=[0, 1, 2])
+    auc_deepchecks_scorer = DeepcheckScorer('roc_auc', model_classes=None, observed_classes=None)
 
     assert_that(calling(auc_deepchecks_scorer).with_args(diabetes_model, ds),
                 raises(DeepchecksValueError,
@@ -137,7 +137,7 @@ def test_auc_on_regression_task_raises_error(diabetes, diabetes_model):
                        'probabilities are not provided. Please use a model with predict_proba method or manually '
                        r'provide predicted probabilities to the check\.'))
 
-    auc_deepchecks_scorer = DeepcheckScorer('roc_auc_ovo', model_classes=[0, 1, 2])
+    auc_deepchecks_scorer = DeepcheckScorer('roc_auc_ovo', model_classes=None, observed_classes=None)
 
     assert_that(calling(auc_deepchecks_scorer).with_args(diabetes_model, ds),
                 raises(DeepchecksValueError,

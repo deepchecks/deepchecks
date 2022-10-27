@@ -19,7 +19,6 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 
-from deepchecks.core.errors import DeepchecksValueError
 
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
@@ -183,8 +182,10 @@ class DeepcheckScorer:
         scorer name
     """
 
-    def __init__(self, scorer: t.Union[str, t.Callable],
+    def __init__(self,
+                 scorer: t.Union[str, t.Callable],
                  model_classes: t.Optional[t.List],
+                 observed_classes: t.Optional[t.List],
                  name: str = None):
         if isinstance(scorer, str):
             formatted_scorer_name = scorer.lower().replace('sensitivity', 'recall').replace('specificity', 'tnr') \
@@ -208,6 +209,7 @@ class DeepcheckScorer:
             raise errors.DeepchecksValueError(msg)
         self.name = name if name else get_scorer_name(scorer)
         self.model_classes = model_classes
+        self.observed_classes = observed_classes
 
     @classmethod
     def filter_nulls(cls, dataset: 'tabular.Dataset') -> 'tabular.Dataset':
@@ -303,7 +305,9 @@ class DeepcheckScorer:
                     raise errors.DeepchecksValueError(
                         f'Scorer returned {len(scores)} scores, but model contains '
                         f'{len(self.model_classes)} classes. Can\'t proceed')
-                return dict(zip(self.model_classes, scores))
+                scores = dict(zip(self.model_classes, scores))
+                # Add classes which been seen in the data but are not known to the model
+                scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
             return scores
         else:
             return self.scorer(model, dataset.features_columns, dataset.label_col)
@@ -336,11 +340,12 @@ class DeepcheckScorer:
 
         if isinstance(result, dict):
             # Validate returns value for each class
-            if len(result) != len(single_label_data):
-                raise errors.DeepchecksValueError(f'Expected {len(single_label_data)} classes, but scorer {self.name} '
+            all_classes = set(self.model_classes) | set(self.observed_classes)
+            if len(result) != len(all_classes):
+                raise errors.DeepchecksValueError(f'Expected {len(all_classes)} classes, but scorer {self.name} '
                                                   f'returned {len(result)} elements in the score array value')
         elif not isinstance(result, Number):
-            raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number or np.ndarray '
+            raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number or dict '
                                               f'but got: {type(result).__name__}')
 
 
@@ -414,7 +419,8 @@ def get_default_scorers(model_type, class_avg: bool = True):
 def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]],
                           model: BasicModel,
                           dataset: 'tabular.Dataset',
-                          model_classes: t.Optional[t.List]) -> t.List[DeepcheckScorer]:
+                          model_classes: t.Optional[t.List],
+                          observed_classes: t.Optional[t.List]) -> t.List[DeepcheckScorer]:
     """Initialize scorers and return all of them as deepchecks scorers.
 
     Parameters
@@ -433,9 +439,9 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         A list of initialized DeepcheckScorers.
     """
     if isinstance(scorers, t.Mapping):
-        scorers = [DeepcheckScorer(scorer, model_classes, name) for name, scorer in scorers.items()]
+        scorers = [DeepcheckScorer(scorer, model_classes, observed_classes, name) for name, scorer in scorers.items()]
     else:
-        scorers = [DeepcheckScorer(scorer, model_classes) for scorer in scorers]
+        scorers = [DeepcheckScorer(scorer, model_classes, observed_classes) for scorer in scorers]
     for s in scorers:
         s.validate_fitting(model, dataset)
     return scorers
@@ -454,4 +460,4 @@ def _transform_to_multi_label_format(y: np.ndarray, classes):
     elif y.ndim == 2 and y.shape[1] == len(classes):
         return y
     else:
-        raise DeepchecksValueError(f'got y with unworkable shape: {y.shape}')
+        raise errors.DeepchecksValueError(f'got y with unworkable shape: {y.shape}')

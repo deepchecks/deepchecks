@@ -25,9 +25,7 @@ from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupporte
 from deepchecks.tabular.utils.feature_inference import (infer_categorical_features, infer_numerical_features,
                                                         is_categorical)
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.array_math import is_sequence, convert_into_flat_list
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable

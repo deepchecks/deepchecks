@@ -41,6 +41,7 @@ def calculate_feature_importance_or_none(
         model: t.Any,
         dataset: t.Union['tabular.Dataset', pd.DataFrame],
         model_classes,
+        observed_classes,
         task_type,
         force_permutation: bool = False,
         permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None,
@@ -55,6 +56,8 @@ def calculate_feature_importance_or_none(
         dataset used to fit the model
     model_classes
         possible classes output for model. None for regression tasks.
+    observed_classes
+        Observed classes in the data. None for regression tasks.
     force_permutation : bool , default: False
         force permutation importance calculation
     permutation_kwargs : t.Optional[t.Dict[str, t.Any]] , default: None
@@ -75,6 +78,7 @@ def calculate_feature_importance_or_none(
             model=model,
             dataset=dataset,
             model_classes=model_classes,
+            observed_classes=observed_classes,
             task_type=task_type,
             force_permutation=force_permutation,
             permutation_kwargs=permutation_kwargs,
@@ -106,6 +110,7 @@ def _calculate_feature_importance(
         model: t.Any,
         dataset: t.Union['tabular.Dataset', pd.DataFrame],
         model_classes,
+        observed_classes,
         task_type,
         force_permutation: bool = False,
         permutation_kwargs: t.Dict[str, t.Any] = None,
@@ -120,6 +125,8 @@ def _calculate_feature_importance(
         dataset used to fit the model
     model_classes
         possible classes output for model. None for regression tasks.
+    observed_classes
+        Observed classes in the data. None for regression tasks.
     force_permutation : bool, default: False
         force permutation importance calculation
     permutation_kwargs : t.Dict[str, t.Any] , default: None
@@ -155,7 +162,8 @@ def _calculate_feature_importance(
                                               'In order to force permutation feature importance, please use the Dataset'
                                               ' object.')
         else:
-            importance = _calc_permutation_importance(model, dataset, model_classes, task_type, **permutation_kwargs)
+            importance = _calc_permutation_importance(model, dataset, model_classes, observed_classes,
+                                                      task_type, **permutation_kwargs)
             calc_type = 'permutation_importance'
 
     # If there was no force permutation, or if it failed while trying to calculate importance,
@@ -178,7 +186,8 @@ def _calculate_feature_importance(
                 pre_text = 'Could not find built-in feature importance on the model,'
             get_logger().warning('%s using permutation feature importance calculation instead', pre_text)
 
-        importance = _calc_permutation_importance(model, dataset, model_classes, task_type, **permutation_kwargs)
+        importance = _calc_permutation_importance(model, dataset, model_classes, observed_classes,
+                                                  task_type, **permutation_kwargs)
         calc_type = 'permutation_importance'
 
     # If after all importance is still none raise error
@@ -215,6 +224,7 @@ def _calc_permutation_importance(
         model: t.Any,
         dataset: 'tabular.Dataset',
         model_classes,
+        observed_classes,
         task_type,
         n_repeats: int = 30,
         mask_high_variance_features: bool = False,
@@ -234,6 +244,8 @@ def _calc_permutation_importance(
         dataset used to fit the model
     model_classes
         possible classes output for model. None for regression tasks.
+    observed_classes
+        Observed classes in the data. None for regression tasks.
     n_repeats: int, default: 30
         Number of times to permute a feature
     mask_high_variance_features : bool , default: False
@@ -275,7 +287,7 @@ def _calc_permutation_importance(
         default_scorers = get_default_scorers(task_type)
         scorer_name = next(iter(default_scorers))
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
-        scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_classes)[0]
+        scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_classes, observed_classes)[0]
 
     start_time = time.time()
     scorer(model, dataset_sample)
