@@ -71,3 +71,8 @@ def test_deprecation_train_predictions(mnist_dataset_train):
     with pytest.warns(DeprecationWarning,
                       match='train_predictions is deprecated, please use predictions instead.'):
         _ = SingleDatasetPerformance().run(mnist_dataset_train, train_predictions=pred_train_dict)
+
+    with pytest.warns(DeprecationWarning,
+                      match='test_predictions is deprecated, please use predictions instead.'):
+        _ = SingleDatasetPerformance().run(mnist_dataset_train, predictions=pred_train_dict,
+                                           test_predictions=pred_train_dict)

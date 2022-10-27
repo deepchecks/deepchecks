@@ -52,6 +52,20 @@ def test_deprecation_y_pred_train_single_dataset():
         _ = WeakSegmentsPerformance().run(ds, y_pred_train=y_pred_train, y_proba_train=y_proba_train)
 
 
+def test_deprecation_y_pred_test_single_dataset():
+    ds = Dataset(pd.DataFrame({'a': np.random.randint(0, 5, 50), 'b': np.random.randint(0, 5, 50),
+                               'label': np.random.randint(0, 2, 50)}), label='label')
+    y_pred_train = np.array(np.random.randint(0, 2, 50))
+    y_proba_train = np.random.rand(50, 2)
+    with pytest.warns(DeprecationWarning, match='y_pred_test is deprecated, please use y_pred instead.'):
+        _ = WeakSegmentsPerformance().run(ds, y_pred=y_pred_train, y_proba=y_proba_train,
+                                          y_pred_test=y_pred_train, y_proba_test=y_proba_train)
+
+    with pytest.warns(DeprecationWarning, match='y_proba_test is deprecated, please use y_proba instead.'):
+        _ = WeakSegmentsPerformance().run(ds, y_pred=y_pred_train, y_proba=y_proba_train,
+                                          y_pred_test=y_pred_train, y_proba_test=y_proba_train)
+
+
 def test_deprecation_warning_simple_model_comparison():
     # Test that warning is raised when alternative_scorers has value:
     with pytest.warns(DeprecationWarning, match='alternative_scorers'):
@@ -72,4 +86,3 @@ def test_deprecation_warning_multi_model_performance_report():
     with warnings.catch_warnings():
         warnings.simplefilter('error')
         _ = MultiModelPerformanceReport()
-
