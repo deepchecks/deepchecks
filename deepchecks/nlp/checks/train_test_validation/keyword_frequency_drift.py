@@ -117,8 +117,10 @@ class KeywordFrequencyDrift(TrainTestCheck):
         else:
             raise DeepchecksValueError('top_n_method must be one of: top_diff, top_freq or a list of keywords')
 
-        top_n_words = np.take(np.array(vocab), top_n_idxs)
+        top_n_stems = np.take(np.array(vocab), top_n_idxs)
         top_n_diffs = np.take(word_freq_diff, top_n_idxs)
+
+        top_n_words = [self._unstem(s) for s in top_n_stems]
 
         if context.with_display:
             dataset_names = (train_dataset.name, test_dataset.name)
@@ -170,14 +172,21 @@ class KeywordFrequencyDrift(TrainTestCheck):
                                   f'{format_number(threshold)}', condition)
 
     def _stem(self, word):
+        """Stem and cache a word."""
         if word not in self.stemming_lookup.keys():
             self.stemming_lookup[word] = LancasterStemmer().stem(word)
         return self.stemming_lookup[word]
 
     def _tokenize(self, text):
+        """Tokenize text."""
         tokens = word_tokenize(text)
         stems = [self._stem(item) for item in tokens if re.match(self.token_pattern, item)]
         return stems
+
+    def _unstem(self, stem):
+        """Transform a stem into a readable word."""
+        word = list(self.stemming_lookup.keys())[list(self.stemming_lookup.values()).index(stem)]
+        return word
 
 
 def _tokenize(text):
