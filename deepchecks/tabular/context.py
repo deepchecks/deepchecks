@@ -269,6 +269,10 @@ class Context:
         return self._model_classes
 
     @property
+    def observed_classes(self) -> t.List:
+        return self._observed_classes
+
+    @property
     def model_name(self):
         """Return model name."""
         return type(self.model).__name__
