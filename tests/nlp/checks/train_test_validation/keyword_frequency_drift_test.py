@@ -25,7 +25,7 @@ def test_with_keywords(movie_reviews_data_positive, movie_reviews_data_negative)
     keywords_list = ['good', 'bad', 'cartoon', 'recommend']
     result = KeywordFrequencyDrift(top_n_method=keywords_list).run(movie_reviews_data_positive, movie_reviews_data_negative)
     assert_that(result.value['drift_score'], close_to(0.438, 0.001))
-    assert_that(result.display[1].data[0].x.tolist(), contains_exactly('bad', 'cartoon', 'good', 'recommend'))
+    assert_that(result.display[1].data[0].x, contains_exactly('bad', 'cartoon', 'good', 'recommend'))
 
 
 def test_top_freqs(movie_reviews_data_positive, movie_reviews_data_negative):
@@ -55,7 +55,7 @@ def test_top_n_diff_condition(movie_reviews_data_positive, movie_reviews_data_ne
         .add_condition_top_n_differences_less_than(1.1)\
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
 
-    expected_keywords = ['hyp', 'regret', 'sorry', 'cusack', 'hackm']
+    expected_keywords = ['hype', 'regret', 'sorry', 'cusack', 'hackman']
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         details=f'Failed for the keywords: {expected_keywords}',

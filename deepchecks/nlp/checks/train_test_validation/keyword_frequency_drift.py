@@ -12,6 +12,7 @@
 import functools
 import re
 from typing import List, Union
+from collections import OrderedDict
 
 import numpy as np
 import sklearn
@@ -120,6 +121,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         top_n_stems = np.take(np.array(vocab), top_n_idxs)
         top_n_diffs = np.take(word_freq_diff, top_n_idxs)
 
+        self._sort_lookup_by_value()
         top_n_words = [self._unstem(s) for s in top_n_stems]
 
         if context.with_display:
@@ -188,18 +190,11 @@ class KeywordFrequencyDrift(TrainTestCheck):
         word = list(self.stemming_lookup.keys())[list(self.stemming_lookup.values()).index(stem)]
         return word
 
-
-def _tokenize(text):
-    token_pattern = r'[a-z]{2,}'
-    tokens = word_tokenize(text)
-    stems = [_stem(item) for item in tokens if re.match(token_pattern, item)]
-    return stems
+    def _sort_lookup_by_value(self):
+        sorted_lookup = OrderedDict(sorted(self.stemming_lookup.items(), key=lambda x: x[0]))
+        self.stemming_lookup = sorted_lookup
 
 
 def _identity_tokenizer(text):
     return text
 
-
-@functools.lru_cache(maxsize=65536)
-def _stem(word):
-    return LancasterStemmer().stem(word)
