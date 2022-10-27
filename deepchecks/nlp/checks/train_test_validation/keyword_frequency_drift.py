@@ -66,6 +66,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         super().__init__(**kwargs)
         self.top_n_to_show = top_n_to_show
         self.top_n_method = top_n_method
+        self.stemming_lookup = dict()
 
         if drift_method == 'PSI':
             self.drift_method = psi
