@@ -68,18 +68,18 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         """
         assert self.context_type is not None
         if y_pred_train is not None:
-            warnings.warn('y_pred_train is deprecated, please use y_pred instead.')
+            warnings.warn('y_pred_train is deprecated, please use y_pred instead.', DeprecationWarning, stacklevel=2)
         if (y_pred_train is not None) and (y_pred is not None):
             raise DeepchecksValueError('Cannot accept both y_pred_train and y_pred, please pass the data only'
                                        ' to y_pred.')
         if y_proba_train is not None:
-            warnings.warn('y_proba_train is deprecated, please use y_proba instead.')
+            warnings.warn('y_proba_train is deprecated, please use y_proba instead.', DeprecationWarning, stacklevel=2)
         if (y_pred_train is not None) and (y_pred is not None):
             raise DeepchecksValueError('Cannot accept both y_proba_train and y_proba, please pass the data only'
                                        ' to y_proba.')
 
-        y_pred_train = y_pred_train or y_pred
-        y_proba_train = y_proba_train or y_proba
+        y_pred_train = y_pred_train if y_pred_train is not None else y_pred
+        y_proba_train = y_proba_train if y_pred_train is not None else y_proba
 
         context = self.context_type(  # pylint: disable=not-callable
             train=dataset,

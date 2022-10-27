@@ -70,12 +70,13 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         """
         assert self.context_type is not None
         if train_predictions is not None:
-            warnings.warn('train_predictions is deprecated, please use predictions instead.')
+            warnings.warn('train_predictions is deprecated, please use predictions instead.',
+                          DeprecationWarning, stacklevel=2)
         if (train_predictions is not None) and (predictions is not None):
             raise DeepchecksValueError('Cannot accept both train_predictions and predictions, please pass the data only'
                                        ' to predictions.')
 
-        train_predictions = train_predictions or predictions
+        train_predictions = train_predictions if train_predictions is not None else predictions
         with ProgressBarGroup() as progressbar_factory:
 
             with progressbar_factory.create_dummy(name='Validating Input'):

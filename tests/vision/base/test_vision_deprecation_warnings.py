@@ -9,3 +9,4 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the vision package deprecation warnings."""
+
