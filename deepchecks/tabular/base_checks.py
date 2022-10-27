@@ -10,6 +10,7 @@
 #
 """Module for tabular base checks."""
 import abc
+import warnings
 from typing import List, Mapping, Optional, Union
 
 import numpy as np
@@ -18,7 +19,7 @@ import pandas as pd
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck,
                                     TrainTestBaseCheck)
-from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.context import Context
@@ -66,6 +67,17 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         {additional_context_params:2*indent}
         """
         assert self.context_type is not None
+        if y_pred_train is not None:
+            warnings.warn('y_pred_train is deprecated, please use y_pred instead.')
+        if (y_pred_train is not None) and (y_pred is not None):
+            raise DeepchecksValueError('Cannot accept both y_pred_train and y_pred, please pass the data only'
+                                       ' to y_pred.')
+        if y_proba_train is not None:
+            warnings.warn('y_proba_train is deprecated, please use y_proba instead.')
+        if (y_pred_train is not None) and (y_pred is not None):
+            raise DeepchecksValueError('Cannot accept both y_proba_train and y_proba, please pass the data only'
+                                       ' to y_proba.')
+
         y_pred_train = y_pred_train or y_pred
         y_proba_train = y_proba_train or y_proba
 
