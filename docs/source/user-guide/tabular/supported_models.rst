@@ -104,7 +104,7 @@ The parameters to pass are ``y_pred`` and ``y_proba`` for single dataset checks 
 ``y_proba_train`` and ``y_pred_test`` and ``y_proba_test`` for checks that use both datasets.
 ``y_pred`` receives the predicted values of the model and ``y_proba`` receives the probabilities per class, which is
 only relevant for classification tasks.
-See the :ref:`supported format <supported_models__predictions_format>`.
+See more about the :ref:`supported formats here<supported_models__predictions_format>`.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
 :doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
