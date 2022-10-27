@@ -99,9 +99,12 @@ as index and their corresponding importance as values.
 Using Pre-computed Predictions
 ==============================
 
-The predictions should be passed via the ``y_proba`` and ``y_pred`` arguments of the suite / check's ``run`` method in
-the :ref:`appropriate format <supported_models__predictions_format>`. ``y_pred`` receives the predicted values of
-the model and ``y_proba`` receives the probabilities per class, which is only relevant for classification tasks.
+The pre-computed predictions should be passed to suite/check's ``run`` method in the appropriate format.
+The parameters to pass are ``y_pred`` and ``y_proba`` for single dataset checks or ``y_pred_train`` and
+``y_proba_train`` and ``y_pred_test`` and ``y_proba_test`` for checks that use both datasets.
+``y_pred`` receives the predicted values of the model and ``y_proba`` receives the probabilities per class, which is
+only relevant for classification tasks.
+See the :ref:`supported format <supported_models__predictions_format>`.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
 :doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
@@ -116,16 +119,6 @@ ROC Curve and the AUC metric) will not run.
 .. Note::
     When using pre-computed predictions, if the train dataset shares indices with the test dataset we
     will add train/test prefixes to the indexes.
-
-
-Running Deepchecks with Pre-computed Predictions
-------------------------------------------------
-
-It is possible to pass pre-computed predictions to the checks, this can be useful for example when the model is not
-available, only the results previously saved from it.
-The pre-computed predictions should be passed to suite/check's ``run`` method in the appropriate format.
-The parameters to pass are ``y_pred`` and ``y_proba`` for single dataset checks or ``y_pred_train`` and
-``y_proba_train`` and ``y_pred_test`` and ``y_proba_test`` for checks that use both datasets.
 
 Code Example
 ------------
