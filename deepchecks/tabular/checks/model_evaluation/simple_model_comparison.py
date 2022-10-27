@@ -164,7 +164,7 @@ class SimpleModelComparison(TrainTestCheck):
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
-            n_samples = test_label.groupby(test_label).count()
+            class_counts = test_label.groupby(test_label).count()
 
             display_array = []
             # Dict in format { Scorer : Dict { Class : Dict { Origin/Simple : score } } }
@@ -174,7 +174,8 @@ class SimpleModelComparison(TrainTestCheck):
                 for model_name, model_type, model_instance in models:
                     for class_value, class_score in scorer(model_instance, test_dataset).items():
                         # New labels which do not exists on the model gets nan as score, skips them.
-                        if np.isnan(class_score):
+                        # Also skips classes which are not in the test labels
+                        if np.isnan(class_score) or class_value not in class_counts:
                             continue
                         model_dict[class_value][model_type] = class_score
                         if context.with_display:
@@ -183,7 +184,7 @@ class SimpleModelComparison(TrainTestCheck):
                                                   class_score,
                                                   scorer.name,
                                                   class_value,
-                                                  n_samples.get(class_value)
+                                                  class_counts[class_value]
                                                   ])
                 results_dict[scorer.name] = model_dict
 
