@@ -52,6 +52,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
+        model_classes: Optional[List] = None
     ) -> CheckResult:
         """Run check.
 
@@ -75,6 +76,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
+            model_classes=model_classes
         )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
         context.finalize_check_result(result, self, DatasetKind.TRAIN)
@@ -108,6 +110,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
+        model_classes: Optional[List] = None
     ) -> CheckResult:
         """Run check.
 
@@ -134,6 +137,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
             with_display=with_display,
+            model_classes=model_classes
         )
         result = self.run_logic(context)
         context.finalize_check_result(result, self)

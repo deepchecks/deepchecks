@@ -12,7 +12,6 @@
 from numbers import Number
 from typing import TYPE_CHECKING, Callable, Dict, List, TypeVar, Union, cast
 
-import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
@@ -76,11 +75,11 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
                 if isinstance(scorer_value, Number):
-                    results.append([np.nan, scorer.name, scorer_value])
+                    results.append([pd.NA, scorer.name, scorer_value])
                 else:
                     results.extend(
                         [[class_name, scorer.name, class_score]
-                         for class_score, class_name in zip(scorer_value, context.classes)])
+                         for class_name, class_score in scorer_value.items()])
             results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
 
             if context.with_display:

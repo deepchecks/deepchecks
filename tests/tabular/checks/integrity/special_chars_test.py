@@ -126,7 +126,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = SpecialCharacters(n_top_columns=3)
     # Act
-    result_ds = check.run(train, clf).display[1]
+    result_ds = check.run(train).display[1]
     # Assert
     assert_that(result_ds, has_length(3))
 
@@ -153,7 +153,7 @@ def test_condition_fail_all(diabetes_split_dataset_and_model):
     # Arrange
     check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_less_or_equal()
     # Act
-    results = check.conditions_decision(check.run(train, clf))
+    results = check.conditions_decision(check.run(train))
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
@@ -174,7 +174,7 @@ def test_condition_fail_some(diabetes_split_dataset_and_model):
     # Arrange
     check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_less_or_equal(0.3)
     # Act
-    results = check.conditions_decision(check.run(train, clf))
+    results = check.conditions_decision(check.run(train))
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=False,
@@ -192,7 +192,7 @@ def test_condition_pass(diabetes_split_dataset_and_model):
     # Arrange
     check = SpecialCharacters(n_top_columns=3).add_condition_ratio_of_special_characters_less_or_equal()
     # Act
-    results = check.conditions_decision(check.run(train, clf))
+    results = check.conditions_decision(check.run(train))
     # Assert
     assert_that(results, has_items(equal_condition_result(
         is_pass=True,

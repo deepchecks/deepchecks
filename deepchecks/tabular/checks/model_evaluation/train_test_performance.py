@@ -111,11 +111,11 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
                 if isinstance(scorer_value, Number):
-                    results.append([dataset_name, None, scorer.name, scorer_value, len(label)])
+                    results.append([dataset_name, pd.NA, scorer.name, scorer_value, len(label)])
                 else:
                     results.extend(
                         [[dataset_name, class_name, scorer.name, class_score, n_samples.get(class_name)]
-                            for class_score, class_name in zip(scorer_value, context.classes)])
+                            for class_name, class_score in scorer_value.items()])
 
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 

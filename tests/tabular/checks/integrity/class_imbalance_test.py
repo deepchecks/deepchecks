@@ -14,16 +14,14 @@ from hamcrest import assert_that, equal_to, has_items, has_length, raises, calli
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, DatasetValidationError, \
-    ModelValidationError
+    ModelValidationError, ValidationError
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.data_integrity.class_imbalance import ClassImbalance
 from tests.base.utils import equal_condition_result
 
 
 def test_label_with_one_unique_label():
-    """DatasetValidationError raised when class
-    contains only one_unique_label
-    """
+    """DatasetValidationError raised when class contains only one_unique_label"""
     data = {
         'col1': [1, 1, 1, 2, 2, 2]*100,
         'col2': [1, 1, 1, 2, 2, 2]*100,
@@ -36,9 +34,9 @@ def test_label_with_one_unique_label():
     assert_that(
         calling(ClassImbalance().run).with_args(ds),
         raises(
-            DatasetValidationError,
-            'Found only one class in label column, pass the full list of possible '
-            'label classes via the label_classes argument in the Dataset initialization.'
+            ValidationError,
+            'Found only one class in label column, pass the full list of possible label classes via the model_classes '
+            'argument in run function.'
         )
     )
 

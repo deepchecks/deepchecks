@@ -191,11 +191,6 @@ def roc_auc_per_class(y_true, y_pred, classes=None, class_subset=None) -> np.nda
             raise ValueError('y_true should contain only labels present in the provided classes list.')
     else:
         classes = unique_labels
-    if len(classes) != y_pred.shape[1]:
-        raise ValueError(
-            f'Number of given labels, {len(classes)}, not equal to the number '
-            f'of columns in \'y_pred\', {y_pred.shape[1]}'
-        )
     if class_subset is None:
         class_subset = classes
     class_subset = set(class_subset)

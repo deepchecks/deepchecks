@@ -66,7 +66,7 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
                     [model_name, class_score, scorer.name, class_name, n_samples[class_name]]
                     for scorer in scorers
                     # scorer returns numpy array of results with item per class
-                    for class_score, class_name in zip(scorer(model, test), context.classes)
+                    for class_score, class_name in zip(scorer(model, test), context.model_classes)
                 )
 
             results_df = pd.DataFrame(results, columns=['Model', 'Value', 'Metric', 'Class', 'Number of samples'])
