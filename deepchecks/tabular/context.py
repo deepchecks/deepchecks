@@ -215,6 +215,8 @@ class Context:
             raise DeepchecksValueError('feature_importance must be a pandas Series')
         if model_classes and len(model_classes) == 0:
             raise DeepchecksValueError('Received empty model_classes')
+        if model_classes and sorted(model_classes) != model_classes:
+            raise DeepchecksValueError('Received unsorted model_classes')
 
         self._task_type, self._observed_classes, self._model_classes = infer_task_type(model, train, test,
                                                                                        model_classes)

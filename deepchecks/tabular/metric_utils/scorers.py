@@ -219,7 +219,7 @@ class DeepcheckScorer:
 
     def run_on_data_and_label(self, model, data: pd.DataFrame, label_col):
         """Run scorer with model, data and labels without null filtering."""
-        return self.scorer(model, data, label_col)
+        return self._run_score(model, data, label_col)
 
     def run_on_pred(self, y_true, y_pred=None, y_proba=None):
         """Run sklearn scorer on the labels and the pred/proba according to scorer type."""
@@ -233,10 +233,10 @@ class DeepcheckScorer:
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
     def _wrap_classification_model(self, model):
-        """Convert labels to 0/1 if model is a binary classifier, update classes_ property and pad probas."""
+        """Convert labels to 0/1 if model is a binary classifier, and converts to multi-label if multiclass."""
 
         class MyModelWrapper:
-            """Convert labels to 0/1 if model is a binary classifier, update classes_ property and pad probas."""
+            """Convert labels to 0/1 if model is a binary classifier, and converts to multi-label if multiclass."""
 
             def __init__(self, user_model, model_classes):
                 self.user_model = user_model
@@ -256,7 +256,7 @@ class DeepcheckScorer:
                 return predicitions
 
             def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
-                """Transform probabilities to match the observed classes."""
+                """Validate model have predict_proba, and the proba matches the model classes."""
                 if not hasattr(self.user_model, 'predict_proba'):
                     if isinstance(self.user_model, ClassifierMixin):
                         raise errors.DeepchecksValueError('Model is a sklearn classification model but lacks the'
@@ -279,7 +279,7 @@ class DeepcheckScorer:
 
         return MyModelWrapper(model, self.model_classes)
 
-    def _run_score(self, model, dataset: 'tabular.Dataset'):
+    def _run_score(self, model, data: pd.DataFrame, label_col):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
         if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
                                                                     'predict_proba'):
@@ -293,11 +293,11 @@ class DeepcheckScorer:
         if self.model_classes is not None:
             updated_model = self._wrap_classification_model(model)
             if len(self.model_classes) == 2:
-                updated_label_col = dataset.label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
-                scores = self.scorer(updated_model, dataset.features_columns, updated_label_col)
+                updated_label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
+                scores = self.scorer(updated_model, data, updated_label_col)
             else:
-                label = _transform_to_multi_label_format(np.array(dataset.label_col), self.model_classes)
-                scores = self.scorer(updated_model, dataset.features_columns, label)
+                label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
+                scores = self.scorer(updated_model, data, label)
 
             # The scores returned are for the observed classes but we want scores of the observed classes
             if isinstance(scores, t.Sized):
@@ -310,18 +310,19 @@ class DeepcheckScorer:
                 scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
             return scores
         else:
-            return self.scorer(model, dataset.features_columns, dataset.label_col)
+            return self.scorer(model, data, label_col)
 
     def __call__(self, model, dataset: 'tabular.Dataset'):
         """Run score with labels null filtering."""
-        return self._run_score(model, self.filter_nulls(dataset))
+        dataset_without_nulls = self.filter_nulls(dataset)
+        return self._run_score(model, dataset_without_nulls.features_columns, dataset_without_nulls.label_col)
 
     def score_perfect(self, dataset: 'tabular.Dataset'):
         """Calculate the perfect score of the current scorer for given dataset."""
         dataset = self.filter_nulls(dataset)
         perfect_model = PerfectModel()
         perfect_model.fit(None, dataset.label_col)
-        score = self._run_score(perfect_model, dataset)
+        score = self._run_score(perfect_model, dataset.features_columns, dataset.label_col)
         if isinstance(score, dict):
             # We expect the perfect score to be equal for all the classes, so takes the first one
             score_values = np.asarray(list(score.values()))
@@ -336,7 +337,8 @@ class DeepcheckScorer:
         dataset.assert_features()
         # In order for scorer to return result in right dimensions need to pass it samples from all labels
         single_label_data = dataset.data[dataset.data[dataset.label_name].notna()].groupby(dataset.label_name).head(1)
-        result = self._run_score(model, dataset.copy(single_label_data))
+        new_dataset = dataset.copy(single_label_data)
+        result = self._run_score(model, new_dataset.features_columns, new_dataset.label_col)
 
         if isinstance(result, dict):
             # Validate returns value for each class
@@ -435,7 +437,7 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         possible classes output for model. None for regression tasks.
     observed_classes: t.Optional[t.List]
         observed classes from labels and predictions. None for regression tasks.
-    Returns
+    Returns¬
     --------
     scorers: t.List[DeepcheckScorer]
         A list of initialized DeepcheckScorers.

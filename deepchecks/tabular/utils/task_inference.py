@@ -62,14 +62,14 @@ def infer_task_type(model: Optional[BasicModel], train_dataset: 'tabular.Dataset
             test_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
 
     observed_labels = pd.Series(test_labels + train_labels)
-    if model_classes is None and model and hasattr(model, 'classes_') and len(model.classes_) > 0:
-        model_classes = list(model.classes_)
+    if model_classes is None and model is not None and hasattr(model, 'classes_') and len(model.classes_) > 0:
+        model_classes = sorted(list(model.classes_))
 
     if train_dataset and train_dataset.label_type is not None:
         task_type = train_dataset.label_type
     elif model_classes:
         task_type = infer_by_class_number(len(model_classes))
-    elif is_categorical(observed_labels, max_categorical_ratio=0.05):
+    elif len(observed_labels) > 0 and is_categorical(observed_labels, max_categorical_ratio=0.05):
         num_classes = len(observed_labels.dropna().unique())
         task_type = infer_by_class_number(num_classes)
         if infer_dtype(observed_labels) == 'integer' and train_dataset and train_dataset.label_type is None:
@@ -82,7 +82,7 @@ def infer_task_type(model: Optional[BasicModel], train_dataset: 'tabular.Dataset
         task_type = TaskType.REGRESSION
 
     if task_type in [TaskType.BINARY, TaskType.MULTICLASS]:
-        return task_type, sorted(observed_labels.dropna().unique()), sorted(model_classes)
+        return task_type, sorted(observed_labels.dropna().unique()), model_classes
     else:
         return task_type, None, None
 
