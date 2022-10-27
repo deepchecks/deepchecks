@@ -11,6 +11,7 @@
 """Module of segment performance check."""
 import math
 import typing as t
+import warnings
 from collections import Counter, defaultdict
 
 import numpy as np
@@ -37,6 +38,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     Parameters
     ----------
+    scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]], default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -48,8 +52,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     alternative_metrics : Dict[str, Metric], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite. Metric object whose score
-        should be used. If None are given, use the default metrics.
+        Deprecated, please use scorers instead.
     number_of_bins: int, default : 5
         Maximum number of bins to segment a single property into.
     number_of_samples_to_infer_bins : int, default : 1000
@@ -60,6 +63,7 @@ class ImageSegmentPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
+        scorers: t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[t.Any]] = None,
         image_properties: t.List[t.Dict[str, t.Any]] = None,
         alternative_metrics: t.Optional[t.Dict[str, Metric]] = None,
         number_of_bins: int = 5,
@@ -69,7 +73,12 @@ class ImageSegmentPerformance(SingleDatasetCheck):
     ):
         super().__init__(**kwargs)
         self.image_properties = image_properties if image_properties else default_image_properties
-        self.alternative_metrics = alternative_metrics
+        if alternative_metrics is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_metrics is deprecated. Please use scorers instead.',
+                          DeprecationWarning)
+            self.alternative_metrics = alternative_metrics
+        else:
+            self.alternative_metrics = scorers
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self.n_to_show = n_to_show

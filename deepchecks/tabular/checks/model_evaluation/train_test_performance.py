@@ -10,7 +10,7 @@
 #
 """Module containing the train test performance check."""
 from numbers import Number
-from typing import Callable, Dict, List, TypeVar, Union, cast
+from typing import Callable, Dict, List, Mapping, TypeVar, Union, cast
 
 import pandas as pd
 import plotly.express as px
@@ -38,9 +38,9 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
 
     Parameters
     ----------
-    scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
-        List of scorers to use. If None, use default scorers.
-        Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+    scorers: Union[Mapping[str, Union[str, Callable]], List[str]], default: None
+        Scorers to override the default scorers, find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     reduce: Union[Callable, str], default: 'mean'
         An optional argument only used for the reduce_output function when using
         per-class scorers.
@@ -85,7 +85,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
     """
 
     def __init__(self,
-                 scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
+                 scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
                  reduce: Union[Callable, str] = 'mean',
                  n_samples: int = 1_000_000,
                  random_state: int = 42,

@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing multi model performance report check."""
-from typing import TYPE_CHECKING, Callable, Dict, cast
+import warnings
+from typing import TYPE_CHECKING, Callable, Dict, List, Mapping, Union, cast
 
 import pandas as pd
 import plotly.express as px
@@ -30,21 +31,30 @@ class MultiModelPerformanceReport(ModelComparisonCheck):
 
     Parameters
     ----------
+    scorers: Union[Mapping[str, Union[str, Callable]], List[str]], default: None
+        Scorers to override the default scorers, find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     alternative_scorers : Dict[str, Callable] , default: None
-        An optional dictionary of scorer name to scorer functions.
-        If none given, using default scorers
+        Deprecated, please use scorers instead.
     n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
     """
 
-    def __init__(self, alternative_scorers: Dict[str, Callable] = None,
+    def __init__(self,
+                 scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
+                 alternative_scorers: Dict[str, Callable] = None,
                  n_samples: int = 1_000_000,
                  random_state: int = 42,
                  **kwargs):
         super().__init__(**kwargs)
-        self.alternative_scorers = alternative_scorers
+        if alternative_scorers is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_scorers is deprecated. Please use scorers instead.',
+                          DeprecationWarning)
+            self.scorers = alternative_scorers
+        else:
+            self.alternative_scorers = scorers
         self.n_samples = n_samples
         self.random_state = random_state
 

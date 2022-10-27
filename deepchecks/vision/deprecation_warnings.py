@@ -13,6 +13,13 @@ import warnings
 
 warnings.filterwarnings(
     action='once',
+    message=r'.*alternative_metrics is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
     message=r'train_predictions is deprecated.*',
     category=DeprecationWarning,
     module=r'deepchecks.*'

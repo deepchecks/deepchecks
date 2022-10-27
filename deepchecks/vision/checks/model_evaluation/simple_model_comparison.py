@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-from typing import Any, Dict, Hashable, List
+import warnings
+from typing import Any, Callable, Dict, Hashable, List, Union
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import torch
-from ignite.metrics import Fbeta
+from ignite.metrics import Fbeta, Metric
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
@@ -81,6 +82,7 @@ class SimpleModelComparison(TrainTestCheck):
     _state: Dict[Hashable, Any] = {}
 
     def __init__(self,
+                 scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
                  strategy: str = 'most_frequent',
                  alternative_metrics=None,
                  n_to_show: int = 20,
@@ -96,7 +98,12 @@ class SimpleModelComparison(TrainTestCheck):
                 f'Unknown strategy type: {self.strategy}, expected one of{_allowed_strategies}.'
             )
 
-        self.alternative_metrics = alternative_metrics
+        if alternative_metrics is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_metrics is deprecated. Please use scorers instead.',
+                          DeprecationWarning)
+            self.alternative_metrics = alternative_metrics
+        else:
+            self.alternative_metrics = scorers
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
 

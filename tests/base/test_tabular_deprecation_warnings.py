@@ -9,12 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the tabular package deprecation warnings."""
+import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.metrics import accuracy_score
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import SegmentPerformance, WholeDatasetDrift, WeakSegmentsPerformance
+from deepchecks.tabular.checks import (MultiModelPerformanceReport, SegmentPerformance, SimpleModelComparison,
+                                       WeakSegmentsPerformance, WholeDatasetDrift)
 
 
 def test_deprecation_segment_performance_warning():
@@ -46,3 +50,26 @@ def test_deprecation_y_pred_train_single_dataset():
 
     with pytest.warns(DeprecationWarning, match='y_proba_train is deprecated, please use y_proba instead.'):
         _ = WeakSegmentsPerformance().run(ds, y_pred_train=y_pred_train, y_proba_train=y_proba_train)
+
+
+def test_deprecation_warning_simple_model_comparison():
+    # Test that warning is raised when alternative_scorers has value:
+    with pytest.warns(DeprecationWarning, match='alternative_scorers'):
+        _ = SimpleModelComparison(alternative_scorers={'acc': accuracy_score})
+
+    # Check to see no warnings are raised when deprecated feature doesn't exist:
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
+        _ = SimpleModelComparison()
+
+
+def test_deprecation_warning_multi_model_performance_report():
+    # Test that warning is raised when alternative_scorers has value:
+    with pytest.warns(DeprecationWarning, match='alternative_scorers'):
+        _ = MultiModelPerformanceReport(alternative_scorers={'acc': accuracy_score})
+
+    # Check to see no warnings are raised when deprecated feature doesn't exist:
+    with warnings.catch_warnings():
+        warnings.simplefilter('error')
+        _ = MultiModelPerformanceReport()
+

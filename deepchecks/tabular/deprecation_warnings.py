@@ -34,6 +34,13 @@ warnings.filterwarnings(
 
 warnings.filterwarnings(
     action='once',
+    message=r'.* alternative_scorers is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
     message=r'.* y_pred_train is deprecated.*',
     category=DeprecationWarning,
     module=r'deepchecks.*'
