@@ -31,3 +31,17 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.* y_pred_train is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.* y_proba_train is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
