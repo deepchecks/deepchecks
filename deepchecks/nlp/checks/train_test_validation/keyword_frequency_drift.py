@@ -77,14 +77,15 @@ class KeywordFrequencyDrift(TrainTestCheck):
         nltk_download('punkt', quiet=True)
         nltk_download('stopwords', quiet=True)
         self.stopword_list = stopwords.words('english')
+        self.token_pattern = r'[a-z]{2,}'
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         train_dataset = context.train
         test_dataset = context.test
 
-        tokenized_train = [_tokenize(x) for x in train_dataset.text]
-        tokenized_test = [_tokenize(x) for x in test_dataset.text]
+        tokenized_train = [self._tokenize(x) for x in train_dataset.text]
+        tokenized_test = [self._tokenize(x) for x in test_dataset.text]
         all_data = tokenized_train + tokenized_test
 
         vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', tokenizer=_identity_tokenizer, min_df=2,
@@ -167,6 +168,16 @@ class KeywordFrequencyDrift(TrainTestCheck):
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Differences between the frequencies of the top N keywords are less than '
                                   f'{format_number(threshold)}', condition)
+
+    def _stem(self, word):
+        if word not in self.stemming_lookup.keys():
+            self.stemming_lookup[word] = LancasterStemmer().stem(word)
+        return self.stemming_lookup[word]
+
+    def _tokenize(self, text):
+        tokens = word_tokenize(text)
+        stems = [self._stem(item) for item in tokens if re.match(self.token_pattern, item)]
+        return stems
 
 
 def _tokenize(text):
