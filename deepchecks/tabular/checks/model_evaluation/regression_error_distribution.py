@@ -9,9 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """The regression_error_distribution check module."""
+from typing import Dict
+
+import numpy as np
 import pandas as pd
 import plotly.express as px
 from scipy.stats import kurtosis
+from sklearn.metrics import mean_squared_error
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -23,10 +27,10 @@ __all__ = ['RegressionErrorDistribution']
 class RegressionErrorDistribution(SingleDatasetCheck):
     """Check regression error distribution.
 
-    The check shows the distribution of the regression error, and enables to set conditions on the distribution
-    kurtosis. Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
-    is significantly "wider" from the normal distribution, which may imply a certain cause of error deforming the
-    normal shape.
+    The check shows the distribution of the regression error, and enables to set conditions on several
+    of the distribution parameters including systematic error and Kurtosis value.
+    Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
+    is significantly "wider" from a normal distribution.
 
     Parameters
     ----------
@@ -69,10 +73,9 @@ class RegressionErrorDistribution(SingleDatasetCheck):
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         context.assert_regression_task()
         model = context.model
-        x_test = dataset.features_columns
         y_test = dataset.label_col
 
-        y_pred = model.predict(x_test)
+        y_pred = model.predict(dataset.features_columns)
         y_pred = pd.Series(y_pred, name='predicted ' + str(dataset.label_name), index=y_test.index)
 
         diff = y_test - y_pred
@@ -88,35 +91,69 @@ class RegressionErrorDistribution(SingleDatasetCheck):
             n_smallest_diff.name = str(dataset.label_name) + ' Prediction Difference'
             n_smallest = pd.concat([dataset.data.loc[n_smallest_diff.index], y_pred.loc[n_smallest_diff.index],
                                     n_smallest_diff], axis=1)
+            fig = px.histogram(
+                x=diff.values,
+                nbins=self.n_bins,
+                title='Prediction Error Distribution',
+                labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
+                height=500
+            )
+
+            fig.add_vline(x=np.median(diff), line_dash='dash', line_color='purple', annotation_text='median',
+                          annotation_position='top left' if np.median(diff) < np.mean(diff) else 'top right')
+            fig.add_vline(x=np.mean(diff), line_dash='dot', line_color='purple', annotation_text='mean',
+                          annotation_position='top right' if np.median(diff) < np.mean(diff) else 'top left')
 
             display = [
-                px.histogram(
-                    x=diff.values,
-                    nbins=self.n_bins,
-                    title='Histogram of prediction errors',
-                    labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
-                    height=500
-                ),
+                fig,
                 'Largest over estimation errors:', n_largest,
                 'Largest under estimation errors:', n_smallest
             ]
         else:
             display = None
 
-        return CheckResult(value=kurtosis_value, display=display)
+        results = {
+            'Mean Prediction Error': np.mean(diff),
+            'Median Prediction Error': np.median(diff),
+            'Kurtosis Value': kurtosis_value,
+            'RMSE': mean_squared_error(y_test, y_pred, squared=False)
+        }
+
+        return CheckResult(value=results, display=display)
 
     def add_condition_kurtosis_greater_than(self, min_kurtosis: float = -0.1):
-        """Add condition - require min kurtosis value to be greater than the threshold.
+        """Add condition - require kurtosis value to be greater than the provided threshold.
 
+        Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
+        is significantly "wider" from a normal distribution. A lower value indicates a "wider" distribution.
         Parameters
         ----------
         min_kurtosis : float , default: -0.1
-            Minimal kurtosis.
+            Minimal threshold for kurtosis value.
         """
-        def min_kurtosis_condition(result: float) -> ConditionResult:
-            details = f'Found kurtosis value {format_number(result, 5)}'
-            category = ConditionCategory.PASS if result > min_kurtosis else ConditionCategory.WARN
+
+        def min_kurtosis_condition(result: Dict[str, float]) -> ConditionResult:
+            details = f'Found kurtosis value of {format_number(result["Kurtosis Value"], 5)}'
+            category = ConditionCategory.PASS if result['Kurtosis Value'] > min_kurtosis else ConditionCategory.WARN
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Kurtosis value is greater than {format_number(min_kurtosis, 5)}',
+        return self.add_condition(f'Kurtosis value higher than {format_number(min_kurtosis, 5)}',
                                   min_kurtosis_condition)
+
+    def add_condition_systematic_error_ratio_to_rmse_less_than(self, max_ratio: float = 0.01):
+        """Add condition - require systematic error (mean error) lower than (max_ratio * RMSE).
+
+        Parameters
+        ----------
+        max_ratio : float , default: 0.01
+            Maximum ratio allowed between the mean error and the rmse value
+        """
+
+        def max_bias_condition(result: Dict[str, float]) -> ConditionResult:
+            ratio = abs(result['Mean Prediction Error']) / result['RMSE']
+            details = f'Found systematic error to rmse ratio of {format_number(ratio)}'
+            category = ConditionCategory.PASS if ratio < max_ratio else ConditionCategory.FAIL
+            return ConditionResult(category, details)
+
+        return self.add_condition(f'Systematic error ratio lower than {format_number(max_ratio)}',
+                                  max_bias_condition)

@@ -9,13 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the tabular package deprecation warnings."""
+import warnings
+
 import pandas as pd
 import pytest
 from sklearn.metrics import accuracy_score
-import warnings
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import SegmentPerformance, WholeDatasetDrift, SimpleModelComparison, MultiModelPerformanceReport
+from deepchecks.tabular.checks import SegmentPerformance, WholeDatasetDrift, SimpleModelComparison, \
+    MultiModelPerformanceReport, RegressionSystematicError
 
 
 def test_deprecation_segment_performance_warning():
@@ -28,6 +30,13 @@ def test_deprecation_whole_dataset_drift_warning():
     with pytest.warns(DeprecationWarning, match='The WholeDatasetDrift check is deprecated and will be removed in the '
                                                 '0.11 version. Please use the MultivariateDrift check instead.'):
         _ = WholeDatasetDrift()
+
+
+def test_deprecation_systematic_regression_warning():
+    with pytest.warns(DeprecationWarning, match='RegressionSystematicError check is deprecated and will be removed in '
+                                                'future version, please use '
+                                                'RegressionErrorDistribution check instead.'):
+        _ = RegressionSystematicError()
 
 
 def test_deprecation_label_type_dataset():
