@@ -103,7 +103,7 @@ def test_condition_absolute_kurtosis_not_greater_than_passed(diabetes_split_data
 def test_condition_absolute_kurtosis_not_greater_than_not_passed_0_max(diabetes_split_dataset_and_model):
     _, test, clf = diabetes_split_dataset_and_model
 
-    check = RegressionErrorDistribution().add_condition_kurtosis_greater_than(min_kurtosis=1)
+    check = RegressionErrorDistribution().add_condition_kurtosis_greater_than(threshold=1)
 
     # Act
     result = check.conditions_decision(check.run(test, clf))

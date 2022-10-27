@@ -25,12 +25,13 @@ __all__ = ['RegressionErrorDistribution']
 
 
 class RegressionErrorDistribution(SingleDatasetCheck):
-    """Check regression error distribution.
+    """Check different aspects and properties of the regression error distribution.
 
     The check shows the distribution of the regression error, and enables to set conditions on several
     of the distribution parameters including systematic error and Kurtosis value.
     Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
     is significantly "wider" from a normal distribution.
+    Systematic error, otherwise known as the error bias, is the mean prediction error of the model.
 
     Parameters
     ----------
@@ -94,7 +95,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
             fig = px.histogram(
                 x=diff.values,
                 nbins=self.n_bins,
-                title='Prediction Error Distribution',
+                title='Regression Error Distribution',
                 labels={'x': f'{dataset.label_name} prediction error', 'y': 'Count'},
                 height=500
             )
@@ -121,23 +122,23 @@ class RegressionErrorDistribution(SingleDatasetCheck):
 
         return CheckResult(value=results, display=display)
 
-    def add_condition_kurtosis_greater_than(self, min_kurtosis: float = -0.1):
+    def add_condition_kurtosis_greater_than(self, threshold: float = -0.1):
         """Add condition - require kurtosis value to be greater than the provided threshold.
 
         Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
         is significantly "wider" from a normal distribution. A lower value indicates a "wider" distribution.
         Parameters
         ----------
-        min_kurtosis : float , default: -0.1
+        threshold : float , default: -0.1
             Minimal threshold for kurtosis value.
         """
 
         def min_kurtosis_condition(result: Dict[str, float]) -> ConditionResult:
             details = f'Found kurtosis value of {format_number(result["Kurtosis Value"], 5)}'
-            category = ConditionCategory.PASS if result['Kurtosis Value'] > min_kurtosis else ConditionCategory.WARN
+            category = ConditionCategory.PASS if result['Kurtosis Value'] > threshold else ConditionCategory.WARN
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Kurtosis value higher than {format_number(min_kurtosis, 5)}',
+        return self.add_condition(f'Kurtosis value higher than {format_number(threshold, 5)}',
                                   min_kurtosis_condition)
 
     def add_condition_systematic_error_ratio_to_rmse_less_than(self, max_ratio: float = 0.01):
