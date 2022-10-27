@@ -15,7 +15,7 @@ from hamcrest import assert_that, calling, close_to, has_entries, has_items, has
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-from common import is_nan
+from tests.common import is_nan
 from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks import SingleDatasetPerformance
