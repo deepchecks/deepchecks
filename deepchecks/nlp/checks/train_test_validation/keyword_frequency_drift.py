@@ -9,8 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the keyword drift check."""
-import functools
 import re
+from collections import OrderedDict
 from typing import List, Union
 
 import numpy as np
@@ -66,6 +66,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         super().__init__(**kwargs)
         self.top_n_to_show = top_n_to_show
         self.top_n_method = top_n_method
+        self.stemming_lookup = {}
 
         if drift_method == 'PSI':
             self.drift_method = psi
@@ -76,14 +77,15 @@ class KeywordFrequencyDrift(TrainTestCheck):
         nltk_download('punkt', quiet=True)
         nltk_download('stopwords', quiet=True)
         self.stopword_list = stopwords.words('english')
+        self.token_pattern = r'[a-z]{2,}'
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         train_dataset = context.train
         test_dataset = context.test
 
-        tokenized_train = [_tokenize(x) for x in train_dataset.text]
-        tokenized_test = [_tokenize(x) for x in test_dataset.text]
+        tokenized_train = [self._tokenize(x) for x in train_dataset.text]
+        tokenized_test = [self._tokenize(x) for x in test_dataset.text]
         all_data = tokenized_train + tokenized_test
 
         vectorizer = TfidfVectorizer(input='content', strip_accents='ascii', tokenizer=_identity_tokenizer, min_df=2,
@@ -115,8 +117,11 @@ class KeywordFrequencyDrift(TrainTestCheck):
         else:
             raise DeepchecksValueError('top_n_method must be one of: top_diff, top_freq or a list of keywords')
 
-        top_n_words = np.take(np.array(vocab), top_n_idxs)
+        top_n_stems = np.take(np.array(vocab), top_n_idxs)
         top_n_diffs = np.take(word_freq_diff, top_n_idxs)
+
+        self._sort_lookup_by_value()
+        top_n_words = [self._unstem(s) for s in top_n_stems]
 
         if context.with_display:
             dataset_names = (train_dataset.name, test_dataset.name)
@@ -167,18 +172,28 @@ class KeywordFrequencyDrift(TrainTestCheck):
         return self.add_condition(f'Differences between the frequencies of the top N keywords are less than '
                                   f'{format_number(threshold)}', condition)
 
+    def _stem(self, word):
+        """Stem and cache a word."""
+        if word not in self.stemming_lookup:
+            self.stemming_lookup[word] = LancasterStemmer().stem(word)
+        return self.stemming_lookup[word]
 
-def _tokenize(text):
-    token_pattern = r'[a-z]{2,}'
-    tokens = word_tokenize(text)
-    stems = [_stem(item) for item in tokens if re.match(token_pattern, item)]
-    return stems
+    def _tokenize(self, text):
+        """Tokenize text."""
+        tokens = word_tokenize(text)
+        stems = [self._stem(item) for item in tokens if re.match(self.token_pattern, item)]
+        return stems
+
+    def _unstem(self, stem):
+        """Transform a stem into a readable word."""
+        word = list(self.stemming_lookup)[list(self.stemming_lookup.values()).index(stem)]
+        return word
+
+    def _sort_lookup_by_value(self):
+        sorted_lookup = OrderedDict(sorted(self.stemming_lookup.items(), key=lambda x: x[0]))
+        self.stemming_lookup = sorted_lookup
 
 
 def _identity_tokenizer(text):
     return text
 
-
-@functools.lru_cache(maxsize=65536)
-def _stem(word):
-    return LancasterStemmer().stem(word)
