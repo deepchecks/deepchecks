@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
+import warnings
 from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
 import torch
@@ -17,6 +18,7 @@ from torch import nn
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.vision._shared_docs import docstrings
@@ -49,10 +51,12 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         random_state: int = 42,
         n_samples: Optional[int] = 10_000,
         with_display: bool = True,
+        predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
         test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
+
     ) -> CheckResult:
         """Run check.
 
@@ -65,7 +69,17 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         {additional_context_params:2*indent}
         """
         assert self.context_type is not None
+        if train_predictions is not None:
+            warnings.warn('train_predictions is deprecated, please use predictions instead.',
+                          DeprecationWarning, stacklevel=2)
+        if test_predictions is not None:
+            warnings.warn('test_predictions is deprecated and ignored.',
+                          DeprecationWarning, stacklevel=2)
+        if (train_predictions is not None) and (predictions is not None):
+            raise DeepchecksValueError('Cannot accept both train_predictions and predictions, please pass the data only'
+                                       ' to predictions.')
 
+        train_predictions = train_predictions if train_predictions is not None else predictions
         with ProgressBarGroup() as progressbar_factory:
 
             with progressbar_factory.create_dummy(name='Validating Input'):
@@ -81,7 +95,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                     n_samples=n_samples,
                     with_display=with_display,
                     train_predictions=train_predictions,
-                    test_predictions=test_predictions,
                     train_properties=train_properties,
                     test_properties=test_properties
                 )

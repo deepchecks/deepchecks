@@ -17,3 +17,17 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'train_predictions is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'test_predictions is deprecated and ignored.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

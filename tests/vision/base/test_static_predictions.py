@@ -194,7 +194,7 @@ def test_image_segment_performance_coco_and_condition(coco_train_visiondata, moc
     check = ImageSegmentPerformance().add_condition_score_from_mean_ratio_greater_than(0.5) \
         .add_condition_score_from_mean_ratio_greater_than(0.1)
     # Act
-    result = check.run(coco_train_visiondata, train_predictions=train_preds)
+    result = check.run(coco_train_visiondata, predictions=train_preds)
     # Assert result
     assert_that(result.value, has_entries({
         'Mean Blue Relative Intensity': has_length(5),
