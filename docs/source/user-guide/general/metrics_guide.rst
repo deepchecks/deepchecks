@@ -76,7 +76,7 @@ Object detection:
 Running a Check with Default Metrics
 ____________________________________
 
-To run a check with the default metrics, run it without passing any value to the "scorer"
+To run a check with the default metrics, run it without passing any value to the "scorers"
 parameter. We will demonstrate it using the
 :doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>` check:
 
@@ -89,7 +89,7 @@ Alternative Metrics
 ===================
 Sometimes the defaults don't fit the specifics of the use case.
 If this is the case, you can pass a list of supported metric strings or a dict in the format
-{``metric_name_string``: ``metric``} as a parameter to the check.
+{``metric_name_string``: ``metric``} to the scorers parameter of the check or suite.
 
 The metrics in the dict can be some of the existing:
 
