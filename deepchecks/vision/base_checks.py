@@ -73,7 +73,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             warnings.warn('train_predictions is deprecated, please use predictions instead.',
                           DeprecationWarning, stacklevel=2)
         if test_predictions is not None:
-            warnings.warn('test_predictions is deprecated, please use predictions instead.',
+            warnings.warn('test_predictions is deprecated and ignored.',
                           DeprecationWarning, stacklevel=2)
         if (train_predictions is not None) and (predictions is not None):
             raise DeepchecksValueError('Cannot accept both train_predictions and predictions, please pass the data only'

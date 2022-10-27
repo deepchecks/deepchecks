@@ -79,9 +79,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                                        ' to y_proba.')
 
         if y_pred_test is not None:
-            warnings.warn('y_pred_test is deprecated, please use y_pred instead.', DeprecationWarning, stacklevel=2)
+            warnings.warn('y_pred_test is deprecated and ignored.', DeprecationWarning, stacklevel=2)
         if y_proba_test is not None:
-            warnings.warn('y_proba_test is deprecated, please use y_proba instead.', DeprecationWarning, stacklevel=2)
+            warnings.warn('y_proba_test is deprecated and ignored.', DeprecationWarning, stacklevel=2)
 
         y_pred_train = y_pred_train if y_pred_train is not None else y_pred
         y_proba_train = y_proba_train if y_proba_train is not None else y_proba

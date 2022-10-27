@@ -57,11 +57,11 @@ def test_deprecation_y_pred_test_single_dataset():
                                'label': np.random.randint(0, 2, 50)}), label='label')
     y_pred_train = np.array(np.random.randint(0, 2, 50))
     y_proba_train = np.random.rand(50, 2)
-    with pytest.warns(DeprecationWarning, match='y_pred_test is deprecated, please use y_pred instead.'):
+    with pytest.warns(DeprecationWarning, match='y_pred_test is deprecated and ignored.'):
         _ = WeakSegmentsPerformance().run(ds, y_pred=y_pred_train, y_proba=y_proba_train,
                                           y_pred_test=y_pred_train, y_proba_test=y_proba_train)
 
-    with pytest.warns(DeprecationWarning, match='y_proba_test is deprecated, please use y_proba instead.'):
+    with pytest.warns(DeprecationWarning, match='y_proba_test is deprecated and ignored.'):
         _ = WeakSegmentsPerformance().run(ds, y_pred=y_pred_train, y_proba=y_proba_train,
                                           y_pred_test=y_pred_train, y_proba_test=y_proba_train)
 

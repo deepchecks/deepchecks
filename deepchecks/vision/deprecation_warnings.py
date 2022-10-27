@@ -27,7 +27,7 @@ warnings.filterwarnings(
 
 warnings.filterwarnings(
     action='once',
-    message=r'test_predictions is deprecated.*',
+    message=r'test_predictions is deprecated and ignored.*',
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
