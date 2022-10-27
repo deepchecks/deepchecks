@@ -58,6 +58,8 @@ def calculate_feature_importance_or_none(
         possible classes output for model. None for regression tasks.
     observed_classes
         Observed classes in the data. None for regression tasks.
+    task_type
+        The task type of the model.
     force_permutation : bool , default: False
         force permutation importance calculation
     permutation_kwargs : t.Optional[t.Dict[str, t.Any]] , default: None
@@ -127,6 +129,8 @@ def _calculate_feature_importance(
         possible classes output for model. None for regression tasks.
     observed_classes
         Observed classes in the data. None for regression tasks.
+    task_type
+        The task type of the model.
     force_permutation : bool, default: False
         force permutation importance calculation
     permutation_kwargs : t.Dict[str, t.Any] , default: None
@@ -246,6 +250,8 @@ def _calc_permutation_importance(
         possible classes output for model. None for regression tasks.
     observed_classes
         Observed classes in the data. None for regression tasks.
+    task_type
+        The task type of the model.
     n_repeats: int, default: 30
         Number of times to permute a feature
     mask_high_variance_features : bool , default: False

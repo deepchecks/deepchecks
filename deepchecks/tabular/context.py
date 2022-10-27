@@ -213,6 +213,8 @@ class Context:
             model_type_validation(model)
         if feature_importance is not None and not isinstance(feature_importance, pd.Series):
             raise DeepchecksValueError('feature_importance must be a pandas Series')
+        if model_classes and len(model_classes) == 0:
+            raise DeepchecksValueError('Received empty model_classes')
 
         self._task_type, self._observed_classes, self._model_classes = infer_task_type(model, train, test,
                                                                                        model_classes)

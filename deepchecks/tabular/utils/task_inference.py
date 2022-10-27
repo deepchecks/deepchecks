@@ -82,7 +82,7 @@ def infer_task_type(model: Optional[BasicModel], train_dataset: 'tabular.Dataset
         task_type = TaskType.REGRESSION
 
     if task_type in [TaskType.BINARY, TaskType.MULTICLASS]:
-        return task_type, sorted(observed_labels.dropna().unique()), model_classes
+        return task_type, sorted(observed_labels.dropna().unique()), sorted(model_classes)
     else:
         return task_type, None, None
 
@@ -92,5 +92,5 @@ def infer_by_class_number(num_classes):
         raise ValidationError('Found zero number of classes')
     if num_classes == 1:
         raise ValidationError('Found only one class in label column, pass the full list of possible '
-                              'label classes via the model_classes argument in run function.')
+                              'label classes via the model_classes argument of the run function.')
     return TaskType.BINARY if num_classes == 2 else TaskType.MULTICLASS

@@ -18,6 +18,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
+from sklearn.preprocessing import OneHotEncoder
 
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
@@ -240,7 +241,7 @@ class DeepcheckScorer:
             def __init__(self, user_model, model_classes):
                 self.user_model = user_model
                 self.model_classes = model_classes
-                self.is_binary = model_classes and len(self.model_classes) == 2
+                self.is_binary = self.model_classes and len(self.model_classes) == 2
 
             def predict(self, data: pd.DataFrame) -> np.ndarray:
                 """Convert labels to 0/1 if model is a binary classifier."""
@@ -268,8 +269,8 @@ class DeepcheckScorer:
                 if probabilities_per_class.shape[1] != len(self.model_classes):
                     raise errors.ModelValidationError(
                         f'Model probabilities per class has {probabilities_per_class.shape[1]} '
-                        f'classes while known model classes has {len(self.model_classes)}. You can set the models which'
-                        f'know to the model using the model_classes argument.')
+                        f'classes while known model classes has {len(self.model_classes)}. You can set the model\'s'
+                        f'classes manually using the model_classes argument.')
                 return probabilities_per_class
 
             @property
@@ -430,8 +431,10 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         used to validate the scorers, and calculate mode_type if None.
     dataset : Dataset
         used to validate the scorers, and calculate mode_type if None.
-    model_classes: t.Optional[t.List], default = None
+    model_classes: t.Optional[t.List]
         possible classes output for model. None for regression tasks.
+    observed_classes: t.Optional[t.List]
+        observed classes from labels and predictions. None for regression tasks.
     Returns
     --------
     scorers: t.List[DeepcheckScorer]
@@ -448,13 +451,11 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
 
 def _transform_to_multi_label_format(y: np.ndarray, classes):
     # Some classifiers like catboost might return shape like (n_rows, 1), therefore squeezing the array.
-    squeezed_y = np.squeeze(y)
-    if squeezed_y.ndim == 1:
-        multi_label_matrix = np.zeros((len(squeezed_y), len(classes)))
-        for index, label in enumerate(squeezed_y):
-            if label in classes:
-                multi_label_matrix[index, classes.index(label)] = 1
-        return multi_label_matrix
+    y = np.squeeze(y) if y.ndim > 1 else y
+    if y.ndim == 1:
+        categories = np.asarray(classes).reshape(1, -1)
+        return OneHotEncoder(categories=categories, sparse=False, handle_unknown='ignore')\
+            .fit_transform(y.reshape(-1, 1))
     # If after squeeze there are still 2 dimensions, then it must have column for each model class.
     elif y.ndim == 2 and y.shape[1] == len(classes):
         return y

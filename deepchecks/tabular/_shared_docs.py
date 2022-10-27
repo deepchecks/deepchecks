@@ -28,6 +28,8 @@ y_proba_train: Optional[np.ndarray] , default: None
     Array of the model prediction probabilities over the train dataset.
 y_proba_test: Optional[np.ndarray] , default: None
     Array of the model prediction probabilities over the test dataset.
+model_classes: Optional[List] , default: None
+    For classification: list of classes known to the model
 """.strip('\n')
 
 _shared_docstrings['feature_aggregation_method_argument'] = """
