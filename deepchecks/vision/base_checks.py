@@ -95,7 +95,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                     n_samples=n_samples,
                     with_display=with_display,
                     train_predictions=train_predictions,
-                    test_predictions=test_predictions,
                     train_properties=train_properties,
                     test_properties=test_properties
                 )

@@ -94,9 +94,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             feature_importance_timeout=feature_importance_timeout,
             with_display=with_display,
             y_pred_train=y_pred_train,
-            y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
-            y_proba_test=y_proba_test,
         )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
         context.finalize_check_result(result, self, DatasetKind.TRAIN)
