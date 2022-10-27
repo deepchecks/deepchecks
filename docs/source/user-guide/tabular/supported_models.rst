@@ -121,6 +121,15 @@ ROC Curve and the AUC metric) will not run.
 Running Deepchecks with Pre-computed Predictions
 ------------------------------------------------
 
+It is possible to pass pre-computed predictions to the checks, this can be useful for example when the model is not
+available, only the results previously saved from it.
+The pre-computed predictions should be passed to suite/check's ``run`` method in the appropriate format.
+The parameters to pass are ``y_pred`` and ``y_proba`` for single dataset checks or ``y_pred_train`` and
+``y_proba_train`` and ``y_pred_test`` and ``y_proba_test`` for checks that use both datasets.
+
+Code Example
+------------
+
 We will run the deepchecks model evaluation suite using pre-computed predictions from a random forest classification
 model. In addition, we will calculate and pass |permutation importance| which provides a better estimate of the
 effect of different features on the model's performance. See the
