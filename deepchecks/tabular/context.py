@@ -270,6 +270,7 @@ class Context:
 
     @property
     def observed_classes(self) -> t.List:
+        """Return the observed classes in both train and test. None for regression."""
         return self._observed_classes
 
     @property
