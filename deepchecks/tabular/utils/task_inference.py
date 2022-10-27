@@ -50,19 +50,20 @@ def infer_task_type(model: Optional[BasicModel], train_dataset: 'tabular.Dataset
     """
     train_labels = []
     test_labels = []
+    have_model = model is not None
     if train_dataset:
         if train_dataset.has_label():
             train_labels += train_dataset.label_col.to_list()
-        if model:
+        if have_model:
             train_labels += convert_into_flat_list(model.predict(train_dataset.features_columns))
     if test_dataset:
         if test_dataset.has_label():
             test_labels += test_dataset.label_col.to_list()
-        if model:
+        if have_model:
             test_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
 
     observed_labels = pd.Series(test_labels + train_labels)
-    if model_classes is None and model is not None and hasattr(model, 'classes_') and len(model.classes_) > 0:
+    if model_classes is None and have_model and hasattr(model, 'classes_') and len(model.classes_) > 0:
         model_classes = sorted(list(model.classes_))
 
     if train_dataset and train_dataset.label_type is not None:

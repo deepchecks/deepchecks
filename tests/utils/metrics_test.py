@@ -17,15 +17,23 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
+from deepchecks.tabular.utils.task_inference import infer_task_type
+
+
+def deepchecks_scorer(scorer, clf, dataset):
+    task_type, observed_classes, model_classes = infer_task_type(clf, dataset)
+    return DeepcheckScorer(scorer, model_classes, observed_classes)
 
 
 def test_lending_club_false_positive_rate_scorer_binary(lending_club_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = lending_club_split_dataset_and_model
+    # TODO ask nadav
     binary = make_scorer(false_positive_rate_metric, averaging_method='binary')
+    scorer = deepchecks_scorer(binary, clf, test_ds)
 
     # Act
-    score = binary(clf, test_ds.features_columns, test_ds.label_col)
+    score = scorer(clf, test_ds)
 
     # Assert
     assert_that(score, close_to(0.232, 0.01))
@@ -34,22 +42,22 @@ def test_lending_club_false_positive_rate_scorer_binary(lending_club_split_datas
 def test_iris_false_positive_rate_scorer_multiclass(iris_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = iris_split_dataset_and_model
-    per_class = make_scorer(false_positive_rate_metric, averaging_method='per_class')
-    macro = make_scorer(false_positive_rate_metric, averaging_method='macro')
-    micro = make_scorer(false_positive_rate_metric, averaging_method='micro')
-    weighted = make_scorer(false_positive_rate_metric, averaging_method='weighted')
+    per_class = deepchecks_scorer(make_scorer(false_positive_rate_metric, averaging_method='per_class'), clf, test_ds)
+    macro = deepchecks_scorer(make_scorer(false_positive_rate_metric, averaging_method='macro'), clf, test_ds)
+    micro = deepchecks_scorer(make_scorer(false_positive_rate_metric, averaging_method='micro'), clf, test_ds)
+    weighted = deepchecks_scorer(make_scorer(false_positive_rate_metric, averaging_method='weighted'), clf, test_ds)
 
     # Act
-    score_per_class = per_class(clf, test_ds.features_columns, test_ds.label_col)
-    score_macro = macro(clf, test_ds.features_columns, test_ds.label_col)
-    score_micro = micro(clf, test_ds.features_columns, test_ds.label_col)
-    score_weighted = weighted(clf, test_ds.features_columns, test_ds.label_col)
+    score_per_class = per_class(clf, test_ds)
+    score_macro = macro(clf, test_ds)
+    score_micro = micro(clf, test_ds)
+    score_weighted = weighted(clf, test_ds)
 
     # Assert
     assert_that(score_per_class[0], close_to(0.0, 0))
     assert_that(score_per_class[1], close_to(0.21, 0.01))
     assert_that(score_per_class[2], close_to(0.0, 0))
-    assert_that(sum(score_per_class) / 3, close_to(score_macro, 0.00001))
+    assert_that(sum(score_per_class.values()) / 3, close_to(score_macro, 0.00001))
     assert_that(score_micro, close_to(0.08, 0.01))
     assert_that(score_weighted, close_to(0.063, 0.01))
 

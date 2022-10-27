@@ -20,20 +20,32 @@ from sklearn.pipeline import Pipeline
 
 from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.feature_importance import (_calculate_feature_importance, calculate_feature_importance_or_none,
-                                                         column_importance_sorter_df, column_importance_sorter_dict)
+from deepchecks.tabular.utils.feature_importance import (calculate_feature_importance_or_none,
+                                                         column_importance_sorter_df, column_importance_sorter_dict,
+                                                         _calculate_feature_importance)
+from deepchecks.tabular.utils.task_inference import infer_task_type
+from deepchecks.tabular.utils.task_type import TaskType
+
+
+def run_fi_calculation(model, dataset,  permutation_kwargs=None, force_permutation=False):
+    task_type, observed_classes, model_classes = infer_task_type(model, dataset)
+    model_classes = model_classes if model_classes is not None else observed_classes
+    return _calculate_feature_importance(model=model, dataset=dataset, model_classes=model_classes,
+                                         observed_classes=observed_classes, task_type=task_type,
+                                         permutation_kwargs=permutation_kwargs, force_permutation=force_permutation)
 
 
 def test_adaboost(iris_split_dataset_and_model):
     train_ds, _, adaboost = iris_split_dataset_and_model
-    feature_importances, fi_type = _calculate_feature_importance(adaboost, train_ds)
+    feature_importances, fi_type = run_fi_calculation(adaboost, train_ds)
     assert_that(feature_importances.sum(), equal_to(1))
     assert_that(fi_type, is_('feature_importances_'))
 
 
 def test_unfitted(iris_dataset):
     clf = AdaBoostClassifier()
-    assert_that(calling(_calculate_feature_importance).with_args(clf, iris_dataset),
+    assert_that(calling(_calculate_feature_importance).with_args(clf, iris_dataset, model_classes=None,
+                                                                 observed_classes=None, task_type=None),
                 raises(ModelValidationError, 'Got error when trying to predict with model on dataset: '
                                              'This AdaBoostClassifier instance is not fitted yet. '
                                              'Call \'fit\' with appropriate arguments before using this estimator.'))
@@ -43,7 +55,7 @@ def test_linear_regression(diabetes):
     ds, _ = diabetes
     clf = LinearRegression()
     clf.fit(ds.data[ds.features], ds.data[ds.label_name])
-    feature_importances, fi_type = _calculate_feature_importance(clf, ds)
+    feature_importances, fi_type = run_fi_calculation(clf, ds)
     assert_that(feature_importances.max(), close_to(0.225374532399, 0.0000000001))
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
     assert_that(fi_type, is_('coef_'))
@@ -51,7 +63,7 @@ def test_linear_regression(diabetes):
 
 def test_pipeline(iris_split_dataset_and_model_single_feature):
     _, test_ds, clf = iris_split_dataset_and_model_single_feature
-    feature_importances, fi_type = _calculate_feature_importance(clf, test_ds)
+    feature_importances, fi_type = run_fi_calculation(clf, test_ds)
     assert_that(feature_importances['sepal length (cm)'], equal_to(1))  # pylint: disable=e1136
     assert_that(feature_importances, has_length(1))
     assert_that(fi_type, is_('permutation_importance'))
@@ -68,7 +80,7 @@ def test_logistic_regression():
 
     ds_train = Dataset(df=train_df, label=train_y)
 
-    feature_importances, fi_type = _calculate_feature_importance(logreg, ds_train)
+    feature_importances, fi_type = run_fi_calculation(logreg, ds_train)
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
     assert_that(fi_type, is_('coef_'))
 
@@ -80,8 +92,8 @@ def test_calculate_importance_when_no_builtin(iris_labeled_dataset, caplog):
             iris_labeled_dataset.data[iris_labeled_dataset.label_name])
 
     # Act
-    feature_importances, fi_type = _calculate_feature_importance(clf, iris_labeled_dataset,
-                                                                 permutation_kwargs={'timeout': 120})
+    feature_importances, fi_type = run_fi_calculation(clf, iris_labeled_dataset,
+                                                      permutation_kwargs={'timeout': 120})
     assert_that(caplog.records, has_length(1))
     assert_that(caplog.records[0].message, equal_to('Could not find built-in feature importance on the model, '
                                             'using permutation feature importance calculation instead'))
@@ -98,8 +110,8 @@ def test_calculate_importance_when_model_is_pipeline(iris_labeled_dataset, caplo
             iris_labeled_dataset.data[iris_labeled_dataset.label_name])
 
     # Act
-    feature_importances, fi_type = _calculate_feature_importance(clf, iris_labeled_dataset,
-                                                                 permutation_kwargs={'timeout': 120})
+    feature_importances, fi_type = run_fi_calculation(clf, iris_labeled_dataset,
+                                                       permutation_kwargs={'timeout': 120})
     assert_that(caplog.records, has_length(1))
     assert_that(caplog.records[0].message, equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn '
                                             'Pipeline, using permutation feature importance calculation instead'))
@@ -114,7 +126,7 @@ def test_calculate_importance_force_permutation_fail_on_timeout(iris_split_datas
     train_ds, _, adaboost = iris_split_dataset_and_model
 
     # Assert
-    assert_that(calling(_calculate_feature_importance)
+    assert_that(calling(run_fi_calculation)
                 .with_args(adaboost, train_ds, force_permutation=True, permutation_kwargs={'timeout': 0}),
                 raises(DeepchecksTimeoutError, 'Skipping permutation importance calculation'))
 
@@ -126,7 +138,7 @@ def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dat
 
     # Assert
     assert_that(calling(_calculate_feature_importance)
-                .with_args(adaboost, df_only_features, force_permutation=True, permutation_kwargs={'timeout': 120}),
+                .with_args(adaboost, df_only_features, None, None, None, force_permutation=True),
                 raises(DeepchecksValueError, 'Cannot calculate permutation feature importance on a pandas Dataframe'))
 
 
@@ -137,7 +149,7 @@ def test_calculate_importance_when_no_builtin_and_force_timeout(iris_labeled_dat
             iris_labeled_dataset.data[iris_labeled_dataset.label_name])
 
     # Act & Assert
-    assert_that(calling(_calculate_feature_importance)
+    assert_that(calling(run_fi_calculation)
                 .with_args(clf, iris_labeled_dataset, force_permutation=True, permutation_kwargs={'timeout': 0}),
                 raises(DeepchecksTimeoutError, 'Skipping permutation importance calculation'))
 
@@ -145,7 +157,7 @@ def test_calculate_importance_when_no_builtin_and_force_timeout(iris_labeled_dat
 def test_bad_dataset_model(iris_random_forest, diabetes):
     ds, _ = diabetes
     assert_that(
-        calling(_calculate_feature_importance).with_args(iris_random_forest, ds),
+        calling(_calculate_feature_importance).with_args(iris_random_forest, ds, None, None, None),
         any_of(
             # NOTE:
             # depending on the installed version of the scikit-learn
@@ -164,7 +176,7 @@ def test_bad_dataset_model(iris_random_forest, diabetes):
 
 def test_calculate_or_null(diabetes_split_dataset_and_model):
     train, _, clf = diabetes_split_dataset_and_model
-    feature_importances = calculate_feature_importance_or_none(clf, train.data)
+    feature_importances = calculate_feature_importance_or_none(clf, train.data, None, None, TaskType.REGRESSION)
     assert_that(feature_importances, contains_exactly(none(), none()))
 
 
@@ -172,7 +184,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     num_values = 5
     train, _, clf = diabetes_split_dataset_and_model
     columns_info = train.columns_info
-    feature_importances, _ = calculate_feature_importance_or_none(clf, train)
+    feature_importances, _ = run_fi_calculation(clf, train)
     assert_that(feature_importances, not_none())
 
     feature_importances_sorted = list(feature_importances.sort_values(ascending=False).keys())
@@ -201,7 +213,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
 def test_no_warning_on_none_model(iris_dataset):
     # Act
     with pytest.warns(None) as warn_record:
-        fi = calculate_feature_importance_or_none(None, iris_dataset)
+        fi = calculate_feature_importance_or_none(None, iris_dataset, None, None, TaskType.MULTICLASS)
     # Assert
     assert_that(fi, none())
     assert_that(warn_record, has_length(0))
@@ -215,7 +227,7 @@ def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model, ca
     train_ds = train_ds.copy(train_data)
 
     # Act
-    feature_importances, fi_type = _calculate_feature_importance(adaboost, train_ds, force_permutation=True)
+    feature_importances, fi_type = run_fi_calculation(adaboost, train_ds, force_permutation=True)
     assert_that(caplog.records, has_length(1))
     assert_that(caplog.records[0].message, contains_string('Calculating permutation feature importance without time limit. '
                                                            'Expected to finish in '))

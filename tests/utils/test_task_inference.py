@@ -9,32 +9,38 @@
 # ----------------------------------------------------------------------------
 #
 """Test task type inference"""
-from hamcrest import assert_that, equal_to
+from hamcrest import assert_that, equal_to, has_items, is_
 
 from deepchecks.tabular.utils.task_inference import infer_task_type
 from deepchecks.tabular.utils.task_type import TaskType
 
 
 def test_infer_task_type_binary(iris_dataset_single_class, iris_random_forest_single_class):
-    res = infer_task_type(iris_random_forest_single_class, iris_dataset_single_class)
+    res, observed_classes, model_classes = infer_task_type(iris_random_forest_single_class, iris_dataset_single_class)
 
     assert_that(res, equal_to(TaskType.BINARY))
+    assert_that(observed_classes, has_items(0, 1))
+    assert_that(model_classes, has_items(0, 1))
 
 
 def test_infer_task_type_multiclass(iris_split_dataset_and_model_rf):
     train_ds, _, clf = iris_split_dataset_and_model_rf
 
-    res = infer_task_type(clf, train_ds)
+    res, observed_classes, model_classes = infer_task_type(clf, train_ds)
 
     assert_that(res, equal_to(TaskType.MULTICLASS))
+    assert_that(observed_classes, has_items(0, 1, 2))
+    assert_that(model_classes, has_items(0, 1, 2))
 
 
 def test_infer_task_type_regression(diabetes, diabetes_model):
     train_ds, _, = diabetes
 
-    res = infer_task_type(diabetes_model, train_ds)
+    res, observed_classes, model_classes = infer_task_type(diabetes_model, train_ds)
 
     assert_that(res, equal_to(TaskType.REGRESSION))
+    assert_that(observed_classes, is_(None))
+    assert_that(model_classes, is_(None))
 
 
 def test_task_type_not_sklearn_regression(diabetes):
@@ -44,9 +50,11 @@ def test_task_type_not_sklearn_regression(diabetes):
 
     train_ds, _, = diabetes
 
-    res = infer_task_type(RegressionModel(), train_ds)
+    res, observed_classes, model_classes = infer_task_type(RegressionModel(), train_ds)
 
     assert_that(res, equal_to(TaskType.REGRESSION))
+    assert_that(observed_classes, is_(None))
+    assert_that(model_classes, is_(None))
 
 
 def test_task_type_not_sklearn_binary(iris_dataset_single_class):
@@ -57,9 +65,11 @@ def test_task_type_not_sklearn_binary(iris_dataset_single_class):
         def predict_proba(self, x):
             return [[1, 0]] * len(x)
 
-    res = infer_task_type(ClassificationModel(), iris_dataset_single_class)
+    res, observed_classes, model_classes = infer_task_type(ClassificationModel(), iris_dataset_single_class)
 
     assert_that(res, equal_to(TaskType.BINARY))
+    assert_that(observed_classes, has_items(0, 1))
+    assert_that(model_classes, is_(None))
 
 
 def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
@@ -70,6 +80,8 @@ def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
         def predict_proba(self, x):
             return [[1, 0]] * len(x)
 
-    res = infer_task_type(ClassificationModel(), iris_labeled_dataset)
+    res, observed_classes, model_classes = infer_task_type(ClassificationModel(), iris_labeled_dataset)
 
     assert_that(res, equal_to(TaskType.MULTICLASS))
+    assert_that(observed_classes, has_items(0, 1, 2))
+    assert_that(model_classes, is_(None))

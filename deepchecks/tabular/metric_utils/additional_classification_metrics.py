@@ -63,9 +63,12 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         The score for the given metric.
     """
     # Convert multi label into single label
-    classes = range(y_true.shape[1])
-    y_true = np.argmax(y_true, axis=1)
-    y_pred = np.argmax(y_pred, axis=1)
+    if y_true.ndim > 1:
+        classes = range(y_true.shape[1])
+        y_true = np.argmax(y_true, axis=1)
+        y_pred = np.argmax(y_pred, axis=1)
+    else:
+        classes = np.unique(y_true)
 
     if averaging_method == 'micro':
         return _micro_false_positive_rate(y_true, y_pred, classes)
