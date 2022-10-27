@@ -93,5 +93,5 @@ class CustomClassificationScorer(Metric):
         dummy_dataset = Dataset(df=pd.DataFrame(y_proba), label=y, cat_features=[])
         dummy_model = _DummyModel(test=dummy_dataset, y_proba_test=y_proba)
 
-        deep_checks_scorer = DeepcheckScorer(self.scorer, possible_classes=list(range(y_proba.shape[1])))
+        deep_checks_scorer = DeepcheckScorer(self.scorer, model_classes=list(range(y_proba.shape[1])))
         return deep_checks_scorer(dummy_model, dummy_dataset)

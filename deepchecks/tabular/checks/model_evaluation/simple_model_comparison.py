@@ -385,10 +385,6 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                 if include_classes is not None and clas not in include_classes:
                     continue
 
-                # If only origin or only simple (for example a class was only in the prediction of origin but wasn't
-                # in simple model, so it wasn't observed and didn't get a score) then we skip
-                if 'Origin' not in models_scores or 'Simple' not in models_scores:
-                    continue
                 # If origin model is perfect, skip the gain calculation
                 if models_scores['Origin'] == scorers_perfect[metric]:
                     continue

@@ -19,18 +19,18 @@ __all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_neg
 from deepchecks.utils.metrics import averaging_mechanism
 
 
-def _false_positive_rate_per_class(y_true, y_pred):  # False Positives / (False Positives + True Negatives)
+def _false_positive_rate_per_class(y_true, y_pred, classes):  # False Positives / (False Positives + True Negatives)
     result = []
-    for cls in sorted(y_true.dropna().unique().tolist()):
+    for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         matrix = confusion_matrix(y_true_cls, y_pred_cls)
         result.append(matrix[0, 1] / (matrix[0, 1] + matrix[1, 1]) if (matrix[0, 1] + matrix[1, 1]) > 0 else 0)
     return np.asarray(result)
 
 
-def _micro_false_positive_rate(y_true, y_pred):
+def _micro_false_positive_rate(y_true, y_pred, classes):
     fp, tn = 0, 0
-    for cls in sorted(y_true.dropna().unique().tolist()):
+    for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         matrix = confusion_matrix(y_true_cls, y_pred_cls)
         fp += matrix[0, 1]
@@ -44,10 +44,12 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
     The rate is calculated as: False Positives / (False Positives + True Negatives)
     Parameters
     ----------
-    y_true : array-like of shape (n_samples,)
-        True labels.
-    y_pred : array-like of shape (n_samples,)
-        Predicted labels.
+    y_true : array-like of shape (n_samples, n_classes)
+        The labels should be passed in a sequence of sequences, with the sequence for each sample being a binary vector,
+        representing the presence of the i-th label in that sample (multi-label).
+    y_pred : array-like of shape (n_samples, n_classes)
+        The predictions should be passed in a sequence of sequences, with the sequence for each sample being a binary
+        vector, representing the presence of the i-th label in that sample (multi-label).
     averaging_method : str, default: 'per_class'
         Determines which averaging method to apply, possible values are:
         'per_class': Return a np array with the scores for each class (sorted by class name).
@@ -60,26 +62,30 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
     score : Union[np.ndarray, float]
         The score for the given metric.
     """
-    if averaging_method == 'micro':
-        return _micro_false_positive_rate(y_true, y_pred)
+    # Convert multi label into single label
+    classes = range(y_true.shape[1])
+    y_true = np.argmax(y_true, axis=1)
+    y_pred = np.argmax(y_pred, axis=1)
 
-    scores_per_class = _false_positive_rate_per_class(y_true, y_pred)
-    weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
+    if averaging_method == 'micro':
+        return _micro_false_positive_rate(y_true, y_pred, classes)
+    scores_per_class = _false_positive_rate_per_class(y_true, y_pred, classes)
+    weights = [sum(y_true == cls) for cls in classes]
     return averaging_mechanism(averaging_method, scores_per_class, weights)
 
 
-def _false_negative_rate_per_class(y_true, y_pred):  # False Negatives / (False Negatives + True Positives)
+def _false_negative_rate_per_class(y_true, y_pred, classes):  # False Negatives / (False Negatives + True Positives)
     result = []
-    for cls in sorted(y_true.dropna().unique().tolist()):
+    for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         matrix = confusion_matrix(y_true_cls, y_pred_cls)
         result.append(matrix[1, 0] / (matrix[1, 0] + matrix[0, 0]) if (matrix[1, 0] + matrix[0, 0]) > 0 else 0)
     return np.asarray(result)
 
 
-def _micro_false_negative_rate(y_true, y_pred):
+def _micro_false_negative_rate(y_true, y_pred, classes):
     fn, tp = 0, 0
-    for cls in sorted(y_true.dropna().unique().tolist()):
+    for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         matrix = confusion_matrix(y_true_cls, y_pred_cls)
         fn += matrix[1, 0]
@@ -93,10 +99,12 @@ def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
     The rate is calculated as: False Negatives / (False Negatives + True Positives)
     Parameters
     ----------
-    y_true : array-like of shape (n_samples,)
-        True labels.
-    y_pred : array-like of shape (n_samples,)
-        Predicted labels.
+    y_true : array-like of shape (n_samples, n_classes)
+        The labels should be passed in a sequence of sequences, with the sequence for each sample being a binary vector,
+        representing the presence of the i-th label in that sample (multi-label).
+    y_pred : array-like of shape (n_samples, n_classes)
+        The predictions should be passed in a sequence of sequences, with the sequence for each sample being a binary
+        vector, representing the presence of the i-th label in that sample (multi-label).
     averaging_method : str, default: 'per_class'
         Determines which averaging method to apply, possible values are:
         'per_class': Return a np array with the scores for each class (sorted by class name).
@@ -109,26 +117,31 @@ def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
     score : Union[np.ndarray, float]
         The score for the given metric.
     """
-    if averaging_method == 'micro':
-        return _micro_false_negative_rate(y_true, y_pred)
+    # Convert multi label into single label
+    classes = range(y_true.shape[1])
+    y_true = np.argmax(y_true, axis=1)
+    y_pred = np.argmax(y_pred, axis=1)
 
-    scores_per_class = _false_negative_rate_per_class(y_true, y_pred)
-    weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
+    if averaging_method == 'micro':
+        return _micro_false_negative_rate(y_true, y_pred, classes)
+
+    scores_per_class = _false_negative_rate_per_class(y_true, y_pred, classes)
+    weights = [sum(y_true == cls) for cls in classes]
     return averaging_mechanism(averaging_method, scores_per_class, weights)
 
 
-def _true_negative_rate_per_class(y_true, y_pred):  # True Negatives / (True Negatives + False Positives)
+def _true_negative_rate_per_class(y_true, y_pred, classes):  # True Negatives / (True Negatives + False Positives)
     result = []
-    for cls in sorted(y_true.dropna().unique().tolist()):
+    for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         matrix = confusion_matrix(y_true_cls, y_pred_cls)
         result.append(matrix[1, 1] / (matrix[1, 1] + matrix[0, 1]) if (matrix[1, 1] + matrix[0, 1]) > 0 else 0)
     return np.asarray(result)
 
 
-def _micro_true_negative_rate(y_true, y_pred):
+def _micro_true_negative_rate(y_true, y_pred, classes):
     tn, fp = 0, 0
-    for cls in sorted(y_true.dropna().unique().tolist()):
+    for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
         matrix = confusion_matrix(y_true_cls, y_pred_cls)
         tn += matrix[1, 1]
@@ -142,10 +155,12 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
     The rate is calculated as: True Negatives / (True Negatives + False Positives)
     Parameters
     ----------
-    y_true : array-like of shape (n_samples,)
-        True labels.
-    y_pred : array-like of shape (n_samples,)
-        Predicted labels.
+    y_true : array-like of shape (n_samples, n_classes)
+        The labels should be passed in a sequence of sequences, with the sequence for each sample being a binary vector,
+        representing the presence of the i-th label in that sample (multi-label).
+    y_pred : array-like of shape (n_samples, n_classes)
+        The predictions should be passed in a sequence of sequences, with the sequence for each sample being a binary
+        vector, representing the presence of the i-th label in that sample (multi-label).
     averaging_method : str, default: 'per_class'
         Determines which averaging method to apply, possible values are:
         'per_class': Return a np array with the scores for each class (sorted by class name).
@@ -158,41 +173,37 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
     score : Union[np.ndarray, float]
         The score for the given metric.
     """
-    if averaging_method == 'micro':
-        return _micro_true_negative_rate(y_true, y_pred)
+    # Convert multi label into single label
+    classes = range(y_true.shape[1])
+    y_true = np.argmax(y_true, axis=1)
+    y_pred = np.argmax(y_pred, axis=1)
 
-    scores_per_class = _true_negative_rate_per_class(y_true, y_pred)
-    weights = [sum(y_true == cls) for cls in sorted(y_true.dropna().unique().tolist())]
+    if averaging_method == 'micro':
+        return _micro_true_negative_rate(y_true, y_pred, classes)
+
+    scores_per_class = _true_negative_rate_per_class(y_true, y_pred, classes)
+    weights = [sum(y_true == cls) for cls in classes]
     return averaging_mechanism(averaging_method, scores_per_class, weights)
 
 
-def roc_auc_per_class(y_true, y_pred, classes=None, class_subset=None) -> np.ndarray:
+def roc_auc_per_class(y_true, y_pred) -> np.ndarray:
     """Receives predictions and true labels and returns the ROC AUC score for each class.
 
     Parameters
     ----------
-    y_true : array-like of shape (n_samples,)
-        True labels.
+    y_true : array-like of shape (n_samples, n_classes)
+        The labels should be passed in a sequence of sequences, with the sequence for each sample being a binary vector,
+        representing the presence of the i-th label in that sample (multi-label).
     y_pred : array-like of shape (n_samples, n_classes)
         Predicted label probabilities.
-    classes: array-like of shape (n_classes,), default: None
-        A sequence containing a sorted sequence of all the classes in the dataset
-    class_subset: array-like of, default: None
-        The subset of classes to display
 
     Returns
     -------
     roc_auc : np.ndarray
         The ROC AUC score for each class.
     """
-    unique_labels = np.unique(np.array(y_true))
-    if classes is not None:
-        if not set(classes) | set(unique_labels) == set(classes):
-            raise ValueError('y_true should contain only labels present in the provided classes list.')
-    else:
-        classes = unique_labels
-    if class_subset is None:
-        class_subset = classes
-    class_subset = set(class_subset)
-    return np.array([roc_auc_score(y_true == class_name, y_pred[:, i]) if class_name in class_subset else None
-                     for i, class_name in enumerate(classes)])
+    # Convert multi label into single label
+    classes = range(y_true.shape[1])
+    y_true = np.argmax(y_true, axis=1)
+
+    return np.array([roc_auc_score(y_true == class_name, y_pred[:, i]) for i, class_name in enumerate(classes)])
