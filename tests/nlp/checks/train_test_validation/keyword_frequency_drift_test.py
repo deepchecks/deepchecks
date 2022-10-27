@@ -10,8 +10,9 @@
 #
 """Module for testing the keyword frequency drift check"""
 
-from deepchecks.nlp.checks import KeywordFrequencyDrift
 from hamcrest import assert_that, close_to, contains_exactly, equal_to
+
+from deepchecks.nlp.checks import KeywordFrequencyDrift
 from tests.base.utils import equal_condition_result
 
 

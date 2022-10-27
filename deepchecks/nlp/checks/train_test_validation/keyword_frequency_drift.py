@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the keyword drift check."""
-import functools
 import re
-from typing import List, Union
 from collections import OrderedDict
+from typing import List, Union
 
 import numpy as np
 import sklearn
@@ -67,7 +66,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         super().__init__(**kwargs)
         self.top_n_to_show = top_n_to_show
         self.top_n_method = top_n_method
-        self.stemming_lookup = dict()
+        self.stemming_lookup = {}
 
         if drift_method == 'PSI':
             self.drift_method = psi
@@ -175,7 +174,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
 
     def _stem(self, word):
         """Stem and cache a word."""
-        if word not in self.stemming_lookup.keys():
+        if word not in self.stemming_lookup:
             self.stemming_lookup[word] = LancasterStemmer().stem(word)
         return self.stemming_lookup[word]
 
@@ -187,7 +186,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
 
     def _unstem(self, stem):
         """Transform a stem into a readable word."""
-        word = list(self.stemming_lookup.keys())[list(self.stemming_lookup.values()).index(stem)]
+        word = list(self.stemming_lookup)[list(self.stemming_lookup.values()).index(stem)]
         return word
 
     def _sort_lookup_by_value(self):
