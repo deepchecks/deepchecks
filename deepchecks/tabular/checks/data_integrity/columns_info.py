@@ -42,7 +42,7 @@ class ColumnsInfo(SingleDatasetCheck):
         """
         dataset = context.get_data_by_kind(dataset_kind)
         columns_info = dataset.columns_info
-        columns_info = column_importance_sorter_dict(columns_info, dataset, context.feature_importance)
+        columns_info = column_importance_sorter_dict(columns_info, dataset, context.feature_importance, self.n_top_columns)
 
         columns_info_to_display = (
             columns_info
