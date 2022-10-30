@@ -17,11 +17,11 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
-from deepchecks.tabular.utils.task_inference import infer_task_type
+from deepchecks.tabular.utils.task_inference import infer_task_type_and_known_classes
 
 
 def deepchecks_scorer(scorer, clf, dataset):
-    task_type, observed_classes, model_classes = infer_task_type(clf, dataset)
+    task_type, observed_classes, model_classes = infer_task_type_and_known_classes(clf, dataset)
     return DeepcheckScorer(scorer, model_classes, observed_classes)
 
 

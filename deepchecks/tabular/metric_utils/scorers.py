@@ -164,6 +164,9 @@ _str_to_scorer_dict = {**regression_scorers_higher_is_better_dict,
                        **multiclass_scorers_dict,
                        **binary_scorers_dict}
 
+DOCLINK_STR = doclink('supported-prediction-format',
+                      template='For more information please refer to the Supported Models guide {link}')
+
 
 class DeepcheckScorer:
     """Encapsulate scorer function with extra methods.
@@ -262,15 +265,15 @@ class DeepcheckScorer:
                         raise errors.DeepchecksValueError('Model is a sklearn classification model but lacks the'
                                                           ' predict_proba method. Please train the model with'
                                                           ' probability=True.')
-                    raise errors.DeepchecksValueError('Scorer requires predicted probabilities, but the predict_proba'
-                                                      ' method was not implemented in the model, or precalculated '
-                                                      'predicted probabilities where not passed.')
+                    raise errors.DeepchecksValueError(f'Scorer requires predicted probabilities, either implement '
+                                                      f'predict_proba functionalities within the model objects or pass'
+                                                      f'pre calculated probabilities. {DOCLINK_STR}')
                 probabilities_per_class = self.user_model.predict_proba(data)
                 if probabilities_per_class.shape[1] != len(self.model_classes):
                     raise errors.ModelValidationError(
                         f'Model probabilities per class has {probabilities_per_class.shape[1]} '
                         f'classes while known model classes has {len(self.model_classes)}. You can set the model\'s'
-                        f'classes manually using the model_classes argument.')
+                        f'classes manually using the model_classes argument in the run function.')
                 return probabilities_per_class
 
             @property
@@ -283,21 +286,20 @@ class DeepcheckScorer:
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
         if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
                                                                     'predict_proba'):
-            doclink_str = doclink('supported_models',
-                                  template='For more information please refer to the Supported Models guide {link}')
+
             raise errors.DeepchecksValueError(
                 f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
                 f'not provided. Please use a model with predict_proba method or '
                 f'manually provide predicted probabilities to the check. '
-                f'{doclink_str}')
+                f'{DOCLINK_STR}')
         if self.model_classes is not None:
             updated_model = self._wrap_classification_model(model)
-            if len(self.model_classes) == 2:
-                updated_label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
-                scores = self.scorer(updated_model, data, updated_label_col)
+            if updated_model.is_binary:
+                label = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
             else:
                 label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
-                scores = self.scorer(updated_model, data, label)
+
+            scores = self.scorer(updated_model, data, label)
 
             # The scores returned are for the observed classes but we want scores of the observed classes
             if isinstance(scores, t.Sized):
@@ -437,7 +439,7 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         possible classes output for model. None for regression tasks.
     observed_classes: t.Optional[t.List]
         observed classes from labels and predictions. None for regression tasks.
-    Returns¬
+    Returns
     --------
     scorers: t.List[DeepcheckScorer]
         A list of initialized DeepcheckScorers.
