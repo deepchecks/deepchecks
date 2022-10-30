@@ -24,11 +24,10 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Catego
                                        FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
                                        IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
                                        NewLabelTrainTest, OutlierSampleDetection, RegressionErrorDistribution,
-                                       RegressionSystematicError, RocReport, SimpleModelComparison, SpecialCharacters,
-                                       StringLengthOutOfBounds, StringMismatch, StringMismatchComparison,
-                                       TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPerformance,
-                                       TrainTestPredictionDrift, TrainTestSamplesMix, UnusedFeatures,
-                                       WeakSegmentsPerformance)
+                                       RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
+                                       StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
+                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
+                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
 
 __all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'full_suite']
 
@@ -318,8 +317,8 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
         WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         CalibrationScore(**kwargs),
-        RegressionSystematicError(**kwargs).add_condition_systematic_error_ratio_to_rmse_less_than(),
-        RegressionErrorDistribution(**kwargs).add_condition_kurtosis_greater_than(),
+        RegressionErrorDistribution(
+            **kwargs).add_condition_kurtosis_greater_than().add_condition_systematic_error_ratio_to_rmse_less_than(),
         UnusedFeatures(**kwargs).add_condition_number_of_high_variance_unused_features_less_or_equal(),
         BoostingOverfit(**kwargs).add_condition_test_score_percent_decline_less_than(),
         ModelInferenceTime(**kwargs).add_condition_inference_time_less_than(),
