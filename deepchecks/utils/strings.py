@@ -662,6 +662,6 @@ def create_new_file_name(file_name: str, default_suffix: str = 'html'):
 
 
 def json_encoder(obj):
-    """Handle numpy objects for json dumps"""
+    """Handle numpy objects for json dumps."""
     if isinstance(obj, (np.generic, np.ndarray)):
         return obj.item()
