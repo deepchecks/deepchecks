@@ -21,7 +21,7 @@ from deepchecks.tabular.utils.task_inference import infer_task_type_and_known_cl
 
 
 def deepchecks_scorer(scorer, clf, dataset):
-    task_type, observed_classes, model_classes = infer_task_type_and_known_classes(clf, dataset)
+    _, observed_classes, model_classes = infer_task_type_and_known_classes(clf, dataset)
     return DeepcheckScorer(scorer, model_classes, observed_classes)
 
 

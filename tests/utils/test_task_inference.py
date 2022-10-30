@@ -16,7 +16,8 @@ from deepchecks.tabular.utils.task_type import TaskType
 
 
 def test_infer_task_type_binary(iris_dataset_single_class, iris_random_forest_single_class):
-    res, observed_classes, model_classes = infer_task_type_and_known_classes(iris_random_forest_single_class, iris_dataset_single_class)
+    res, observed_classes, model_classes = infer_task_type_and_known_classes(iris_random_forest_single_class,
+                                                                             iris_dataset_single_class)
 
     assert_that(res, equal_to(TaskType.BINARY))
     assert_that(observed_classes, has_items(0, 1))
@@ -65,7 +66,8 @@ def test_task_type_not_sklearn_binary(iris_dataset_single_class):
         def predict_proba(self, x):
             return [[1, 0]] * len(x)
 
-    res, observed_classes, model_classes = infer_task_type_and_known_classes(ClassificationModel(), iris_dataset_single_class)
+    res, observed_classes, model_classes = infer_task_type_and_known_classes(ClassificationModel(),
+                                                                             iris_dataset_single_class)
 
     assert_that(res, equal_to(TaskType.BINARY))
     assert_that(observed_classes, has_items(0, 1))
@@ -80,7 +82,8 @@ def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
         def predict_proba(self, x):
             return [[1, 0]] * len(x)
 
-    res, observed_classes, model_classes = infer_task_type_and_known_classes(ClassificationModel(), iris_labeled_dataset)
+    res, observed_classes, model_classes = infer_task_type_and_known_classes(ClassificationModel(),
+                                                                             iris_labeled_dataset)
 
     assert_that(res, equal_to(TaskType.MULTICLASS))
     assert_that(observed_classes, has_items(0, 1, 2))
