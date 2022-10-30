@@ -9,19 +9,22 @@
 # ----------------------------------------------------------------------------
 #
 """Test metrics utils"""
-from hamcrest import assert_that, close_to, calling, raises
+import pandas as pd
+from hamcrest import assert_that, close_to, calling, raises, has_entries, is_
 from sklearn.metrics import make_scorer
 
+from common import is_nan
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_known_classes
+from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
 
 
 def deepchecks_scorer(scorer, clf, dataset):
-    _, observed_classes, model_classes = infer_task_type_and_known_classes(clf, dataset)
+    _, observed_classes, model_classes = infer_task_type_and_classes(clf, dataset)
     return DeepcheckScorer(scorer, model_classes, observed_classes)
 
 
@@ -154,3 +157,33 @@ def test_auc_on_regression_task_raises_error(diabetes, diabetes_model):
                        r'make_scorer\(roc_auc_score, needs_proba=True, multi_class=ovo\) when predicted '
                        'probabilities are not provided. Please use a model with predict_proba method or manually '
                        r'provide predicted probabilities to the check\.'))
+
+
+def test_scorer_with_new_labels(iris: pd.DataFrame, iris_adaboost):
+    # Arrange
+    iris.loc[:10, 'target'] = 19
+    iris.loc[10:20, 'target'] = 20
+    ds = Dataset(iris, label='target', cat_features=[])
+    scorer = deepchecks_scorer('precision_per_class', iris_adaboost, ds)
+
+    # Act
+    score = scorer(iris_adaboost, ds)
+    # Assert
+    assert_that(score, has_entries({
+        0: close_to(.58, 0.1), 1: close_to(.92, 0.1), 2: close_to(.95, 0.1), 19: is_nan(), 20: is_nan()
+    }))
+
+
+def test_scorer_with_only_new_labels_in_data(iris: pd.DataFrame, iris_adaboost):
+    # Arrange
+    iris.loc[:50, 'target'] = 19
+    iris.loc[50:, 'target'] = 20
+    ds = Dataset(iris, label='target', cat_features=[])
+    scorer = deepchecks_scorer('precision_per_class', iris_adaboost, ds)
+
+    # Act
+    score = scorer(iris_adaboost, ds)
+    # Assert
+    assert_that(score, has_entries({
+        0: is_(0), 1: is_(0), 2: is_(0), 19: is_nan(), 20: is_nan()
+    }))
