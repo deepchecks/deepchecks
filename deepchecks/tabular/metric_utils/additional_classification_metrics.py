@@ -93,9 +93,9 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
     if averaging_method != 'binary':
         assert_multi_label_shape(y_true)
         assert_multi_label_shape(y_pred)
+        classes = range(y_true.shape[1])
         y_true = np.argmax(y_true, axis=1)
         y_pred = np.argmax(y_pred, axis=1)
-        classes = range(y_true.shape[1])
     else:
         assert_single_label_shape(y_true)
         assert_single_label_shape(y_pred)
@@ -156,9 +156,9 @@ def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
     if averaging_method != 'binary':
         assert_multi_label_shape(y_true)
         assert_multi_label_shape(y_pred)
+        classes = range(y_true.shape[1])
         y_true = np.argmax(y_true, axis=1)
         y_pred = np.argmax(y_pred, axis=1)
-        classes = range(y_true.shape[1])
     else:
         assert_single_label_shape(y_true)
         assert_single_label_shape(y_pred)
@@ -219,9 +219,9 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
     if averaging_method != 'binary':
         assert_multi_label_shape(y_true)
         assert_multi_label_shape(y_pred)
+        classes = range(y_true.shape[1])
         y_true = np.argmax(y_true, axis=1)
         y_pred = np.argmax(y_pred, axis=1)
-        classes = range(y_true.shape[1])
     else:
         assert_single_label_shape(y_true)
         assert_single_label_shape(y_pred)
@@ -252,6 +252,7 @@ def roc_auc_per_class(y_true, y_pred) -> np.ndarray:
         The ROC AUC score for each class.
     """
     # Convert multi label into single label
+    assert_multi_label_shape(y_true)
     classes = range(y_true.shape[1])
     y_true = np.argmax(y_true, axis=1)
 

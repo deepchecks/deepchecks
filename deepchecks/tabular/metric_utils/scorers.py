@@ -18,7 +18,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelBinarizer
 
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
@@ -457,9 +457,9 @@ def _transform_to_multi_label_format(y: np.ndarray, classes):
     # Some classifiers like catboost might return shape like (n_rows, 1), therefore squeezing the array.
     y = np.squeeze(y) if y.ndim > 1 else y
     if y.ndim == 1:
-        categories = np.asarray(classes).reshape(1, -1)
-        return OneHotEncoder(categories=categories, sparse=False, handle_unknown='ignore')\
-            .fit_transform(y.reshape(-1, 1))
+        binarizer = LabelBinarizer()
+        binarizer.fit(classes)
+        return binarizer.transform(y)
     # If after squeeze there are still 2 dimensions, then it must have column for each model class.
     elif y.ndim == 2 and y.shape[1] == len(classes):
         return y
