@@ -66,3 +66,11 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.*RegressionSystematicError check is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

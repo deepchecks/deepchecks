@@ -177,7 +177,6 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
                               'Confusion Matrix Report - Train Dataset',
                               'Calibration Metric - Train Dataset',
                               'Outlier Sample Detection - Train Dataset',
-                              'Regression Systematic Error - Train Dataset',
                               'Regression Error Distribution - Train Dataset',
                               'Boosting Overfit',
                               'Date Train Test Leakage Duplicates',
@@ -189,5 +188,5 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
     res_full = suite.run(iris_train, iris_test, iris_model, with_display=False)
     res_names = [x.get_header() for x in res_train.results]
     assert_that(res_names, contains_exactly(*expected_train_headers))
-    assert_that(res_test.results, has_length(36))
-    assert_that(res_full.results, has_length(56))
+    assert_that(res_test.results, has_length(35))
+    assert_that(res_full.results, has_length(54))
