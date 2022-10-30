@@ -161,6 +161,7 @@ def test_auc_on_regression_task_raises_error(diabetes, diabetes_model):
 
 def test_scorer_with_new_labels(iris: pd.DataFrame, iris_adaboost):
     # Arrange
+    iris = iris.copy()
     iris.loc[:10, 'target'] = 19
     iris.loc[10:20, 'target'] = 20
     ds = Dataset(iris, label='target', cat_features=[])
@@ -176,6 +177,7 @@ def test_scorer_with_new_labels(iris: pd.DataFrame, iris_adaboost):
 
 def test_scorer_with_only_new_labels_in_data(iris: pd.DataFrame, iris_adaboost):
     # Arrange
+    iris = iris.copy()
     iris.loc[:50, 'target'] = 19
     iris.loc[50:, 'target'] = 20
     ds = Dataset(iris, label='target', cat_features=[])
