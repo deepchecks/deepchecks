@@ -12,7 +12,7 @@
 from hamcrest import assert_that, calling, close_to, contains_exactly, raises, is_
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.image_properties import default_image_properties, calc_default_image_properties
+from deepchecks.vision.utils.image_properties import default_image_properties, calc_default_image_properties, texture_level
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
@@ -161,3 +161,12 @@ def detects_incorrect_property_dict_structure(property_name: str, missed_key: st
         rf"\+ Property {property_name}: dictionary must include keys \('name', 'method', 'output_type'\)\. "
         fr"Next keys are missed \['{missed_key}'\]"
     )
+
+# ==========================
+
+
+def test_sharpness_and_texture_level(coco_train_visiondata):
+    props = [{'name': 'texture', 'method': texture_level, 'output_type': 'continuous'}]
+    images = coco_train_visiondata.batch_to_images(next(iter(coco_train_visiondata.data_loader)))
+    results = calc_vision_properties(images, props)
+    assert_that(sum(results['sharpness']), close_to(50, 0.01))
