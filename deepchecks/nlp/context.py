@@ -87,7 +87,6 @@ class _DummyModel(BasicModel):
                                               'of the rum method, while the probabilities argument of the run method'
                                               ' should be left empty.')
 
-        # If both datasets have the same name, modify their index and warn
         if train is not None and test is not None:
             # check if datasets have same indexes
             if set(train.index) & set(test.index):
