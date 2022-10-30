@@ -63,12 +63,12 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         The score for the given metric.
     """
     # Convert multi label into single label
-    if y_true.ndim > 1:
+    if averaging_method != 'binary':
         classes = range(y_true.shape[1])
         y_true = np.argmax(y_true, axis=1)
         y_pred = np.argmax(y_pred, axis=1)
     else:
-        classes = np.unique(y_true)
+        classes = [0, 1]
 
     if averaging_method == 'micro':
         return _micro_false_positive_rate(y_true, y_pred, classes)
@@ -121,9 +121,12 @@ def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         The score for the given metric.
     """
     # Convert multi label into single label
-    classes = range(y_true.shape[1])
-    y_true = np.argmax(y_true, axis=1)
-    y_pred = np.argmax(y_pred, axis=1)
+    if averaging_method != 'binary':
+        classes = range(y_true.shape[1])
+        y_true = np.argmax(y_true, axis=1)
+        y_pred = np.argmax(y_pred, axis=1)
+    else:
+        classes = [0, 1]
 
     if averaging_method == 'micro':
         return _micro_false_negative_rate(y_true, y_pred, classes)
@@ -177,9 +180,12 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
         The score for the given metric.
     """
     # Convert multi label into single label
-    classes = range(y_true.shape[1])
-    y_true = np.argmax(y_true, axis=1)
-    y_pred = np.argmax(y_pred, axis=1)
+    if averaging_method != 'binary':
+        classes = range(y_true.shape[1])
+        y_true = np.argmax(y_true, axis=1)
+        y_pred = np.argmax(y_pred, axis=1)
+    else:
+        classes = [0, 1]
 
     if averaging_method == 'micro':
         return _micro_true_negative_rate(y_true, y_pred, classes)

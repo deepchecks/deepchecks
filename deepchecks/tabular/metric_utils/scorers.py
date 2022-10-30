@@ -247,7 +247,7 @@ class DeepcheckScorer:
                 """Convert labels to 0/1 if model is a binary classifier."""
                 predicitions: np.ndarray = np.asarray(self.user_model.predict(data))
                 # In case of binary converts into 0 and 1 the labels
-                if self.model_classes and self.is_binary:
+                if self.is_binary:
                     transfer_func = np.vectorize(lambda x: 0 if x == self.model_classes[0] else 1)
                     predicitions = transfer_func(predicitions)
                 # In case of multiclass with single label, convert into multi-label
