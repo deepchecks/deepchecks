@@ -99,9 +99,12 @@ as index and their corresponding importance as values.
 Using Pre-computed Predictions
 ==============================
 
-The predictions should be passed via the ``y_proba`` and ``y_pred`` arguments of the suite / check's ``run`` method in
-the :ref:`appropriate format <supported_models__predictions_format>`. ``y_pred`` receives the predicted values of
-the model and ``y_proba`` receives the probabilities per class, which is only relevant for classification tasks.
+The pre-computed predictions should be passed to suite/check's ``run`` method in the appropriate format.
+The parameters to pass are ``y_pred`` and ``y_proba`` for single dataset checks or ``y_pred_train`` and
+``y_proba_train`` and ``y_pred_test`` and ``y_proba_test`` for checks that use both datasets.
+``y_pred`` receives the predicted values of the model and ``y_proba`` receives the probabilities per class, which is
+only relevant for classification tasks.
+See more about the :ref:`supported formats here<supported_models__predictions_format>`.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
 :doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
@@ -117,9 +120,8 @@ ROC Curve and the AUC metric) will not run.
     When using pre-computed predictions, if the train dataset shares indices with the test dataset we
     will add train/test prefixes to the indexes.
 
-
-Running Deepchecks with Pre-computed Predictions
-------------------------------------------------
+Code Example
+------------
 
 We will run the deepchecks model evaluation suite using pre-computed predictions from a random forest classification
 model. In addition, we will calculate and pass |permutation importance| which provides a better estimate of the
