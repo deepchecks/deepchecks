@@ -164,8 +164,8 @@ _str_to_scorer_dict = {**regression_scorers_higher_is_better_dict,
                        **multiclass_scorers_dict,
                        **binary_scorers_dict}
 
-DOCLINK_STR = doclink('supported-prediction-format',
-                      template='For more information please refer to the Supported Models guide {link}')
+SUPPORTED_MODELS_DOCLINK = doclink('supported-prediction-format',
+                                   template='For more information please refer to the Supported Models guide {link}')
 
 
 class DeepcheckScorer:
@@ -266,8 +266,8 @@ class DeepcheckScorer:
                                                           ' predict_proba method. Please train the model with'
                                                           ' probability=True.')
                     raise errors.DeepchecksValueError(f'Scorer requires predicted probabilities, either implement '
-                                                      f'predict_proba functionalities within the model objects or pass'
-                                                      f'pre calculated probabilities. {DOCLINK_STR}')
+                                                      f'predict_proba functionalities within the model objects or pass '
+                                                      f'pre calculated probabilities. {SUPPORTED_MODELS_DOCLINK}')
                 probabilities_per_class = self.user_model.predict_proba(data)
                 if probabilities_per_class.shape[1] != len(self.model_classes):
                     raise errors.ModelValidationError(
@@ -291,7 +291,7 @@ class DeepcheckScorer:
                 f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
                 f'not provided. Please use a model with predict_proba method or '
                 f'manually provide predicted probabilities to the check. '
-                f'{DOCLINK_STR}')
+                f'{SUPPORTED_MODELS_DOCLINK}')
         if self.model_classes is not None:
             updated_model = self._wrap_classification_model(model)
             if updated_model.is_binary:
@@ -464,4 +464,4 @@ def _transform_to_multi_label_format(y: np.ndarray, classes):
     elif y.ndim == 2 and y.shape[1] == len(classes):
         return y
     else:
-        raise errors.DeepchecksValueError(f'got y with unworkable shape: {y.shape}')
+        raise errors.DeepchecksValueError(f'got y with unworkable shape: {y.shape}. {SUPPORTED_MODELS_DOCLINK}')
