@@ -15,7 +15,7 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
-from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 from sklearn.preprocessing import LabelBinarizer
@@ -37,8 +37,7 @@ from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.utils.simple_models import PerfectModel
-from deepchecks.utils.strings import is_string_column
-from deepchecks.utils.typing import BasicModel, ClassificationModel
+from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'DEFAULT_SCORERS_DICT',
