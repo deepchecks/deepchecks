@@ -123,6 +123,7 @@ class Dataset:
             max_categories: int = None,
             label_type: str = None,
             dataset_name: t.Optional[str] = None,
+            label_classes=None
     ):
 
         if len(df) == 0:
@@ -283,6 +284,10 @@ class Dataset:
                                        f' received {label_type}.')
         else:
             self._label_type = None
+
+        if label_classes is not None:
+            warnings.warn('label_classes parameter is deprecated, use model_classes parameter on a check run function '
+                          'instead.', DeprecationWarning, stacklevel=2)
 
         unassigned_cols = [col for col in self._features if col not in self._cat_features]
         self._numerical_features = infer_numerical_features(self._data[unassigned_cols])
