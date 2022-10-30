@@ -273,7 +273,7 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata, device):
 def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_visiondata, device):
     # Arrange
     train, test = coco_train_visiondata, coco_test_visiondata
-    condition_value = 0.09
+    condition_value = 0.1
     check = PropertyLabelCorrelationChange(per_class=False, random_state=42
                                           ).add_condition_property_pps_in_train_less_than(condition_value)
     train = copy(train)

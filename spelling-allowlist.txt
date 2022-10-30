@@ -115,3 +115,4 @@ callables
 rstrip
 VOC
 jaccard
+catboost

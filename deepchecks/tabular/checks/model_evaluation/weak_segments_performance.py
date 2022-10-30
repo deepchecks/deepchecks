@@ -119,10 +119,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                                                   ' than only predicted classes.')
             y_proba = context.model.predict_proba(dataset.features_columns)
             # If proba shape does not match label, raise error
-            if y_proba.shape[1] != len(context.classes):
+            if y_proba.shape[1] != len(context.model_classes):
                 raise DeepchecksValueError(
                     f'Predicted probabilities shape {y_proba.shape} does not match the number of classes found in'
-                    f' the labels {context.classes}.')
+                    f' the labels {context.model_classes}.')
         else:
             y_proba = None
 
@@ -130,11 +130,11 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
             loss_per_sample = self.loss_per_sample[list(dataset.data.index)]
         else:
             loss_per_sample = calculate_per_sample_loss(context.model, context.task_type, dataset,
-                                                        context.classes)
+                                                        context.model_classes)
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         if len(dataset.features) < 2:
             raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, context.classes)
+        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, context.observed_classes)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                   validate_data_on_predict=False)
 
