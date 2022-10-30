@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the tabular package deprecation warnings."""
-import warnings
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -19,7 +17,7 @@ import warnings
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import (MultiModelPerformanceReport, SegmentPerformance, SimpleModelComparison,
-                                       WeakSegmentsPerformance, WholeDatasetDrift)
+                                       WeakSegmentsPerformance, WholeDatasetDrift, RegressionSystematicError)
 
 
 def test_deprecation_segment_performance_warning():

@@ -16,7 +16,7 @@ This notebook provides an overview for using and understanding the Regression Er
 What is the Regression Error Distribution check?
 ==================================================
 The ``RegressionErrorDistribution`` check shows the distribution of the regression error,
-and enables to set conditions on several of the distribution parameters including systematic error and Kurtosis values.
+and enables to set conditions on two of the distribution parameters: Systematic error and Kurtosis values.
 Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution is significantly
 "wider" from the normal distribution, which may imply a certain cause of error deforming the normal shape.
 Systematic error, otherwise known as the error bias, is the mean prediction error of the model.

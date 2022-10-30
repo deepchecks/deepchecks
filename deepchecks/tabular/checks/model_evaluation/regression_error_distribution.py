@@ -25,10 +25,10 @@ __all__ = ['RegressionErrorDistribution']
 
 
 class RegressionErrorDistribution(SingleDatasetCheck):
-    """Check different aspects and properties of the regression error distribution.
+    """Check for systematic error and abnormal shape in the regression error distribution.
 
-    The check shows the distribution of the regression error, and enables to set conditions on several
-    of the distribution parameters including systematic error and Kurtosis value.
+    The check shows the distribution of the regression error, and enables to set conditions on two
+    of the distribution parameters: Systematic error and Kurtosis value.
     Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
     is significantly "wider" from a normal distribution.
     Systematic error, otherwise known as the error bias, is the mean prediction error of the model.
