@@ -353,55 +353,6 @@ class DeepcheckScorer:
                                               f'but got: {type(result).__name__}')
 
 
-def task_type_check(
-        model: BasicModel,
-        dataset: 'tabular.Dataset'
-) -> TaskType:
-    """Check task type (regression, binary, multiclass) according to model object and label column.
-
-    Parameters
-    ----------
-    model : BasicModel
-        Model object - used to check if it has predict_proba()
-    dataset : tabular.Dataset
-        dataset - used to count the number of unique labels
-
-    Returns
-    -------
-    TaskType
-        TaskType enum corresponding to the model and dataset
-    """
-    label_col = dataset.label_col
-    if not model:
-        return dataset.label_type
-    if isinstance(model, BaseEstimator):
-        if not hasattr(model, 'predict_proba'):
-            if is_string_column(label_col):
-                raise errors.DeepchecksValueError(
-                    'Model was identified as a regression model, but label column was found to contain strings.'
-                )
-            elif isinstance(model, ClassifierMixin):
-                raise errors.DeepchecksValueError(
-                    'Model is a sklearn classification model (a subclass of ClassifierMixin), but lacks the '
-                    'predict_proba method. Please train the model with probability=True, or skip / ignore this check.'
-                )
-            else:
-                return TaskType.REGRESSION
-        else:
-            return (
-                TaskType.MULTICLASS
-                if label_col.nunique() > 2
-                else TaskType.BINARY
-            )
-    if isinstance(model, ClassificationModel):
-        return (
-            TaskType.MULTICLASS
-            if label_col.nunique() > 2
-            else TaskType.BINARY
-        )
-    return TaskType.REGRESSION
-
-
 def get_default_scorers(model_type, class_avg: bool = True):
     """Get default scorers based on model type.
 
