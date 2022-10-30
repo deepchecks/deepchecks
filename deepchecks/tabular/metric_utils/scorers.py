@@ -285,7 +285,6 @@ class DeepcheckScorer:
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
         if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
                                                                     'predict_proba'):
-
             raise errors.DeepchecksValueError(
                 f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
                 f'not provided. Please use a model with predict_proba method or '
@@ -294,7 +293,7 @@ class DeepcheckScorer:
         if self.model_classes is not None:
             updated_model = self._wrap_classification_model(model)
             if updated_model.is_binary:
-                label = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
+                label = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1}).to_numpy()
             else:
                 label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 
