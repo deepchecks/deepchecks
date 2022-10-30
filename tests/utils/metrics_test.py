@@ -13,7 +13,7 @@ import pandas as pd
 from hamcrest import assert_that, close_to, calling, raises, has_entries, is_
 from sklearn.metrics import make_scorer
 
-from common import is_nan
+from tests.common import is_nan
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer
