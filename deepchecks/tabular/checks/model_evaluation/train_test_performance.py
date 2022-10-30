@@ -107,14 +107,14 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         results = []
         for dataset_name, dataset in datasets.items():
             label = cast(pd.Series, dataset.label_col)
-            n_samples = label.groupby(label).count()
+            n_samples_per_class = label.groupby(label).count()
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
                 if isinstance(scorer_value, Number):
                     results.append([dataset_name, pd.NA, scorer.name, scorer_value, len(label)])
                 else:
                     results.extend(
-                        [[dataset_name, class_name, scorer.name, class_score, n_samples.get(class_name)]
+                        [[dataset_name, class_name, scorer.name, class_score, n_samples_per_class.get(class_name, 0)]
                             for class_name, class_score in scorer_value.items()])
 
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])

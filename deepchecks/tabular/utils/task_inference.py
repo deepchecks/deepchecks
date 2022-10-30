@@ -10,7 +10,7 @@
 #
 """Utils module containing functionalities to infer the task type and possible label classes."""
 
-__all__ = ['infer_task_type_and_known_classes']
+__all__ = ['infer_task_type_and_classes']
 
 from typing import List, Optional, Tuple
 
@@ -26,9 +26,9 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
 
 
-def infer_task_type_and_known_classes(model: Optional[BasicModel], train_dataset: 'tabular.Dataset',
-                                      test_dataset: Optional['tabular.Dataset'] = None,
-                                      model_classes: Optional[List] = None) -> \
+def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tabular.Dataset',
+                                test_dataset: Optional['tabular.Dataset'] = None,
+                                model_classes: Optional[List] = None) -> \
         Tuple[TaskType, Optional[List], Optional[List]]:
     """Infer the task type based on labels in the data and the model. For classification also computes the classes in \
     the model and the observed classes.
