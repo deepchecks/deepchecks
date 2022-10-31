@@ -10,7 +10,7 @@
 #
 """Module for testing the keyword frequency drift check"""
 
-from hamcrest import assert_that, close_to, contains_exactly, equal_to
+from hamcrest import assert_that, close_to, contains_exactly
 
 from deepchecks.nlp.checks import KeywordFrequencyDrift
 from tests.base.utils import equal_condition_result
@@ -19,7 +19,7 @@ from tests.base.utils import equal_condition_result
 def test_with_defaults_no_drift(movie_reviews_data):
     train_data, test_data = movie_reviews_data
     result = KeywordFrequencyDrift().run(train_data, test_data)
-    assert_that(result.value['drift_score'], close_to(0.326, 0.001))
+    assert_that(result.value['drift_score'], close_to(0.3, 0.01))
 
 
 def test_with_keywords(movie_reviews_data_positive, movie_reviews_data_negative):
