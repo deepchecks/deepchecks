@@ -98,7 +98,7 @@ class KeywordFrequencyDrift(TrainTestCheck):
         max_test_freqs = np.array(test_freqs.max(axis=0).todense()).reshape(-1)
         word_freq_diff = max_train_freqs - max_test_freqs
 
-        max_train_counts = max_train_freqs * test_dataset.n_samples
+        max_train_counts = max_train_freqs * train_dataset.n_samples
         max_test_counts = max_test_freqs * test_dataset.n_samples
 
         drift_score = self.drift_method(max_train_counts, max_test_counts, from_freqs=True)

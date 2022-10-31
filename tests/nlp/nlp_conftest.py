@@ -45,6 +45,7 @@ def text_multilabel_classification_dataset_mock():
 def download_nltk_resources():
     """Download nltk resources"""
     nltk_download('movie_reviews', quiet=True)
+    nltk_download('punkt', quiet=True)
 
 
 @pytest.fixture(scope='session')
@@ -53,8 +54,9 @@ def movie_reviews_data():
     download_nltk_resources()
     sentences = [' '.join(x) for x in movie_reviews.sents()]
     random.seed(42)
-    train_data = TextData(random.choices(sentences, k=10000))
-    test_data = TextData(random.choices(sentences, k=10000))
+
+    train_data = TextData(random.sample(sentences, k=10_000))
+    test_data = TextData(random.sample(sentences, k=10_000))
     return train_data, test_data
 
 
