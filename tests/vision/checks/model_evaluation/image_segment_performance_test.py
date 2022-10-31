@@ -81,7 +81,7 @@ def test_mnist_top_display(mnist_dataset_train, mock_trained_mnist, device):
 
 def test_mnist_alt_metrics(mnist_dataset_train, mock_trained_mnist, device):
     # Act
-    result = ImageSegmentPerformance(alternative_metrics={'p': Precision(), 'r': Recall()}) \
+    result = ImageSegmentPerformance(scorers={'p': Precision(), 'r': Recall()}) \
         .run(mnist_dataset_train, mock_trained_mnist, n_samples=None, device=device)
     # Assert
     assert_that(result.value, has_entries({

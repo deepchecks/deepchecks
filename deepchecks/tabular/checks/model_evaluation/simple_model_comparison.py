@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
+import warnings
 from collections import defaultdict
-from typing import TYPE_CHECKING, Callable, Dict, Hashable, List
+from typing import TYPE_CHECKING, Callable, Dict, Hashable, List, Mapping, Union
 
 import numpy as np
 import pandas as pd
@@ -57,9 +58,11 @@ class SimpleModelComparison(TrainTestCheck):
            predictions uniformly at random from the list of values in y.
         * `most_frequent`: in regression is mean value, in classification the most common value. (Previously 'constant')
         * `tree`: runs a simple decision tree.
+    scorers: Union[Mapping[str, Union[str, Callable]], List[str]], default: None
+        Scorers to override the default scorers, find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     alternative_scorers : Dict[str, Callable], default: None
-        An optional dictionary of scorer title to scorer functions/names. If none given, using default scorers.
-        For description about scorers see Notes below.
+        Deprecated, please use scorers instead.
     max_gain : float , default: 50
         the maximum value for the gain value, limits from both sides [-max_gain, max_gain]
     max_depth : int , default: 3
@@ -107,6 +110,7 @@ class SimpleModelComparison(TrainTestCheck):
     def __init__(
         self,
         strategy: str = 'most_frequent',
+        scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
         alternative_scorers: Dict[str, Callable] = None,
         max_gain: float = 50,
         max_depth: int = 3,
@@ -115,7 +119,12 @@ class SimpleModelComparison(TrainTestCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.alternative_scorers = alternative_scorers
+        if alternative_scorers is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_scorers is deprecated. Please use scorers instead.',
+                          DeprecationWarning)
+            self.alternative_scorers = alternative_scorers
+        else:
+            self.alternative_scorers = scorers
         self.max_gain = max_gain
         self.max_depth = max_depth
         self.n_samples = n_samples
@@ -164,9 +173,7 @@ class SimpleModelComparison(TrainTestCheck):
 
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
-            n_samples = test_label.groupby(test_label).count()
-            classes = [clazz for clazz in test_dataset.classes_in_label_col
-                       if clazz in train_dataset.classes_in_label_col]
+            class_counts = test_label.groupby(test_label).count()
 
             display_array = []
             # Dict in format { Scorer : Dict { Class : Dict { Origin/Simple : score } } }
@@ -174,7 +181,11 @@ class SimpleModelComparison(TrainTestCheck):
             for scorer in scorers:
                 model_dict = defaultdict(dict)
                 for model_name, model_type, model_instance in models:
-                    for class_score, class_value in zip(scorer(model_instance, test_dataset), classes):
+                    for class_value, class_score in scorer(model_instance, test_dataset).items():
+                        # New labels which do not exists on the model gets nan as score, skips them.
+                        # Also skips classes which are not in the test labels
+                        if np.isnan(class_score) or class_value not in class_counts:
+                            continue
                         model_dict[class_value][model_type] = class_score
                         if context.with_display:
                             display_array.append([model_name,
@@ -182,7 +193,7 @@ class SimpleModelComparison(TrainTestCheck):
                                                   class_score,
                                                   scorer.name,
                                                   class_value,
-                                                  n_samples[class_value]
+                                                  class_counts[class_value]
                                                   ])
                 results_dict[scorer.name] = model_dict
 
@@ -212,8 +223,6 @@ class SimpleModelComparison(TrainTestCheck):
                 fig = None
 
         else:
-            classes = None
-
             display_array = []
             # Dict in format { Scorer : Dict { Origin/Simple : score } }
             results_dict = {}
@@ -262,7 +271,6 @@ class SimpleModelComparison(TrainTestCheck):
         return CheckResult({'scores': results_dict,
                             'type': task_type,
                             'scorers_perfect': scorers_perfect,
-                            'classes': classes
                             }, display=fig)
 
     def config(self, include_version: bool = True) -> 'CheckConfig':

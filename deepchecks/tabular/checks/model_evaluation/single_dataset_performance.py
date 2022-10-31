@@ -10,7 +10,7 @@
 #
 """Module containing the single dataset performance check."""
 from numbers import Number
-from typing import TYPE_CHECKING, Callable, Dict, List, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Callable, Dict, List, Mapping, TypeVar, Union, cast
 
 import pandas as pd
 
@@ -37,9 +37,9 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
     Parameters
     ----------
-    scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
-        List of scorers to use. If None, use default scorers.
-        Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+    scorers: Union[Mapping[str, Union[str, Callable]], List[str]], default: None
+        Scorers to override the default scorers, find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
@@ -47,7 +47,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
     """
 
     def __init__(self,
-                 scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
+                 scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
                  n_samples: int = 1_000_000,
                  random_state: int = 42,
                  **kwargs):
@@ -79,7 +79,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
                 else:
                     results.extend(
                         [[class_name, scorer.name, class_score]
-                         for class_score, class_name in zip(scorer_value, context.classes)])
+                         for class_name, class_score in scorer_value.items()])
             results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
 
             if context.with_display:

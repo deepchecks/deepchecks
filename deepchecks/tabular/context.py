@@ -13,7 +13,6 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from pandas._libs.lib import infer_dtype
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
@@ -22,10 +21,11 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import get_possible_classes
+from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.typing import BasicModel
@@ -170,6 +170,7 @@ class Context:
             y_pred_test: t.Optional[np.ndarray] = None,
             y_proba_train: t.Optional[np.ndarray] = None,
             y_proba_test: t.Optional[np.ndarray] = None,
+            model_classes: t.Optional[t.List] = None
     ):
         # Validations
         if train is None and test is None and model is None:
@@ -213,8 +214,16 @@ class Context:
             model_type_validation(model)
         if feature_importance is not None and not isinstance(feature_importance, pd.Series):
             raise DeepchecksValueError('feature_importance must be a pandas Series')
+        if model_classes and len(model_classes) == 0:
+            raise DeepchecksValueError('Received empty model_classes')
+        if model_classes and sorted(model_classes) != model_classes:
+            supported_models_link = doclink(
+                'supported-prediction-format',
+                template='For more information please refer to the Supported Models guide {link}')
+            raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
-        self._classes = None
+        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
+            model, train, test, model_classes)
         self._train = train
         self._test = test
         self._model = model
@@ -259,23 +268,18 @@ class Context:
         return self._model
 
     @property
-    def classes(self) -> t.List:
+    def model_classes(self) -> t.List:
         """Return ordered list of possible label classes for classification tasks or None for regression."""
-        if self._classes is None:
-            if self._train is not None and self._train.has_label() and self._train.label_type != TaskType.REGRESSION:
-                self._classes = get_possible_classes(self._model, self._train, self._test,
-                                                     self._train.label_type is not None)
-            else:
-                self._classes = None
+        if self._model_classes is None and self.task_type != TaskType.REGRESSION:
+            # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
+            self._model_classes = self._observed_classes
+            get_logger().warning('Could not find model\'s classes, using the observed classes')
+        return self._model_classes
 
-            if self._classes is not None and infer_dtype(self._train.label_col) == 'integer' and \
-                    self._train.label_type is None:
-                get_logger().warning(
-                    'Due to the small number of unique labels task type was inferred as multiclass in spite of '
-                    'the label column is of type integer. '
-                    'Initialize your Dataset with either label_type=\"multiclass\" or '
-                    'label_type=\"regression\" to resolve this warning.')
-        return self._classes
+    @property
+    def observed_classes(self) -> t.List:
+        """Return the observed classes in both train and test. None for regression."""
+        return self._observed_classes
 
     @property
     def model_name(self):
@@ -285,15 +289,7 @@ class Context:
     @property
     def task_type(self) -> TaskType:
         """Return task type based on calculated classes argument."""
-        if self.classes is None:
-            return TaskType.REGRESSION
-        elif len(self.classes) == 2:
-            return TaskType.BINARY
-        elif len(self.classes) > 2:
-            return TaskType.MULTICLASS
-        else:
-            raise DatasetValidationError('Found only one class in label column, pass the full list of possible '
-                                         'label classes via the label_classes argument in the Dataset initialization.')
+        return self._task_type
 
     @property
     def feature_importance(self) -> t.Optional[pd.Series]:
@@ -303,7 +299,8 @@ class Context:
                 permutation_kwargs = {'timeout': self._feature_importance_timeout}
                 dataset = self.test if self.have_test() else self.train
                 importance, importance_type = calculate_feature_importance_or_none(
-                    self._model, dataset, self._feature_importance_force_permutation, permutation_kwargs
+                    self._model, dataset, self.model_classes, self._observed_classes, self.task_type,
+                    self._feature_importance_force_permutation, permutation_kwargs
                 )
                 self._feature_importance = importance
                 self._importance_type = importance_type
@@ -359,7 +356,7 @@ class Context:
             A list of initialized & validated scorers.
         """
         scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
-        return init_validate_scorers(scorers, self.model, self.train, self.classes)
+        return init_validate_scorers(scorers, self.model, self.train, self.model_classes, self._observed_classes)
 
     def get_single_scorer(self,
                           scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
@@ -388,7 +385,8 @@ class Context:
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.classes)[0]
+        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.model_classes,
+                                     self._observed_classes)[0]
 
     def get_data_by_kind(self, kind: DatasetKind) -> Dataset:
         """Return the relevant Dataset by given kind."""

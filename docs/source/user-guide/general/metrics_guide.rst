@@ -76,7 +76,7 @@ Object detection:
 Running a Check with Default Metrics
 ____________________________________
 
-To run a check with the default metrics, run it without passing any value to the "scorer"
+To run a check with the default metrics, run it without passing any value to the "scorers"
 parameter. We will demonstrate it using the
 :doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>` check:
 
@@ -89,7 +89,7 @@ Alternative Metrics
 ===================
 Sometimes the defaults don't fit the specifics of the use case.
 If this is the case, you can pass a list of supported metric strings or a dict in the format
-{``metric_name_string``: ``metric``} as a parameter to the check.
+{``metric_name_string``: ``metric``} to the scorers parameter of the check or suite.
 
 The metrics in the dict can be some of the existing:
 
@@ -244,9 +244,15 @@ Custom Metrics
 ==============
 You can also pass your own custom metric to relevant checks and suites.
 
-Custom metrics should follow the
-`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API for computer vision or
-`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
+For computer vision the custom metrics should support the
+`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API.
+
+For tabular metrics the custom metrics should support the
+`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API.
+Multiclass classification scorers should assume that the labels are given in a
+`multi-label format <https://scikit-learn.org/stable/glossary.html#term-multilabel-indicator-matrices>`__ (a binary
+matrix). Binary classification scorers should assume that the labels are given as 0 and 1.
+
 
 Tabular Example
 _______________

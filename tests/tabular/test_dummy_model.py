@@ -119,8 +119,8 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               name='Kurtosis value is greater than -0.1',
-                               details='Found kurtosis value -0.92572',
+                               name='Kurtosis value higher than -0.1',
+                               details='Found kurtosis value of -0.92572',
                                category=ConditionCategory.WARN)
     ))
 

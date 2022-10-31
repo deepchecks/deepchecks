@@ -10,7 +10,7 @@
 #
 """Module containing the train test performance check."""
 from numbers import Number
-from typing import Callable, Dict, List, TypeVar, Union, cast
+from typing import Callable, Dict, List, Mapping, TypeVar, Union, cast
 
 import pandas as pd
 import plotly.express as px
@@ -38,9 +38,9 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
 
     Parameters
     ----------
-    scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
-        List of scorers to use. If None, use default scorers.
-        Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+    scorers: Union[Mapping[str, Union[str, Callable]], List[str]], default: None
+        Scorers to override the default scorers, find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     reduce: Union[Callable, str], default: 'mean'
         An optional argument only used for the reduce_output function when using
         per-class scorers.
@@ -85,7 +85,7 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
     """
 
     def __init__(self,
-                 scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
+                 scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
                  reduce: Union[Callable, str] = 'mean',
                  n_samples: int = 1_000_000,
                  random_state: int = 42,
@@ -107,15 +107,15 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         results = []
         for dataset_name, dataset in datasets.items():
             label = cast(pd.Series, dataset.label_col)
-            n_samples = label.groupby(label).count()
+            n_samples_per_class = label.groupby(label).count()
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
                 if isinstance(scorer_value, Number):
-                    results.append([dataset_name, None, scorer.name, scorer_value, len(label)])
+                    results.append([dataset_name, pd.NA, scorer.name, scorer_value, len(label)])
                 else:
                     results.extend(
-                        [[dataset_name, class_name, scorer.name, class_score, n_samples[class_name]]
-                            for class_score, class_name in zip(scorer_value, dataset.classes_in_label_col)])
+                        [[dataset_name, class_name, scorer.name, class_score, n_samples_per_class.get(class_name, 0)]
+                            for class_name, class_score in scorer_value.items()])
 
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 

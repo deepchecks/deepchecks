@@ -26,6 +26,7 @@ from deepchecks import tabular
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.utils.feature_importance import _calculate_feature_importance
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.plot import colors
 from deepchecks.utils.strings import format_number, format_percent
 
@@ -55,6 +56,9 @@ def model_error_contribution(train_dataset: pd.DataFrame,
                                      f'(r^2 score: {format_number(error_model_score)})')
     error_fi, _ = _calculate_feature_importance(error_model,
                                                 Dataset(test_dataset, test_scores, cat_features=categorical_features),
+                                                model_classes=None,
+                                                observed_classes=None,
+                                                task_type=TaskType.REGRESSION,
                                                 permutation_kwargs={'random_state': random_state,
                                                                     'skip_messages': True})
     error_fi.index = new_feature_order

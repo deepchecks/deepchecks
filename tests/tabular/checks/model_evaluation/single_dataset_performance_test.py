@@ -11,10 +11,11 @@
 """Contains unit tests for the single dataset performance report check."""
 from typing import List
 
-from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises, equal_to
+from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
+from tests.common import is_nan
 from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks import SingleDatasetPerformance
@@ -79,9 +80,9 @@ def test_classification_new_classes_at_test(iris_split_dataset_and_model):
     result = check.run(test, model).value
     # Assert
     assert_that(result.loc[3],
-                has_entries({'Class': 5, 'Metric': 'precision', 'Value': equal_to(0)}))
+                has_entries({'Class': 5, 'Metric': 'precision', 'Value': is_nan()}))
     assert_that(result.loc[7],
-                has_entries({'Class': 5, 'Metric': 'roc_auc', 'Value': equal_to(0.5)}))
+                has_entries({'Class': 5, 'Metric': 'roc_auc', 'Value': is_nan()}))
 
 
 def test_binary_classification_adult(adult_split_dataset_and_model):

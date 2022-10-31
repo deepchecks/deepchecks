@@ -72,7 +72,7 @@ def test_classification_random_custom_metric(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
     check = SimpleModelComparison(strategy='stratified',
-                                  alternative_scorers={'recall': make_scorer(recall_score, average=None)})
+                                  scorers={'recall': make_scorer(recall_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf)
     # Assert
@@ -84,7 +84,7 @@ def test_classification_random_custom_metric_without_display(iris_split_dataset_
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
     check = SimpleModelComparison(strategy='stratified',
-                                  alternative_scorers={'recall': make_scorer(recall_score, average=None)})
+                                  scorers={'recall': make_scorer(recall_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf, with_display=False)
     # Assert
@@ -251,8 +251,8 @@ def test_classification_tree_custom_metric(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
     check = SimpleModelComparison(strategy='tree',
-                                  alternative_scorers={'recall': make_scorer(recall_score, average=None),
-                                                       'f1': make_scorer(f1_score, average=None)})
+                                  scorers={'recall': make_scorer(recall_score, average=None),
+                                           'f1': make_scorer(f1_score, average=None)})
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
@@ -307,7 +307,6 @@ def assert_regression(result):
         'Origin': close_to(-100, 100), 'Simple': close_to(-100, 100)
     })))
     assert_that(result['scorers_perfect'], has_entry(metric, is_(0)))
-    assert_that(result['classes'], is_(None))
 
 
 def assert_classification(result, classes, metrics=None):
@@ -315,8 +314,7 @@ def assert_classification(result, classes, metrics=None):
         default_scorers = get_default_scorers(TaskType.MULTICLASS, class_avg=False)
         metrics = [next(iter(default_scorers))]
     class_matchers = {clas: has_entries({'Origin': close_to(1, 1), 'Simple': close_to(1, 1)})
-                      for clas in result['classes']}
+                      for clas in classes}
     matchers = {metric: has_entries(class_matchers) for metric in metrics}
     assert_that(result['scores'], has_entries(matchers))
     assert_that(result['scorers_perfect'], has_entries({metric: is_(1) for metric in metrics}))
-    assert_that(result['classes'], classes)
