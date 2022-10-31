@@ -40,32 +40,33 @@ else
     DIR="${REF::-2}"
 fi
 
-MSG="Pushing the docs to $DIR/ for branch: $REF, commit $GITHUB_SHA"
+OUTPUT_DIR=testing/$DIR
+MSG="Pushing the docs to $OUTPUT_DIR/ for branch: $REF, commit $GITHUB_SHA"
 
 # check if it's a new branch
-echo $DIR > .git/info/sparse-checkout
-if ! git show HEAD:$DIR >/dev/null
+echo $OUTPUT_DIR > .git/info/sparse-checkout
+if ! git show HEAD:$OUTPUT_DIR >/dev/null
 then
 	# directory does not exist. Need to make it so sparse checkout works
-	mkdir $DIR
-	touch $DIR/index.html
-	git add $DIR
+	mkdir -p $OUTPUT_DIR
+	touch $OUTPUT_DIR/index.html
+	git add $OUTPUT_DIR
 fi
 git checkout main
 git reset --hard origin/main
-if [ -d $DIR ]
+if [ -d $OUTPUT_DIR ]
 then
-	git rm -rf $DIR/ && rm -rf $DIR/
+	git rm -rf $OUTPUT_DIR/ && rm -rf $OUTPUT_DIR/
 fi
 
-cp -R $GITHUB_WORKSPACE/docs $DIR
+cp -R $GITHUB_WORKSPACE/docs $OUTPUT_DIR
 
 git config user.email "itay+deepchecks-ci@deepchecks.com"
 git config user.name "deepchecks-ci"
 git config push.default matching
 
-git add -f $DIR/
-git commit -m "$MSG" $DIR
+git add -f $OUTPUT_DIR/
+git commit -m "$MSG" $OUTPUT_DIR
 git push
 
 echo $MSG
