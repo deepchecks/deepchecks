@@ -238,7 +238,6 @@ def test_raise_zero_timeout(drifted_data):
         calling(check.run).with_args(params),
         raises(
             DeepchecksNotImplementedError,
-            "Timeout of 0 is not supported as feature importance is needed. Try setting timeout to None for unlimited time.",
         ),
     )
 
