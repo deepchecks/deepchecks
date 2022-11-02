@@ -122,8 +122,7 @@ class MultivariateDrift(TrainTestCheck):
             show_categories_by=self.show_categories_by,
             min_meaningful_drift_score=self.min_meaningful_drift_score,
             with_display=context.with_display,
-            dataset_names=(train_dataset.name, test_dataset.name),
-            feature_importance_timeout=context.feature_importance_timeout,
+            dataset_names=(train_dataset.name, test_dataset.name)
         )
 
         if displays:
