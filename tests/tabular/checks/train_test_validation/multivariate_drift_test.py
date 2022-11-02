@@ -14,8 +14,8 @@ import string
 
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, greater_than, has_entries, has_length
-
+from hamcrest import assert_that, close_to, greater_than, has_entries, has_length, calling, raises
+from deepchecks.core.errors import DeepchecksNotImplementedError
 from deepchecks.tabular.checks import MultivariateDrift
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
@@ -169,3 +169,57 @@ def test_over_255_categories_in_column():
     # Assert
     # we only care that it runs
     assert_that(result.value['domain_classifier_auc'])
+
+
+def test_raise_zero_timeout(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+    check = MultivariateDrift()
+
+    # Act
+    params = {
+        "train_dataset": train_ds,
+        "test_dataset": test_ds,
+        "feature_importance_timeout": 0,
+    }
+    assert_that(
+        calling(check.run).with_args(params),
+        raises(
+            DeepchecksNotImplementedError,
+        ),
+    )
+
+
+def test_runs_with_Nonetimeout(drifted_data):
+
+    # Arrange
+    train_ds, test_ds = drifted_data
+    train_ds = Dataset(
+        train_ds.data.drop(columns=["numeric_with_drift", "categorical_with_drift"]),
+        label=train_ds.label_name,
+    )
+    test_ds = Dataset(
+        test_ds.data.drop(columns=["numeric_with_drift", "categorical_with_drift"]),
+        label=test_ds.label_name,
+    )
+    check = MultivariateDrift()
+
+    # Act
+    result = check.run(train_ds, test_ds, feature_importance_timeout=None)
+
+    # Assert
+    assert_that(
+        result.value,
+        has_entries(
+            {
+                "domain_classifier_auc": close_to(0.5, 0.03),
+                "domain_classifier_drift_score": close_to(0, 0.01),
+                "domain_classifier_feature_importance": has_entries(
+                    {
+                        "categorical_without_drift": close_to(0.81, 0.001),
+                        "numeric_without_drift": close_to(0.2, 0.02),
+                    }
+                ),
+            }
+        ),
+    )

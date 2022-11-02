@@ -311,6 +311,11 @@ class Context:
         return self._feature_importance
 
     @property
+    def feature_importance_timeout(self) -> t.Optional[int]:
+        """Return feature importance timeout."""
+        return self._feature_importance_timeout
+
+    @property
     def feature_importance_type(self) -> t.Optional[str]:
         """Return feature importance type if feature importance is available, else None."""
         # Calling first feature_importance, because _importance_type is assigned only after feature importance is
