@@ -355,8 +355,7 @@ def _calc_permutation_importance(
             )
     elif timeout == 0 and not skip_messages:
         raise errors.DeepchecksNotImplementedError(
-            "Timeout of 0 is not supported as feature importance is needed. "
-            "Try setting timeout to None for unlimited time."
+            "Timeout of 0 is not supported as feature importance is needed. Try setting timeout to None for unlimited time."
         )
     elif not skip_messages:
         get_logger().warning(
