@@ -51,7 +51,8 @@ __all__ = [
     'regression_scorers_lower_is_better_dict',
     'regression_scorers_higher_is_better_dict',
     'binary_scorers_dict',
-    'multiclass_scorers_dict'
+    'multiclass_scorers_dict',
+    'validate_proba'
 ]
 
 DEFAULT_BINARY_SCORERS = {
@@ -268,11 +269,7 @@ class DeepcheckScorer:
                                                       f'predict_proba functionalities within the model objects or pass '
                                                       f'pre calculated probabilities. {SUPPORTED_MODELS_DOCLINK}')
                 probabilities_per_class = self.user_model.predict_proba(data)
-                if probabilities_per_class.shape[1] != len(self.model_classes):
-                    raise errors.ModelValidationError(
-                        f'Model probabilities per class has {probabilities_per_class.shape[1]} '
-                        f'classes while known model classes has {len(self.model_classes)}. You can set the model\'s'
-                        f'classes manually using the model_classes argument in the run function.')
+                validate_proba(probabilities_per_classm, self.model_classes)
                 return probabilities_per_class
 
             @property
@@ -414,3 +411,12 @@ def _transform_to_multi_label_format(y: np.ndarray, classes):
         return y
     else:
         raise errors.DeepchecksValueError(f'got y with unworkable shape: {y.shape}. {SUPPORTED_MODELS_DOCLINK}')
+
+
+def validate_proba(probabilities: np.array, model_classes: t.List):
+    """Validate that the number of classes (columns) in probabilities matches the model_classes"""
+    if probabilities.shape[1] != len(model_classes):
+        raise errors.ModelValidationError(
+            f'Model probabilities per class has {probabilities.shape[1]} '
+            f'classes while known model classes has {len(model_classes)}. You can set the model\'s'
+            f'classes manually using the model_classes argument in the run function.')

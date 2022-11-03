@@ -106,7 +106,7 @@ def test_can_run_classification_no_proba_force_regression(iris_split_dataset_and
 def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes_split_dataset_and_model):
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
-    test = Dataset(test.data.copy(), label='target')
+    test = Dataset(test.data.copy(), label='target', label_type='regression')
     test._data[test.label_name] =300
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(test, None, clf)
 
@@ -220,3 +220,12 @@ def test_suite(diabetes_split_dataset_and_model):
     result = suite.run(**args)
     length = get_expected_results_length(suite, args)
     validate_suite_result(result, length)
+
+
+def test_predict_using_proba(iris_binary_string_split_dataset_and_model):
+    train, test, clf = iris_binary_string_split_dataset_and_model
+    _, _, y_proba_train, _ = _dummify_model(train, test, clf)
+
+    check = SingleDatasetPerformance(scorers=['f1_per_class'])
+
+    check.run(train, y_proba_train=y_proba_train)

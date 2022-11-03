@@ -20,6 +20,7 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
+from deepchecks.tabular.metric_utils.scorers import validate_proba
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
 from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
 from deepchecks.tabular.utils.task_type import TaskType
@@ -67,7 +68,8 @@ class _DummyModel:
                  train: t.Union[Dataset, None] = None,
                  y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
                  y_proba_train: t.Union[np.ndarray, None] = None,
-                 validate_data_on_predict: bool = True):
+                 validate_data_on_predict: bool = True,
+                 model_classes: t.Optional[t.List] = None):
 
         if train is not None and test is not None:
             # check if datasets have same indexes
@@ -88,7 +90,9 @@ class _DummyModel:
             if dataset is not None:
                 feature_df_list.append(dataset.features_columns)
                 if y_pred is None and y_proba is not None:
+                    validate_proba(y_proba, model_classes)
                     y_pred = np.argmax(y_proba, axis=-1)
+                    y_pred = np.array(model_classes)[y_pred]
                 if y_pred is not None:
                     if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
                         y_pred = y_pred[:, 0]
@@ -204,11 +208,6 @@ class Context:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
         self._calculated_importance = feature_importance is not None or model is None
-        if model is None and \
-                not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
-            model = _DummyModel(train=train, test=test,
-                                y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                                y_proba_test=y_proba_test, y_proba_train=y_proba_train)
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
@@ -224,6 +223,14 @@ class Context:
 
         self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
             model, train, test, model_classes)
+
+        if model is None and \
+                not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
+            model = _DummyModel(train=train, test=test,
+                                y_pred_train=y_pred_train, y_pred_test=y_pred_test,
+                                y_proba_test=y_proba_test, y_proba_train=y_proba_train,
+                                model_classes=self.model_classes)
+
         self._train = train
         self._test = test
         self._model = model
