@@ -336,12 +336,12 @@ test_data.validate_format(model, device=device)
 #%%
 # Running Deepchecks' full suite on our data and model!
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Now that we have defined the task class, we can validate the model with the full suite of deepchecks.
+# Now that we have defined the task class, we can validate the model with the model evaluation suite of deepchecks.
 # This can be done with this simple few lines of code:
 
-from deepchecks.vision.suites import full_suite
+from deepchecks.vision.suites import model_evaluation
 
-suite = full_suite()
+suite = model_evaluation()
 result = suite.run(training_data, test_data, model, device=device)
 
 #%%
