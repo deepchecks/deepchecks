@@ -94,7 +94,7 @@ If this is the case, you can pass a list of supported metric strings or a dict i
 The metrics in the dict can be some of the existing:
 
 *   Strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular.
-*   Deepchecks Metrics for vision.
+*   :py:mod:`Deepchecks Metrics <deepchecks.vision.metrics>` for vision.
     Metrics implemented by Deepchecks as classes that iterates over the batches of data and aggregates the results.
     You can import them from deepchecks.vision.metrics.
 *   `Ignite Metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
@@ -106,16 +106,14 @@ The metrics in the dict can be some of the existing:
 *  `Your own implementation <#custom-metrics>`__.
 
 
-Code Examples
--------------
-Passing strings:
+Example for passing strings:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
     :lines: 11-18
     :tab-width: 0
 
-Passing Deepchecks metrics:
+Example for passing Deepchecks metrics:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
