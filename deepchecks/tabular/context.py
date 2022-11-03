@@ -205,6 +205,10 @@ class Context:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
 
+        if model is not None:
+            # Here validate only type of model, later validating it can predict on the data if needed
+            model_type_validation(model)
+
         # Handle model_classes
         if model_classes and len(model_classes) == 0:
             raise DeepchecksValueError('Received empty model_classes')
@@ -243,9 +247,7 @@ class Context:
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train)
-        if model is not None:
-            # Here validate only type of model, later validating it can predict on the data if needed
-            model_type_validation(model)
+
         if feature_importance is not None and not isinstance(feature_importance, pd.Series):
             raise DeepchecksValueError('feature_importance must be a pandas Series')
 

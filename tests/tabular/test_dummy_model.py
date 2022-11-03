@@ -107,7 +107,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
     test = Dataset(test.data.copy(), label='target')
-    test._data[test.label_name] =300
+    test._data[test.label_name] = 300
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(test, None, clf)
 
     check = RegressionErrorDistribution().add_condition_kurtosis_greater_than()
