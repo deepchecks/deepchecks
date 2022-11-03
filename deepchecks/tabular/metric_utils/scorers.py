@@ -269,7 +269,7 @@ class DeepcheckScorer:
                                                       f'predict_proba functionalities within the model objects or pass '
                                                       f'pre calculated probabilities. {SUPPORTED_MODELS_DOCLINK}')
                 probabilities_per_class = self.user_model.predict_proba(data)
-                validate_proba(probabilities_per_classm, self.model_classes)
+                validate_proba(probabilities_per_class, self.model_classes)
                 return probabilities_per_class
 
             @property
@@ -414,7 +414,7 @@ def _transform_to_multi_label_format(y: np.ndarray, classes):
 
 
 def validate_proba(probabilities: np.array, model_classes: t.List):
-    """Validate that the number of classes (columns) in probabilities matches the model_classes"""
+    """Validate that the number of classes (columns) in probabilities matches the model_classes."""
     if probabilities.shape[1] != len(model_classes):
         raise errors.ModelValidationError(
             f'Model probabilities per class has {probabilities.shape[1]} '
