@@ -38,5 +38,16 @@ from deepchecks.vision.checks import SingleDatasetPerformance
 precision = Precision(average=True)
 double_precision = 2 * precision
 
-check = SingleDatasetPerformance({'precision2': double_precision})
+check = SingleDatasetPerformance(scorers={'precision2': double_precision})
 result = check.run(train_ds, mnist_model)
+
+# Deepchecks metric example
+from deepchecks.vision.metrics import MeanDice
+from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset, load_model
+
+coco_dataset = load_dataset()
+coco_model = load_model()
+metric = {'mean_dice': MeanDice()}
+
+check = SingleDatasetPerformance(scorers=metric)
+result = check.run(coco_dataset, coco_model)
