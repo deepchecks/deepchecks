@@ -12,6 +12,7 @@
 from typing import Dict, List, Tuple
 
 import numpy as np
+from cv2 import CV_64F, Laplacian
 from skimage.color import rgb2gray
 
 __all__ = ['default_image_properties',
@@ -61,6 +62,12 @@ def mean_green_relative_intensity(batch: List[np.ndarray]) -> List[float]:
 def mean_blue_relative_intensity(batch: List[np.ndarray]) -> List[float]:
     """Return the mean of the blue channel relative intensity."""
     return [x[2] for x in _rgb_relative_intensity_mean(batch)]
+
+
+def texture_level(batch: List[np.ndarray]) -> List[float]:
+    """Calculate the sharpness of each image in the batch."""
+    return [Laplacian(img, CV_64F).var() if _is_grayscale(img) else Laplacian(rgb2gray(img), CV_64F).var()
+            for img in batch]
 
 
 def _sizes(batch: List[np.ndarray]):
