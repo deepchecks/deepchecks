@@ -12,8 +12,8 @@
 from typing import Dict, List, Tuple
 
 import numpy as np
+from cv2 import CV_64F, Laplacian
 from skimage.color import rgb2gray
-from cv2 import Laplacian, CV_64F
 
 __all__ = ['default_image_properties',
            'aspect_ratio',
