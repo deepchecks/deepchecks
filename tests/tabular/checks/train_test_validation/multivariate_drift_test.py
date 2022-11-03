@@ -171,25 +171,6 @@ def test_over_255_categories_in_column():
     assert_that(result.value['domain_classifier_auc'])
 
 
-def test_raise_zero_timeout(drifted_data):
-    # Arrange
-    train_ds, test_ds = drifted_data
-    check = MultivariateDrift()
-
-    # Act
-    params = {
-        "train_dataset": train_ds,
-        "test_dataset": test_ds,
-        "feature_importance_timeout": 0,
-    }
-    assert_that(
-        calling(check.run).with_args(params),
-        raises(
-            DeepchecksNotImplementedError,
-        ),
-    )
-
-
 def test_runs_with_Nonetimeout(drifted_data):
 
     # Arrange
