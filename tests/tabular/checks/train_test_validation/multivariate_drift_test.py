@@ -14,7 +14,7 @@ import string
 
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, greater_than, has_entries, has_length, calling, raises
+from hamcrest import assert_that, close_to, greater_than, has_entries, has_length
 from deepchecks.tabular.checks import MultivariateDrift
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
