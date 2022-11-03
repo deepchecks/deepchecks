@@ -92,7 +92,8 @@ def calculate_feature_importance_or_none(
             errors.NumberOfFeaturesLimitError,
             errors.DeepchecksTimeoutError,
             errors.ModelValidationError,
-            errors.DatasetValidationError
+            errors.DatasetValidationError,
+            errors.DeepchecksSkippedFeatureImportance
     ) as error:
         # DeepchecksValueError:
         #     if model validation failed;
@@ -310,10 +311,8 @@ def _calc_permutation_importance(
             get_logger().info('Calculating permutation feature importance. Expected to finish in %s seconds',
                               predicted_time_to_run)
     elif timeout == 0 and not skip_messages:
-            raise errors.DeepchecksNotImplementedError(
-                "Timeout of 0 is not supported as feature importance is needed. "
-                "Try setting timeout to None for unlimited time."
-            )
+            raise errors.DeepchecksSkippedFeatureImportance(
+                "feature_importance_timeout set to 0. Skipping any feature importance calculation.")
     elif not skip_messages:
         get_logger().warning('Calculating permutation feature importance without time limit. Expected to finish in '
                              '%s seconds', predicted_time_to_run)

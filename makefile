@@ -28,7 +28,7 @@ WIN_TESTDIR := tests
 WIN_BIN := $(WIN_ENV)/bin
 
 # System Envs
-BIN := $(ENV)/bin
+BIN := '/opt/homebrew/Caskroom/miniforge/base/envs/deepchecks/bin/'
 pythonpath := PYTHONPATH=.
 OS := $(shell uname -s)
 
