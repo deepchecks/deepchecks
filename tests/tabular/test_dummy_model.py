@@ -220,3 +220,48 @@ def test_suite(diabetes_split_dataset_and_model):
     result = suite.run(**args)
     length = get_expected_results_length(suite, args)
     validate_suite_result(result, length)
+
+
+## Tests for proba and when only proba is provided
+
+def test_mismatched_proba_columns(iris_split_dataset_and_model):
+    train, test, iris_adaboost = iris_split_dataset_and_model
+    _, _, y_proba_train, y_proba_test = _dummify_model(train, test, iris_adaboost)
+
+    args = dict(train_dataset=train, test_dataset=test,
+                y_proba_train=y_proba_train, y_proba_test=y_proba_test[:, :-1])
+
+    suite = full_suite()
+    assert_that(
+        calling(suite.run)
+        .with_args(**args),
+        raises(
+            DeepchecksValueError,
+            r'y_proba_test with 2 columns does not match y_proba_train with 3 columns.')
+    )
+
+
+def test_not_enough_classes_supplied(iris_split_dataset_and_model):
+    train, test, iris_adaboost = iris_split_dataset_and_model
+    train = train.sample(1000)
+    train._data = train.data[train.label_col.isin((0, 1))]
+    test = test.sample(1000)
+    test._data = test.data[test.label_col.isin((0, 1))]
+    _, _, y_proba_train, y_proba_test = _dummify_model(train, test, iris_adaboost)
+
+    args = dict(train_dataset=train, test_dataset=test,
+                y_proba_train=y_proba_train, y_proba_test=y_proba_test)
+
+    suite = full_suite()
+    assert_that(
+        calling(suite.run)
+        .with_args(**args),
+        raises(
+            DeepchecksValueError,
+            'The number of columns in the predicted probability matrix does not match the number of observed'
+            ' classes in the data, and predictions were not passed so that inferring the existing classes is'
+            ' not possible. Please set the model_classes argument.*')
+    )
+
+    # Make sure it runs correctly when classes are passed
+    suite.run(**args, model_classes=[0, 1, 2])

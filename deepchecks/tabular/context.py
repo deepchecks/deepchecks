@@ -10,6 +10,7 @@
 #
 """Module for base tabular context."""
 import typing as t
+from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
@@ -203,6 +204,39 @@ class Context:
         if test and not train:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
+
+        # Handle model_classes
+        if model_classes and len(model_classes) == 0:
+            raise DeepchecksValueError('Received empty model_classes')
+        supported_models_link = doclink(
+            'supported-prediction-format',
+            template='For more information please refer to the Supported Models guide {link}')
+        if model_classes and sorted(model_classes) != model_classes:
+            raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
+
+        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
+            model, train, test, model_classes)
+
+        # Validate probas shape, and make sure we know about all classes if only probabilities have been passed
+        if y_proba_train is not None and not isinstance(y_proba_train, (Sequence, np.ndarray)):
+            raise ValueError('y_proba_train must be a matrix with n_samples rows and n_classes columns')
+        if y_proba_test is not None and not isinstance(y_proba_test, (Sequence, np.ndarray)):
+            raise ValueError('y_proba_test must be a matrix with n_samples rows and n_classes columns')
+        if y_proba_test is not None and np.array(y_proba_test).shape[1] != np.array(y_proba_train).shape[1]:
+            raise DeepchecksValueError(
+                f'y_proba_test with {len(y_proba_test[0])} columns does not match y_proba_train with'
+                f' {len(y_proba_train[0])} columns.'
+            )
+        proba_shape = len(y_proba_train[0]) if y_proba_train is not None else None
+        if (y_proba_test is not None or y_proba_train is not None) and y_pred_train is None and y_pred_test is None:
+            if self._model_classes is None and len(self._observed_classes) != proba_shape:
+                raise DeepchecksValueError(
+                    f'The number of columns in the predicted probability matrix does not match the number of observed'
+                    f' classes in the data, and predictions were not passed so that inferring the existing classes is'
+                    f' not possible. Please set the model_classes argument. {supported_models_link}'
+                )
+
+        # Hande feature importance and model, set dummy model if pre-calculated predictions are passed.
         self._calculated_importance = feature_importance is not None or model is None
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
@@ -214,16 +248,7 @@ class Context:
             model_type_validation(model)
         if feature_importance is not None and not isinstance(feature_importance, pd.Series):
             raise DeepchecksValueError('feature_importance must be a pandas Series')
-        if model_classes and len(model_classes) == 0:
-            raise DeepchecksValueError('Received empty model_classes')
-        if model_classes and sorted(model_classes) != model_classes:
-            supported_models_link = doclink(
-                'supported-prediction-format',
-                template='For more information please refer to the Supported Models guide {link}')
-            raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
-        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
-            model, train, test, model_classes)
         self._train = train
         self._test = test
         self._model = model
