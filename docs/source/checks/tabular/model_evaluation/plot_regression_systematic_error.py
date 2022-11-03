@@ -6,6 +6,9 @@ Regression Systematic Error
 ***************************
 This notebook provides an overview for using and understanding the Regression Systematic Error check.
 
+**This check is deprecated and will be removed in future versions**, please use the :doc:`Regression Error Distribution
+</checks_gallery/tabular/model_evaluation/plot_regression_error_distribution>` check instead.
+
 **Structure:**
 
 * `What is the the Regression Systematic Error check? <#what-is-the-regression-systematic-error-check>`__

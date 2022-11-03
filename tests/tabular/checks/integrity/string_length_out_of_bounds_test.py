@@ -107,7 +107,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = StringLengthOutOfBounds(n_top_columns=3)
     # Act
-    result_ds = check.run(train, clf).display[1]
+    result_ds = check.run(train).display[1]
     # Assert
     assert_that(result_ds, has_length(3))
 

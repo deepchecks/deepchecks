@@ -79,7 +79,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
                 else:
                     results.extend(
                         [[class_name, scorer.name, class_score]
-                         for class_score, class_name in zip(scorer_value, context.classes)])
+                         for class_name, class_score in scorer_value.items()])
             results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
 
             if context.with_display:

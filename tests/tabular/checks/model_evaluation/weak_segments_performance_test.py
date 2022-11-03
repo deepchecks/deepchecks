@@ -109,8 +109,7 @@ def test_classes_do_not_match_proba(kiss_dataset_and_model):
     check = WeakSegmentsPerformance()
 
     # Act & Assert
-    assert_that(calling(check.run).with_args(val, model),
+    assert_that(calling(check.run).with_args(val, model, model_classes=[1, 2, 3, 4, 5, 6, 7]),
                 raises(DeepchecksValueError,
-                       r'Predicted probabilities shape \(2, 3\) does not match the number of classes found in'
-                       r' the labels \[1, 2, 3, 5\].')
-                )
+                       r'Predicted probabilities shape \(2, 3\) does not match the number of classes found in the '
+                       r'labels \[1, 2, 3, 4, 5, 6, 7\]\.'))

@@ -726,44 +726,6 @@ def test_label_is_numpy_array(iris):
     assert_that(dataset.data.columns, contains_exactly(*data.columns, 'target'))
 
 
-def test_classes(iris):
-    # Arrange
-    label = np.ones(len(iris))
-    data = iris.drop('target', axis=1)
-    # Act
-    dataset = Dataset(data, label, label_classes=[0, 1, 2])
-    # Assert
-    assert_that(dataset._label_classes, equal_to([0, 1, 2]))
-
-
-def test_classes_string(iris):
-    # Arrange
-    label = np.ones(len(iris)).astype(str)
-    data = iris.drop('target', axis=1)
-    # Act
-    dataset = Dataset(data, label, label_classes=['0.0', '1.0', '2.0'])
-    # Assert
-    assert_that(dataset._label_classes, equal_to(['0.0', '1.0', '2.0']))
-
-
-def test_classes_bad_input(iris):
-    # Arrange
-    label = np.ones(len(iris))
-    data = iris.drop('target', axis=1)
-    # Act
-    assert_that(calling(Dataset).with_args(data, label=label, label_classes=[0, [1], 2]),
-                raises(DeepchecksValueError, 'label_classes must be a flat list of unique values.'))
-
-
-def test_classes_incomplete_input(iris):
-    # Arrange
-    label = np.ones(len(iris))
-    data = iris.drop('target', axis=1)
-    # Act
-    assert_that(calling(Dataset).with_args(data, label=label, label_classes=[0, 2]),
-                raises(DeepchecksValueError, 'label_classes does not contain all labels found in label column.'))
-
-
 def test_label_is_numpy_column(iris):
     # Arrange
     label = np.ones((len(iris), 1))

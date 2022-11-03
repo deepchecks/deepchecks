@@ -140,9 +140,9 @@ def widget_to_html(
 
     snippet = snippet_template.format(
         load='',  # will be added below
-        json_data=escape_script(json.dumps(data['manager_state'])),
+        json_data=escape_script(json.dumps(data['manager_state'], default=json_encoder)),
         widget_views='\n'.join(
-            widget_view_template.format(view_spec=escape_script(json.dumps(view_spec)))
+            widget_view_template.format(view_spec=escape_script(json.dumps(view_spec, default=json_encoder)))
             for view_spec in data['view_specs']
         )
     )
@@ -659,3 +659,9 @@ def create_new_file_name(file_name: str, default_suffix: str = 'html'):
     while os.path.exists(file_name):
         file_name = f'{basename} ({str(next(c))}).{ext}'
     return file_name
+
+
+def json_encoder(obj):
+    """Handle numpy objects for json dumps."""
+    if isinstance(obj, (np.generic, np.ndarray)):
+        return obj.item()
