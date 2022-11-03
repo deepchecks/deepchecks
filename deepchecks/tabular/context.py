@@ -217,7 +217,7 @@ class Context:
         self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
             model, train, test, model_classes)
 
-        # Validate probas shape, and make sure we know about all classes if only probabilities have been passed
+        # Validate proba shape, and make sure we know about all classes if only probabilities have been passed
         if y_proba_train is not None and not isinstance(y_proba_train, (Sequence, np.ndarray)):
             raise ValueError('y_proba_train must be a matrix with n_samples rows and n_classes columns')
         if y_proba_test is not None and not isinstance(y_proba_test, (Sequence, np.ndarray)):
@@ -236,7 +236,7 @@ class Context:
                     f' not possible. Please set the model_classes argument. {supported_models_link}'
                 )
 
-        # Hande feature importance and model, set dummy model if pre-calculated predictions are passed.
+        # Handle feature importance and model, set dummy model if pre-calculated predictions are passed.
         self._calculated_importance = feature_importance is not None or model is None
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
