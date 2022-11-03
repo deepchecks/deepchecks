@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import pandas as pd
-from hamcrest import assert_that, calling, has_items, raises
+from hamcrest import assert_that, calling, has_items, raises, close_to
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
@@ -224,8 +224,11 @@ def test_suite(diabetes_split_dataset_and_model):
 
 def test_predict_using_proba(iris_binary_string_split_dataset_and_model):
     train, test, clf = iris_binary_string_split_dataset_and_model
-    _, _, y_proba_train, _ = _dummify_model(train, test, clf)
+    y_pred_train, _, y_proba_train, _ = _dummify_model(train, test, clf)
 
     check = SingleDatasetPerformance(scorers=['f1_per_class'])
 
-    check.run(train, y_proba_train=y_proba_train)
+    proba_result = check.run(train, y_proba_train=y_proba_train)
+    pred_result = check.run(train, y_pred_train=y_pred_train)
+
+    assert_that(proba_result.value.iloc[0, -1], close_to(pred_result.value.iloc[0, -1], 0.001))
