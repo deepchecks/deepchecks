@@ -205,7 +205,7 @@ and/or validate your model and evaluate it.
 
 
 See more about typical usage scenarios and the built-in suites in the [docs](
-   https://docs.deepchecks.com/stable/getting-started/welcome.html?utm_source=github.com&utm_medium=referral&utm_campaign=readmeutm_content=what_do_you_need_in_order_to_start_validating#when-should-you-use-deepchecks).
+   https://docs.deepchecks.com/stable/getting-started/welcome.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=what_do_you_need_in_order_to_start_validating#when-should-you-use-deepchecks).
 
 
 ## 🗝️ Key Concepts
@@ -216,9 +216,10 @@ Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
-- Model Error Analysis
-- Label Ambiguity
-- Data Sample Leakage 
+- Weak Segments Performance
+- Train Test Feature Drift
+- Date Train Test Leakage Overlap
+- Conflicting Labels 
 
 and [many more
 checks](https://docs.deepchecks.com/stable/checks_gallery/tabular.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
