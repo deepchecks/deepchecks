@@ -16,6 +16,7 @@ from cv2 import CV_64F, Laplacian
 from skimage.color import rgb2gray
 
 __all__ = ['default_image_properties',
+           'calc_default_image_properties',
            'aspect_ratio',
            'area',
            'brightness',
@@ -147,7 +148,7 @@ def sample_pixels(image: np.ndarray, n_pixels: int):
     return sampled_image
 
 
-def calc_default_image_properties(batch: List[np.ndarray], sample_n_pixels: int = 10000) -> Dict:
+def calc_default_image_properties(batch: List[np.ndarray], sample_n_pixels: int = 10000) -> Dict[str, list]:
     """Speed up the calculation for the default image properties by sharing common actions."""
     results_dict = {}
     sizes_array = _sizes_array(batch)
