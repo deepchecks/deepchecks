@@ -94,12 +94,13 @@ If this is the case, you can pass a list of supported metric strings or a dict i
 The metrics in the dict can be some of the existing:
 
 *   Strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular.
-*   :py:mod:`Deepchecks Metrics <deepchecks.vision.metrics>` for vision.
-    Metrics implemented by Deepchecks as classes that iterates over the batches of data and aggregates the results.
-    You can import them from deepchecks.vision.metrics.
 *   `Ignite Metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
     An Ignite Metric is a class with the methods: reset, compute, and update, that iterates over batches of data and
     aggregates the result.
+*   :py:mod:`Deepchecks Metrics <deepchecks.vision.metrics>` for vision Metrics implemented by Deepchecks as
+    custom Ignite Metrics. Using customized Deepchecks Metrics, such as the object detection metric
+    ``MeanIoU``, is useful for example when defining custom confidence or IoU thresholds is needed.
+    You can import them from ``deepchecks.vision.metrics``.
 *   `Scikit-learn Scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
     A Scikit-learn Scorer is a function that accepts the parameters: (model, x, y_true), and returns a score with the
     convention that higher is better.
@@ -117,7 +118,7 @@ Example for passing Deepchecks metrics:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 48-53
+    :lines: 45-53
     :tab-width: 0
 
 

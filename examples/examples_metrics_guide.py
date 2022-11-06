@@ -47,7 +47,7 @@ from deepchecks.vision.datasets.segmentation.segmentation_coco import load_datas
 
 coco_dataset = load_dataset()
 coco_model = load_model()
-metric = {'mean_dice': MeanDice()}
+metric = {'mean_dice': MeanDice(threshold=0.9)}
 
 check = SingleDatasetPerformance(scorers=metric)
 result = check.run(coco_dataset, coco_model)
