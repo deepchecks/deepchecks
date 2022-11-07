@@ -42,7 +42,6 @@ def load_dataset_test(mock_download_and_extract_archive):
         assert_that(loader, instance_of(DataLoader))
 
 
-
 def test_deepchecks_dataset_load():
     loader = load_dataset(time_index=0, object_type='VisionData')
     assert_that(loader, instance_of(vision.VisionData))

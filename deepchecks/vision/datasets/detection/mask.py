@@ -8,7 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for loading the mask detection dataset and its pre-calculated predictions."""
+"""Module for loading the mask detection dataset and its pre-calculated predictions.
+
+    The mask dataset is a dataset of various images with people wearing masks, people not wearing masks and people
+    wearing masks incorrectly. The dataset is used for object detection, and was downloaded from
+    https://www.kaggle.com/datasets/andrewmvd/face-mask-detection, licenced under CC0.
+"""
 import contextlib
 import hashlib
 import json
@@ -52,9 +57,9 @@ class MaskPrecalculatedModel(nn.Module):
 
         self._device = device
 
-    def forward(self, batch):
+    def forward(self, images: t.Sequence[torch.Tensor]) -> t.Sequence[torch.Tensor]:
         image_hashes = [self._hash_image((img.cpu().numpy() if isinstance(img, torch.Tensor) else img))
-                        for img in batch[0]]
+                        for img in images]
         return [torch.tensor(self._pred_dict[image_hash]).to(self._device) for image_hash in image_hashes]
 
     @staticmethod
@@ -89,7 +94,7 @@ class MaskData(DetectionData):
 
     def infer_on_batch(self, batch, model, device: t.Union[str, torch.device] = 'cpu') -> List[torch.Tensor]:
         """Infer on a batch using the given model."""
-        return model(batch)
+        return model(batch[0])
 
 
 def _batch_collate(batch):
@@ -105,10 +110,6 @@ def load_dataset(
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
 ) -> t.Union[DataLoader, vision.VisionData]:
     """Get the mask dataset and return a dataloader.
-
-    The mask dataset is a dataset of various images with people wearing masks, people not wearing masks and people
-    wearing masks incorrectly. The dataset is used for object detection, and was downloaded from
-    https://www.kaggle.com/datasets/andrewmvd/face-mask-detection, licenced under CC0.
 
     Parameters
     ----------
