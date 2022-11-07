@@ -238,7 +238,7 @@ class MaskDataset(VisionDataset):
             boxes = torch.as_tensor(boxes, dtype=torch.float32)
             # Labels (In my case, I only one class: target class or background)
             labels = torch.as_tensor(labels, dtype=torch.int64)
-            # Tensor-ise img_id
+            # img_id to Tensor
             img_id = torch.tensor([image_id])
             # Annotation is in dictionary format
             target = {'boxes': boxes, 'labels': labels, 'image_id': img_id}
