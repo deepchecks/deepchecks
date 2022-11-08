@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module of weak segments performance check."""
+from collections import defaultdict
+
 import pandas as pd
 from typing import Dict, Callable, List, Any, Union, Optional
 from deepchecks.vision import Context, SingleDatasetCheck, Batch
@@ -50,8 +52,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self.n_to_show = n_to_show
-
-        self._state = None
+        self._properties_results = None
+        self._sample_scores = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         task_type = context.get_data_by_kind(dataset_kind).task_type
@@ -64,12 +66,22 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
                 self.scorer = per_sample_mean_iou
             else:
                 raise DeepchecksValueError(f'Default scorer is not defined for task type {task_type}.')
+        self._properties_results = defaultdict(list)
+        self._sample_scores = []
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate the image properties and scores per image."""
+        properties_results = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
+        for prop_name, prop_value in properties_results.items():
+            self._properties_results[prop_name].extend(prop_value)
+
         predictions = [tens.detach() for tens in batch.predictions]
         labels = [tens.detach() for tens in batch.labels]
-        properties_results = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
+        self._sample_scores.extend(self.scorer(predictions, labels))
 
-        scores_per_sample = self.scorer(predictions, labels)
+    def compute(self, context: Context) -> CheckResult:
+        """Find the segments with the worst performance."""
+        results_dict = self._properties_results
+        results_dict['score'] = self._sample_scores
+        results_df = pd.DataFrame(results_dict)
 
