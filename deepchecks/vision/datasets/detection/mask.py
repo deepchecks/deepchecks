@@ -10,9 +10,9 @@
 #
 """Module for loading the mask detection dataset and its pre-calculated predictions.
 
-    The mask dataset is a dataset of various images with people wearing masks, people not wearing masks and people
-    wearing masks incorrectly. The dataset is used for object detection, and was downloaded from
-    https://www.kaggle.com/datasets/andrewmvd/face-mask-detection, licenced under CC0.
+The mask dataset is a dataset of various images with people wearing masks, people not wearing masks and people
+wearing masks incorrectly. The dataset is used for object detection, and was downloaded from
+https://www.kaggle.com/datasets/andrewmvd/face-mask-detection, licenced under CC0.
 """
 import contextlib
 import hashlib
@@ -38,7 +38,7 @@ from deepchecks import vision
 from deepchecks.vision import DetectionData
 from deepchecks.vision.vision_data import IndicesSequentialSampler
 
-__all__ = ['load_dataset', 'load_model', 'MaskData', 'MaskDataset']
+__all__ = ['load_dataset', 'load_model', 'MaskData', 'MaskDataset', 'get_data_timestamps']
 
 
 DATA_DIR = Path(__file__).absolute().parent
@@ -286,6 +286,17 @@ class MaskDataset(VisionDataset):
 
         with open(time_to_sample_dict_path, 'r', encoding='utf8') as f:
             return json.load(f)
+
+
+def get_data_timestamps() -> t.List[int]:
+    """Get a list of the data timestamps.
+
+    Returns
+    -------
+    t.List[int]
+        A list of the data timestamps.
+    """
+    return list(map(int, MaskDataset.get_time_to_sample_dict(DATA_DIR).keys()))
 
 
 LABEL_MAP = {2: 'Improperly Worn Mask',
