@@ -10,10 +10,16 @@
 #
 """Module of weak segments performance check."""
 from typing import Dict, Callable, List, Any, Union, Optional
-from deepchecks.vision import Context, SingleDatasetCheck
+from deepchecks.vision import Context, SingleDatasetCheck, Batch
+from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from ignite.metrics import Metric
 
+from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
+from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
+from deepchecks.core.errors import DeepchecksValueError
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck):
@@ -30,7 +36,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
 
     def __init__(
         self,
-        scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
+        scorer: Optional[Callable] = None,
         image_properties: List[Dict[str, Any]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
@@ -39,10 +45,28 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
     ):
         super().__init__(**kwargs)
         self.image_properties = image_properties if image_properties else default_image_properties
-        self.scorers = scorers
+        self.scorer = scorer
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self.n_to_show = n_to_show
 
         self._state = None
-        
+
+    def initialize_run(self, context: Context, dataset_kind: DatasetKind):
+        task_type = context.get_data_by_kind(dataset_kind).task_type
+        if self.scorer is None:
+            if task_type == TaskType.CLASSIFICATION:
+                def scoring_func(predictions, labels):
+                    return per_sample_cross_entropy(labels, predictions)
+                self.scorer = scoring_func
+            elif task_type == TaskType.OBJECT_DETECTION:
+                self.scorer = per_sample_mean_iou
+            else:
+                raise DeepchecksValueError(f'Default scorer is not defined for task type {task_type}.')
+
+    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+        """Calculate the image properties and scores per image."""
+        predictions = [tens.detach() for tens in batch.predictions]
+        labels = [tens.detach() for tens in batch.labels]
+        properties_results = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
+
