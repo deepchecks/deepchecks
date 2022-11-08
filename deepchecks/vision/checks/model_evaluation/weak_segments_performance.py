@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of weak segments performance check."""
+import pandas as pd
 from typing import Dict, Callable, List, Any, Union, Optional
 from deepchecks.vision import Context, SingleDatasetCheck, Batch
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
@@ -69,4 +70,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck):
         predictions = [tens.detach() for tens in batch.predictions]
         labels = [tens.detach() for tens in batch.labels]
         properties_results = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
+
+        scores_per_sample = self.scorer(predictions, labels)
 
