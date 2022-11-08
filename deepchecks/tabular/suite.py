@@ -10,7 +10,7 @@
 #
 """Module for base tabular abstractions."""
 # pylint: disable=broad-except
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -51,7 +51,8 @@ class Suite(BaseSuite):
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
-        run_single_dataset: Optional[str] = None
+        run_single_dataset: Optional[str] = None,
+        model_classes: Optional[List] = None
     ) -> SuiteResult:
         """Run all checks.
 
@@ -84,6 +85,7 @@ class Suite(BaseSuite):
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
+            model_classes=model_classes
         )
 
         progress_bar = create_progress_bar(

@@ -41,7 +41,7 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-29-orange.svg?style=flat-round)](https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
+[![All Contributors](https://img.shields.io/badge/all_contributors-30-orange.svg?style=flat-round)](https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 
@@ -205,7 +205,7 @@ and/or validate your model and evaluate it.
 
 
 See more about typical usage scenarios and the built-in suites in the [docs](
-   https://docs.deepchecks.com/stable/getting-started/welcome.html?utm_source=github.com&utm_medium=referral&utm_campaign=readmeutm_content=what_do_you_need_in_order_to_start_validating#when-should-you-use-deepchecks).
+   https://docs.deepchecks.com/stable/getting-started/welcome.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=what_do_you_need_in_order_to_start_validating#when-should-you-use-deepchecks).
 
 
 ## 🗝️ Key Concepts
@@ -216,9 +216,10 @@ Each check enables you to inspect a specific aspect of your data and
 models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
-- Model Error Analysis
-- Label Ambiguity
-- Data Sample Leakage 
+- Weak Segments Performance
+- Train Test Feature Drift
+- Date Train Test Leakage Overlap
+- Conflicting Labels 
 
 and [many more
 checks](https://docs.deepchecks.com/stable/checks_gallery/tabular.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
@@ -362,6 +363,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
     </tr>
     <tr>
       <td align="center"><a href="https://github.com/jhwohlgemuth"><img src="https://avatars.githubusercontent.com/u/6383605?v=4?s=100" width="100px;" alt="Jason Wohlgemuth"/><br /><sub><b>Jason Wohlgemuth</b></sub></a><br /><a href="#doc-jhwohlgemuth" title="Documentation">📖</a></td>
+      <td align="center"><a href="http://lokin.dev"><img src="https://avatars.githubusercontent.com/u/34796341?v=4?s=100" width="100px;" alt="Lokin Sethia"/><br /><sub><b>Lokin Sethia</b></sub></a><br /><a href="#code-alphabetagamer" title="Code">💻</a> <a href="#bug-alphabetagamer" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
