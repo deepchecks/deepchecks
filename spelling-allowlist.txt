@@ -116,3 +116,8 @@ rstrip
 VOC
 jaccard
 catboost
+xmin
+xmax
+ymin
+ymax
+img
