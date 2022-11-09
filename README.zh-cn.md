@@ -101,7 +101,7 @@ conda install -c conda-forge deepchecks
    https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/plot_quick_train_test_validation.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme_cn&utm_content=try_it_out)
 - [数据完整性快速入门](
    https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/plot_quick_data_integrity.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme_cn&utm_content=try_it_out)
-- [完整套件（多项检查）快速入门](
+- [模型评估快速入门](
    https://docs.deepchecks.com/en/stable/user-guide/tabular/auto_quickstarts/plot_quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme_cn&utm_content=try_it_out)
 
 > **推荐 - 下载代码并** 在内置数据集和（可选）模型中本地运行，或 **将其替换为您自己的内容**。
@@ -141,13 +141,11 @@ result.save_as_html() # 将此替换为result.show() or result.show_in_window()�
 
 注：
 
-TODO
+- 结果可以多种方式[显示](https://docs.deepchecks.com/stable/user-guide/general/showing_results.html), [导出](https://docs.deepchecks.com/stable/user-guide/general/export_save_results.html)到 html 报告，保存为 JSON，或与其他工具（例如 wandb）集成。
+- 仅在数据 (``data_integrity``, ``train_test_validation``) 中运行的其它套件，无需将模型作为输入的一部分。
 
-- Results can be [displayed](https://docs.deepchecks.com/stable/user-guide/general/showing_results.html) in various manners, or [exported](https://docs.deepchecks.com/stable/user-guide/general/export_save_results.html) to an html report, saved as JSON, or integrated with other tools (e.g. wandb).
-- •	仅在数据 (``data_integrity``, ``train_test_validation``) 中运行的其它套件，无需将模型作为输入的一部分。
-
-在此查看 [完整代码教程]。(
-   https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme_cn&utm_content=try_it_out).
+在此查看 [完整代码教程](
+   https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme_cn&utm_content=try_it_out)。
 
 
 在以下部分，您可看到一个示例，说明没有条件的单项检查的输出看上去会怎样。
