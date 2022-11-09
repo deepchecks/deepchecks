@@ -49,6 +49,10 @@ Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch
    Tests for Continuous Validation of ML Models & Data
 </h1>
 
+ <div align="center">
+   
+   English | [简体中文](./README.zh-cn.md)
+</div>
 
 <p align="center">
    <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=checks_and_conditions_img">
