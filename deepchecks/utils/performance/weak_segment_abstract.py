@@ -32,7 +32,13 @@ class WeakSegmentAbstract():
     def __init__(self,
                  n_top_features: int = 5,
                  n_to_show: int = 3,
-):
+                 categorical_aggregation_threshold: float = 0.05,
+                 segment_minimum_size_ratio: float = 0.05,
+                 ):
+        self.n_top_features = n_top_features
+        self.n_to_show = n_to_show
+        self.categorical_aggregation_threshold = categorical_aggregation_threshold
+        self.segment_minimum_size_ratio = segment_minimum_size_ratio
 
     def _target_encode_categorical_features_fill_na(self, dataset: Dataset,
                                                     possible_classes: Optional[List]) -> Dataset:
