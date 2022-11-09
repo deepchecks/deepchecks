@@ -198,11 +198,11 @@ TrainTestFeatureDrift().run(train_df, test_df)
 ### 检查
 
 每项检查均可使您能够检查数据和模型的某个特定方面。它们是deepchecks包的基本构件，涵盖各种常见问题，例如：
-
-TODO change this here and in english...
-- Model Error Analysis
-- Label Ambiguity
-- Data Sample Leakage 
+ 
+- Weak Segments Performance
+- Train Test Feature Drift
+- Date Train Test Leakage Overlap
+- Conflicting Labels
 
 以及 [多项其它检查](https://docs.deepchecks.com/stable/checks_gallery/tabular.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme_cn&utm_content=key_concepts__check)。
 
