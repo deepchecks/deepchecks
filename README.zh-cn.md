@@ -253,10 +253,10 @@ BoostingOverfit().add_condition_test_score_percent_decline_not_greater_than(thre
 
 根据您所处的阶段以及您希望验证的内容，您将需要以下内容的子集：
 
--  原始数据（预处理之前，例如OHE、字符串处理等），附有可选标签
+-  原始数据（预处理之前，例如OHE，字符串处理等），附有可选标签
 -  模型训练数据，附有标签
 -  测试数据（模型未触及），附有标签
--  [受支持的模型](https://docs.deepchecks.com/stable/user-guide/supported_models.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme_cn&utm_content=running_a_suite) (例如scikit-learn模型、XGBoost、任何以所需格式实现预测方法的模型）
+-  [受支持的模型](https://docs.deepchecks.com/stable/user-guide/supported_models.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme_cn&utm_content=running_a_suite) (例如scikit-learn模型，XGBoost，任何以所需格式实现预测方法的模型）
 
 
 ### 受支持的数据类型
@@ -272,5 +272,5 @@ deepchecks包目前支持表格数据，现为  *beta版本*，用于 [计算机
 
 ## 👭 社区
 
--   加入我们的 [Slack社区](https://www.deepchecks.com/slack)，与维护人员建立联系，关注用户和有趣的讨论
--   发布 [Github问题](https://github.com/deepchecks/deepchecks/issues)，以提出改进建议、引出问题或分享反馈。
+-   加入我们的 [Slack社区](https://www.deepchecks.com/slack），与维护人员建立联系，关注用户和有趣的讨论
+-   发布 [Github问题](https://github.com/deepchecks/deepchecks/issues），以提出改进建议，引出问题或分享反馈。
