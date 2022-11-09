@@ -12,9 +12,11 @@
 import typing as t
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import plotly.express as px
 from hamcrest import all_of, any_of, contains_exactly, contains_string, equal_to, has_property, instance_of
+from hamcrest.core.base_matcher import BaseMatcher
 from plotly.graph_objects import Histogram
 
 from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
@@ -162,3 +164,14 @@ def assert_class_performance_display(
         )
         for index, (dataset, metric) in enumerate(pairs)
     ])
+
+class IsNan(BaseMatcher):
+
+    def _matches(self, item):
+        return np.isnan(item)
+
+    def describe_to(self, description):
+        description.append_text('item is not nan')
+
+def is_nan():
+    return IsNan()

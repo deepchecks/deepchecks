@@ -97,15 +97,30 @@ The metrics in the dict can be some of the existing:
 *   `Ignite Metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
     An Ignite Metric is a class with the methods: reset, compute, and update, that iterates over batches of data and
     aggregates the result.
+*   :py:mod:`Deepchecks Metrics <deepchecks.vision.metrics>` for vision Metrics implemented by Deepchecks as
+    custom Ignite Metrics. Using customized Deepchecks Metrics, such as the object detection metric
+    ``MeanIoU``, is useful for example when defining custom confidence or IoU thresholds is needed.
+    You can import them from ``deepchecks.vision.metrics``.
 *   `Scikit-learn Scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
     A Scikit-learn Scorer is a function that accepts the parameters: (model, x, y_true), and returns a score with the
     convention that higher is better.
 *  `Your own implementation <#custom-metrics>`__.
 
+
+Example for passing strings:
+
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
     :lines: 11-18
     :tab-width: 0
+
+Example for passing Deepchecks metrics:
+
+.. literalinclude:: ../../../../examples/examples_metrics_guide.py
+    :language: python
+    :lines: 45-53
+    :tab-width: 0
+
 
 List of Supported Strings
 =========================
@@ -244,9 +259,15 @@ Custom Metrics
 ==============
 You can also pass your own custom metric to relevant checks and suites.
 
-Custom metrics should follow the
-`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API for computer vision or
-`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
+For computer vision the custom metrics should support the
+`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API.
+
+For tabular metrics the custom metrics should support the
+`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API.
+Multiclass classification scorers should assume that the labels are given in a
+`multi-label format <https://scikit-learn.org/stable/glossary.html#term-multilabel-indicator-matrices>`__ (a binary
+matrix). Binary classification scorers should assume that the labels are given as 0 and 1.
+
 
 Tabular Example
 _______________

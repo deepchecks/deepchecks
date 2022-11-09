@@ -213,8 +213,10 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
         elif len(scores) == 1:
             score = scores[0].item() if isinstance(scores[0], torch.Tensor) else scores[0]
             result_list.append([metric, pd.NA, pd.NA, score])
-        elif isinstance(scores, (torch.Tensor, list, np.ndarray)):
-            for class_id, class_score in enumerate(scores):
+        elif isinstance(scores, (torch.Tensor, list, np.ndarray, dict)):
+            # Deepchecks scorers returns classification class scores as dict
+            scores_iterator = scores.items() if isinstance(scores, dict) else enumerate(scores)
+            for class_id, class_score in scores_iterator:
                 # The data might contain fewer classes than the model was trained on. filtering out
                 # any class id which is not presented in the data.
                 if np.isnan(class_score) or class_id not in data_classes:

@@ -25,9 +25,7 @@ from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupporte
 from deepchecks.tabular.utils.feature_inference import (infer_categorical_features, infer_numerical_features,
                                                         is_categorical)
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.array_math import is_sequence
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
@@ -93,9 +91,6 @@ class Dataset:
     label_type : str , default: None
         Used to determine the task type. If None, inferred when running a check based on label column and model.
         Possible values are: 'multiclass', 'binary' and 'regression'.
-    label_classes: t.List, default: None
-        Relevant only for classification tasks. The list of all possible classes in the order they appear at the
-        models' probabilities per class vector (in alphanumeric order).
     """
 
     _features: t.List[Hashable]
@@ -111,7 +106,6 @@ class Dataset:
     _max_categorical_ratio: float
     _max_categories: int
     _label_type: t.Optional[TaskType]
-    _label_classes: t.List
 
     def __init__(
             self,
@@ -128,8 +122,8 @@ class Dataset:
             max_categorical_ratio: float = 0.01,
             max_categories: int = None,
             label_type: str = None,
-            label_classes: t.List = None,
             dataset_name: t.Optional[str] = None,
+            label_classes=None
     ):
 
         if len(df) == 0:
@@ -292,17 +286,8 @@ class Dataset:
             self._label_type = None
 
         if label_classes is not None:
-            if not isinstance(label_classes, t.List) or any(is_sequence(x) for x in label_classes) or \
-                    len(set(label_classes)) != len(label_classes):
-                raise DeepchecksValueError('label_classes must be a flat list of unique values.')
-            if label is not None and not set(self.label_col).issubset(set(label_classes)):
-                raise DeepchecksValueError('label_classes does not contain all labels found in label column.')
-            if label_classes != sorted(label_classes):
-                reference = doclink('supported-prediction-format', template='For additional details see {link}')
-                raise DeepchecksValueError('label_classes order must correspond to the required order of the model\'s '
-                                           'probabilities per class (alphanumeric order). For additional details see'
-                                           f'{reference}')
-        self._label_classes = label_classes
+            warnings.warn('label_classes parameter is deprecated, use model_classes parameter on a check run function '
+                          'instead.', DeprecationWarning, stacklevel=2)
 
         unassigned_cols = [col for col in self._features if col not in self._cat_features]
         self._numerical_features = infer_numerical_features(self._data[unassigned_cols])
@@ -446,7 +431,7 @@ class Dataset:
                    index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
                    datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
                    convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories, label_type=label_type, label_classes=self._label_classes,
+                   max_categories=self._max_categories, label_type=label_type,
                    dataset_name=self.name)
 
     def sample(self: TDataset, n_samples: t.Optional[int], replace: bool = False, random_state: t.Optional[int] = None,
@@ -555,7 +540,7 @@ class Dataset:
                     get_logger().warning(
                         'Integer label has many unique values. In this case, deepchecks automatically '
                         'infers label to be multiclass. If your label is a regression label and not multiclass, '
-                        'please use "label_type=\'regression_label\'" when initializing your Dataset.'
+                        'please use "label_type=\'regression\'" when initializing your Dataset.'
                     )
                 return TaskType.MULTICLASS
             else:

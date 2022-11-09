@@ -26,6 +26,7 @@ from sklearn.preprocessing import OrdinalEncoder
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, calculate_feature_importance_or_none
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import floatify_dataframe
 from deepchecks.utils.distribution.drift import get_drift_plot_sidenote
 from deepchecks.utils.distribution.plot import drift_score_bar_traces, feature_distribution_traces
@@ -73,6 +74,9 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     fi, importance_type = calculate_feature_importance_or_none(
         domain_classifier,
         domain_test_dataset,
+        model_classes=[0, 1],
+        observed_classes=[0, 1],
+        task_type=TaskType.BINARY,
         force_permutation=True,
         permutation_kwargs={'n_repeats': 10,
                             'random_state': random_state,

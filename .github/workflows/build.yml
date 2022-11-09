@@ -41,6 +41,11 @@ jobs:
       run: make env
     - name: pip freeze
       run: make freeze
+#    - name: Debugging with ssh
+#      uses: lhotari/action-upterm@v1
+#      with:
+#        ## limits ssh access and adds the ssh public key for the user which triggered the workflow
+#        limit-access-to-actor: true
     - name: Run Tests
       run: make test
   coverage:
