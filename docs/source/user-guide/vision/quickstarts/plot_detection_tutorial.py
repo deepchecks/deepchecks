@@ -336,7 +336,7 @@ test_data.validate_format(model, device=device)
 #%%
 # Running Deepchecks' suite on our data and model!
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Now that we have defined the task class, we can validate the model with the model evaluation suite of deepchecks.
+# Now that we have defined the task class, we can validate the model with the deepchecks' model evaluation suite.
 # This can be done with this simple few lines of code:
 
 from deepchecks.vision.suites import model_evaluation
@@ -349,7 +349,7 @@ result = suite.run(training_data, test_data, model, device=device)
 # :func:`data integrity <deepchecks.vision.suites.default_suites.data_integrity>`
 # - validating a single dataset and
 # :func:`train test validation <deepchecks.vision.suites.default_suites.train_test_validation>` -
-# validating the relationship between datasets
+# validating the dataset split
 
 #%%
 # .. _observing_the_result:
