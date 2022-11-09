@@ -84,7 +84,7 @@ def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(5))
+    assert_that(segments, has_length(6))
     assert_that(segments.iloc[0, 0], close_to(0.7692307692307693, 0.01))
 
 
