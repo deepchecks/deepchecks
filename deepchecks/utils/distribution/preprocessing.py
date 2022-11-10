@@ -215,3 +215,14 @@ def value_frequency(x: Union[List, np.ndarray, pd.Series]) -> List[float]:
     total_occurrences = len(x)
     values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
     return values_probabilities
+
+
+def one_hot_batch(batch: Union[np.ndarray, List], num_classes: int) -> np.ndarray:
+    """Transform a batch of class indices to an array in a one-hot format."""
+    batch_size = len(batch)
+    if isinstance(batch, List):
+        batch = np.array(batch)
+    onehot_array = np.zeros((batch_size, num_classes))
+    for i in range(batch_size):
+        onehot_array[i, batch[i]] = 1.0
+    return onehot_array

@@ -22,3 +22,14 @@ def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_de
 
     # Assert
     assert_that(result.value['avg_score'], close_to(0.691, 0.001))
+
+
+def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device):
+    # Arrange
+    check = WeakSegmentsPerformance()
+
+    # Act
+    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
+
+    # Assert
+    assert_that(result.value['avg_score'], close_to(0.099, 0.001))

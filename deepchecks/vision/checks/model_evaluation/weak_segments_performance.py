@@ -15,6 +15,8 @@ import numpy as np
 import pandas as pd
 from typing import Dict, Callable, List, Any, Union, Optional
 
+import torch
+
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.vision import Context, SingleDatasetCheck, Batch
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
@@ -29,6 +31,7 @@ from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedE
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.tabular import Dataset
 from deepchecks.core.check_result import DisplayMap
+from deepchecks.utils.distribution.preprocessing import one_hot_batch
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
@@ -75,6 +78,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         if self.scorer is None:
             if task_type == TaskType.CLASSIFICATION:
                 def scoring_func(predictions, labels):
+                    labels = np.array(torch.stack(labels))
+                    predictions = np.array(torch.stack(predictions))
                     return per_sample_cross_entropy(labels, predictions)
                 self.scorer = scoring_func
             elif task_type == TaskType.OBJECT_DETECTION:
@@ -113,7 +118,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(self._predictions),
+                                  y_proba_test=np.asarray(self._predictions),
                                   validate_data_on_predict=False)
+        # the predictions are passed both to pred and proba and each scorer knows which parameter to use.
         feature_rank = np.asarray(all_features)
 
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
