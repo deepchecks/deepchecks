@@ -33,3 +33,4 @@ def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device
 
     # Assert
     assert_that(result.value['avg_score'], close_to(0.099, 0.001))
+

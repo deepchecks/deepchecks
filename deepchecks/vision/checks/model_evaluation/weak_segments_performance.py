@@ -31,7 +31,6 @@ from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedE
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.tabular import Dataset
 from deepchecks.core.check_result import DisplayMap
-from deepchecks.utils.distribution.preprocessing import one_hot_batch
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
@@ -69,8 +68,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
         self._properties_results = None
         self._sample_scores = None
-        self._predictions = None
-        self._labels = None
         self._dummy_scorer = AvgLossScorer()
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -88,8 +85,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                 raise DeepchecksValueError(f'Default scorer is not defined for task type {task_type}.')
         self._properties_results = defaultdict(list)
         self._sample_scores = []
-        self._predictions = []
-        self._labels = []
 
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Calculate the image properties and scores per image."""
@@ -100,14 +95,11 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         predictions = [tens.detach() for tens in batch.predictions]
         labels = [tens.detach() for tens in batch.labels]
         self._sample_scores.extend(self.scorer(predictions, labels))
-        self._predictions.extend(predictions)
-        self._labels.extend(labels)
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Find the segments with the worst performance."""
         results_dict = self._properties_results
         results_dict['score'] = self._sample_scores
-        results_dict['target'] = self._sample_scores
         results_df = pd.DataFrame(results_dict)
 
         cat_features = [p['name'] for p in self.image_properties if p['output_type'] == 'categorical']
@@ -117,8 +109,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         dataset = Dataset(results_df, cat_features=cat_features, features=all_features, label='score')
 
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
-        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(self._predictions),
-                                  y_proba_test=np.asarray(self._predictions),
+        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(self._sample_scores),
+                                  y_proba_test=np.asarray(self._sample_scores),
                                   validate_data_on_predict=False)
         # the predictions are passed both to pred and proba and each scorer knows which parameter to use.
         feature_rank = np.asarray(all_features)
