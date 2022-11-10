@@ -41,7 +41,7 @@ class WeakSegmentAbstract:
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
 
     def _target_encode_categorical_features_fill_na(self, dataset: Dataset,
-                                                    possible_classes: Optional[List]) -> Dataset:
+                                                    possible_classes: Optional[List] = None) -> Dataset:
         values_mapping = defaultdict(list)  # mapping of per feature of original values to their encoded value
         df_aggregated = default_fill_na_per_column_type(dataset.features_columns.copy(), dataset.cat_features)
         for col in dataset.cat_features:

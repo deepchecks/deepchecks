@@ -49,17 +49,21 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         image_properties: List[Dict[str, Any]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
+        n_top_features: int = 5,
         n_to_show: int = 3,
+        segment_minimum_size_ratio: float = 0.05,
         **kwargs
     ):
         super().__init__(**kwargs)
         self.image_properties = image_properties if image_properties else default_image_properties
         if len(self.image_properties) < 2:
             raise DeepchecksNotSupportedError('Check requires at least two image properties in order to run.')
+        self.n_top_features = n_top_features
         self.scorer = scorer
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self.n_to_show = n_to_show
+        self.segment_minimum_size_ratio = segment_minimum_size_ratio
         self._properties_results = None
         self._sample_scores = None
         self._predictions = None
@@ -98,22 +102,22 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         """Find the segments with the worst performance."""
         results_dict = self._properties_results
         results_dict['score'] = self._sample_scores
-        results_dict['target'] = self._labels
+        results_dict['target'] = self._sample_scores
         results_df = pd.DataFrame(results_dict)
 
-        cat_features = [p for p in self.image_properties if p['output_type'] == 'categorical']
-        num_features = [p for p in self.image_properties if p['output_type'] == 'numerical']
+        cat_features = [p['name'] for p in self.image_properties if p['output_type'] == 'categorical']
+        num_features = [p['name'] for p in self.image_properties if p['output_type'] == 'numerical']
         all_features = cat_features + num_features
 
-        dataset = Dataset(results_df, cat_features=cat_features, features=all_features)
+        dataset = Dataset(results_df, cat_features=cat_features, features=all_features, label='score')
 
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, context.observed_classes)
-        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=self._predictions, y_proba_test=self._predictions,
+        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
+        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(self._predictions),
                                   validate_data_on_predict=False)
-        feature_rank = np.asarray(range(len(all_features)))
+        feature_rank = np.asarray(all_features)
 
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
-                                                   self._sample_scores, self.scorer)
+                                                   self._sample_scores, self._dummy_scorer)
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
                                          'segments. Try increasing n_samples or supply additional properties.')

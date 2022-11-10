@@ -13,12 +13,12 @@ from hamcrest import assert_that, close_to, has_length
 from deepchecks.vision.checks import WeakSegmentsPerformance
 
 
-def test_detection_defaults(coco_train_visiondata, device):
+def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = WeakSegmentsPerformance()
 
     # Act
-    result = check.run(coco_train_visiondata, device=device)
+    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
-    assert_that(result.value.Value.mean(), close_to(0.416, 0.001))
+    assert_that(result.value['avg_score'], close_to(0.691, 0.001))
