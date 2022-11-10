@@ -102,7 +102,7 @@ def _batch_collate(batch):
 
 
 def load_dataset(
-        time_index: int = 0,
+        day_index: int = 0,
         batch_size: int = 32,
         num_workers: int = 0,
         shuffle: bool = True,
@@ -113,9 +113,9 @@ def load_dataset(
 
     Parameters
     ----------
-    time_index : int, default: 0
-        Select the moment in time to load the dataset from. 0 is the training set, and each subsequent number is a
-        different time in the production dataset. Last time step is 59.
+    day_index : int, default: 0
+        Select the index of the day that should be loaded. 0 is the training set, and each subsequent number is a
+        subsequent day in the production dataset. Last day index is 59.
     batch_size : int, default: 32
         Batch size for the dataloader.
     num_workers : int, default: 0
@@ -138,7 +138,9 @@ def load_dataset(
     root = DATA_DIR
     mask_dir = MaskDataset.download_mask(root)
     time_to_sample_dict = MaskDataset.get_time_to_sample_dict(root)
-    time = list(time_to_sample_dict.keys())[time_index]
+    if day_index > 59:
+        raise ValueError('day_index must be between 0 and 59')
+    time = list(time_to_sample_dict.keys())[day_index]
     samples_to_use = time_to_sample_dict[time]
 
     if shuffle:
@@ -289,7 +291,7 @@ class MaskDataset(VisionDataset):
 
 
 def get_data_timestamps() -> t.List[int]:
-    """Get a list of the data timestamps.
+    """Get a list of the data timestamps, one entry per day in the production data.
 
     Returns
     -------

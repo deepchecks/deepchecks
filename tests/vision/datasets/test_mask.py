@@ -30,20 +30,20 @@ def load_dataset_test(mock_download_and_extract_archive):
         assert_that((DATA_DIR / 'mask' / 'annotations').exists())
 
     if not (DATA_DIR / 'mask').exists():
-        loader = load_dataset(time_index=0, object_type='DataLoader')
+        loader = load_dataset(day_index=0, object_type='DataLoader')
         verify(loader)
         mock_download_and_extract_archive.reset_mock()
         load_dataset_test(mock_download_and_extract_archive)
     else:
         # verifying that downloaded prev data was used and not re-downloaded
-        loader = load_dataset(time_index=0, object_type='DataLoader')
+        loader = load_dataset(day_index=0, object_type='DataLoader')
         assert_that(mock_download_and_extract_archive.called, is_(False))
         verify(loader)
         assert_that(loader, instance_of(DataLoader))
 
 
 def test_deepchecks_dataset_load():
-    loader = load_dataset(time_index=0, object_type='VisionData')
+    loader = load_dataset(day_index=0, object_type='VisionData')
     assert_that(loader, instance_of(vision.VisionData))
 
 
@@ -55,7 +55,7 @@ def test__load_dataset__func_with_unknow_object_type_parameter():
 
 
 def test_train_test_split():
-    train = load_dataset(time_index=0, object_type='DataLoader')
-    test = load_dataset(time_index=30, object_type='DataLoader')
+    train = load_dataset(day_index=0, object_type='DataLoader')
+    test = load_dataset(day_index=30, object_type='DataLoader')
 
     assert_that((len(train.dataset) + len(test.dataset)), equal_to(1706))
