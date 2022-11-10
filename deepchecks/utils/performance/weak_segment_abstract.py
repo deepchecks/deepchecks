@@ -28,7 +28,7 @@ from deepchecks.tabular import Context, Dataset
 from deepchecks.utils.strings import format_number, format_percent
 
 
-class WeakSegmentAbstract():
+class WeakSegmentAbstract:
     def __init__(self,
                  n_top_features: int = 5,
                  n_to_show: int = 3,
