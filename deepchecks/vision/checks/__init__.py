@@ -13,7 +13,7 @@ from .data_integrity import ImagePropertyOutliers, LabelPropertyOutliers, Proper
 from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, ImageSegmentPerformance,
                                MeanAveragePrecisionReport, MeanAverageRecallReport, ModelErrorAnalysis,
                                RobustnessReport, SimpleModelComparison, SingleDatasetPerformance,
-                               TrainTestPredictionDrift)
+                               TrainTestPredictionDrift, WeakSegmentsPerformance)
 from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, NewLabels,
                                     PropertyLabelCorrelationChange, SimilarImageLeakage, TrainTestLabelDrift)
 
@@ -21,4 +21,5 @@ __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionRep
            'RobustnessReport', 'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
            'ImagePropertyDrift', 'ModelErrorAnalysis', 'TrainTestPredictionDrift', 'ImageSegmentPerformance',
            'PropertyLabelCorrelationChange', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
-           'SimilarImageLeakage', 'NewLabels', 'SingleDatasetPerformance', 'PropertyLabelCorrelation']
+           'SimilarImageLeakage', 'NewLabels', 'SingleDatasetPerformance', 'PropertyLabelCorrelation',
+           'WeakSegmentsPerformance']
