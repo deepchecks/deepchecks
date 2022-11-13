@@ -16,15 +16,17 @@ import json
 import warnings
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
+import pathlib
 
 import jsonpickle
 from ipywidgets import Widget
 from typing_extensions import Self, TypedDict
+from bs4 import BeautifulSoup
 
 from deepchecks import __version__
 from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck, CheckConfig  # pylint: disable=unused-import # is used for type checking
-from deepchecks.core.display import DisplayableResult, save_as_html
+from deepchecks.core.display import DisplayableResult, save_as_html, save_as_markdown_summary
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.abc import HTMLFormatter
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
@@ -248,6 +250,81 @@ class SuiteResult(DisplayableResult):
             requirejs=requirejs,
             output_id=unique_id or get_random_string(n=25),
         )
+
+    def save_as_cml_markdown(
+        self,
+        file: t.Union[str, None] = None,
+        platform: str = 'github',
+        attach_html_report: bool = True,
+    ):
+        """Save a result to a markdown file to use with [CML](https://cml.dev).
+        The rendered markdown will include only the conditions summary, with the
+        full html results attached.
+
+        Parameters
+        ----------
+        file : filename or file-like object
+            The file to write the HTML output to. If None writes to report.md
+        platform: str , default: 'github'
+            Target Git platform to ensure pretty formatting and nothing funky.
+            Options currently include 'github' or 'gitlab'.
+        attach_html_report: bool , default True
+            Whether to attach the full html report with plots, making it available
+            for download. This will save a [suite_name].html file in the same directory
+            as the markdown report.
+
+        Returns
+        -------
+        Optional[str] :
+            name of newly create file.
+        """
+        
+        if file is None:
+            file_stem = 'report'
+            file_dir = './'
+            file = file_dir + file_stem + '.md'
+        elif isinstance(file, str):
+            path = pathlib.Path(file)
+            file_stem = path.stem
+            file_dir = path.parent.resolve()
+        elif isinstance(file, io.TextIOWrapper):
+            raise NotImplementedError(
+                "io.TextIOWrapper is not supported for save_as_cml_markdown"
+            )
+
+        def format_conditions_table():
+            conditions_table = self.html_serializer.prepare_conditions_table()
+            conditions_table = f"<details><summary><b>{self.name}</b></summary>"
+            conditions_table += conditions_table + "</details>"
+            soup = BeautifulSoup(conditions_table, features="html.parser")
+            try:
+                soup.h2.extract()
+                soup.style.extract()
+            except AttributeError:
+                pass
+            return soup.prettify()
+        conditions_table = str(format_conditions_table()).strip()
+
+        if attach_html_report:
+            html_report_file = file_dir + f'{file_stem}.html'
+            self.save_as_html(html_report_file)
+
+            # build string containing html report as an attachment
+            if platform == 'gitlab':
+                conditions_table.replace(
+                    f'<b>{self.name}</b>',
+                    f'<b>[{self.name}]({html_report_file})</b>'
+                )
+            elif platform == 'github':
+                conditions_table += f'\nAttached: ![{self.name}]({html_report_file})'
+            else:
+                error_message = "Only 'github' and 'gitlab' are supported right now."
+                error_message += "\nPerhaps one of these formats "
+                error_message += "works well for your target Git platform!"
+                raise ValueError(error_message)
+
+        with open('file', 'w') as file_handle
+            file_handle.write(BeautifulSoup(conditions_table).prettify())
 
     def to_widget(
         self,
