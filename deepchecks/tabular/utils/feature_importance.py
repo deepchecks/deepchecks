@@ -311,8 +311,8 @@ def _calc_permutation_importance(
             get_logger().info('Calculating permutation feature importance. Expected to finish in %s seconds',
                               predicted_time_to_run)
     elif timeout == 0 and not skip_messages:
-            raise errors.DeepchecksSkippedFeatureImportance(
-                "feature_importance_timeout set to 0. Skipping any feature importance calculation.")
+        raise errors.DeepchecksSkippedFeatureImportance(
+            'feature_importance_timeout set to 0. Skipping any feature importance calculation.')
     elif not skip_messages:
         get_logger().warning('Calculating permutation feature importance without time limit. Expected to finish in '
                              '%s seconds', predicted_time_to_run)
