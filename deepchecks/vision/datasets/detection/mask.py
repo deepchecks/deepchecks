@@ -138,8 +138,8 @@ def load_dataset(
     root = DATA_DIR
     mask_dir = MaskDataset.download_mask(root)
     time_to_sample_dict = MaskDataset.get_time_to_sample_dict(root)
-    if day_index > 59:
-        raise ValueError('day_index must be between 0 and 59')
+    if not isinstance(day_index, int) or day_index < 0 or day_index > 59:
+        raise ValueError('day_index must be an integer between 0 and 59')
     time = list(time_to_sample_dict.keys())[day_index]
     samples_to_use = time_to_sample_dict[time]
 

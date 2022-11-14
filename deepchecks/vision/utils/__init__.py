@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision utilities."""
+from .display_utils import visualize_vision_data
 from .vision_properties import static_properties_from_df
 
-__all__ = ['static_properties_from_df']
+__all__ = ['static_properties_from_df', 'visualize_vision_data']
