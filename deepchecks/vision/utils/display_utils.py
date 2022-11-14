@@ -12,10 +12,8 @@
 
 import matplotlib.pyplot as plt
 
-from deepchecks.vision import VisionData
 
-
-def visualize_vision_data(dataset: VisionData, n_show: int = 6):
+def visualize_vision_data(dataset, n_show: int = 6):
     """Display images and labels from the dataset.
 
     Parameters:
@@ -30,7 +28,7 @@ def visualize_vision_data(dataset: VisionData, n_show: int = 6):
     images = sampled_ds.batch_to_images(batch)
     labels = sampled_ds.batch_to_labels(batch)
 
-    fig, m_axs = plt.subplots(2, int(n_show / 2.), figsize=(10 * (n_show / 6.), 6))
+    _, m_axs = plt.subplots(2, int(n_show / 2.), figsize=(10 * (n_show / 6.), 6))
     m_axs = m_axs.flatten()
     for i in range(len(images)):
         m_axs[i].imshow(images[i])
