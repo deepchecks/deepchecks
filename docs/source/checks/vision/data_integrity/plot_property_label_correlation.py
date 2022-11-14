@@ -110,7 +110,7 @@ with zipfile.ZipFile('wolves_vs_dogs_mini.zip', 'r') as zip_ref:
     zip_ref.extractall('.')
 
 dataset = classification_dataset_from_directory(
-    'wolves_vs_dogs_mini', object_type='VisionData', transforms=A.Resize(64, 64))
+    'wolves_vs_dogs_mini', object_type='VisionData', transforms=A.Resize(128, 128))
 
 #%%
 # You can see an example of the dataset images and their labels below:

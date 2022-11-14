@@ -36,4 +36,4 @@ def visualize_vision_data(dataset: VisionData, n_show: int = 6):
         m_axs[i].imshow(images[i])
         m_axs[i].set_title(sampled_ds.label_id_to_name(int(labels[i])))
         m_axs[i].axis('off')
-    from deepchecks.vision.utils import visualize_vision_data
+    plt.show()
