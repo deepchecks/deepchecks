@@ -354,6 +354,7 @@ def calc_drift_and_plot(train_column: pd.Series,
     fig.add_traces(dist_traces, rows=2, cols=1)
     fig.update_xaxes(dist_x_axis, row=2, col=1)
     fig.update_yaxes(dist_y_axis, row=2, col=1)
+    fig.update_xaxes(autorange=True)
 
     fig.update_layout(
         legend=dict(
