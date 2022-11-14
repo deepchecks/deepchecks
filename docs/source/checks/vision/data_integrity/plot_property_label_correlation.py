@@ -111,6 +111,7 @@ with zipfile.ZipFile('wolves_vs_dogs_mini.zip', 'r') as zip_ref:
 
 dataset = classification_dataset_from_directory(
     'wolves_vs_dogs_mini', object_type='VisionData', transforms=A.Resize(128, 128))
+dataset._label_map = {0: 'dog', 1: 'wolf'}  # Replacing the built-in label map "dogs" and "wolves" with "dog" and "wolf"
 
 #%%
 # You can see an example of the dataset images and their labels below:
