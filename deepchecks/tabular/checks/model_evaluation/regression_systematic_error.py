@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """The RegressionSystematicError check module."""
+import warnings
+
 import plotly.graph_objects as go
 from sklearn.metrics import mean_squared_error
 
@@ -37,6 +39,8 @@ class RegressionSystematicError(SingleDatasetCheck):
         random_state: int = 42,
         **kwargs
     ):
+        warnings.warn('RegressionSystematicError check is deprecated and will be removed in future version,'
+                      ' please use RegressionErrorDistribution check instead.', DeprecationWarning, stacklevel=2)
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.random_state = random_state

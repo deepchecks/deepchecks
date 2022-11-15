@@ -191,7 +191,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = MixedDataTypes(n_top_columns=3)
     # Act
-    result = check.run(train, clf)
+    result = check.run(train)
     # Assert - Display table is transposed so check columns length
     assert_that(result.display[1].columns, has_length(3))
 

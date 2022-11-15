@@ -17,8 +17,9 @@ Passing pre-computed predictions is a simple alternative to using a model in ``i
 It is specifically recommended to use this option if your model object is unavailable locally (for example if placed on
 a separate prediction server) or if the predicting process is computationally expensive or time consuming.
 
-The predictions should be passed to the ``train_predictions``, ``test_predictions``, or both arguments of the
-suite/check's ``run`` method in the appropriate format.
+The pre-calculated predictions should be passed to suite/check's ``run`` method in the appropriate format.
+The parameters to pass are ``predictions`` for single dataset checks and or ``train_predictions`` and
+``test_predictions`` for checks that use both datasets.
 
 Pre-computed Predictions Format
 -------------------------------

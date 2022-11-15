@@ -121,3 +121,9 @@ seqeval
 searchsorted
 VOC
 jaccard
+catboost
+xmin
+xmax
+ymin
+ymax
+img

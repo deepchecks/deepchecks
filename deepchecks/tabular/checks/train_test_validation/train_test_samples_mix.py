@@ -179,5 +179,5 @@ def _fillna(
     """Fill nan values."""
     return pd.DataFrame({
         name: (_fillna_col(column, value))
-        for name, column in df.iteritems()
+        for name, column in df.items()
     })

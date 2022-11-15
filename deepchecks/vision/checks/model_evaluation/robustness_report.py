@@ -10,9 +10,10 @@
 #
 """Module containing robustness report check."""
 import string
+import warnings
 from collections import defaultdict
 from random import choice
-from typing import Dict, List, Optional, Sequence, Sized, TypeVar
+from typing import Any, Callable, Dict, List, Optional, Sequence, Sized, TypeVar, Union
 
 import albumentations
 import imgaug
@@ -46,9 +47,11 @@ class RobustnessReport(SingleDatasetCheck):
 
     Parameters
     ----------
+    scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]], default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     alternative_metrics : Dict[str, Metric], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
-        should be used. If None are given, use the default metrics.
+        Deprecated, please use scorers instead.
     augmentations : List, default: None
         A list of augmentations to test on the data. If none are given default augmentations are used.
         Supported augmentations are of albumentations and imgaug.
@@ -57,11 +60,17 @@ class RobustnessReport(SingleDatasetCheck):
     _THUMBNAIL_SIZE = (150, 150)
 
     def __init__(self,
+                 scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
                  alternative_metrics: Optional[Dict[str, Metric]] = None,
                  augmentations: List = None,
                  **kwargs):
         super().__init__(**kwargs)
-        self.alternative_metrics = alternative_metrics
+        if alternative_metrics is not None:
+            warnings.warn(f'{self.__class__.__name__}: alternative_metrics is deprecated. Please use scorers instead.',
+                          DeprecationWarning)
+            self.alternative_metrics = alternative_metrics
+        else:
+            self.alternative_metrics = scorers
         self.augmentations = augmentations
 
         self._state = None
@@ -211,7 +220,7 @@ class RobustnessReport(SingleDatasetCheck):
                 .set_index('Class')
             diff = single_metric_scores.apply(lambda x: calc_percent(x.Value, x.Base), axis=1)
 
-            for index_class, diff_value in diff.sort_values().iloc[:n_classes_to_show].iteritems():
+            for index_class, diff_value in diff.sort_values().iloc[:n_classes_to_show].items():
                 aug_top_affected[metric].append({'class': index_class,
                                                  'value': single_metric_scores.at[index_class, 'Value'],
                                                  'diff': diff_value,

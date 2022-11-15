@@ -230,7 +230,7 @@ def test_mnist_alt(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, 
     # Arrange
 
     check = ClassPerformance(n_to_show=2,
-                             alternative_metrics={'p': Precision(), 'r': Recall()})
+                             scorers={'p': Precision(), 'r': Recall()})
     # Act
     result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
                        device=device)
@@ -382,7 +382,7 @@ def test_condition_test_performance_greater_than_fail(
     # Arrange
     check = ClassPerformance(
         n_to_show=2,
-        alternative_metrics={'p': Precision(), 'r': Recall()}
+        scorers={'p': Precision(), 'r': Recall()}
     ).add_condition_test_performance_greater_than(1)
 
     # Act
@@ -497,7 +497,7 @@ def test_condition_class_performance_imbalance_ratio_less_than_fail(
 def test_custom_task(mnist_train_custom_task, mnist_test_custom_task, mock_trained_mnist, device):
     # Arrange
     metrics = {'metric': Precision()}
-    check = ClassPerformance(alternative_metrics=metrics)
+    check = ClassPerformance(scorers=metrics)
 
     # Act & Assert - check runs without errors
     check.run(mnist_train_custom_task, mnist_test_custom_task, model=mock_trained_mnist, device=device)
@@ -507,7 +507,7 @@ def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_vis
                                             mock_trained_yolov5_object_detection, device):
     # Arrange
     scorers = [name + '_per_class' for name in AVAILABLE_EVALUATING_FUNCTIONS.keys()]
-    check = ClassPerformance(alternative_metrics=scorers)
+    check = ClassPerformance(scorers=scorers)
     # Act
     result = check.run(coco_train_visiondata, coco_test_visiondata,
                        mock_trained_yolov5_object_detection, device=device)
@@ -522,7 +522,7 @@ def test_coco_deepchecks_scorer_list_strings_averaging(coco_train_visiondata, co
     for avg_method in ['macro', 'micro', 'weighted']:
         # Arrange
         scorers = [name + '_' + avg_method for name in AVAILABLE_EVALUATING_FUNCTIONS.keys()]
-        check = ClassPerformance(alternative_metrics=scorers)
+        check = ClassPerformance(scorers=scorers)
         # Act
         result = check.run(coco_train_visiondata, coco_test_visiondata,
                            mock_trained_yolov5_object_detection, device=device)
@@ -540,7 +540,7 @@ def test_mnist_sklearn_scorer(
 ):
     # Arrange
     check = ClassPerformance(
-        alternative_metrics={'f1': 'f1_per_class', 'recall': 'recall_per_class'}
+        scorers={'f1': 'f1_per_class', 'recall': 'recall_per_class'}
     )
 
     # Act
@@ -555,7 +555,7 @@ def test_mnist_sklearn_scorer(
 def test_coco_unsupported_scorers(coco_train_visiondata, coco_test_visiondata,
                                   mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = ClassPerformance(alternative_metrics=['fnr_per_class', 'r3'])
+    check = ClassPerformance(scorers=['fnr_per_class', 'r3'])
     # Act
     assert_that(
         calling(check.run
@@ -568,7 +568,7 @@ def test_coco_unsupported_scorers(coco_train_visiondata, coco_test_visiondata,
 
 def test_mnist_unsupported_sklearn_scorers(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
     # Arrange
-    check = ClassPerformance(alternative_metrics={'f1': 'f1_per_class', 'recall': 'recall_per_class', 'R3': 'r3'})
+    check = ClassPerformance(scorers={'f1': 'f1_per_class', 'recall': 'recall_per_class', 'R3': 'r3'})
     # Act
     assert_that(
         calling(check.run
@@ -582,7 +582,7 @@ def test_mnist_unsupported_sklearn_scorers(mnist_dataset_train, mnist_dataset_te
 def test_coco_bad_value_type_scorers(coco_train_visiondata, coco_test_visiondata,
                                      mock_trained_yolov5_object_detection, device):
     # Arrange
-    check = ClassPerformance(alternative_metrics={'r2': 2})
+    check = ClassPerformance(scorers={'r2': 2})
     # Act
     assert_that(
         calling(check.run

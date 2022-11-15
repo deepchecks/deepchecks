@@ -70,8 +70,8 @@ For these purposes you can use the :func:`deepchecks.tabular.suites.train_test_v
 ====================================================
 
 At this phase you have a trained model which you want to evaluate.
-Thus, you probably want to look at examine several performance metrics, compare it to various benchmarks and be able to construct a clear picture about the model's performance.
-you may also want to try identify where it under-performs, and investigate to see if you discover any insights that you may use to improve its performance.
+Thus, you probably want to examine several performance metrics, compare it to various benchmarks and be able to construct a clear picture about the model's performance.
+You may also want to find where it under-performs, and investigate to see if you discover any insights that could be used to improve model performance.
 
 For these purposes you can use the :func:`deepchecks.tabular.suites.model_evaluation` suite.
 

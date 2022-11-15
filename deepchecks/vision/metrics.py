@@ -8,8 +8,15 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Package for vision utilities."""
-from .display_utils import visualize_vision_data
-from .vision_properties import static_properties_from_df
+"""Module containing metrics implemented by Deepchecks."""
 
-__all__ = ['static_properties_from_df', 'visualize_vision_data']
+from .metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
+from .metrics_utils.detection_tp_fp_fn_calc import ObjectDetectionTpFpFn
+from .metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU
+
+__all__ = [
+    'ObjectDetectionAveragePrecision',
+    'ObjectDetectionTpFpFn',
+    'MeanDice',
+    'MeanIoU'
+]

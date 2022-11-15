@@ -9,12 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the image formatter class for the vision module."""
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
+from cv2 import CV_64F, Laplacian
 from skimage.color import rgb2gray
 
 __all__ = ['default_image_properties',
+           'calc_default_image_properties',
            'aspect_ratio',
            'area',
            'brightness',
@@ -63,9 +65,20 @@ def mean_blue_relative_intensity(batch: List[np.ndarray]) -> List[float]:
     return [x[2] for x in _rgb_relative_intensity_mean(batch)]
 
 
+def texture_level(batch: List[np.ndarray]) -> List[float]:
+    """Calculate the sharpness of each image in the batch."""
+    return [Laplacian(img, CV_64F).var() if _is_grayscale(img) else Laplacian(rgb2gray(img), CV_64F).var()
+            for img in batch]
+
+
 def _sizes(batch: List[np.ndarray]):
     """Return list of tuples of image height and width."""
     return [get_size(img) for img in batch]
+
+
+def _sizes_array(batch: List[np.ndarray]):
+    """Return an array of height and width per image (Nx2)."""
+    return np.array(_sizes(batch))
 
 
 def _rgb_relative_intensity_mean(batch: List[np.ndarray]) -> List[Tuple[float, float, float]]:
@@ -88,6 +101,11 @@ def _rgb_relative_intensity_mean(batch: List[np.ndarray]) -> List[Tuple[float, f
     """
     return [_normalize_pixelwise(img).mean(axis=(1, 2)) if not _is_grayscale(img) else (None, None, None)
             for img in batch]
+
+
+def _rgb_relative_intensity_mean_array(batch: List[np.ndarray]) -> np.ndarray:
+    """Return the _rgb_relative_intensity_mean result as array."""
+    return np.array(_rgb_relative_intensity_mean(batch))
 
 
 def _normalize_pixelwise(img: np.ndarray) -> np.ndarray:
@@ -120,6 +138,35 @@ def get_size(img) -> Tuple[int, int]:
 def get_dimension(img) -> int:
     """Return the number of dimensions of the image (grayscale = 1, RGB = 3)."""
     return img.shape[2]
+
+
+def sample_pixels(image: np.ndarray, n_pixels: int):
+    """Sample the image to improve runtime, expected image format H,W,C."""
+    flat_image = image.reshape((-1, image.shape[-1]))
+    pixel_idxs = np.random.choice(flat_image.shape[0], n_pixels)
+    sampled_image = flat_image[pixel_idxs, np.newaxis, :]
+    return sampled_image
+
+
+def calc_default_image_properties(batch: List[np.ndarray], sample_n_pixels: int = 10000) -> Dict[str, list]:
+    """Speed up the calculation for the default image properties by sharing common actions."""
+    results_dict = {}
+    sizes_array = _sizes_array(batch)
+    results_dict['Aspect Ratio'] = list(sizes_array[:, 0] / sizes_array[:, 1])
+    results_dict['Area'] = list(sizes_array[:, 0] * sizes_array[:, 1])
+
+    sampled_images = [sample_pixels(img, sample_n_pixels) for img in batch]
+
+    grayscale_images = [img if _is_grayscale(img) else rgb2gray(img) for img in sampled_images]
+    results_dict['Brightness'] = [image.mean() for image in grayscale_images]
+    results_dict['RMS Contrast'] = [image.std() for image in grayscale_images]
+
+    rgb_intensities = _rgb_relative_intensity_mean_array(sampled_images)
+    results_dict['Mean Red Relative Intensity'] = rgb_intensities[:, 0].tolist()
+    results_dict['Mean Green Relative Intensity'] = rgb_intensities[:, 1].tolist()
+    results_dict['Mean Blue Relative Intensity'] = rgb_intensities[:, 2].tolist()
+
+    return results_dict
 
 
 default_image_properties = [

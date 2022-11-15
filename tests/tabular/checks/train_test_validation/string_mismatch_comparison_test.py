@@ -180,7 +180,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Arrange
     check = StringMismatchComparison(n_top_columns=3)
     # Act
-    result = check.run(test_dataset=train, train_dataset=val, model=clf)
+    result = check.run(test_dataset=train, train_dataset=val)
     # Assert - The display table is transposed so check length of columns
     assert_that(result.display[1].columns, has_length(3))
 

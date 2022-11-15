@@ -22,7 +22,6 @@ from sklearn.pipeline import Pipeline
 from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer, get_default_scorers, init_validate_scorers
-from deepchecks.tabular.utils.task_inference import get_possible_classes, infer_task_type
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
@@ -41,6 +40,9 @@ N_TOP_MESSAGE = 'Showing only the top %s columns, you can change it using n_top_
 def calculate_feature_importance_or_none(
         model: t.Any,
         dataset: t.Union['tabular.Dataset', pd.DataFrame],
+        model_classes,
+        observed_classes,
+        task_type,
         force_permutation: bool = False,
         permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Tuple[t.Optional[pd.Series], t.Optional[str]]:
@@ -52,6 +54,12 @@ def calculate_feature_importance_or_none(
         a fitted model
     dataset : t.Union['tabular.Dataset', pd.DataFrame]
         dataset used to fit the model
+    model_classes
+        possible classes output for model. None for regression tasks.
+    observed_classes
+        Observed classes in the data. None for regression tasks.
+    task_type
+        The task type of the model.
     force_permutation : bool , default: False
         force permutation importance calculation
     permutation_kwargs : t.Optional[t.Dict[str, t.Any]] , default: None
@@ -71,6 +79,9 @@ def calculate_feature_importance_or_none(
         fi, calculation_type = _calculate_feature_importance(
             model=model,
             dataset=dataset,
+            model_classes=model_classes,
+            observed_classes=observed_classes,
+            task_type=task_type,
             force_permutation=force_permutation,
             permutation_kwargs=permutation_kwargs,
         )
@@ -81,7 +92,8 @@ def calculate_feature_importance_or_none(
             errors.NumberOfFeaturesLimitError,
             errors.DeepchecksTimeoutError,
             errors.ModelValidationError,
-            errors.DatasetValidationError
+            errors.DatasetValidationError,
+            errors.DeepchecksSkippedFeatureImportance
     ) as error:
         # DeepchecksValueError:
         #     if model validation failed;
@@ -100,6 +112,9 @@ def calculate_feature_importance_or_none(
 def _calculate_feature_importance(
         model: t.Any,
         dataset: t.Union['tabular.Dataset', pd.DataFrame],
+        model_classes,
+        observed_classes,
+        task_type,
         force_permutation: bool = False,
         permutation_kwargs: t.Dict[str, t.Any] = None,
 ) -> t.Tuple[pd.Series, str]:
@@ -111,6 +126,12 @@ def _calculate_feature_importance(
         a fitted model
     dataset : t.Union['tabular.Dataset', pd.DataFrame]
         dataset used to fit the model
+    model_classes
+        possible classes output for model. None for regression tasks.
+    observed_classes
+        Observed classes in the data. None for regression tasks.
+    task_type
+        The task type of the model.
     force_permutation : bool, default: False
         force permutation importance calculation
     permutation_kwargs : t.Dict[str, t.Any] , default: None
@@ -146,7 +167,8 @@ def _calculate_feature_importance(
                                               'In order to force permutation feature importance, please use the Dataset'
                                               ' object.')
         else:
-            importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
+            importance = _calc_permutation_importance(model, dataset, model_classes, observed_classes,
+                                                      task_type, **permutation_kwargs)
             calc_type = 'permutation_importance'
 
     # If there was no force permutation, or if it failed while trying to calculate importance,
@@ -169,7 +191,8 @@ def _calculate_feature_importance(
                 pre_text = 'Could not find built-in feature importance on the model,'
             get_logger().warning('%s using permutation feature importance calculation instead', pre_text)
 
-        importance = _calc_permutation_importance(model, dataset, **permutation_kwargs)
+        importance = _calc_permutation_importance(model, dataset, model_classes, observed_classes,
+                                                  task_type, **permutation_kwargs)
         calc_type = 'permutation_importance'
 
     # If after all importance is still none raise error
@@ -205,13 +228,16 @@ def _built_in_importance(
 def _calc_permutation_importance(
         model: t.Any,
         dataset: 'tabular.Dataset',
+        model_classes,
+        observed_classes,
+        task_type,
         n_repeats: int = 30,
         mask_high_variance_features: bool = False,
         random_state: int = 42,
         n_samples: int = 10_000,
         alternative_scorer: t.Optional[DeepcheckScorer] = None,
         skip_messages: bool = False,
-        timeout: int = None
+        timeout: int = None,
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
 
@@ -221,6 +247,12 @@ def _calc_permutation_importance(
         A fitted model
     dataset: tabular.Dataset
         dataset used to fit the model
+    model_classes
+        possible classes output for model. None for regression tasks.
+    observed_classes
+        Observed classes in the data. None for regression tasks.
+    task_type
+        The task type of the model.
     n_repeats: int, default: 30
         Number of times to permute a feature
     mask_high_variance_features : bool , default: False
@@ -259,12 +291,10 @@ def _calc_permutation_importance(
     if alternative_scorer:
         scorer = alternative_scorer
     else:
-        task_type = infer_task_type(model, dataset)
         default_scorers = get_default_scorers(task_type)
         scorer_name = next(iter(default_scorers))
         single_scorer_dict = {scorer_name: default_scorers[scorer_name]}
-        possible_classes = get_possible_classes(model, dataset)
-        scorer = init_validate_scorers(single_scorer_dict, model, dataset, possible_classes)[0]
+        scorer = init_validate_scorers(single_scorer_dict, model, dataset, model_classes, observed_classes)[0]
 
     start_time = time.time()
     scorer(model, dataset_sample)
@@ -280,6 +310,9 @@ def _calc_permutation_importance(
         elif not skip_messages:
             get_logger().info('Calculating permutation feature importance. Expected to finish in %s seconds',
                               predicted_time_to_run)
+    elif timeout == 0 and not skip_messages:
+        raise errors.DeepchecksSkippedFeatureImportance(
+            'feature_importance_timeout set to 0. Skipping any feature importance calculation.')
     elif not skip_messages:
         get_logger().warning('Calculating permutation feature importance without time limit. Expected to finish in '
                              '%s seconds', predicted_time_to_run)

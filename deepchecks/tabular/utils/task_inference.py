@@ -10,29 +10,28 @@
 #
 """Utils module containing functionalities to infer the task type and possible label classes."""
 
-__all__ = ['get_possible_classes', 'infer_task_type']
+__all__ = ['infer_task_type_and_classes']
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import pandas as pd
-from sklearn.base import ClassifierMixin
+from pandas._libs.lib import infer_dtype
 
-from deepchecks import tabular
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
+from deepchecks.core.errors import ValidationError
 from deepchecks.tabular.utils.feature_inference import is_categorical
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.array_math import convert_into_flat_list
-from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import BasicModel
 
 
-# pylint: disable=protected-access
-def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Dataset',
-                         test_dataset: Optional['tabular.Dataset'] = None, force_classification: bool = False) \
-        -> Optional[List]:
-    """Return the list of allowed classes for classification tasks or None for regression.
+def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tabular.Dataset',
+                                test_dataset: Optional['tabular.Dataset'] = None,
+                                model_classes: Optional[List] = None) -> \
+        Tuple[TaskType, Optional[List], Optional[List]]:
+    """Infer the task type based on labels in the data and the model. For classification also computes the classes in \
+    the model and the observed classes.
 
     Parameters
     ----------
@@ -42,72 +41,58 @@ def get_possible_classes(model: Optional[BasicModel], train_dataset: 'tabular.Da
         Train Dataset of task
     test_dataset : Optional['tabular.Dataset'], default = None
         Test Dataset of task
-    force_classification: bool, default = False
-        Whether to disable the auto infer for task type and return all observed label values.
+    model_classes
+        Model's classes if provided by the user manually.
+
     Returns
     -------
-    Optional[List]
-        The list of possible classes for classification tasks or None for regression
+    (TaskType, List, List)
+        The type of the Task, The observed classes, The model classes
     """
-    if not isinstance(train_dataset, tabular.Dataset) or (test_dataset is not None and
-                                                          not isinstance(test_dataset, tabular.Dataset)):
-        raise DeepchecksValueError('train_dataset and test_dataset must be of type tabular.Dataset')
+    train_labels = []
+    test_labels = []
+    have_model = model is not None
+    if train_dataset:
+        if train_dataset.has_label():
+            train_labels += train_dataset.label_col.to_list()
+        if have_model:
+            train_labels += convert_into_flat_list(model.predict(train_dataset.features_columns))
+    if test_dataset:
+        if test_dataset.has_label():
+            test_labels += test_dataset.label_col.to_list()
+        if have_model:
+            test_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
 
-    if train_dataset._label_classes is not None:
-        if hasattr(model, 'classes_') and len(model.classes_) > 0 and \
-                list(model.classes_) != train_dataset._label_classes:
-            raise DeepchecksValueError('Model output classes and train dataset label classes do not match')
-        return train_dataset._label_classes
+    observed_labels = pd.Series(test_labels + train_labels)
+    if model_classes is None and have_model and hasattr(model, 'classes_') and len(model.classes_) > 0:
+        model_classes = sorted(list(model.classes_))
 
-    observed_labels = list(train_dataset.label_col)
-    if test_dataset is not None:
-        observed_labels += list(test_dataset.label_col)
-    if hasattr(model, 'classes_') and len(model.classes_) > 0:
-        if not set(pd.Series(observed_labels).dropna().unique()).issubset(set(model.classes_)):
-            get_logger().warning('Model classes attribute does not contain all observed labels in train and test data.')
-        observed_labels += list(model.classes_)
-
-    if model is not None and not hasattr(model, 'predict_proba') and not force_classification:  # regression model
-        if is_string_column(train_dataset.label_col):
-            reference = doclink('supported-prediction-format', template='For additional details see {link}')
-            raise DeepchecksValueError(f'Classification models must contain \'predict_proba\' functionality. '
-                                       f'{reference}')
-        if isinstance(model, ClassifierMixin):
-            raise DeepchecksValueError('Model is a sklearn classification model but lacks the predict_proba method. '
-                                       'Please train the model with probability=True.')
-        return None
-    elif model is not None:  # classification model without classes_ attribute
-        observed_labels += convert_into_flat_list(model.predict(train_dataset.features_columns))
-        if test_dataset is not None:
-            observed_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
-        return sorted(pd.Series(observed_labels).dropna().unique())
-    elif is_categorical(pd.Series(observed_labels), max_categorical_ratio=0.05) or force_classification:  # no model
-        return sorted(pd.Series(observed_labels).dropna().unique())
-    else:  # no model + not categorical column (regression)
-        return None
-
-
-def infer_task_type(model: Optional[BasicModel], train_dataset: 'tabular.Dataset',
-                    test_dataset: Optional['tabular.Dataset'] = None) -> TaskType:
-    """Infer the task type based on get_possible_classes.
-
-    Parameters
-    ----------
-    model : BasicModel
-        Model object used in task
-    train_dataset : 'tabular.Dataset'
-        Train Dataset of task
-    test_dataset : Optional['tabular.Dataset'], default = None
-        Test Dataset of task
-    Returns
-    -------
-    TaskType
-        The type of the Task
-    """
-    classes = get_possible_classes(model, train_dataset, test_dataset)
-    if classes is None:
-        return TaskType.REGRESSION
-    elif len(classes) == 2:
-        return TaskType.BINARY
+    if train_dataset and train_dataset.label_type is not None:
+        task_type = train_dataset.label_type
+    elif model_classes:
+        task_type = infer_by_class_number(len(model_classes))
+    elif len(observed_labels) > 0 and is_categorical(observed_labels, max_categorical_ratio=0.05):
+        num_classes = len(observed_labels.dropna().unique())
+        task_type = infer_by_class_number(num_classes)
+        if infer_dtype(observed_labels) == 'integer' and train_dataset and train_dataset.label_type is None:
+            get_logger().warning(
+                'Due to the small number of unique labels task type was inferred as classification in spite of '
+                'the label column is of type integer. '
+                'Initialize your Dataset with either label_type=\"multiclass\" or '
+                'label_type=\"regression\" to resolve this warning.')
     else:
-        return TaskType.MULTICLASS
+        task_type = TaskType.REGRESSION
+
+    if task_type in [TaskType.BINARY, TaskType.MULTICLASS]:
+        return task_type, sorted(observed_labels.dropna().unique()), model_classes
+    else:
+        return task_type, None, None
+
+
+def infer_by_class_number(num_classes):
+    if num_classes == 0:
+        raise ValidationError('Found zero number of classes')
+    if num_classes == 1:
+        raise ValidationError('Found only one class in label column, pass the full list of possible '
+                              'label classes via the model_classes argument of the run function.')
+    return TaskType.BINARY if num_classes == 2 else TaskType.MULTICLASS

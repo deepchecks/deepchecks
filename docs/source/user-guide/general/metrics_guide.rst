@@ -76,7 +76,7 @@ Object detection:
 Running a Check with Default Metrics
 ____________________________________
 
-To run a check with the default metrics, run it without passing any value to the "scorer"
+To run a check with the default metrics, run it without passing any value to the "scorers"
 parameter. We will demonstrate it using the
 :doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>` check:
 
@@ -89,7 +89,7 @@ Alternative Metrics
 ===================
 Sometimes the defaults don't fit the specifics of the use case.
 If this is the case, you can pass a list of supported metric strings or a dict in the format
-{``metric_name_string``: ``metric``} as a parameter to the check.
+{``metric_name_string``: ``metric``} to the scorers parameter of the check or suite.
 
 The metrics in the dict can be some of the existing:
 
@@ -97,15 +97,30 @@ The metrics in the dict can be some of the existing:
 *   `Ignite Metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
     An Ignite Metric is a class with the methods: reset, compute, and update, that iterates over batches of data and
     aggregates the result.
+*   :py:mod:`Deepchecks Metrics <deepchecks.vision.metrics>` for vision Metrics implemented by Deepchecks as
+    custom Ignite Metrics. Using customized Deepchecks Metrics, such as the object detection metric
+    ``MeanIoU``, is useful for example when defining custom confidence or IoU thresholds is needed.
+    You can import them from ``deepchecks.vision.metrics``.
 *   `Scikit-learn Scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
     A Scikit-learn Scorer is a function that accepts the parameters: (model, x, y_true), and returns a score with the
     convention that higher is better.
 *  `Your own implementation <#custom-metrics>`__.
 
+
+Example for passing strings:
+
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
     :lines: 11-18
     :tab-width: 0
+
+Example for passing Deepchecks metrics:
+
+.. literalinclude:: ../../../../examples/examples_metrics_guide.py
+    :language: python
+    :lines: 45-53
+    :tab-width: 0
+
 
 List of Supported Strings
 =========================
@@ -145,8 +160,10 @@ __________
 Classification
 ______________
 .. Note::
-    For classification tasks, Deepchecks require the model's output probabilities per class and a similarly ordered
+    For classification tasks, Deepchecks requires an ordered
     list of all possible classes (Can also be inferred from provided data and model).
+    It is also recommended to supply the model's output probabilities per class, as they are required for some metrics and checks
+    which will not work without them.
     See :doc:`link </user-guide/tabular/supported_models>` for additional information.
 .. list-table::
    :widths: 25 75 75
@@ -227,17 +244,30 @@ ________________
    * - 'average_precision_per_class'
      - average precision for object detection
      -
+   * - 'average_precision_macro'
+     - average precision macro averaging
+     -
+   * - 'average_precision_weighted'
+     - average precision macro, weighted by support
+     -
    * - 'average_recall_per_class'
      - average recall for object detection
-     -
+     - suffixes apply as with 'average_precision'
+
 
 Custom Metrics
 ==============
 You can also pass your own custom metric to relevant checks and suites.
 
-Custom metrics should follow the
-`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API for computer vision or
-`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API for tabular.
+For computer vision the custom metrics should support the
+`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API.
+
+For tabular metrics the custom metrics should support the
+`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API.
+Multiclass classification scorers should assume that the labels are given in a
+`multi-label format <https://scikit-learn.org/stable/glossary.html#term-multilabel-indicator-matrices>`__ (a binary
+matrix). Binary classification scorers should assume that the labels are given as 0 and 1.
+
 
 Tabular Example
 _______________
