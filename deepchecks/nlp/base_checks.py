@@ -10,7 +10,7 @@
 #
 """Module for nlp base checks."""
 import abc
-from typing import Optional
+from typing import List, Optional, Union
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, SingleDatasetBaseCheck, TrainTestBaseCheck
@@ -37,6 +37,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         with_display: bool = True,
         predictions: Optional[TTextPred] = None,
         probabilities: Optional[TTextProba] = None,
+        model_classes: Optional[Union[List, List[List]]] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000
     ) -> CheckResult:
@@ -54,6 +55,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             predictions on dataset
         probabilities: Union[TTextProba, None] , default: None
             probabilities on dataset
+        model_classes: Optional[List, List[List], default: None
+            For classification: list of classes known to the model
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
         n_samples: int, default: 10_000
@@ -67,6 +70,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             with_display=with_display,
             train_pred=predictions,
             train_proba=probabilities,
+            model_classes=model_classes,
             n_samples=n_samples,
             random_state=random_state
         )

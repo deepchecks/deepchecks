@@ -108,6 +108,41 @@ def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_d
     assert_that(result.value.values[0][0], equal_to('a'))
 
 
+def test_run_with_scorer_multilabel_class_names_new_classes_in_observed(text_multilabel_classification_dataset_mock):
+    # Arrange
+    text_multilabel_classification_dataset_mock_copy = text_multilabel_classification_dataset_mock.copy()
+    text_multilabel_classification_dataset_mock_copy._classes = ['a', 'b', 'c']
+    text_multilabel_classification_dataset_mock_copy._label = [[0, 0, 1], [0, 1, 0], [0, 1, 0]]
+    check = SingleDatasetPerformance(scorers=['f1_per_class'])
+
+    # Act
+    result = check.run(text_multilabel_classification_dataset_mock_copy,
+                       predictions=[[0, 0, 1], [1, 0, 1], [0, 1, 0]],
+                       model_classes=[[0, 1], [0, 1], [0, 1]]
+                       )
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.0, 0.001))
+    assert_that(result.value.values[0][0], equal_to('a'))
+
+
+def test_run_with_scorer_multilabel_class_names_receive_model_classes(text_multilabel_classification_dataset_mock):
+    # Arrange
+    text_multilabel_classification_dataset_mock_copy = text_multilabel_classification_dataset_mock.copy()
+    text_multilabel_classification_dataset_mock_copy._classes = ['a', 'b', 'c']
+    check = SingleDatasetPerformance(scorers=['f1_per_class'])
+
+    # Act
+    result = check.run(text_multilabel_classification_dataset_mock_copy,
+                       predictions=[[0, 0, 1], [1, 0, 1], [0, 1, 0]],
+                       model_classes=[[0, 1], [0, 1], [0, 1]]
+                       )
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(1.0, 0.001))
+    assert_that(result.value.values[0][0], equal_to('a'))
+
+
 def test_run_with_scorer_token(text_token_classification_dataset_mock):
     # Arrange
     check = SingleDatasetPerformance(scorers=['token_f1_macro'])

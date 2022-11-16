@@ -196,4 +196,3 @@ class KeywordFrequencyDrift(TrainTestCheck):
 
 def _identity_tokenizer(text):
     return text
-

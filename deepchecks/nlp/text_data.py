@@ -292,7 +292,7 @@ class TextData:
         return self._label
 
     @property
-    def classes(self) -> t.Optional[t.List[t.Union[str, int]]]:
+    def classes(self) -> t.Optional[t.List[t.Union[str, int]]]:  # Bressler - should keep or use context.model_classes?
         """Return the classes from label column in list. if no label column defined, return empty list.
 
         Returns

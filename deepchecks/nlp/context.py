@@ -23,6 +23,7 @@ from deepchecks.nlp.metric_utils.token_classification import (SpanAligner, get_d
                                                               validate_scorers)
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
+from deepchecks.nlp.utils.data_inference import infer_observed_labels
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 
 __all__ = [
@@ -34,6 +35,7 @@ __all__ = [
 
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
 
@@ -49,9 +51,9 @@ class _DummyModel(BasicModel):
 
     Parameters
     ----------
-    train: Dataset
+    train: TextData
         Dataset, representing data an estimator was fitted on.
-    test: Dataset
+    test: TextData
         Dataset, representing data an estimator predicts on.
     y_pred_train: np.ndarray
         Array of the model prediction over the train dataset.
@@ -141,7 +143,7 @@ class _DummyModel(BasicModel):
             self._proba_indices = \
                 {name: set(data_proba.keys()) for name, data_proba in self.probas.items()}
 
-    def _predict(self, data: TextData) -> TTextPred:
+    def _predict(self, data: TextData) -> TTextPred:  # TODO: Needs to receive list of strings, not TextData
         """Predict on given data by the data indexes."""
         if self.validate_data_on_predict:
             data_indices = set(np.random.choice(data.index, min(100, len(data.index)), replace=False))
@@ -150,7 +152,7 @@ class _DummyModel(BasicModel):
                                            'predictions.')
         return list(itemgetter(*data.index)(self.predictions[data.name]))  # pylint: disable=unsubscriptable-object
 
-    def _predict_proba(self, data: TextData) -> TTextProba:
+    def _predict_proba(self, data: TextData) -> TTextProba:  # TODO: Needs to receive list of strings, not TextData
         """Predict probabilities on given data by the data indexes."""
         if self.validate_data_on_predict:
             data_indices = set(np.random.choice(data.index, min(100, len(data.index)), replace=False))
@@ -266,21 +268,23 @@ class Context(BaseContext):
 
     Parameters
     ----------
-    train_dataset: Union[TextData, None] , default: None
+    train_dataset: Union[TextData, None], default: None
         TextData object, representing data an estimator was fitted on
-    test_dataset: Union[TextData, None] , default: None
+    test_dataset: Union[TextData, None], default: None
         TextData object, representing data an estimator predicts on
-    with_display : bool , default: True
+    with_display: bool, default: True
         flag that determines if checks will calculate display (redundant in some checks).
-    train_pred: Union[TTextPred, None] , default: None
+    train_pred: Union[TTextPred, None], default: None
         predictions on train dataset
-    test_pred: Union[TTextPred, None] , default: None
+    test_pred: Union[TTextPred, None], default: None
         predictions on test dataset
-    train_proba: Union[TTextProba, None] , default: None
+    train_proba: Union[TTextProba, None], default: None
         probabilities on train dataset
-    test_proba: Union[TTextProba, None] , default: None
+    test_proba: Union[TTextProba, None], default: None
         probabilities on test dataset
-    random_state : int, default 42
+    model_classes: Optional[List, List[List], default: None
+        For classification: list of classes known to the model
+    random_state: int, default 42
         A seed to set for pseudo-random functions, primarily sampling.
     n_samples: int, default: 10_000
         The number of samples to use within the checks.
@@ -295,6 +299,7 @@ class Context(BaseContext):
             test_pred: t.Optional[TTextPred] = None,
             train_proba: t.Optional[TTextProba] = None,
             test_proba: t.Optional[TTextProba] = None,
+            model_classes: t.Optional[t.List] = None,
             random_state: int = 42,
             n_samples: t.Optional[int] = 10_000
     ):
@@ -317,6 +322,13 @@ class Context(BaseContext):
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')
+        if model_classes and len(model_classes) == 0:
+            raise DeepchecksValueError('Received empty model_classes')
+        if model_classes and sorted(model_classes) != model_classes:
+            supported_models_link = doclink(
+                'nlp-supported-predictions-format',
+                template='For more information please refer to the Supported Tasks guide {link}')
+            raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
         if any(x is not None for x in (train_pred, test_pred, train_proba, test_proba)):
             self._model = _DummyModel(train=train_dataset, test=test_dataset,
@@ -324,6 +336,9 @@ class Context(BaseContext):
                                       y_proba_train=train_proba, y_proba_test=test_proba)
         else:
             self._model = None
+
+        self._model_classes = model_classes
+        self._observed_classes = infer_observed_labels(train_dataset, test_dataset, self._model)
 
         self._train = train_dataset
         self._test = test_dataset
@@ -422,4 +437,4 @@ class Context(BaseContext):
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
                                        f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')
-        return init_validate_scorers(scorers)
+        return init_validate_scorers(scorers, self._model_classes, self._observed_classes)

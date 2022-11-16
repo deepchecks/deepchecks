@@ -9,7 +9,7 @@ In the deepchecks nlp package, predictions are passed into the suite / check ``r
 predictions only (passing a fitted model is currently not supported).
 
 
-.. _nlp_supported_task__types:
+.. _nlp_supported_tasks__types:
 
 Supported Task Types
 ====================

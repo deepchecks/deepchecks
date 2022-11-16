@@ -22,14 +22,19 @@ __all__ = [
 ]
 
 
-def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]]
-                          ) -> t.List[DeepcheckScorer]:
+def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]],
+                          model_classes: t.Optional[t.List],
+                          observed_classes: t.Optional[t.List]) -> t.List[DeepcheckScorer]:
     """Initialize scorers and return all of them as deepchecks scorers.
 
     Parameters
     ----------
     scorers : Mapping[str, Union[str, Callable]]
         dict of scorers names to scorer sklearn_name/function or a list without a name
+    model_classes: t.Optional[t.List]
+        possible classes output for model. None for regression tasks.
+    observed_classes: t.Optional[t.List]
+        observed classes from labels and predictions. None for regression tasks.
 
     Returns
     -------
@@ -37,9 +42,11 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         A list of initialized scorers
     """
     if isinstance(scorers, t.Mapping):
-        scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, name) for name, scorer in scorers.items()]
+        scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, model_classes, observed_classes, name)
+                                            for name, scorer in scorers.items()]
     else:
-        scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer) for scorer in scorers]
+        scorers: t.List[DeepcheckScorer] = [DeepcheckScorer(scorer, model_classes, observed_classes)
+                                            for scorer in scorers]
     return scorers
 
 
