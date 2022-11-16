@@ -120,14 +120,20 @@ class WeakSegmentAbstract:
             labels = dict(x=segment['Feature1'], y=segment['Feature2'], color=f'{scorer.name} score')
             fig = px.imshow(scores, x=f1_labels, y=f2_labels, labels=labels, color_continuous_scale='rdylgn')
             fig.update_traces(text=scores_text, texttemplate='%{text}')
+            if segment["Feature2"]:
+                title = f'{scorer.name} score (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}'
+                tab_name = f'{segment["Feature1"]} vs {segment["Feature2"]}'
+            else:
+                title = f'{scorer.name} score (percent of data) {segment["Feature1"]}'
+                tab_name = f'{segment["Feature1"]}'
             fig.update_layout(
-                title=f'{scorer.name} score (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}',
+                title=title,
                 height=600
             )
 
             msg = f'Check ran on {encoded_dataset.n_samples} data samples. Average {scorer.name} ' \
                   f'score is {format_number(avg_score)}.'
-            display_tabs[f'{segment["Feature1"]} vs {segment["Feature2"]}'] = [fig, msg]
+            display_tabs[tab_name] = [fig, msg]
 
         return display_tabs
 
