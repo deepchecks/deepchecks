@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import torch
 
+from deepchecks import ConditionResult, ConditionCategory
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
@@ -23,6 +24,7 @@ from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
+from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import per_sample_dice
@@ -163,6 +165,29 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                       'weak segments can be observed in the check result value. '
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': 'average_loss'},
                            display=[display_msg, DisplayMap(display)])
+
+    def add_condition_segments_relative_performance_greater_than(self, max_ratio_change: float = 0.20):
+        """Add condition - check that the score of the weakest segment is greater than supplied relative threshold.
+
+        Parameters
+        ----------
+        max_ratio_change : float , default: 0.20
+            maximal ratio of change allowed between the average score and the score of the weakest segment.
+        """
+
+        def condition(result: Dict) -> ConditionResult:
+            weakest_segment_score = result['weak_segments_list'].iloc[0, 0]
+            msg = f'Found a segment with {result["scorer_name"]} score of {format_number(weakest_segment_score, 3)} ' \
+                  f'in comparison to an average score of {format_number(result["avg_score"], 3)} in sampled data.'
+            if result['avg_score'] > 0 and weakest_segment_score > (1 - max_ratio_change) * result['avg_score']:
+                return ConditionResult(ConditionCategory.PASS, msg)
+            elif result['avg_score'] < 0 and weakest_segment_score > (1 + max_ratio_change) * result['avg_score']:
+                return ConditionResult(ConditionCategory.PASS, msg)
+            else:
+                return ConditionResult(ConditionCategory.WARN, msg)
+
+        return self.add_condition(f'The relative performance of weakest segment is greater than '
+                                  f'{format_percent(1 - max_ratio_change)} of average model performance.', condition)
 
 
 class AvgLossScorer:
