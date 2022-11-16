@@ -48,6 +48,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     ----------
     scorer: Optional[Callable], default: None
         a scorer (metric) to override the default scorer, callable that accepts (predictions, labels).
+    scorer_name: Optional[str], default: None
+        The scorer name to display in the plots.
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -74,6 +76,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     def __init__(
         self,
         scorer: Optional[Callable] = None,
+        scorer_name: Optional[str] = None,
         image_properties: List[Dict[str, Any]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
@@ -88,13 +91,14 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             raise DeepchecksNotSupportedError('Check requires at least two image properties in order to run.')
         self.n_top_features = n_top_properties
         self.scorer = scorer
+        self.scorer_name = scorer_name
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self.n_to_show = n_to_show
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
         self._properties_results = None
         self._sample_scores = None
-        self._dummy_scorer = AvgLossScorer()
+        self._dummy_scorer = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties and sample scores states."""
@@ -106,12 +110,16 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                     predictions = np.array(torch.stack(predictions))
                     return per_sample_cross_entropy(labels, predictions)
                 self.scorer = scoring_func
+                self.scorer_name = 'cross entropy'
             elif task_type == TaskType.OBJECT_DETECTION:
                 self.scorer = per_sample_mean_iou
+                self.scorer_name = 'mean IoU'
             elif task_type == TaskType.SEMANTIC_SEGMENTATION:
                 self.scorer = per_sample_dice
+                self.scorer_name = 'Dice score'
             else:
                 raise DeepchecksValueError(f'Default scorer is not defined for task type {task_type}.')
+        self._dummy_scorer = AvgLossScorer(self.scorer_name)
         self._properties_results = defaultdict(list)
         self._sample_scores = []
 
@@ -192,8 +200,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
 class AvgLossScorer:
     """Patch for using the tabular methods from a dataframe of pre-calculated loss."""
-    def __init__(self):
-        self.name = 'average_loss'
+    def __init__(self, scorer_name):
+        self.name = scorer_name if scorer_name is not None else 'average_loss'
 
     def run_on_data_and_label(self, model, data: pd.DataFrame, loss_col: pd.Series):
         """Patch for using the tabular methods from a dataframe of pre-calculated loss."""
