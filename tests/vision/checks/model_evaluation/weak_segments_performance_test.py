@@ -57,6 +57,6 @@ def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device
 def test_segmentation_defaults(segmentation_coco_test_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device):
     check = WeakSegmentsPerformance()
 
-    assert_that(calling(check).with_args(
+    assert_that(calling(check.run).with_args(
         segmentation_coco_test_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device),
         raises(DeepchecksProcessError))
