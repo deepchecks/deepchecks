@@ -146,3 +146,13 @@ class MeanIoU(Metric):
         if self.average == 'macro':
             scores_per_class = np.nanmean(scores_per_class)
         return scores_per_class
+
+
+def per_sample_dice(predictions, labels, threshold: float = 0.5, smooth: float = 1e-3):
+    """Calculate Dice score per sample."""
+    score = np.empty(len(labels))
+    for i in range(len(labels)):
+        gt_onehot, pred_onehot = format_segmentation_masks(labels[i], predictions[i], threshold)
+        tp_count, gt_count, pred_count = segmentation_counts_micro(gt_onehot, pred_onehot)
+        score[i] = (2 * tp_count + smooth) / (gt_count + pred_count + smooth)
+    return score.tolist()

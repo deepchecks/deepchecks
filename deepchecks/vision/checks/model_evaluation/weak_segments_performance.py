@@ -31,6 +31,7 @@ from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedE
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.tabular import Dataset
 from deepchecks.core.check_result import DisplayMap
+from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import per_sample_dice
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
@@ -81,6 +82,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                 self.scorer = scoring_func
             elif task_type == TaskType.OBJECT_DETECTION:
                 self.scorer = per_sample_mean_iou
+            elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+                self.scorer = per_sample_dice
             else:
                 raise DeepchecksValueError(f'Default scorer is not defined for task type {task_type}.')
         self._properties_results = defaultdict(list)
