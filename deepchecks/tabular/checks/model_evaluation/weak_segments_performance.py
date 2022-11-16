@@ -20,15 +20,12 @@ from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
-
 from deepchecks.tabular.utils.task_type import TaskType
-
 from deepchecks.utils.docref import doclink
-
+from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.single_sample_metrics import calculate_per_sample_loss
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 
 if TYPE_CHECKING:
     from deepchecks.core.checks import CheckConfig

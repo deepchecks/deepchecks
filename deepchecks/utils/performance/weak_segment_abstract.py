@@ -10,25 +10,29 @@
 #
 """Module contains common methods for weak segment performance checks."""
 
-import pandas as pd
+from collections import defaultdict
+from typing import List, Optional, Union
+
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import sklearn
 from category_encoders import TargetEncoder
 from packaging import version
 from sklearn.model_selection import GridSearchCV
 from sklearn.tree import DecisionTreeRegressor
+
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
-from collections import defaultdict
+from deepchecks.utils.dataframes import default_fill_na_per_column_type
 from deepchecks.utils.performance.partition import (convert_tree_leaves_into_filters,
                                                     partition_numeric_feature_around_segment)
-from deepchecks.utils.dataframes import default_fill_na_per_column_type
-from typing import Optional, List, Union
-from deepchecks.tabular import Context, Dataset
 from deepchecks.utils.strings import format_number, format_percent
 
 
 class WeakSegmentAbstract:
+    """Abstract class with common methods to be inherited by WeakSegmentsPerformance checks, both vision and tabular."""
+
     def __init__(self,
                  n_top_features: int = 5,
                  n_to_show: int = 3,

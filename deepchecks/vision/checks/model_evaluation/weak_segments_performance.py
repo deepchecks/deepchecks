@@ -10,28 +10,25 @@
 #
 """Module of weak segments performance check."""
 from collections import defaultdict
+from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-from typing import Dict, Callable, List, Any, Union, Optional
-
 import torch
 
+from deepchecks.core import CheckResult, DatasetKind
+from deepchecks.core.check_result import DisplayMap
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
-from deepchecks.vision import Context, SingleDatasetCheck, Batch
-from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from ignite.metrics import Metric
-
+from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
+from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
+from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
+from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import per_sample_dice
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
-from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
-from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError, DeepchecksProcessError
-from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
-from deepchecks.tabular import Dataset
-from deepchecks.core.check_result import DisplayMap
-from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import per_sample_dice
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
@@ -44,6 +41,32 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     In order to achieve this, the check trains several simple tree based models which try to predict the error of the
     user provided model on the dataset. The relevant segments are detected by analyzing the different
     leafs of the trained trees.
+
+    Parameters
+    ----------
+    scorer: Optional[Callable], default: None
+        a scorer (metric) to override the default scorer, callable that accepts (predictions, labels).
+    image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
+        representing attributes of said method. 'output_type' must be one of:
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+
+        For more on image properties, see the guide about :ref:`vision_properties_guide`.
+    number_of_bins: int, default : 5
+        Maximum number of bins to segment a single property into.
+    number_of_samples_to_infer_bins : int, default : 1000
+        Minimum number of samples to use to infer the bounds of the segments' bins
+    n_top_properties: int , default: 5
+        Number of features to use for segment search. Top columns are selected based on feature importance.
+    n_to_show: int , default: 3
+        number of segments with the weakest performance to show.
+    segment_minimum_size_ratio: float , default: 0.05
+        Minimum size ratio for segments. Will only search for segments of
+        size >= segment_minimum_size_ratio * data_size.
     """
 
     def __init__(
@@ -52,7 +75,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         image_properties: List[Dict[str, Any]] = None,
         number_of_bins: int = 5,
         number_of_samples_to_infer_bins: int = 1000,
-        n_top_features: int = 5,
+        n_top_properties: int = 5,
         n_to_show: int = 3,
         segment_minimum_size_ratio: float = 0.05,
         **kwargs
@@ -61,7 +84,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.image_properties = image_properties if image_properties else default_image_properties
         if len(self.image_properties) < 2:
             raise DeepchecksNotSupportedError('Check requires at least two image properties in order to run.')
-        self.n_top_features = n_top_features
+        self.n_top_features = n_top_properties
         self.scorer = scorer
         self.number_of_bins = number_of_bins
         self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
@@ -72,6 +95,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self._dummy_scorer = AvgLossScorer()
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
+        """Initialize the properties and sample scores states."""
         task_type = context.get_data_by_kind(dataset_kind).task_type
         if self.scorer is None:
             if task_type == TaskType.CLASSIFICATION:
