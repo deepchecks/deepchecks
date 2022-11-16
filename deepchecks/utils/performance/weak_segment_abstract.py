@@ -128,7 +128,9 @@ class WeakSegmentAbstract:
                 tab_name = f'{segment["Feature1"]}'
             fig.update_layout(
                 title=title,
-                height=600
+                height=600,
+                xaxis_showgrid=False,
+                yaxis_showgrid=False
             )
 
             msg = f'Check ran on {encoded_dataset.n_samples} data samples. Average {scorer.name} ' \
