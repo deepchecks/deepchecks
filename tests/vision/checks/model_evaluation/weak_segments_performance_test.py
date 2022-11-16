@@ -60,8 +60,3 @@ def test_segmentation_defaults(segmentation_coco_test_visiondata, trained_segmen
     assert_that(calling(check).with_args(
         segmentation_coco_test_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device),
         raises(DeepchecksProcessError))
-
-
-def test_segmentation_desplay(segmentation_coco_test_visiondata_full, trained_segmentation_deeplabv3_mobilenet_model, device):
-    result = WeakSegmentsPerformance().run(segmentation_coco_test_visiondata_full, trained_segmentation_deeplabv3_mobilenet_model, device)
-    result.save_as_html('/Users/solyarkoni/Downloads/wss_output1.html')
