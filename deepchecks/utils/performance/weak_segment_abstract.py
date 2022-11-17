@@ -11,7 +11,7 @@
 """Module contains common methods for weak segment performance checks."""
 
 from collections import defaultdict
-from typing import List, Optional, Union, Dict
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -22,7 +22,7 @@ from packaging import version
 from sklearn.model_selection import GridSearchCV
 from sklearn.tree import DecisionTreeRegressor
 
-from deepchecks import ConditionResult, ConditionCategory
+from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
 from deepchecks.utils.dataframes import default_fill_na_per_column_type
