@@ -68,11 +68,18 @@ def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tab
     if model_classes is None and have_model and hasattr(model, 'classes_') and len(model.classes_) > 0:
         model_classes = sorted(list(model.classes_))
 
+    # First if the user defined manually the task type (label type on dataset) we use it
     if train_dataset and train_dataset.label_type is not None:
         task_type = train_dataset.label_type
+    # Secondly if user passed model_classes or we found classes on the model object, we use them
     elif model_classes:
         task_type = infer_by_class_number(len(model_classes))
-    elif len(observed_labels) > 0 and is_categorical(pd.Series(observed_labels), max_categorical_ratio=0.05):
+    # Thirdly if there are no observed labels (user didn't pass model, and datasets have no label column), then we
+    # have no task type
+    elif len(observed_labels) == 0:
+        task_type = None
+    # Fourth, we check if the observed labels are categorical or not
+    elif is_categorical(observed_labels, max_categorical_ratio=0.05):
         num_classes = len(observed_labels.dropna().unique())
         task_type = infer_by_class_number(num_classes)
         if infer_dtype(observed_labels) == 'integer' and train_dataset and train_dataset.label_type is None:
