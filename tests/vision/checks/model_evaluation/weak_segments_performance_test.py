@@ -38,7 +38,7 @@ def test_detection_condition(coco_train_visiondata, mock_trained_yolov5_object_d
         equal_condition_result(
             is_pass=True,
             name='The relative performance of weakest segment is greater than 50% of average model performance.',
-            details='Found a segment with average_loss score of 0.511 in comparison to an average score of 0.691 in '
+            details='Found a segment with mean IoU score of 0.511 in comparison to an average score of 0.691 in '
                     'sampled data.')
     ))
 

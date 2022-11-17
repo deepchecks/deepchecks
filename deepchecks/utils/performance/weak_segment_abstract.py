@@ -11,7 +11,7 @@
 """Module contains common methods for weak segment performance checks."""
 
 from collections import defaultdict
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 
 import numpy as np
 import pandas as pd
@@ -22,6 +22,7 @@ from packaging import version
 from sklearn.model_selection import GridSearchCV
 from sklearn.tree import DecisionTreeRegressor
 
+from deepchecks import ConditionResult, ConditionCategory
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
 from deepchecks.utils.dataframes import default_fill_na_per_column_type
@@ -226,3 +227,26 @@ class WeakSegmentAbstract:
             result[0] = '[' + result[0][1:]
 
         return result
+
+    def add_condition_segments_relative_performance_greater_than(self, max_ratio_change: float = 0.20):
+        """Add condition - check that the score of the weakest segment is greater than supplied relative threshold.
+
+        Parameters
+        ----------
+        max_ratio_change : float , default: 0.20
+            maximal ratio of change allowed between the average score and the score of the weakest segment.
+        """
+
+        def condition(result: Dict) -> ConditionResult:
+            weakest_segment_score = result['weak_segments_list'].iloc[0, 0]
+            msg = f'Found a segment with {result["scorer_name"]} score of {format_number(weakest_segment_score, 3)} ' \
+                  f'in comparison to an average score of {format_number(result["avg_score"], 3)} in sampled data.'
+            if result['avg_score'] > 0 and weakest_segment_score > (1 - max_ratio_change) * result['avg_score']:
+                return ConditionResult(ConditionCategory.PASS, msg)
+            elif result['avg_score'] < 0 and weakest_segment_score > (1 + max_ratio_change) * result['avg_score']:
+                return ConditionResult(ConditionCategory.PASS, msg)
+            else:
+                return ConditionResult(ConditionCategory.WARN, msg)
+
+        return self.add_condition(f'The relative performance of weakest segment is greater than '
+                                  f'{format_percent(1 - max_ratio_change)} of average model performance.', condition)
