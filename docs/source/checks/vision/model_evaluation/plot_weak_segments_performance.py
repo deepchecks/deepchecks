@@ -17,7 +17,8 @@ What is the purpose of the check?
 ==================================
 
 The check is designed to easily identify the model's weakest segments.
-The segments are characterized by the image properties.
+The segments are characterized by the :doc:`image properties </user-guide/vision/vision_properties>` such as the
+contrast.
 
 Automatically detecting weak segments
 =====================================
@@ -69,6 +70,16 @@ result
 
 
 result.value['weak_segments_list']
+
+#%%
+# Now we will run a check with properties and minimum segment size ratio different from the defaults.
+from deepchecks.vision.utils.image_properties import brightness, texture_level
+properties = [{'name': 'brightness', 'method': brightness, 'output_type': 'numerical'},
+              {'name': ' texture', 'method': texture_level, 'output_type': 'numerical'}]
+check = WeakSegmentsPerformance(segment_minimum_size_ratio=0.03, image_properties=properties)
+result = check.run(coco_data, model)
+result.show_in_window()
+
 
 #%%
 # Define a condition
