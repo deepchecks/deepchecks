@@ -85,8 +85,8 @@ result.show_in_window()
 # Define a condition
 # ==================
 #
-# We can define on our check a condition that will validate that the model performance on the weakest segment detected
-# is greater than a specified ratio of the average model performance of the entire dataset.
+# We can define on our check a condition that will validate that the ratio of the model performance on the
+# weakest segment to the average model performance is less than a specified ratio.
 
 # Let's add a condition and re-run the check:
 
