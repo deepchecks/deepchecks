@@ -98,6 +98,7 @@ The process of calculating the PPS is the following:
 
 from deepchecks.vision.checks import PropertyLabelCorrelation
 from deepchecks.vision.simple_classification_data import classification_dataset_from_directory
+from deepchecks.vision.utils import visualize_vision_data
 import albumentations as A
 import urllib.request
 import zipfile
@@ -109,7 +110,16 @@ with zipfile.ZipFile('wolves_vs_dogs_mini.zip', 'r') as zip_ref:
     zip_ref.extractall('.')
 
 dataset = classification_dataset_from_directory(
-    'wolves_vs_dogs_mini', object_type='VisionData', transforms=A.Resize(64, 64))
+    'wolves_vs_dogs_mini', object_type='VisionData', transforms=A.Resize(128, 128))
+dataset._label_map = {0: 'dog', 1: 'wolf'}  # Replacing the built-in label map "dogs" and "wolves" with "dog" and "wolf"
+
+#%%
+# You can see an example of the dataset images and their labels below:
+
+visualize_vision_data(dataset)
+
+#%%
+# Now lets run the check:
 
 check_result = PropertyLabelCorrelation().run(dataset)
 check_result.show()
