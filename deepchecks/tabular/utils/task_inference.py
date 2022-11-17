@@ -63,7 +63,8 @@ def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tab
         if have_model:
             test_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
 
-    observed_labels = pd.Series(test_labels + train_labels, dtype='object')
+    observed_labels = test_labels + train_labels
+    observed_labels = pd.Series(observed_labels) if len(observed_labels) > 0 else pd.Series(dtype='object')
     if model_classes is None and have_model and hasattr(model, 'classes_') and len(model.classes_) > 0:
         model_classes = sorted(list(model.classes_))
 
@@ -71,7 +72,7 @@ def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tab
         task_type = train_dataset.label_type
     elif model_classes:
         task_type = infer_by_class_number(len(model_classes))
-    elif len(observed_labels) > 0 and is_categorical(observed_labels, max_categorical_ratio=0.05):
+    elif len(observed_labels) > 0 and is_categorical(pd.Series(observed_labels), max_categorical_ratio=0.05):
         num_classes = len(observed_labels.dropna().unique())
         task_type = infer_by_class_number(num_classes)
         if infer_dtype(observed_labels) == 'integer' and train_dataset and train_dataset.label_type is None:
