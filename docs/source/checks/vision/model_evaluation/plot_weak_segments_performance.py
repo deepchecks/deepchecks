@@ -1,0 +1,84 @@
+# -*- coding: utf-8 -*-
+"""
+Weak Segments Performance
+*************************
+
+This notebook provides an overview for using and understanding the weak segment performance check.
+
+**Structure:**
+
+* `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
+* `Automatically detecting weak segments <#automatically-detecting-weak-segments>`__
+* `Generate data & model <#generate-data-model>`__
+* `Run the check <#run-the-check>`__
+* `Define a condition <#define-a-condition>`__
+
+What is the purpose of the check?
+==================================
+
+The check is designed to help you easily identify the model's weakest segments in the data provided.
+The segments are characterized by the image properties.
+
+Automatically detecting weak segments
+=====================================
+
+The check contains several steps:
+
+#. We calculate the image properties for each sample. The properties to calculate can be passed explicitly or set to the
+   default image properties.
+
+#. We calculate loss for each sample in the dataset using the provided model, the loss function can be passed explicitly
+   or set to a default by the task type.
+
+#. We train multiple simple tree based models, each one is trained using exactly two
+   properties to predict the per sample error calculated before.
+
+#. We convert each of the leafs in each of the trees into a segment and calculate the segment's performance. For the
+   weakest segments detected we also calculate the model's performance on data segments surrounding them.
+"""
+
+#%%
+# Run the check
+# =============
+
+from deepchecks.vision.checks import WeakSegmentsPerformance
+from deepchecks.vision.datasets.detection import coco
+
+coco_data = coco.load_dataset(train=False, object_type='VisionData')
+model = coco.load_model()
+check = WeakSegmentsPerformance()
+result = check.run(coco_data, model)
+result
+
+#%%
+# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
+#
+# To display the results in an IDE like PyCharm, you can use the following code:
+
+#  result.show_in_window()
+#%%
+# The result will be displayed in a new window.
+#%%
+# Observe the check's output
+# --------------------------
+#
+# We see in the results that the check indeed found several segments on which the model performance is below average.
+# In the heatmap display we can see model performance on the weakest segments and their environment with respect to the
+# two features that are relevant to the segment. In order to get the full list of weak segments found we will inspect
+# the result.value attribute.
+
+
+result.value['weak_segments_list']
+
+#%%
+# Define a condition
+# ==================
+#
+# We can define on our check a condition that will validate that the model performance on the weakest segment detected
+# is greater than a specified ratio of the average model performance of the entire dataset.
+
+# Let's add a condition and re-run the check:
+
+check.add_condition_segments_relative_performance_greater_than(0.1)
+result = check.run(coco_data, model)
+result.show(show_additional_outputs=False)
