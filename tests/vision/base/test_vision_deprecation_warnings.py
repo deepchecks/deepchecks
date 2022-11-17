@@ -17,7 +17,7 @@ import torch
 from ignite.metrics import Accuracy
 
 from deepchecks.vision.checks import (ClassPerformance, ImageSegmentPerformance, RobustnessReport,
-                                      SimpleModelComparison, SingleDatasetPerformance)
+                                      SimpleModelComparison, SingleDatasetPerformance, ModelErrorAnalysis)
 
 
 def test_deprecation_warning_robustness_report():
@@ -47,10 +47,16 @@ def test_deprecation_warning_image_segment_performance():
     with pytest.warns(DeprecationWarning, match='alternative_metrics'):
         check = ImageSegmentPerformance(alternative_metrics={'ac': Accuracy()})
 
-    # Check to see no warnings are raised when deprecated feature doesn't exist:
-    with warnings.catch_warnings():
-        warnings.simplefilter("error")
-        check = ImageSegmentPerformance()
+    with pytest.warns(DeprecationWarning, match='The ImageSegmentPerformance check is deprecated and will be removed in'
+                                                ' the 0.11 version. Please use the WeakSegmentsPerformance check '
+                                                'instead.'):
+        _ = ImageSegmentPerformance()
+
+
+def test_deprecation_model_error_analysis_warning():
+    with pytest.warns(DeprecationWarning, match='The ModelErrorAnalysis check is deprecated and will be removed in the '
+                                                '0.11 version. Please use the WeakSegmentsPerformance check instead.'):
+        _ = ModelErrorAnalysis()
 
 
 def test_deprecation_warning_class_performance():

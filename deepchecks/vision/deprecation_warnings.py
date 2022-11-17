@@ -31,3 +31,17 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'The ModelErrorAnalysis check is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)
+
+warnings.filterwarnings(
+    action='once',
+    message=r'The ImageSegmentPerformance check is deprecated.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

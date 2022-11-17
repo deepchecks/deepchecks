@@ -36,6 +36,10 @@ __all__ = ['ImageSegmentPerformance']
 class ImageSegmentPerformance(SingleDatasetCheck):
     """Segment the data by various properties of the image, and compare the performance of the segments.
 
+    .. deprecated:: 0.9.3
+        The ImageSegmentPerformance check is deprecated and will be removed in the 0.11 version. Please use the
+        WeakSegmentsPerformance check instead.
+
     Parameters
     ----------
     scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]], default: None
@@ -72,6 +76,9 @@ class ImageSegmentPerformance(SingleDatasetCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
+        warnings.warn('The ImageSegmentPerformance check is deprecated and will be removed in the 0.11 version. '
+                      'Please use the WeakSegmentsPerformance check instead.', DeprecationWarning)
+
         self.image_properties = image_properties if image_properties else default_image_properties
         if alternative_metrics is not None:
             warnings.warn(f'{self.__class__.__name__}: alternative_metrics is deprecated. Please use scorers instead.',
