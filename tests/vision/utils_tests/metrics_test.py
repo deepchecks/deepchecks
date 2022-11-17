@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 from hamcrest import assert_that, close_to, has_items, has_length
+from numpy import nanmean
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.metrics_utils.scorers import calculate_metrics
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU, per_sample_dice
-from numpy import nanmean
 
 
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):

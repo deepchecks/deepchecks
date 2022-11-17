@@ -16,8 +16,8 @@ import pytest
 import torch
 from ignite.metrics import Accuracy
 
-from deepchecks.vision.checks import (ClassPerformance, ImageSegmentPerformance, RobustnessReport,
-                                      SimpleModelComparison, SingleDatasetPerformance, ModelErrorAnalysis)
+from deepchecks.vision.checks import (ClassPerformance, ImageSegmentPerformance, ModelErrorAnalysis, RobustnessReport,
+                                      SimpleModelComparison, SingleDatasetPerformance)
 
 
 def test_deprecation_warning_robustness_report():

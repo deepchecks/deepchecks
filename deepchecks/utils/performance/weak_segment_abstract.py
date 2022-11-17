@@ -120,7 +120,7 @@ class WeakSegmentAbstract:
             labels = dict(x=segment['Feature1'], y=segment['Feature2'], color=f'{scorer.name} score')
             fig = px.imshow(scores, x=f1_labels, y=f2_labels, labels=labels, color_continuous_scale='rdylgn')
             fig.update_traces(text=scores_text, texttemplate='%{text}')
-            if segment["Feature2"]:
+            if segment['Feature2']:
                 title = f'{scorer.name} score (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}'
                 tab_name = f'{segment["Feature1"]} vs {segment["Feature2"]}'
             else:

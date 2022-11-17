@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import torch
 
-from deepchecks import ConditionResult, ConditionCategory
+from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
@@ -203,6 +203,6 @@ class AvgLossScorer:
     def __init__(self, scorer_name):
         self.name = scorer_name if scorer_name is not None else 'average_loss'
 
-    def run_on_data_and_label(self, model, data: pd.DataFrame, loss_col: pd.Series):
+    def run_on_data_and_label(self, model, data: pd.DataFrame, loss_col: pd.Series):  # pylint: disable=W0613
         """Patch for using the tabular methods from a dataframe of pre-calculated loss."""
         return loss_col.mean()
