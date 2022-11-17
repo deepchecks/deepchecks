@@ -13,7 +13,7 @@ import numpy as np
 from hamcrest import assert_that, calling, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.distribution.preprocessing import (OTHER_CATEGORY_NAME, one_hot_batch,
+from deepchecks.utils.distribution.preprocessing import (OTHER_CATEGORY_NAME,
                                                          preprocess_2_cat_cols_to_same_bins, value_frequency)
 
 
@@ -64,12 +64,3 @@ def test_cat_cols_to_bins_with_max_num_categories_and_sort_by_raises():
 def test_value_frequency():
     assert_that(value_frequency(np.array([1, 1, 1, 2, 2, 1, 3, 3, 3, 0])), equal_to([0.4, 0.2, 0.3, 0.1]))
     assert_that(value_frequency([1, np.NAN, 1,  1, 3, np.NAN, 3, 0]), equal_to([0.375, 0.25, 0.25, 0.125]))
-
-
-def test_one_hot():
-    index_list = [1, 0, 3, 0]
-    num_classes = 5
-    res = one_hot_batch(index_list, num_classes)
-    assert_that(res.shape, equal_to((4, 5)))
-    assert_that(res[0, 1], equal_to(1.0))
-    assert_that(res[3, 4], equal_to(0.0))
