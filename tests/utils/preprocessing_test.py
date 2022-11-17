@@ -69,9 +69,7 @@ def test_value_frequency():
 def test_one_hot():
     index_list = [1, 0, 3, 0]
     num_classes = 5
-    expected_result = [[0.0, 1.0, 0.0, 0.0, 0.0],
-                       [1.0, 0.0, 0.0, 0.0, 0.0],
-                       [0.0, 0.0, 0.0, 1.0, 0.0],
-                       [0.0, 1.0, 0.0, 0.0, 0.0]]
     res = one_hot_batch(index_list, num_classes)
-    assert_that(res, equal_to(expected_result))
+    assert_that(res.shape, equal_to((4, 5)))
+    assert_that(res[0, 1], equal_to(1.0))
+    assert_that(res[3, 4], equal_to(0.0))
