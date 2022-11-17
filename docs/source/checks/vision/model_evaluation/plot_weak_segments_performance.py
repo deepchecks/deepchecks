@@ -16,25 +16,25 @@ This notebook provides an overview for using and understanding the weak segment 
 What is the purpose of the check?
 ==================================
 
-The check is designed to help you easily identify the model's weakest segments in the data provided.
+The check is designed to easily identify the model's weakest segments.
 The segments are characterized by the image properties.
 
 Automatically detecting weak segments
 =====================================
 
-The check contains several steps:
+The check performs several steps:
 
 #. We calculate the image properties for each sample. The properties to calculate can be passed explicitly or set to the
    default image properties.
 
-#. We calculate loss for each sample in the dataset using the provided model, the loss function can be passed explicitly
-   or set to a default by the task type.
+#. We calculate loss for each sample in the dataset using the provided model or predictions, the loss function can be passed explicitly
+   or set to a default based on the task type.
 
-#. We train multiple simple tree based models, each one is trained using exactly two
+#. We train multiple simple tree based models, each one is trained using two
    properties to predict the per sample error calculated before.
 
 #. We convert each of the leafs in each of the trees into a segment and calculate the segment's performance. For the
-   weakest segments detected we also calculate the model's performance on data segments surrounding them.
+   weakest segments detected we also calculate the model's performance on the data segments surrounding them.
 """
 
 #%%
@@ -63,8 +63,8 @@ result
 # --------------------------
 #
 # We see in the results that the check indeed found several segments on which the model performance is below average.
-# In the heatmap display we can see model performance on the weakest segments and their environment with respect to the
-# two features that are relevant to the segment. In order to get the full list of weak segments found we will inspect
+# In the heatmap display we can see the model's performance on the weakest segments and their environment with respect to the
+# two segmentation features. In order to get the full list of weak segments found we can look at
 # the result.value attribute.
 
 
