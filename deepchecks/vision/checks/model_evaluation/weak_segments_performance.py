@@ -200,9 +200,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
 class AvgLossScorer:
     """Patch for using the tabular methods from a dataframe of pre-calculated loss."""
+
     def __init__(self, scorer_name):
         self.name = scorer_name if scorer_name is not None else 'average_loss'
 
-    def run_on_data_and_label(self, model, data: pd.DataFrame, loss_col: pd.Series):  # pylint: disable=W0613
+    def run_on_data_and_label(self, model, data: pd.DataFrame, loss_col: pd.Series):  # pylint: disable=unused-argument
         """Patch for using the tabular methods from a dataframe of pre-calculated loss."""
         return loss_col.mean()
