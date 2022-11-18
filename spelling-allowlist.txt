@@ -32,6 +32,7 @@ groupby
 r2
 tqdm
 nan
+nans
 kaggle
 colab
 CategoryMismatchTrainTest
