@@ -26,7 +26,7 @@ from bs4 import BeautifulSoup
 from deepchecks import __version__
 from deepchecks.core import check_result as check_types
 from deepchecks.core.checks import BaseCheck, CheckConfig  # pylint: disable=unused-import # is used for type checking
-from deepchecks.core.display import DisplayableResult, save_as_html, save_as_markdown_summary
+from deepchecks.core.display import DisplayableResult, save_as_html
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.serialization.abc import HTMLFormatter
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as SuiteResultHtmlSerializer
@@ -253,7 +253,7 @@ class SuiteResult(DisplayableResult):
 
     def save_as_cml_markdown(
         self,
-        file: t.Union[str, None] = None,
+        file: str = None,
         platform: str = 'github',
         attach_html_report: bool = True,
     ):
@@ -280,51 +280,66 @@ class SuiteResult(DisplayableResult):
         """
         
         if file is None:
-            file_stem = 'report'
-            file_dir = './'
-            file = file_dir + file_stem + '.md'
+            file = './report.md'
         elif isinstance(file, str):
-            path = pathlib.Path(file)
-            file_stem = path.stem
-            file_dir = path.parent.resolve()
+            pass
         elif isinstance(file, io.TextIOWrapper):
             raise NotImplementedError(
-                "io.TextIOWrapper is not supported for save_as_cml_markdown"
+                "io.TextIOWrapper is not yet supported for save_as_cml_markdown."
             )
 
         def format_conditions_table():
-            conditions_table = self.html_serializer.prepare_conditions_table()
-            conditions_table = f"<details><summary><b>{self.name}</b></summary>"
-            conditions_table += conditions_table + "</details>"
+            conditions_table = SuiteResultHtmlSerializer(self).prepare_conditions_table()
+            # conditions_table = self.html_serializer.prepare_conditions_table()
+
             soup = BeautifulSoup(conditions_table, features="html.parser")
-            try:
-                soup.h2.extract()
-                soup.style.extract()
-            except AttributeError:
-                pass
-            return soup.prettify()
-        conditions_table = str(format_conditions_table()).strip()
+            soup.h2.extract()  # remove "Conditions Table" redundant heading
+            soup.style.extract()  # these are not rendered anyway
 
-        if attach_html_report:
-            html_report_file = file_dir + f'{file_stem}.html'
-            self.save_as_html(html_report_file)
+            summary = soup.new_tag('summary')
+            summary.string = self.name
+            soup.table.insert_before(summary)
 
+            soup = BeautifulSoup(
+                f'\n<details>{str(soup)}</details>\n',
+                features='html.parser'
+            )
+            return soup
+
+        soup = format_conditions_table()
+        if not attach_html_report:
+            with open(file, 'w', encoding='utf-8') as handle:
+                handle.write(soup.prettify())
+        else:
+
+            # save full html report
+            path = pathlib.Path(file)
+            html_file = str(
+                pathlib.Path(file).parent
+                .resolve()
+                .joinpath(path.stem+'.html')
+            )
+
+            self.save_as_html(html_file)
             # build string containing html report as an attachment
+            # (hyperlink syntax gets processed as an attachment by cml)
             if platform == 'gitlab':
-                conditions_table.replace(
-                    f'<b>{self.name}</b>',
-                    f'<b>[{self.name}]({html_report_file})</b>'
-                )
+                soup.summary.string = f'![{soup.summary.string}]({html_file})'
+                soup = soup.prettify()
             elif platform == 'github':
-                conditions_table += f'\nAttached: ![{self.name}]({html_report_file})'
+                soup = (
+                    soup.prettify() +
+                    f'\n> 📎 ![Full {self.name} Report]({html_file})\n'
+                )
             else:
                 error_message = "Only 'github' and 'gitlab' are supported right now."
-                error_message += "\nPerhaps one of these formats "
-                error_message += "works well for your target Git platform!"
+                error_message += "\nThough one of these formats "
+                error_message += "might work for your target Git platform!"
                 raise ValueError(error_message)
-
-        with open('file', 'w') as file_handle
-            file_handle.write(BeautifulSoup(conditions_table).prettify())
+            
+            # save 
+            with open(file, 'w') as file_handle:
+                file_handle.write(soup)
 
     def to_widget(
         self,
