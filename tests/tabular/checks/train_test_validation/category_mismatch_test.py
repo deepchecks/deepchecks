@@ -175,7 +175,15 @@ def test_nan(df_with_single_nans_in_different_rows, df_with_single_nan_in_col):
     # Assert
     assert_that(max(result['Number of new categories']), equal_to(1))
     assert_that(max(result['Percent of new categories in sample']), close_to(0.09, 0.01))
-    assert_that(result['New categories in column']['col2'], equal_to([5]))
+    assert_that(result
+                ['New categories in column']['col2'], equal_to([5]))
+
+
+def test_none():
+    train = Dataset(pd.DataFrame(data={'cat': ['a', 'b', 'c']}), cat_features=['cat'])
+    test = Dataset(pd.DataFrame(data={'cat': ['a', 'b', 'c', None]}), cat_features=['cat'])
+    result = CategoryMismatchTrainTest().run(train, test).value
+    assert_that(max(result['Number of new categories']), equal_to(0))
 
 
 def test_condition_categories_fail():
