@@ -278,22 +278,22 @@ class SuiteResult(DisplayableResult):
         Optional[str] :
             name of newly create file.
         """
-        
+
         if file is None:
             file = './report.md'
         elif isinstance(file, str):
             pass
         elif isinstance(file, io.TextIOWrapper):
             raise NotImplementedError(
-                "io.TextIOWrapper is not yet supported for save_as_cml_markdown."
+                'io.TextIOWrapper is not yet supported for save_as_cml_markdown.'
             )
 
         def format_conditions_table():
             conditions_table = SuiteResultHtmlSerializer(self).prepare_conditions_table()
             # conditions_table = self.html_serializer.prepare_conditions_table()
 
-            soup = BeautifulSoup(conditions_table, features="html.parser")
-            soup.h2.extract()  # remove "Conditions Table" redundant heading
+            soup = BeautifulSoup(conditions_table, features='html.parser')
+            soup.h2.extract()  # remove 'Conditions Table' redundant heading
             soup.style.extract()  # these are not rendered anyway
 
             summary = soup.new_tag('summary')
@@ -311,7 +311,6 @@ class SuiteResult(DisplayableResult):
             with open(file, 'w', encoding='utf-8') as handle:
                 handle.write(soup.prettify())
         else:
-
             # save full html report
             path = pathlib.Path(file)
             html_file = str(
@@ -319,7 +318,6 @@ class SuiteResult(DisplayableResult):
                 .resolve()
                 .joinpath(path.stem+'.html')
             )
-
             self.save_as_html(html_file)
             # build string containing html report as an attachment
             # (hyperlink syntax gets processed as an attachment by cml)
@@ -332,13 +330,11 @@ class SuiteResult(DisplayableResult):
                     f'\n> 📎 ![Full {self.name} Report]({html_file})\n'
                 )
             else:
-                error_message = "Only 'github' and 'gitlab' are supported right now."
-                error_message += "\nThough one of these formats "
-                error_message += "might work for your target Git platform!"
+                error_message = 'Only \'github\' and \'gitlab\' are supported right now.'
+                error_message += '\nThough one of these formats '
+                error_message += 'might work for your target Git platform!'
                 raise ValueError(error_message)
-            
-            # save 
-            with open(file, 'w') as file_handle:
+            with open(file, 'w', encoding='utf-8') as file_handle:
                 file_handle.write(soup)
 
     def to_widget(
