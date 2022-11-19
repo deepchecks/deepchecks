@@ -103,8 +103,8 @@ class Batch:
         props = self._context.static_properties[self._dataset_kind]
         dataset = self._context.get_data_by_kind(self._dataset_kind)
         indexes = list(dataset.data_loader.batch_sampler)[self.batch_index]
-        props = itemgetter(*indexes)(props)
-        props_to_cache = static_prop_to_cache_format(dict(zip(indexes, props)))
+        index_to_prop = {index: props[index] for index in indexes}
+        props_to_cache = static_prop_to_cache_format(index_to_prop)
         return props_to_cache
 
     def _get_cropped_images(self):

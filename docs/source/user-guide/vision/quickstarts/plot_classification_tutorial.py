@@ -265,15 +265,23 @@ val_data.validate_format(model)
 #%%
 # And observe the output:
 #
-# Running Deepchecks' full suite on our data and model!
+# Running Deepchecks' suite on our data and model!
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Now that we have defined the task class, we can validate the model with the full suite of deepchecks.
+# Now that we have defined the task class, we can validate the train and test data with deepchecks' train test validation
+# suite.
 # This can be done with this simple few lines of code:
 
-from deepchecks.vision.suites import full_suite
+from deepchecks.vision.suites import train_test_validation
 
-suite = full_suite()
+suite = train_test_validation()
 result = suite.run(training_data, val_data, model, device=device)
+
+#%%
+# We also have suites for:
+# :func:`data integrity <deepchecks.vision.suites.default_suites.data_integrity>`
+# - validating a single dataset and
+# :func:`model evaluation <deepchecks.vision.suites.default_suites.model_evaluation>` -
+# evaluating the model's performance.
 
 #%%
 # Observing the results:
@@ -281,6 +289,9 @@ result = suite.run(training_data, val_data, model, device=device)
 # The results can be saved as a html file with the following code:
 
 result.save_as_html('output.html')
+
+# Or displayed in a new window in an IDE like Pycharm:
+# result.show_in_window()
 
 #%%
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:

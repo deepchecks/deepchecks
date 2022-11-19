@@ -61,6 +61,12 @@ class DeepchecksTimeoutError(DeepchecksBaseError):
     pass
 
 
+class DeepchecksSkippedFeatureImportance(DeepchecksBaseError):
+    """Represents a situation when feature importance is skipped."""
+
+    pass
+
+
 class ValidationError(DeepchecksBaseError):
     """Represents more specific case of the ValueError (DeepchecksValueError)."""
 
