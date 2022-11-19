@@ -11,6 +11,7 @@
 """CheckResult serialization tests."""
 import json
 import typing as t
+import xml.etree.ElementTree as ET
 
 import pandas as pd
 import wandb
@@ -28,6 +29,7 @@ from deepchecks.core.serialization.check_result.html import DisplayItemsHandler 
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as IPythonSerializer
 from deepchecks.core.serialization.check_result.ipython import DisplayItemsHandler as IPythonDisplayItemsHandler
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
+from deepchecks.core.serialization.check_result.junit import CheckResultSerializer as JunitSerializer
 from deepchecks.core.serialization.check_result.json import DisplayItemsHandler as JsonDisplayItemsHandler
 from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
@@ -423,6 +425,29 @@ def is_serialized_to_json_display_item(item_type):
         })
     else:
         raise TypeError(f'Unknown display item type {type(item_type)}')
+
+
+# ===========================================
+
+def test_junit_serializer_initialization():
+    serializer = JunitSerializer(create_check_result())
+
+
+def test_junit_serializer_initialization_with_incorrect_type_of_value():
+    assert_that(
+        calling(JunitSerializer).with_args(dict()),
+        raises(
+            TypeError,
+            'Expected "CheckResult" but got "dict"')
+    )
+
+
+def test_junit_serialization():
+    check_result = create_check_result()
+    output = JunitSerializer(check_result).serialize()
+
+    assert_that(list(output.attrib.keys()), ['classname', 'name', 'time'])
+    assert_that(output.tag, 'testcase')
 
 
 # ===========================================

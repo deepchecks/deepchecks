@@ -35,7 +35,8 @@ __all__ = [
     'JsonSerializer',
     'WidgetSerializer',
     'WandbSerializer',
-    'ABCDisplayItemsHandler'
+    'ABCDisplayItemsHandler',
+    'JunitSerializer'
 ]
 
 
@@ -66,6 +67,15 @@ class JsonSerializer(Serializer[T]):
     @abc.abstractmethod
     def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
         """Serialize into json."""
+        raise NotImplementedError()
+
+
+class JunitSerializer(Serializer[T]):
+    """To junit serializer protocol."""
+
+    @abc.abstractmethod
+    def serialize(self, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
+        """Serialize into junit."""
         raise NotImplementedError()
 
 

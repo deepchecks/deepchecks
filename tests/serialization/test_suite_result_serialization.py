@@ -26,6 +26,7 @@ from deepchecks.core.serialization.common import form_output_anchor, plotlyjs_sc
 from deepchecks.core.serialization.suite_result.html import SuiteResultSerializer as HtmlSerializer
 from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as IPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as JsonSerializer
+from deepchecks.core.serialization.suite_result.junit import SuiteResultSerializer as JunitSerializer
 from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as WidgetSerializer
 from deepchecks.core.suite import SuiteResult
@@ -209,6 +210,96 @@ def test_json_serialization():
 
 # ============================================================================
 
+
+def test_junit_serializer_initialization():
+    serializer = JunitSerializer(create_suite_result())
+
+
+def test_junit_serializer_initialization_with_incorrect_type_of_value():
+    assert_that(
+        calling(JunitSerializer).with_args(set()),
+        raises(
+            TypeError,
+            'Expected "SuiteResult" but got "set"')
+    )
+
+
+def check_junit_test_suite(test_suite):
+    assert_that(list(test_suite.attrib.keys()), ['errors', 'failures', 'name', 'tests', 'time', 'timestamp'])
+    assert_that(test_suite.tag, 'testsuite')
+
+
+def check_junit_test_case(test_case):
+    assert_that(list(test_case.attrib.keys()), ['classname', 'name', 'time'])
+    assert_that(test_case.tag, 'testcase')
+
+
+def test_junit_serialization():
+    suite_result = create_suite_result(
+        include_results_without_conditions=False,
+        include_results_without_display=False,
+        include_results_without_conditions_and_display=False
+    )
+    output = JunitSerializer(suite_result).serialize()
+
+    import xml.etree.ElementTree as ET
+
+    formatted_response = ET.fromstring(output)
+
+    assert_that(formatted_response.tag, 'testsuites')
+    assert_that(list(formatted_response.attrib.keys()), ['errors', 'failures', 'name', 'tests', 'time'])
+
+    for test_suite in list(formatted_response):
+        check_junit_test_case(test_suite)
+
+    for test_case in list(list(formatted_response)[0]):
+        check_junit_test_case(test_case)
+
+
+def test_junit_serialization_with_real_data():
+    from deepchecks.tabular.suites import full_suite
+
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.model_selection import train_test_split
+    from deepchecks.tabular import Dataset
+
+    from sklearn.datasets import load_iris
+
+    # Load Data
+    label_col = 'target'
+
+    X, y = load_iris(return_X_y=True, as_frame=True)
+    X[label_col] = y
+    df_train, df_test = train_test_split(X, stratify=X[label_col], random_state=0)
+
+    # Train Model
+    rf_clf = RandomForestClassifier(random_state=0)
+    rf_clf.fit(df_train.drop(label_col, axis=1), df_train[label_col])
+
+    ds_train = Dataset(df_train, label=label_col, cat_features=[])
+    ds_test = Dataset(df_test, label=label_col, cat_features=[])
+
+    suite = full_suite()
+
+    results = suite.run(train_dataset=ds_train, test_dataset=ds_test, model=rf_clf)
+
+    output = JunitSerializer(results).serialize()
+
+    import xml.etree.ElementTree as ET
+
+    formatted_response = ET.fromstring(output)
+
+    assert_that(formatted_response.tag, 'testsuites')
+    assert_that(list(formatted_response.attrib.keys()), ['errors', 'failures', 'name', 'tests', 'time'])
+
+    for test_suite in list(formatted_response):
+        check_junit_test_case(test_suite)
+
+    for test_case in list(list(formatted_response)[0]):
+        check_junit_test_case(test_case)
+
+
+# ============================================================================
 
 def test_wandb_serializer_initialization():
     serializer = WandbSerializer(create_suite_result())
