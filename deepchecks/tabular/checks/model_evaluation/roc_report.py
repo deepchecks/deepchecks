@@ -37,7 +37,8 @@ class RocReport(SingleDatasetCheck):
     Parameters
     ----------
     excluded_classes : List , default: None
-        List of classes to exclude from the condition.
+        List of classes to exclude from the calculation. If None, displays all classes for multiclass and only the
+        positive class for binary classification.
     n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
@@ -128,12 +129,12 @@ class RocReport(SingleDatasetCheck):
             footnote = """The marked points are the optimal probability threshold cut-off points to predict said
             class. In plain terms, it is optimal to set the prediction rule such that if for some class the predicted
             probability is above the threshold of that class, then the prediction should be that class.
-            They optimal thresholds are determined using Youden's index defined as sensitivity + specificity - 1"""
+            They optimal thresholds are determined using Youden's index defined as sensitivity + specificity - 1."""
             display = [fig, footnote]
         else:
             display = None
 
-        return CheckResult(roc_auc, header='ROC Report', display=display)
+        return CheckResult({x: roc_auc[x] for x in classes_for_display}, header='ROC Report', display=display)
 
     def add_condition_auc_greater_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
