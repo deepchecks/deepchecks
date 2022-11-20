@@ -58,7 +58,6 @@ class ReduceMetricClassMixin(ReduceMixin):
 
         Returns False if the check is a regression check and the metric is in the lower_is_better list, else True.
         """
-        from deepchecks.tabular.metric_utils import DeepcheckScorer
         from deepchecks.tabular.metric_utils.scorers import regression_scorers_lower_is_better_dict
 
         lower_is_better_names = set(regression_scorers_lower_is_better_dict.keys())
