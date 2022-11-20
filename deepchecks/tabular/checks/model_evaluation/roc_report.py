@@ -29,7 +29,10 @@ __all__ = ['RocReport']
 class RocReport(SingleDatasetCheck):
     """Calculate the ROC curve for each class.
 
-    For each class plots the ROC curve, calculate AUC score and displays the optimal threshold cutoff point.
+    For each class, plots the ROC curve for a one vs all classification of that class based on the model's
+    predicted probabilities. In addition, for each class, it marks the optimal probability threshold cut-off point
+    based on Youden's index defined as sensitivity + specificity - 1.
+    See https://en.wikipedia.org/wiki/Youden%27s_J_statistic for additional details.
 
     Parameters
     ----------
@@ -39,6 +42,18 @@ class RocReport(SingleDatasetCheck):
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
+
+    References
+    ----------
+    Ewald, B. (2006). Post hoc choice of cut points introduced bias to diagnostic research.
+    Journal of clinical epidemiology, 59(8), 798-801.
+
+    Steyerberg, E.W., Van Calster, B., & Pencina, M.J. (2011). Performance measures for
+    prediction models and markers: evaluation of predictions and classifications.
+    Revista Espanola de Cardiologia (English Edition), 64(9), 788-794.
+
+    Jiménez-Valverde, A., & Lobo, J.M. (2007). Threshold criteria for conversion of probability
+    of species presence to either–or presence–absence. Acta oecologica, 31(3), 361-369.
     """
 
     def __init__(self, excluded_classes: List = None,
@@ -110,8 +125,10 @@ class RocReport(SingleDatasetCheck):
             fig.update_xaxes(title='False Positive Rate')
             fig.update_yaxes(title='True Positive Rate')
             fig.update_layout(title_text='Receiver Operating Characteristic Plot', height=500)
-            footnote = """The marked points are the optimal threshold cut-off points. They are determined using
-            Youden's index defined as sensitivity + specificity - 1"""
+            footnote = """The marked points are the optimal probability threshold cut-off points to predict said
+            class. In plain terms, it is optimal to set the prediction rule such that if for some class the predicted 
+            probability is above the threshold of that class, then the prediction should be that class.
+            They optimal thresholds are determined using Youden's index defined as sensitivity + specificity - 1"""
             display = [fig, footnote]
         else:
             display = None
@@ -147,12 +164,11 @@ class RocReport(SingleDatasetCheck):
                                   condition)
 
 
-def get_cutoff_figure(tpr, fpr, thresholds, class_name=None):
-    index = sensitivity_specificity_cutoff(tpr, fpr)
-    hovertemplate = 'TPR: %{y:.2%}<br>FPR: %{x:.2%}' + f'<br>Youden\'s Index: {thresholds[index]:.3}'
-    if class_name:
-        hovertemplate += f'<br>Class: {class_name}'
-    return go.Scatter(x=[fpr[index]], y=[tpr[index]], mode='markers', marker_size=15,
+def get_cutoff_figure(tpr, fpr, thresholds, class_name):
+    highest_youden_index = sensitivity_specificity_cutoff(tpr, fpr)
+    hovertemplate = f'Class: {class_name}' + '<br>TPR: %{y:.2%}<br>FPR: %{x:.2%}' + \
+                    f'<br>Optimal Threshold: {thresholds[highest_youden_index]:.3}'
+    return go.Scatter(x=[fpr[highest_youden_index]], y=[tpr[highest_youden_index]], mode='markers', marker_size=15,
                       hovertemplate=hovertemplate, showlegend=False, marker={'color': 'black'})
 
 
