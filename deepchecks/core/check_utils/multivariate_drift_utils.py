@@ -42,7 +42,8 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                             max_num_categories_for_display: int, show_categories_by: str,
                             min_meaningful_drift_score: float,
                             with_display: bool,
-                            dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+                            dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
+                            feature_importance_timeout: int = 120,
                             ):
     """Calculate multivariable drift."""
     train_sample_df = train_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
@@ -80,7 +81,7 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
         force_permutation=True,
         permutation_kwargs={'n_repeats': 10,
                             'random_state': random_state,
-                            'timeout': 120,
+                            'timeout': feature_importance_timeout,
                             'skip_messages': True}
     )
 

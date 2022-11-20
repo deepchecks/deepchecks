@@ -28,7 +28,7 @@ from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_functions import ImageInfo
 from deepchecks.vision.utils.transformations import get_transforms_handler
 
-__all__ = ['VisionData']
+__all__ = ['VisionData', 'IndicesSequentialSampler']
 
 
 VD = TypeVar('VD', bound='VisionData')
@@ -635,9 +635,11 @@ class IndicesSequentialSampler(Sampler):
         self.indices = indices
 
     def __iter__(self) -> Iterator[int]:
+        """Return an iterator over the indices."""
         return iter(self.indices)
 
     def __len__(self) -> int:
+        """Return the number of indices."""
         return len(self.indices)
 
     def index_at(self, location):
