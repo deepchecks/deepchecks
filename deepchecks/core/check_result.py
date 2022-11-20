@@ -64,6 +64,7 @@ class BaseCheckResult:
 
     check: Optional['BaseCheck']
     header: Optional[str]
+    run_time: Optional[int] = 0
 
     @staticmethod
     def from_json(json_dict: Union[str, Dict]) -> 'BaseCheckResult':
