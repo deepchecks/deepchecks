@@ -270,19 +270,6 @@ def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split
     ))
 
 
-def test_classification_alt_scores_list(iris_split_dataset_and_model):
-    # Arrange
-    train, test, model = iris_split_dataset_and_model
-    check = TrainTestPerformance(scorers=['recall_per_class',
-                                 'f1_per_class', make_scorer(jaccard_score, average=None)])
-    # Act
-    result = check.run(train, test, model).reduce_output()
-    # Assert
-    assert_that(result['f1'], close_to(0.913, 0.001))
-    assert_that(result['recall'], close_to(0.916, 0.001))
-    assert_that(result['jaccard_score'], close_to(0.846, 0.001))
-
-
 def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
@@ -291,40 +278,7 @@ def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     # Act
     check_result = check.run(train, test, model)
     check_value = check_result.value
-    result = check_result.reduce_output()
-    # Assert
-    assert_that(result['fpr'], close_to(0.070, 0.001))
-    assert_that(result['fnr'], close_to(0.035, 0.001))
-    assert_that(result['specificity'], close_to(0.929, 0.001))
-    assert_that(result['fnr_macro'], close_to(result['fnr'], 0.001))
-    assert_that(result['roc_auc'], close_to(0.992, 0.001))
 
     per_class_df = check_value[check_value['Metric'] == 'roc_auc']
     assert_that(per_class_df.loc[per_class_df.Dataset == 'Train', 'Class'].values[1], equal_to(1.))
     assert_that(per_class_df.loc[per_class_df.Dataset == 'Train', 'Value'].values[1], close_to(0.997, 0.001))
-
-
-def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
-    # Arrange
-    train, test, model = diabetes_split_dataset_and_model
-    check = TrainTestPerformance(scorers=['max_error', 'r2', 'neg_mean_absolute_error'])
-    # Act
-    result = check.run(train, test, model).reduce_output()
-    # Assert
-    assert_that(result['max_error'], close_to(-171.719, 0.001))
-    assert_that(result['r2'], close_to(0.427, 0.001))
-    assert_that(result['neg_mean_absolute_error'], close_to(-45.564, 0.001))
-
-
-def test_classification_alt_scores_per_class_and_macro(iris_split_dataset_and_model):
-    # Arrange
-    train, test, model = iris_split_dataset_and_model
-    check = TrainTestPerformance(scorers=['recall_per_class', 'f1_per_class', 'f1_macro', 'recall_micro'])
-    # Act
-    result = check.run(train, test, model).reduce_output()
-    # Assert
-    assert_that(result['f1'], close_to(0.913, 0.001))
-    assert_that(result['f1_macro'], close_to(result['f1'], 0.001))
-    assert_that(result['recall'], close_to(0.916, 0.001))
-    assert_that(result['recall_micro'], close_to(0.92, 0.001))
-
