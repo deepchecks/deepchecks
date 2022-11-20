@@ -231,6 +231,10 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             class_weight = class_weight / np.sum(class_weight)
             return {'Weighted Drift Score': np.sum(np.array(drift_values) * class_weight)}
 
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater."""
+        return False
+
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.075):
         """
