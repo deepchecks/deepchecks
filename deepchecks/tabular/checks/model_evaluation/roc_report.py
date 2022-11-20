@@ -126,7 +126,7 @@ class RocReport(SingleDatasetCheck):
             fig.update_yaxes(title='True Positive Rate')
             fig.update_layout(title_text='Receiver Operating Characteristic Plot', height=500)
             footnote = """The marked points are the optimal probability threshold cut-off points to predict said
-            class. In plain terms, it is optimal to set the prediction rule such that if for some class the predicted 
+            class. In plain terms, it is optimal to set the prediction rule such that if for some class the predicted
             probability is above the threshold of that class, then the prediction should be that class.
             They optimal thresholds are determined using Youden's index defined as sensitivity + specificity - 1"""
             display = [fig, footnote]
