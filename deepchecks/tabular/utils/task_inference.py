@@ -84,10 +84,10 @@ def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tab
         task_type = infer_by_class_number(num_classes)
         if infer_dtype(observed_labels) == 'integer' and train_dataset and train_dataset.label_type is None:
             get_logger().warning(
-                'Due to the small number of unique labels task type was inferred as classification in spite of '
+                'Due to the small number of unique labels task type was inferred as %s classification in spite of '
                 'the label column is of type integer. '
-                'Initialize your Dataset with either label_type=\"multiclass\" or '
-                'label_type=\"regression\" to resolve this warning.')
+                'Initialize your Dataset with either label_type=\"%s}\" or '
+                'label_type=\"regression\" to resolve this warning.', task_type.value, task_type.value)
     else:
         task_type = TaskType.REGRESSION
 
