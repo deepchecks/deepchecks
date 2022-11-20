@@ -10,7 +10,7 @@
 #
 """Module containing the train test performance check."""
 from numbers import Number
-from typing import Callable, Dict, List, Mapping, TypeVar, Union, cast
+from typing import Callable, List, Mapping, TypeVar, Union, cast
 
 import pandas as pd
 import plotly.express as px
@@ -19,8 +19,7 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_utils.class_performance_utils import (
     get_condition_class_performance_imbalance_ratio_less_than, get_condition_test_performance_greater_than,
     get_condition_train_test_relative_degradation_less_than)
-from deepchecks.core.checks import CheckConfig, DatasetKind
-from deepchecks.core.reduce_classes import ReduceMixin
+from deepchecks.core.checks import CheckConfig
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
 from deepchecks.utils.docref import doclink
@@ -156,8 +155,6 @@ class TrainTestPerformance(TrainTestCheck):
 
     def config(self, include_version: bool = True) -> CheckConfig:
         """Return check configuration."""
-        name = type(self).__name__
-
         if isinstance(self.scorers, dict):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
