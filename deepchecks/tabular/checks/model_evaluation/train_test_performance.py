@@ -33,7 +33,7 @@ __all__ = ['TrainTestPerformance']
 PR = TypeVar('PR', bound='TrainTestPerformance')
 
 
-class TrainTestPerformance(TrainTestCheck, ReduceMixin):
+class TrainTestPerformance(TrainTestCheck):
     """Summarize given model performance on the train and test datasets based on selected scorers.
 
     Parameters
@@ -41,9 +41,6 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
     scorers: Union[Mapping[str, Union[str, Callable]], List[str]], default: None
         Scorers to override the default scorers, find more about the supported formats at
         https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
-    reduce: Union[Callable, str], default: 'mean'
-        An optional argument only used for the reduce_output function when using
-        per-class scorers.
     n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
@@ -86,13 +83,11 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
 
     def __init__(self,
                  scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
-                 reduce: Union[Callable, str] = 'mean',
                  n_samples: int = 1_000_000,
                  random_state: int = 42,
                  **kwargs):
         super().__init__(**kwargs)
         self.scorers = scorers
-        self.reduce = reduce
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -163,13 +158,6 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         """Return check configuration."""
         name = type(self).__name__
 
-        if callable(self.reduce):
-            raise ValueError(
-                f'Serialization of "{name}" check instance is not supported '
-                'if custom user defined callable was passed to the "reduce" parameter '
-                f'during instance initialization'
-            )
-
         if isinstance(self.scorers, dict):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
@@ -183,13 +171,6 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
                     )
 
         return super().config(include_version=include_version)
-
-    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
-        """Return the values of the metrics for the test dataset in {metric: value} format."""
-        df = check_result.value
-        df = df[df['Dataset'] == DatasetKind.TEST.value]
-        df = df.groupby('Metric').aggregate(self.reduce).reset_index()
-        return dict(zip(df['Metric'], df['Value']))
 
     def add_condition_test_performance_greater_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are greater than the threshold.
