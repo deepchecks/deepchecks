@@ -64,13 +64,13 @@ class ReduceMetricClassMixin(ReduceMixin):
         lower_is_better_names = set(regression_scorers_lower_is_better_dict.keys())
         if not hasattr(self, 'scorers'):
             raise NotImplementedError('ReduceMetricClassMixin must be used with a check that has a scorers attribute')
-        if isinstance(self.scorers[0], DeepcheckScorer):
-            names = [scorer.name for scorer in self.scorers]
-        elif isinstance(self.scorers[0], dict):
-            names = [list(scorer.keys())[0] for scorer in self.scorers]
+        elif isinstance(self.scorers, dict):
+            names = list(self.scorers.keys())
+        elif isinstance(self.scorers, list):
+            names = self.scorers
         else:
             raise NotImplementedError('ReduceMetricClassMixin must be used with a check that has a scorers attribute'
-                                      'of type DeepcheckScorer or dict')
+                                      ' of type DeepcheckScorer or dict')
 
         if all((name in lower_is_better_names) for name in names):
             return False

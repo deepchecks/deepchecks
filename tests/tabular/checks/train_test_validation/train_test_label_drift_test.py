@@ -91,6 +91,8 @@ def test_reduce_output_drift_regression_label(drifted_regression_label):
         {'Label Drift Score': close_to(0.34, 0.01)}
     ))
 
+    assert_that(check.greater_is_better(), equal_to(False))
+
 
 def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Arrange
