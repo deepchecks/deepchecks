@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=import-outside-toplevel
 """Module containing the reduce classes and methods."""
 import abc
 from typing import Dict, Optional
@@ -29,6 +30,10 @@ __all__ = [
 class ReduceMixin(abc.ABC):
     """Mixin for reduce_output function."""
 
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater."""
+        raise NotImplementedError('Must implement greater_is_better function')
+
     def reduce_output(self, check_result) -> Dict[str, float]:
         """Return the check result as a reduced dict. Being Used for monitoring.
 
@@ -48,12 +53,42 @@ class ReduceMixin(abc.ABC):
 class ReduceMetricClassMixin(ReduceMixin):
     """Extend ReduceMixin to for performance checks."""
 
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater.
+
+        Returns False if the check is a regression check and the metric is in the lower_is_better list, else True.
+        """
+        from deepchecks.tabular.metric_utils import DeepcheckScorer
+        from deepchecks.tabular.metric_utils.scorers import regression_scorers_lower_is_better_dict
+
+        lower_is_better_names = set(regression_scorers_lower_is_better_dict.keys())
+        if not hasattr(self, 'scorers'):
+            raise NotImplementedError('ReduceMetricClassMixin must be used with a check that has a scorers attribute')
+        if isinstance(self.scorers[0], DeepcheckScorer):
+            names = [scorer.name for scorer in self.scorers]
+        elif isinstance(self.scorers[0], dict):
+            names = [list(scorer.keys())[0] for scorer in self.scorers]
+        else:
+            raise NotImplementedError('ReduceMetricClassMixin must be used with a check that has a scorers attribute'
+                                      'of type DeepcheckScorer or dict')
+
+        if all((name in lower_is_better_names) for name in names):
+            return False
+        elif all((name not in lower_is_better_names) for name in names):
+            return True
+        else:
+            raise DeepchecksValueError('Cannot reduce metric class with mixed scorers')
+
 
 class ReduceFeatureMixin(ReduceMixin):
     """Extend ReduceMixin to identify checks that output result per feature.
 
     Should implement the feature_reduce function and all the aggregation methods it supports.
     """
+
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater."""
+        return False
 
     @staticmethod
     def feature_reduce(aggregation_method: str, value_per_feature: pd.Series, feature_importance: Optional[np.array],
@@ -89,6 +124,10 @@ class ReducePropertyMixin(ReduceMixin):
 
     Should implement the property_reduce function and all the aggregation methods it supports.
     """
+
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater."""
+        return False
 
     @staticmethod
     def property_reduce(aggregation_method: str, value_per_property: pd.Series, score_name: str) -> Dict[str, float]:

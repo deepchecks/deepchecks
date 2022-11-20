@@ -110,6 +110,11 @@ class NewLabelTrainTest(TrainTestCheck, ReduceMixin):
         """
         return check_result.value['n_samples_per_new_label']
 
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater."""
+        return False
+
+
     def add_condition_new_labels_number_less_or_equal(self, max_new: int = 0):
         """Add condition - require label column's number of different new labels to be less or equal to the threshold.
 

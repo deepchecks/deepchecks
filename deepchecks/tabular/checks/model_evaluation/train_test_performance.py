@@ -191,6 +191,10 @@ class TrainTestPerformance(TrainTestCheck, ReduceMixin):
         df = df.groupby('Metric').aggregate(self.reduce).reset_index()
         return dict(zip(df['Metric'], df['Value']))
 
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater."""
+        return False
+
     def add_condition_test_performance_greater_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are greater than the threshold.
 
