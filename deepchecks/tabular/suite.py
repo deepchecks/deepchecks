@@ -14,6 +14,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import time
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
@@ -97,6 +98,8 @@ class Suite(BaseSuite):
         # Run all checks
         results = []
         for check in progress_bar:
+            start = time.time()
+
             try:
                 progress_bar.set_postfix({'Check': check.name()}, refresh=False)
                 if isinstance(check, TrainTestCheck):
@@ -145,6 +148,8 @@ class Suite(BaseSuite):
                     raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
             except Exception as exp:
                 results.append(CheckFailure(check, exp))
+
+            results[-1].run_time = int(round(time.time() - start, 0))
 
         return SuiteResult(self.name, results)
 

@@ -20,6 +20,7 @@ from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.serialization.check_failure.html import CheckFailureSerializer as HtmlSerializer
 from deepchecks.core.serialization.check_failure.ipython import CheckFailureSerializer as IPythonSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as JsonSerializer
+from deepchecks.core.serialization.check_failure.junit import CheckFailureSerializer as JunitSerializer
 from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as WidgetSerializer
 from tests.common import DummyCheck, instance_of_ipython_formatter
@@ -130,7 +131,32 @@ def assert_json_output(output):
 
 
 # =====================================
+def test_junit_serializer_initialization():
+    serializer = JunitSerializer(CheckFailure(
+        DummyCheck(),
+        Exception("Error"),
+        'Failure Header Message'
+    ))
 
+
+def test_junit_serializer_initialization_with_incorrect_type_of_value():
+    assert_that(
+        calling(JunitSerializer).with_args([]),
+        raises(
+            TypeError,
+            'Expected "CheckFailure" but got "list"')
+    )
+
+
+def test_junit_serialization():
+    failure = CheckFailure(DummyCheck(), ValueError("Check Failed"), 'Failure Header Message')
+    serializer = JunitSerializer(failure)
+    output = serializer.serialize()
+
+    assert_that(list(output.attrib.keys()), ['classname', 'name', 'time'])
+    assert_that(output.tag, 'testcase')
+
+# =====================================
 
 def test_wandb_serializer_initialization():
     serializer = WandbSerializer(CheckFailure(
