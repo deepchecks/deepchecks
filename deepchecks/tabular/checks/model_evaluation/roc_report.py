@@ -19,6 +19,7 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
 
@@ -28,16 +29,32 @@ __all__ = ['RocReport']
 class RocReport(SingleDatasetCheck):
     """Calculate the ROC curve for each class.
 
-    For each class plots the ROC curve, calculate AUC score and displays the optimal threshold cutoff point.
+    For each class, plots the ROC curve for a one vs all classification of that class based on the model's
+    predicted probabilities. In addition, for each class, it marks the optimal probability threshold cut-off point
+    based on Youden's index defined as sensitivity + specificity - 1.
+    See https://en.wikipedia.org/wiki/Youden%27s_J_statistic for additional details.
 
     Parameters
     ----------
     excluded_classes : List , default: None
-        List of classes to exclude from the condition.
+        List of classes to exclude from the calculation. If None, displays all classes for multiclass and only the
+        positive class for binary classification.
     n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
+
+    References
+    ----------
+    Ewald, B. (2006). Post hoc choice of cut points introduced bias to diagnostic research.
+    Journal of clinical epidemiology, 59(8), 798-801.
+
+    Steyerberg, E.W., Van Calster, B., & Pencina, M.J. (2011). Performance measures for
+    prediction models and markers: evaluation of predictions and classifications.
+    Revista Espanola de Cardiologia (English Edition), 64(9), 788-794.
+
+    Jiménez-Valverde, A., & Lobo, J.M. (2007). Threshold criteria for conversion of probability
+    of species presence to either–or presence–absence. Acta oecologica, 31(3), 361-369.
     """
 
     def __init__(self, excluded_classes: List = None,
@@ -45,7 +62,7 @@ class RocReport(SingleDatasetCheck):
                  random_state: int = 42,
                  **kwargs):
         super().__init__(**kwargs)
-        self.excluded_classes = excluded_classes or []
+        self.excluded_classes = excluded_classes
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -64,51 +81,41 @@ class RocReport(SingleDatasetCheck):
         """
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         context.assert_classification_task()
-        ds_y = dataset.label_col
-        ds_x = dataset.features_columns
         if not hasattr(context.model, 'predict_proba'):
             raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The roc report check '
                                               'needs the predicted probabilities to plot the ROC curve, instead'
                                               ' of only predicted classes.')
-        y_pred_prob = context.model.predict_proba(ds_x)
 
-        dataset_classes = dataset.classes_in_label_col
-        multi_y = (np.array(ds_y)[:, None] == np.unique(ds_y)).astype(int)
+        y_pred_prob = context.model.predict_proba(dataset.features_columns)
+        dataset_classes = context.model_classes
 
         fpr = {}
         tpr = {}
         thresholds = {}
         roc_auc = {}
         for i, class_name in enumerate(dataset_classes):
-            if class_name in self.excluded_classes:
+            if self.excluded_classes is not None and class_name in self.excluded_classes:
                 continue
             fpr[class_name], tpr[class_name], thresholds[class_name] = \
-                sklearn.metrics.roc_curve(multi_y[:, i], y_pred_prob[:, i])
+                sklearn.metrics.roc_curve(dataset.label_col == class_name, y_pred_prob[:, i])
             roc_auc[class_name] = sklearn.metrics.auc(fpr[class_name], tpr[class_name])
+
+        if self.excluded_classes is not None:
+            classes_for_display = [x for x in dataset_classes if x not in self.excluded_classes]
+        else:
+            classes_for_display = [dataset_classes[1]] if context.task_type == TaskType.BINARY else dataset_classes
 
         if context.with_display:
             fig = go.Figure()
-            for class_name in dataset_classes:
-                if class_name in self.excluded_classes:
-                    continue
-                if len(dataset_classes) == 2:
-                    fig.add_trace(go.Scatter(
-                        x=fpr[class_name],
-                        y=tpr[class_name],
-                        line_width=2,
-                        name=f'auc = {roc_auc[class_name]:0.2f}',
-                    ))
-                    fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name], thresholds[class_name]))
-                    break
-                else:
-                    fig.add_trace(go.Scatter(
-                        x=fpr[class_name],
-                        y=tpr[class_name],
-                        line_width=2,
-                        name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})'
-                    ))
-                    fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name],
-                                                    thresholds[class_name], class_name))
+            for class_name in classes_for_display:
+                fig.add_trace(go.Scatter(
+                    x=fpr[class_name],
+                    y=tpr[class_name],
+                    line_width=2,
+                    name=f'Class {class_name} (auc = {roc_auc[class_name]:0.2f})'
+                ))
+                fig.add_trace(get_cutoff_figure(tpr[class_name], fpr[class_name],
+                                                thresholds[class_name], class_name))
             fig.add_trace(go.Scatter(
                 x=[0, 1],
                 y=[0, 1],
@@ -118,26 +125,16 @@ class RocReport(SingleDatasetCheck):
             ))
             fig.update_xaxes(title='False Positive Rate')
             fig.update_yaxes(title='True Positive Rate')
-            if len(dataset_classes) == 2:
-                fig.update_layout(
-                    title_text='Receiver operating characteristic for binary data',
-                    height=500
-                )
-            else:
-                fig.update_layout(
-                    title_text='Receiver operating characteristic for multi-class data',
-                    height=500
-                )
-
-            footnote = """<span style="font-size:0.8em"><i>
-            The marked points are the optimal threshold cut-off points. They are determined using Youden's index defined
-            as sensitivity + specificity - 1
-            </i></span>"""
+            fig.update_layout(title_text='Receiver Operating Characteristic Plot', height=500)
+            footnote = """The marked points are the optimal probability threshold cut-off points to predict said
+            class. In plain terms, it is optimal to set the prediction rule such that if for some class the predicted
+            probability is above the threshold of that class, then the prediction should be that class.
+            They optimal thresholds are determined using Youden's index defined as sensitivity + specificity - 1."""
             display = [fig, footnote]
         else:
             display = None
 
-        return CheckResult(roc_auc, header='ROC Report', display=display)
+        return CheckResult({x: roc_auc[x] for x in classes_for_display}, header='ROC Report', display=display)
 
     def add_condition_auc_greater_than(self, min_auc: float = 0.7):
         """Add condition - require min allowed AUC score per class.
@@ -148,6 +145,7 @@ class RocReport(SingleDatasetCheck):
             Max allowed AUC score per class.
 
         """
+
         def condition(result: Dict) -> ConditionResult:
             failed_classes = {class_name: format_number(score)
                               for class_name, score in result.items() if score <= min_auc}
@@ -167,13 +165,12 @@ class RocReport(SingleDatasetCheck):
                                   condition)
 
 
-def get_cutoff_figure(tpr, fpr, thresholds, class_name=None):
-    index = sensitivity_specificity_cutoff(tpr, fpr)
-    hovertemplate = 'TPR: %{y:.2%}<br>FPR: %{x:.2%}' + f'<br>Youden\'s Index: {thresholds[index]:.3}'
-    if class_name:
-        hovertemplate += f'<br>Class: {class_name}'
-    return go.Scatter(x=[fpr[index]], y=[tpr[index]], mode='markers', marker_size=15,
-                      hovertemplate=hovertemplate, showlegend=False)
+def get_cutoff_figure(tpr, fpr, thresholds, class_name):
+    highest_youden_index = sensitivity_specificity_cutoff(tpr, fpr)
+    hovertemplate = f'Class: {class_name}' + '<br>TPR: %{y:.2%}<br>FPR: %{x:.2%}' + \
+                    f'<br>Optimal Threshold: {thresholds[highest_youden_index]:.3}'
+    return go.Scatter(x=[fpr[highest_youden_index]], y=[tpr[highest_youden_index]], mode='markers', marker_size=15,
+                      hovertemplate=hovertemplate, showlegend=False, marker={'color': 'black'})
 
 
 def sensitivity_specificity_cutoff(tpr, fpr):
