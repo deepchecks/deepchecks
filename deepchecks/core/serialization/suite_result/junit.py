@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing JUnit serializer for the SuiteResult type."""
-from typing import Dict, List
+from typing import Dict, List, Union
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import sys
@@ -82,9 +82,10 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
         self,
         failure_tag: str = 'failure',
         encoding: str = 'utf-8',
+        return_xml: bool = False,
         **kwargs
-    ) -> str:
-        """Serialize a SuiteResult instance into Junit format.
+    ) -> Union[str, ET.Element]:
+        """Serialize a SuiteResult instance into Junit format. This can then be output as a str or a XML object
 
         Parameters
         ----------
@@ -93,13 +94,15 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
             development does not want them to stop the build.
         encoding : str
             What format to encode the output str into.
+        return_xml : bool
+            Whether to return a str or a XML object
         **kwargs :
             all other key-value arguments will be passed to the CheckResult/CheckFailure
             serializers
 
         Returns
         -------
-        str
+        Union[str, ET.Element]
         """
         if failure_tag not in [FAILURE, SKIPPED]:
             raise ValueError(f'failure_tag must be one of {FAILURE} or {SKIPPED}')
@@ -110,9 +113,12 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
 
         root = self._process_test_suites(failure_tag, results, root)
 
-        xml_str = _clean_illegal_xml_chars(ET.tostring(root, encoding=encoding).decode(encoding))
+        if return_xml:
+            return root
 
-        return xml_str
+        else:
+            xml_str = _clean_illegal_xml_chars(ET.tostring(root, encoding=encoding).decode(encoding))
+            return xml_str
 
     @staticmethod
     def _process_test_suites(failure_tag: str, results: Dict, root: ET.Element) -> ET.Element:

@@ -256,12 +256,10 @@ def test_junit_serialization():
         check_junit_test_case(test_case)
 
 
-def test_junit_serialization_with_real_data():
+def test_junit_serialization_with_real_data(iris_split_dataset_and_model):
     from deepchecks.tabular.suites import full_suite
 
-    iris_split_dataset_and_model()
-
-    ds_train, ds_test, rf_clf = iris_split_dataset_and_model()
+    ds_train, ds_test, rf_clf = iris_split_dataset_and_model
 
     suite = full_suite()
 
@@ -281,25 +279,6 @@ def test_junit_serialization_with_real_data():
 
     for test_case in list(list(formatted_response)[0]):
         check_junit_test_case(test_case)
-
-
-def iris_split_dataset_and_model():
-    from sklearn.ensemble import RandomForestClassifier
-    from sklearn.model_selection import train_test_split
-    from deepchecks.tabular import Dataset
-    from sklearn.datasets import load_iris
-    # Load Data
-    label_col = 'target'
-    X, y = load_iris(return_X_y=True, as_frame=True)
-    X[label_col] = y
-    df_train, df_test = train_test_split(X, stratify=X[label_col], random_state=0)
-    # Train Model
-    rf_clf = RandomForestClassifier(random_state=0)
-    rf_clf.fit(df_train.drop(label_col, axis=1), df_train[label_col])
-    ds_train = Dataset(df_train, label=label_col, cat_features=[])
-    ds_test = Dataset(df_test, label=label_col, cat_features=[])
-
-    return ds_train, ds_test, rf_clf
 
 
 # ============================================================================
