@@ -12,7 +12,6 @@
 import xml.etree.ElementTree as ET
 
 from deepchecks.core import check_result as check_types
-from deepchecks.core import checks  # pylint: disable=unused-import
 from deepchecks.core.serialization.abc import JunitSerializer
 
 __all__ = ['CheckResultSerializer']

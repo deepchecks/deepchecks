@@ -11,10 +11,10 @@
 """Module for base tabular abstractions."""
 # pylint: disable=broad-except
 from typing import List, Optional, Tuple, Union
+import time
 
 import numpy as np
 import pandas as pd
-import time
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
