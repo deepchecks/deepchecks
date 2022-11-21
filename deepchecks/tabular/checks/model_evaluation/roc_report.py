@@ -37,8 +37,9 @@ class RocReport(SingleDatasetCheck):
     Parameters
     ----------
     excluded_classes : List , default: None
-        List of classes to exclude from the calculation. If None, displays all classes for multiclass and only the
-        positive class for binary classification.
+        List of classes to exclude from the calculation. If None, calculate one vs all ROC curve for all classes for
+        multiclass and only the positive class for binary classification. If an empty list was provided,
+        calculate for all classes.
     n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
