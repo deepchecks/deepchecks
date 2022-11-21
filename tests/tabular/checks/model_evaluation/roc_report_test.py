@@ -50,7 +50,7 @@ def test_binary_classification(iris_binary_string_split_dataset_and_model):
     # Arrange
     train, _, clf = iris_binary_string_split_dataset_and_model
     # Act
-    result = RocReport().run(train, clf)
+    result = RocReport(excluded_classes=[]).run(train, clf)
     # Assert
     assert_that(result.value, has_length(2))
     assert_that(result.value, has_entries(a=close_to(0.9, 0.1), b=close_to(0.9, 0.1)))
@@ -63,8 +63,8 @@ def test_binary_classification_without_display(iris_binary_string_split_dataset_
     # Act
     result = RocReport().run(train, clf, with_display=False)
     # Assert
-    assert_that(result.value, has_length(2))
-    assert_that(result.value, has_entries(a=close_to(0.9, 0.1), b=close_to(0.9, 0.1)))
+    assert_that(result.value, has_length(1))
+    assert_that(result.value, has_entries(b=close_to(0.9, 0.1)))
     assert_that(result.display, has_length(0))
 
 
