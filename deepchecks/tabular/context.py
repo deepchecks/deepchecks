@@ -63,7 +63,7 @@ class _DummyModel:
 
     def __init__(self,
                  test: Dataset,
-                 y_proba_test: t.Optional[np.ndarray],
+                 y_proba_test: t.Optional[np.ndarray] = None,
                  y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]] = None,
                  train: t.Union[Dataset, None] = None,
                  y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
