@@ -107,8 +107,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         if self.scorer is None:
             if task_type == TaskType.CLASSIFICATION:
                 def scoring_func(predictions, labels):
-                    labels = np.array(torch.stack(labels))
-                    predictions = np.array(torch.stack(predictions))
+                    labels = np.array(torch.stack(labels).cpu())
+                    predictions = np.array(torch.stack(predictions).cpu())
                     return per_sample_cross_entropy(labels, predictions)
                 self.scorer = scoring_func
                 self.scorer_name = 'cross entropy'
