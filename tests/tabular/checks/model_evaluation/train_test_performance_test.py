@@ -27,6 +27,15 @@ from deepchecks.tabular.metric_utils.scorers import DEFAULT_REGRESSION_SCORERS, 
 from tests.base.utils import equal_condition_result
 
 
+def extract_metric(result, dataset, metric):
+    dataset_col = result.loc[result['Dataset'] == dataset]
+    metric_col = dataset_col.loc[dataset_col['Metric'] == metric]
+    if len(metric_col) == 1:
+        return metric_col['Value'].iloc[0]
+    else:
+        return metric_col['Value'].mean()
+
+
 def test_dataset_wrong_input():
     bad_dataset = 'wrong_input'
     # Act & Assert
@@ -154,6 +163,29 @@ def test_regression(diabetes_split_dataset_and_model):
             metric_col = dataset_col.loc[dataset_col['Metric'] == metric]
             assert_that(metric_col['Value'].iloc[0], instance_of(float))
 
+def test_regression_reduced(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = TrainTestPerformance()
+    # Act
+    result = check.run(train, test, model).value
+    # Assert
+    assert_that(extract_metric(result, 'Test', 'Neg RMSE'), close_to(-57.412, 0.001))
+    assert_that(extract_metric(result, 'Test', 'Neg MAE'), close_to(-45.5645, 0.001))
+    assert_that(extract_metric(result, 'Test', 'R2'), close_to(0.427, 0.001))
+
+
+def test_classification_reduced(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = TrainTestPerformance()
+    # Act
+    result = check.run(train, test, model).value
+    # Assert
+    assert_that(extract_metric(result, 'Test', 'F1'), close_to(0.913, 0.001))
+    assert_that(extract_metric(result, 'Test', 'Precision'), close_to(0.929, 0.001))
+    assert_that(extract_metric(result, 'Test', 'Recall'), close_to(0.916, 0.001))
+
 
 def test_condition_min_score_not_passed(iris_split_dataset_and_model):
     # Arrange
@@ -270,6 +302,19 @@ def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split
     ))
 
 
+def test_classification_alt_scores_list(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = TrainTestPerformance(scorers=['recall_per_class',
+                                 'f1_per_class', make_scorer(jaccard_score, average=None)])
+    # Act
+    result = check.run(train, test, model).value
+    # Assert
+    assert_that(extract_metric(result, 'Test', 'f1'), close_to(0.913, 0.001))
+    assert_that(extract_metric(result, 'Test', 'recall'), close_to(0.916, 0.001))
+    assert_that(extract_metric(result, 'Test', 'jaccard_score'), close_to(0.846, 0.001))
+
+
 def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
@@ -282,3 +327,28 @@ def test_classification_deepchecks_scorers(iris_split_dataset_and_model):
     per_class_df = check_value[check_value['Metric'] == 'roc_auc']
     assert_that(per_class_df.loc[per_class_df.Dataset == 'Train', 'Class'].values[1], equal_to(1.))
     assert_that(per_class_df.loc[per_class_df.Dataset == 'Train', 'Value'].values[1], close_to(0.997, 0.001))
+
+
+def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
+    # Arrange
+    train, test, model = diabetes_split_dataset_and_model
+    check = TrainTestPerformance(scorers=['max_error', 'r2', 'neg_mean_absolute_error'])
+    # Act
+    result = check.run(train, test, model).value
+    # Assert
+    assert_that(extract_metric(result, 'Test', 'max_error'), close_to(-171.719, 0.001))
+    assert_that(extract_metric(result, 'Test', 'r2'), close_to(0.427, 0.001))
+    assert_that(extract_metric(result, 'Test', 'neg_mean_absolute_error'), close_to(-45.564, 0.001))
+
+
+def test_classification_alt_scores_per_class_and_macro(iris_split_dataset_and_model):
+    # Arrange
+    train, test, model = iris_split_dataset_and_model
+    check = TrainTestPerformance(scorers=['recall_per_class', 'f1_per_class', 'f1_macro', 'recall_micro'])
+    # Act
+    result = check.run(train, test, model).value
+    # Assert
+    assert_that(extract_metric(result, 'Test', 'f1'), close_to(0.913, 0.001))
+    assert_that(extract_metric(result, 'Test', 'f1_macro'), close_to(0.913, 0.001))
+    assert_that(extract_metric(result, 'Test', 'recall'), close_to(0.916, 0.001))
+    assert_that(extract_metric(result, 'Test', 'recall_micro'), close_to(0.92, 0.001))
