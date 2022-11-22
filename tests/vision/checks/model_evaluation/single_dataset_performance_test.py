@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 
-from hamcrest import assert_that, close_to, has_length
+from hamcrest import assert_that, close_to, has_length, equal_to
 from ignite.metrics import Accuracy, Precision
 from sklearn.metrics import make_scorer, jaccard_score
 
@@ -150,3 +150,5 @@ def test_reduce_output(mnist_dataset_test, mock_trained_mnist, device):
     assert_that(result['ac'], close_to(0.9813, 0.01))
     assert_that(result[('pr', '0')], close_to(0.978894472, 0.01))
     assert_that(result[('pr', '7')], close_to(0.972920, 0.01))
+
+    assert_that(check.greater_is_better(), equal_to(True))
