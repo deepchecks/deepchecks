@@ -25,11 +25,11 @@ Automatically detecting weak segments
 
 The check performs several steps:
 
-#. We calculate the image properties for each sample. The properties to calculate can be passed explicitly or resort to the
-   default image properties.
+#. We calculate the image properties for each sample. The properties to calculate can be passed explicitly or resort to
+   the default image properties.
 
-#. We calculate loss for each sample in the dataset using the provided model or predictions, the loss function can be passed explicitly
-   or set to a default based on the task type.
+#. We calculate loss for each sample in the dataset using the provided model or predictions, the loss function can be
+   passed explicitly or set to a default based on the task type.
 
 #. We train multiple simple tree based models, each one is trained using two
    properties to predict the per sample error calculated before.
@@ -64,15 +64,16 @@ result
 # --------------------------
 #
 # We see in the results that the check indeed found several segments on which the model performance is below average.
-# In the heatmap display we can see the model's performance on the weakest segments and their environment with respect to the
-# two segmentation features. In order to get the full list of weak segments found we can look at
+# In the heatmap display we can see the model's performance on the weakest segments and their environment with respect
+# to the two segmentation features. In order to get the full list of weak segments found we can look at
 # the result.value attribute.
 
 
 result.value['weak_segments_list']
 
 #%%
-# Now we will run a check with properties and minimum segment size ratio different from the defaults.
+# Now we will run a check with properties and minimum segment size ratio (the minimal fraction of the data to be
+# considered as a segment) different from the defaults.
 from deepchecks.vision.utils.image_properties import brightness, texture_level
 properties = [{'name': 'brightness', 'method': brightness, 'output_type': 'numerical'},
               {'name': ' texture', 'method': texture_level, 'output_type': 'numerical'}]
