@@ -17,15 +17,15 @@ What is the purpose of the check?
 ==================================
 
 The check is designed to easily identify the model's weakest segments.
-The segments are characterized by the :doc:`image properties </user-guide/vision/vision_properties>` such as the
-contrast.
+The segments are characterized by the :doc:`image properties </user-guide/vision/vision_properties>` such as 
+contrast and aspect ratio.
 
 Automatically detecting weak segments
 =====================================
 
 The check performs several steps:
 
-#. We calculate the image properties for each sample. The properties to calculate can be passed explicitly or set to the
+#. We calculate the image properties for each sample. The properties to calculate can be passed explicitly or resort to the
    default image properties.
 
 #. We calculate loss for each sample in the dataset using the provided model or predictions, the loss function can be passed explicitly
