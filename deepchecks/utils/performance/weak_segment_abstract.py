@@ -58,7 +58,7 @@ class WeakSegmentAbstract:
             t_encoder = TargetEncoder(cols=dataset.cat_features)
             encoded_label = dataset.label_col.map(possible_classes.index) if \
                 possible_classes is not None else dataset.label_col
-            df_encoded = t_encoder.fit_transform(df_aggregated, encoded_label)
+            df_encoded = t_encoder.fit_transform(df_aggregated, encoded_label.astype('object'))
             for col in dataset.cat_features:
                 values_mapping[col] = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()
         else:
