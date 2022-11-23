@@ -95,9 +95,9 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
             train_column = train_df[feature]
             test_column = test_df[feature]
 
-            # np.nan != np.nan, so we remove these values if they exist in training
-            if train_column.isna().any():
-                test_column = test_column.dropna()
+            # Nans are not considered as new categories
+            train_column = train_column.dropna()
+            test_column = test_column.dropna()
 
             unique_training_values = train_column.unique()
             unique_test_values = test_column.unique()

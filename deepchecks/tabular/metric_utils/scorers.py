@@ -12,6 +12,7 @@
 import typing as t
 import warnings
 from numbers import Number
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
@@ -26,7 +27,6 @@ except ImportError:
     from sklearn.metrics import \
         f1_score, recall_score, precision_score, jaccard_score  # noqa: F401  pylint: disable=ungrouped-imports
 
-from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
@@ -38,6 +38,9 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.typing import BasicModel
+
+if TYPE_CHECKING:
+    from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 
 __all__ = [
     'DEFAULT_SCORERS_DICT',

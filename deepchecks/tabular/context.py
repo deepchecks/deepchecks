@@ -63,7 +63,7 @@ class _DummyModel:
 
     def __init__(self,
                  test: Dataset,
-                 y_proba_test: t.Optional[np.ndarray],
+                 y_proba_test: t.Optional[np.ndarray] = None,
                  y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]] = None,
                  train: t.Union[Dataset, None] = None,
                  y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
@@ -316,6 +316,11 @@ class Context:
             self._calculated_importance = True
 
         return self._feature_importance
+
+    @property
+    def feature_importance_timeout(self) -> t.Optional[int]:
+        """Return feature importance timeout."""
+        return self._feature_importance_timeout
 
     @property
     def feature_importance_type(self) -> t.Optional[str]:
