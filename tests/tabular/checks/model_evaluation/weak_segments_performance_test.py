@@ -113,3 +113,20 @@ def test_classes_do_not_match_proba(kiss_dataset_and_model):
                 raises(DeepchecksValueError,
                        r'Predicted probabilities shape \(2, 3\) does not match the number of classes found in the '
                        r'labels \[1, 2, 3, 4, 5, 6, 7\]\.'))
+
+
+def test_categorical_feat_target(adult_split_dataset_and_model):
+    # Arrange
+    _, val, model = adult_split_dataset_and_model
+    val = val.sample()
+    val.data['native-country'].iloc[0] = np.nan
+    val.data['native-country'] = pd.Categorical(val.data['native-country'])
+    val.data['income'] = pd.Categorical(val.data['income'])
+    check = WeakSegmentsPerformance()
+
+    # Act
+    result = check.run(val, model)
+    segments = result.value['weak_segments_list']
+
+    # Assert
+    assert_that(segments, has_length(10))
