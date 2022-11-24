@@ -10,11 +10,13 @@
 #
 """Module of ImagePropertyOutliers check."""
 import typing as t
+from numbers import Number
 
 import numpy as np
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
+from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
@@ -58,22 +60,30 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
                          iqr_scale=iqr_scale, **kwargs)
 
-    def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
-                   num_properties_in_sample: int) -> np.ndarray:
+    def draw_image(self, image: np.ndarray, label, thumbnail_size: t.Tuple[int, int]) -> str:
         """Return an image to show as output of the display.
 
         Parameters
         ----------
-        data : VisionData
-            The vision data object used in the check.
-        sample_index : int
-            The batch index of the sample to draw the image for.
-        index_of_value_in_sample : int
-            Each sample property is list, then this is the index of the outlier in the sample property list.
-        num_properties_in_sample
-            The number of values in the sample's property list.
+        image : np.ndarray
+            The image to draw, must be a [H, W, C] 3D numpy array.
+        label :
+            The label of the image to draw on top of the image (single label), shape depends on task type.
+        thumbnail_size: t.Tuple[int,int]
+            The required size of the image for display.
+
+        Returns
+        -------
+        str
+            The image in the provided thumbnail size as html.
         """
-        return data.batch_to_images(data.batch_of_index(sample_index))[0]
+        image_thumbnail = prepare_thumbnail(
+            image=image,
+            size=thumbnail_size,
+            copy_image=False
+        )
+        return image_thumbnail
+
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""

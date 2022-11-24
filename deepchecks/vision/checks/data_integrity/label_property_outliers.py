@@ -75,30 +75,3 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
             raise DeepchecksProcessError(f'task type {data.task_type} does not have default label '
                                          f'properties defined.')
 
-    def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
-                   num_properties_in_sample: int) -> np.ndarray:
-        """Return an image to show as output of the display.
-
-        Parameters
-        ----------
-        data : VisionData
-            The vision data object used in the check.
-        sample_index : int
-            The batch index of the sample to draw the image for.
-        index_of_value_in_sample : int
-            Each sample property is list, then this is the index of the outlier in the sample property list.
-        num_properties_in_sample
-            The number of values in the sample's property list.
-        """
-        batch = data.batch_of_index(sample_index)
-        image = data.batch_to_images(batch)[0]
-
-        if data.task_type == TaskType.OBJECT_DETECTION:
-            label = data.batch_to_labels(batch)[0]
-            # If we have same number of values for sample as the number of bboxes in label, we assume that the
-            # property returns value per bounding box, so we filter only the relevant bounding box
-            if num_properties_in_sample > 1 and num_properties_in_sample == len(label):
-                label = label[index_of_value_in_sample].unsqueeze(dim=0)
-            image = draw_bboxes(image, label, copy_image=False, border_width=5)
-
-        return image

@@ -53,7 +53,7 @@ def test_outliers_check_coco(coco_train_visiondata, device):
     assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
     assert_that(result.value, has_entries({
         'Number of Bounding Boxes Per Image': has_entries({
-            'indices': contains_exactly(30, 21, 43, 52, 33, 37),
+            'outliers_identifiers': has_length(6),
             'lower_limit': is_(0),
             'upper_limit': is_(20.125)
         }),
@@ -68,7 +68,7 @@ def test_outliers_check_coco_segmentation(segmentation_coco_train_visiondata, de
     # Assert
     assert_that(result.value, has_entries({
         'Number of Classes Per Image': has_entries({
-            'indices': [8, 3],
+            'outliers_identifiers': has_length(2),
             'lower_limit': is_(2),
             'upper_limit': is_(2)
         }),
@@ -85,7 +85,7 @@ def test_outliers_check_coco_without_display(coco_train_visiondata, device):
                 is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, with_display=False))
     assert_that(result.value, has_entries({
         'Number of Bounding Boxes Per Image': has_entries({
-            'indices': contains_exactly(30, 21, 43, 52, 33, 37),
+            'outliers_identifiers': has_length(6),
             'lower_limit': is_(0),
             'upper_limit': is_(20.125)
         }),
@@ -108,7 +108,7 @@ def test_property_outliers_check_mnist(mnist_dataset_train, device):
     assert_that(result, is_correct_label_property_outliers_result(properties))
     assert_that(result.value, has_entries({
         'test': has_entries({
-            'indices': has_length(0),
+            'outliers_identifiers': has_length(0),
             'lower_limit': is_(0),
             'upper_limit': is_(9)
         })

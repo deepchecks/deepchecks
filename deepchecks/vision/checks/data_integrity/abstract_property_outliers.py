@@ -19,19 +19,21 @@ from secrets import choice
 
 import numpy as np
 import pandas as pd
+import torch
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.utils.image_functions import prepare_thumbnail
+from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['AbstractPropertyOutliers']
 
 THUMBNAIL_SIZE = (200, 200)
+MAX_IMAGES_PER_DIRECTION = 3
 
 
 class AbstractPropertyOutliers(SingleDatasetCheck):
@@ -84,9 +86,12 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""
         data = context.get_data_by_kind(dataset_kind)
-
         self._properties_results = defaultdict(list)
-        # Take either alternative properties if defined or default properties defined by the child class
+        # Dict of properties names to a dict of containing keys of property values, images
+        self._lowest_property_value_images = defaultdict(list)
+        self._highest_property_value_images = defaultdict(list)
+        self._images_uuid = []
+
         self.properties_list = self.properties_list if self.properties_list else self.get_default_properties(data)
         if any(p['output_type'] == 'class_id' for p in self.properties_list):
             warnings.warn('Properties that have class_id as output_type will be skipped.')
@@ -95,25 +100,30 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
     def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
         """Aggregate image properties from batch."""
         batch_properties = batch.vision_properties(self.properties_list, self.property_input_type)
-
+        data = context.get_data_by_kind(dataset_kind)
         for prop_name, property_values in batch_properties.items():
             _ensure_property_shape(property_values, len(batch), prop_name)
+            images = data.batch_to_images(batch) if data.has_images else np.zeros(len(batch))
+            # TODO: fix when api refactor is complete
+            labels = data.batch_to_labels(batch) if data.has_labels else torch.zeros(len(batch))
+            # If the property or label is single value per image, wrap them in order to work on a fixed structure
+            if len(labels[0].shape) == 0:
+                labels = [[l] for l in labels]
+            if not isinstance(property_values[0], t.Sequence):
+                property_values = [[x] for x in property_values]
+
             self._properties_results[prop_name].extend(property_values)
+            self._images_uuid += len(batch) * [-1]  # TODO: fix when api refactor is complete
+            self._update_lowest_highest_property_values(np.asarray(images), labels, property_values, prop_name)
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final result."""
         data = context.get_data_by_kind(dataset_kind)
         result = {}
-        images = defaultdict(list)
+        outlier_images = defaultdict(list)
+        self._images_uuid = np.asarray(self._images_uuid)
 
-        # The values are in the same order as the batch order, so always keeps the same order in order to access
-        # the original sample at this index location
         for name, values in self._properties_results.items():
-            # If the property is single value per sample, then wrap the values in list in order to work on fixed
-            # structure
-            if not isinstance(values[0], list):
-                values = [[x] for x in values]
-
             values_lengths_cumsum = np.cumsum(np.array([len(v) for v in values]))
             values_arr = np.hstack(values).astype(np.float)
 
@@ -123,51 +133,34 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 result[name] = 'Not enough non-null samples to calculate outliers.'
                 continue
 
-            # Get the indices of the outliers
-            top_outliers = np.argwhere(values_arr > upper_limit).squeeze(axis=1)
-            # Sort the indices of the outliers by the original values
-            top_outliers = top_outliers[
-                np.apply_along_axis(lambda i, sort_arr=values_arr: sort_arr[i], axis=0, arr=top_outliers).argsort()
-            ]
+            outlier_values_idx = np.argwhere((values_arr < lower_limit) | (values_arr > upper_limit)).squeeze(axis=1)
+            outlier_img_idx = np.unique([_sample_index_from_flatten_index(values_lengths_cumsum, outlier_index)
+                                         for outlier_index in outlier_values_idx])
+            outlier_img_identifiers = self._images_uuid[outlier_img_idx] if len(outlier_img_idx) > 0 else []
 
-            # Doing the same for bottom outliers
-            bottom_outliers = np.argwhere(values_arr < lower_limit).squeeze(axis=1)
-            # Sort the indices of the outliers by the original values
-            bottom_outliers = bottom_outliers[
-                np.apply_along_axis(lambda i, sort_arr=values_arr: sort_arr[i], axis=0, arr=bottom_outliers).argsort()
-            ]
+            for idx, value in enumerate(self._lowest_property_value_images[name]['property_values']):
+                if value < lower_limit:
+                    if data.has_images:
+                        image_thumbnail = self.draw_image(image=self._lowest_property_value_images[name]['images'][idx],
+                                                          label=self._lowest_property_value_images[name]['labels'][idx],
+                                                          thumbnail_size=THUMBNAIL_SIZE)
+                    else:
+                        image_thumbnail = 'Image unavailable'
+                    outlier_images[name].append((value, image_thumbnail))
 
-            # Take the indices to show images from the top and bottom
-            show_indices = np.concatenate((bottom_outliers[:self.n_show_top], top_outliers[-self.n_show_top:]))
-
-            # Calculate cumulative sum of the outliers lengths in order to find the correct index of the image
-            for outlier_index in show_indices:
-                sample_index = _sample_index_from_flatten_index(values_lengths_cumsum, outlier_index)
-                value = values_arr[outlier_index].item()
-                # To get the value index inside the properties list of a single sample we take the sum of values
-                # and decrease the current outlier index. Then we get the value index from the end of the sample list.
-                index_of_value_in_sample = (values_lengths_cumsum[sample_index] - outlier_index) * -1
-                num_properties_in_sample = len(values[sample_index])
-
-                if data.has_images:
-                    image = self.draw_image(data, sample_index, index_of_value_in_sample, num_properties_in_sample)
-                    image_thumbnail = prepare_thumbnail(
-                        image=image,
-                        size=THUMBNAIL_SIZE,
-                        copy_image=False
-                    )
-                else:
-                    image_thumbnail = 'Image unavailable'
-                images[name].append((value, image_thumbnail))
-
-            # Calculate for all outliers the image index
-            image_outliers = [_sample_index_from_flatten_index(values_lengths_cumsum, outlier_index) for
-                              outlier_index in np.concatenate((bottom_outliers, top_outliers))]
+            for idx, value in enumerate(self._highest_property_value_images[name]['property_values']):
+                if value > upper_limit:
+                    if data.has_images:
+                        image_thumbnail = self.draw_image(
+                            image=self._highest_property_value_images[name]['images'][idx],
+                            label=self._highest_property_value_images[name]['labels'][idx],
+                            thumbnail_size=THUMBNAIL_SIZE)
+                    else:
+                        image_thumbnail = 'Image unavailable'
+                    outlier_images[name].append((value, image_thumbnail))
 
             result[name] = {
-                'indices': data.to_dataset_index(*image_outliers),
-                # For the upper and lower limits doesn't show values that are smaller/larger than the actual values
-                # we have in the data
+                'outliers_identifiers': outlier_img_identifiers,
                 'lower_limit': max(lower_limit, min(values_arr)),
                 'upper_limit': min(upper_limit, max(values_arr)),
             }
@@ -180,22 +173,22 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 # If info is string it means there was error
                 if isinstance(info, str):
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
-                elif len(info['indices']) == 0:
+                elif len(info['outliers_identifiers']) == 0:
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
                 else:
                     # Create id of alphabetic characters
                     sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
                     values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
-                                              for x in images[property_name]])
+                                              for x in outlier_images[property_name]])
                     images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
-                                              for x in images[property_name]])
+                                              for x in outlier_images[property_name]])
 
                     html = HTML_TEMPLATE.format(
                         prop_name=property_name,
                         values=values_combine,
                         images=images_combine,
-                        count=len(info['indices']),
-                        n_of_images=len(images[property_name]),
+                        count=len(info['outliers_identifiers']),
+                        n_of_images=len(outlier_images[property_name]),
                         lower_limit=format_number(info['lower_limit']),
                         upper_limit=format_number(info['upper_limit']),
                         id=sid
@@ -218,28 +211,70 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         return CheckResult(result, display=display)
 
-    @abstractmethod
-    def draw_image(self, data: VisionData, sample_index: int, index_of_value_in_sample: int,
-                   num_properties_in_sample: int) -> np.ndarray:
+    def draw_image(self, image: np.ndarray, label, thumbnail_size: t.Tuple[int, int]) -> str:
         """Return an image to show as output of the display.
 
         Parameters
         ----------
-        data : VisionData
-            The vision data object used in the check.
-        sample_index : int
-            The batch index of the sample to draw the image for.
-        index_of_value_in_sample : int
-            Each sample property is list, then this is the index of the outlier in the sample property list.
-        num_properties_in_sample
-            The number of values in the sample's property list.
+        image : np.ndarray
+            The image to draw, must be a [H, W, C] 3D numpy array.
+        label :
+            The label of the image to draw on top of the image (single label), shape depends on task type.
+        thumbnail_size: t.Tuple[int,int]
+            The required size of the image for display.
+
+        Returns
+        -------
+        str
+            The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
         """
-        pass
+        if not isinstance(label, Number) and len(label) == 5:
+            image = draw_bboxes(image, [label], copy_image=False, border_width=5)
+        image_thumbnail = prepare_thumbnail(
+            image=image,
+            size=thumbnail_size,
+            copy_image=False
+        )
+        return image_thumbnail
 
     @abstractmethod
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""
         pass
+
+    def _update_lowest_highest_property_values(self, images: np.ndarray, labels: t.List, property_values: t.List,
+                                               property_name: str):
+        """Update the _lowest_property_value_images, _lowest_property_value_images dicts based on new batch."""
+        # adds the current lowest and highest property value images to the batch before sorting
+        if property_name in self._lowest_property_value_images:
+            labels = [[x] for x in self._lowest_property_value_images[property_name]['labels']] + labels
+            images = np.concatenate((self._lowest_property_value_images[property_name]['images'], images))
+            property_values = [[x] for x in
+                               self._lowest_property_value_images[property_name]['property_values']] + property_values
+        if property_name in self._highest_property_value_images:
+            labels = [[x] for x in self._highest_property_value_images[property_name]['labels']] + labels
+            images = np.concatenate((self._highest_property_value_images[property_name]['images'], images))
+            property_values = [[x] for x in
+                               self._highest_property_value_images[property_name]['property_values']] + property_values
+
+        values_lengths_cumsum = np.cumsum(np.array([len(v) for v in property_values]))
+        values_flat_arr = np.hstack(property_values).astype(np.float)
+        labels_flat_arr = np.asarray([item for sublist in labels for item in sublist])
+        num_images_to_consider = min(MAX_IMAGES_PER_DIRECTION, len(images))
+
+        lowest_values_idx = np.argpartition(values_flat_arr, num_images_to_consider)[:num_images_to_consider]
+        lowest_img_idx = [_sample_index_from_flatten_index(values_lengths_cumsum, x) for x in lowest_values_idx]
+        self._lowest_property_value_images[property_name] = \
+            {'images': images[lowest_img_idx],
+             'property_values': values_flat_arr[lowest_values_idx],
+             'labels': labels_flat_arr[lowest_values_idx]}
+
+        highest_values_idx = np.argpartition(values_flat_arr, -num_images_to_consider)[-num_images_to_consider:]
+        highest_img_idx = [_sample_index_from_flatten_index(values_lengths_cumsum, x) for x in highest_values_idx]
+        self._highest_property_value_images[property_name] = \
+            {'images': images[highest_img_idx],
+             'property_values': values_flat_arr[highest_values_idx],
+             'labels': labels_flat_arr[highest_values_idx]}
 
 
 def _ensure_property_shape(property_values, data_len, prop_name):
