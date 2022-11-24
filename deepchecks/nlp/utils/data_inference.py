@@ -10,7 +10,7 @@
 #
 """Utils module containing functionalities to infer the metadata from the supplied TextData."""
 
-__all__ = ['infer_observed_labels']
+__all__ = ['infer_observed_and_model_labels']
 
 from typing import List, Union
 
@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 
-def infer_observed_labels(train_dataset=None, test_dataset=None, model=None) -> Union[List, List[List]]:
+def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model=None, model_classes: list=None) -> Union[List, List[List]]:
     """
     Infer the observed labels from the given datasets and predictions.
 
@@ -30,11 +30,13 @@ def infer_observed_labels(train_dataset=None, test_dataset=None, model=None) -> 
         TextData object, representing data an estimator predicts on
     model: Union[BaseModel, None], default: None
         A fitted estimator instance
+    model_classes: Optional[List], default: None
+        list of classes known to the model
 
     Returns
     -------
-        Union[List, List[List]]:
-            List of observed label values. For multilabel, returns list of lists of observed label values.
+        Union[List, int]:
+            List of observed label values. For multilabel, returns number of observed labels.
     """
     train_labels = []
     test_labels = []
@@ -52,12 +54,16 @@ def infer_observed_labels(train_dataset=None, test_dataset=None, model=None) -> 
 
     observed_labels = np.array(test_labels + train_labels)
     if len(observed_labels.shape) == 2:
-        observed_labels = [np.unique(observed_labels[:, i]) for i in range(observed_labels.shape[1])]
-        observed_labels = [x[~pd.isnull(x)] for x in observed_labels]
-        observed_labels = [sorted(x) for x in observed_labels]
-        # Bressler - this is more generalized for multilabel, instead of being specific for [0,1] labels. Should keep?
+        # observed_labels = [np.unique(observed_labels[:, i]) for i in range(observed_labels.shape[1])]
+        # observed_labels = [x[~pd.isnull(x)] for x in observed_labels]
+        # observed_labels = [sorted(x) for x in observed_labels]
+        if not model_classes:
+            model_classes = list(range(observed_labels.shape[1]))
+            observed_labels = list(range(observed_labels.shape[1]))
+        else:
+            observed_labels = model_classes
     else:
         observed_labels = np.unique(observed_labels)
         observed_labels = observed_labels[~pd.isnull(observed_labels)]
         observed_labels = sorted(observed_labels)
-    return observed_labels
+    return observed_labels, model_classes

@@ -14,6 +14,7 @@ import typing as t
 
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.metric_utils import DeepcheckScorer
+from deepchecks.tabular.metric_utils.scorers import _transform_to_multi_label_format
 from deepchecks.utils.typing import ClassificationModel
 
 __all__ = [
@@ -52,10 +53,13 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
 
 def infer_on_text_data(scorer: DeepcheckScorer, model: ClassificationModel, data: TextData):
     """Infer using DeepcheckScorer on nlp TextData using a nlp context _DummyModel."""
-    y_true = data.label
+    import numpy as np
+    y_true = _transform_to_multi_label_format(np.array(data.label), scorer.model_classes) #TODO temp
     y_pred = model.predict(data)
+    y_pred = _transform_to_multi_label_format(np.array(y_pred), scorer.model_classes)
     if hasattr(model, 'predict_proba'):
         y_proba = model.predict_proba(data)
     else:
         y_proba = None
-    return scorer.run_on_pred(y_true, y_pred, y_proba)
+    results = scorer.run_on_pred(y_true, y_pred, y_proba)
+    return scorer._validate_scorer_multilabel_output(results) #TODO: temp

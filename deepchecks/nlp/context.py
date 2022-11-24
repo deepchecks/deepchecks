@@ -23,7 +23,7 @@ from deepchecks.nlp.metric_utils.token_classification import (SpanAligner, get_d
                                                               validate_scorers)
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.data_inference import infer_observed_labels
+from deepchecks.nlp.utils.data_inference import infer_observed_and_model_labels
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 
 __all__ = [
@@ -282,7 +282,7 @@ class Context(BaseContext):
         probabilities on train dataset
     test_proba: Union[TTextProba, None], default: None
         probabilities on test dataset
-    model_classes: Optional[List, List[List], default: None
+    model_classes: Optional[List], default: None
         For classification: list of classes known to the model
     random_state: int, default 42
         A seed to set for pseudo-random functions, primarily sampling.
@@ -337,8 +337,14 @@ class Context(BaseContext):
         else:
             self._model = None
 
-        self._model_classes = model_classes
-        self._observed_classes = infer_observed_labels(train_dataset, test_dataset, self._model)
+        # Init a span aligner object for the run
+        self._span_aligner = SpanAligner()
+        self._task_type = train_dataset.task_type if train_dataset else test_dataset.task_type if test_dataset else None
+
+        self._observed_classes, self._model_classes = infer_observed_and_model_labels(train_dataset, test_dataset, self._model, model_classes)
+        if self._task_type == TaskType.TOKEN_CLASSIFICATION and model_classes is None: #TODO ?
+            self._model_classes = self.span_aligner.classes
+
 
         self._train = train_dataset
         self._test = test_dataset
@@ -348,10 +354,7 @@ class Context(BaseContext):
             self._test = self._test.sample(n_samples, random_state=random_state)
 
         self._validated_model = False
-        self._task_type = None
         self._with_display = with_display
-        # Init a span aligner object for the run
-        self._span_aligner = SpanAligner()
 
     @property
     def model(self) -> _DummyModel:
@@ -364,6 +367,20 @@ class Context(BaseContext):
     def model_name(self) -> str:
         """Return the name of the model."""
         return 'Pre-computed predictions'
+
+    @property
+    def model_classes(self) -> t.List:
+        """Return ordered list of possible label classes for classification tasks."""
+        if self._model_classes is None:
+            # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
+            self._model_classes = self._observed_classes
+            get_logger().warning('Could not find model\'s classes, using the observed classes')
+        return self._model_classes
+
+    @property
+    def observed_classes(self) -> t.List:
+        """Return the observed classes in both train and test."""
+        return self._observed_classes
 
     @property
     def span_aligner(self) -> SpanAligner:
@@ -437,4 +454,4 @@ class Context(BaseContext):
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
                                        f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')
-        return init_validate_scorers(scorers, self._model_classes, self._observed_classes)
+        return init_validate_scorers(scorers, self.model_classes, self._observed_classes)
