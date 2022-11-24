@@ -8,10 +8,13 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import random
+
 from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, greater_than,
                       has_entries, has_key, has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
+import numpy as np
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ImagePropertyOutliers
@@ -160,7 +163,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
 def test_property_with_nones(mnist_dataset_train, device):
     # Arrange
     def property_with_none(images):
-        return [[1, None]] * (len(images))
+        return np.random.choice([1, None], len(images))
     image_properties = [{
         'name': 'test',
         'method': property_with_none,

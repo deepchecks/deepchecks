@@ -26,14 +26,11 @@ from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
 from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes
+from deepchecks.vision.utils.display_utils import draw_image
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['AbstractPropertyOutliers']
-
-THUMBNAIL_SIZE = (200, 200)
-MAX_IMAGES_PER_DIRECTION = 3
 
 
 class AbstractPropertyOutliers(SingleDatasetCheck):
@@ -59,20 +56,23 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     property_input_type: PropertiesInputType, default: PropertiesInputType.IMAGES
         The type of input to the properties, required for caching the results after first calculation.
-    n_show_top : int , default: 5
+    n_show_top : int , default: 3
         number of outliers to show from each direction (upper limit and bottom limit)
     iqr_percentiles: Tuple[int, int], default: (25, 75)
         Two percentiles which define the IQR range
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
+    draw_label_on_image: bool, default: True
+        Whether to draw the label on the image displayed or not.
     """
 
     def __init__(self,
                  properties_list: t.List[t.Dict[str, t.Any]] = None,
                  property_input_type: PropertiesInputType = PropertiesInputType.IMAGES,
-                 n_show_top: int = 5,
+                 n_show_top: int = 3,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
+                 draw_label_on_image: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.properties_list = properties_list
@@ -80,7 +80,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
-
+        self._draw_label_on_image = draw_label_on_image
         self._properties_results = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -108,7 +108,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             labels = data.batch_to_labels(batch) if data.has_labels else torch.zeros(len(batch))
             # If the property or label is single value per image, wrap them in order to work on a fixed structure
             if len(labels[0].shape) == 0:
-                labels = [[l] for l in labels]
+                labels = [l.resize(1, 1) for l in labels]
             if not isinstance(property_values[0], t.Sequence):
                 property_values = [[x] for x in property_values]
 
@@ -119,8 +119,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final result."""
         data = context.get_data_by_kind(dataset_kind)
-        result = {}
-        outlier_images = defaultdict(list)
+        check_result = {}
         self._images_uuid = np.asarray(self._images_uuid)
 
         for name, values in self._properties_results.items():
@@ -130,36 +129,14 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             try:
                 lower_limit, upper_limit = iqr_outliers_range(values_arr, self.iqr_percentiles, self.iqr_scale)
             except NotEnoughSamplesError:
-                result[name] = 'Not enough non-null samples to calculate outliers.'
+                check_result[name] = 'Not enough non-null samples to calculate outliers.'
                 continue
 
             outlier_values_idx = np.argwhere((values_arr < lower_limit) | (values_arr > upper_limit)).squeeze(axis=1)
             outlier_img_idx = np.unique([_sample_index_from_flatten_index(values_lengths_cumsum, outlier_index)
                                          for outlier_index in outlier_values_idx])
             outlier_img_identifiers = self._images_uuid[outlier_img_idx] if len(outlier_img_idx) > 0 else []
-
-            for idx, value in enumerate(self._lowest_property_value_images[name]['property_values']):
-                if value < lower_limit:
-                    if data.has_images:
-                        image_thumbnail = self.draw_image(image=self._lowest_property_value_images[name]['images'][idx],
-                                                          label=self._lowest_property_value_images[name]['labels'][idx],
-                                                          thumbnail_size=THUMBNAIL_SIZE)
-                    else:
-                        image_thumbnail = 'Image unavailable'
-                    outlier_images[name].append((value, image_thumbnail))
-
-            for idx, value in enumerate(self._highest_property_value_images[name]['property_values']):
-                if value > upper_limit:
-                    if data.has_images:
-                        image_thumbnail = self.draw_image(
-                            image=self._highest_property_value_images[name]['images'][idx],
-                            label=self._highest_property_value_images[name]['labels'][idx],
-                            thumbnail_size=THUMBNAIL_SIZE)
-                    else:
-                        image_thumbnail = 'Image unavailable'
-                    outlier_images[name].append((value, image_thumbnail))
-
-            result[name] = {
+            check_result[name] = {
                 'outliers_identifiers': outlier_img_identifiers,
                 'lower_limit': max(lower_limit, min(values_arr)),
                 'upper_limit': min(upper_limit, max(values_arr)),
@@ -169,7 +146,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         if context.with_display:
             display = []
             no_outliers = pd.Series([])
-            for property_name, info in result.items():
+            for property_name, info in check_result.items():
                 # If info is string it means there was error
                 if isinstance(info, str):
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
@@ -177,18 +154,20 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
                 else:
                     # Create id of alphabetic characters
+                    images_and_values = self._get_property_outlier_images(data.has_images, info['lower_limit'],
+                                                                          property_name, info['upper_limit'])
                     sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
                     values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
-                                              for x in outlier_images[property_name]])
+                                              for x in images_and_values])
                     images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
-                                              for x in outlier_images[property_name]])
+                                              for x in images_and_values])
 
                     html = HTML_TEMPLATE.format(
                         prop_name=property_name,
                         values=values_combine,
                         images=images_combine,
                         count=len(info['outliers_identifiers']),
-                        n_of_images=len(outlier_images[property_name]),
+                        n_of_images=len(images_and_values),
                         lower_limit=format_number(info['lower_limit']),
                         upper_limit=format_number(info['upper_limit']),
                         id=sid
@@ -209,33 +188,34 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         else:
             display = None
 
-        return CheckResult(result, display=display)
+        return CheckResult(check_result, display=display)
 
-    def draw_image(self, image: np.ndarray, label, thumbnail_size: t.Tuple[int, int]) -> str:
-        """Return an image to show as output of the display.
-
-        Parameters
-        ----------
-        image : np.ndarray
-            The image to draw, must be a [H, W, C] 3D numpy array.
-        label :
-            The label of the image to draw on top of the image (single label), shape depends on task type.
-        thumbnail_size: t.Tuple[int,int]
-            The required size of the image for display.
-
-        Returns
-        -------
-        str
-            The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
-        """
-        if not isinstance(label, Number) and len(label) == 5:
-            image = draw_bboxes(image, [label], copy_image=False, border_width=5)
-        image_thumbnail = prepare_thumbnail(
-            image=image,
-            size=thumbnail_size,
-            copy_image=False
-        )
-        return image_thumbnail
+    def _get_property_outlier_images(self, has_images: bool, lower_limit: float, property_name: str,
+                                     upper_limit: float) -> t.List[t.Tuple[float, str]]:
+        """Get outlier images and their values for provided property."""
+        result = []
+        for idx, value in enumerate(self._lowest_property_value_images[property_name]['property_values']):
+            if value < lower_limit:
+                if has_images:
+                    label = self._lowest_property_value_images[property_name]['labels'][idx]
+                    image_thumbnail = draw_image(image=self._lowest_property_value_images[property_name]['images'][idx],
+                                                 label=label.resize(1, len(label)),  # convert to 2-dim tensor
+                                                 draw_label=self._draw_label_on_image)
+                else:
+                    image_thumbnail = 'Image unavailable'
+                result.append((value, image_thumbnail))
+        for idx, value in enumerate(self._highest_property_value_images[property_name]['property_values']):
+            if value > upper_limit:
+                if has_images:
+                    label = self._highest_property_value_images[property_name]['labels'][idx]
+                    image_thumbnail = draw_image(
+                        image=self._highest_property_value_images[property_name]['images'][idx],
+                        label=label.resize(1, len(label)),  # convert to 2-dim tensor
+                        draw_label=self._draw_label_on_image)
+                else:
+                    image_thumbnail = 'Image unavailable'
+                result.append((value, image_thumbnail))
+        return result
 
     @abstractmethod
     def get_default_properties(self, data: VisionData):
@@ -260,10 +240,11 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         values_lengths_cumsum = np.cumsum(np.array([len(v) for v in property_values]))
         values_flat_arr = np.hstack(property_values).astype(np.float)
         labels_flat_arr = np.asarray([item for sublist in labels for item in sublist])
-        num_images_to_consider = min(MAX_IMAGES_PER_DIRECTION, len(images))
+        num_images_to_consider = min(self.n_show_top, len(images))
 
         lowest_values_idx = np.argpartition(values_flat_arr, num_images_to_consider)[:num_images_to_consider]
         lowest_img_idx = [_sample_index_from_flatten_index(values_lengths_cumsum, x) for x in lowest_values_idx]
+
         self._lowest_property_value_images[property_name] = \
             {'images': images[lowest_img_idx],
              'property_values': values_flat_arr[lowest_values_idx],

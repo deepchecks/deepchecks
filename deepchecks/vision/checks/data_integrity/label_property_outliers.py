@@ -11,12 +11,9 @@
 """Module contains LabelPropertyOutliers check."""
 import typing as t
 
-import numpy as np
-
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
 from deepchecks.vision.utils import label_prediction_properties
-from deepchecks.vision.utils.image_functions import draw_bboxes
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType, VisionData
 
@@ -44,7 +41,7 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    n_show_top : int , default: 5
+    n_show_top : int , default: 3
         number of outliers to show from each direction (upper limit and bottom limit)
     iqr_percentiles: Tuple[int, int], default: (25, 75)
         Two percentiles which define the IQR range
@@ -54,13 +51,13 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
 
     def __init__(self,
                  label_properties: t.List[t.Dict[str, t.Any]] = None,
-                 n_show_top: int = 5,
+                 n_show_top: int = 3,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
         super().__init__(properties_list=label_properties, property_input_type=PropertiesInputType.LABELS,
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
-                         iqr_scale=iqr_scale, **kwargs)
+                         iqr_scale=iqr_scale, draw_label_on_image=True, **kwargs)
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""
@@ -74,4 +71,3 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
         else:
             raise DeepchecksProcessError(f'task type {data.task_type} does not have default label '
                                          f'properties defined.')
-

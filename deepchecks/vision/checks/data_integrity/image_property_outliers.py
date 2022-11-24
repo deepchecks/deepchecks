@@ -10,13 +10,9 @@
 #
 """Module of ImagePropertyOutliers check."""
 import typing as t
-from numbers import Number
-
-import numpy as np
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
-from deepchecks.vision.utils.image_functions import prepare_thumbnail, draw_bboxes
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
@@ -42,7 +38,7 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
           but these numbers do not have inherent value.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    n_show_top : int , default: 5
+    n_show_top : int , default: 3
         number of outliers to show from each direction (upper limit and bottom limit)
     iqr_percentiles: Tuple[int, int], default: (25, 75)
         Two percentiles which define the IQR range
@@ -52,38 +48,13 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
 
     def __init__(self,
                  image_properties: t.List[t.Dict[str, t.Any]] = None,
-                 n_show_top: int = 5,
+                 n_show_top: int = 3,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
         super().__init__(properties_list=image_properties, property_input_type=PropertiesInputType.IMAGES,
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
-                         iqr_scale=iqr_scale, **kwargs)
-
-    def draw_image(self, image: np.ndarray, label, thumbnail_size: t.Tuple[int, int]) -> str:
-        """Return an image to show as output of the display.
-
-        Parameters
-        ----------
-        image : np.ndarray
-            The image to draw, must be a [H, W, C] 3D numpy array.
-        label :
-            The label of the image to draw on top of the image (single label), shape depends on task type.
-        thumbnail_size: t.Tuple[int,int]
-            The required size of the image for display.
-
-        Returns
-        -------
-        str
-            The image in the provided thumbnail size as html.
-        """
-        image_thumbnail = prepare_thumbnail(
-            image=image,
-            size=thumbnail_size,
-            copy_image=False
-        )
-        return image_thumbnail
-
+                         iqr_scale=iqr_scale, draw_label_on_image=False, **kwargs)
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""
