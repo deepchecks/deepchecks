@@ -11,7 +11,7 @@
 """Tests for weak segment performance check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, has_items, has_length, calling, raises
+from hamcrest import assert_that, close_to, equal_to, has_items, has_length, calling, raises, any_of
 from sklearn.metrics import f1_score, make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -84,7 +84,7 @@ def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(5))
+    assert_that(segments, any_of(has_length(5), has_length(6)))
     assert_that(segments.iloc[0, 0], close_to(0.7692307692307693, 0.01))
 
 
