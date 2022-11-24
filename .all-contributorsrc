@@ -328,6 +328,17 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "rcwoolston",
+      "name": "Richard W",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5957841?v=4",
+      "profile": "https://github.com/rcwoolston",
+      "contributions": [
+        "code",
+        "doc",
+        "ideas"
+      ]
     }
   ],
   "projectName": "deepchecks",
