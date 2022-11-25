@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
+from deepchecks.core.check_result import _SuiteExecutionInfo
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.tabular._shared_docs import docstrings
@@ -31,9 +32,10 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.typing import BasicModel
 
-__all__ = [
-    'Context', '_DummyModel'
-]
+if t.TYPE_CHECKING:
+    from deepchecks.core.checks import BaseCheck
+
+__all__ = ['Context', '_DummyModel']
 
 
 class _DummyModel:
@@ -409,7 +411,13 @@ class Context:
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
-    def finalize_check_result(self, check_result, check, kind: DatasetKind = None):
+    def finalize_check_result(
+        self,
+        check_result: CheckResult,
+        check: 'BaseCheck',
+        kind: t.Optional[DatasetKind] = None,
+        check_index: t.Optional[int] = None
+    ):
         """Run final processing on a check result which includes validation, conditions processing and sampling\
         footnote."""
         # Validate the check result type
@@ -423,6 +431,10 @@ class Context:
         check_result.check = check
         # Calculate conditions results
         check_result.process_conditions()
+
+        if check_index is not None:
+            check_result._suite_execution_info = _SuiteExecutionInfo(check_index, kind)
+
         # Add sampling footnote if needed
         if hasattr(check, 'n_samples'):
             n_samples = getattr(check, 'n_samples')

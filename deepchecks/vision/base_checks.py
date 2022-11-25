@@ -56,7 +56,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
         train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
         test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
-
     ) -> CheckResult:
         """Run check.
 

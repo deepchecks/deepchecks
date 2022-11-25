@@ -10,14 +10,17 @@
 #
 """Module for base tabular model abstractions."""
 # pylint: disable=broad-except
-from typing import Any, Dict, List, Mapping, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Mapping, Optional, Tuple, Union
 
-from deepchecks.core.check_result import CheckFailure, CheckResult
+from deepchecks.core.check_result import CheckFailure, CheckResult, _SuiteExecutionInfo
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.ipython import create_progress_bar
+
+if TYPE_CHECKING:
+    from deepchecks.tabular.base_checks import ModelComparisonCheck
 
 __all__ = [
     'ModelComparisonSuite',
@@ -153,7 +156,12 @@ class ModelComparisonContext:
         """Return given context by index."""
         return self.contexts[item]
 
-    def finalize_check_result(self, check_result, check):
+    def finalize_check_result(
+        self,
+        check_result: 'CheckResult',
+        check: 'ModelComparisonCheck',
+        check_index: Optional[int] = None
+    ):
         """Run final processing on a check result which includes validation and conditions processing."""
         # Validate the check result type
         if isinstance(check_result, CheckFailure):
@@ -166,3 +174,6 @@ class ModelComparisonContext:
         check_result.check = check
         # Calculate conditions results
         check_result.process_conditions()
+
+        if check_index is not None:
+            check_result._suite_execution_info = _SuiteExecutionInfo(check_index)

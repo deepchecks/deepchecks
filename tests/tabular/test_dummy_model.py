@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import pandas as pd
-from hamcrest import assert_that, calling, has_items, raises, close_to
+from hamcrest import assert_that, calling, close_to, has_items, raises
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 

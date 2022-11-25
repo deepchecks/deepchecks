@@ -12,7 +12,7 @@
 # pylint: disable=broad-except,import-outside-toplevel,unused-argument
 import io
 import traceback
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, cast
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, NamedTuple, Optional, Union, cast
 
 import jsonpickle
 import jsonpickle.ext.pandas as jsonpickle_pd
@@ -43,7 +43,7 @@ jsonpickle_pd.register_handlers()
 
 
 if TYPE_CHECKING:
-    from deepchecks.core.checks import BaseCheck
+    from deepchecks.core.checks import BaseCheck, DatasetKind
 
 
 __all__ = ['CheckResult', 'CheckFailure', 'BaseCheckResult', 'DisplayMap']
@@ -110,6 +110,14 @@ class BaseCheckResult:
         return f'{header}_{unique_id}'
 
 
+class _SuiteExecutionInfo(NamedTuple):
+    # index of a check instance within suite
+    check_unique_index: int
+    # kind of input that was used to produe this result
+    # relavent only for 'SingleDatasetCheck'
+    check_input_kind: Optional['DatasetKind'] = None
+
+
 class CheckResult(BaseCheckResult, DisplayableResult):
     """Class which returns from a check with result that can later be used for automatic pipelines and display value.
 
@@ -132,6 +140,8 @@ class CheckResult(BaseCheckResult, DisplayableResult):
     header: Optional[str]
     display: List[TDisplayItem]
     conditions_results: List[ConditionResult]
+    check: Optional['BaseCheck'] = None
+    _suite_execution_info: Optional['_SuiteExecutionInfo'] = None
 
     def __init__(
         self,

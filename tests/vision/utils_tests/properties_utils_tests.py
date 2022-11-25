@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 # pylint: disable=inconsistent-quotes, redefined-builtin
-from hamcrest import assert_that, calling, close_to, contains_exactly, raises, is_
+from hamcrest import assert_that, calling, close_to, contains_exactly, is_, raises
+from numpy.random import seed
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision.utils.image_properties import default_image_properties, calc_default_image_properties, texture_level
+from deepchecks.vision.utils.image_properties import (calc_default_image_properties, default_image_properties,
+                                                      texture_level)
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
@@ -20,7 +22,6 @@ from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIF
                                                                  DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES,
                                                                  DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES)
 from deepchecks.vision.utils.vision_properties import calc_vision_properties, validate_properties
-from numpy.random import seed
 
 
 def test_calc_properties(coco_train_visiondata):

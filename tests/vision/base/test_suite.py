@@ -11,7 +11,7 @@
 #
 from collections import defaultdict
 
-from hamcrest import assert_that, calling, instance_of, is_, raises, contains_exactly, has_length
+from hamcrest import assert_that, calling, contains_exactly, has_length, instance_of, is_, raises
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError

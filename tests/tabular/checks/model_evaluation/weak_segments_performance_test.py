@@ -11,7 +11,7 @@
 """Tests for weak segment performance check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, has_items, has_length, calling, raises
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, has_length, raises
 from sklearn.metrics import f1_score, make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError
