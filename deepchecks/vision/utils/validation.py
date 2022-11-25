@@ -48,7 +48,7 @@ def set_seeds(seed: int):
 
 
 def validate_extractors(dataset: VisionData, model, device=None, image_save_location: str = None,
-                        save_images: bool = True):
+                        save_images: bool = True) -> bool:
     """Validate for given data_loader and model that the extractors are valid.
 
     Parameters
@@ -65,6 +65,11 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
     save_images : bool , default: True
         if the machine doesn't support GUI the displayed images will be saved
         if the value is True.
+
+    Returns
+    -------
+    bool
+        The validation result.
     """
     print('Deepchecks will try to validate the extractors given...')
     batch = apply_to_tensor(next(iter(dataset.data_loader)), lambda it: it.to(device))
@@ -190,3 +195,8 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
                     print('*******************************************************************************')
             else:
                 image.show()
+
+    if label_formatter_error or prediction_formatter_error or image_formatter_error:
+        return False
+    else:
+        return True

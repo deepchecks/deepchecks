@@ -319,6 +319,15 @@
         "code",
         "bug"
       ]
+    },
+    {
+      "login": "osw282",
+      "name": "Oscar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25309418?v=4",
+      "profile": "https://github.com/osw282",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "projectName": "deepchecks",
