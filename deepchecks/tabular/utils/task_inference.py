@@ -17,14 +17,13 @@ from typing import List, Optional, Tuple
 import pandas as pd
 from pandas._libs.lib import infer_dtype
 
+from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 from deepchecks.core.errors import ValidationError
 from deepchecks.tabular.utils.feature_inference import is_categorical
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.array_math import convert_into_flat_list
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
-
-from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
 
 
 def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tabular.Dataset',
