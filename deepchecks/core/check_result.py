@@ -113,8 +113,8 @@ class BaseCheckResult:
 class _SuiteExecutionInfo(NamedTuple):
     # index of a check instance within suite
     check_unique_index: int
-    # kind of input that was used to produe this result
-    # relavent only for 'SingleDatasetCheck'
+    # kind of input that was used to produce this result
+    # relevant only for 'SingleDatasetCheck'
     check_input_kind: Optional['DatasetKind'] = None
 
 

@@ -217,22 +217,22 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                     # we do not form full-output for the check results without display
                     continue
 
-                if it._suite_execution_info is None:
+                if it._suite_execution_info is None:  # pylint: disable=protected-access
                     # internal error
                     raise ValueError(
                         "'CheckResult' instance that was not produced by a 'Suite' "
                         "instance was added to a 'SuiteResult' collection instance"
                     )
 
-                check_index = it._suite_execution_info.check_unique_index
-                check_input_kind = it._suite_execution_info.check_input_kind
+                check_index = it._suite_execution_info.check_unique_index  # pylint: disable=protected-access
+                check_input_kind = it._suite_execution_info.check_input_kind  # pylint: disable=protected-access
 
                 if (
                     check_index in grouped_results
                     and check_input_kind in grouped_results[check_index]
                 ):
                     # internal error
-                    raise ValueError("CheckResult duplication")
+                    raise ValueError('CheckResult duplication')
 
                 # serialization_result = select_serializer(it).serialize(output_id=section_id, **kwargs)
                 grouped_results[check_index][check_input_kind] = it
@@ -265,7 +265,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
                 else:
                     # internal error
-                    raise ValueError("Unexpected number of widgets")
+                    raise ValueError('Unexpected number of widgets')
 
             if callable(summary_creation_method):
                 children = (

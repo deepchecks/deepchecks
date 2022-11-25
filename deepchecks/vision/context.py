@@ -28,7 +28,7 @@ from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT, 
 from deepchecks.vision.vision_data import VisionData
 
 if TYPE_CHECKING:
-    from deepchecks.core.checks import BaseCheck, DatasetKind
+    from deepchecks.core.checks import BaseCheck
 
 __all__ = ['Context']
 
@@ -298,5 +298,5 @@ class Context:
         check_result.process_conditions()
 
         if check_index is not None:
-            check_result._suite_execution_info = _SuiteExecutionInfo(check_index)
-
+            info = _SuiteExecutionInfo(check_index, kind)  # pylint: disable=protected-access
+            check_result._suite_execution_info = info  # pylint: disable=protected-access

@@ -176,4 +176,4 @@ class ModelComparisonContext:
         check_result.process_conditions()
 
         if check_index is not None:
-            check_result._suite_execution_info = _SuiteExecutionInfo(check_index)
+            check_result._suite_execution_info = _SuiteExecutionInfo(check_index)  # pylint: disable=protected-access

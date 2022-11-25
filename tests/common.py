@@ -19,7 +19,7 @@ from hamcrest import all_of, any_of, contains_exactly, contains_string, equal_to
 from hamcrest.core.base_matcher import BaseMatcher
 from plotly.graph_objects import Histogram
 
-from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
+from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap, _SuiteExecutionInfo
 from deepchecks.core.checks import BaseCheck
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.serialization.abc import (HTMLFormatter, IPythonDisplayFormatter, JPEGFormatter, JSONFormatter,
@@ -43,27 +43,40 @@ def create_suite_result(
     include_results_without_conditions_and_display: bool = True,
 ) -> SuiteResult:
     results = [
-        create_check_result(value=i, header=f'Dummy Result {i}')
+        create_check_result(
+            value=i,
+            header=f'Dummy Result {i}',
+            check_unique_index=i,
+        )
         for i in range(n_of_results)
     ]
+
+    index_offset = n_of_results
+
     if include_results_without_conditions:
         results.extend([
             create_check_result(
                 value=i,
                 header=f'Dummy Result Without Conditions {i}',
                 include_conditions=False,
+                check_unique_index=i,
             )
-            for i in range(n_of_results)
+            for i in range(index_offset, index_offset + n_of_results)
         ])
+        index_offset = index_offset + n_of_results
+
     if include_results_without_display:
         results.extend([
             create_check_result(
                 value=i,
                 header=f'Dummy Result Without Display {i}',
                 include_display=False,
+                check_unique_index=i,
             )
-            for i in range(n_of_results)
+            for i in range(index_offset, index_offset + n_of_results)
         ])
+        index_offset = index_offset + n_of_results
+
     if include_results_without_conditions_and_display:
         results.extend([
             create_check_result(
@@ -71,13 +84,17 @@ def create_suite_result(
                 header=f'Dummy Result Without Display and Conditions {i}',
                 include_display=False,
                 include_conditions=False,
+                check_unique_index=i,
             )
-            for i in range(n_of_results)
+            for i in range(index_offset, index_offset + n_of_results)
         ])
+        index_offset = index_offset + n_of_results
+
     failures = [
         CheckFailure(DummyCheck(), Exception(f'Exception Message {i}'))
         for i in range(n_of_failures)
     ]
+
     return SuiteResult(
         name=name,
         results=[*results, *failures],
@@ -89,7 +106,8 @@ def create_check_result(
     value: t.Any = None,
     header: str = 'Dummy Result',
     include_display: bool = True,
-    include_conditions: bool = True
+    include_conditions: bool = True,
+    check_unique_index: t.Optional[int] = None,
 ) -> CheckResult:
     display = (
         [*create_check_result_display(), DisplayMap(a=create_check_result_display())]
@@ -110,6 +128,9 @@ def create_check_result(
         c2.set_name('Dummy Condition 3')
         c3.set_name('Dummy Condition 3')
         result.conditions_results = [c1, c2, c3]
+
+    if check_unique_index is not None:
+        result._suite_execution_info = _SuiteExecutionInfo(check_unique_index)  # pylint: disable=protected-access
 
     result.check = DummyCheck()
     return result

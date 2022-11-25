@@ -33,7 +33,7 @@ from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.typing import BasicModel
 
 if t.TYPE_CHECKING:
-    from deepchecks.core.checks import BaseCheck
+    from deepchecks.core.checks import BaseCheck  # pylint: disable=unused-import
 
 __all__ = ['Context', '_DummyModel']
 
@@ -433,7 +433,10 @@ class Context:
         check_result.process_conditions()
 
         if check_index is not None:
-            check_result._suite_execution_info = _SuiteExecutionInfo(check_index, kind)
+            check_result._suite_execution_info = _SuiteExecutionInfo(  # pylint: disable=protected-access
+                check_index,
+                kind
+            )
 
         # Add sampling footnote if needed
         if hasattr(check, 'n_samples'):
