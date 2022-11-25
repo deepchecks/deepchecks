@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 from hamcrest import assert_that, close_to, has_items, has_length
+from numpy import nanmean
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.metrics_utils.scorers import calculate_metrics
-from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU
-from numpy import nanmean
+from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU, per_sample_dice
 
 
 def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
@@ -107,3 +107,13 @@ def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmen
     assert_that(dice_micro.compute(), close_to(0.951, 0.001))
     assert_that(dice_macro.compute(), close_to(0.649, 0.006))
     assert_that(iou_per_class.compute()[0], close_to(0.948, 0.001))
+
+
+def test_per_sample_dice(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device):
+    batch = next(iter(segmentation_coco_train_visiondata))
+    predictions = segmentation_coco_train_visiondata.infer_on_batch(batch,
+                                                                    trained_segmentation_deeplabv3_mobilenet_model,
+                                                                    device)
+    labels = batch[1]
+    res = per_sample_dice(predictions, labels)
+    assert_that(sum(res), close_to(9.513, 0.001))

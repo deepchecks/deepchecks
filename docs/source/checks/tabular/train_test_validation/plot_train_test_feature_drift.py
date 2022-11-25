@@ -169,7 +169,12 @@ result.show(show_additional_outputs=False)
 #
 # We can define the type of aggregation we want to use via the `aggregation_method` parameter. The possible values are:
 #
-# ``weighted``: The default. Weighted mean of drift scores based on each feature's feature importance. This method
+# ``l2_weighted`` (Default): L2 norm over the combination of drift scores and feature importance, minus the L2 norm of
+# feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a value between 0 and
+# sqrt(n_features). This method is built to give greater weight to features with high importance and high drift, while
+# not zeroing out features with low importance and high drift.
+#
+# ``weighted``: Weighted mean of drift scores based on each feature's feature importance. This method
 # underlying logic is that drift in a feature with a higher feature importance will have a greater effect on the model's
 # performance.
 #

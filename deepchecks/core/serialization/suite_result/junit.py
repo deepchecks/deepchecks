@@ -85,7 +85,7 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
         return_xml: bool = False,
         **kwargs
     ) -> Union[str, ET.Element]:
-        """Serialize a SuiteResult instance into Junit format. This can then be output as a str or a XML object.
+        """Serialize a SuiteResult instance into Junit format. This can then be output as a str or a XML object
 
         Parameters
         ----------

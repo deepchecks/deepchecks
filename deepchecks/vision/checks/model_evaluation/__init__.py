@@ -19,6 +19,7 @@ from .robustness_report import RobustnessReport
 from .simple_model_comparison import SimpleModelComparison
 from .single_dataset_performance import SingleDatasetPerformance
 from .train_test_prediction_drift import TrainTestPredictionDrift
+from .weak_segments_performance import WeakSegmentsPerformance
 
 __all__ = [
     "TrainTestPredictionDrift",
@@ -31,4 +32,5 @@ __all__ = [
     "RobustnessReport",
     "SimpleModelComparison",
     "SingleDatasetPerformance",
+    "WeakSegmentsPerformance"
 ]

@@ -10,6 +10,7 @@
 #
 """Module containing class performance check."""
 import typing as t
+import warnings
 from collections import defaultdict
 
 import pandas as pd
@@ -30,6 +31,10 @@ __all__ = ['ModelErrorAnalysis']
 
 class ModelErrorAnalysis(TrainTestCheck):
     """Find the properties that best split the data into segments of high and low model error.
+
+    .. deprecated:: 0.9.3
+        The ModelErrorAnalysis check is deprecated and will be removed in the 0.11 version. Please use the
+        WeakSegmentsPerformance check instead.
 
     The check trains a regression model to predict the error of the user's model. Then, the properties scoring the
     highest feature importance for the error regression model are selected and the distribution of the error vs the
@@ -73,6 +78,9 @@ class ModelErrorAnalysis(TrainTestCheck):
                  random_state: int = 42,
                  **kwargs):
         super().__init__(**kwargs)
+        warnings.warn('The ModelErrorAnalysis check is deprecated and will be removed in the 0.11 version. '
+                      'Please use the WeakSegmentsPerformance check instead.', DeprecationWarning)
+
         self.random_state = random_state
         self.min_error_model_score = min_error_model_score
         self.min_segment_size = min_segment_size
