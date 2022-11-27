@@ -108,7 +108,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             # If the property or label is single value per image, wrap them in order to work on a fixed structure
             if len(labels[0].shape) == 0:
                 labels = [l.resize(1, 1) for l in labels]
-            if self.property_input_type == PropertiesInputType.IMAGES:
+            if not isinstance(property_values[0], t.Sequence):  # TODO: change after changing properties api
                 property_values = [[x] for x in property_values]
 
             self._properties_results[prop_name].extend(property_values)
