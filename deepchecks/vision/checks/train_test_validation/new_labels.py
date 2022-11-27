@@ -66,20 +66,23 @@ class NewLabels(TrainTestCheck, ReduceMixin):
 
         for image, label in zip(images, labels):
             if data.task_type == TaskType.CLASSIFICATION:
-                self._update_images_dict(label, label.item(), image)
+                # TODO: replace image_identifier=-1 when api refactor is done
+                self._update_images_dict(label, label.item(), image, image_identifier=-1)
             elif data.task_type == TaskType.OBJECT_DETECTION and len(label) > 0:
                 for class_id in np.unique(label[:, 0].numpy()):
                     bbox_of_label = label[(label[:, 0] == class_id).nonzero().squeeze(1)]
-                    self._update_images_dict(bbox_of_label, class_id, image)
+                    self._update_images_dict(bbox_of_label, class_id, image, image_identifier=-1)
             elif len(label) > 0:
                 raise DeepchecksValueError(f'Unsupported task type {data.task_type.value} for NewLabels check')
 
-    def _update_images_dict(self, label, class_id, image):
+    def _update_images_dict(self, label, class_id, image, image_identifier):
         if class_id not in self._display_images:
-            self._display_images[class_id] = {'images': [image], 'labels': [label]}
+            self._display_images[class_id] = {'images': [image], 'labels': [label],
+                                              'image_identifiers': [image_identifier]}
         elif len(self._display_images[class_id]['images']) < self.max_images_to_display_per_label:
             self._display_images[class_id]['images'].append(image)
             self._display_images[class_id]['labels'].append(label)
+            self._display_images[class_id]['image_identifiers'].append(image_identifier)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate which class_id are only available in the test data set and display them.

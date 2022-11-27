@@ -104,12 +104,11 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         for prop_name, property_values in batch_properties.items():
             _ensure_property_shape(property_values, len(batch), prop_name)
             images = data.batch_to_images(batch) if data.has_images else np.zeros(len(batch))
-            # TODO: fix when api refactor is complete
             labels = data.batch_to_labels(batch) if data.has_labels else torch.zeros(len(batch))
             # If the property or label is single value per image, wrap them in order to work on a fixed structure
             if len(labels[0].shape) == 0:
                 labels = [l.resize(1, 1) for l in labels]
-            if not isinstance(property_values[0], t.Sequence):
+            if self.property_input_type == PropertiesInputType.IMAGES:
                 property_values = [[x] for x in property_values]
 
             self._properties_results[prop_name].extend(property_values)
@@ -154,8 +153,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
                 else:
                     # Create id of alphabetic characters
-                    images_and_values = self._get_property_outlier_images(data.has_images, info['lower_limit'],
-                                                                          property_name, info['upper_limit'])
+                    images_and_values = self._get_property_outlier_images(property_name, info['lower_limit'],
+                                                                          info['upper_limit'], data.has_images)
                     sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
                     values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
                                               for x in images_and_values])
@@ -190,8 +189,8 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         return CheckResult(check_result, display=display)
 
-    def _get_property_outlier_images(self, has_images: bool, lower_limit: float, property_name: str,
-                                     upper_limit: float) -> t.List[t.Tuple[float, str]]:
+    def _get_property_outlier_images(self, property_name: str, lower_limit: float, upper_limit: float,
+                                     has_images: bool) -> t.List[t.Tuple[float, str]]:
         """Get outlier images and their values for provided property."""
         result = []
         for idx, value in enumerate(self._lowest_property_value_images[property_name]['property_values']):
@@ -237,6 +236,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
             property_values = [[x] for x in
                                self._highest_property_value_images[property_name]['property_values']] + property_values
 
+        # there are several values per image, so we flatten the list of lists before sorting based on property values
         values_lengths_cumsum = np.cumsum(np.array([len(v) for v in property_values]))
         values_flat_arr = np.hstack(property_values).astype(np.float)
         labels_flat_arr = np.asarray([item for sublist in labels for item in sublist])
@@ -244,7 +244,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         lowest_values_idx = np.argpartition(values_flat_arr, num_images_to_consider)[:num_images_to_consider]
         lowest_img_idx = [_sample_index_from_flatten_index(values_lengths_cumsum, x) for x in lowest_values_idx]
-
         self._lowest_property_value_images[property_name] = \
             {'images': images[lowest_img_idx],
              'property_values': values_flat_arr[lowest_values_idx],
