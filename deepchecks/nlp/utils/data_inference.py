@@ -12,13 +12,16 @@
 
 __all__ = ['infer_observed_and_model_labels']
 
-from typing import List, Union
+from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
 
+from deepchecks.core.errors import DeepchecksValueError
 
-def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model=None, model_classes: list=None) -> Union[List, List[List]]:
+
+def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model=None, model_classes: list = None) -> \
+        Tuple[List, List]:
     """
     Infer the observed labels from the given datasets and predictions.
 
@@ -35,8 +38,11 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
 
     Returns
     -------
-        Union[List, int]:
-            List of observed label values. For multilabel, returns number of observed labels.
+        observed_classes: List
+            List of observed label values. For multi-label, returns number of observed labels.
+        model_classes: List
+            List of the user-given model classes. For multi-label, if not given by the user, returns a range of
+            len(label)
     """
     train_labels = []
     test_labels = []
@@ -52,18 +58,19 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
         if have_model:
             test_labels += model.predict(test_dataset)
 
-    observed_labels = np.array(test_labels + train_labels)
-    if len(observed_labels.shape) == 2:
-        # observed_labels = [np.unique(observed_labels[:, i]) for i in range(observed_labels.shape[1])]
-        # observed_labels = [x[~pd.isnull(x)] for x in observed_labels]
-        # observed_labels = [sorted(x) for x in observed_labels]
+    observed_classes = np.array(test_labels + train_labels)
+    if len(observed_classes.shape) == 2:
+        len_observed_label = observed_classes.shape[1]
         if not model_classes:
-            model_classes = list(range(observed_labels.shape[1]))
-            observed_labels = list(range(observed_labels.shape[1]))
+            model_classes = list(range(len_observed_label))
+            observed_classes = list(range(len_observed_label))
         else:
-            observed_labels = model_classes
+            if len(model_classes) != len_observed_label:
+                raise DeepchecksValueError(f'Received model_classes of length {len(model_classes)}, '
+                                           f'but predictions indicate labels of length {len_observed_label}')
+            observed_classes = model_classes
     else:
-        observed_labels = np.unique(observed_labels)
-        observed_labels = observed_labels[~pd.isnull(observed_labels)]
-        observed_labels = sorted(observed_labels)
-    return observed_labels, model_classes
+        observed_classes = np.unique(observed_classes)
+        observed_classes = observed_classes[~pd.isnull(observed_classes)]
+        observed_classes = sorted(observed_classes)
+    return observed_classes, model_classes

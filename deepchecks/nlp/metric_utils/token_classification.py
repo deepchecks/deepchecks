@@ -206,6 +206,15 @@ class SpanAligner:
         return labels, predictions
 
 
+def get_tokens(token_annotations: t.Sequence[t.Sequence[t.Tuple[str, int, int, t.Any]]]) -> t.Set[str]:
+    """Return the token strings from token classification labels or predictions."""
+    tokens = set()
+    for sample_annotations in token_annotations:
+        for annotation in sample_annotations:
+            tokens.update(annotation[0])
+    return tokens
+
+
 def make_modified_metric(metric: t.Callable[[t.List[t.List[str]], t.List[t.List[str]], t.Any], float],
                          span_aligner: SpanAligner, **kwargs) -> t.Callable:
     """Apply spans_to_token_list processing to the labels and predictions, and then pass them to the metric function."""

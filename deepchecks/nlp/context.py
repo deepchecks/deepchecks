@@ -77,6 +77,7 @@ class _DummyModel(BasicModel):
                  train: t.Union[TextData, None] = None,
                  y_pred_train: TTextPred = None,
                  y_proba_train: TTextProba = None,
+                 classes: list = None,
                  validate_data_on_predict: bool = True):
         """Initialize dummy model."""
         predictions = {}
@@ -132,6 +133,7 @@ class _DummyModel(BasicModel):
         self.predictions = predictions
         self.probas = probas
         self.validate_data_on_predict = validate_data_on_predict
+        self.classes = classes
 
         if self.predictions:
             self.predict = self._predict
@@ -198,9 +200,8 @@ class _DummyModel(BasicModel):
         except ValueError as e:
             raise ValidationError(classification_format_error) from e
         pred_shape = prediction.shape
-        n_classes = dataset.num_classes
         if dataset.is_multilabel:
-            if len(pred_shape) == 1 or pred_shape[1] != n_classes:
+            if len(pred_shape) == 1:
                 raise ValidationError(classification_format_error)
             if not np.array_equal(prediction, prediction.astype(bool)):
                 raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
@@ -249,10 +250,6 @@ class _DummyModel(BasicModel):
             proba_shape = probabilities.shape
             if len(proba_shape) != 2:
                 raise ValidationError(classification_format_error)
-            n_classes = dataset.num_classes
-            if proba_shape[1] != n_classes:
-                raise ValidationError(f'Check requires classification probabilities for {dataset.name} dataset '
-                                      f'to have {n_classes} columns, same as the number of classes')
             if dataset.is_multilabel:
                 if (probabilities > 1).any() or (probabilities < 0).any():
                     raise ValidationError(f'Check requires classification probabilities for {dataset.name} '
@@ -284,6 +281,12 @@ class Context(BaseContext):
         probabilities on test dataset
     model_classes: Optional[List], default: None
         For classification: list of classes known to the model
+            classes:  t.Optional[t.Sequence[str]], default: None #TODO
+        The class names for the multilabel text classification task. May be set to define names for the classes in
+        multilabel tasks, as the label input is a binary matrix that cannot convey the class names. Length must match
+        the number of classes in the label, which is the number of columns for multilabel labels. Order of classes in
+        this input must match order of classes as returned by model predictions to ensure they are presented correctly.
+
     random_state: int, default 42
         A seed to set for pseudo-random functions, primarily sampling.
     n_samples: int, default: 10_000
@@ -337,14 +340,25 @@ class Context(BaseContext):
         else:
             self._model = None
 
-        # Init a span aligner object for the run
-        self._span_aligner = SpanAligner()
+        # Validate classes argument #TODO
+        # if classes is not None:
+        #     if not isinstance(classes, collections.abc.Sequence):
+        #         raise DeepchecksValueError('classes must be a Sequence of class names')
+        #     if not all(isinstance(x, (str, int)) for x in classes):
+        #         raise DeepchecksValueError('classes must be a Sequence of class names that are strings or ints')
+        #     if not self._is_multilabel:
+        #         get_logger().warning(
+        #             'Classes were set for a non-multilabel task. The classes will override the classes present in the '
+        #             'label for displays, but the same effect can be achieved by passing the intended labels in the '
+        #             'label argument.'
+        #         )
+        #
+        #     self._classes = list(classes)
+
+
         self._task_type = train_dataset.task_type if train_dataset else test_dataset.task_type if test_dataset else None
 
         self._observed_classes, self._model_classes = infer_observed_and_model_labels(train_dataset, test_dataset, self._model, model_classes)
-        if self._task_type == TaskType.TOKEN_CLASSIFICATION and model_classes is None: #TODO ?
-            self._model_classes = self.span_aligner.classes
-
 
         self._train = train_dataset
         self._test = test_dataset
@@ -355,6 +369,9 @@ class Context(BaseContext):
 
         self._validated_model = False
         self._with_display = with_display
+
+        # Init a span aligner object for the run
+        self._span_aligner = SpanAligner()
 
     @property
     def model(self) -> _DummyModel:
@@ -440,7 +457,7 @@ class Context(BaseContext):
             A list of initialized & validated scorers.
         """
         if self.task_type == TaskType.TEXT_CLASSIFICATION:
-            if self.train.num_classes > 2:
+            if len(self.model_classes) > 2:
                 scorers = scorers or get_default_scorers(TabularTaskType.MULTICLASS, use_avg_defaults)
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)

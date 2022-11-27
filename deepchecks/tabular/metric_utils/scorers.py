@@ -255,7 +255,7 @@ class DeepcheckScorer:
                     predictions = transfer_func(predictions)
                 # In case of multiclass with single label, convert into multi-label
                 elif self.model_classes:
-                    predictions = _transform_to_multi_label_format(predictions, self.model_classes)
+                    predictions = validate_multi_label_format(predictions, self.model_classes)
                 return predictions
 
             def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
@@ -292,7 +292,7 @@ class DeepcheckScorer:
             if updated_model.is_binary:
                 label = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1}).to_numpy()
             else:
-                label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
+                label = validate_multi_label_format(np.array(label_col), self.model_classes)
 
             scores = self.scorer(updated_model, data, label)
 
@@ -403,8 +403,9 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
     return scorers
 
 
-def _transform_to_multi_label_format(y: np.ndarray, classes):
-    """Transform multiclass label to multi-label."""
+def validate_multi_label_format(y: np.ndarray, classes):
+    """Transform multiclass label to multi-label. If given as multi-label to begin with, returns it as is.
+    """
     # Some classifiers like catboost might return shape like (n_rows, 1), therefore squeezing the array.
     y = np.squeeze(y) if y.ndim > 1 else y
     if y.ndim == 1:

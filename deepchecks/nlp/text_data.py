@@ -56,11 +56,6 @@ class TextData:
     task_type : str, default: None
         The task type for the text data. Can be either 'text_classification' or 'token_classification'. Must be set if
         label is provided.
-    classes:  t.Optional[t.Sequence[str]], default: None
-        The class names for the multilabel text classification task. May be set to define names for the classes in
-        multilabel tasks, as the label input is a binary matrix that cannot convey the class names. Length must match
-        the number of classes in the label, which is the number of columns for multilabel labels. Order of classes in
-        this input must match order of classes as returned by model predictions to ensure they are presented correctly.
     dataset_name : t.Optional[str], default: None
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
     index: t.Optional[t.Sequence[int]], default: None
@@ -73,7 +68,6 @@ class TextData:
     _task_type: t.Optional[TaskType]
     _has_label: bool
     _is_multilabel: bool = False
-    _classes: t.Optional[t.List[t.Union[str, int]]] = None
     name: t.Optional[str] = None
 
     def __init__(
@@ -81,7 +75,6 @@ class TextData:
             raw_text: t.Sequence[str],
             label: t.Optional[TTextLabel] = None,
             task_type: t.Optional[str] = None,
-            classes: t.Optional[t.Sequence[str]] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
     ):
@@ -106,7 +99,7 @@ class TextData:
 
         self._validate_text(raw_text)
         self._text = raw_text
-        self._validate_and_set_label(label, raw_text, classes)
+        self._validate_and_set_label(label, raw_text)
 
         if index is None:
             index = np.arange(len(raw_text))
@@ -129,8 +122,7 @@ class TextData:
         if not all(isinstance(x, str) for x in raw_text):
             raise DeepchecksValueError('raw_text must be a Sequence of strings')
 
-    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str],
-                                classes: t.Optional[t.Sequence[str]]):
+    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str]):
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
         self._has_label = True
@@ -177,21 +169,6 @@ class TextData:
 
         self._label = label
 
-        # Validate classes argument
-        if classes is not None:
-            if not isinstance(classes, collections.abc.Sequence):
-                raise DeepchecksValueError('classes must be a Sequence of class names')
-            if not all(isinstance(x, (str, int)) for x in classes):
-                raise DeepchecksValueError('classes must be a Sequence of class names that are strings or ints')
-            if not self._is_multilabel:
-                get_logger().warning(
-                    'Classes were set for a non-multilabel task. The classes will override the classes present in the '
-                    'label for displays, but the same effect can be achieved by passing the intended labels in the '
-                    'label argument.'
-                )
-
-            self._classes = list(classes)
-
     def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None, label: t.Optional[TTextLabel] = None,
              index: t.Optional[t.Sequence[int]] = None) -> TDataset:
         """Create a copy of this Dataset with new data."""
@@ -203,7 +180,7 @@ class TextData:
         if index is None:
             index = self.index
         get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
-        new_copy = cls(raw_text, label, self._task_type.value, self.classes, self.name, index)
+        new_copy = cls(raw_text, label, self._task_type.value, self.name, index)
         get_logger().disabled = False
         return new_copy
 
@@ -290,50 +267,6 @@ class TextData:
         TTextLabel
         """
         return self._label
-
-    @property
-    def classes(self) -> t.Optional[t.List[t.Union[str, int]]]:  # Bressler - should keep or use context.model_classes?
-        """Return the classes from label column in list. if no label column defined, return empty list.
-
-        Returns
-        -------
-        t.Tuple[str, ...]
-            Classes
-        """
-        if self._classes is None and self.has_label():
-            if self.task_type == TaskType.TEXT_CLASSIFICATION:
-                if self._is_multilabel:
-                    label_set = list(range(len(self._label[0])))
-                else:
-                    label_set = set(self._label)
-            elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-                label_set = self.get_tokens(self._label)
-            elif self.task_type == TaskType.OTHER:
-                return None
-            else:
-                raise DeepchecksValueError(f'Task type {self.task_type} is not supported.')
-            self._classes = sorted(list(label_set))
-        return self._classes
-
-    @staticmethod
-    def get_tokens(token_annotations: t.Sequence[t.Sequence[t.Tuple[str, int, int, t.Any]]]) -> t.Set[str]:
-        """Return the token strings from token classification labels or predictions."""
-        tokens = set()
-        for sample_annotations in token_annotations:
-            for annotation in sample_annotations:
-                tokens.update(annotation[0])
-        return tokens
-
-    @property
-    def num_classes(self) -> int:
-        """Return the number of classes from label. if no label defined, return 0.
-
-        Returns
-        -------
-        int
-            Number of classes
-        """
-        return 0 if (self.classes is None) else len(self.classes)
 
     @property
     def is_multilabel(self) -> bool:
