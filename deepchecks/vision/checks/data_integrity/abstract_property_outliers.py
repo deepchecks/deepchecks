@@ -239,7 +239,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         # there are several values per image, so we flatten the list of lists before sorting based on property values
         values_lengths_cumsum = np.cumsum(np.array([len(v) for v in property_values]))
         values_flat_arr = np.hstack(property_values).astype(np.float)
-        labels_flat_arr = np.asarray([item for sublist in labels for item in sublist])
+        labels_flat_arr = np.asarray([item for sublist in labels for item in sublist], dtype='object')
         num_images_to_consider = min(self.n_show_top, len(images))
 
         lowest_values_idx = np.argpartition(values_flat_arr, num_images_to_consider)[:num_images_to_consider]
