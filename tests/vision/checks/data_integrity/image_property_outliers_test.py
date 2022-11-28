@@ -8,10 +8,13 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import random
+
 from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, greater_than,
                       has_entries, has_key, has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
+import numpy as np
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ImagePropertyOutliers
@@ -52,7 +55,7 @@ def test_image_property_outliers_check_coco(coco_train_visiondata, device):
     assert_that(result, is_correct_image_property_outliers_result())
     assert_that(result.value, has_entries({
         'Area': has_entries({
-            'indices': contains_exactly(60, 61, 44, 25, 62, 13, 6, 58, 50, 11, 26, 14, 45),
+            'outliers_identifiers': has_length(13),
             'lower_limit': is_(220800),
             'upper_limit': is_(359040)
         }),
@@ -70,7 +73,7 @@ def test_image_property_outliers_check_coco_without_display(coco_train_visiondat
     assert_that(result, is_correct_image_property_outliers_result(with_display=False))
     assert_that(result.value, has_entries({
         'Area': has_entries({
-            'indices': contains_exactly(60, 61, 44, 25, 62, 13, 6, 58, 50, 11, 26, 14, 45),
+            'outliers_identifiers': has_length(13),
             'lower_limit': is_(220800),
             'upper_limit': is_(359040)
         }),
@@ -88,7 +91,7 @@ def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
     assert_that(result, is_correct_image_property_outliers_result())
     assert_that(result.value, has_entries({
         'Brightness': has_entries({
-            'indices': has_length(609),
+            'outliers_identifiers': has_length(609),
             'lower_limit': close_to(6.45, .01),
             'upper_limit': close_to(62.37, .01)
         }),
@@ -160,7 +163,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
 def test_property_with_nones(mnist_dataset_train, device):
     # Arrange
     def property_with_none(images):
-        return [[1, None]] * (len(images))
+        return np.random.choice([1, None], len(images))
     image_properties = [{
         'name': 'test',
         'method': property_with_none,
@@ -171,7 +174,7 @@ def test_property_with_nones(mnist_dataset_train, device):
     result = check.run(mnist_dataset_train, device=device)
     assert_that(result.value, has_entries({
         'test': has_entries({
-            'indices': has_length(0),
+            'outliers_identifiers': has_length(0),
             'lower_limit': is_(1),
             'upper_limit': is_(1)
         })

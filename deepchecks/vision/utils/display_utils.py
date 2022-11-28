@@ -9,8 +9,12 @@
 # -----------------------------------------------------------------------
 #
 """Module for displaying images and labels."""
+import typing as t
 
 import matplotlib.pyplot as plt
+import numpy as np
+
+from deepchecks.vision.utils.image_functions import draw_bboxes, prepare_thumbnail
 
 
 def visualize_vision_data(dataset, n_show: int = 6):
@@ -35,3 +39,32 @@ def visualize_vision_data(dataset, n_show: int = 6):
         m_axs[i].set_title(sampled_ds.label_id_to_name(int(labels[i])))
         m_axs[i].axis('off')
     plt.show()
+
+
+def draw_image(image: np.ndarray, label, thumbnail_size: t.Tuple[int, int] = (200, 200),
+               draw_label: bool = True) -> str:
+    """Return an image to show as output of the display.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        The image to draw, must be a [H, W, C] 3D numpy array.
+    label :
+        2-dim labels tensor for the image to draw on top of the image, shape depends on task type.
+    thumbnail_size: t.Tuple[int,int]
+        The required size of the image for display.
+    draw_label : bool, default: True
+        Whether to draw the label on the image or not.
+    Returns
+    -------
+    str
+        The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
+    """
+    if draw_label and len(label.shape) > 1 and label.shape[1] == 5:  # only object detection
+        image = draw_bboxes(image, label, copy_image=False, border_width=5)
+    image_thumbnail = prepare_thumbnail(
+        image=image,
+        size=thumbnail_size,
+        copy_image=False
+    )
+    return image_thumbnail
