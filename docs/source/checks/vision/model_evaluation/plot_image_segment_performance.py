@@ -5,7 +5,9 @@
 Image Segment Performance
 *************************
 
-This notebooks provides an overview for using and understanding image segment performance check.
+The ImageSegmentPerformance check is deprecated, please use WeakSegmentsPerformance instead.
+
+This notebook provides an overview for using and understanding image segment performance check.
 
 **Structure:**
 

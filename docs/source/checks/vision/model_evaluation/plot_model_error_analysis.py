@@ -5,7 +5,9 @@
 Model Error Analysis check
 ==========================
 
-This notebooks provides an overview for using and understanding the
+The ModelErrorAnalysis check is deprecated, please use WeakSegmentsPerformance instead.
+
+This notebook provides an overview for using and understanding the
 model error analysis check.
 
 **Structure:**
