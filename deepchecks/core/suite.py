@@ -13,15 +13,15 @@
 import abc
 import io
 import json
+import pathlib
 import warnings
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
-import pathlib
 
 import jsonpickle
+from bs4 import BeautifulSoup
 from ipywidgets import Widget
 from typing_extensions import Self, TypedDict
-from bs4 import BeautifulSoup
 
 from deepchecks import __version__
 from deepchecks.core import check_result as check_types
