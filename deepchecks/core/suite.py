@@ -258,8 +258,9 @@ class SuiteResult(DisplayableResult):
         attach_html_report: bool = True,
     ):
         """Save a result to a markdown file to use with [CML](https://cml.dev).
-        The rendered markdown will include only the conditions summary, with the
-        full html results attached.
+
+        The rendered markdown will include only the conditions summary,
+        with the full html results attached.
 
         Parameters
         ----------
@@ -270,15 +271,14 @@ class SuiteResult(DisplayableResult):
             Options currently include 'github' or 'gitlab'.
         attach_html_report: bool , default True
             Whether to attach the full html report with plots, making it available
-            for download. This will save a [suite_name].html file in the same directory
-            as the markdown report.
+            for download. This will save a [suite_name].html file
+            in the same directory as the markdown report.
 
         Returns
         -------
         Optional[str] :
             name of newly create file.
         """
-
         if file is None:
             file = './report.md'
         elif isinstance(file, str):
