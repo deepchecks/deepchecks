@@ -11,7 +11,7 @@
 """Contains unit tests for the single dataset performance report check."""
 from typing import List
 
-from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises
+from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises, equal_to
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -215,6 +215,8 @@ def test_regression_positive_scorers(diabetes_split_dataset_and_model):
     assert_that(result['Value'].iloc[0], close_to(3296, 1))
     assert_that(result['Value'].iloc[0], close_to(result['Value'].iloc[1] ** 2, 0.001))
     assert_that(result['Value'].iloc[2], close_to(45, 1))
+
+    assert_that(check.greater_is_better(), equal_to(False))
 
 
 def test_regression_positive_negative_compare(diabetes_split_dataset_and_model):

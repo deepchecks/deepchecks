@@ -63,23 +63,31 @@ def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tab
         if have_model:
             test_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
 
-    observed_labels = pd.Series(test_labels + train_labels)
+    observed_labels = test_labels + train_labels
+    observed_labels = pd.Series(observed_labels) if len(observed_labels) > 0 else pd.Series(dtype='object')
     if model_classes is None and have_model and hasattr(model, 'classes_') and len(model.classes_) > 0:
         model_classes = sorted(list(model.classes_))
 
+    # First if the user defined manually the task type (label type on dataset) we use it
     if train_dataset and train_dataset.label_type is not None:
         task_type = train_dataset.label_type
+    # Secondly if user passed model_classes or we found classes on the model object, we use them
     elif model_classes:
         task_type = infer_by_class_number(len(model_classes))
-    elif len(observed_labels) > 0 and is_categorical(observed_labels, max_categorical_ratio=0.05):
+    # Thirdly if there are no observed labels (user didn't pass model, and datasets have no label column), then we
+    # have no task type
+    elif len(observed_labels) == 0:
+        task_type = None
+    # Fourth, we check if the observed labels are categorical or not
+    elif is_categorical(observed_labels, max_categorical_ratio=0.05):
         num_classes = len(observed_labels.dropna().unique())
         task_type = infer_by_class_number(num_classes)
         if infer_dtype(observed_labels) == 'integer' and train_dataset and train_dataset.label_type is None:
             get_logger().warning(
-                'Due to the small number of unique labels task type was inferred as classification in spite of '
+                'Due to the small number of unique labels task type was inferred as %s classification in spite of '
                 'the label column is of type integer. '
-                'Initialize your Dataset with either label_type=\"multiclass\" or '
-                'label_type=\"regression\" to resolve this warning.')
+                'Initialize your Dataset with either label_type=\"%s}\" or '
+                'label_type=\"regression\" to resolve this warning.', task_type.value, task_type.value)
     else:
         task_type = TaskType.REGRESSION
 

@@ -149,6 +149,10 @@ class NewLabels(TrainTestCheck, ReduceMixin):
         """
         return check_result.value['new_labels']
 
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater."""
+        return False
+
     def add_condition_new_label_ratio_less_or_equal(self, max_allowed_new_labels_ratio: float = 0.005):
         # Default value set to 0.005 because of sampling mechanism
         """
