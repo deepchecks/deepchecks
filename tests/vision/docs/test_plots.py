@@ -38,4 +38,5 @@ def test_plots_on_gpu():
         if not source_files:
             raise ValueError("No plots found in docs/source")
         for file in source_files:
+            print(f"Runinng plot file: {str(file)}")
             run_path(str(file))
