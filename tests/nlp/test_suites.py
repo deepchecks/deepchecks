@@ -19,7 +19,7 @@ def test_full_suite(movie_reviews_data):
     args = dict(train_dataset=train_data, test_dataset=test_data)
 
     # Act
-    suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
+    suite = full_suite(imaginary_kwarg='just to make sure all checks have kwargs in the init')
     result = suite.run(**args)
 
     # Assert

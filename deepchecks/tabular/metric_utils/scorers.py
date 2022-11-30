@@ -296,11 +296,11 @@ class DeepcheckScorer:
 
             scores = self.scorer(updated_model, data, label)
 
-            return self._validate_scorer_multilabel_output(scores)
+            return self.validate_scorer_multilabel_output(scores)
         else:
             return self.scorer(model, data, label_col)
 
-    def _validate_scorer_multilabel_output(self, scores):
+    def validate_scorer_multilabel_output(self, scores):
         """Validate output and return scores for the observed classes as well as for the model classes"""
         if isinstance(scores, t.Sized):
             if len(scores) != len(self.model_classes):

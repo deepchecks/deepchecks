@@ -47,10 +47,14 @@ def test_run_with_scorer_proba_too_many_classes(text_classification_string_class
     # Arrange
     check = SingleDatasetPerformance(scorers=['f1_macro'])
 
+    # result = check.run(text_classification_string_class_dataset_mock, probabilities=[[0.1, 0.4, 0.5], [0.9, 0.05, 0.05], [0.9, 0.01, 0.09]])
+
     # Act & Assert
     assert_that(
         calling(check.run).with_args(text_classification_string_class_dataset_mock,
-                                     probabilities=[[0.1, 0.4, 0.5], [0.9, 0.05, 0.05], [0.9, 0.01, 0.09]]),
+                                     probabilities=[[0.1, 0.4, 0.5], [0.9, 0.05, 0.05], [0.9, 0.01, 0.09]],
+                                     # model_classes=['meh', 'wise']
+                                     ),
         raises(ValidationError, 'Check requires classification probabilities for Train dataset to have 2 columns, '
                                 'same as the number of classes')
     )
@@ -81,18 +85,29 @@ def test_run_default_scorer_string_class(text_classification_string_class_datase
     assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
 
 
-def test_run_default_scorer_string_class_new_cats_in_observed_and_model_classes(text_classification_string_class_dataset_mock):
+def test_run_default_scorer_string_class_new_cats_in_model_classes(text_classification_string_class_dataset_mock):
     # Arrange
     check = SingleDatasetPerformance()
 
     # Act
     result = check.run(text_classification_string_class_dataset_mock,
-                       predictions=['wise', 'yy', 'meh'],
+                       predictions=['wise', 'wise', 'meh'],
                        model_classes=['meh', 'wise', 'zz'])
 
     # Assert
     assert_that(result.value.values[0][-1], close_to(0.666, 0.001))
-    assert_that(len(result.value['Class'].unique()), equal_to(4))
+    assert_that(len(result.value['Class'].unique()), equal_to(3))
+
+
+def test_multilabel_with_incorrect_model_classes(text_multilabel_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance()
+
+    # Assert
+    assert_that(calling(check.run).with_args(text_multilabel_classification_dataset_mock,
+                                             model_classes=['meh', 'wise']),
+                raises(DeepchecksValueError,
+                       'Received model_classes of length 2, but data indicates labels of length 3'))
 
 
 def test_run_with_scorer_multilabel(text_multilabel_classification_dataset_mock):
@@ -121,7 +136,7 @@ def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_d
     assert_that(result.value.values[0][-1], close_to(1.0, 0.001))
     assert_that(result.value.values[0][0], equal_to('a'))
 
-
+# TODO: Fix when fixing IOB format
 # def test_run_with_scorer_token(text_token_classification_dataset_mock):
 #     # Arrange
 #     check = SingleDatasetPerformance(scorers=['token_f1_macro'])
