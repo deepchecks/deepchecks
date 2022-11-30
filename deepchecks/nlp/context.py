@@ -375,7 +375,8 @@ class Context(BaseContext):
     def model_classes(self) -> t.List:
         """Return ordered list of possible label classes for classification tasks."""
         if self._model_classes is None:
-            # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
+            # If in infer_observed_and_model_labels we didn't find classes on model, or user didn't pass any,
+            # then using the observed
             self._model_classes = self._observed_classes
             get_logger().warning('Could not find model\'s classes, using the observed classes')
         return self._model_classes

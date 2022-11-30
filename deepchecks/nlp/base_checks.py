@@ -10,7 +10,7 @@
 #
 """Module for nlp base checks."""
 import abc
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, SingleDatasetBaseCheck, TrainTestBaseCheck
@@ -37,7 +37,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         with_display: bool = True,
         predictions: Optional[TTextPred] = None,
         probabilities: Optional[TTextProba] = None,
-        model_classes: Optional[Union[List, List[List]]] = None,
+        model_classes: Optional[List] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000
     ) -> CheckResult:
