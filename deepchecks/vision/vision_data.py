@@ -501,7 +501,7 @@ class VisionData:
         if not all((all((isinstance(x, int) for x in inner_ids)) for inner_ids in class_ids)):
             raise ValidationError('The samples sequence must contain only int values.')
 
-    def validate_format(self, model, device=None):
+    def validate_format(self, model, device=None) -> bool:
         """Validate the correctness of the data class implementation according to the expected format.
 
         Parameters
@@ -510,9 +510,15 @@ class VisionData:
             Model to validate the data class implementation against.
         device
             Device to run the model on.
+
+        Returns
+        -------
+        bool
+            The validation result.
         """
         from deepchecks.vision.utils.validation import validate_extractors  # pylint: disable=import-outside-toplevel
-        validate_extractors(self, model, device=device)
+        validation_result = validate_extractors(self, model, device=device)
+        return validation_result
 
     def __iter__(self):
         """Return an iterator over the dataset."""

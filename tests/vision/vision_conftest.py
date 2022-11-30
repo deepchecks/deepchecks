@@ -69,6 +69,7 @@ __all__ = ['device',
            'coco_train_visiondata_torch',
            'segmentation_coco_train_visiondata',
            'segmentation_coco_test_visiondata',
+           'segmentation_coco_test_visiondata_full',
            'trained_segmentation_deeplabv3_mobilenet_model'
            ]
 
@@ -388,6 +389,12 @@ def segmentation_coco_train_visiondata():
 @pytest.fixture(scope='session')
 def segmentation_coco_test_visiondata():
     return load_segmentation_coco_dataset(train=False, object_type='VisionData', shuffle=False, test_mode=True)
+
+
+@pytest.fixture(scope='session')
+def segmentation_coco_test_visiondata_full():
+    return load_segmentation_coco_dataset(train=False, object_type='VisionData', shuffle=False, test_mode=False,
+                                          batch_size=10)
 
 
 @pytest.fixture(scope='session')

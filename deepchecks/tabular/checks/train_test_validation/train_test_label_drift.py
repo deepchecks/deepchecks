@@ -145,6 +145,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceMixin):
         """Return label drift score."""
         return {'Label Drift Score': check_result.value['Drift score']}
 
+    def greater_is_better(self):
+        """Return True if the check reduce_output is better when it is greater."""
+        return False
+
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
                                             max_allowed_numeric_score: float = 0.1):
         """
