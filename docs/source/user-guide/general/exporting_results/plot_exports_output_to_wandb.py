@@ -62,7 +62,7 @@ result.value
 
 from deepchecks.core import CheckResult
 
-help(CheckResult.to_wandb)
+print(CheckResult.to_wandb.__doc__)
 
 #%%
 # To use this function you first need to login to your wandb account
