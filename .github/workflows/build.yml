@@ -117,7 +117,7 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
-        exclude: '(pyzmq.*23\.2\.1|debugpy.*1\.6\.2|certifi.*2022\.9\.24|tqdm.*4\.64\.1|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchvision.*0\.11\.3.*|terminado.*0\.15\.0.*|urllib3.*1\.26\.11.*|imageio.*2\.20\.0.*|jsonschema.*4\.8\.0.*|debugpy.*1\.6\.3|qudida.*0\.0\.4)'
+        exclude: '(pyzmq.*23\.2\.1|debugpy.*1\.6\.4|certifi.*2022\.9\.24|tqdm.*4\.64\.1|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchvision.*0\.11\.3.*|terminado.*0\.15\.0.*|urllib3.*1\.26\.11.*|imageio.*2\.20\.0.*|jsonschema.*4\.8\.0.*|debugpy.*1\.6\.3|qudida.*0\.0\.4)'
         # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
         # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
         # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE
