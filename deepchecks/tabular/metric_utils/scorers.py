@@ -304,7 +304,7 @@ class DeepcheckScorer:
             return self.scorer(model, data, label_col)
 
     def validate_scorer_multilabel_output(self, scores):
-        """Validate output and return scores for the observed classes as well as for the model classes"""
+        """Validate output and return scores for the observed classes as well as for the model classes."""
         if isinstance(scores, t.Sized):
             if len(scores) != len(self.model_classes):
                 raise errors.DeepchecksValueError(
@@ -407,8 +407,7 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
 
 
 def validate_multi_label_format(y: np.ndarray, classes):
-    """Transform multiclass label to multi-label. If given as multi-label to begin with, returns it as is.
-    """
+    """Transform multiclass label to multi-label. If given as multi-label to begin with, returns it as is."""
     # Some classifiers like catboost might return shape like (n_rows, 1), therefore squeezing the array.
     y = np.squeeze(y) if y.ndim > 1 else y
     if y.ndim == 1:

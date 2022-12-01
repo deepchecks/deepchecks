@@ -11,6 +11,7 @@
 """Utils module containing utilities for nlp checks working with scorers."""
 
 import typing as t
+
 import numpy as np
 
 from deepchecks.nlp.text_data import TextData

@@ -19,7 +19,6 @@ from deepchecks.core.check_utils.single_dataset_performance_base import BaseSing
 from deepchecks.nlp.base_checks import SingleDatasetCheck
 from deepchecks.nlp.context import Context
 from deepchecks.nlp.metric_utils.scorers import infer_on_text_data
-from deepchecks.nlp.task_type import TaskType
 
 __all__ = ['SingleDatasetPerformance']
 
