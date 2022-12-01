@@ -84,24 +84,6 @@ def test_classification_new_classes_at_test(iris_split_dataset_and_model):
     assert_that(result.loc[7],
                 has_entries({'Class': 5, 'Metric': 'roc_auc', 'Value': is_nan()}))
 
-def test_classification_new_classes_at_test_static_predictions(iris_split_dataset_and_model):
-    # Arrange
-    _, test, model = iris_split_dataset_and_model
-    check = SingleDatasetPerformance(scorers=['precision_per_class', 'roc_auc_per_class'])
-    test_new = test.data.copy()
-    # test_new.loc[test.n_samples] = [0, 1, 2, 3, 5]
-    test = test.copy(test_new)
-    preds = model.predict(test.features_columns)
-    preds_proba = model.predict_proba(test.features_columns)
-    # Act
-    result = check.run(test, y_pred=preds, y_proba=preds_proba).value
-    # Assert
-    assert_that(result.loc[3],
-                has_entries({'Class': 5, 'Metric': 'precision', 'Value': is_nan()}))
-    assert_that(result.loc[7],
-                has_entries({'Class': 5, 'Metric': 'roc_auc', 'Value': is_nan()}))
-
-
 
 def test_binary_classification_adult(adult_split_dataset_and_model):
     # Arrange

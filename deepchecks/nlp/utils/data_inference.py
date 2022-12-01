@@ -61,7 +61,7 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
             test_labels += model.predict(test_dataset)
 
     observed_classes = np.array(test_labels + train_labels)
-    if len(observed_classes.shape) == 2:
+    if len(observed_classes.shape) == 2:  # For the multi-label case
         len_observed_label = observed_classes.shape[1]
         if not model_classes:
             model_classes = list(range(len_observed_label))
