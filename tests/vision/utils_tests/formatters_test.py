@@ -470,3 +470,13 @@ def test_convert_bbox_function_with_ambiguous_combination_of_parameters():
         image_width=image_width,
         image_height=image_height
     )
+
+
+# def test_validator(mnist_dataset_train, coco_test_visiondata, mock_trained_yolov5_object_detection):
+#     # verify the correctness of the data class and return True if data is the expected format
+#     output = validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection)
+#     assert_that(output is True)
+#
+#     # verify the correctness of the data class and return False if data is NOT in the expected format
+#     output = validate_extractors(mnist_dataset_train, mock_trained_yolov5_object_detection)
+#     assert_that(output is  False)
