@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular abstractions."""
+import time
 # pylint: disable=broad-except
 from typing import List, Optional, Tuple, Union
-import time
 
 import numpy as np
 import pandas as pd

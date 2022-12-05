@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing JUnit serializer for the SuiteResult type."""
-from typing import Dict, List, Union
+import re
+import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
-import sys
+from typing import Dict, List, Union
+
 from six import u
-import re
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
 from deepchecks.core.serialization.abc import JunitSerializer
-from deepchecks.core.serialization.check_failure.junit import CheckFailureSerializer, SKIPPED, FAILURE
+from deepchecks.core.serialization.check_failure.junit import FAILURE, SKIPPED, CheckFailureSerializer
 from deepchecks.core.serialization.check_result.junit import CheckResultSerializer
 
 __all__ = ['SuiteResultSerializer']
@@ -85,7 +86,7 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
         return_xml: bool = False,
         **kwargs
     ) -> Union[str, ET.Element]:
-        """Serialize a SuiteResult instance into Junit format. This can then be output as a str or a XML object
+        """Serialize a SuiteResult instance into Junit format. This can then be output as a str or a XML object.
 
         Parameters
         ----------
