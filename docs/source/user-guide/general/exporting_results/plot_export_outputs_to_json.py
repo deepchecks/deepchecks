@@ -60,7 +60,7 @@ result.value
 
 from deepchecks.core import CheckResult
 
-print(CheckResult.to_json.__doc__)
+help(CheckResult.to_json)
 
 #%%
 
@@ -112,7 +112,7 @@ suite_json = suite_result.to_json()
 
 from deepchecks.core import SuiteResult
 
-print(SuiteResult.to_json.__doc__)
+help(SuiteResult.to_json)
 
 #%%
 # Suite name:
