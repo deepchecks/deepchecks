@@ -30,3 +30,4 @@ dataclasses>=0.6; python_version < '3.7'
 plotly>=5.5.0
 matplotlib>=3.3.4
 pyzmq<24.0.0
+beautifulsoup4>=4.11.1
