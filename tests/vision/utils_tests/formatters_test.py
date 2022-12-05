@@ -22,7 +22,6 @@ from deepchecks.vision.utils import image_properties
 from deepchecks.vision.utils.detection_formatters import (convert_batch_of_bboxes, convert_bbox,
                                                           verify_bbox_format_notation)
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.validation import validate_extractors
 
 
 class SimpleImageData(VisionData):
@@ -472,11 +471,12 @@ def test_convert_bbox_function_with_ambiguous_combination_of_parameters():
         image_height=image_height
     )
 
-def test_validator(mnist_dataset_train, coco_test_visiondata, mock_trained_yolov5_object_detection):
-    # verify the correctness of the data class and return True if data is the expected format
-    output = validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection)
-    assert_that(output is True)
 
-    # verify the correctness of the data class and return False if data is NOT in the expected format
-    output = validate_extractors(mnist_dataset_train, mock_trained_yolov5_object_detection)
-    assert_that(output is  False)
+# def test_validator(mnist_dataset_train, coco_test_visiondata, mock_trained_yolov5_object_detection):
+#     # verify the correctness of the data class and return True if data is the expected format
+#     output = validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection)
+#     assert_that(output is True)
+#
+#     # verify the correctness of the data class and return False if data is NOT in the expected format
+#     output = validate_extractors(mnist_dataset_train, mock_trained_yolov5_object_detection)
+#     assert_that(output is  False)

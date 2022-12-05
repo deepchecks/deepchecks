@@ -434,8 +434,8 @@ class Dataset:
                    max_categories=self._max_categories, label_type=label_type,
                    dataset_name=self.name)
 
-    def sample(self: TDataset, n_samples: t.Optional[int], replace: bool = False, random_state: t.Optional[int] = None,
-               drop_na_label: bool = False) -> TDataset:
+    def sample(self: TDataset, n_samples: t.Optional[int] = None, replace: bool = False,
+               random_state: t.Optional[int] = None, drop_na_label: bool = False) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
         Parameters
