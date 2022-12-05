@@ -63,4 +63,5 @@ Integrations
     integrations/h2o
     integrations/hugging_face
     integrations/airflow
+    integrations/cml
     general/exporting_results/examples/plot_exports_output_to_wandb
