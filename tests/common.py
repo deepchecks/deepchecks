@@ -186,6 +186,7 @@ def assert_class_performance_display(
         for index, (dataset, metric) in enumerate(pairs)
     ])
 
+
 class IsNan(BaseMatcher):
 
     def _matches(self, item):

@@ -11,7 +11,7 @@
 """Tests for weak segment performance check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, equal_to, has_items, has_length, raises
+from hamcrest import any_of, assert_that, calling, close_to, equal_to, has_items, has_length, raises
 from sklearn.metrics import f1_score, make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -84,7 +84,7 @@ def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(5))
+    assert_that(segments, any_of(has_length(5), has_length(6)))
     assert_that(segments.iloc[0, 0], close_to(0.7692307692307693, 0.01))
 
 
@@ -113,3 +113,20 @@ def test_classes_do_not_match_proba(kiss_dataset_and_model):
                 raises(DeepchecksValueError,
                        r'Predicted probabilities shape \(2, 3\) does not match the number of classes found in the '
                        r'labels \[1, 2, 3, 4, 5, 6, 7\]\.'))
+
+
+def test_categorical_feat_target(adult_split_dataset_and_model):
+    # Arrange
+    _, val, model = adult_split_dataset_and_model
+    val = val.sample()
+    val.data['native-country'].iloc[0] = np.nan
+    val.data['native-country'] = pd.Categorical(val.data['native-country'])
+    val.data['income'] = pd.Categorical(val.data['income'])
+    check = WeakSegmentsPerformance()
+
+    # Act
+    result = check.run(val, model)
+    segments = result.value['weak_segments_list']
+
+    # Assert
+    assert_that(segments, has_length(10))
