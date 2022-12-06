@@ -27,7 +27,7 @@ def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.S
     """Fill NaN values per column type."""
     for col_name in df.columns:
         if col_name in cat_features:
-            df[col_name].fillna('None', inplace=True)
+            df[col_name] = df[col_name].astype('object').fillna('None')
         elif is_numeric_dtype(df[col_name]):
             df[col_name] = df[col_name].astype('float64').fillna(df[col_name].mean())
         else:

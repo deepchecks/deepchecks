@@ -41,7 +41,7 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-33-orange.svg?style=flat-round)](https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst]
+[![All Contributors](https://img.shields.io/badge/all_contributors-34-orange.svg?style=flat-round)](https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst]
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 
@@ -367,6 +367,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
       <td align="center"><a href="http://www.ingomarquart.de"><img src="https://avatars.githubusercontent.com/u/102803372?v=4?s=100" width="100px;" alt="Ingo Marquart"/><br /><sub><b>Ingo Marquart</b></sub></a><br /><a href="#code-IngoStatworx" title="Code">💻</a> <a href="#bug-IngoStatworx" title="Bug reports">🐛</a></td>
       <td align="center"><a href="https://github.com/osw282"><img src="https://avatars.githubusercontent.com/u/25309418?v=4?s=100" width="100px;" alt="Oscar"/><br /><sub><b>Oscar</b></sub></a><br /><a href="#code-osw282" title="Code">💻</a></td>
       <td align="center"><a href="https://github.com/rcwoolston"><img src="https://avatars.githubusercontent.com/u/5957841?v=4?s=100" width="100px;" alt="Richard W"/><br /><sub><b>Richard W</b></sub></a><br /><a href="#code-rcwoolston" title="Code">💻</a> <a href="#doc-rcwoolston" title="Documentation">📖</a> <a href="#ideas-rcwoolston" title="Ideas, Planning, & Feedback">🤔</a></td>
+      <td align="center"><a href="https://github.com/bgalvao"><img src="https://avatars.githubusercontent.com/u/17158288?v=4?s=100" width="100px;" alt="Bernardo"/><br /><sub><b>Bernardo</b></sub></a><br /><a href="#code-bgalvao" title="Code">💻</a> <a href="#doc-bgalvao" title="Documentation">📖</a></td>
     </tr>
   </tbody>
 </table>
