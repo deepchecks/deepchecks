@@ -8,13 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import inspect
 from typing import Callable
 
 import torch
 
 from deepchecks.core.errors import DeepchecksBaseError
-from deepchecks.vision import Context, SingleDatasetCheck, TrainTestCheck, checks
+from deepchecks.vision import Context, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.vision_data import VisionData
@@ -22,13 +21,14 @@ from deepchecks.vision.vision_data import VisionData
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
+
 def create_static_predictions(train: VisionData, test: VisionData, model):
     static_preds = []
     for vision_data in [train, test]:
         if vision_data is not None:
             static_pred = {}
             for i, batch in enumerate(vision_data):
-                predictions = vision_data.batch_to_predictions(batch, model, device)
+                predictions = vision_data.infer_on_batch(batch, model, device)
                 indexes = list(vision_data.data_loader.batch_sampler)[i]
                 static_pred.update(dict(zip(indexes, predictions)))
         else:
