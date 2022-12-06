@@ -28,7 +28,7 @@ def create_static_predictions(train: VisionData, test: VisionData, model):
         if vision_data is not None:
             static_pred = {}
             for i, batch in enumerate(vision_data):
-                predictions = vision_data.infer_on_batch(batch, model, device)
+                predictions = vision_data.batch_to_predictions(batch, model, device)
                 indexes = list(vision_data.data_loader.batch_sampler)[i]
                 static_pred.update(dict(zip(indexes, predictions)))
         else:

@@ -13,10 +13,8 @@ import logging
 import pathlib
 import typing as t
 import warnings
-from typing import Iterable, List, Union
 
 import albumentations as A
-import numpy as np
 import torch
 import torch.nn.functional as F
 from albumentations.pytorch import ToTensorV2
@@ -25,10 +23,11 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from typing_extensions import Literal
 
-from deepchecks.vision.classification_data import ClassificationData
+from deepchecks.vision.utils.test_utils import get_data_loader_sequential
 from deepchecks.vision.utils.transformations import un_normalize_batch
+from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
-__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'MNISTData']
+__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
 
 
 MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
@@ -40,21 +39,21 @@ MODEL_PATH = MODELS_DIR / 'mnist.pth'
 
 
 def load_dataset(
-    train: bool = True,
-    batch_size: t.Optional[int] = None,
-    shuffle: bool = True,
-    pin_memory: bool = True,
-    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
-) -> t.Union[DataLoader, ClassificationData]:
+        train: bool = True,
+        batch_size: t.Optional[int] = None,
+        shuffle: bool = False,
+        pin_memory: bool = True,
+        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
+) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
     Parameters
     ----------
-    train : bool, default True
+    train : bool, default : True
         Train or Test dataset
     batch_size: int, optional
         how many samples per batch to load
-    shuffle : bool, default ``True``
+    shuffle : bool , default : False
         to reshuffled data at every epoch or not
     pin_memory : bool, default ``True``
         If ``True``, the data loader will copy Tensors
@@ -76,52 +75,46 @@ def load_dataset(
 
     mean = (0.1307,)
     std = (0.3081,)
-    loader = DataLoader(
-        MNIST(
-            str(MODULE_DIR),
-            train=train,
-            download=True,
-            transform=A.Compose([
-                A.Normalize(mean, std),
-                ToTensorV2(),
-            ]),
-        ),
-        batch_size=batch_size,
-        shuffle=shuffle,
-        pin_memory=pin_memory,
-        generator=torch.Generator()
-    )
+    dataset = MNIST(str(MODULE_DIR), train=train, download=True,
+                    transform=A.Compose([A.Normalize(mean, std), ToTensorV2(), ]), )
 
     if object_type == 'DataLoader':
-        return loader
+        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, pin_memory=pin_memory,
+                          generator=torch.Generator())
     elif object_type == 'VisionData':
-        return MNISTData(loader, num_classes=len(datasets.MNIST.classes), transform_field='transform')
+        model = load_model()
+        loader = DataLoader(dataset, batch_size=batch_size, pin_memory=pin_memory, shuffle=shuffle,
+                            generator=torch.Generator(), collate_fn=deepchecks_collate(model))
+        if not shuffle:
+            loader = get_data_loader_sequential(loader)
+        return VisionData(loader, task_type='classification', reshuffle_dynamic_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
 
-class MNISTData(ClassificationData):
-    """Class for loading MNIST dataset, inherits from :obj:`deepchecks.vision.classification_data.ClassificationData`.
+def deepchecks_collate(model) -> t.Callable:
+    """Process batch to deepchecks format.
 
-    Implement the necessary methods for the :obj:`deepchecks.vision.classification_data.ClassificationData` interface.
+    Parameters
+    ----------
+    model : nn.Module
+        model to predict with
+    Returns
+    -------
+    BatchOutputFormat
+        batch of data in deepchecks format
     """
 
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
-        """Convert a batch of mnist data to labels."""
-        return batch[1]
+    def _process_batch_to_deepchecks_format(data) -> BatchOutputFormat:
+        raw_images = torch.stack([x[0] for x in data])
+        labels = [x[1] for x in data]
+        predictions = model(raw_images)
+        predictions = nn.Softmax(dim=1)(predictions).detach()
+        images = raw_images.permute(0, 2, 3, 1)
+        images = un_normalize_batch(images, mean=(0.1307,), std=(0.3081,))
+        return {'images': images, 'labels': labels, 'predictions': predictions}
 
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
-        """Infer on a batch of mnist data."""
-        preds = model.to(device)(batch[0].to(device))
-        return nn.Softmax(dim=1)(preds)
-
-    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
-        """Convert a batch of mnist data to images."""
-        mean = (0.1307,)
-        std = (0.3081,)
-        tensor = batch[0]
-        tensor = tensor.permute(0, 2, 3, 1)
-        return un_normalize_batch(tensor, mean, std)
+    return _process_batch_to_deepchecks_format
 
 
 def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet':

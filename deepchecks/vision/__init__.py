@@ -9,15 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision functionality."""
+from deepchecks.vision.suite import Suite
+from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
+
 from .base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from .batch_wrapper import Batch
-from .classification_data import ClassificationData
 from .context import Context
-from .detection_data import DetectionData
-from .segmentation_data import SegmentationData
 from .simple_classification_data import classification_dataset_from_directory
-from .suite import Suite
-from .vision_data import VisionData
 
 try:
     import torch  # noqa: F401
@@ -29,14 +27,10 @@ except ImportError as error:
 
 __all__ = [
     "VisionData",
-    "ClassificationData",
-    "DetectionData",
-    "SegmentationData",
     "classification_dataset_from_directory",
-    "Context",
     "SingleDatasetCheck",
     "TrainTestCheck",
     "ModelOnlyCheck",
     "Suite",
-    "Batch"
+    "BatchWrapper"
 ]

@@ -14,15 +14,15 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import PIL.Image as pilimage
 import torch
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
 from typing_extensions import Literal
 
-from deepchecks import vision
+from deepchecks.vision import VisionData
+from deepchecks.vision.vision_data import BatchOutputFormat
 
-__all__ = ['classification_dataset_from_directory', 'SimpleClassificationDataset', 'SimpleClassificationData']
+__all__ = ['classification_dataset_from_directory', 'SimpleClassificationDataset']
 
 
 def classification_dataset_from_directory(
@@ -33,7 +33,7 @@ def classification_dataset_from_directory(
         pin_memory: bool = True,
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
         **kwargs
-) -> t.Union[t.Tuple[t.Union[DataLoader, vision.ClassificationData]], t.Union[DataLoader, vision.ClassificationData]]:
+) -> t.Union[t.Tuple[t.Union[DataLoader, VisionData]], t.Union[DataLoader, VisionData]]:
     """Load a simple classification dataset.
 
     The function expects that the data within the root folder
@@ -93,19 +93,15 @@ def classification_dataset_from_directory(
     result = []
     for dataset_root in roots_of_datasets:
         dataset = SimpleClassificationDataset(root=str(dataset_root), **kwargs)
-        dataloader = DataLoader(
-            dataset=dataset,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            num_workers=num_workers,
-            collate_fn=batch_collate,
-            pin_memory=pin_memory,
-            generator=torch.Generator()
-        )
         if object_type == 'DataLoader':
+            dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+                                    collate_fn=batch_collate, pin_memory=pin_memory, generator=torch.Generator())
             result.append(dataloader)
         elif object_type == 'VisionData':
-            result.append(SimpleClassificationData(data_loader=dataloader, label_map=dataset.reverse_classes_map))
+            dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+                                    collate_fn=deepchecks_collate, pin_memory=pin_memory, generator=torch.Generator())
+            result.append(VisionData(dynamic_loader=dataloader, label_map=dataset.reverse_classes_map,
+                                     task_type='classification'))
         else:
             raise TypeError(f'Unknown value of object_type - {object_type}')
     return tuple(result) if len(result) > 1 else result[0]
@@ -194,25 +190,30 @@ class SimpleClassificationDataset(VisionDataset):
         return len(self.images)
 
 
-class SimpleClassificationData(vision.ClassificationData):
-    """Simple ClassificationData type, matches the data returned by SimpleClassificationDataset getitem."""
+def deepchecks_collate(batch) -> BatchOutputFormat:
+    """Process batch to deepchecks format."""
+    imgs, labels = zip(*batch)
+    return {'images': list(imgs), 'labels': list(labels)}
 
-    def batch_to_images(
-            self,
-            batch: t.Tuple[t.Sequence[np.ndarray], t.Sequence[int]]
-    ) -> t.Sequence[np.ndarray]:
-        """Extract the images from a batch of data."""
-        images, _ = batch
-        return images
-
-    def batch_to_labels(
-            self,
-            batch: t.Tuple[t.Sequence[pilimage.Image], t.Sequence[int]]
-    ) -> torch.Tensor:
-        """Extract the labels from a batch of data."""
-        _, labels = batch
-        return torch.Tensor(labels).long()
-
-    def get_classes(self, batch_labels: t.Union[t.List[torch.Tensor], torch.Tensor]):
-        """Get a labels batch and return classes inside it."""
-        return batch_labels.reshape(-1, 1).tolist()
+# class SimpleClassificationData(vision.ClassificationData):
+#     """Simple ClassificationData type, matches the data returned by SimpleClassificationDataset getitem."""
+#
+#     def batch_to_images(
+#             self,
+#             batch: t.Tuple[t.Sequence[np.ndarray], t.Sequence[int]]
+#     ) -> t.Sequence[np.ndarray]:
+#         """Extract the images from a batch of data."""
+#         images, _ = batch
+#         return images
+#
+#     def batch_to_labels(
+#             self,
+#             batch: t.Tuple[t.Sequence[pilimage.Image], t.Sequence[int]]
+#     ) -> torch.Tensor:
+#         """Extract the labels from a batch of data."""
+#         _, labels = batch
+#         return torch.Tensor(labels).long()
+#
+#     def get_classes(self, batch_labels: t.Union[t.List[torch.Tensor], torch.Tensor]):
+#         """Get a labels batch and return classes inside it."""
+#         return batch_labels.reshape(-1, 1).tolist()

@@ -13,13 +13,13 @@ from typing import List
 
 from deepchecks.core import DatasetKind
 from deepchecks.tabular import Context
-from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 
 def calc_properties_for_property_label_correlation(
-        context: Context, batch: Batch, dataset_kind: DatasetKind, image_properties: List):
+        context: Context, batch: BatchWrapper, dataset_kind: DatasetKind, image_properties: List):
     """
     Transform the data to the relevant format and calculate the properties on it.
 

@@ -9,23 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
-import warnings
-from typing import Any, Dict, Mapping, Optional, Sequence, Union
+from typing import Any, Optional
 
-import torch
-from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.vision._shared_docs import docstrings
-from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
-from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
 from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = [
     'SingleDatasetCheck',
@@ -41,22 +36,10 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     @docstrings
     def run(
-        self,
-        dataset: VisionData,
-        model: Optional[nn.Module] = None,
-        model_name: str = '',
-        scorers: Optional[Mapping[str, Metric]] = None,
-        scorers_per_class: Optional[Mapping[str, Metric]] = None,
-        device: Union[str, torch.device, None] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = 10_000,
-        with_display: bool = True,
-        predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
-
+            self,
+            dataset: VisionData,
+            random_state: int = 42,
+            with_display: bool = True,
     ) -> CheckResult:
         """Run check.
 
@@ -64,57 +47,34 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         ----------
         dataset: VisionData
             VisionData object to process
-        model: Optional[nn.Module] , default None
-            pytorch neural network module instance
-        {additional_context_params:2*indent}
+        {additional_run_params:2*indent}
         """
         assert self.context_type is not None
-        if train_predictions is not None:
-            warnings.warn('train_predictions is deprecated, please use predictions instead.',
-                          DeprecationWarning, stacklevel=2)
-        if test_predictions is not None:
-            warnings.warn('test_predictions is deprecated and ignored.',
-                          DeprecationWarning, stacklevel=2)
-        if (train_predictions is not None) and (predictions is not None):
-            raise DeepchecksValueError('Cannot accept both train_predictions and predictions, please pass the data only'
-                                       ' to predictions.')
 
-        train_predictions = train_predictions if train_predictions is not None else predictions
         with ProgressBarGroup() as progressbar_factory:
-
             with progressbar_factory.create_dummy(name='Validating Input'):
                 # Context is copying the data object, then not using the original after the init
                 context: Context = self.context_type(
                     dataset,
-                    model=model,
-                    model_name=model_name,
-                    scorers=scorers,
-                    scorers_per_class=scorers_per_class,
-                    device=device,
                     random_state=random_state,
-                    n_samples=n_samples,
                     with_display=with_display,
-                    train_predictions=train_predictions,
-                    train_properties=train_properties,
-                    test_properties=test_properties
                 )
                 self.initialize_run(context, DatasetKind.TRAIN)
 
-            context.train.init_cache()
+            dataset.init_cache()
 
             for i, batch in enumerate(progressbar_factory.create(
-                iterable=context.train,
-                name='Ingesting Batches',
-                unit='Batch'
+                    iterable=dataset,
+                    name='Ingesting Batches',
+                    unit='Batch'
             )):
-                batch = Batch(batch, context, DatasetKind.TRAIN, i)
-                context.train.update_cache(batch)
+                batch = BatchWrapper(batch, dataset)
+                dataset.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                 self.update(context, batch, DatasetKind.TRAIN)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context, DatasetKind.TRAIN)
-                context.finalize_check_result(result, self)
-                context.add_is_sampled_footnote(result, DatasetKind.TRAIN)
+                context.finalize_check_result(result, self, DatasetKind.TRAIN)
                 return result
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
@@ -140,33 +100,21 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     @docstrings
     def run(
-        self,
-        train_dataset: VisionData,
-        test_dataset: VisionData,
-        model: Optional[nn.Module] = None,
-        model_name: str = '',
-        scorers: Optional[Mapping[str, Metric]] = None,
-        scorers_per_class: Optional[Mapping[str, Metric]] = None,
-        device: Union[str, torch.device, None] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = 10_000,
-        with_display: bool = True,
-        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
+            self,
+            train_dataset: VisionData,
+            test_dataset: VisionData,
+            random_state: int = 42,
+            with_display: bool = True,
     ) -> CheckResult:
         """Run check.
 
         Parameters
         ----------
-        train_dataset: VisionData
-            VisionData object, representing data an neural network was fitted on
-        test_dataset: VisionData
-            VisionData object, representing data an neural network predicts on
-        model: Optional[nn.Module] , default None
-            pytorch neural network module instance
-        {additional_context_params:2*indent}
+        train_dataset : VisionData
+            VisionData object, representing data the model was fitted on
+        test_dataset : VisionData
+            VisionData object, representing data the models predicts on
+        {additional_run_params:2*indent}
         """
         assert self.context_type is not None
 
@@ -177,49 +125,35 @@ class TrainTestCheck(TrainTestBaseCheck):
                 context: Context = self.context_type(
                     train_dataset,
                     test_dataset,
-                    model=model,
-                    model_name=model_name,
-                    scorers=scorers,
-                    scorers_per_class=scorers_per_class,
-                    device=device,
                     random_state=random_state,
-                    n_samples=n_samples,
                     with_display=with_display,
-                    train_predictions=train_predictions,
-                    test_predictions=test_predictions,
-                    train_properties=train_properties,
-                    test_properties=test_properties
                 )
                 self.initialize_run(context)
 
             train_pbar = progressbar_factory.create(
-                iterable=context.train,
+                iterable=train_dataset,
                 name='Ingesting Batches - Train Dataset',
                 unit='Batch'
             )
-
-            context.train.init_cache()
-
+            train_dataset.init_cache()
             for i, batch in enumerate(train_pbar):
-                batch = Batch(batch, context, DatasetKind.TRAIN, i)
-                context.train.update_cache(batch)
+                batch = BatchWrapper(batch, train_dataset)
+                train_dataset.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                 self.update(context, batch, DatasetKind.TRAIN)
 
-            context.test.init_cache()
-
+            test_dataset.init_cache()
             for i, batch in enumerate(progressbar_factory.create(
-                iterable=context.test,
-                name='Ingesting Batches - Test Dataset',
-                unit='Batch'
+                    iterable=test_dataset,
+                    name='Ingesting Batches - Test Dataset',
+                    unit='Batch'
             )):
-                batch = Batch(batch, context, DatasetKind.TEST, i)
-                context.test.update_cache(batch)
+                batch = BatchWrapper(batch, test_dataset)
+                test_dataset.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                 self.update(context, batch, DatasetKind.TEST)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)
                 context.finalize_check_result(result, self)
-                context.add_is_sampled_footnote(result)
                 return result
 
     def initialize_run(self, context: Context):
@@ -242,46 +176,24 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
 
     @docstrings
     def run(
-        self,
-        model: nn.Module,
-        model_name: str = '',
-        scorers: Optional[Mapping[str, Metric]] = None,
-        scorers_per_class: Optional[Mapping[str, Metric]] = None,
-        device: Union[str, torch.device, None] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = None,
-        with_display: bool = True,
-        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
+            self,
+            model: nn.Module,
+            random_state: int = 42,
+            with_display: bool = True,
     ) -> CheckResult:
         """Run check.
 
         Parameters
         ----------
-        model: nn.Module
-            pytorch neural network module instance
-        {additional_context_params:2*indent}
+        {additional_run_params:2*indent}
         """
         assert self.context_type is not None
 
         with ProgressBarGroup() as progressbar_factory:
-
             with progressbar_factory.create_dummy(name='Validating Input'):
-                context: Context = self.context_type(
-                    model=model,
-                    model_name=model_name,
-                    scorers=scorers,
-                    scorers_per_class=scorers_per_class,
-                    device=device,
+                context: Context = self.context_type(  # currently no model is passed to context
                     random_state=random_state,
-                    n_samples=n_samples,
                     with_display=with_display,
-                    train_predictions=train_predictions,
-                    test_predictions=test_predictions,
-                    train_properties=train_properties,
-                    test_properties=test_properties
                 )
                 self.initialize_run(context)
 

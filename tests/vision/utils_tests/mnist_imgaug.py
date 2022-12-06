@@ -16,7 +16,9 @@ from imgaug import augmenters as iaa
 from torch.utils.data import DataLoader
 from torchvision import datasets
 
-from deepchecks.vision.datasets.classification.mnist import MODULE_DIR, MNISTData
+from deepchecks.vision import VisionData
+from deepchecks.vision.datasets.classification.mnist import MODULE_DIR, load_model, deepchecks_collate
+from deepchecks.vision.vision_data import TaskType
 
 
 class MNIST(datasets.MNIST):
@@ -56,17 +58,15 @@ def mnist_dataset_imgaug(train: bool = True, dataset=None):
             ]),
         )
 
+    model = load_model()
     loader = DataLoader(
         dataset,
         batch_size=64,
         shuffle=True,
+        collate_fn=deepchecks_collate(model)
     )
 
-    return MNISTData(
-        data_loader=loader,
-        num_classes=len(loader.dataset.classes),
-        transform_field='transform'
-    )
+    return VisionData(dynamic_loader=loader, task_type=TaskType.CLASSIFICATION.value)
 
 
 def normalize(mean, std):

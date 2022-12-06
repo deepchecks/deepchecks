@@ -29,8 +29,7 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']
 
 
-def train_test_validation(n_top_show: int = 5,
-                          label_properties: List[Dict[str, Any]] = None,
+def train_test_validation(label_properties: List[Dict[str, Any]] = None,
                           image_properties: List[Dict[str, Any]] = None,
                           random_state: int = None,
                           **kwargs) -> Suite:
@@ -61,8 +60,6 @@ def train_test_validation(n_top_show: int = 5,
 
     Parameters
     ----------
-    n_top_show : int, default: 5
-        Number of images to show for checks that show images.
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -100,8 +97,8 @@ def train_test_validation(n_top_show: int = 5,
     Examples
     --------
     >>> from deepchecks.vision.suites import train_test_validation
-    >>> suite = train_test_validation(n_top_show=3)
-    >>> result = suite.run(n_samples=800)
+    >>> suite = train_test_validation()
+    >>> result = suite.run(train_data, test_data, max_samples=800)
     >>> result.show()
 
     See Also
@@ -127,7 +124,7 @@ def train_test_validation(n_top_show: int = 5,
 
 
 def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
-                     area_range: Tuple[float, float] = (32**2, 96**2),
+                     area_range: Tuple[float, float] = (32 ** 2, 96 ** 2),
                      image_properties: List[Dict[str, Any]] = None,
                      prediction_properties: List[Dict[str, Any]] = None,
                      random_state: int = 42,
@@ -202,7 +199,7 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
     --------
     >>> from deepchecks.vision.suites import model_evaluation
     >>> suite = model_evaluation()
-    >>> result = suite.run()
+    >>> result = suite.run(test_vision_data)
     >>> result.show()
 
     See Also
@@ -229,7 +226,6 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
 
 
 def data_integrity(image_properties: List[Dict[str, Any]] = None,
-                   n_show_top: int = 5,
                    label_properties: List[Dict[str, Any]] = None,
                    **kwargs) -> Suite:
     """
@@ -259,8 +255,6 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
           but these numbers do not have inherent value.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    n_show_top : int , default: 5
-        number of samples to show from each direction (upper limit and bottom limit)
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -285,7 +279,7 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     --------
     >>> from deepchecks.vision.suites import data_integrity
     >>> suite = data_integrity()
-    >>> result = suite.run()
+    >>> result = suite.run(vision_data)
     >>> result.show()
 
     See Also

@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from deepchecks.vision.utils.image_functions import draw_bboxes, prepare_thumbnail
+from deepchecks.vision.vision_data import TaskType
 
 
 def visualize_vision_data(dataset, n_show: int = 6):
@@ -41,8 +42,8 @@ def visualize_vision_data(dataset, n_show: int = 6):
     plt.show()
 
 
-def draw_image(image: np.ndarray, label, thumbnail_size: t.Tuple[int, int] = (200, 200),
-               draw_label: bool = True) -> str:
+def draw_image(image: np.ndarray, label, task_type: TaskType,
+               thumbnail_size: t.Tuple[int, int] = (200, 200), draw_label: bool = True) -> str:
     """Return an image to show as output of the display.
 
     Parameters
@@ -51,6 +52,8 @@ def draw_image(image: np.ndarray, label, thumbnail_size: t.Tuple[int, int] = (20
         The image to draw, must be a [H, W, C] 3D numpy array.
     label :
         2-dim labels tensor for the image to draw on top of the image, shape depends on task type.
+    task_type : TaskType
+        The task type associated with the label.
     thumbnail_size: t.Tuple[int,int]
         The required size of the image for display.
     draw_label : bool, default: True
@@ -60,7 +63,7 @@ def draw_image(image: np.ndarray, label, thumbnail_size: t.Tuple[int, int] = (20
     str
         The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
     """
-    if draw_label and len(label.shape) > 1 and label.shape[1] == 5:  # only object detection
+    if draw_label and task_type == TaskType.OBJECT_DETECTION:
         image = draw_bboxes(image, label, copy_image=False, border_width=5)
     image_thumbnail = prepare_thumbnail(
         image=image,

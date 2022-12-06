@@ -11,11 +11,7 @@
 """Module for base vision abstractions."""
 # pylint: disable=broad-except,not-callable
 from collections import OrderedDict
-from typing import Dict, Mapping, Optional, Sequence, Tuple, Union
-
-import torch
-from ignite.metrics import Metric
-from torch import nn
+from typing import Dict, Optional, Tuple, Union
 
 from deepchecks.core.check_result import BaseCheckResult, CheckFailure
 from deepchecks.core.checks import DatasetKind
@@ -24,10 +20,9 @@ from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
-from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
 from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['Suite']
 
@@ -45,31 +40,24 @@ class Suite(BaseSuite):
         self,
         train_dataset: Optional[VisionData] = None,
         test_dataset: Optional[VisionData] = None,
-        model: Optional[nn.Module] = None,
-        scorers: Optional[Mapping[str, Metric]] = None,
-        scorers_per_class: Optional[Mapping[str, Metric]] = None,
-        device: Union[str, torch.device, None] = None,
         random_state: int = 42,
         with_display: bool = True,
-        n_samples: Optional[int] = None,
-        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        model_name: str = '',
+        max_samples: Optional[int] = None,  # TODO: do something with this!
         run_single_dataset: Optional[str] = None
     ) -> SuiteResult:
         """Run all checks.
 
         Parameters
         ----------
-        train_dataset: Optional[VisionData] , default None
-            object, representing data an estimator was fitted on
-        test_dataset : Optional[VisionData] , default None
-            object, representing data an estimator predicts on
-        model : nn.Module , default None
-            A scikit-learn-compatible fitted estimator instance
-        {additional_context_params:2*indent}
+        train_dataset : Optional[VisionData] , default: None
+            VisionData object, representing data the model was fitted on
+        test_dataset : Optional[VisionData] , default: None
+            VisionData object, representing data the models predicts on
+        {additional_run_params:2*indent}
+        max_samples : Optional[int] , default: None
+            Maximum number of samples to use in checks. If none, each check will use either the full dataset or a
+            number of samples as defined in the n_samples argument of the check. To explicitly set the number of
+            samples to be used in the checks, set the n_samples argument.
         run_single_dataset: Optional[str], default None
             'Train', 'Test' , or None to run on both train and test.
 
@@ -87,23 +75,12 @@ class Suite(BaseSuite):
         ] = OrderedDict({})
 
         with ProgressBarGroup() as progressbar_factory:
-
             with progressbar_factory.create_dummy(name='Validating Input'):
                 context = Context(
                     train_dataset,
                     test_dataset,
-                    model,
-                    scorers=scorers,
-                    scorers_per_class=scorers_per_class,
-                    device=device,
                     random_state=random_state,
-                    n_samples=n_samples,
                     with_display=with_display,
-                    train_predictions=train_predictions,
-                    test_predictions=test_predictions,
-                    train_properties=train_properties,
-                    test_properties=test_properties,
-                    model_name=model_name
                 )
 
             # Initialize here all the checks that are not single dataset,
@@ -155,10 +132,7 @@ class Suite(BaseSuite):
         # The results are ordered as they ran instead of in the order they were defined, therefore sort by key
         sorted_result_values = [value for name, value in sorted(results.items(), key=lambda pair: str(pair[0]))
                                 if value != -1]
-
-        result = SuiteResult(self.name, sorted_result_values)
-        context.add_is_sampled_footnote(result)
-        return result
+        return SuiteResult(self.name, sorted_result_values)
 
     def _update_loop(
         self,
@@ -199,8 +173,8 @@ class Suite(BaseSuite):
 
         # Run on all the batches
         for i, batch in enumerate(batches_pbar):
-            batch = Batch(batch, context, dataset_kind, i)
-            vision_data.update_cache(batch)
+            batch = BatchWrapper(batch, vision_data)
+            vision_data.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
             for check_idx, check in self.checks.items():
                 # If index in results the check already failed before
                 if check_idx in results:

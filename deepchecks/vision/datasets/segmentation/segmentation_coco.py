@@ -13,7 +13,6 @@ import contextlib
 import os
 import typing as t
 from pathlib import Path
-from typing import Sequence
 
 import albumentations as A
 import numpy as np
@@ -28,10 +27,11 @@ from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.models.segmentation import lraspp_mobilenet_v3_large
 from typing_extensions import Literal
 
-from deepchecks import vision
-from deepchecks.vision import SegmentationData
+from deepchecks.vision.utils.test_utils import get_data_loader_sequential
+from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
-__all__ = ['load_dataset', 'load_model', 'CocoSegmentationData', 'CocoSegmentationDataset']
+__all__ = ['load_dataset', 'load_model', 'CocoSegmentationDataset']
+
 
 DATA_DIR = Path(__file__).absolute().parent
 
@@ -41,45 +41,41 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     """Load the lraspp_mobilenet_v3_large model and return it."""
     model = lraspp_mobilenet_v3_large(pretrained=pretrained, progress=False)
     _ = model.eval()
-
     return model
-
-
-class CocoSegmentationData(SegmentationData):
-    """Class for loading the COCO segmentation dataset, inherits from :class:`~deepchecks.vision.SegmentationData`.
-
-    Implement the necessary methods to load the dataset.
-    """
-
-    def batch_to_labels(self, batch):
-        """Extract from the batch only the labels and return the labels in format (H, W).
-
-        See SegmentationData for more details on format.
-        """
-        return batch[1]
-
-    def infer_on_batch(self, batch, model, device):
-        """Infer on a batch of images and return predictions in format (C, H, W), where C is the class_id dimension.
-
-        See SegmentationData for more details on format.
-        """
-        normalized_batch = [F.normalize(img.unsqueeze(0).float() / 255,
-                                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for img in batch[0]]
-
-        predictions = [model(img)['out'].squeeze(0).detach() for img in normalized_batch]
-        predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
-
-        return predictions
-
-    def batch_to_images(self, batch) -> Sequence[np.ndarray]:
-        """Convert the batch to a list of images, where each image is a 3D numpy array in the format (H, W, C)."""
-        return [tensor.cpu().numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
 
 def _batch_collate(batch):
     """Get list of samples from `CocoSegmentDataset` and combine them to a batch."""
     images, masks = zip(*batch)
     return list(images), list(masks)
+
+
+def deepchecks_collate(model) -> t.Callable:
+    """Process batch to deepchecks format.
+
+    Parameters
+    ----------
+    model : nn.Module
+        model to predict with
+    Returns
+    -------
+    BatchOutputFormat
+        batch of data in deepchecks format
+    """
+
+    def _process_batch_to_deepchecks_format(data) -> BatchOutputFormat:
+        raw_images = [x[0] for x in data]
+        images = [tensor.cpu().numpy().transpose((1, 2, 0)) for tensor in raw_images]
+        labels = [x[1] for x in data]
+
+        normalized_batch = [F.normalize(img.unsqueeze(0).float() / 255,
+                                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for img in raw_images]
+
+        predictions = [model(img)['out'].squeeze(0).detach() for img in normalized_batch]
+        predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
+        return {'images': images, 'labels': labels, 'predictions': predictions}
+
+    return _process_batch_to_deepchecks_format
 
 
 def load_dataset(
@@ -90,7 +86,7 @@ def load_dataset(
         pin_memory: bool = True,
         object_type: Literal['VisionData', 'DataLoader'] = 'VisionData',
         test_mode: bool = False
-) -> t.Union[DataLoader, vision.VisionData]:
+) -> t.Union[DataLoader, VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
     Parameters
@@ -122,24 +118,17 @@ def load_dataset(
     root = DATA_DIR
     dataset = CocoSegmentationDataset.load_or_download(root=root, train=train, test_mode=test_mode)
 
-    dataloader = DataLoader(
-        dataset=dataset,
-        batch_size=batch_size,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        collate_fn=_batch_collate,
-        pin_memory=pin_memory,
-        generator=torch.Generator()
-    )
-
     if object_type == 'DataLoader':
-        return dataloader
+        return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+                          collate_fn=_batch_collate, pin_memory=pin_memory, generator=torch.Generator())
     elif object_type == 'VisionData':
-        return CocoSegmentationData(
-            data_loader=dataloader,
-            num_classes=21,
-            label_map=LABEL_MAP
-        )
+        model = load_model()
+        loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+                            collate_fn=deepchecks_collate(model), pin_memory=pin_memory, generator=torch.Generator())
+        if not shuffle:
+            loader = get_data_loader_sequential(loader)
+        return VisionData(dynamic_loader=loader, task_type='semantic_segmentation', label_map=LABEL_MAP,
+                          reshuffle_dynamic_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
@@ -384,7 +373,6 @@ _ORIG_LABEL_MAP = {
 LABEL_MAP = {0: 'background', 1: 'airplane', 2: 'bicycle', 3: 'bird', 4: 'boat', 5: 'bottle', 6: 'bus', 7: 'car',
              8: 'cat', 9: 'chair', 10: 'cow', 11: 'dining table', 12: 'dog', 13: 'horse', 14: 'motorcycle',
              15: 'person', 16: 'potted plant', 17: 'sheep', 18: 'couch', 19: 'train', 20: 'tv'}
-
 
 COCO_TO_PASCAL_VOC = {
     # None: 0,  # background

@@ -65,6 +65,7 @@ class BaseCheck(abc.ABC):
     def __init__(self, **kwargs):  # pylint: disable=unused-argument
         self._conditions = OrderedDict()
         self._conditions_index = 0
+        self.n_samples = kwargs.get('n_samples')  # None indicates that the check will run on the entire dataset
 
     @abc.abstractmethod
     def run(self, *args, **kwargs) -> 'check_types.CheckResult':

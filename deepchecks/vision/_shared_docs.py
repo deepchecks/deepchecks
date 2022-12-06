@@ -13,25 +13,16 @@ from deepchecks.utils.decorators import Substitution
 
 _shared_docs = {}
 
-_shared_docs['additional_context_params'] = """
-model_name : str , default: ''
-    The name of the model
-scorers : Optional[Mapping[str, Metric]] , default: None
-    dict of scorers names to a Metric
-scorers_per_class : Optional[Mapping[str, Metric]] , default: None
-    dict of scorers for classification without averaging of the classes.
-    See `scikit-learn docs
-    <https://scikit-learn.org/stable/modules/model_evaluation.html#from-binary-to-multiclass-and-multilabel>`__.
-device : Union[str, torch.device], default: 'cpu'
-    processing unit for use
+_shared_docs['additional_run_params'] = """
 random_state : int
     A seed to set for pseudo-random functions
 with_display : bool , default: True
     flag that determines if checks will calculate display (redundant in some checks).
-train_predictions : Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
-    Dictionary of the model prediction over the train dataset (keys are the indexes).
-test_predictions : Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] , default None
-    Dictionary of the model prediction over the test dataset (keys are the indexes).
+""".strip('\n')
+
+_shared_docs['additional_init_params'] = """
+n_samples : Optional[int] , default : None
+    Number of samples to use for the check. If None, all samples will be used.
 """.strip('\n')
 
 _shared_docs['property_aggregation_method_argument'] = """

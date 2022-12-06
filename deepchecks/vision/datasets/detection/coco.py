@@ -15,7 +15,6 @@ import os
 import typing as t
 import warnings
 from pathlib import Path
-from typing import Iterable, List
 
 import albumentations as A
 import cv2
@@ -29,9 +28,10 @@ from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks import vision
-from deepchecks.vision import DetectionData
+from deepchecks.vision.utils.test_utils import get_data_loader_sequential
+from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
-__all__ = ['load_dataset', 'load_model', 'COCOData', 'CocoDataset']
+__all__ = ['load_dataset', 'load_model', 'CocoDataset']
 
 
 DATA_DIR = Path(__file__).absolute().parent
@@ -51,53 +51,54 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     return model
 
 
-class COCOData(DetectionData):
-    """Class for loading the COCO dataset, inherits from :class:`~deepchecks.vision.DetectionData`.
-
-    Implement the necessary methods to load the dataset.
-    """
-
-    def batch_to_labels(self, batch) -> List[torch.Tensor]:
-        """Convert the batch to a list of labels."""
-        def move_class(tensor):
-            return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
-                if len(tensor) > 0 else tensor
-
-        return [move_class(tensor) for tensor in batch[1]]
-
-    def infer_on_batch(self, batch, model, device) -> List[torch.Tensor]:
-        """Infer on a batch of images."""
-        return_list = []
-
-        with warnings.catch_warnings():
-            warnings.simplefilter(action='ignore', category=UserWarning)
-
-            predictions: 'yolov5.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
-
-            # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
-            for single_image_tensor in predictions.pred:
-                pred_modified = torch.clone(single_image_tensor)
-                pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
-                pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
-                return_list.append(pred_modified)
-
-        return return_list
-
-    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
-        """Convert the batch to a list of images."""
-        return [np.array(x) for x in batch[0]]
-
-
 def _batch_collate(batch):
     imgs, labels = zip(*batch)
     return list(imgs), list(labels)
+
+
+def deepchecks_collate(model) -> t.Callable:
+    """Process batch to deepchecks format.
+
+    Parameters
+    ----------
+    model : nn.Module
+        model to predict with
+    Returns
+    -------
+    BatchOutputFormat
+        batch of data in deepchecks format
+    """
+
+    def _process_batch_to_deepchecks_format(data) -> BatchOutputFormat:
+        raw_images = [x[0] for x in data]
+        images = [np.array(x) for x in raw_images]
+
+        def move_class(tensor):
+            return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+                if len(tensor) > 0 else tensor
+        labels = [move_class(x[1]) for x in data]
+
+        predictions = []
+        with warnings.catch_warnings():
+            warnings.simplefilter(action='ignore', category=UserWarning)
+            raw_predictions: 'yolov5.models.common.Detections' = model(raw_images)  # noqa: F821
+
+            # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
+            for single_image_tensor in raw_predictions.pred:
+                pred_modified = torch.clone(single_image_tensor)
+                pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
+                pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
+                predictions.append(pred_modified)
+        return {'images': images, 'labels': labels, 'predictions': predictions}
+
+    return _process_batch_to_deepchecks_format
 
 
 def load_dataset(
         train: bool = True,
         batch_size: int = 32,
         num_workers: int = 0,
-        shuffle: bool = True,
+        shuffle: bool = False,
         pin_memory: bool = True,
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
 ) -> t.Union[DataLoader, vision.VisionData]:
@@ -111,7 +112,7 @@ def load_dataset(
         Batch size for the dataloader.
     num_workers : int, default: 0
         Number of workers for the dataloader.
-    shuffle : bool, default: True
+    shuffle : bool, default: False
         Whether to shuffle the dataset.
     pin_memory : bool, default: True
         If ``True``, the data loader will copy Tensors
@@ -128,33 +129,21 @@ def load_dataset(
     """
     root = DATA_DIR
     coco_dir, dataset_name = CocoDataset.download_coco128(root)
-
-    dataloader = DataLoader(
-        dataset=CocoDataset(
-            root=str(coco_dir),
-            name=dataset_name,
-            train=train,
-            transforms=A.Compose(
-                [A.NoOp()],
-                bbox_params=A.BboxParams(format='coco')
-            )
-        ),
-        batch_size=batch_size,
-        shuffle=shuffle,
-        num_workers=num_workers,
-        collate_fn=_batch_collate,
-        pin_memory=pin_memory,
-        generator=torch.Generator()
-    )
+    dataset = CocoDataset(root=str(coco_dir), name=dataset_name, train=train,
+                          transforms=A.Compose([A.NoOp()], bbox_params=A.BboxParams(format='coco')))
 
     if object_type == 'DataLoader':
-        return dataloader
+        return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+                          collate_fn=_batch_collate, pin_memory=pin_memory, generator=torch.Generator())
     elif object_type == 'VisionData':
-        return COCOData(
-            data_loader=dataloader,
-            num_classes=80,
-            label_map=LABEL_MAP
-        )
+        model = load_model()
+        dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+                                collate_fn=deepchecks_collate(model), pin_memory=pin_memory,
+                                generator=torch.Generator())
+        if not shuffle:
+            dataloader = get_data_loader_sequential(dataloader)
+        return VisionData(dynamic_loader=dataloader, label_map=LABEL_MAP, task_type='object_detection',
+                          reshuffle_dynamic_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
@@ -335,10 +324,12 @@ def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
 
 def yolo_label_formatter(batch):
     """Translate yolo label to deepchecks format."""
+
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
-                if len(tensor) > 0 else tensor
+            if len(tensor) > 0 else tensor
+
     return [move_class(tensor) for tensor in batch[1]]
 
 

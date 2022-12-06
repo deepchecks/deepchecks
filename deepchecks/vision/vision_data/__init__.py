@@ -8,16 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The task type module containing the TaskType enum."""
-from enum import Enum
+"""Package for vision data class and utilities."""
+from deepchecks.vision.vision_data.utils import TaskType
+from deepchecks.vision.vision_data.vision_data import BatchOutputFormat, VisionData
 
-__all__ = ['TaskType']
+__all__ = ['VisionData', 'BatchOutputFormat', 'TaskType']
 
-
-class TaskType(Enum):
-    """Enum containing supported task types."""
-
-    CLASSIFICATION = 'classification'
-    OBJECT_DETECTION = 'object_detection'
-    SEMANTIC_SEGMENTATION = 'semantic_segmentation'
-    OTHER = 'other'

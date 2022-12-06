@@ -12,7 +12,7 @@
 from enum import Enum
 from itertools import chain
 
-__all__ = ['PropertiesInputType', 'validate_properties', 'static_properties_from_df']
+__all__ = ['PropertiesInputType', 'validate_properties', 'static_properties_from_df', 'calc_vision_properties']
 
 from collections import defaultdict
 from typing import Any, Dict, List, Tuple
