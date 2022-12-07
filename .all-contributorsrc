@@ -353,6 +353,6 @@
   ],
   "projectName": "deepchecks",
   "projectOwner": "deepchecks",
-  "commitConvention": "angular"
+  "commitConvention": "angular",
   "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)"
 }
