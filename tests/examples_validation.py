@@ -16,7 +16,7 @@ from urllib.parse import urlparse
 import deepchecks.tabular.checks as tabular_checks
 import deepchecks.vision.checks as vision_checks
 from deepchecks.core import BaseCheck
-from deepchecks.tabular.checks import WholeDatasetDrift
+from deepchecks.tabular.checks import MultivariateDrift
 from deepchecks.utils.strings import generate_check_docs_link
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
 
@@ -25,7 +25,7 @@ from deepchecks.vision.checks.data_integrity.abstract_property_outliers import A
 
 checks_dirs = ["deepchecks/tabular/checks", "deepchecks/vision/checks"]
 
-ignored_classes = [AbstractPropertyOutliers, WholeDatasetDrift]
+ignored_classes = [AbstractPropertyOutliers, MultivariateDrift]
 
 
 def test_read_more_link(check_class, compiled_dir: str):

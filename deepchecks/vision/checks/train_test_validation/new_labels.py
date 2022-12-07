@@ -60,7 +60,7 @@ def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
 
 
 class NewLabels(TrainTestCheck, ReduceMixin):
-    """Detects labels that apper only in the test set.
+    """Detects labels that appear only in the test set.
 
     Parameters
     ----------
