@@ -190,7 +190,7 @@ def test_bad_pred_shape(diabetes_split_dataset_and_model):
             .with_args(dataset=test, y_pred_train=y_pred_train),
         raises(
             ValidationError,
-            r'Prediction array excpected to be of shape \(146,\) but was: \(296,\)')
+            r'Prediction array expected to be of shape \(146,\) but was: \(296,\)')
     )
 
 def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
@@ -205,7 +205,7 @@ def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
             .with_args(dataset=iris_labeled_dataset, y_pred_train=y_pred_train, y_proba_train=y_proba_train),
         raises(
             ValidationError,
-            r'Prediction propabilities excpected to be of length 150 but was: 149')
+            r'Prediction probabilities expected to be of length 150 but was: 149')
     )
 
 
