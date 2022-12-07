@@ -37,7 +37,7 @@ argument for the reduce_output functionality, decides how to aggregate the per-f
 collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
 Possible values are:
 'l2_weighted': L2 norm over the combination of per-feature scores and feature importance, minus the
-L2 norm of feature importance alone, specifically, ||FI + SCORE|| - ||FI||. This method returns a
+L2 norm of feature importance alone, specifically, ||FI + PER_FEATURE_SCORES|| - ||FI||. This method returns a
 value between 0 and sqrt(n_features).
 'weighted': Weighted mean based on feature importance, provides a robust estimation on how
 much the resulting score will affect the model's performance.
