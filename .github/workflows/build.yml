@@ -26,7 +26,7 @@ env:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
@@ -67,7 +67,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        python-version: ["3.8"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
+        python-version: ["3.9"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
 
     steps:
     - uses: actions/checkout@v3
