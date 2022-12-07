@@ -160,7 +160,7 @@ class NewLabels(TrainTestCheck, ReduceMixin):
         Parameters
         ----------
         max_allowed_new_labels_ratio: float , default: 0.005
-            the max threshold for percentage of labels that only apper in the test set.
+            the max threshold for percentage of labels that only appear in the test set.
         """
 
         def condition(result: Dict) -> ConditionResult:
