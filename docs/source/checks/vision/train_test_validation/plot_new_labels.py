@@ -17,7 +17,7 @@ This notebooks provides an overview for using and understanding the New Labels c
 How the check works
 -------------------
 In this check we count the frequency of each class id in the test set then check which of them
-do not apper in the training set. Note that by default this check run on a sample of the data set and so it is
+do not appear in the training set. Note that by default this check run on a sample of the data set and so it is
 possible that class ids that are rare in the train set will also be considered as new labels in the test set.
 """
 
