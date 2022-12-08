@@ -152,9 +152,9 @@ class BaseCheck(abc.ABC):
             summary=get_docs_summary(self, with_doc_link)
         )
 
-    def to_json(self, indent: int = 3) -> str:
+    def to_json(self, indent: int = 3, include_version: bool = True, include_defaults: bool = True) -> str:
         """Serialize check instance to JSON string."""
-        conf = self.config()
+        conf = self.config(include_version=include_version, include_defaults=include_defaults)
         return json.dumps(conf, indent=indent)
 
     @classmethod
