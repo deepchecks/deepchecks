@@ -153,7 +153,7 @@ class TrainTestPerformance(TrainTestCheck):
             display=figs
         )
 
-    def config(self, include_version: bool = True) -> CheckConfig:
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
         """Return check configuration."""
         if isinstance(self.scorers, dict):
             for k, v in self.scorers.items():
@@ -167,7 +167,7 @@ class TrainTestPerformance(TrainTestCheck):
                         f'{reference}. Scorer name: {k}'
                     )
 
-        return super().config(include_version=include_version)
+        return super().config(include_version=include_version, include_defaults=include_defaults)
 
     def add_condition_test_performance_greater_than(self: PR, min_score: float) -> PR:
         """Add condition - metric scores are greater than the threshold.
