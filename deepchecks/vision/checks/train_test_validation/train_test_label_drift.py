@@ -229,7 +229,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def config(self, include_version: bool = True) -> CheckConfig:
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
         """Return check configuration."""
         # NOTE: label_properties if passed always contain callables
         if self.label_properties is not None:
@@ -237,7 +237,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
                 'Serialization of check instances with provided '
                 '"label_properties" parameter is not supported'
             )
-        return super().config(include_version=include_version)
+        return super().config(include_version=include_version, include_defaults=include_defaults)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return label drift score per label property."""
