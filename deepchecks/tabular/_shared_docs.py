@@ -33,8 +33,8 @@ model_classes: Optional[List] , default: None
 """.strip('\n')
 
 _shared_docstrings['feature_aggregation_method_argument'] = """
-argument for the reduce_output functionality, decides how to aggregate the per-feature scores into a
-collective score. The collective score value is between 0 and 1 for all methods other than l2_combination.
+Argument for the reduce_output functionality, decides how to aggregate the vector of `per-feature scores` into a
+single aggregate score. The aggregate score value is between 0 and 1 for all methods other than l2_combination.
 Possible values are:
 'l2_weighted': L2 norm over the combination of per-feature scores and feature importance, minus the
 L2 norm of feature importance alone, specifically, ||FI + PER_FEATURE_SCORES|| - ||FI||. This method returns a
