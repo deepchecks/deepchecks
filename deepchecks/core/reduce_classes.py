@@ -51,7 +51,8 @@ class ReduceMixin(abc.ABC):
         raise NotImplementedError('Must implement reduce_output function')
 
 
-class ReduceLabelMixin(abc.ABC):
+class ReduceLabelMixin(ReduceMixin):
+    """Extend ReduceMixin to for checks that use the labels."""
     pass
 
 
