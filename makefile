@@ -229,7 +229,7 @@ test-win:
 		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) 
 	@$(PIP_WIN) install -e .
-	python -m pytest $(WIN_TESTDIR)
+	python -m pytest -vvv $(WIN_TESTDIR)
 
 
 coverage: requirements dev-requirements

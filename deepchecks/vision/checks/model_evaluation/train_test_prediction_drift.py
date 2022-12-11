@@ -235,7 +235,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
-    def config(self, include_version: bool = True) -> CheckConfig:
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
         """Return check configuration."""
         # NOTE: prediction_properties if passed always contain callables
         if self.prediction_properties is not None:
@@ -243,7 +243,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
                 'Serialization of check instances with provided '
                 '"prediction_properties" parameter is not supported'
             )
-        return super().config(include_version=include_version)
+        return super().config(include_version=include_version, include_defaults=include_defaults)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return prediction drift score per prediction property."""

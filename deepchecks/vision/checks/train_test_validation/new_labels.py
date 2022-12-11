@@ -61,7 +61,7 @@ def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
 
 
 class NewLabels(TrainTestCheck, ReduceMixin):
-    """Detects labels that apper only in the test set.
+    """Detects labels that appear only in the test set.
 
     Parameters
     ----------
@@ -161,7 +161,7 @@ class NewLabels(TrainTestCheck, ReduceMixin):
         Parameters
         ----------
         max_allowed_new_labels_ratio: float , default: 0.005
-            the max threshold for percentage of labels that only apper in the test set.
+            the max threshold for percentage of labels that only appear in the test set.
         """
 
         def condition(result: Dict) -> ConditionResult:

@@ -152,7 +152,7 @@ def build_drift_plot(score):
     bar_traces, x_axis, y_axis = drift_score_bar_traces(score)
     x_axis['title'] = 'Drift score'
     drift_plot = go.Figure(layout=dict(
-        title='Drift Score - Multivariable Total',
+        title='Drift Score - Multivariable',
         xaxis=x_axis,
         yaxis=y_axis,
         height=200

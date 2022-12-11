@@ -56,7 +56,7 @@ def initvars(
         arguments = {
             k: v
             for k, v in bind.arguments.items()
-            if signature.parameters[k].default is not v
+            if signature.parameters[k].default != v
         }
 
     if not include_kwargs:

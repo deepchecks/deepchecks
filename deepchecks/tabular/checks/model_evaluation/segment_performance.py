@@ -176,7 +176,7 @@ class SegmentPerformance(SingleDatasetCheck):
 
         return CheckResult(value, display=fig)
 
-    def config(self, include_version: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
         """Return check instance config."""
         if self.alternative_scorer is not None:
             for k, v in self.alternative_scorer.items():
@@ -189,4 +189,4 @@ class SegmentPerformance(SingleDatasetCheck):
                         'Only built-in scorers are allowed when serializing check instances. '
                         f'{reference}Scorer name: {k}'
                     )
-        return super().config(include_version)
+        return super().config(include_version, include_defaults=include_defaults)

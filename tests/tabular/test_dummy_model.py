@@ -190,7 +190,7 @@ def test_bad_pred_shape(diabetes_split_dataset_and_model):
             .with_args(dataset=test, y_pred_train=y_pred_train),
         raises(
             ValidationError,
-            r'Prediction array expected to be of same length as data 146, but was: 296')
+            r'Prediction array expected to be of shape \(146,\) but was: \(296,\)')
     )
 
 def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
