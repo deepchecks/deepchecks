@@ -14,7 +14,7 @@ from typing import Dict
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.reduce_classes import ReduceMixin
+from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 
@@ -24,7 +24,7 @@ pd.options.mode.chained_assignment = None
 __all__ = ['NewLabelTrainTest']
 
 
-class NewLabelTrainTest(TrainTestCheck, ReduceMixin):
+class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
     """Find new labels in test.
 
     Parameters
