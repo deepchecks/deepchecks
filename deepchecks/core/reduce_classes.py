@@ -53,6 +53,7 @@ class ReduceMixin(abc.ABC):
 
 class ReduceLabelMixin(ReduceMixin):
     """Extend ReduceMixin to for checks that use the labels."""
+
     pass
 
 
