@@ -13,11 +13,13 @@
 import abc
 import io
 import json
+import pathlib
 import warnings
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
 
 import jsonpickle
+from bs4 import BeautifulSoup
 from ipywidgets import Widget
 from typing_extensions import Self, TypedDict
 
@@ -248,6 +250,92 @@ class SuiteResult(DisplayableResult):
             requirejs=requirejs,
             output_id=unique_id or get_random_string(n=25),
         )
+
+    def save_as_cml_markdown(
+        self,
+        file: str = None,
+        platform: str = 'github',
+        attach_html_report: bool = True,
+    ):
+        """Save a result to a markdown file to use with [CML](https://cml.dev).
+
+        The rendered markdown will include only the conditions summary,
+        with the full html results attached.
+
+        Parameters
+        ----------
+        file : filename or file-like object
+            The file to write the HTML output to. If None writes to report.md
+        platform: str , default: 'github'
+            Target Git platform to ensure pretty formatting and nothing funky.
+            Options currently include 'github' or 'gitlab'.
+        attach_html_report: bool , default True
+            Whether to attach the full html report with plots, making it available
+            for download. This will save a [suite_name].html file
+            in the same directory as the markdown report.
+
+        Returns
+        -------
+        Optional[str] :
+            name of newly create file.
+        """
+        if file is None:
+            file = './report.md'
+        elif isinstance(file, str):
+            pass
+        elif isinstance(file, io.TextIOWrapper):
+            raise NotImplementedError(
+                'io.TextIOWrapper is not yet supported for save_as_cml_markdown.'
+            )
+
+        def format_conditions_table():
+            conditions_table = SuiteResultHtmlSerializer(self).prepare_conditions_table()
+            # conditions_table = self.html_serializer.prepare_conditions_table()
+
+            soup = BeautifulSoup(conditions_table, features='html.parser')
+            soup.h2.extract()  # remove 'Conditions Table' redundant heading
+            soup.style.extract()  # these are not rendered anyway
+
+            summary = soup.new_tag('summary')
+            summary.string = self.name
+            soup.table.insert_before(summary)
+
+            soup = BeautifulSoup(
+                f'\n<details>{str(soup)}</details>\n',
+                features='html.parser'
+            )
+            return soup
+
+        soup = format_conditions_table()
+        if not attach_html_report:
+            with open(file, 'w', encoding='utf-8') as handle:
+                handle.write(soup.prettify())
+        else:
+            # save full html report
+            path = pathlib.Path(file)
+            html_file = str(
+                pathlib.Path(file).parent
+                .resolve()
+                .joinpath(path.stem+'.html')
+            )
+            self.save_as_html(html_file)
+            # build string containing html report as an attachment
+            # (hyperlink syntax gets processed as an attachment by cml)
+            if platform == 'gitlab':
+                soup.summary.string = f'![{soup.summary.string}]({html_file})'
+                soup = soup.prettify()
+            elif platform == 'github':
+                soup = (
+                    soup.prettify() +
+                    f'\n> 📎 ![Full {self.name} Report]({html_file})\n'
+                )
+            else:
+                error_message = 'Only \'github\' and \'gitlab\' are supported right now.'
+                error_message += '\nThough one of these formats '
+                error_message += 'might work for your target Git platform!'
+                raise ValueError(error_message)
+            with open(file, 'w', encoding='utf-8') as file_handle:
+                file_handle.write(soup)
 
     def to_widget(
         self,

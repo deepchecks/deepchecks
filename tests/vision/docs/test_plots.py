@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+import time
 from pathlib import Path
 from runpy import run_path
 
@@ -38,4 +39,9 @@ def test_plots_on_gpu():
         if not source_files:
             raise ValueError("No plots found in docs/source")
         for file in source_files:
+            print(f"plot file: {str(file)}")
+            start = time.time()
             run_path(str(file))
+            end = time.time()
+            print(f"plot file: {str(file)}, Time: {end-start}")
+

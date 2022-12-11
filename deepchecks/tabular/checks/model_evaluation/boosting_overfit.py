@@ -241,7 +241,7 @@ class BoostingOverfit(TrainTestCheck):
         name = f'Test score over iterations is less than {format_percent(threshold)} from the best score'
         return self.add_condition(name, condition)
 
-    def config(self, include_version: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
         """Return check instance config."""
         if self.alternative_scorer is not None:
             for k, v in self.alternative_scorer.items():
@@ -254,7 +254,7 @@ class BoostingOverfit(TrainTestCheck):
                         'Only built-in scorers are allowed when serializing check instances. '
                         f'{reference}Scorer name: {k}'
                     )
-        return super().config(include_version)
+        return super().config(include_version, include_defaults=include_defaults)
 
 
 def _partial_score(scorer, dataset, model, step):
