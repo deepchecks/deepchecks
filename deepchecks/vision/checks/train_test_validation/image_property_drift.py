@@ -17,7 +17,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
-from deepchecks.core.reduce_classes import ReducePropertyMixin
+from deepchecks.core.reduce_classes import ReduceVisionPropertyMixin
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
@@ -32,7 +32,7 @@ TImagePropertyDrift = t.TypeVar('TImagePropertyDrift', bound='ImagePropertyDrift
 
 
 @docstrings
-class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
+class ImagePropertyDrift(TrainTestCheck, ReduceVisionPropertyMixin):
     """
     Calculate drift between train dataset and test dataset per image property, using statistical measures.
 

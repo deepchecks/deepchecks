@@ -22,7 +22,7 @@ from deepchecks.utils.logger import get_logger
 __all__ = [
     'ReduceMixin',
     'ReduceFeatureMixin',
-    'ReducePropertyMixin',
+    'ReduceVisionPropertyMixin',
     'ReduceMetricClassMixin'
 ]
 
@@ -50,7 +50,7 @@ class ReduceMixin(abc.ABC):
         raise NotImplementedError('Must implement reduce_output function')
 
 
-class ReduceMetricClassMixin(ReduceMixin):
+class ReduceMetricClassMixin(abc.ABC, ReduceMixin):
     """Extend ReduceMixin to for performance checks."""
 
     def greater_is_better(self):
@@ -79,7 +79,7 @@ class ReduceMetricClassMixin(ReduceMixin):
             raise DeepchecksValueError('Cannot reduce metric class with mixed scorers')
 
 
-class ReduceFeatureMixin(ReduceMixin):
+class ReduceFeatureMixin(abc.ABC, ReduceMixin):
     """Extend ReduceMixin to identify checks that output result per feature.
 
     Should implement the feature_reduce function and all the aggregation methods it supports.
@@ -118,7 +118,7 @@ class ReduceFeatureMixin(ReduceMixin):
             raise DeepchecksValueError(f'Unknown aggregation method: {aggregation_method}')
 
 
-class ReducePropertyMixin(ReduceMixin):
+class ReduceVisionPropertyMixin(abc.ABC, ReduceMixin):
     """Extend ReduceMixin to identify checks that output result per property.
 
     Should implement the property_reduce function and all the aggregation methods it supports.
