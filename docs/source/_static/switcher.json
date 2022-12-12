@@ -6,8 +6,12 @@
   },
   {
     "version": "stable",
-    "name": "0.9 (stable)",
+    "name": "0.10 (stable)",
     "url": "https://docs.deepchecks.com/stable/"
+  },
+  {
+    "version": "0.10",
+    "url": "https://docs.deepchecks.com/0.10/"
   },
   {
     "version": "0.9",
