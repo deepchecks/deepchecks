@@ -114,9 +114,9 @@ def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
 
 def ensure_predictions_shape(pred: np.ndarray, data: t.Sequence) -> np.ndarray:
     """Ensure the predictions are in the right shape and if so return them. else raise error."""
-    if pred.shape[0] != (len(data)):
-        raise errors.ValidationError(f'Prediction array expected to be of same length as data {(len(data))} '
-                                     f' but was: {pred.shape}')
+    if pred.shape[0] != len(data):
+        raise errors.ValidationError(f'Prediction array expected to be of same length as data {len(data)},'
+                                     f' but was: {pred.shape[0]}')
     return pred
 
 
