@@ -18,7 +18,7 @@ import torch
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.reduce_classes import ReduceMixin
+from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck, VisionData
 from deepchecks.vision.utils.image_functions import draw_bboxes, prepare_thumbnail
@@ -59,7 +59,7 @@ def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
     return image_thumbnail
 
 
-class NewLabels(TrainTestCheck, ReduceMixin):
+class NewLabels(TrainTestCheck, ReduceLabelMixin):
     """Detects labels that appear only in the test set.
 
     Parameters
