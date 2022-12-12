@@ -393,6 +393,7 @@ class Context(BaseContext):
 
     @staticmethod
     def infer_task_type(train_dataset: TextData, test_dataset: TextData):
+        """Infer the task type."""
         if not test_dataset:
             return train_dataset.task_type
         elif train_dataset.task_type != test_dataset.task_type:
