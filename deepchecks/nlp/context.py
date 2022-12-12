@@ -270,24 +270,24 @@ class Context(BaseContext):
 
     Parameters
     ----------
-    train_dataset : Union[TextData, None], default: None
+    train_dataset : Union[TextData, None] , default: None
         TextData object, representing data an estimator was fitted on
-    test_dataset : Union[TextData, None], default: None
+    test_dataset : Union[TextData, None] , default: None
         TextData object, representing data an estimator predicts on
-    with_display : bool, default: True
+    with_display : bool , default: True
         flag that determines if checks will calculate display (redundant in some checks).
-    train_pred : Union[TTextPred, None], default: None
+    train_pred : Union[TTextPred, None] , default: None
         predictions on train dataset
-    test_pred : Union[TTextPred, None], default: None
+    test_pred : Union[TTextPred, None] , default: None
         predictions on test dataset
-    train_proba : Union[TTextProba, None], default: None
+    train_proba : Union[TTextProba, None] , default: None
         probabilities on train dataset
-    test_proba : Union[TTextProba, None], default: None
+    test_proba : Union[TTextProba, None] , default: None
         probabilities on test dataset
-    model_classes : Optional[List], default: None
+    model_classes : Optional[List] , default: None
         list of classes known to the model
     random_state: int, default 42
-        A seed to set for pseudo-random functions, primarily sampling.
+        A seed to set for pseudo-random functions , primarily sampling.
     n_samples: int, default: 10_000
         The number of samples to use within the checks.
     """
@@ -332,7 +332,7 @@ class Context(BaseContext):
                 template='For more information please refer to the Supported Tasks guide {link}')
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
-        self._task_type = train_dataset.task_type if train_dataset else test_dataset.task_type if test_dataset else None
+        self._task_type = self.infer_task_type(train_dataset, test_dataset)
 
         self._observed_classes, self._model_classes = \
             infer_observed_and_model_labels(train_dataset=train_dataset, test_dataset=test_dataset,
@@ -390,6 +390,16 @@ class Context(BaseContext):
     def span_aligner(self) -> SpanAligner:
         """Return the cached SpanAligner object."""
         return self._span_aligner
+
+    @staticmethod
+    def infer_task_type(train_dataset: TextData, test_dataset: TextData):
+        if not test_dataset:
+            return train_dataset.task_type
+        elif train_dataset.task_type != test_dataset.task_type:
+            raise DeepchecksValueError(f'datasets must have the same task type. Received '
+                                       f'{train_dataset.task_type.value} for train and '
+                                       f'{test_dataset.task_type.value} for test')
+        return train_dataset.task_type
 
     @property
     def task_type(self) -> TaskType:
