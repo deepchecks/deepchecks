@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
-from typing import Optional
+from typing import List, Optional
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
@@ -51,15 +51,23 @@ class Context:
         if train and test:
             validate_vision_data_compatibility(train, test)
 
-        if train and train.name is None:
-            train.name = DEFAULT_DATASET_NAMES[0]
-        if test and test.name is None:
-            test.name = DEFAULT_DATASET_NAMES[1]
+        if train is not None:
+            train.init_cache()
+            train.name = DEFAULT_DATASET_NAMES[0] if train.name is None else train.name
+            self._task_type = train.task_type
+        if test is not None:
+            test.init_cache()
+            test.name = DEFAULT_DATASET_NAMES[1] if test.name is None else test.name
 
         self._train = train
         self._test = test
         self._with_display = with_display
         self.random_state = random_state
+
+    @property
+    def task_type(self) -> bool:
+        """Return the common task type of the datasets."""
+        return self._task_type
 
     @property
     def with_display(self) -> bool:
@@ -84,12 +92,29 @@ class Context:
         """Return whether there is test dataset defined."""
         return self._test is not None
 
+    def assert_classes_to_use(self, classes_to_use: List[str]):
+        """Assert that the given classes are in the observed classes."""
+        if classes_to_use is not None and self.train is not None:
+            classes_missing_train = [x for x in classes_to_use if x not in self.train.observed_classes]
+            if len(classes_missing_train) > 0:
+                raise DeepchecksValueError('Train dataset does not contain the following classes selected for '
+                                           f'display: {classes_missing_train}')
+        if classes_to_use is not None and self.test is not None:
+            classes_missing_test = [x for x in self.classes_to_display if x not in self.test.observed_classes]
+            if len(classes_missing_test) > 0:
+                raise DeepchecksValueError('Test dataset does not contain the following classes selected for '
+                                           f'display: {classes_missing_test}')
+
     def assert_task_type(self, *expected_types: TaskType):
         """Assert task_type matching given types."""
         if self.train.task_type not in expected_types:
-            raise ModelValidationError(
+            raise DeepchecksNotSupportedError(
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
+
+    def get_observed_classes(self) -> List[str]:
+        """Return the observed classes in the train and test dataset."""
+        return self.train.observed_classes + self.test.observed_classes
 
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant VisionData by given kind."""

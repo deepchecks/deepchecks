@@ -21,13 +21,14 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.utils.strings import format_number, format_percent
-from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.utils.display_utils import draw_image
 from deepchecks.vision.vision_data import TaskType
 
 __all__ = ['NewLabels']
 
-
+@docstrings
 class NewLabels(TrainTestCheck, ReduceMixin):
     """Detects labels that apper only in the test set.
 
@@ -37,6 +38,7 @@ class NewLabels(TrainTestCheck, ReduceMixin):
         maximum number of images to show from each newly found label in the test set.
     max_new_labels_to_display : int , default: 3
         Maximum number of new labels to display in output.
+    {additional_init_params:2*indent}
     """
 
     def __init__(
@@ -56,22 +58,19 @@ class NewLabels(TrainTestCheck, ReduceMixin):
         self.max_new_labels_to_display = max_new_labels_to_display
         self._display_images = defaultdict()
 
-    def update(self, context: Context, batch: Batch, dataset_kind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind):
         """No additional caching required for this check."""
         if dataset_kind == DatasetKind.TRAIN:
             pass
-        data = context.get_data_by_kind(dataset_kind)
-        images = data.batch_to_images(batch)
-        labels = data.batch_to_labels(batch)
 
-        for image, label in zip(images, labels):
+        data = context.get_data_by_kind(dataset_kind)
+        for image, label, identifier in zip(batch.numpy_images, batch.numpy_labels, batch.numpy_image_identifiers):
             if data.task_type == TaskType.CLASSIFICATION:
-                # TODO: replace image_identifier=-1 when api refactor is done
-                self._update_images_dict(label, label.item(), image, image_identifier=-1)
+                self._update_images_dict(label, label, image, image_identifier=identifier)
             elif data.task_type == TaskType.OBJECT_DETECTION and len(label) > 0:
-                for class_id in np.unique(label[:, 0].numpy()):
-                    bbox_of_label = label[(label[:, 0] == class_id).nonzero().squeeze(1)]
-                    self._update_images_dict(bbox_of_label, class_id, image, image_identifier=-1)
+                for class_id in np.unique(label[:, 0]):
+                    bboxes_of_label = label[label[:, 0] == class_id]
+                    self._update_images_dict(bboxes_of_label, class_id, image, image_identifier=identifier)
             elif len(label) > 0:
                 raise DeepchecksValueError(f'Unsupported task type {data.task_type.value} for NewLabels check')
 
@@ -94,31 +93,29 @@ class NewLabels(TrainTestCheck, ReduceMixin):
             display: Images containing said class_ids from the test set.
         """
         test_data = context.get_data_by_kind(DatasetKind.TEST)
+        labels_only_in_test = {key: value for key, value in test_data.get_cache()['labels'].items()
+                               if key not in context.get_data_by_kind(DatasetKind.TRAIN).get_cache()['labels']}
 
-        classes_in_train = context.get_data_by_kind(DatasetKind.TRAIN).classes_indices.keys()
-        classes_only_in_test_count = {key: value for key, value in test_data.n_of_samples_per_class.items()
-                                      if key not in classes_in_train}
         # sort by number of appearances in test set in descending order
-        classes_only_in_test_count = dict(sorted(classes_only_in_test_count.items(), key=lambda item: -item[1]))
+        labels_only_in_test = dict(sorted(labels_only_in_test.items(), key=lambda item: -item[1]))
 
-        result_value = {
-            'new_labels': {test_data.label_id_to_name(key): value for key, value in classes_only_in_test_count.items()},
-            'all_labels_count': sum(test_data.n_of_samples_per_class.values())
-        }
+        result_value = {'new_labels': labels_only_in_test,
+                        'all_labels_count': sum(test_data.get_cache()['labels'].values())}
 
         if context.with_display:
             # Create display
             displays = []
-            for class_id, num_occurrences in classes_only_in_test_count.items():
+            images_per_class = {test_data.label_id_to_name(key): value for key, value in self._display_images.items()}
+            for class_name, num_occurrences in labels_only_in_test.items():
                 # Create id of alphabetic characters
                 sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
-                thumbnail_images = [draw_image(img, labels) for img, labels in
-                                    zip(self._display_images[class_id]['images'],
-                                        self._display_images[class_id]['labels'])]
+                thumbnail_images = [draw_image(img, labels, test_data.task_type) for img, labels in
+                                    zip(images_per_class[class_name]['images'],
+                                        images_per_class[class_name]['labels'])]
                 images_combine = ''.join([f'<div class="{sid}-item">{img}</div>' for img in thumbnail_images])
 
                 html = HTML_TEMPLATE.format(
-                    label_name=test_data.label_id_to_name(class_id),
+                    label_name=class_name,
                     images=images_combine,
                     count=format_number(num_occurrences),
                     dataset_name=context.test.name,

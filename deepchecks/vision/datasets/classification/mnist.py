@@ -15,6 +15,7 @@ import typing as t
 import warnings
 
 import albumentations as A
+import numpy as np
 import torch
 import torch.nn.functional as F
 from albumentations.pytorch import ToTensorV2
@@ -43,7 +44,8 @@ def load_dataset(
         batch_size: t.Optional[int] = None,
         shuffle: bool = False,
         pin_memory: bool = True,
-        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
+        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+        n_samples = None,
 ) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
@@ -61,6 +63,9 @@ def load_dataset(
     object_type : Literal[Dataset, DataLoader], default 'DataLoader'
         object type to return. if `'VisionData'` then :obj:`deepchecks.vision.VisionData`
         will be returned, if `'DataLoader'` then :obj:`torch.utils.data.DataLoader`
+    n_samples : int, optional
+        Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle
+        is False otherwise selects n_samples at random. If None, returns all samples.
 
     Returns
     -------
@@ -83,13 +88,21 @@ def load_dataset(
                           generator=torch.Generator())
     elif object_type == 'VisionData':
         model = load_model()
-        loader = DataLoader(dataset, batch_size=batch_size, pin_memory=pin_memory, shuffle=shuffle,
+        loader = DataLoader(dataset, batch_size=batch_size, pin_memory=pin_memory,
                             generator=torch.Generator(), collate_fn=deepchecks_collate(model))
-        if not shuffle:
-            loader = get_data_loader_sequential(loader)
-        return VisionData(loader, task_type='classification', reshuffle_dynamic_loader=False)
+        loader = get_data_loader_sequential(loader, shuffle, n_samples)
+        return VisionData(loader, task_type='classification', shuffle_dynamic_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
+
+
+def collate_without_model(data) -> t.Tuple[t.List[np.ndarray], t.List[int]]:
+    """Collate function for the mnist dataset returning images and labels in correct format as tuple."""
+    raw_images = torch.stack([x[0] for x in data])
+    labels = [x[1] for x in data]
+    images = raw_images.permute(0, 2, 3, 1)
+    images = un_normalize_batch(images, mean=(0.1307,), std=(0.3081,))
+    return images, labels
 
 
 def deepchecks_collate(model) -> t.Callable:
@@ -143,7 +156,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
 
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters())
-    epochs = 5
+    epochs = 3
 
     model.train()
 

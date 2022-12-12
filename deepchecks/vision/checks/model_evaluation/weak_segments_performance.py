@@ -23,12 +23,12 @@ from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
-from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision import BatchWrapper, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import per_sample_dice
-from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data import TaskType
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
@@ -124,7 +124,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self._properties_results = defaultdict(list)
         self._sample_scores = []
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Calculate the image properties and scores per image."""
         properties_results = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
         for prop_name, prop_value in properties_results.items():

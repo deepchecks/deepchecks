@@ -19,7 +19,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMetricClassMixin
 from deepchecks.utils.docref import doclink
-from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision import BatchWrapper, Context, SingleDatasetCheck
 from deepchecks.vision.metrics_utils.scorers import get_scorers_dict, metric_results_to_df
 
 if TYPE_CHECKING:
@@ -47,7 +47,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         """Initialize the metric for the check, and validate task type is relevant."""
         self.scorers = get_scorers_dict(context.get_data_by_kind(dataset_kind), self.scorers)
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind.TRAIN):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind.TRAIN):
         """Update the metrics by passing the batch to ignite metric update method."""
         label = batch.labels
         prediction = batch.predictions

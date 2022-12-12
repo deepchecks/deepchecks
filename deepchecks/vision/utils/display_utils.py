@@ -63,11 +63,9 @@ def draw_image(image: np.ndarray, label, task_type: TaskType,
     str
         The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
     """
-    if draw_label and task_type == TaskType.OBJECT_DETECTION:
+    if label is not None and image is not None and draw_label and task_type == TaskType.OBJECT_DETECTION:
         image = draw_bboxes(image, label, copy_image=False, border_width=5)
-    image_thumbnail = prepare_thumbnail(
-        image=image,
-        size=thumbnail_size,
-        copy_image=False
-    )
-    return image_thumbnail
+    if image is not None:
+        return prepare_thumbnail(image=image, size=thumbnail_size, copy_image=False)
+    else:
+        return 'Image unavailable'

@@ -123,12 +123,11 @@ def load_dataset(
                           collate_fn=_batch_collate, pin_memory=pin_memory, generator=torch.Generator())
     elif object_type == 'VisionData':
         model = load_model()
-        loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+        loader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers,
                             collate_fn=deepchecks_collate(model), pin_memory=pin_memory, generator=torch.Generator())
-        if not shuffle:
-            loader = get_data_loader_sequential(loader)
+        loader = get_data_loader_sequential(loader, shuffle=shuffle)
         return VisionData(dynamic_loader=loader, task_type='semantic_segmentation', label_map=LABEL_MAP,
-                          reshuffle_dynamic_loader=False)
+                          shuffle_dynamic_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 

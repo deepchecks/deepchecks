@@ -51,22 +51,19 @@ class MeanDice(Metric):
         super().reset()
         self._evals = defaultdict(lambda: {'dice': 0, 'count': 0})
 
-    def update(self, output: Tuple[torch.Tensor, torch.Tensor]):
+    def update(self, output: Tuple[np.ndarray, np.ndarray]):
         """Update metric with batch of samples."""
-        y_pred, y = output
-
-        for i in range(len(y)):
-            gt_onehot, pred_onehot = format_segmentation_masks(y[i], y_pred[i], self.threshold)
+        for pred, label in zip(output[0], output[1]):
+            label_onehot, pred_onehot = format_segmentation_masks(label, pred, self.threshold)
 
             if self.average == 'micro':
-                tp_count, gt_count, pred_count = segmentation_counts_micro(gt_onehot, pred_onehot)
+                tp_count, label_count, pred_count = segmentation_counts_micro(label_onehot, pred_onehot)
             else:
-                tp_count, gt_count, pred_count = segmentation_counts_per_class(
-                    gt_onehot, pred_onehot)
+                tp_count, label_count, pred_count = segmentation_counts_per_class(label_onehot, pred_onehot)
 
-            dice = (2 * tp_count + self.smooth) / (gt_count + pred_count + self.smooth)
+            dice = (2 * tp_count + self.smooth) / (label_count + pred_count + self.smooth)
 
-            classes_ids = [0] if self.average == 'micro' else torch.unique(y[i]).tolist()
+            classes_ids = [0] if self.average == 'micro' else np.unique(label)
             for class_id in [int(x) for x in classes_ids]:
                 self._evals[class_id]['dice'] += dice[class_id]
                 self._evals[class_id]['count'] += 1
@@ -118,17 +115,15 @@ class MeanIoU(Metric):
 
     def update(self, output: Tuple[torch.Tensor, torch.Tensor]):
         """Update metric with batch of samples."""
-        y_pred, y = output
-
-        for i in range(len(y)):
-            gt_onehot, pred_onehot = format_segmentation_masks(y[i], y_pred[i], self.threshold)
+        for pred, label in zip(output[0], output[1]):
+            gt_onehot, pred_onehot = format_segmentation_masks(label, pred, self.threshold)
             tp_count_per_class, gt_count_per_class, pred_count_per_class = segmentation_counts_per_class(
                 gt_onehot, pred_onehot)
 
             iou_per_class = (tp_count_per_class + self.smooth) / \
                             (gt_count_per_class + pred_count_per_class - tp_count_per_class + self.smooth)
 
-            classes_ids = [0] if self.average == 'micro' else torch.unique(y[i]).tolist()
+            classes_ids = [0] if self.average == 'micro' else np.unique(label)
             for class_id in [int(x) for x in classes_ids]:
                 self._evals[class_id]['iou'] += iou_per_class[class_id]
                 self._evals[class_id]['count'] += 1

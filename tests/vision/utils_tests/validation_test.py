@@ -17,33 +17,33 @@ from deepchecks.vision.utils.validation import validate_extractors
 
 FILE_NAME = 'deepchecks_formatted_image.jpg'
 
-def test_mnist_validation(mnist_dataset_train, mock_trained_mnist):
+def test_mnist_validation(mnist_visiondata_train, mock_mnist_model):
     if is_headless():
-        validate_extractors(mnist_dataset_train, mock_trained_mnist)
+        validate_extractors(mnist_visiondata_train, mock_mnist_model)
         assert_that(os.path.exists(FILE_NAME), True)
         assert_that(os.path.isfile(FILE_NAME), True)
 
 
-def test_mnist_validation_no_save(mnist_dataset_train, mock_trained_mnist):
+def test_mnist_validation_no_save(mnist_visiondata_train, mock_mnist_model):
     if is_headless():
-        validate_extractors(mnist_dataset_train, mock_trained_mnist, save_images=False)
+        validate_extractors(mnist_visiondata_train, mock_mnist_model, save_images=False)
         assert_that(os.path.exists(FILE_NAME), False)
 
 
-def test_mnist_validation_new_loc_save(mnist_dataset_train, mock_trained_mnist):
+def test_mnist_validation_new_loc_save(mnist_visiondata_train, mock_mnist_model):
     if is_headless():
-        validate_extractors(mnist_dataset_train, mock_trained_mnist, image_save_location='/tmp')
+        validate_extractors(mnist_visiondata_train, mock_mnist_model, image_save_location='/tmp')
         assert_that(os.path.exists('/tmp/' + FILE_NAME), False)
 
 
-def test_coco_validation(coco_test_visiondata, mock_trained_yolov5_object_detection):
+def test_coco_validation(coco_visiondata_test, mock_trained_yolov5_object_detection):
     if is_headless():
-        validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection)
+        validate_extractors(coco_visiondata_test, mock_trained_yolov5_object_detection)
         assert_that(os.path.exists(FILE_NAME), True)
         assert_that(os.path.isfile(FILE_NAME), True)
 
 
-def test_coco_validation_no_save(coco_test_visiondata, mock_trained_yolov5_object_detection):
+def test_coco_validation_no_save(coco_visiondata_test, mock_trained_yolov5_object_detection):
     if is_headless():
-        validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection, save_images=False)
+        validate_extractors(coco_visiondata_test, mock_trained_yolov5_object_detection, save_images=False)
         assert_that(os.path.exists(FILE_NAME), False)

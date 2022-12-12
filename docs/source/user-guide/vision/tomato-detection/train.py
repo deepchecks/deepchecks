@@ -185,7 +185,7 @@ class TomatoData(DetectionData):
                 label.append(torch.tensor([]))
         return label
 
-    def infer_on_batch(self, batch, model, device):
+    def batch_to_predictions(self, batch, model, device):
         nm_thrs = 0.2
         score_thrs = 0.7
         imgs = list(img.to(device) for img in batch[0])

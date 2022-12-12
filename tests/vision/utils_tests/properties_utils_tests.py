@@ -23,8 +23,8 @@ from deepchecks.vision.utils.vision_properties import calc_vision_properties, va
 from numpy.random import seed
 
 
-def test_calc_properties(coco_train_visiondata):
-    images = coco_train_visiondata.batch_to_images(next(iter(coco_train_visiondata.data_loader)))
+def test_calc_properties(coco_visiondata_train):
+    images = coco_visiondata_train.batch_to_images(next(iter(coco_visiondata_train.data_loader)))
     results = calc_vision_properties(images, default_image_properties)
     assert_that(results.keys(), contains_exactly(
         'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
@@ -32,9 +32,9 @@ def test_calc_properties(coco_train_visiondata):
     assert_that(sum(results['Brightness']), close_to(15.56, 0.01))
 
 
-def test_calc_default_image_properties(coco_train_visiondata):
+def test_calc_default_image_properties(coco_visiondata_train):
     seed(0)
-    images = coco_train_visiondata.batch_to_images(next(iter(coco_train_visiondata.data_loader)))
+    images = coco_visiondata_train.batch_to_images(next(iter(coco_visiondata_train.data_loader)))
     results = calc_default_image_properties(images)
     assert_that(results.keys(), contains_exactly(
         'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
@@ -42,9 +42,9 @@ def test_calc_default_image_properties(coco_train_visiondata):
     assert_that(sum(results['Brightness']), close_to(15.53, 0.01))
 
 
-def test_calc_default_image_properties_grayscale(mnist_dataset_train):
+def test_calc_default_image_properties_grayscale(mnist_visiondata_train):
     seed(0)
-    images = mnist_dataset_train.batch_to_images(next(iter(mnist_dataset_train.data_loader)))
+    images = mnist_visiondata_train.batch_to_images(next(iter(mnist_visiondata_train.data_loader)))
     results = calc_default_image_properties(images)
     assert_that(results['Mean Red Relative Intensity'][0], is_(None))
     assert_that(sum(results['Brightness']), close_to(2061.86, 0.01))
@@ -165,8 +165,8 @@ def detects_incorrect_property_dict_structure(property_name: str, missed_key: st
 # ==========================
 
 
-def test_sharpness_and_texture_level(coco_train_visiondata):
+def test_sharpness_and_texture_level(coco_visiondata_train):
     props = [{'name': 'texture', 'method': texture_level, 'output_type': 'continuous'}]
-    images = coco_train_visiondata.batch_to_images(next(iter(coco_train_visiondata.data_loader)))
+    images = coco_visiondata_train.batch_to_images(next(iter(coco_visiondata_train.data_loader)))
     results = calc_vision_properties(images, props)
     assert_that(sum(results['sharpness']), close_to(50, 0.01))

@@ -15,12 +15,12 @@ from deepchecks.vision.checks import SimpleModelComparison
 from tests.base.utils import equal_condition_result
 
 
-def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+def test_mnist_prior_strategy(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
 
     check = SimpleModelComparison(strategy='prior', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+    result = check.run(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model,
                        device=device)
     first_row = result.value.loc[result.value['Model'] != 'Perfect Model'].sort_values(by='Number of samples',
                                                                                        ascending=False).iloc[0]
@@ -31,7 +31,7 @@ def test_mnist_prior_strategy(mnist_dataset_train, mnist_dataset_test, mock_trai
     assert_that(first_row['Class'], equal_to(1))
 
 
-def test_mnist_not_exist_strategy(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist):
+def test_mnist_not_exist_strategy(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model):
     check = SimpleModelComparison()
     # Act
     assert_that(
@@ -40,11 +40,11 @@ def test_mnist_not_exist_strategy(mnist_dataset_train, mnist_dataset_test, mock_
     )
 
 
-def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+def test_mnist_most_frequent(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
     check = SimpleModelComparison(strategy='most_frequent', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+    result = check.run(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model,
                        device=device, n_samples=None)
     first_row = result.value.loc[result.value['Model'] != 'Perfect Model'].sort_values(by='Number of samples',
                                                                                        ascending=False).iloc[0]
@@ -56,11 +56,11 @@ def test_mnist_most_frequent(mnist_dataset_train, mnist_dataset_test, mock_train
     assert_that(result.display, has_length(greater_than(0)))
 
 
-def test_mnist_most_frequent_without_display(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+def test_mnist_most_frequent_without_display(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
     check = SimpleModelComparison(strategy='most_frequent', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+    result = check.run(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model,
                        device=device, n_samples=None, with_display=False)
     first_row = result.value.loc[result.value['Model'] != 'Perfect Model'].sort_values(by='Number of samples',
                                                                                        ascending=False).iloc[0]
@@ -72,28 +72,28 @@ def test_mnist_most_frequent_without_display(mnist_dataset_train, mnist_dataset_
     assert_that(result.display, has_length(0))
 
 
-def test_mnist_uniform(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+def test_mnist_uniform(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
     check = SimpleModelComparison(strategy='uniform', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+    result = check.run(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model,
                        device=device)
     # Assert
     assert_that(result.value, has_length(30))
 
 
-def test_mnist_stratified(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+def test_mnist_stratified(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
     check = SimpleModelComparison(strategy='stratified', n_to_show=2, show_only='largest')
     # Act
-    result = check.run(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+    result = check.run(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model,
                        device=device)
     # Assert
     assert_that(result.value, has_length(30))
 
 
-def test_condition_failed_for_multiclass(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
-    train_ds, test_ds, clf = mnist_dataset_train, mnist_dataset_test, mock_trained_mnist
+def test_condition_failed_for_multiclass(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
+    train_ds, test_ds, clf = mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model
     # Arrange
     check = SimpleModelComparison().add_condition_gain_greater_than(0.973)
     # Act X
@@ -108,8 +108,8 @@ def test_condition_failed_for_multiclass(mnist_dataset_train, mnist_dataset_test
     ))
 
 
-def test_condition_pass_for_multiclass_avg(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
-    train_ds, test_ds, clf = mnist_dataset_train, mnist_dataset_test, mock_trained_mnist
+def test_condition_pass_for_multiclass_avg(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
+    train_ds, test_ds, clf = mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model
     # Arrange
     check = SimpleModelComparison().add_condition_gain_greater_than(0.43, average=True)
     # Act X
@@ -123,9 +123,9 @@ def test_condition_pass_for_multiclass_avg(mnist_dataset_train, mnist_dataset_te
     ))
 
 
-def test_condition_pass_for_multiclass_avg_with_classes(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist,
+def test_condition_pass_for_multiclass_avg_with_classes(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model,
                                                         device):
-    train_ds, test_ds, clf = mnist_dataset_train, mnist_dataset_test, mock_trained_mnist
+    train_ds, test_ds, clf = mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model
     # Arrange
     check = SimpleModelComparison().add_condition_gain_greater_than(1, average=True, classes=[0])
     # Act X

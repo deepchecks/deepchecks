@@ -15,11 +15,11 @@ from queue import PriorityQueue
 
 import numpy as np
 import pandas as pd
-import torch
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.utils.plot import create_confusion_matrix_figure
-from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision import BatchWrapper, Context, SingleDatasetCheck
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.vision_data import TaskType
 
@@ -43,7 +43,7 @@ def filter_confusion_matrix(confusion_matrix: pd.DataFrame, number_of_categories
     categories = sorted(categories)
     return confusion_matrix[np.ix_(categories, categories)], categories
 
-
+@docstrings
 class ConfusionMatrixReport(SingleDatasetCheck):
     """Calculate the confusion matrix of the model on the given dataset.
 
@@ -61,6 +61,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         Threshold to consider detected bounding box as labeled bounding box.
     normalized (bool, default True):
         boolean that determines whether to normalize the true values of the matrix.
+    {additional_init_params:2*indent}
     """
 
     def __init__(self,
@@ -79,28 +80,21 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         self.classes_list = None
         self.not_found_idx = None
         self.unseen_class_idx = None
-        self.task_type = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
         context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
-        dataset = context.get_data_by_kind(dataset_kind)
-        self.task_type = dataset.task_type
         self.matrix = defaultdict(lambda: defaultdict(int))
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind = DatasetKind.TRAIN):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind = DatasetKind.TRAIN):
         """Add batch to confusion matrix."""
-        labels = batch.labels
-        predictions = batch.predictions
-        if self.task_type == TaskType.CLASSIFICATION:
-            self.update_classification(predictions, labels)
-        elif self.task_type == TaskType.OBJECT_DETECTION:
-            self.update_object_detection(predictions, labels)
+        if context.task_type == TaskType.CLASSIFICATION:
+            self.update_classification(batch.numpy_predictions, batch.numpy_labels)
+        elif context.task_type == TaskType.OBJECT_DETECTION:
+            self.update_object_detection(batch.numpy_predictions, batch.numpy_labels)
 
     def compute(self, context: Context, dataset_kind: DatasetKind = None) -> CheckResult:
         """Compute and plot confusion matrix after all batches were processed."""
-        assert self.matrix is not None
-
         dataset = context.get_data_by_kind(dataset_kind)
         matrix = pd.DataFrame(self.matrix).T
         matrix = matrix.rename(index={-1: 'no-overlapping'}, columns={-1: 'no-overlapping'})
@@ -114,10 +108,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         matrix = pd.DataFrame(matrix, index=classes, columns=classes).to_numpy()
 
         if context.with_display:
-            confusion_matrix, categories = filter_confusion_matrix(
-                matrix,
-                self.categories_to_display
-            )
+            confusion_matrix, categories = filter_confusion_matrix(matrix, self.categories_to_display)
             confusion_matrix = np.nan_to_num(confusion_matrix)
 
             description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
@@ -167,8 +158,6 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
     def update_object_detection(self, predictions, labels):
         """Update the confusion matrix by batch for object detection task."""
-        assert self.matrix is not None
-
         for image_detections, image_labels in zip(predictions, labels):
             detections_passed_threshold = [
                 detection for detection in image_detections
@@ -178,13 +167,12 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             if len(detections_passed_threshold) == 0:
                 # detections are empty, update matrix for labels
                 for label in image_labels:
-                    label_class = int(label[0].item())
+                    label_class = int(label[0])
                     self.matrix[label_class][-1] += 1
                 continue
 
             list_of_ious = (
-                (label_index, detected_index, jaccard_iou(detected.cpu().detach().numpy(),
-                                                          label.cpu().detach().numpy()))
+                (label_index, detected_index, jaccard_iou(detected,label))
                 for label_index, label in enumerate(image_labels)
                 for detected_index, detected in enumerate(detections_passed_threshold)
             )
@@ -223,9 +211,6 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
     def update_classification(self, predictions, labels):
         """Update the confusion matrix by batch for classification task."""
-        assert self.matrix is not None
-
         for predicted_classes, image_labels in zip(predictions, labels):
             detected_class = max(range(len(predicted_classes)), key=predicted_classes.__getitem__)
-            label_class = image_labels.item() if isinstance(image_labels, torch.Tensor) else image_labels
-            self.matrix[label_class][detected_class] += 1
+            self.matrix[image_labels][detected_class] += 1

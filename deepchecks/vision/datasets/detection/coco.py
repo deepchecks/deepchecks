@@ -56,6 +56,18 @@ def _batch_collate(batch):
     return list(imgs), list(labels)
 
 
+def collate_without_model(data) -> t.Tuple[t.List[np.ndarray], t.List[torch.Tensor]]:
+    """Collate function for the coco dataset returning images and labels in correct format as tuple."""
+    raw_images = [x[0] for x in data]
+    images = [np.array(x) for x in raw_images]
+
+    def move_class(tensor):
+        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+            if len(tensor) > 0 else tensor
+    labels = [move_class(x[1]) for x in data]
+    return images, labels
+
+
 def deepchecks_collate(model) -> t.Callable:
     """Process batch to deepchecks format.
 
@@ -89,7 +101,7 @@ def deepchecks_collate(model) -> t.Callable:
                 pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
                 pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
                 predictions.append(pred_modified)
-        return {'images': images, 'labels': labels, 'predictions': predictions}
+        return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
     return _process_batch_to_deepchecks_format
 
@@ -100,7 +112,8 @@ def load_dataset(
         num_workers: int = 0,
         shuffle: bool = False,
         pin_memory: bool = True,
-        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
+        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+        n_samples: t.Optional[int] = None,
 ) -> t.Union[DataLoader, vision.VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
@@ -120,6 +133,9 @@ def load_dataset(
     object_type : Literal['Dataset', 'DataLoader'], default: 'DataLoader'
         type of the return value. If 'Dataset', :obj:`deepchecks.vision.VisionDataset`
         will be returned, otherwise :obj:`torch.utils.data.DataLoader`
+    n_samples : int, optional
+        Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle
+        is False otherwise selects n_samples at random. If None, returns all samples.
 
     Returns
     -------
@@ -137,13 +153,12 @@ def load_dataset(
                           collate_fn=_batch_collate, pin_memory=pin_memory, generator=torch.Generator())
     elif object_type == 'VisionData':
         model = load_model()
-        dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
+        dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers,
                                 collate_fn=deepchecks_collate(model), pin_memory=pin_memory,
                                 generator=torch.Generator())
-        if not shuffle:
-            dataloader = get_data_loader_sequential(dataloader)
+        dataloader = get_data_loader_sequential(dataloader, shuffle=shuffle, n_samples=n_samples)
         return VisionData(dynamic_loader=dataloader, label_map=LABEL_MAP, task_type='object_detection',
-                          reshuffle_dynamic_loader=False)
+                          shuffle_dynamic_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 

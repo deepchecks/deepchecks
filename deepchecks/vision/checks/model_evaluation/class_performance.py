@@ -23,7 +23,8 @@ from deepchecks.core.check_utils.class_performance_utils import (
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.metrics_utils.scorers import filter_classes_for_display, get_scorers_dict, metric_results_to_df
 
 __all__ = ['ClassPerformance']
@@ -31,7 +32,7 @@ __all__ = ['ClassPerformance']
 
 PR = TypeVar('PR', bound='ClassPerformance')
 
-
+@docstrings
 class ClassPerformance(TrainTestCheck):
     """Summarize given metrics on a dataset and model.
 
@@ -57,6 +58,7 @@ class ClassPerformance(TrainTestCheck):
     class_list_to_show: List[int], default: None
         Specify the list of classes to show in the report. If specified, n_to_show, show_only and metric_to_show_by
         are ignored.
+    {additional_init_params:2*indent}
     """
 
     def __init__(self,
@@ -75,7 +77,7 @@ class ClassPerformance(TrainTestCheck):
         else:
             self.alternative_metrics = scorers
         self.n_to_show = n_to_show
-        self.class_list_to_show = class_list_to_show
+        self.class_list_to_show = class_list_to_show  # TODO: change to also effect the result not just display
 
         if self.class_list_to_show is None:
             if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
@@ -101,15 +103,13 @@ class ClassPerformance(TrainTestCheck):
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        label = batch.labels
-        prediction = batch.predictions
         for _, metric in self._data_metrics[dataset_kind].items():
-            metric.update((prediction, label))
+            metric.update((batch.numpy_predictions, batch.numpy_labels))
 
     def compute(self, context: Context) -> CheckResult:
-        """Compute the metric result using the ignite metrics compute method and create display."""
+        """Compute the metric result using the metrics compute method and create display."""
         results = []
         for dataset_kind in [DatasetKind.TRAIN, DatasetKind.TEST]:
             dataset = context.get_data_by_kind(dataset_kind)
@@ -117,7 +117,8 @@ class ClassPerformance(TrainTestCheck):
                 {k: m.compute() for k, m in self._data_metrics[dataset_kind].items()}, dataset
             )
             metrics_df['Dataset'] = dataset_kind.value
-            metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
+            labels_per_class = dataset.get_cache()['labels']
+            metrics_df['Number of samples'] = metrics_df['Class Name'].map(labels_per_class.get)
             results.append(metrics_df)
 
         results_df = pd.concat(results)

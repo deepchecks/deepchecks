@@ -25,7 +25,7 @@ PARENT_FOLDER = pathlib.Path(__file__).absolute().parent
 
 @pytest.fixture
 def correct_images_folder():
-    image = pilimage.fromarray(np.zeros((10, 10, 3), dtype=np.uint8))
+    image = pilimage.fromarray(np.ones((10, 10, 3), dtype=np.uint8)*2)
 
     images_folder = PARENT_FOLDER / get_random_string()
     images_folder.mkdir()
@@ -119,15 +119,15 @@ def test_load_simple_classification_vision_data(correct_images_folder):
         batches = list(vision_data)
         assert_that(len(batches) == 1)
 
-        images = vision_data.batch_to_images(batches[0])
-        labels = vision_data.batch_to_labels(batches[0])
+        images = batches[0].get('images')
+        labels = batches[0].get('labels')
         assert_that(len(images) == 1 and len(labels) == 1)
 
         assert_that(images[0], all_of(
             instance_of(np.ndarray),
             has_property("shape", equal_to((10, 10, 3)))
         ))
-        assert_that(vision_data._data_loader.dataset.reverse_classes_map[labels[0].item()] == "class1")
+        assert_that(vision_data.dynamic_loader.dataset.reverse_classes_map[labels[0]] == "class1")
 
 
 def test_load_simple_classification_dataset_from_broken_folder(incorrect_images_folder):

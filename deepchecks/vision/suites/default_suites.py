@@ -31,7 +31,6 @@ __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_inte
 
 def train_test_validation(label_properties: List[Dict[str, Any]] = None,
                           image_properties: List[Dict[str, Any]] = None,
-                          random_state: int = None,
                           **kwargs) -> Suite:
     """Suite for validating correctness of train-test split, including distribution, \
     integrity and leakage checks.
@@ -83,8 +82,6 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None,
           but these numbers do not have inherent value.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    random_state : int, default: None
-        Random seed for all checks.
     **kwargs : dict
         additional arguments to pass to the checks.
 
@@ -127,7 +124,6 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
                      area_range: Tuple[float, float] = (32 ** 2, 96 ** 2),
                      image_properties: List[Dict[str, Any]] = None,
                      prediction_properties: List[Dict[str, Any]] = None,
-                     random_state: int = 42,
                      **kwargs) -> Suite:
     """Suite for evaluating the model's performance over different metrics, segments, error analysis, \
        comparing to baseline, and more.
@@ -185,8 +181,6 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    random_state : int, default: 42
-        random seed for all checks.
     **kwargs : dict
         additional arguments to pass to the checks.
 
@@ -199,7 +193,7 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
     --------
     >>> from deepchecks.vision.suites import model_evaluation
     >>> suite = model_evaluation()
-    >>> result = suite.run(test_vision_data)
+    >>> result = suite.run(test_vision_data, max_samples=800)
     >>> result.show()
 
     See Also
@@ -279,7 +273,7 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     --------
     >>> from deepchecks.vision.suites import data_integrity
     >>> suite = data_integrity()
-    >>> result = suite.run(vision_data)
+    >>> result = suite.run(vision_data, max_samples=800)
     >>> result.show()
 
     See Also

@@ -9,62 +9,40 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the check property label correlation change."""
-from copy import copy
 
 import numpy as np
-import pandas as pd
+import torch
 from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
 from deepchecks.vision.checks import PropertyLabelCorrelationChange
-from deepchecks.vision.utils.transformations import un_normalize_batch
+from deepchecks.vision.utils.test_utils import replace_collate_fn_visiondata
 from tests.base.utils import equal_condition_result
-from tests.vision.vision_conftest import *
 
 
-def mnist_batch_to_images_with_bias(batch):
-    """Create function which inverse the data normalization."""
-    tensor = batch[0]
-    tensor = tensor.permute(0, 2, 3, 1)
-    ret = un_normalize_batch(tensor, (0.1307,), (0.3081,))
-    for i, label in enumerate(batch[1]):
-        label = label.cpu().detach()
-        ret[i] = ret[i].clip(min=5 * label, max=180 + 5 * label)
-    return ret
+def coco_collate_with_bias_one_class(data):
+    raw_images = [x[0] for x in data]
+    images = [np.array(x) for x in raw_images]
+
+    def move_class(tensor):
+        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
+            if len(tensor) > 0 else tensor
+
+    labels = [move_class(x[1]) for x in data]
+    for i, bboxes_per_image in enumerate(labels):
+        for bbox in bboxes_per_image:
+            if bbox[0] == 74:
+                x, y, w, h = [round(float(n)) for n in bbox[1:]]
+                images[i][y:y + h, x:x + w] = images[i][y:y + h, x:x + w].clip(min=200)
+    return {'images': images, 'labels': labels}
 
 
-def get_coco_batch_to_images_with_bias(label_formatter):
-    def ret_func(batch):
-        ret = [np.array(x) for x in batch[0]]
-        for i, labels in enumerate(label_formatter(batch)):
-            for label in labels:
-                if label[0] > 40:
-                    x, y, w, h = [round(float(n)) for n in label[1:]]
-                    ret[i][y:y + h, x:x + w] = ret[i][y:y + h, x:x + w].clip(min=200)
-        return ret
-
-    return ret_func
-
-
-def get_coco_batch_to_images_with_bias_one_class(label_formatter):
-    def ret_func(batch):
-        ret = [np.array(x) for x in batch[0]]
-        for i, labels in enumerate(label_formatter(batch)):
-            for label in labels:
-                if label[0] == 74:
-                    x, y, w, h = [round(float(n)) for n in label[1:]]
-                    ret[i][y:y + h, x:x + w] = ret[i][y:y + h, x:x + w].clip(min=200)
-        return ret
-
-    return ret_func
-
-
-def test_no_drift_classification(mnist_dataset_train, device):
+def test_no_drift_classification(mnist_visiondata_train):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_train
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
+    train, test = mnist_visiondata_train, mnist_visiondata_train
+    check = PropertyLabelCorrelationChange(per_class=False)
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(train, test)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -74,31 +52,27 @@ def test_no_drift_classification(mnist_dataset_train, device):
     }))
 
 
-def test_drift_classification(mnist_dataset_train, mnist_dataset_test, device):
-    mnist_dataset_test.batch_to_images = mnist_batch_to_images_with_bias
-
-    train, test = mnist_dataset_train, mnist_dataset_test
-
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
+def test_drift_classification(mnist_train_brightness_bias, mnist_visiondata_test):
+    # Arrange
+    check = PropertyLabelCorrelationChange(per_class=False)
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(mnist_train_brightness_bias, mnist_visiondata_test)
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.08, 0.005)}),
-        'test': has_entries({'Brightness': close_to(0.234, 0.001)}),
-        'train-test difference': has_entries({'Brightness': close_to(-0.153, 0.001)})
+        'train': has_entries({'Brightness': close_to(0.248, 0.005)}),
+        'test': has_entries({'Brightness': close_to(0.02, 0.001)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.228, 0.001)})
     }))
 
 
-def test_no_drift_object_detection(coco_train_visiondata, device):
+def test_no_drift_object_detection(coco_visiondata_train):
     # Arrange
-    train, test = coco_train_visiondata, coco_train_visiondata
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=False)
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_train)
 
     # Assert
     assert_that(result.value, has_entries({
@@ -108,158 +82,123 @@ def test_no_drift_object_detection(coco_train_visiondata, device):
     }))
 
 
-def test_drift_object_detection(coco_train_visiondata, coco_test_visiondata, device):
+def test_drift_object_detection(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+    check = PropertyLabelCorrelationChange(per_class=False)
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(coco_train_brightness_bias, coco_visiondata_test)
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.062, 0.01)}),
+        'train': has_entries({'Brightness': close_to(0.066, 0.01)}),
         'test': has_entries({'Brightness': equal_to(0)}),
-        'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.066, 0.01)}),
     }))
     assert_that(result.display, has_length(greater_than(0)))
 
 
-def test_drift_object_detection_without_display(coco_train_visiondata, coco_test_visiondata, device):
+def test_drift_object_detection_without_display(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+    check = PropertyLabelCorrelationChange(per_class=False)
 
     # Act
-    result = check.run(train, test, device=device, with_display=False)
+    result = check.run(coco_train_brightness_bias, coco_visiondata_test, with_display=False)
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.062, 0.01)}),
+        'train': has_entries({'Brightness': close_to(0.066, 0.01)}),
         'test': has_entries({'Brightness': equal_to(0)}),
-        'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.066, 0.01)}),
     }))
     assert_that(result.display, has_length(0))
 
 
-def test_no_drift_classification_per_class(mnist_dataset_train, device):
+def test_no_drift_classification_per_class(mnist_visiondata_train):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_train
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=True)
 
     # Act
-    result = check.run(train, test, n_samples=None, device=device)
+    result = check.run(mnist_visiondata_train, mnist_visiondata_train)
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({'1': equal_to(0)}),
-                                   'test':  has_entries({'1': equal_to(0)}),
-                                   'train-test difference':  has_entries({'1': equal_to(0)})}),
+        'Brightness': has_entries({'train': has_entries({'1': equal_to(0)}),
+                                   'test': has_entries({'1': equal_to(0)}),
+                                   'train-test difference': has_entries({'1': equal_to(0)})}),
     }))
 
 
-def test_drift_classification_per_class(mnist_dataset_train, mnist_dataset_test, device):
-    mnist_dataset_test.batch_to_images = mnist_batch_to_images_with_bias
-
-    train, test = mnist_dataset_train, mnist_dataset_test
-
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42)
+def test_drift_classification_per_class(mnist_train_brightness_bias, mnist_visiondata_test):
+    # Arrange
+    check = PropertyLabelCorrelationChange(per_class=True)
 
     # Act
-    result = check.run(train, test, n_samples=None, device=device)
+    result = check.run(mnist_train_brightness_bias, mnist_visiondata_test)
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({'1': equal_to(0)}),
-                                   'test':  has_entries({'1': close_to(0.659, 0.01)}),
-                                   'train-test difference':  has_entries({'1': close_to(-0.659, 0.01)})}),
+        'Brightness': has_entries({'train': has_entries({'1': close_to(0.807, 0.01)}),
+                                   'test': has_entries({'1': close_to(0.0, 0.01)}),
+                                   'train-test difference': has_entries({'1': close_to(0.807, 0.01)})}),
     }))
 
 
-def test_no_drift_object_detection_per_class(coco_train_visiondata, device):
+def test_no_drift_object_detection_per_class_min_pps(coco_visiondata_train):
     # Arrange
-    train, test = coco_train_visiondata, coco_train_visiondata
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42)
+    check = PropertyLabelCorrelationChange(per_class=True, min_pps_to_show=2)
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_train)
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({'clock': equal_to(0)}),
-                                   'test':  has_entries({'clock': equal_to(0)}),
-                                   'train-test difference':  has_entries({'clock': equal_to(0)})}),
-    }))
-
-
-def test_no_drift_object_detection_per_class_min_pps(coco_train_visiondata, device):
-    # Arrange
-    train, test = coco_train_visiondata, coco_train_visiondata
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42, min_pps_to_show=2)
-
-    # Act
-    result = check.run(train, test, device=device)
-
-    # Assert
-    assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({'clock': equal_to(0)}),
-                                   'test':  has_entries({'clock': equal_to(0)}),
-                                   'train-test difference':  has_entries({'clock': equal_to(0)})}),
+        'Brightness': has_entries({'train': has_entries({'clock': equal_to(0)}),
+                                   'test': has_entries({'clock': equal_to(0)}),
+                                   'train-test difference': has_entries({'clock': equal_to(0)})}),
     }))
     assert_that(result.display, equal_to([]))
 
 
-def test_drift_object_detections_min_pps(coco_train_visiondata, coco_test_visiondata, device):
+def test_drift_object_detections_min_pps(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42, min_pps_to_show=2)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+    check = PropertyLabelCorrelationChange(per_class=False, min_pps_to_show=2)
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(coco_train_brightness_bias, coco_visiondata_test)
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.062, 0.01)}),
+        'train': has_entries({'Brightness': close_to(0.066, 0.01)}),
         'test': has_entries({'Brightness': equal_to(0)}),
         'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
     }))
     assert_that(result.display, equal_to([]))
 
 
-def test_drift_object_detection_per_class(coco_train_visiondata, coco_test_visiondata, device):
+def test_drift_object_detection_per_class(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+    check = PropertyLabelCorrelationChange(per_class=True)
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(coco_train_brightness_bias, coco_visiondata_test)
 
     # Assert
     assert_that(result.value, has_entries({
-        'Brightness': has_entries({'train':  has_entries({'fork': equal_to(0)}),
-                                   'test':  has_entries({'fork': close_to(0.0025, 0.001)}),
-                                   'train-test difference':  has_entries({'fork': close_to(-0.0025, 0.001)})}),
+        'Brightness': has_entries({'train': has_entries({'bed': equal_to(0)}),
+                                   'test': has_entries({'bed': close_to(0.0025, 0.001)}),
+                                   'train-test difference': has_entries({'bed': close_to(-0.0025, 0.001)})}),
     }))
 
 
-def test_train_test_condition_pps_train_pass(coco_train_visiondata, device):
+def test_train_test_condition_pps_train_pass(coco_visiondata_train):
     # Arrange
-    train, test = coco_train_visiondata, coco_train_visiondata
     condition_value = 0.3
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42
-                                          ).add_condition_property_pps_in_train_less_than(condition_value)
+    check = PropertyLabelCorrelationChange(per_class=False) \
+        .add_condition_property_pps_in_train_less_than(condition_value)
 
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=coco_visiondata_train, test_dataset=coco_visiondata_train)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -270,18 +209,13 @@ def test_train_test_condition_pps_train_pass(coco_train_visiondata, device):
     ))
 
 
-def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_visiondata, device):
+def test_train_test_condition_pps_train_fail(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
-    condition_value = 0.1
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42
-                                          ).add_condition_property_pps_in_train_less_than(condition_value)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
-
+    condition_value = 0.08
+    check = PropertyLabelCorrelationChange(per_class=False) \
+        .add_condition_property_pps_in_train_less_than(condition_value)
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=coco_train_brightness_bias, test_dataset=coco_visiondata_test)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -290,65 +224,59 @@ def test_train_test_condition_pps_train_fail(coco_train_visiondata, coco_test_vi
         name=f'Train properties\' Predictive Power Score is less than {condition_value}',
         details=(
             'Properties in train dataset with PPS above threshold: '
-            '{\'Mean Red Relative Intensity\': \'0.11\'}'
+            '{\'Aspect Ratio\': \'0.09\', \'Mean Red Relative Intensity\': \'0.09\'}'
         )
     ))
 
 
-def test_train_test_condition_pps_train_pass_per_class(mnist_dataset_train, device):
+def test_train_test_condition_pps_train_pass_per_class(mnist_visiondata_train):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_train
+    train, test = mnist_visiondata_train, mnist_visiondata_train
     condition_value = 0.3
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42
-                                          ).add_condition_property_pps_in_train_less_than(condition_value)
+    check = PropertyLabelCorrelationChange(per_class=True) \
+        .add_condition_property_pps_in_train_less_than(condition_value)
 
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=train, test_dataset=test)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='Found highest PPS in train dataset 0.06 for property Brightness and class 1',
+        details='0 PPS found for all properties in train dataset',
         name=f'Train properties\' Predictive Power Score is less than {condition_value}'
     ))
 
 
-def test_train_test_condition_pps_train_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
+def test_train_test_condition_pps_train_fail_per_class(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
+    train = replace_collate_fn_visiondata(coco_visiondata_train, coco_collate_with_bias_one_class)
     condition_value = 0.3
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42
-                                          ).add_condition_property_pps_in_train_less_than(condition_value)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
+    check = PropertyLabelCorrelationChange(per_class=True) \
+        .add_condition_property_pps_in_train_less_than(condition_value)
 
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=train, test_dataset=coco_visiondata_test)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train properties\' Predictive Power Score is less than {condition_value}',
-        details='Properties and classes in train dataset with PPS above threshold: {\'RMS Contrast\': {\'clock\': '
-                '\'0.83\'}, \'Brightness\': {\'clock\': \'0.5\', \'teddy bear\': \'0.5\'}, '
-                '\'Mean Blue Relative Intensity\': {\'clock\': \'0.33\'}}'
+        details='Properties and classes in train dataset with PPS above threshold: {'
+                '\'Brightness\': {\'teddy bear\': \'0.5\'}, \'RMS Contrast\': {\'clock\': \'0.83\'}}'
     ))
 
 
-def test_train_test_condition_pps_diff_pass(coco_train_visiondata, device):
+def test_train_test_condition_pps_diff_pass(coco_visiondata_train):
     # Arrange
-    train, test = coco_train_visiondata, coco_train_visiondata
+    train, test = coco_visiondata_train, coco_visiondata_train
     condition_value = 0.01
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42
-                                          ).add_condition_property_pps_difference_less_than(condition_value)
+    check = PropertyLabelCorrelationChange(per_class=False) \
+        .add_condition_property_pps_difference_less_than(condition_value)
 
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=train, test_dataset=test)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -359,18 +287,14 @@ def test_train_test_condition_pps_diff_pass(coco_train_visiondata, device):
     ))
 
 
-def test_train_test_condition_pps_positive_diff_fail(coco_train_visiondata, coco_test_visiondata, device):
+def test_train_test_condition_pps_positive_diff_fail(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
-    condition_value = 0.09
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42
-                                          ).add_condition_property_pps_difference_less_than(condition_value)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
+    condition_value = 0.08
+    check = PropertyLabelCorrelationChange(per_class=False
+                                           ).add_condition_property_pps_difference_less_than(condition_value)
 
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=coco_train_brightness_bias, test_dataset=coco_visiondata_test)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -379,23 +303,18 @@ def test_train_test_condition_pps_positive_diff_fail(coco_train_visiondata, coco
         name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}',
         details=(
             'Properties with PPS difference above threshold: '
-            '{\'Mean Red Relative Intensity\': \'0.1\'}'
+            '{\'Mean Red Relative Intensity\': \'0.09\'}'
         )
     ))
 
 
-def test_train_test_condition_pps_diff_fail(coco_train_visiondata, coco_test_visiondata, device):
+def test_train_test_condition_pps_diff_fail(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
-    condition_value = 0.09
-    check = PropertyLabelCorrelationChange(per_class=False, random_state=42).\
+    condition_value = 0.08
+    check = PropertyLabelCorrelationChange(per_class=False). \
         add_condition_property_pps_difference_less_than(condition_value, include_negative_diff=False)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias(train.batch_to_labels)
-
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=coco_train_brightness_bias, test_dataset=coco_visiondata_test)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -404,21 +323,20 @@ def test_train_test_condition_pps_diff_fail(coco_train_visiondata, coco_test_vis
         name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}',
         details=(
             'Properties with PPS difference above threshold: '
-            '{\'Mean Red Relative Intensity\': \'0.1\'}'
+            '{\'Mean Red Relative Intensity\': \'0.09\'}'
         )
     ))
 
 
-def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train, device):
+def test_train_test_condition_pps_diff_pass_per_class(mnist_visiondata_train):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_train
+    train, test = mnist_visiondata_train, mnist_visiondata_train
     condition_value = 0.3
     check = PropertyLabelCorrelationChange(per_class=True, random_state=42
-                                          ).add_condition_property_pps_difference_less_than(condition_value)
+                                           ).add_condition_property_pps_difference_less_than(condition_value)
 
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=train, test_dataset=test)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
@@ -429,50 +347,21 @@ def test_train_test_condition_pps_diff_pass_per_class(mnist_dataset_train, devic
     ))
 
 
-def test_train_test_condition_pps_positive_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
+def test_train_test_condition_pps_positive_diff_fail_per_class(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
+    train = replace_collate_fn_visiondata(coco_visiondata_train, coco_collate_with_bias_one_class)
     condition_value = 0.4
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42).\
+    check = PropertyLabelCorrelationChange(per_class=True, random_state=42). \
         add_condition_property_pps_difference_less_than(condition_value, include_negative_diff=False)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
 
     # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
+    result = check.run(train_dataset=train, test_dataset=coco_visiondata_test)
     condition_result, *_ = check.conditions_decision(result)
 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}',
-        details='Properties and classes with PPS difference above threshold: {\'RMS Contrast\': {\'clock\': \'0.83\'}, '
-                '\'Brightness\': {\'clock\': \'0.5\', \'teddy bear\': \'0.5\'}}'
+        details='Properties and classes with PPS difference above threshold: '
+                '{\'Brightness\': {\'teddy bear\': \'0.5\'}, \'RMS Contrast\': {\'clock\': \'0.83\'}}'
     ))
-
-
-def test_train_test_condition_pps_diff_fail_per_class(coco_train_visiondata, coco_test_visiondata, device):
-    # Arrange
-    train, test = coco_train_visiondata, coco_test_visiondata
-    condition_value = 0.3
-    check = PropertyLabelCorrelationChange(per_class=True, random_state=42
-                                          ).add_condition_property_pps_difference_less_than(condition_value)
-    train = copy(train)
-    train.batch_to_images = get_coco_batch_to_images_with_bias_one_class(train.batch_to_labels)
-
-    # Act
-    result = check.run(train_dataset=train,
-                       test_dataset=test, device=device)
-    condition_result, *_ = check.conditions_decision(result)
-
-    # Assert
-    assert_that(condition_result, equal_condition_result(
-        is_pass=False,
-        name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}',
-        details='Properties and classes with PPS difference above threshold: {\'RMS Contrast\': {\'clock\': \'0.83\'}, '
-                '\'Brightness\': {\'clock\': \'0.5\', \'teddy bear\': \'0.5\'}, \'Mean Blue Relative Intensity\': '
-                '{\'clock\': \'0.33\'}}'
-    ))
-
-

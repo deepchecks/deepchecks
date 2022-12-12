@@ -135,8 +135,10 @@ def draw_bboxes(
 
     draw = pildraw.ImageDraw(image)
 
+    if len(bboxes.shape) == 1:
+        bboxes = [bboxes]
     for bbox in bboxes:
-        clazz, x0, y0, w, h = bbox.tolist()
+        clazz, x0, y0, w, h = bbox
         x1, y1 = x0 + w, y0 + h
 
         if isinstance(color, str):

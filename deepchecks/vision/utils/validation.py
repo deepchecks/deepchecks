@@ -21,12 +21,11 @@ from IPython.display import HTML, display
 from deepchecks.core.errors import ValidationError
 from deepchecks.utils.ipython import is_headless, is_notebook
 from deepchecks.utils.strings import create_new_file_name
-from deepchecks.vision.batch_wrapper import apply_to_tensor
 from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
 from deepchecks.vision.utils.image_functions import draw_bboxes, ensure_image, prepare_thumbnail
 from deepchecks.vision.vision_data import TaskType, VisionData
 
-__all__ = ['set_seeds', 'validate_extractors']
+__all__ = ['set_seeds', 'validate_extractors', 'validate_vision_data_compatibility']
 
 
 def set_seeds(seed: int):
@@ -72,7 +71,7 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
         The validation result.
     """
     print('Deepchecks will try to validate the extractors given...')
-    batch = apply_to_tensor(next(iter(dataset.data_loader)), lambda it: it.to(device))
+    batch = next(iter(dataset.dynamic_loader))
     images = None
     labels = None
     predictions = None
@@ -99,7 +98,7 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
 
     try:
         dataset.validate_prediction(batch, model, device)
-        predictions = dataset.infer_on_batch(batch, model, device)
+        predictions = dataset.batch_to_predictions(batch, model, device)
     except ValidationError as ex:
         prediction_formatter_error = str(ex)
     except Exception:  # pylint: disable=broad-except
@@ -172,7 +171,7 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
         display(HTML(msg))
         if image:
             image_html = '<div style="display:flex;flex-direction:column;align-items:baseline;">' \
-                         f'{prepare_thumbnail(image, size=(200,200))}<p>{image_title}</p></div>'
+                         f'{prepare_thumbnail(image, size=(200, 200))}<p>{image_title}</p></div>'
             display(HTML(image_html))
     else:
         print(msg)
@@ -200,3 +199,19 @@ def validate_extractors(dataset: VisionData, model, device=None, image_save_loca
         return False
     else:
         return True
+
+
+def validate_vision_data_compatibility(first: VisionData, second: VisionData) -> None:
+    """ Validate that two vision datasets are compatible.
+
+    Args:
+        first (VisionData): first dataset
+        second (VisionData): second dataset
+
+    Raises:
+        DeepchecksValueError: if the datasets are not compatible
+    """
+    # TODO: add more validations
+    if first.task_type != second.task_type:
+        raise ValidationError('Cannot compare datasets with different task types: '
+                              f'{first.task_type.value} and {second.task_type.value}')

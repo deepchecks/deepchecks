@@ -17,13 +17,13 @@ from deepchecks.vision.checks import TrainTestPredictionDrift
 from tests.base.utils import equal_condition_result
 
 
-def test_no_drift_classification(mnist_dataset_train, mock_trained_mnist, device):
+def test_no_drift_classification(mnist_visiondata_train, mock_mnist_model, device):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_train
+    train, test = mnist_visiondata_train, mnist_visiondata_train
     check = TrainTestPredictionDrift(categorical_drift_method='PSI')
 
     # Act
-    result = check.run(train, test, mock_trained_mnist,
+    result = check.run(train, test, mock_mnist_model,
                        device=device)
 
     # Assert
@@ -35,12 +35,12 @@ def test_no_drift_classification(mnist_dataset_train, mock_trained_mnist, device
     ))
 
 
-def test_no_drift_object_detection(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
+def test_no_drift_object_detection(coco_visiondata_train, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = TrainTestPredictionDrift(categorical_drift_method='PSI')
 
     # Act
-    result = check.run(coco_train_visiondata, coco_train_visiondata, mock_trained_yolov5_object_detection,
+    result = check.run(coco_visiondata_train, coco_visiondata_train, mock_trained_yolov5_object_detection,
                        device=device)
 
     # Assert
@@ -60,12 +60,12 @@ def test_no_drift_object_detection(coco_train_visiondata, mock_trained_yolov5_ob
     assert_that(result.display, has_length(greater_than(0)))
 
 
-def test_no_drift_object_detection_without_display(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
+def test_no_drift_object_detection_without_display(coco_visiondata_train, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = TrainTestPredictionDrift(categorical_drift_method='PSI')
 
     # Act
-    result = check.run(coco_train_visiondata, coco_train_visiondata, mock_trained_yolov5_object_detection,
+    result = check.run(coco_visiondata_train, coco_visiondata_train, mock_trained_yolov5_object_detection,
                        device=device, with_display=False)
 
     # Assert
@@ -85,13 +85,13 @@ def test_no_drift_object_detection_without_display(coco_train_visiondata, mock_t
     assert_that(result.display, has_length(0))
 
 
-def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+def test_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_test
+    train, test = mnist_visiondata_train, mnist_visiondata_test
     check = TrainTestPredictionDrift(categorical_drift_method='PSI')
 
     # Act
-    result = check.run(train, test, mock_trained_mnist,
+    result = check.run(train, test, mock_mnist_model,
                        device=device)
 
     # Assert
@@ -104,10 +104,10 @@ def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock
     ))
 
 
-def test_with_drift_segmentation(segmentation_coco_train_visiondata, segmentation_coco_test_visiondata,
+def test_with_drift_segmentation(segmentation_coco_visiondata_train, segmentation_coco_visiondata_test,
                                  trained_segmentation_deeplabv3_mobilenet_model, device):
     # Arrange
-    train, test = segmentation_coco_train_visiondata, segmentation_coco_test_visiondata
+    train, test = segmentation_coco_visiondata_train, segmentation_coco_visiondata_test
     model = trained_segmentation_deeplabv3_mobilenet_model
     check = TrainTestPredictionDrift()
 
@@ -130,12 +130,12 @@ def test_with_drift_segmentation(segmentation_coco_train_visiondata, segmentatio
     ))
 
 
-def test_reduce_with_drift_classification(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+def test_reduce_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_test
+    train, test = mnist_visiondata_train, mnist_visiondata_test
     check = TrainTestPredictionDrift(categorical_drift_method='PSI')
     # Act
-    result = check.run(train, test, mock_trained_mnist,
+    result = check.run(train, test, mock_mnist_model,
                        device=device)
     # Assert
     assert_that(result.reduce_output(), has_entries(
@@ -144,13 +144,13 @@ def test_reduce_with_drift_classification(mnist_dataset_train, mnist_dataset_tes
 
 
 
-def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_test, mock_trained_mnist, device):
+def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_test
+    train, test = mnist_visiondata_train, mnist_visiondata_test
     check = TrainTestPredictionDrift(categorical_drift_method='cramer_v')
 
     # Act
-    result = check.run(train, test, mock_trained_mnist,
+    result = check.run(train, test, mock_mnist_model,
                        device=device)
 
     # Assert
@@ -163,14 +163,14 @@ def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_tes
     ))
 
 
-def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection,
+def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection,
                                      device):
     # Arrange
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
                                      min_category_size_ratio=0)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -188,14 +188,14 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
     ))
 
 
-def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata,
+def test_with_drift_object_detection_change_max_cat(coco_visiondata_train, coco_visiondata_test,
                                                     mock_trained_yolov5_object_detection, device):
     # Arrange
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100,
                                      min_category_size_ratio=0)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -213,7 +213,7 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
     ))
 
 
-def test_with_drift_object_detection_alternative_measurements(coco_train_visiondata, coco_test_visiondata,
+def test_with_drift_object_detection_alternative_measurements(coco_visiondata_train, coco_visiondata_test,
                                                               mock_trained_yolov5_object_detection, device):
     # Arrange
     def prop(predictions):
@@ -223,7 +223,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', prediction_properties=alternative_measurements)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, mock_trained_yolov5_object_detection, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -235,7 +235,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_train_visiond
     ))
 
 
-def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_trained_mnist, device):
+def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_mnist_model, device):
     # Arrange
     check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
@@ -246,10 +246,10 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
         preds = nn.Softmax(dim=1)(preds)
         return preds
 
-    mod_test_ds.infer_on_batch = infer
+    mod_test_ds.batch_to_predictions = infer
 
     # Act
-    result = check.run(mod_train_ds, mod_test_ds, mock_trained_mnist, device=device, n_samples=None)
+    result = check.run(mod_train_ds, mod_test_ds, mock_mnist_model, device=device, n_samples=None)
 
     condition_result, *_ = result.conditions_results
 
@@ -262,13 +262,13 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets, mock_train
     ))
 
 
-def test_condition_pass(mnist_dataset_train, mock_trained_mnist, device):
+def test_condition_pass(mnist_visiondata_train, mock_mnist_model, device):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_train
+    train, test = mnist_visiondata_train, mnist_visiondata_train
     check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
-    result = check.run(train, test, mock_trained_mnist, device=device)
+    result = check.run(train, test, mock_mnist_model, device=device)
 
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(

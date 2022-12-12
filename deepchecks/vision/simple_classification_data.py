@@ -195,25 +195,3 @@ def deepchecks_collate(batch) -> BatchOutputFormat:
     imgs, labels = zip(*batch)
     return {'images': list(imgs), 'labels': list(labels)}
 
-# class SimpleClassificationData(vision.ClassificationData):
-#     """Simple ClassificationData type, matches the data returned by SimpleClassificationDataset getitem."""
-#
-#     def batch_to_images(
-#             self,
-#             batch: t.Tuple[t.Sequence[np.ndarray], t.Sequence[int]]
-#     ) -> t.Sequence[np.ndarray]:
-#         """Extract the images from a batch of data."""
-#         images, _ = batch
-#         return images
-#
-#     def batch_to_labels(
-#             self,
-#             batch: t.Tuple[t.Sequence[pilimage.Image], t.Sequence[int]]
-#     ) -> torch.Tensor:
-#         """Extract the labels from a batch of data."""
-#         _, labels = batch
-#         return torch.Tensor(labels).long()
-#
-#     def get_classes(self, batch_labels: t.Union[t.List[torch.Tensor], torch.Tensor]):
-#         """Get a labels batch and return classes inside it."""
-#         return batch_labels.reshape(-1, 1).tolist()

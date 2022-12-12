@@ -19,7 +19,7 @@ from deepchecks.core.checks import CheckConfig
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
-from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
@@ -97,6 +97,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     aggregation_method: str, default: 'none'
         {property_aggregation_method_argument:2*indent}
+    {additional_init_params:2*indent}
     """
 
     def __init__(
@@ -126,21 +127,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
 
     def initialize_run(self, context: Context):
         """Initialize run.
-
-        Function initializes the following private variables:
-
-        Label properties:
-
-        _label_properties: all label properties to be calculated in run
-
         Label properties caching:
-        _train_label_properties, _test_label_properties: Dicts of lists accumulating the label properties computed for
-        each batch.
+            _train_label_properties, _test_label_properties: Dicts of lists accumulating the label properties computed
+            for each batch.
         """
         train_dataset = context.train
 
         task_type = train_dataset.task_type
-
         if self.label_properties is None:
             if task_type == TaskType.CLASSIFICATION:
                 self.label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
@@ -149,13 +142,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
             elif task_type == TaskType.SEMANTIC_SEGMENTATION:
                 self.label_properties = DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES
             else:
-                raise NotImplementedError('Check must receive either label_properties or run '
-                                          'on Classification or Object Detection class')
+                raise DeepchecksNotSupportedError('Check must either receive label_properties or run '
+                                                  'on a supported task type.')
 
         self._train_label_properties = defaultdict(list)
         self._test_label_properties = defaultdict(list)
 
-    def update(self, context: Context, batch: Batch, dataset_kind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:

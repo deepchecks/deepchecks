@@ -11,46 +11,47 @@
 """Module containing measurements for labels and predictions."""
 from typing import List, Sequence, Union
 
+import numpy as np
 import torch
 
 # Labels
 
 
-def _get_samples_per_class_classification(labels: Union[torch.Tensor, List]) -> List[int]:
+def _get_samples_per_class_classification(labels: Union[np.ndarray, List]) -> List[int]:
     """Return a list containing the class per image in batch."""
     return labels if isinstance(labels, List) else labels.tolist()
 
 
-def _get_samples_per_class_object_detection(labels: List[torch.Tensor]) -> List[List[int]]:
+def _get_samples_per_class_object_detection(labels: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
     return [tensor.reshape((-1, 5))[:, 0].tolist() for tensor in labels]
 
 
-def _get_bbox_area(labels: List[torch.Tensor]) -> List[List[int]]:
+def _get_bbox_area(labels: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the area of bboxes in batch."""
     return [(label.reshape((-1, 5))[:, 4] * label.reshape((-1, 5))[:, 3]).tolist()
             for label in labels]
 
 
-def _count_num_bboxes(labels: List[torch.Tensor]) -> List[int]:
+def _count_num_bboxes(labels: List[np.ndarray]) -> List[int]:
     """Return a list containing the number of bboxes in per sample batch."""
     num_bboxes = [label.shape[0] for label in labels]
     return num_bboxes
 
 
-def _get_samples_per_class_semantic_segmentation(labels: List[torch.Tensor]) -> List[List[int]]:
+def _get_samples_per_class_semantic_segmentation(labels: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    return [torch.unique(tensor).tolist() for tensor in labels]
+    return [np.unique(label).tolist() for label in labels]
 
 
-def _get_segment_area(labels: List[torch.Tensor]) -> List[List[int]]:
+def _get_segment_area(labels: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the area of segments in batch."""
-    return [torch.unique(tensor, return_counts=True)[1].tolist() for tensor in labels]
+    return [np.unique(label, return_counts=True)[1].tolist() for label in labels]
 
 
-def _count_classes_by_segment_in_image(labels: List[torch.Tensor]) -> List[int]:
+def _count_classes_by_segment_in_image(labels: List[np.ndarray]) -> List[int]:
     """Return a list containing the number of unique classes per image for semantic segmentation."""
-    return [torch.unique(tensor).shape[0] for tensor in labels]
+    return [np.unique(label).shape[0] for label in labels]
 
 
 DEFAULT_CLASSIFICATION_LABEL_PROPERTIES = [

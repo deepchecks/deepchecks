@@ -19,7 +19,7 @@ from deepchecks.vision.vision_data.format_validators import (validate_additional
                                                              validate_image_identifiers_format, validate_images_format,
                                                              validate_labels_format, validate_predictions_format)
 from deepchecks.vision.vision_data.utils import (BatchOutputFormat, get_class_ids_from_numpy_labels,
-                                                 get_class_ids_from_numpy_preds, shuffle_dynamic_loader)
+                                                 get_class_ids_from_numpy_preds, shuffle_loader)
 
 VD = t.TypeVar('VD', bound='VisionData')
 
@@ -27,22 +27,19 @@ VD = t.TypeVar('VD', bound='VisionData')
 class VisionData:
     """VisionData is the base data object of deepcheck vision used as input to checks and suites.
 
-    Vision data at its core is a wrapper of a dynamic loader (such as Pytorch DataLoader or tf Dataset) with additional
-    properties and converters to deepchecks accepted format..
-
     Parameters
     ----------
     dynamic_loader :
         A dynamic_loader which load a batch of data in an iterative manner. Dynamic loader batch output must be a
-        dictionary for BatchOutputFormat format. The dynamic loader must provide the data in a SHUFFLED way.
+        dictionary in BatchOutputFormat format. The dynamic loader must provide SHUFFLED batches.
     task_type : str
         The task type of the data. can be one of the following: 'classification', 'semantic_segmentation',
-        'object_detection', 'other'. For 'other', only image validation checks will be run.
+        'object_detection', 'other'. For 'other', only image related checks (such as ImagePropertyOutliers) will be run.
     label_map : Dict[int, str], optional
         A dictionary mapping class ids to their names.
     dataset_name: str, optional
         Name of the dataset to use in the displays instead of "Train" or "Test".
-    reshuffle_dynamic_loader: bool, default=True
+    shuffle_dynamic_loader: bool, default=True
         If True and the dynamic loader is of known type that can be shuffled, it will be shuffled.
     """
 
@@ -52,13 +49,12 @@ class VisionData:
             task_type: str,
             label_map: t.Optional[t.Dict[int, str]] = None,
             dataset_name: t.Optional[str] = None,
-            reshuffle_dynamic_loader: bool = True
+            shuffle_dynamic_loader: bool = True
     ):
-        self._dynamic_loader = shuffle_dynamic_loader(dynamic_loader) if reshuffle_dynamic_loader else dynamic_loader
+        self._dynamic_loader = shuffle_loader(dynamic_loader) if shuffle_dynamic_loader else dynamic_loader
 
-        if task_type not in ['classification', 'semantic_segmentation', 'object_detection', 'other']:
-            raise ValueError(f'Invalid task type: {task_type}, must be one of the following: '
-                             f'"classification", "semantic_segmentation", "object_detection", "other"')
+        if task_type not in TaskType.values():
+            raise ValueError(f'Invalid task type: {task_type}, must be one of the following: {TaskType.values()}')
         self._task_type = TaskType(task_type)
 
         if label_map is not None and not isinstance(label_map, dict):
@@ -132,7 +128,7 @@ class VisionData:
             validate_embeddings_format(embeddings)
             length_dict['embeddings'] = len(embeddings)
 
-        if len(length_dict) == 0:
+        if len(length_dict) == 0:  # TODO: use doclink once docs are available
             raise ValidationError('No data formatters were implemented, at least one of methods described in '
                                   'https://docs.deepchecks.com/stable/user-guide/vision/data-classes/VisionData.html'
                                   'must be implemented.')
@@ -193,9 +189,22 @@ class VisionData:
         return self._num_images_seen
 
     @property
-    def observed_classes(self) -> t.Dict[t.Union[int, str], int]:
-        """Return a dictionary of observed classes and their statistics from internal cache."""
-        return self._observed_classes
+    def observed_classes(self) -> t.List[str]:
+        """Return a dictionary of observed classes as true label name."""
+        return [self.label_id_to_name(x) for x in self._observed_classes.keys()]
+
+    def get_cache(self) -> t.Dict[str, t.Any]:
+        """Return a dictionary of stored cache."""
+        num_labels_per_class_id = {}
+        num_preds_per_class_id = {}
+        for key, value in self._observed_classes.items():
+            if 'num_label' in value:
+                num_labels_per_class_id[self.label_id_to_name(key)] = value['num_label']
+            if 'num_pred' in value:
+                num_preds_per_class_id[self.label_id_to_name(key)] = value['num_pred']
+
+        return {'num_images_seen': self._num_images_seen, 'labels': num_labels_per_class_id,
+                'predictions': num_preds_per_class_id}
 
     def label_id_to_name(self, class_id: int) -> str:
         """Return the name of the class with the given id."""
@@ -214,12 +223,10 @@ class VisionData:
 
         Parameters
         ----------
-        reshuffle_dynamic_loader: bool, default=True
+        reshuffle_dynamic_loader: bool, default=False
             If True and the dynamic loader is of known type that can be shuffled, it will be shuffled.
         dynamic_loader:
             If not None, the dynamic loader of the new object will be set to this value.
-        model:
-            If not None, the model of the new object will be set to this value.
         Returns
         -------
         VisionData

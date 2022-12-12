@@ -111,7 +111,7 @@ def test_data_formatter_normalized_data():
 def test_data_formatter_valid_dimensions():
     data_loader = numpy_shape_dataloader((10, 10, 3))
     batch = next(iter(data_loader))
-    SimpleImageData(data_loader).validate_image_data(batch)
+    VisionData(data_loader, task_type='other')
 
     batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=list)))
     data_loader = numpy_shape_dataloader((10, 10, 3))
@@ -472,11 +472,11 @@ def test_convert_bbox_function_with_ambiguous_combination_of_parameters():
         image_height=image_height
     )
 
-def test_validator(mnist_dataset_train, coco_test_visiondata, mock_trained_yolov5_object_detection):
+def test_validator(mnist_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection):
     # verify the correctness of the data class and return True if data is the expected format
-    output = validate_extractors(coco_test_visiondata, mock_trained_yolov5_object_detection)
+    output = validate_extractors(coco_visiondata_test, mock_trained_yolov5_object_detection)
     assert_that(output is True)
 
     # verify the correctness of the data class and return False if data is NOT in the expected format
-    output = validate_extractors(mnist_dataset_train, mock_trained_yolov5_object_detection)
+    output = validate_extractors(mnist_visiondata_train, mock_trained_yolov5_object_detection)
     assert_that(output is  False)

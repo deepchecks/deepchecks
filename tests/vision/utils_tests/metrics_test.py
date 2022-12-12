@@ -17,28 +17,28 @@ from deepchecks.vision.metrics_utils.scorers import calculate_metrics
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU, per_sample_dice
 
 
-def test_default_ap_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+def test_default_ap_ignite_complient(coco_visiondata_test, mock_trained_yolov5_object_detection, device):
     res = calculate_metrics({'AveragePrecision': ObjectDetectionAveragePrecision()},
-                            coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            coco_visiondata_test, mock_trained_yolov5_object_detection,
                             device=device)
     assert_that(res.keys(), has_length(1))
     assert_that(res['AveragePrecision'], has_length(80))
 
 
-def test_ar_ignite_complient(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+def test_ar_ignite_complient(coco_visiondata_test, mock_trained_yolov5_object_detection, device):
     res = calculate_metrics({'AverageRecall': ObjectDetectionAveragePrecision(return_option='ar')},
-                            coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            coco_visiondata_test, mock_trained_yolov5_object_detection,
                             device=device)
 
     assert_that(res.keys(), has_length(1))
     assert_that(res['AverageRecall'], has_length(80))
 
 
-def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+def test_equal_pycocotools(coco_visiondata_test, mock_trained_yolov5_object_detection, device):
     metric = ObjectDetectionAveragePrecision(return_option=None)
-    for batch in coco_test_visiondata:
-        label = coco_test_visiondata.batch_to_labels(batch)
-        prediction = coco_test_visiondata.infer_on_batch(batch, mock_trained_yolov5_object_detection, device)
+    for batch in coco_visiondata_test:
+        label = coco_visiondata_test.batch_to_labels(batch)
+        prediction = coco_visiondata_test.batch_to_predictions(batch, mock_trained_yolov5_object_detection, device)
         metric.update((prediction, label))
     res = metric.compute()[0]
 
@@ -64,11 +64,11 @@ def test_equal_pycocotools(coco_test_visiondata: VisionData, mock_trained_yolov5
     assert_that(metric.get_classes_scores_at(res['recall'], get_mean_val=False, zeroed_negative=False), has_items([-1]))
 
 
-def test_average_precision_recall(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+def test_average_precision_recall(coco_visiondata_test, mock_trained_yolov5_object_detection, device):
     res = calculate_metrics({'ap': ObjectDetectionAveragePrecision(),
                              'ap_macro': ObjectDetectionAveragePrecision(average='macro'),
                              'ap_weighted': ObjectDetectionAveragePrecision(average='weighted')},
-                            coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            coco_visiondata_test, mock_trained_yolov5_object_detection,
                             device=device)
     # classes mean and macro are not equal due to zeroed negative
     assert_that(nanmean(res['ap']), close_to(0.396, 0.001))
@@ -76,14 +76,14 @@ def test_average_precision_recall(coco_test_visiondata: VisionData, mock_trained
     assert_that(res['ap_weighted'], close_to(0.441, 0.001))
 
 
-def test_average_precision_thresholds(coco_test_visiondata: VisionData, mock_trained_yolov5_object_detection, device):
+def test_average_precision_thresholds(coco_visiondata_test, mock_trained_yolov5_object_detection, device):
     res = calculate_metrics({'ap': ObjectDetectionAveragePrecision(iou_range=(0.4, 0.8, 5), average='macro')},
-                            coco_test_visiondata, mock_trained_yolov5_object_detection,
+                            coco_visiondata_test, mock_trained_yolov5_object_detection,
                             device=device)
     assert_that(res['ap'], close_to(0.514, 0.001))
 
 
-def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
+def test_segmentation_metrics(segmentation_coco_visiondata_train, trained_segmentation_deeplabv3_mobilenet_model,
                               device):
     dice_per_class = MeanDice()
     dice_micro = MeanDice(average='micro')
@@ -92,9 +92,9 @@ def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmen
     iou_micro = MeanIoU(average='micro')
     iou_macro = MeanIoU(average='macro')
 
-    for batch in segmentation_coco_train_visiondata:
-        label = segmentation_coco_train_visiondata.batch_to_labels(batch)
-        prediction = segmentation_coco_train_visiondata.infer_on_batch(
+    for batch in segmentation_coco_visiondata_train:
+        label = segmentation_coco_visiondata_train.batch_to_labels(batch)
+        prediction = segmentation_coco_visiondata_train.batch_to_predictions(
             batch, trained_segmentation_deeplabv3_mobilenet_model, device)
         dice_per_class.update((prediction, label))
         dice_micro.update((prediction, label))
@@ -109,11 +109,11 @@ def test_segmentation_metrics(segmentation_coco_train_visiondata, trained_segmen
     assert_that(iou_per_class.compute()[0], close_to(0.948, 0.001))
 
 
-def test_per_sample_dice(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model, device):
-    batch = next(iter(segmentation_coco_train_visiondata))
-    predictions = segmentation_coco_train_visiondata.infer_on_batch(batch,
-                                                                    trained_segmentation_deeplabv3_mobilenet_model,
-                                                                    device)
+def test_per_sample_dice(segmentation_coco_visiondata_train, trained_segmentation_deeplabv3_mobilenet_model, device):
+    batch = next(iter(segmentation_coco_visiondata_train))
+    predictions = segmentation_coco_visiondata_train.batch_to_predictions(batch,
+                                                                          trained_segmentation_deeplabv3_mobilenet_model,
+                                                                          device)
     labels = batch[1]
     res = per_sample_dice(predictions, labels)
     assert_that(sum(res), close_to(9.513, 0.001))

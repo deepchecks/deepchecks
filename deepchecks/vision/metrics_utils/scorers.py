@@ -35,10 +35,10 @@ __all__ = [
 ]
 
 
-def get_default_classification_scorers():
+def get_default_classification_scorers(): # will use sklearn scorers
     return {
-        'Precision': classification_dict['precision_per_class'](),
-        'Recall':  classification_dict['recall_per_class']()
+        'Precision': CustomClassificationScorer('precision_per_class'),
+        'Recall':  CustomClassificationScorer('recall_per_class')
     }
 
 
@@ -54,11 +54,6 @@ def get_default_semantic_segmentation_scorers() -> t.Dict[str, Metric]:
         'Dice': semantic_segmentation_dict['dice_per_class']()
     }
 
-
-classification_dict = {
-    'precision_per_class': Precision,
-    'recall_per_class': Recall,
-}
 
 detection_dict = {
     'precision_per_class': lambda: ObjectDetectionTpFpFn(evaluating_function='precision', averaging_method='per_class'),
@@ -139,10 +134,7 @@ def get_scorers_dict(
                 if task_type == TaskType.OBJECT_DETECTION and metric_name in detection_dict:
                     converted_met = detection_dict[metric_name]()
                 elif task_type == TaskType.CLASSIFICATION:
-                    if metric_name in classification_dict:
-                        converted_met = classification_dict[metric_name]()
-                    else:
-                        converted_met = CustomClassificationScorer(metric)
+                    converted_met = CustomClassificationScorer(metric)
                 elif task_type == TaskType.SEMANTIC_SEGMENTATION:
                     converted_met = semantic_segmentation_dict[metric_name]()
                 else:
@@ -190,7 +182,7 @@ def calculate_metrics(
     """
 
     def process_function(_, batch):
-        return dataset.infer_on_batch(batch, model, device), dataset.batch_to_labels(batch)
+        return dataset.batch_to_predictions(batch, model, device), dataset.batch_to_labels(batch)
 
     engine = Engine(process_function)
 
@@ -198,31 +190,28 @@ def calculate_metrics(
         metric.reset()
         metric.attach(engine, name)
 
-    state = engine.run(dataset.data_loader)
+    state = engine.run(dataset.dynamic_loader)
     return state.metrics
 
 
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
-    data_classes = dataset.classes_indices.keys()
     result_list = []
-
     for metric, scores in results.items():
         if isinstance(scores, Number):
             result_list.append([metric, pd.NA, pd.NA, scores])
         elif len(scores) == 1:
-            score = scores[0].item() if isinstance(scores[0], torch.Tensor) else scores[0]
-            result_list.append([metric, pd.NA, pd.NA, score])
+            result_list.append([metric, pd.NA, pd.NA, scores[0]])
         elif isinstance(scores, (torch.Tensor, list, np.ndarray, dict)):
-            # Deepchecks scorers returns classification class scores as dict
+            # Deepchecks scorers returns classification class scores as dict but object detection as array TODO: unify
             scores_iterator = scores.items() if isinstance(scores, dict) else enumerate(scores)
             for class_id, class_score in scores_iterator:
+                class_name = dataset.label_id_to_name(class_id)
                 # The data might contain fewer classes than the model was trained on. filtering out
                 # any class id which is not presented in the data.
-                if np.isnan(class_score) or class_id not in data_classes:
+                if np.isnan(class_score) or class_name not in dataset.observed_classes:
                     continue
-                score = class_score.item() if isinstance(class_score, torch.Tensor) else class_score
-                result_list.append([metric, class_id, dataset.label_id_to_name(class_id), score])
+                result_list.append([metric, class_id, class_name, class_score])
         else:
             raise DeepchecksValueError(f'The metric {metric} returned a '
                                        f'{type(scores)} instead of an array/tensor')

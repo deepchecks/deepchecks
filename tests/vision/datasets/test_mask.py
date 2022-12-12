@@ -13,7 +13,7 @@ from unittest.mock import patch
 from hamcrest import assert_that, calling, instance_of, is_, raises, equal_to
 from torch.utils.data import DataLoader
 
-from deepchecks import vision
+from deepchecks.vision import VisionData
 from deepchecks.vision.datasets.detection.mask import (DATA_DIR, MaskDataset, load_dataset)
 
 
@@ -44,7 +44,7 @@ def load_dataset_test(mock_download_and_extract_archive):
 
 def test_deepchecks_dataset_load():
     loader = load_dataset(day_index=0, object_type='VisionData')
-    assert_that(loader, instance_of(vision.VisionData))
+    assert_that(loader, instance_of(VisionData))
 
 
 def test__load_dataset__func_with_unknow_object_type_parameter():

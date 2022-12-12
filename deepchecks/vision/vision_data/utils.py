@@ -25,6 +25,10 @@ class TaskType(Enum):
     SEMANTIC_SEGMENTATION = 'semantic_segmentation'
     OTHER = 'other'
 
+    @classmethod
+    def values(cls):
+        return [e.value for e in TaskType]
+
 
 class BatchOutputFormat(t.TypedDict):
     images: t.Optional[t.Union[np.ndarray, t.Sequence]]
@@ -35,7 +39,8 @@ class BatchOutputFormat(t.TypedDict):
     image_identifiers: t.Optional[t.Union[np.ndarray, t.Sequence]]
 
 
-def sequence_to_numpy(data: t.Optional[t.Sequence], expected_dtype=None) -> t.Optional[t.Sequence]:
+def sequence_to_numpy(data: t.Optional[t.Sequence], expected_dtype=None, expected_ndim_per_object=None) -> \
+        t.Optional[t.List]:
     """Convert a sequence containing some type of array to a List of numpy arrays.
 
     Returns
@@ -45,10 +50,10 @@ def sequence_to_numpy(data: t.Optional[t.Sequence], expected_dtype=None) -> t.Op
     """
     if data is None:
         return None
-    return [object_to_numpy(x, expected_dtype) for x in data]
+    return [object_to_numpy(x, expected_dtype, expected_ndim_per_object) for x in data]
 
 
-def object_to_numpy(data, expected_dtype=None) -> t.Union[np.ndarray, Number, str]:
+def object_to_numpy(data, expected_dtype=None, expected_ndim=None) -> t.Union[np.ndarray, Number, str]:
     """Convert an object to a numpy object.
 
     Returns
@@ -59,7 +64,7 @@ def object_to_numpy(data, expected_dtype=None) -> t.Union[np.ndarray, Number, st
     if data is None:
         return None
     if isinstance(data, torch.Tensor):
-        result = data.numpy()
+        result = data.detach().cpu().numpy()
     elif isinstance(data, np.ndarray):
         result = data
     elif isinstance(data, Number) or isinstance(data, str):
@@ -71,13 +76,33 @@ def object_to_numpy(data, expected_dtype=None) -> t.Union[np.ndarray, Number, st
         result = result.astype(expected_dtype)
     if len(result.shape) == 0:
         result = result.item()
+    elif len(result.shape) == 1 and result.shape[0] > 0 and expected_ndim == 2:
+        result = result.reshape(1, result.shape[0])
     return result
 
 
-def shuffle_dynamic_loader(dynamic_loader):
+def shuffle_loader(dynamic_loader):
     """Reshuffle the dynamic loader."""
     # TODO: do something here
     return dynamic_loader
+
+
+def get_label_ids_of_label(label: t.Union[np.ndarray, int], task_type: TaskType) -> t.List[int]:
+    """Return the label_ids of the provided label.
+
+    Returns
+    -------
+    List[int]
+        A list of label_ids of provided label.
+    """
+    if task_type == TaskType.CLASSIFICATION:
+        return [labels]
+    elif task_type == TaskType.OBJECT_DETECTION:
+        return labels[:, 0].tolist()
+    elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+        return np.unique(labels).tolist()
+    else:
+        raise ValueError(f'Unsupported task type: {task_type}')
 
 
 def get_class_ids_from_numpy_labels(labels: t.Sequence[t.Union[np.ndarray, int]], task_type: TaskType) \
@@ -93,9 +118,10 @@ def get_class_ids_from_numpy_labels(labels: t.Sequence[t.Union[np.ndarray, int]]
         return Counter(labels)
     elif task_type == TaskType.OBJECT_DETECTION:
         class_ids_per_image = [label[:, 0] for label in labels if label is not None and len(label.shape) == 2]
-        return Counter(np.hstack(class_ids_per_image))
+        return Counter(np.hstack(class_ids_per_image)) if len(class_ids_per_image) > 0 else {}
     elif task_type == TaskType.SEMANTIC_SEGMENTATION:
-        return 4
+        labels_per_image = [np.unique(label) for label in labels if label is not None]
+        return Counter(np.hstack(labels_per_image))
     else:
         raise ValueError(f'Unsupported task type: {task_type}')
 
@@ -115,7 +141,8 @@ def get_class_ids_from_numpy_preds(predictions: t.Sequence[t.Union[np.ndarray]],
         class_ids_per_image = [pred[:, 5] for pred in predictions if pred is not None and len(pred.shape) == 2]
         return Counter(np.hstack(class_ids_per_image))
     elif task_type == TaskType.SEMANTIC_SEGMENTATION:
-        return 4
+        classes_predicted_per_image = \
+            [np.unique(np.argmax(pred, axis=0)) for pred in predictions if pred is not None]
+        return Counter(np.hstack(classes_predicted_per_image))
     else:
         raise ValueError(f'Unsupported task type: {task_type}')
-

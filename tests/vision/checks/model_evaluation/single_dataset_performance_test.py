@@ -20,28 +20,28 @@ from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationSc
 from tests.base.utils import equal_condition_result
 
 
-def test_detection_defaults(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
+def test_detection_defaults(coco_visiondata_train, mock_trained_yolov5_object_detection, device):
     # Arrange
     check = SingleDatasetPerformance()
 
     # Act
-    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
+    result = check.run(coco_visiondata_train, mock_trained_yolov5_object_detection, device=device)
 
     # Assert
     assert_that(result.value.Value.mean(), close_to(0.416, 0.001))
 
 
-def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
+def test_detection_w_params(coco_visiondata_train, mock_trained_yolov5_object_detection, device):
     # params that should run normally
     check = SingleDatasetPerformance(scorers={'f1': ObjectDetectionTpFpFn(evaluating_function='f1')})
-    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
+    result = check.run(coco_visiondata_train, mock_trained_yolov5_object_detection, device=device)
     assert_that(result.value.Value.mean(), close_to(0.505, 0.001))
 
 
-def test_detection_many_scorers(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
+def test_detection_many_scorers(coco_visiondata_train, mock_trained_yolov5_object_detection, device):
     # Act
     check = SingleDatasetPerformance(scorers=['f1_micro', 'fnr_per_class', 'recall_macro', 'recall_per_class'])
-    result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device).value
+    result = check.run(coco_visiondata_train, mock_trained_yolov5_object_detection, device=device).value
 
     # Assert
     assert_that(result[result['Metric'] == 'f1_micro']['Value'].mean(), close_to(0.5666, 0.001))
@@ -54,45 +54,45 @@ def test_detection_many_scorers(coco_train_visiondata, mock_trained_yolov5_objec
                 close_to(result[result['Metric'] == 'recall_macro']['Value'].mean(), 0.001))
 
 
-def test_classification_defaults(mnist_dataset_train, mock_trained_mnist, device):
+def test_classification_defaults(mnist_visiondata_train, mock_mnist_model, device):
     # Arrange
     check = SingleDatasetPerformance()
 
     # Act
-    result = check.run(mnist_dataset_train, mock_trained_mnist, device=device)
+    result = check.run(mnist_visiondata_train, mock_mnist_model, device=device)
 
     # Assert
     assert_that(result.value.Value.mean(), close_to(0.98, 0.001))
 
 
-def test_classification_custom_scorer(mnist_dataset_test, mock_trained_mnist, device):
+def test_classification_custom_scorer(mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
     scorer = make_scorer(jaccard_score, average=None, zero_division=0)
     check = SingleDatasetPerformance(scorers={'kappa': CustomClassificationScorer(scorer)})
 
     # Act
-    result = check.run(mnist_dataset_test, mock_trained_mnist, device=device, n_samples=None)
+    result = check.run(mnist_visiondata_test, mock_mnist_model, device=device, n_samples=None)
 
     # Assert
     assert_that(result.value.Value.mean(), close_to(0.963, 0.001))
 
 
-def test_classification_sklearn_scorers(mnist_dataset_test, mock_trained_mnist, device):
+def test_classification_sklearn_scorers(mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
     check = SingleDatasetPerformance(scorers=['f1_per_class'])
 
     # Act
-    result = check.run(mnist_dataset_test, mock_trained_mnist, device=device, n_samples=None)
+    result = check.run(mnist_visiondata_test, mock_mnist_model, device=device, n_samples=None)
 
     # Assert
     assert_that(result.value.Value.mean(), close_to(0.981, 0.001))
     assert_that(result.value.Value, has_length(10))
 
 
-def test_segmentation_many_scorers(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
+def test_segmentation_many_scorers(segmentation_coco_visiondata_train, trained_segmentation_deeplabv3_mobilenet_model,
                                    device):
     check = SingleDatasetPerformance(scorers=['dice_per_class', 'dice_macro', 'iou_micro'])
-    result = check.run(segmentation_coco_train_visiondata, trained_segmentation_deeplabv3_mobilenet_model,
+    result = check.run(segmentation_coco_visiondata_train, trained_segmentation_deeplabv3_mobilenet_model,
                        device=device, with_display=False).value
 
     assert_that(result[result['Metric'] == 'dice']['Value'].mean(), close_to(0.649, 0.006))
@@ -100,14 +100,14 @@ def test_segmentation_many_scorers(segmentation_coco_train_visiondata, trained_s
     assert_that(result[result['Metric'] == 'iou_micro']['Value'], close_to(0.948, 0.001))
 
 
-def test_condition_greater_than(mnist_dataset_test, mock_trained_mnist, device):
+def test_condition_greater_than(mnist_visiondata_test, mock_mnist_model, device):
     check = SingleDatasetPerformance().add_condition_greater_than(0.8) \
         .add_condition_greater_than(1.0, ['Precision']) \
         .add_condition_greater_than(0.5, ['Accuracy']) \
         .add_condition_greater_than(0.5, class_mode='a')
 
     # Act
-    result = check.run(mnist_dataset_test, mock_trained_mnist, device=device)
+    result = check.run(mnist_visiondata_test, mock_mnist_model, device=device)
 
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
@@ -139,12 +139,12 @@ def test_condition_greater_than(mnist_dataset_test, mock_trained_mnist, device):
     ))
 
 
-def test_reduce_output(mnist_dataset_test, mock_trained_mnist, device):
+def test_reduce_output(mnist_visiondata_test, mock_mnist_model, device):
     # Arrange
     check = SingleDatasetPerformance(scorers={'pr': Precision(), 'ac': Accuracy()})
 
     # Act
-    result = check.run(mnist_dataset_test, mock_trained_mnist, device=device).reduce_output()
+    result = check.run(mnist_visiondata_test, mock_mnist_model, device=device).reduce_output()
 
     # Assert
     assert_that(result['ac'], close_to(0.9813, 0.01))

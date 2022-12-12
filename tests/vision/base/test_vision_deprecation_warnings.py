@@ -13,11 +13,10 @@
 import warnings
 
 import pytest
-import torch
 from ignite.metrics import Accuracy
 
 from deepchecks.vision.checks import (ClassPerformance, ImageSegmentPerformance, ModelErrorAnalysis, RobustnessReport,
-                                      SimpleModelComparison, SingleDatasetPerformance)
+                                      SimpleModelComparison)
 
 
 def test_deprecation_warning_robustness_report():
@@ -68,17 +67,3 @@ def test_deprecation_warning_class_performance():
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         check = ClassPerformance()
-
-
-def test_deprecation_train_predictions(mnist_dataset_train):
-    pred_train = torch.rand((mnist_dataset_train.num_samples, 10))
-    pred_train = pred_train / torch.sum(pred_train, dim=1, keepdim=True)
-    pred_train_dict = dict(zip(range(mnist_dataset_train.num_samples), pred_train))
-    with pytest.warns(DeprecationWarning,
-                      match='train_predictions is deprecated, please use predictions instead.'):
-        _ = SingleDatasetPerformance().run(mnist_dataset_train, train_predictions=pred_train_dict)
-
-    with pytest.warns(DeprecationWarning,
-                      match='test_predictions is deprecated and ignored.'):
-        _ = SingleDatasetPerformance().run(mnist_dataset_train, predictions=pred_train_dict,
-                                           test_predictions=pred_train_dict)

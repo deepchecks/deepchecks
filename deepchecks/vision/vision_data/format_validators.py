@@ -30,7 +30,7 @@ def validate_images_format(images):
         If the images doesn't fit the required deepchecks format.
     """
     try:
-        image = object_to_numpy(images[0])
+        image = object_to_numpy(images[0], expected_ndim=3)
     except TypeError as err:
         raise ValidationError(f'The batch images must be an iterable, received {type(images)}.') from err
     try:
@@ -150,7 +150,7 @@ def _validate_predictions_label_common_format(name, data, task_type: TaskType):
     except AttributeError as err:
         raise ValidationError(f'{name} for {task_type.value} per image must be a multi dimensional array.') from err
 
-    if task_type == TaskType.OBJECT_DETECTION and len(sample_shape) != 2:
+    if task_type == TaskType.OBJECT_DETECTION and len(sample_shape) not in (1, 2):
         raise ValidationError(f'{name} for object detection per image must be a 2D array. Found shape {sample_shape}')
 
     return data[sample_idx]

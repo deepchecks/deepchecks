@@ -9,9 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
-from typing import Any, Optional
-
-from torch import nn
+from typing import Any
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
@@ -35,12 +33,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     context_type = Context
 
     @docstrings
-    def run(
-            self,
-            dataset: VisionData,
-            random_state: int = 42,
-            with_display: bool = True,
-    ) -> CheckResult:
+    def run(self, dataset: VisionData, random_state: int = 42, with_display: bool = True) -> CheckResult:
         """Run check.
 
         Parameters
@@ -49,33 +42,22 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             VisionData object to process
         {additional_run_params:2*indent}
         """
-        assert self.context_type is not None
-
         with ProgressBarGroup() as progressbar_factory:
-            with progressbar_factory.create_dummy(name='Validating Input'):
-                # Context is copying the data object, then not using the original after the init
-                context: Context = self.context_type(
-                    dataset,
-                    random_state=random_state,
-                    with_display=with_display,
-                )
-                self.initialize_run(context, DatasetKind.TRAIN)
+            context: Context = self.context_type(train=dataset, random_state=random_state, with_display=with_display)
+            self.initialize_run(context, DatasetKind.TRAIN)
 
-            dataset.init_cache()
-
-            for i, batch in enumerate(progressbar_factory.create(
-                    iterable=dataset,
-                    name='Ingesting Batches',
-                    unit='Batch'
-            )):
-                batch = BatchWrapper(batch, dataset)
-                dataset.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
-                self.update(context, batch, DatasetKind.TRAIN)
+            with progressbar_factory.create_dummy(name='Ingesting Batches'):
+                for i, batch in enumerate(context.train):
+                    batch = BatchWrapper(batch, context.train)
+                    context.train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
+                    self.update(context, batch, DatasetKind.TRAIN)
+                    if self.n_samples is not None and context.train.number_of_images_cached > self.n_samples:
+                        break
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context, DatasetKind.TRAIN)
                 context.finalize_check_result(result, self, DatasetKind.TRAIN)
-                return result
+        return result
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches. Optional."""
@@ -99,13 +81,8 @@ class TrainTestCheck(TrainTestBaseCheck):
     context_type = Context
 
     @docstrings
-    def run(
-            self,
-            train_dataset: VisionData,
-            test_dataset: VisionData,
-            random_state: int = 42,
-            with_display: bool = True,
-    ) -> CheckResult:
+    def run(self, train_dataset: VisionData, test_dataset: VisionData,
+            random_state: int = 42, with_display: bool = True) -> CheckResult:
         """Run check.
 
         Parameters
@@ -116,45 +93,31 @@ class TrainTestCheck(TrainTestBaseCheck):
             VisionData object, representing data the models predicts on
         {additional_run_params:2*indent}
         """
-        assert self.context_type is not None
-
         with ProgressBarGroup() as progressbar_factory:
+            context: Context = self.context_type(train=train_dataset, test=test_dataset,
+                                                 random_state=random_state, with_display=with_display)
+            self.initialize_run(context)
 
-            with progressbar_factory.create_dummy(name='Validating Input'):
-                # Context is copying the data object, then not using the original after the init
-                context: Context = self.context_type(
-                    train_dataset,
-                    test_dataset,
-                    random_state=random_state,
-                    with_display=with_display,
-                )
-                self.initialize_run(context)
+            with progressbar_factory.create_dummy(name='Ingesting Batches Train') as progressbar:
+                for i, batch in enumerate(context.train):
+                    batch = BatchWrapper(batch, context.train)
+                    context.train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
+                    self.update(context, batch, DatasetKind.TRAIN)
+                    if self.n_samples is not None and context.train.number_of_images_cached > self.n_samples:
+                        break
 
-            train_pbar = progressbar_factory.create(
-                iterable=train_dataset,
-                name='Ingesting Batches - Train Dataset',
-                unit='Batch'
-            )
-            train_dataset.init_cache()
-            for i, batch in enumerate(train_pbar):
-                batch = BatchWrapper(batch, train_dataset)
-                train_dataset.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
-                self.update(context, batch, DatasetKind.TRAIN)
-
-            test_dataset.init_cache()
-            for i, batch in enumerate(progressbar_factory.create(
-                    iterable=test_dataset,
-                    name='Ingesting Batches - Test Dataset',
-                    unit='Batch'
-            )):
-                batch = BatchWrapper(batch, test_dataset)
-                test_dataset.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
-                self.update(context, batch, DatasetKind.TEST)
+            with progressbar_factory.create_dummy(name='Ingesting Batches Test') as progressbar:
+                for i, batch in enumerate(context.test):
+                    batch = BatchWrapper(batch, context.test)
+                    context.test.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
+                    self.update(context, batch, DatasetKind.TEST)
+                    if self.n_samples is not None and context.test.number_of_images_cached > self.n_samples:
+                        break
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)
                 context.finalize_check_result(result, self)
-                return result
+        return result
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
@@ -175,32 +138,24 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     context_type = Context
 
     @docstrings
-    def run(
-            self,
-            model: nn.Module,
-            random_state: int = 42,
-            with_display: bool = True,
-    ) -> CheckResult:
+    def run(self, model, random_state: int = 42, with_display: bool = True) -> CheckResult:
         """Run check.
 
         Parameters
         ----------
+        model
+            Model to run the check on
         {additional_run_params:2*indent}
         """
-        assert self.context_type is not None
-
         with ProgressBarGroup() as progressbar_factory:
-            with progressbar_factory.create_dummy(name='Validating Input'):
-                context: Context = self.context_type(  # currently no model is passed to context
-                    random_state=random_state,
-                    with_display=with_display,
-                )
-                self.initialize_run(context)
+            # Currently we do not receive model into context since there are no model only checks
+            context: Context = self.context_type(random_state=random_state, with_display=with_display)
+            self.initialize_run(context)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)
                 context.finalize_check_result(result, self)
-                return result
+        return result
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""

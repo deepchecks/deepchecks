@@ -15,11 +15,11 @@ from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, ImageSeg
                                RobustnessReport, SimpleModelComparison, SingleDatasetPerformance,
                                TrainTestPredictionDrift, WeakSegmentsPerformance)
 from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, NewLabels,
-                                    PropertyLabelCorrelationChange, SimilarImageLeakage, TrainTestLabelDrift)
+                                    PropertyLabelCorrelationChange, TrainTestLabelDrift)
 
 __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
            'RobustnessReport', 'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
            'ImagePropertyDrift', 'ModelErrorAnalysis', 'TrainTestPredictionDrift', 'ImageSegmentPerformance',
            'PropertyLabelCorrelationChange', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
-           'SimilarImageLeakage', 'NewLabels', 'SingleDatasetPerformance', 'PropertyLabelCorrelation',
+           'NewLabels', 'SingleDatasetPerformance', 'PropertyLabelCorrelation',
            'WeakSegmentsPerformance']
