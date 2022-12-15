@@ -23,6 +23,7 @@ from deepchecks.nlp.metric_utils.token_classification import (SpanAligner, get_d
                                                               validate_scorers)
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
+from deepchecks.nlp.utils.data_inference import infer_observed_and_model_labels
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 
 __all__ = [
@@ -34,6 +35,7 @@ __all__ = [
 
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
 
@@ -49,9 +51,9 @@ class _DummyModel(BasicModel):
 
     Parameters
     ----------
-    train: Dataset
+    train: TextData
         Dataset, representing data an estimator was fitted on.
-    test: Dataset
+    test: TextData
         Dataset, representing data an estimator predicts on.
     y_pred_train: np.ndarray
         Array of the model prediction over the train dataset.
@@ -75,6 +77,7 @@ class _DummyModel(BasicModel):
                  train: t.Union[TextData, None] = None,
                  y_pred_train: TTextPred = None,
                  y_proba_train: TTextProba = None,
+                 model_classes: list = None,
                  validate_data_on_predict: bool = True):
         """Initialize dummy model."""
         predictions = {}
@@ -101,16 +104,18 @@ class _DummyModel(BasicModel):
                                             [y_proba_train, y_proba_test]):
             if dataset is not None:
                 if y_pred is not None:
-                    self._validate_prediction(dataset, y_pred)
+                    self._validate_prediction(dataset, y_pred, len(model_classes))
                 if y_proba is not None:
-                    self._validate_proba(dataset, y_proba)
+                    self._validate_proba(dataset, y_proba, len(model_classes))
 
                 if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
                     if (y_pred is None) and (y_proba is not None):
                         if dataset.is_multilabel:
-                            y_pred = (np.array(y_proba) > 0.5) * 1  # TODO: Replace with user-configurable threshold
+                            y_pred = (np.array(y_proba) > 0.5)  # TODO: Replace with user-configurable threshold
+                            y_pred = [np.array(model_classes)[pred] for pred in y_pred]
                         else:
                             y_pred = np.argmax(np.array(y_proba), axis=-1)
+                            y_pred = np.array(model_classes)[y_pred]
 
                     if y_pred is not None:
                         y_pred = np.array(y_pred)
@@ -130,6 +135,7 @@ class _DummyModel(BasicModel):
         self.predictions = predictions
         self.probas = probas
         self.validate_data_on_predict = validate_data_on_predict
+        self._classes = model_classes
 
         if self.predictions:
             self.predict = self._predict
@@ -141,7 +147,7 @@ class _DummyModel(BasicModel):
             self._proba_indices = \
                 {name: set(data_proba.keys()) for name, data_proba in self.probas.items()}
 
-    def _predict(self, data: TextData) -> TTextPred:
+    def _predict(self, data: TextData) -> TTextPred:  # TODO: Needs to receive list of strings, not TextData
         """Predict on given data by the data indexes."""
         if self.validate_data_on_predict:
             data_indices = set(np.random.choice(data.index, min(100, len(data.index)), replace=False))
@@ -150,7 +156,7 @@ class _DummyModel(BasicModel):
                                            'predictions.')
         return list(itemgetter(*data.index)(self.predictions[data.name]))  # pylint: disable=unsubscriptable-object
 
-    def _predict_proba(self, data: TextData) -> TTextProba:
+    def _predict_proba(self, data: TextData) -> TTextProba:  # TODO: Needs to receive list of strings, not TextData
         """Predict probabilities on given data by the data indexes."""
         if self.validate_data_on_predict:
             data_indices = set(np.random.choice(data.index, min(100, len(data.index)), replace=False))
@@ -164,7 +170,7 @@ class _DummyModel(BasicModel):
         pass
 
     @staticmethod
-    def _validate_prediction(dataset: TextData, prediction: TTextPred):
+    def _validate_prediction(dataset: TextData, prediction: TTextPred, n_classes: int):
         """Validate prediction for given dataset."""
         if not isinstance(prediction, collections.abc.Sequence):
             ValidationError(f'Check requires predictions for {dataset.name} to be a sequence')
@@ -173,12 +179,12 @@ class _DummyModel(BasicModel):
                                   f'{dataset.n_samples} rows, same as dataset')
 
         if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
-            _DummyModel._validate_classification_prediction(dataset, prediction)
+            _DummyModel._validate_classification_prediction(dataset, prediction, n_classes)
         elif dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
             _DummyModel._validate_token_classification_prediction(dataset, prediction)
 
     @staticmethod
-    def _validate_classification_prediction(dataset: TextData, prediction: TTextPred):
+    def _validate_classification_prediction(dataset: TextData, prediction: TTextPred, n_classes: int):
         """Validate prediction for given text classification dataset."""
         classification_format_error = f'Check requires classification for {dataset.name} to be ' \
                                       f'either a sequence that can be cast to a 1D numpy array of shape' \
@@ -196,7 +202,6 @@ class _DummyModel(BasicModel):
         except ValueError as e:
             raise ValidationError(classification_format_error) from e
         pred_shape = prediction.shape
-        n_classes = dataset.num_classes
         if dataset.is_multilabel:
             if len(pred_shape) == 1 or pred_shape[1] != n_classes:
                 raise ValidationError(classification_format_error)
@@ -228,7 +233,7 @@ class _DummyModel(BasicModel):
                                           f'prediction tuples')
 
     @staticmethod
-    def _validate_proba(dataset: TextData, probabilities: TTextProba,
+    def _validate_proba(dataset: TextData, probabilities: TTextProba, n_classes: int,
                         eps: float = 1e-3):
         """Validate predicted probabilities for given dataset."""
         classification_format_error = f'Check requires classification probabilities for {dataset.name} to be a ' \
@@ -247,7 +252,6 @@ class _DummyModel(BasicModel):
             proba_shape = probabilities.shape
             if len(proba_shape) != 2:
                 raise ValidationError(classification_format_error)
-            n_classes = dataset.num_classes
             if proba_shape[1] != n_classes:
                 raise ValidationError(f'Check requires classification probabilities for {dataset.name} dataset '
                                       f'to have {n_classes} columns, same as the number of classes')
@@ -266,22 +270,24 @@ class Context(BaseContext):
 
     Parameters
     ----------
-    train_dataset: Union[TextData, None] , default: None
+    train_dataset : Union[TextData, None] , default: None
         TextData object, representing data an estimator was fitted on
-    test_dataset: Union[TextData, None] , default: None
+    test_dataset : Union[TextData, None] , default: None
         TextData object, representing data an estimator predicts on
     with_display : bool , default: True
         flag that determines if checks will calculate display (redundant in some checks).
-    train_pred: Union[TTextPred, None] , default: None
+    train_pred : Union[TTextPred, None] , default: None
         predictions on train dataset
-    test_pred: Union[TTextPred, None] , default: None
+    test_pred : Union[TTextPred, None] , default: None
         predictions on test dataset
-    train_proba: Union[TTextProba, None] , default: None
+    train_proba : Union[TTextProba, None] , default: None
         probabilities on train dataset
-    test_proba: Union[TTextProba, None] , default: None
+    test_proba : Union[TTextProba, None] , default: None
         probabilities on test dataset
-    random_state : int, default 42
-        A seed to set for pseudo-random functions, primarily sampling.
+    model_classes : Optional[List] , default: None
+        list of classes known to the model
+    random_state: int, default 42
+        A seed to set for pseudo-random functions , primarily sampling.
     n_samples: int, default: 10_000
         The number of samples to use within the checks.
     """
@@ -295,6 +301,7 @@ class Context(BaseContext):
             test_pred: t.Optional[TTextPred] = None,
             train_proba: t.Optional[TTextProba] = None,
             test_proba: t.Optional[TTextProba] = None,
+            model_classes: t.Optional[t.List] = None,
             random_state: int = 42,
             n_samples: t.Optional[int] = 10_000
     ):
@@ -317,11 +324,25 @@ class Context(BaseContext):
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')
+        if model_classes and len(model_classes) == 0:
+            raise DeepchecksValueError('Received empty model_classes')
+        if model_classes and sorted(model_classes) != model_classes:
+            supported_models_link = doclink(
+                'nlp-supported-predictions-format',
+                template='For more information please refer to the Supported Tasks guide {link}')
+            raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
+
+        self._task_type = self.infer_task_type(train_dataset, test_dataset)
+
+        self._observed_classes, self._model_classes = \
+            infer_observed_and_model_labels(train_dataset=train_dataset, test_dataset=test_dataset,
+                                            model_classes=model_classes)
 
         if any(x is not None for x in (train_pred, test_pred, train_proba, test_proba)):
             self._model = _DummyModel(train=train_dataset, test=test_dataset,
                                       y_pred_train=train_pred, y_pred_test=test_pred,
-                                      y_proba_train=train_proba, y_proba_test=test_proba)
+                                      y_proba_train=train_proba, y_proba_test=test_proba,
+                                      model_classes=self.model_classes)
         else:
             self._model = None
 
@@ -333,8 +354,8 @@ class Context(BaseContext):
             self._test = self._test.sample(n_samples, random_state=random_state)
 
         self._validated_model = False
-        self._task_type = None
         self._with_display = with_display
+
         # Init a span aligner object for the run
         self._span_aligner = SpanAligner()
 
@@ -351,9 +372,35 @@ class Context(BaseContext):
         return 'Pre-computed predictions'
 
     @property
+    def model_classes(self) -> t.List:
+        """Return ordered list of possible label classes for classification tasks."""
+        if self._model_classes is None:
+            # If in infer_observed_and_model_labels we didn't find classes on model, or user didn't pass any,
+            # then using the observed
+            self._model_classes = self._observed_classes
+            get_logger().warning('Could not find model\'s classes, using the observed classes')
+        return self._model_classes
+
+    @property
+    def observed_classes(self) -> t.List:
+        """Return the observed classes in both train and test."""
+        return self._observed_classes
+
+    @property
     def span_aligner(self) -> SpanAligner:
         """Return the cached SpanAligner object."""
         return self._span_aligner
+
+    @staticmethod
+    def infer_task_type(train_dataset: TextData, test_dataset: TextData):
+        """Infer the task type."""
+        if not test_dataset:
+            return train_dataset.task_type
+        elif train_dataset.task_type != test_dataset.task_type:
+            raise DeepchecksValueError(f'datasets must have the same task type. Received '
+                                       f'{train_dataset.task_type.value} for train and '
+                                       f'{test_dataset.task_type.value} for test')
+        return train_dataset.task_type
 
     @property
     def task_type(self) -> TaskType:
@@ -408,7 +455,7 @@ class Context(BaseContext):
             A list of initialized & validated scorers.
         """
         if self.task_type == TaskType.TEXT_CLASSIFICATION:
-            if self.train.num_classes > 2:
+            if len(self.model_classes) > 2:
                 scorers = scorers or get_default_scorers(TabularTaskType.MULTICLASS, use_avg_defaults)
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
@@ -422,4 +469,4 @@ class Context(BaseContext):
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
                                        f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')
-        return init_validate_scorers(scorers)
+        return init_validate_scorers(scorers, self.model_classes, self._observed_classes)

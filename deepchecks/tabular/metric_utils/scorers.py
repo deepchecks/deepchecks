@@ -251,15 +251,15 @@ class DeepcheckScorer:
 
             def predict(self, data: pd.DataFrame) -> np.ndarray:
                 """Convert labels to 0/1 if model is a binary classifier."""
-                predicitions: np.ndarray = np.asarray(self.user_model.predict(data))
+                predictions: np.ndarray = np.asarray(self.user_model.predict(data))
                 # In case of binary converts into 0 and 1 the labels
                 if self.is_binary:
                     transfer_func = np.vectorize(lambda x: 0 if x == self.model_classes[0] else 1)
-                    predicitions = transfer_func(predicitions)
+                    predictions = transfer_func(predictions)
                 # In case of multiclass with single label, convert into multi-label
                 elif self.model_classes:
-                    predicitions = _transform_to_multi_label_format(predicitions, self.model_classes)
-                return predicitions
+                    predictions = validate_multi_label_format(predictions, self.model_classes)
+                return predictions
 
             def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
                 """Validate model have predict_proba, and the proba matches the model classes."""
@@ -295,22 +295,26 @@ class DeepcheckScorer:
             if updated_model.is_binary:
                 label = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1}).to_numpy()
             else:
-                label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
+                label = validate_multi_label_format(np.array(label_col), self.model_classes)
 
             scores = self.scorer(updated_model, data, label)
 
-            # The scores returned are for the observed classes but we want scores of the observed classes
-            if isinstance(scores, t.Sized):
-                if len(scores) != len(self.model_classes):
-                    raise errors.DeepchecksValueError(
-                        f'Scorer returned {len(scores)} scores, but model contains '
-                        f'{len(self.model_classes)} classes. Can\'t proceed')
-                scores = dict(zip(self.model_classes, scores))
-                # Add classes which been seen in the data but are not known to the model
-                scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
-            return scores
+            return self.validate_scorer_multilabel_output(scores)
         else:
             return self.scorer(model, data, label_col)
+
+    def validate_scorer_multilabel_output(self, scores):
+        """Validate output and return scores for the observed classes as well as for the model classes."""
+        if isinstance(scores, t.Sized):
+            if len(scores) != len(self.model_classes):
+                raise errors.DeepchecksValueError(
+                    f'Scorer returned {len(scores)} scores, but model contains '
+                    f'{len(self.model_classes)} classes. Can\'t proceed')
+
+            scores = dict(zip(self.model_classes, scores))
+            # Add classes which been seen in the data but are not known to the model
+            scores.update({class_name: np.nan for class_name in set(self.observed_classes) - set(self.model_classes)})
+        return scores
 
     def __call__(self, model, dataset: 'tabular.Dataset'):
         """Run score with labels null filtering."""
@@ -402,7 +406,8 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
     return scorers
 
 
-def _transform_to_multi_label_format(y: np.ndarray, classes):
+def validate_multi_label_format(y: np.ndarray, classes):
+    """Transform multiclass label to multi-label. If given as multi-label to begin with, returns it as is."""
     # Some classifiers like catboost might return shape like (n_rows, 1), therefore squeezing the array.
     y = np.squeeze(y) if y.ndim > 1 else y
     if y.ndim == 1:
@@ -421,5 +426,5 @@ def validate_proba(probabilities: np.array, model_classes: t.List):
     if probabilities.shape[1] != len(model_classes):
         raise errors.ModelValidationError(
             f'Model probabilities per class has {probabilities.shape[1]} '
-            f'classes while known model classes has {len(model_classes)}. You can set the model\'s'
+            f'classes while known model classes has {len(model_classes)}. You can set the model\'s '
             f'classes manually using the model_classes argument in the run function.')

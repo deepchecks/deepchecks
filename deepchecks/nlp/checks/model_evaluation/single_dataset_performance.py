@@ -19,7 +19,6 @@ from deepchecks.core.check_utils.single_dataset_performance_base import BaseSing
 from deepchecks.nlp.base_checks import SingleDatasetCheck
 from deepchecks.nlp.context import Context
 from deepchecks.nlp.metric_utils.scorers import infer_on_text_data
-from deepchecks.nlp.task_type import TaskType
 
 __all__ = ['SingleDatasetPerformance']
 
@@ -51,17 +50,14 @@ class SingleDatasetPerformance(SingleDatasetCheck, BaseSingleDatasetPerformance)
         scorers = context.get_scorers(self.scorers, use_avg_defaults=False, span_aligner=span_aligner)
 
         results = []
-        classes = dataset.classes
         for scorer in scorers:
             scorer_value = infer_on_text_data(scorer, model, dataset)
-            if dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
-                classes = span_aligner.classes
             if isinstance(scorer_value, Number):
                 results.append([pd.NA, scorer.name, scorer_value])
             else:
                 results.extend(
                     [[class_name, scorer.name, class_score]
-                     for class_score, class_name in zip(scorer_value, classes)])
+                     for class_name, class_score in scorer_value.items()])
         results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
 
         if context.with_display:
