@@ -71,6 +71,11 @@ class _DummyModel:
                  validate_data_on_predict: bool = True,
                  model_classes: t.Optional[t.List] = None):
 
+        if model_classes is None:
+            classes_test = set(y_pred_test) if y_pred_test is not None else set()
+            classes_train = set(y_pred_train) if y_proba_train is not None else set()
+            model_classes = sorted(list(classes_train.union(classes_test)))
+
         if train is not None and test is not None:
             # check if datasets have same indexes
             if set(train.data.index) & set(test.data.index):
@@ -221,15 +226,14 @@ class Context:
                 template='For more information please refer to the Supported Models guide {link}')
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
-        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
-            model, train, test, model_classes)
-
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                                y_proba_test=y_proba_test, y_proba_train=y_proba_train,
-                                model_classes=self.model_classes)
+                                y_proba_test=y_proba_test, y_proba_train=y_proba_train)
+
+        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
+            model, train, test, model_classes)
 
         self._train = train
         self._test = test
