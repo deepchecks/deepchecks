@@ -71,10 +71,34 @@ class _DummyModel:
                  validate_data_on_predict: bool = True,
                  model_classes: t.Optional[t.List] = None):
 
-        if model_classes is None:
-            classes_test = set(y_pred_test) if y_pred_test is not None else set()
-            classes_train = set(y_pred_train) if y_proba_train is not None else set()
-            model_classes = sorted(list(classes_train.union(classes_test)))
+        if y_proba_train is not None or y_proba_test is not None:
+            user_set_classes = True
+            if model_classes is None:
+                classes_test = set(y_pred_test) if y_pred_test is not None else set()
+                classes_train = set(y_pred_train) if y_pred_train is not None else set()
+                model_classes = sorted(list(classes_train.union(classes_test)))
+                user_set_classes = False
+            if y_proba_train is not None and y_proba_train.shape[1] != len(model_classes):
+                if user_set_classes:
+                    message = f'probabilities per class in y_proba_train has {y_proba_train.shape[1]} ' \
+                              f'classes while received model classes has {len(model_classes)}.'
+                else:
+                    message = f'probabilities per class in y_proba_train has {y_proba_train.shape[1]} ' \
+                              f'classes while observed model classes from predictions has {len(model_classes)} ' \
+                              f'classes. You can set the model\'s classes manually using the model_classes argument in ' \
+                              f'the run function.'
+                raise DeepchecksValueError(message)
+            if y_pred_test is not None and y_proba_test.shape[1] != len(model_classes):
+                if user_set_classes:
+                    message = f'probabilities per class in y_proba_test has {y_proba_test.shape[1]} ' \
+                              f'classes while received model classes has {len(model_classes)}.'
+                else:
+                    message = f'probabilities per class in y_proba_test has {y_proba_test.shape[1]} ' \
+                              f'classes while observed model classes from predictions has {len(model_classes)} ' \
+                              f'classes. You can set the model\'s classes manually using the model_classes argument in ' \
+                              f'the run function.'
+                raise DeepchecksValueError(message)
+
 
         if train is not None and test is not None:
             # check if datasets have same indexes
@@ -95,7 +119,6 @@ class _DummyModel:
             if dataset is not None:
                 feature_df_list.append(dataset.features_columns)
                 if y_pred is None and y_proba is not None:
-                    validate_proba(y_proba, model_classes)
                     y_pred = np.argmax(y_proba, axis=-1)
                     y_pred = np.array(model_classes)[y_pred]
                 if y_pred is not None:
