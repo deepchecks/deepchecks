@@ -71,32 +71,21 @@ class _DummyModel:
                  model_classes: t.Optional[t.List] = None):
 
         if y_proba_train is not None or y_proba_test is not None:
-            user_set_classes = True
             if model_classes is None:
                 classes_test = set(y_pred_test) if y_pred_test is not None else set()
                 classes_train = set(y_pred_train) if y_pred_train is not None else set()
                 model_classes = sorted(list(classes_train.union(classes_test)))
-                user_set_classes = False
+                error_message = f'probabilities per class in %s has %s ' \
+                                f'classes while observed model classes from predictions has {len(model_classes)} ' \
+                                f'classes. You can set the model\'s classes manually using the model_classes ' \
+                                f'argument in the run function.'
+            else:
+                error_message = f'probabilities per class in %s has %s classes while received model classes ' \
+                                f'has {len(model_classes)}.'
             if y_proba_train is not None and y_proba_train.shape[1] != len(model_classes):
-                if user_set_classes:
-                    message = f'probabilities per class in y_proba_train has {y_proba_train.shape[1]} ' \
-                              f'classes while received model classes has {len(model_classes)}.'
-                else:
-                    message = f'probabilities per class in y_proba_train has {y_proba_train.shape[1]} ' \
-                              f'classes while observed model classes from predictions has {len(model_classes)} ' \
-                              f'classes. You can set the model\'s classes manually using the model_classes argument ' \
-                              f'in the run function.'
-                raise DeepchecksValueError(message)
-            if y_pred_test is not None and y_proba_test.shape[1] != len(model_classes):
-                if user_set_classes:
-                    message = f'probabilities per class in y_proba_test has {y_proba_test.shape[1]} ' \
-                              f'classes while received model classes has {len(model_classes)}.'
-                else:
-                    message = f'probabilities per class in y_proba_test has {y_proba_test.shape[1]} ' \
-                              f'classes while observed model classes from predictions has {len(model_classes)} ' \
-                              f'classes. You can set the model\'s classes manually using the model_classes argument ' \
-                              f'in the run function.'
-                raise DeepchecksValueError(message)
+                raise DeepchecksValueError(error_message % ('y_proba_train', y_proba_train.shape[1]))
+            if y_proba_test is not None and y_proba_test.shape[1] != len(model_classes):
+                raise DeepchecksValueError(error_message % ('y_proba_test', y_proba_test.shape[1]))
 
 
         if train is not None and test is not None:
