@@ -23,14 +23,16 @@ from deepchecks.core.check_utils.class_performance_utils import (
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.metrics_utils.scorers import filter_classes_for_display, get_scorers_dict, metric_results_to_df
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['ClassPerformance']
 
-
 PR = TypeVar('PR', bound='ClassPerformance')
+
 
 @docstrings
 class ClassPerformance(TrainTestCheck):
@@ -58,7 +60,7 @@ class ClassPerformance(TrainTestCheck):
     class_list_to_show: List[int], default: None
         Specify the list of classes to show in the report. If specified, n_to_show, show_only and metric_to_show_by
         are ignored.
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(self,
@@ -190,9 +192,9 @@ class ClassPerformance(TrainTestCheck):
                                   condition)
 
     def add_condition_class_performance_imbalance_ratio_less_than(
-        self: PR,
-        threshold: float = 0.3,
-        score: str = None
+            self: PR,
+            threshold: float = 0.3,
+            score: str = None
     ) -> PR:
         """Add condition - relative ratio difference between highest-class and lowest-class is less than threshold.
 

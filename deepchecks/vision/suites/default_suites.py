@@ -21,10 +21,10 @@ from ignite.metrics import Metric
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
-                                      ImageSegmentPerformance, LabelPropertyOutliers, MeanAveragePrecisionReport,
-                                      MeanAverageRecallReport, ModelErrorAnalysis, NewLabels, PropertyLabelCorrelation,
-                                      PropertyLabelCorrelationChange, SimpleModelComparison, TrainTestLabelDrift,
-                                      TrainTestPredictionDrift)
+                                      LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
+                                      NewLabels, PropertyLabelCorrelation, PropertyLabelCorrelationChange,
+                                      SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift,
+                                      WeakSegmentsPerformance)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']
 
@@ -95,6 +95,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None,
     --------
     >>> from deepchecks.vision.suites import train_test_validation
     >>> suite = train_test_validation()
+    >>> train_data, test_data = ...
     >>> result = suite.run(train_data, test_data, max_samples=800)
     >>> result.show()
 
@@ -111,7 +112,6 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None,
     return Suite(
         'Train Test Validation Suite',
         NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
-        # SimilarImageLeakage(**kwargs).add_condition_similar_images_less_or_equal(),
         HeatmapComparison(**kwargs),
         TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
         ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(),
@@ -193,6 +193,7 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
     --------
     >>> from deepchecks.vision.suites import model_evaluation
     >>> suite = model_evaluation()
+    >>> test_vision_data = ...
     >>> result = suite.run(test_vision_data, max_samples=800)
     >>> result.show()
 
@@ -214,8 +215,7 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
         TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
         ConfusionMatrixReport(**kwargs),
-        ImageSegmentPerformance(**kwargs).add_condition_score_from_mean_ratio_greater_than(),
-        ModelErrorAnalysis(**kwargs)
+        WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
     )
 
 
@@ -273,6 +273,7 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     --------
     >>> from deepchecks.vision.suites import data_integrity
     >>> suite = data_integrity()
+    >>> vision_data = ...
     >>> result = suite.run(vision_data, max_samples=800)
     >>> result.show()
 

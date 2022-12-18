@@ -13,4 +13,3 @@ from deepchecks.vision.vision_data.utils import TaskType
 from deepchecks.vision.vision_data.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['VisionData', 'BatchOutputFormat', 'TaskType']
-

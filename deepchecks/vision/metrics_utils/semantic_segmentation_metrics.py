@@ -55,9 +55,9 @@ class MeanDice(Metric):
         """Update metric with batch of samples."""
         for pred, label in zip(output[0], output[1]):
             label_onehot, pred_onehot = format_segmentation_masks(label, pred, self.threshold)
-
             if self.average == 'micro':
-                tp_count, label_count, pred_count = segmentation_counts_micro(label_onehot, pred_onehot)
+                tp, label, pred = segmentation_counts_micro(label_onehot, pred_onehot)
+                tp_count, label_count, pred_count = np.asarray([tp]), np.asarray([label]), np.asarray([pred])
             else:
                 tp_count, label_count, pred_count = segmentation_counts_per_class(label_onehot, pred_onehot)
 

@@ -124,7 +124,7 @@ def test_vision_context_helper_functions(mnist_visiondata_train):
     assert_that(context.have_test(), is_(False))
     assert_that(context.assert_task_type(TaskType.CLASSIFICATION), is_(True))
     assert_that(calling(context.assert_task_type).with_args(TaskType.OBJECT_DETECTION),
-                raises(ModelValidationError, 'Check is irrelevant for task of type TaskType.CLASSIFICATION'))
+                raises(DeepchecksNotSupportedError, 'Check is irrelevant for task of type TaskType.CLASSIFICATION'))
 
     assert_that(context.get_data_by_kind(DatasetKind.TRAIN), instance_of(VisionData))
     assert_that(calling(context.get_data_by_kind).with_args(DatasetKind.TEST),

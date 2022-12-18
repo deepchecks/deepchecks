@@ -11,7 +11,7 @@
 #
 import random
 from copy import copy
-from typing import Callable, Dict, Iterator, List
+from typing import Dict, Iterator, List, Sized
 
 import torch
 from torch.utils.data import BatchSampler, DataLoader, Sampler
@@ -21,9 +21,10 @@ from deepchecks.vision import VisionData
 
 def replace_collate_fn_visiondata(vision_data: VisionData, new_collate_fn):
     """Create a new VisionData based on the same attributes as the old one with updated collate function."""
-    new_data_loader = replace_collate_fn_dataloader(vision_data.dynamic_loader, new_collate_fn)
-    return VisionData(new_data_loader, task_type=vision_data.task_type.value, shuffle_dynamic_loader=False,
-                      dataset_name=vision_data.name, label_map=vision_data._label_map)
+    new_data_loader = replace_collate_fn_dataloader(vision_data.batch_loader, new_collate_fn)
+    return VisionData(new_data_loader, task_type=vision_data.task_type.value, shuffle_batch_loader=False,
+                      dataset_name=vision_data.name,
+                      label_map=vision_data._label_map)  # pylint: disable=protected-access
 
 
 def replace_collate_fn_dataloader(data_loader: DataLoader, new_collate_fn):
@@ -62,7 +63,7 @@ def _get_data_loader_props(data_loader: DataLoader) -> Dict:
     return aval_attr
 
 
-def get_data_loader_sequential(data_loader: DataLoader, shuffle: bool = False, n_samples = None) -> DataLoader:
+def get_data_loader_sequential(data_loader: DataLoader, shuffle: bool = False, n_samples=None) -> DataLoader:
     """Create new DataLoader with sampler of type IndicesSequentialSampler. This makes the data loader have \
     consistent batches order."""
     # First set generator seed to make it reproducible
@@ -111,3 +112,15 @@ class IndicesSequentialSampler(Sampler):
     def index_at(self, location):
         """Return for a given location, the real index value."""
         return self.indices[location]
+
+
+def un_normalize_batch(tensor: torch.Tensor, mean: Sized, std: Sized, max_pixel_value: int = 255):
+    """Apply un-normalization on a tensor in order to display an image."""
+    dim = len(mean)
+    reshape_shape = (1, 1, 1, dim)
+    max_pixel_value = [max_pixel_value] * dim
+    mean = torch.tensor(mean, device=tensor.device).reshape(reshape_shape)
+    std = torch.tensor(std, device=tensor.device).reshape(reshape_shape)
+    tensor = (tensor * std) + mean
+    tensor = tensor * torch.tensor(max_pixel_value, device=tensor.device).reshape(reshape_shape)
+    return tensor.cpu().detach().numpy()

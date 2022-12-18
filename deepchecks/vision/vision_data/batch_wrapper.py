@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Contains code for BatchWrapper."""
-from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, Union, cast
+from typing import Dict, List, Optional, Union
 
 import numpy as np
-import torch
 
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.vision_properties import PropertiesInputType, calc_vision_properties, validate_properties
@@ -114,7 +113,7 @@ class BatchWrapper:
         return self._predictions
 
     @property
-    def numpy_predictions(self) -> List[Union[np.ndarray]]:
+    def numpy_predictions(self) -> List[np.ndarray]:
         """Return predictions for the batch in numpy format."""
         if self._task_type == TaskType.CLASSIFICATION:
             required_dim = 1

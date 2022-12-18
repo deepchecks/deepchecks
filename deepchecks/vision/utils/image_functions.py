@@ -22,12 +22,13 @@ import torch
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.html import imagetag
+from deepchecks.vision.vision_data import TaskType
 
 from .detection_formatters import convert_bbox
 
 __all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
-           'crop_image']
+           'crop_image', 'draw_image']
 
 
 class ImageInfo:
@@ -51,9 +52,38 @@ class ImageInfo:
         return np.array_equal(self.img, img_b)
 
 
+def draw_image(image: np.ndarray, label, task_type: TaskType,
+               thumbnail_size: t.Tuple[int, int] = (200, 200), draw_label: bool = True) -> str:
+    """Return an image to show as output of the display.
+
+    Parameters
+    ----------
+    image : np.ndarray
+        The image to draw, must be a [H, W, C] 3D numpy array.
+    label :
+        2-dim labels tensor for the image to draw on top of the image, shape depends on task type.
+    task_type : TaskType
+        The task type associated with the label.
+    thumbnail_size: t.Tuple[int,int]
+        The required size of the image for display.
+    draw_label : bool, default: True
+        Whether to draw the label on the image or not.
+    Returns
+    -------
+    str
+        The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
+    """
+    if label is not None and image is not None and draw_label and task_type == TaskType.OBJECT_DETECTION:
+        image = draw_bboxes(image, label, copy_image=False, border_width=5)
+    if image is not None:
+        return prepare_thumbnail(image=image, size=thumbnail_size, copy_image=False)
+    else:
+        return 'Image unavailable'
+
+
 def ensure_image(
-    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
-    copy: bool = True
+        image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+        copy: bool = True
 ) -> pilimage.Image:
     """Transform to `PIL.Image.Image` if possible.
 
@@ -91,12 +121,12 @@ def ensure_image(
 
 
 def draw_bboxes(
-    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
-    bboxes: t.Union[np.ndarray, torch.Tensor],
-    bbox_notation: t.Optional[str] = None,
-    copy_image: bool = True,
-    border_width: int = 1,
-    color: t.Union[str, t.Dict[np.number, str]] = 'red',
+        image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+        bboxes: t.Union[np.ndarray, torch.Tensor],
+        bbox_notation: t.Optional[str] = None,
+        copy_image: bool = True,
+        border_width: int = 1,
+        color: t.Union[str, t.Dict[np.number, str]] = 'red',
 ) -> pilimage.Image:
     """Draw bboxes on the image.
 
@@ -155,9 +185,9 @@ def draw_bboxes(
 
 
 def prepare_thumbnail(
-    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
-    size: t.Optional[t.Tuple[int, int]] = None,
-    copy_image: bool = True,
+        image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+        size: t.Optional[t.Tuple[int, int]] = None,
+        copy_image: bool = True,
 ) -> str:
     """Prepare html image tag with the provided image.
 

@@ -18,7 +18,7 @@ from hamcrest import all_of, assert_that, calling, equal_to, has_length, has_pro
 from torch.utils.data import DataLoader
 
 from deepchecks.utils.strings import get_random_string
-from deepchecks.vision import simple_classification_data as simple
+from deepchecks.vision.vision_data import simple_classification_data as simple
 
 PARENT_FOLDER = pathlib.Path(__file__).absolute().parent
 
@@ -127,7 +127,7 @@ def test_load_simple_classification_vision_data(correct_images_folder):
             instance_of(np.ndarray),
             has_property("shape", equal_to((10, 10, 3)))
         ))
-        assert_that(vision_data.dynamic_loader.dataset.reverse_classes_map[labels[0]] == "class1")
+        assert_that(vision_data.batch_loader.dataset.reverse_classes_map[labels[0]] == "class1")
 
 
 def test_load_simple_classification_dataset_from_broken_folder(incorrect_images_folder):

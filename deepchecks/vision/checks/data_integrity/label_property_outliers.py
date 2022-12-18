@@ -20,6 +20,7 @@ from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = ['LabelPropertyOutliers']
 
+
 @docstrings
 class LabelPropertyOutliers(AbstractPropertyOutliers):
     """Find outliers labels with respect to the given properties.
@@ -48,7 +49,7 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
         Two percentiles which define the IQR range
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(self,

@@ -16,6 +16,8 @@ from numbers import Number
 import numpy as np
 import torch
 
+from deepchecks.core.errors import DatasetValidationError
+
 
 class TaskType(Enum):
     """Enum containing supported task types."""
@@ -67,7 +69,7 @@ def object_to_numpy(data, expected_dtype=None, expected_ndim=None) -> t.Union[np
         result = data.detach().cpu().numpy()
     elif isinstance(data, np.ndarray):
         result = data
-    elif isinstance(data, Number) or isinstance(data, str):
+    elif isinstance(data, (Number, str)):
         return data
     else:
         raise ValueError(f'Unsupported data type: {type(data)}')
@@ -81,28 +83,10 @@ def object_to_numpy(data, expected_dtype=None, expected_ndim=None) -> t.Union[np
     return result
 
 
-def shuffle_loader(dynamic_loader):
-    """Reshuffle the dynamic loader."""
+def shuffle_loader(batch_loader):
+    """Reshuffle the batch loader."""
     # TODO: do something here
-    return dynamic_loader
-
-
-def get_label_ids_of_label(label: t.Union[np.ndarray, int], task_type: TaskType) -> t.List[int]:
-    """Return the label_ids of the provided label.
-
-    Returns
-    -------
-    List[int]
-        A list of label_ids of provided label.
-    """
-    if task_type == TaskType.CLASSIFICATION:
-        return [labels]
-    elif task_type == TaskType.OBJECT_DETECTION:
-        return labels[:, 0].tolist()
-    elif task_type == TaskType.SEMANTIC_SEGMENTATION:
-        return np.unique(labels).tolist()
-    else:
-        raise ValueError(f'Unsupported task type: {task_type}')
+    return batch_loader
 
 
 def get_class_ids_from_numpy_labels(labels: t.Sequence[t.Union[np.ndarray, int]], task_type: TaskType) \
@@ -146,3 +130,28 @@ def get_class_ids_from_numpy_preds(predictions: t.Sequence[t.Union[np.ndarray]],
         return Counter(np.hstack(classes_predicted_per_image))
     else:
         raise ValueError(f'Unsupported task type: {task_type}')
+
+
+def set_seeds(seed: int):
+    """Set seeds for reproducibility.
+
+    Parameters
+    ----------
+    seed : int
+        Seed to be set
+    """
+    if seed is not None and isinstance(seed, int):
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+
+
+def validate_vision_data_compatibility(first, second) -> None:
+    """ Validate that two vision datasets are compatible.
+
+    Raises:
+        DeepchecksValueError: if the datasets are not compatible
+    """
+    # TODO: add more validations
+    if first.task_type != second.task_type:
+        raise DatasetValidationError('Cannot compare datasets with different task types: '
+                                     f'{first.task_type.value} and {second.task_type.value}')

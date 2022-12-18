@@ -47,7 +47,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             self.initialize_run(context, DatasetKind.TRAIN)
 
             with progressbar_factory.create_dummy(name='Ingesting Batches'):
-                for i, batch in enumerate(context.train):
+                for batch in context.train:
                     batch = BatchWrapper(batch, context.train)
                     context.train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                     self.update(context, batch, DatasetKind.TRAIN)
@@ -98,16 +98,16 @@ class TrainTestCheck(TrainTestBaseCheck):
                                                  random_state=random_state, with_display=with_display)
             self.initialize_run(context)
 
-            with progressbar_factory.create_dummy(name='Ingesting Batches Train') as progressbar:
-                for i, batch in enumerate(context.train):
+            with progressbar_factory.create_dummy(name='Ingesting Batches Train'):
+                for batch in context.train:
                     batch = BatchWrapper(batch, context.train)
                     context.train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                     self.update(context, batch, DatasetKind.TRAIN)
                     if self.n_samples is not None and context.train.number_of_images_cached > self.n_samples:
                         break
 
-            with progressbar_factory.create_dummy(name='Ingesting Batches Test') as progressbar:
-                for i, batch in enumerate(context.test):
+            with progressbar_factory.create_dummy(name='Ingesting Batches Test'):
+                for batch in context.test:
                     batch = BatchWrapper(batch, context.test)
                     context.test.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                     self.update(context, batch, DatasetKind.TEST)

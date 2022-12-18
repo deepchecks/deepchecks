@@ -270,7 +270,7 @@ class SingleDatasetBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, dataset, model=None, **kwargs) -> 'check_types.CheckResult':
+    def run(self, dataset, **kwargs) -> 'check_types.CheckResult':
         """Run check."""
         raise NotImplementedError()
 
@@ -284,7 +284,7 @@ class TrainTestBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> 'check_types.CheckResult':
+    def run(self, train_dataset, test_dataset, **kwargs) -> 'check_types.CheckResult':
         """Run check."""
         raise NotImplementedError()
 

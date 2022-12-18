@@ -15,18 +15,22 @@ import numpy as np
 import pytest
 import torch
 from PIL import Image
+from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
-from deepchecks.vision import BatchWrapper, Context, VisionData
+from deepchecks.vision.context import Context
+from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 from deepchecks.vision.datasets.classification.mnist import collate_without_model as mnist_collate_without_model
 from deepchecks.vision.datasets.classification.mnist import load_dataset as load_mnist_dataset
+from deepchecks.vision.datasets.classification.mnist import load_model as load_mnist_model
+from deepchecks.vision.datasets.classification.mnist import deepchecks_collate as mnist_deepchecks_collate
 from deepchecks.vision.datasets.detection.coco import collate_without_model as coco_collate_without_model
 from deepchecks.vision.datasets.detection.coco import load_dataset as load_coco_dataset
 from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset as load_segmentation_coco_dataset
 from deepchecks.vision.utils.test_utils import replace_collate_fn_dataloader, replace_collate_fn_visiondata
-from deepchecks.vision.utils.transformations import un_normalize_batch
+from deepchecks.vision.utils.test_utils import un_normalize_batch
 from deepchecks.vision.vision_data import TaskType
-from tests.vision.utils_tests.mnist_imgaug import mnist_dataset_imgaug
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
@@ -36,7 +40,6 @@ __all__ = ['device',
            'mnist_dataloader_train',
            'mnist_visiondata_train',
            'mnist_dataloader_test',
-           'mnist_dataset_train_imgaug',
            'mnist_visiondata_test',
            'obj_detection_images',
            'coco_dataloader_train',
@@ -114,41 +117,41 @@ def mnist_visiondata_test():
 
 @pytest.fixture
 def mnist_drifted_datasets(mnist_visiondata_train, mnist_visiondata_test):  # pylint: disable=redefined-outer-name
-    full_mnist = torch.utils.data.ConcatDataset([mnist_visiondata_train.dynamic_loader.dataset,
-                                                 mnist_visiondata_test.dynamic_loader.dataset])
+    full_mnist = torch.utils.data.ConcatDataset([mnist_visiondata_train.batch_loader.dataset,
+                                                 mnist_visiondata_test.batch_loader.dataset])
     train_dataset, test_dataset, _ = torch.utils.data.random_split(full_mnist, [1000, 500, 68500],
                                                                    generator=torch.Generator().manual_seed(42))
     np.random.seed(42)
-
-    def collate_regular(data):
-        images, labels = mnist_collate_without_model(data)
-        return {'images': images, 'labels': labels}
+    model = load_mnist_model(pretrained=True)
 
     def collate_drifted(data):
-        images, labels = mnist_collate_without_model(data)
-        modified_labels, modified_images = [], []
-        for image, label in zip(images, labels):
+        raw_images = torch.stack([x[0] for x in data])
+        labels = [x[1] for x in data]
+
+        modified_labels, modified_raw_images = [], []
+        for raw_image, label in zip(raw_images, labels):
             if label == 0 and np.random.randint(4) != 0:
                 modified_labels.append(2)
-                modified_images.append(image)
+                modified_raw_images.append(raw_image)
             elif label == 1 and np.random.randint(3) != 0:
                 pass
             else:
                 modified_labels.append(label)
-                modified_images.append(image)
-        return {'images': modified_images, 'labels': modified_labels}
+                modified_raw_images.append(raw_image)
+        modified_raw_images = torch.stack(modified_raw_images)
+        predictions = model(modified_raw_images)
+        predictions[:, 0] = 0
+        predictions = nn.Softmax(dim=1)(predictions).detach()
+        images = modified_raw_images.permute(0, 2, 3, 1)
+        images = un_normalize_batch(images, mean=(0.1307,), std=(0.3081,))
+        return {'images': images, 'labels': modified_labels, 'predictions': predictions}
 
-    mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, collate_fn=collate_regular)
+    mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64,
+                                                   collate_fn=mnist_deepchecks_collate(model))
     mod_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, collate_fn=collate_drifted)
     mod_train_ds = VisionData(mod_train_loader, task_type=TaskType.CLASSIFICATION.value)
     mod_test_ds = VisionData(mod_test_loader, task_type=TaskType.CLASSIFICATION.value)
     return mod_train_ds, mod_test_ds
-
-
-@pytest.fixture(scope='session')
-def mnist_dataset_train_imgaug():
-    """Return MNist dataset as VisionData object."""
-    return mnist_dataset_imgaug(train=True)
 
 
 @pytest.fixture(scope='session')
@@ -217,19 +220,19 @@ def mnist_test_only_images(mnist_visiondata_test):  # pylint: disable=redefined-
 
 
 @pytest.fixture(scope='session')
-def mnist_train_custom_task(mnist_dataloader_train, mock_mnist_model):  # pylint: disable=redefined-outer-name
+def mnist_train_custom_task(mnist_dataloader_train):  # pylint: disable=redefined-outer-name
     loader_correct_format = replace_collate_fn_dataloader(mnist_dataloader_train, _mnist_collate_only_images)
-    return VisionData(loader_correct_format, task_type=TaskType.OTHER.value, shuffle_dynamic_loader=False)
+    return VisionData(loader_correct_format, task_type=TaskType.OTHER.value, shuffle_batch_loader=False)
 
 
 @pytest.fixture(scope='session')
 def mnist_test_custom_task(mnist_dataloader_test):  # pylint: disable=redefined-outer-name
     loader_correct_format = replace_collate_fn_dataloader(mnist_dataloader_test, _mnist_collate_only_images)
-    return VisionData(loader_correct_format, task_type=TaskType.OTHER.value, shuffle_dynamic_loader=False)
+    return VisionData(loader_correct_format, task_type=TaskType.OTHER.value, shuffle_batch_loader=False)
 
 
 @pytest.fixture(scope='session')
-def mnist_train_very_small(mock_mnist_model):  # pylint: disable=redefined-outer-name
+def mnist_train_very_small():  # pylint: disable=redefined-outer-name
     return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False, n_samples=5)
 
 
@@ -269,7 +272,7 @@ def coco_train_brightness_bias(coco_visiondata_train):  # pylint: disable=redefi
 
 
 @pytest.fixture(scope='session')
-def coco_train_very_small(mock_trained_yolov5_object_detection):  # pylint: disable=redefined-outer-name
+def coco_train_very_small():  # pylint: disable=redefined-outer-name
     return load_coco_dataset(train=True, object_type='VisionData', shuffle=False, n_samples=5)
 
 
@@ -284,7 +287,7 @@ def coco_test_only_labels(coco_visiondata_test):  # pylint: disable=redefined-ou
 def run_update_loop(dataset: VisionData):
     context: Context = Context(dataset, random_state=0)
     dataset.init_cache()
-    for i, batch in enumerate(context.train):
+    for batch in context.train:
         batch = BatchWrapper(batch, dataset)
         dataset.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
 

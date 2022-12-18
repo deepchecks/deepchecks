@@ -203,10 +203,10 @@ def test_suite_execution_with_missing_test():
     assert_that(result.results[0].exception.message,
                 is_('Check is irrelevant if not supplied with both train and test datasets'))
 
-    assert_that(executions, is_({'initialize_run': 1}))
+    assert_that(executions, has_length(0))
 
 
-def test_full_suite_execution_mnist(mnist_visiondata_train, mnist_visiondata_test, mock_mnist_model, device):
+def test_full_suite_execution_mnist(mnist_visiondata_train, mnist_visiondata_test):
     suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
     arguments = (
         dict(train_dataset=mnist_visiondata_train, test_dataset=mnist_visiondata_test),
@@ -220,8 +220,7 @@ def test_full_suite_execution_mnist(mnist_visiondata_train, mnist_visiondata_tes
         validate_suite_result(result, length)
 
 
-def test_full_suite_execution_coco(coco_visiondata_train, coco_visiondata_test,
-                                   mock_trained_yolov5_object_detection, device):
+def test_full_suite_execution_coco(coco_visiondata_train, coco_visiondata_test):
     suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
     arguments = (
         dict(train_dataset=coco_visiondata_train, test_dataset=coco_visiondata_test),
@@ -235,34 +234,22 @@ def test_full_suite_execution_coco(coco_visiondata_train, coco_visiondata_test,
         validate_suite_result(result, length)
 
 
-def test_single_dataset(coco_visiondata_train, coco_visiondata_test,
-                        mock_trained_yolov5_object_detection, device):
+def test_single_dataset(coco_visiondata_train, coco_visiondata_test):
     suite = full_suite()
-    res_train = suite.run(coco_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection,
+    res_train = suite.run(coco_visiondata_train, coco_visiondata_test,
                           max_samples=100, with_display=False, run_single_dataset='Train')
-    expected_train_headers = ['Class Performance',
-                              'Train Test Label Drift',
-                              'Feature Label Correlation Change',
-                              'Train Test Prediction Drift',
-                              'Image Segment Performance - Train Dataset',
-                              'New Labels',
-                              'Mean Average Precision Report - Train Dataset',
-                              'Image Property Drift',
-                              'Image Dataset Drift',
-                              'Image Property Outliers - Train Dataset',
-                              'Label Property Outliers - Train Dataset',
-                              'Property Label Correlation - Train Dataset',
-                              'Mean Average Recall Report - Train Dataset',
-                              'Confusion Matrix - Train Dataset',
-                              'Heatmap Comparison',
-                              'Simple Model Comparison',
-                              'Model Error Analysis']
+    expected_train_headers = ['Class Performance', 'Confusion Matrix', 'Feature Label Correlation Change',
+                              'Heatmap Comparison', 'Image Dataset Drift', 'Image Property Drift',
+                              'Image Property Outliers', 'Label Property Outliers', 'Mean Average Precision Report',
+                              'Mean Average Recall Report', 'New Labels', 'Property Label Correlation',
+                              'Simple Model Comparison', 'Train Test Label Drift', 'Train Test Prediction Drift',
+                              'Weak Segments Performance']
 
-    res_test = suite.run(coco_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection,
+    res_test = suite.run(coco_visiondata_train, coco_visiondata_test,
                          max_samples=100, with_display=False, run_single_dataset='Test')
-    res_full = suite.run(coco_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection,
+    res_full = suite.run(coco_visiondata_train, coco_visiondata_test,
                          max_samples=100, with_display=False)
-    res_names = [x.get_header() for x in res_train.results]
+    res_names = sorted(x.get_header() for x in res_train.results)
     assert_that(res_names, contains_exactly(*expected_train_headers))
-    assert_that(res_test.results, has_length(17))
-    assert_that(res_full.results, has_length(24))
+    assert_that(res_test.results, has_length(16))
+    assert_that(res_full.results, has_length(23))

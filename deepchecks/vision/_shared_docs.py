@@ -20,7 +20,7 @@ with_display : bool , default: True
     flag that determines if checks will calculate display (redundant in some checks).
 """.strip('\n')
 
-_shared_docs['additional_init_params'] = """
+_shared_docs['additional_check_init_params'] = """
 n_samples : Optional[int] , default : None
     Number of samples to use for the check. If None, all samples will be used.
 """.strip('\n')

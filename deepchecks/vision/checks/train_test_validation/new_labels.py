@@ -21,12 +21,15 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.utils.strings import format_number, format_percent
-from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
-from deepchecks.vision.utils.display_utils import draw_image
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
+from deepchecks.vision.utils.image_functions import draw_image
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['NewLabels']
+
 
 @docstrings
 class NewLabels(TrainTestCheck, ReduceMixin):
@@ -38,7 +41,7 @@ class NewLabels(TrainTestCheck, ReduceMixin):
         maximum number of images to show from each newly found label in the test set.
     max_new_labels_to_display : int , default: 3
         Maximum number of new labels to display in output.
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(

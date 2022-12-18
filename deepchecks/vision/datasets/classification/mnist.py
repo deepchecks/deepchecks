@@ -24,12 +24,10 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from typing_extensions import Literal
 
-from deepchecks.vision.utils.test_utils import get_data_loader_sequential
-from deepchecks.vision.utils.transformations import un_normalize_batch
+from deepchecks.vision.utils.test_utils import get_data_loader_sequential, un_normalize_batch
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
-
 
 MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
 
@@ -45,7 +43,7 @@ def load_dataset(
         shuffle: bool = False,
         pin_memory: bool = True,
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
-        n_samples = None,
+        n_samples=None,
 ) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
@@ -91,7 +89,7 @@ def load_dataset(
         loader = DataLoader(dataset, batch_size=batch_size, pin_memory=pin_memory,
                             generator=torch.Generator(), collate_fn=deepchecks_collate(model))
         loader = get_data_loader_sequential(loader, shuffle, n_samples)
-        return VisionData(loader, task_type='classification', shuffle_dynamic_loader=False)
+        return VisionData(loader, task_type='classification', shuffle_batch_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 

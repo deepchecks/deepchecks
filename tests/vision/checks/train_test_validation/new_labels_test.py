@@ -94,10 +94,16 @@ def test_classification_mnist_change_label_with_condition(mnist_visiondata_train
         modified_labels = [x if x != 3 else -3 for x in labels]
         return {'images': images, 'labels': modified_labels}
 
+    def collate_fn(data):
+        images, labels = mnist_collate_without_model(data)
+        return {'images': images, 'labels': labels}
+
+    train = replace_collate_fn_visiondata(mnist_visiondata_train, collate_fn)
     modified_test = replace_collate_fn_visiondata(mnist_visiondata_test, modified_labels_collate)
+    train._label_map, modified_test._label_map = None, None
     check = NewLabels().add_condition_new_label_ratio_less_or_equal(0)
     # Act
-    result = check.run(mnist_visiondata_train, modified_test)
+    result = check.run(train, modified_test)
     # Assert
     assert_that(check.conditions_decision(result), has_items(
         equal_condition_result(is_pass=False,
@@ -115,10 +121,16 @@ def test_classification_mnist_new_labels(mnist_visiondata_train, mnist_visiondat
         modified_labels = [x if x > 3 else -x for x in labels]
         return {'images': images, 'labels': modified_labels}
 
+    def collate_fn(data):
+        images, labels = mnist_collate_without_model(data)
+        return {'images': images, 'labels': labels}
+
     modified_test = replace_collate_fn_visiondata(mnist_visiondata_test, modified_labels_collate)
+    train = replace_collate_fn_visiondata(mnist_visiondata_train, collate_fn)
+    train._label_map, modified_test._label_map = None, None
     check = NewLabels().add_condition_new_label_ratio_less_or_equal(0)
     # Act
-    result = check.run(mnist_visiondata_train, modified_test)
+    result = check.run(train, modified_test)
     # Assert
     assert_that(result.value, equal_to({'new_labels': {'-1': 28, '-2': 16, '-3': 16},
                                         'all_labels_count': 200}))

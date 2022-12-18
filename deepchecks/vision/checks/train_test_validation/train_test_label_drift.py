@@ -19,14 +19,16 @@ from deepchecks.core.checks import CheckConfig
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
-from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
                                                                  DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES,
                                                                  get_column_type, properties_flatten)
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -97,7 +99,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     aggregation_method: str, default: 'none'
         {property_aggregation_method_argument:2*indent}
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(

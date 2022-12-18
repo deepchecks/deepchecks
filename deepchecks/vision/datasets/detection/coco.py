@@ -157,8 +157,8 @@ def load_dataset(
                                 collate_fn=deepchecks_collate(model), pin_memory=pin_memory,
                                 generator=torch.Generator())
         dataloader = get_data_loader_sequential(dataloader, shuffle=shuffle, n_samples=n_samples)
-        return VisionData(dynamic_loader=dataloader, label_map=LABEL_MAP, task_type='object_detection',
-                          shuffle_dynamic_loader=False)
+        return VisionData(batch_loader=dataloader, label_map=LABEL_MAP, task_type='object_detection',
+                          shuffle_batch_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 

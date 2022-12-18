@@ -16,8 +16,7 @@ from numbers import Number
 import numpy as np
 import pandas as pd
 import torch
-from ignite.engine import Engine
-from ignite.metrics import Metric, Precision, Recall
+from ignite.metrics import Metric
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
@@ -29,16 +28,15 @@ from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
     'get_scorers_dict',
-    'calculate_metrics',
     'metric_results_to_df',
     'filter_classes_for_display',
 ]
 
 
-def get_default_classification_scorers(): # will use sklearn scorers
+def get_default_classification_scorers():  # will use sklearn scorers
     return {
         'Precision': CustomClassificationScorer('precision_per_class'),
-        'Recall':  CustomClassificationScorer('recall_per_class')
+        'Recall': CustomClassificationScorer('recall_per_class')
     }
 
 
@@ -157,43 +155,6 @@ def get_scorers_dict(
     return scorers
 
 
-def calculate_metrics(
-    metrics: t.Dict[str, Metric],
-    dataset: VisionData,
-    model: torch.nn.Module,
-    device: torch.device
-) -> t.Dict[str, float]:
-    """Calculate a list of ignite metrics on a given model and dataset.
-
-    Parameters
-    ----------
-    metrics : Dict[str, Metric]
-        List of ignite metrics to calculate
-    dataset : VisionData
-        Dataset object
-    model : nn.Module
-        Model object
-    device : Union[str, torch.device, None]
-
-    Returns
-    -------
-    t.Dict[str, float]
-        Dictionary of metrics with the metric name as key and the metric value as value
-    """
-
-    def process_function(_, batch):
-        return dataset.batch_to_predictions(batch, model, device), dataset.batch_to_labels(batch)
-
-    engine = Engine(process_function)
-
-    for name, metric in metrics.items():
-        metric.reset()
-        metric.attach(engine, name)
-
-    state = engine.run(dataset.dynamic_loader)
-    return state.metrics
-
-
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     result_list = []
@@ -209,7 +170,7 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
                 class_name = dataset.label_id_to_name(class_id)
                 # The data might contain fewer classes than the model was trained on. filtering out
                 # any class id which is not presented in the data.
-                if np.isnan(class_score) or class_name not in dataset.observed_classes:
+                if np.isnan(class_score) or class_name not in dataset.get_observed_classes() or class_score == -1:
                     continue
                 result_list.append([metric, class_id, class_name, class_score])
         else:

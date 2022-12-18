@@ -15,21 +15,22 @@ from typing import Any, Callable, Dict, Hashable, List, Union
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import torch
-from ignite.metrics import Fbeta, Metric
+from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
-from deepchecks.vision.metrics_utils import get_scorers_dict, metric_results_to_df
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
+from deepchecks.vision.metrics_utils import CustomClassificationScorer, get_scorers_dict, metric_results_to_df
 from deepchecks.vision.metrics_utils.scorers import filter_classes_for_display
-from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['SimpleModelComparison']
-
 
 _allowed_strategies = (
     'most_frequent',
@@ -39,6 +40,7 @@ _allowed_strategies = (
 )
 
 
+@docstrings
 class SimpleModelComparison(TrainTestCheck):
     """Compare given model score to simple model score (according to given model type).
 
@@ -76,7 +78,7 @@ class SimpleModelComparison(TrainTestCheck):
     class_list_to_show: List[int], default: None
         Specify the list of classes to show in the report. If specified, n_to_show, show_only and metric_to_show_by
         are ignored.
-
+    {additional_check_init_params:2*indent}
     """
 
     _state: Dict[Hashable, Any] = {}
@@ -124,10 +126,11 @@ class SimpleModelComparison(TrainTestCheck):
     def initialize_run(self, context: Context):
         """Initialize the metrics for the check, and validate task type is relevant."""
         context.assert_task_type(TaskType.CLASSIFICATION)
+        np.random.seed(context.random_state)
 
         if self.alternative_metrics is None:
-            self._test_metrics = {'F1': Fbeta(beta=1, average=False)}
-            self._perfect_metrics = {'F1': Fbeta(beta=1, average=False)}
+            self._test_metrics = {'F1': CustomClassificationScorer('f1_per_class')}
+            self._perfect_metrics = {'F1': CustomClassificationScorer('f1_per_class')}
         else:
             self._test_metrics = get_scorers_dict(context.train, self.alternative_metrics)
             self._perfect_metrics = get_scorers_dict(context.train, self.alternative_metrics)
@@ -135,16 +138,17 @@ class SimpleModelComparison(TrainTestCheck):
     def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Update the metrics for the check."""
         if dataset_kind == DatasetKind.TEST and context.train.task_type == TaskType.CLASSIFICATION:
-            label = batch.labels
-            prediction = batch.predictions
+            label = batch.numpy_labels
+            prediction = batch.numpy_predictions
             for _, metric in self._test_metrics.items():
                 metric.update((prediction, label))
 
             # calculating perfect scores
-            n_of_classes = batch.predictions.cpu().detach().shape[1]
-            perfect_predictions = np.eye(n_of_classes)[label.cpu().detach().numpy()]
+            perfect_predictions = np.zeros((len(label), len(prediction[0])))
+            perfect_predictions[np.arange(len(label)), label] = 1
+            perfect_predictions = list(perfect_predictions)
             for _, metric in self._perfect_metrics.items():
-                metric.update((torch.Tensor(perfect_predictions).to(context.device), label))
+                metric.update((perfect_predictions, label))
 
     def compute(self, context: Context) -> CheckResult:
         """Compute the metrics for the check."""
@@ -161,7 +165,7 @@ class SimpleModelComparison(TrainTestCheck):
                 {k: m.compute() for k, m in metrics.items()}, dataset
             )
             metrics_df['Model'] = name
-            metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
+            metrics_df['Number of samples'] = metrics_df['Class Name'].map(dataset.get_cache()['labels'].get)
             results.append(metrics_df)
 
         results_df = pd.concat(results)
@@ -215,24 +219,24 @@ class SimpleModelComparison(TrainTestCheck):
             display=fig
         )
 
-    def _generate_simple_model_metrics(self, train, test):
+    def _generate_simple_model_metrics(self, train: VisionData, test: VisionData):
         class_prior = np.zeros(train.num_classes)
         n_samples = 0
-        for label, total in train.n_of_samples_per_class.items():
-            class_prior[label] = total
-            n_samples += total
+        for label, num_observed in train.get_cache(use_class_names=False)['labels'].items():
+            class_prior[label] = num_observed
+            n_samples += num_observed
         class_prior /= n_samples
 
         if self.strategy == 'most_frequent':
             dummy_prediction = np.zeros(train.num_classes)
             dummy_prediction[np.argmax(class_prior)] = 1
-            dummy_predictor = lambda: torch.from_numpy(dummy_prediction)
+            dummy_predictor = lambda: dummy_prediction
         elif self.strategy == 'prior':
-            dummy_predictor = lambda: torch.from_numpy(class_prior)
+            dummy_predictor = lambda: class_prior
         elif self.strategy == 'stratified':
-            dummy_predictor = lambda: torch.from_numpy(np.random.multinomial(1, class_prior))
+            dummy_predictor = lambda: np.random.multinomial(1, class_prior)
         elif self.strategy == 'uniform':
-            dummy_predictor = lambda: torch.from_numpy(np.ones(train.num_classes) / train.num_classes)
+            dummy_predictor = lambda: np.ones(train.num_classes) / train.num_classes
         else:
             raise DeepchecksValueError(
                 f'Unknown strategy type: {self.strategy}, expected one of {_allowed_strategies}.'
@@ -241,18 +245,18 @@ class SimpleModelComparison(TrainTestCheck):
         # Create dummy predictions
         dummy_predictions = []
         labels = []
-        for label, count in test.n_of_samples_per_class.items():
-            labels += [label] * count
-            for _ in range(count):
+        for label, num_observed in test.get_cache(use_class_names=False)['labels'].items():
+            labels += [label] * num_observed
+            for _ in range(num_observed):
                 dummy_predictions.append(dummy_predictor())
 
         # Get scorers
         if self.alternative_metrics is None:
-            metrics = {'F1': Fbeta(beta=1, average=False)}
+            metrics = {'F1': CustomClassificationScorer('f1_per_class')}
         else:
             metrics = get_scorers_dict(train, self.alternative_metrics)
         for _, metric in metrics.items():
-            metric.update((torch.stack(dummy_predictions), torch.LongTensor(labels)))
+            metric.update((dummy_predictions, labels))
         return metrics
 
     def add_condition_gain_greater_than(self,
@@ -389,6 +393,6 @@ def average_scores(scores, simple_model_scores, include_classes):
         result[metric] = {
             'Origin': model_score / total,
             'Simple': simple_score / total
-         }
+        }
 
     return result

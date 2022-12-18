@@ -12,7 +12,6 @@
 from typing import List, Sequence, Union
 
 import numpy as np
-import torch
 
 # Labels
 
@@ -73,51 +72,50 @@ DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES = [
 
 # Predictions
 
-def _get_samples_per_pred_class_classification(predictions: Union[torch.Tensor, List]) -> List[int]:
+def _get_predicted_classes_per_image_classification(predictions: List[np.ndarray]) -> List[int]:
+    """Return a list of the predicted class per image in the batch."""
+    return np.argmax(predictions, axis=1).tolist()
+
+
+def _get_predicted_classes_per_image_object_detection(predictions: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    if isinstance(predictions, List):
-        predictions = torch.stack(predictions)
-    return torch.argmax(predictions, dim=1).tolist()
+    return [bboxes_per_image.reshape((-1, 6))[:, -1].tolist() for bboxes_per_image in predictions]
 
 
-def _get_samples_per_pred_class_object_detection(predictions: List[torch.Tensor]) -> List[List[int]]:
-    """Return a list containing the classes in batch."""
-    return [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
-
-
-def _get_predicted_bbox_area(predictions: List[torch.Tensor]) -> List[List[int]]:
-    """Return a list containing the area of bboxes per image in batch."""
+def _get_predicted_bbox_area(predictions: List[np.ndarray]) -> List[List[int]]:
+    """Return a list of the predicted bbox sizes per image in the batch."""
     return [(prediction.reshape((-1, 6))[:, 2] * prediction.reshape((-1, 6))[:, 3]).tolist()
             for prediction in predictions]
 
 
-def _get_samples_per_pred_class_semantic_segmentation(labels: List[torch.Tensor]) -> List[List[int]]:
+def _get_predicted_classes_per_image_semantic_segmentation(predictions: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    return [torch.unique(tensor.argmax(0)).tolist() for tensor in labels]
+    return [np.unique(pred.argmax(0)).tolist() for pred in predictions]
 
 
-def _get_segment_pred_area(labels: List[torch.Tensor]) -> List[List[int]]:
+def _get_segment_pred_area(predictions: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the area of segments in batch."""
-    return [torch.unique(tensor.argmax(0), return_counts=True)[1].tolist() for tensor in labels]
+    return [np.unique(pred.argmax(0), return_counts=True)[1].tolist() for pred in predictions]
 
 
-def _count_pred_classes_by_segment_in_image(labels: List[torch.Tensor]) -> List[int]:
+def _count_pred_classes_by_segment_in_image(predictions: List[np.ndarray]) -> List[int]:
     """Return a list containing the number of unique classes per image for semantic segmentation."""
-    return [torch.unique(tensor.argmax(0)).shape[0] for tensor in labels]
+    return [np.unique(preds.argmax(0)).shape[0] for preds in predictions]
 
 
 DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_classification, 'output_type': 'class_id'}
+    {'name': 'Samples Per Class', 'method': _get_predicted_classes_per_image_classification, 'output_type': 'class_id'}
 ]
 
 DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_object_detection, 'output_type': 'class_id'},
+    {'name': 'Samples Per Class', 'method': _get_predicted_classes_per_image_object_detection,
+     'output_type': 'class_id'},
     {'name': 'Bounding Box Area (in pixels)', 'method': _get_predicted_bbox_area, 'output_type': 'numerical'},
     {'name': 'Number of Bounding Boxes Per Image', 'method': _count_num_bboxes, 'output_type': 'numerical'},
 ]
 
 DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES = [
-    {'name': 'Samples Per Class', 'method': _get_samples_per_pred_class_semantic_segmentation,
+    {'name': 'Samples Per Class', 'method': _get_predicted_classes_per_image_semantic_segmentation,
      'output_type': 'class_id'},
     {'name': 'Segment Area (in pixels)', 'method': _get_segment_pred_area, 'output_type': 'numerical'},
     {'name': 'Number of Classes Per Image', 'method': _count_pred_classes_by_segment_in_image,

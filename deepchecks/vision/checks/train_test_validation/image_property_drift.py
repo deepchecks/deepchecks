@@ -21,10 +21,12 @@ from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['ImagePropertyDrift']
 
@@ -73,14 +75,11 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
 
-    classes_to_display : Optional[List[float]], default: None
-        List of classes to display. The distribution of the properties would include only samples belonging (or
-        containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
     min_samples: int, default: 30
         Minimum number of samples needed in each dataset needed to calculate the drift.
     aggregation_method: str, default: 'max'
         {property_aggregation_method_argument:2*indent}
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -91,7 +90,6 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
             aggregation_method: str = 'max',
             **kwargs
@@ -103,7 +101,6 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        self.classes_to_display = None  # TODO: add support in classes to display
         self.min_samples = min_samples
         self.aggregation_method = aggregation_method
 
@@ -133,20 +130,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             raise DeepchecksValueError(f'Invalid dataset kind: {dataset_kind}')
 
         all_classes_properties = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
-
-        if self.classes_to_display:
-            # use only images belonging (or containing an annotation belonging) to one of the classes in
-            # classes_to_display
-            classes = context.train.get_classes(batch.labels)
-            filtered_properties = dict.fromkeys(all_classes_properties.keys())
-            for prop_name, prop_values in all_classes_properties.items():
-                filtered_properties[prop_name] = [score for idx, score in enumerate(prop_values)
-                                                  if any(cls in map(self._class_to_string, classes[idx]) for cls
-                                                         in self.classes_to_display)]
-        else:
-            filtered_properties = all_classes_properties
-
-        for prop_name, property_values in filtered_properties.items():
+        for prop_name, property_values in all_classes_properties.items():
             properties_results[prop_name].extend(property_values)
 
     def compute(self, context: Context) -> CheckResult:
@@ -158,8 +142,6 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             value: dictionary containing drift score for each image property.
             display: distribution graph for each image property.
         """
-        context.assert_classes_to_use(self.classes_to_display)
-
         properties = sorted(self._train_properties.keys())
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)

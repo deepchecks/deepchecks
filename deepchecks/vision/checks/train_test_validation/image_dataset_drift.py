@@ -17,10 +17,12 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import BatchWrapper, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['ImageDatasetDrift']
 
@@ -73,7 +75,7 @@ class ImageDatasetDrift(TrainTestCheck):
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
     min_meaningful_drift_score : float , default 0.05
         Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(

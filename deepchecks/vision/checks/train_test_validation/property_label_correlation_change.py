@@ -19,12 +19,11 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import (get_feature_label_correlation,
                                                                          get_feature_label_correlation_per_class)
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.errors import ModelValidationError
-from deepchecks.utils.dataframes import is_float_column
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
 from deepchecks.vision.vision_data import TaskType
@@ -35,7 +34,6 @@ __all__ = ['PropertyLabelCorrelationChange']
 pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
           'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
-
 
 PLC = TypeVar('PLC', bound='PropertyLabelCorrelationChange')
 
@@ -88,7 +86,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
             Minimum PPS to show a class in the graph
     ppscore_params: dict, default: None
         dictionary of additional parameters for the ppscore predictor function
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -109,7 +107,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         self.n_top_properties = n_top_properties
         self.ppscore_params = ppscore_params or {}
         self._train_properties, self._test_properties = defaultdict(list), defaultdict(list)
-        self._train_properties['target'],  self._test_properties['target'] = [], []
+        self._train_properties['target'], self._test_properties['target'] = [], []
 
     def initialize_run(self, context: Context):
         """Initialize run."""
@@ -218,6 +216,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         -------
         SFC
         """
+
         def condition(value: Union[Dict[Hashable, Dict[Hashable, float]],
                                    Dict[Hashable, Dict[Hashable, Dict[Hashable, float]]]],
                       ) -> ConditionResult:
@@ -258,7 +257,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                 else:
                     max_feature, max_pps = get_dict_entry_by_value(value['train-test difference'])
                     message = f'Found highest PPS {format_number(max_pps)} for property {max_feature}' \
-                              if max_pps > 0 else '0 PPS found for all properties'
+                        if max_pps > 0 else '0 PPS found for all properties'
                     return ConditionResult(ConditionCategory.PASS, message)
 
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is less than '
@@ -280,6 +279,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         -------
         SFC
         """
+
         def condition(value: Union[Dict[Hashable, Dict[Hashable, float]],
                                    Dict[Hashable, Dict[Hashable, Dict[Hashable, float]]]]) -> ConditionResult:
 

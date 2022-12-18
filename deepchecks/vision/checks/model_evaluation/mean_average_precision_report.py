@@ -19,15 +19,19 @@ import plotly.express as px
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import BatchWrapper, Context, SingleDatasetCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['MeanAveragePrecisionReport']
 
 MPR = TypeVar('MPR', bound='MeanAveragePrecisionReport')
 
 
+@docstrings
 class MeanAveragePrecisionReport(SingleDatasetCheck):
     """Summarize mean average precision metrics on a dataset and model per IoU and bounding box area.
 
@@ -35,9 +39,10 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
     ----------
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
+    {additional_check_init_params:2*indent}
     """
 
-    def __init__(self, area_range: Tuple = (32**2, 96**2), **kwargs):
+    def __init__(self, area_range: Tuple = (32 ** 2, 96 ** 2), **kwargs):
         super().__init__(**kwargs)
         self.area_range = area_range
 
@@ -48,9 +53,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
 
     def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        label = batch.labels
-        prediction = batch.predictions
-        self._ap_metric.update((prediction, label))
+        self._ap_metric.update((batch.numpy_predictions, batch.numpy_labels))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""
@@ -102,6 +105,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         min_score : float
             Minimum score to pass the check.
         """
+
         def condition(df: pd.DataFrame):
             min_col_per_row = df.idxmin(axis=1)
             min_score_per_row = [df.loc[r, c] for r, c in min_col_per_row.items()]
@@ -124,6 +128,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         min_score : float
             Minimum score to pass the check.
         """
+
         def condition(df: pd.DataFrame):
             df = df.reset_index()
             value = df.loc[df['Area size'] == 'All', :]['mAP@[.50::.95] (avg.%)'][0]

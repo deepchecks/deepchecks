@@ -83,11 +83,11 @@ class Suite(BaseSuite):
                               random_state=random_state, with_display=with_display)
             # Initialize train test checks
             if train_dataset is None or test_dataset is None:
-                for name, check in train_test_checks.items():
+                for name, check in list(train_test_checks.items()):
                     msg = 'Check is irrelevant if not supplied with both train and test datasets'
                     results[name] = self._get_unsupported_failure(check, msg)
                 train_test_checks = {}
-            for name, check in train_test_checks.items():
+            for name, check in copy(train_test_checks).items():
                 try:
                     check.initialize_run(context)
                 except Exception as exp:
@@ -95,9 +95,9 @@ class Suite(BaseSuite):
                     train_test_checks.pop(name)
 
             if train_dataset is not None:
-                for name, check in single_dataset_checks_train.items():
+                for name, check in list(single_dataset_checks_train.items()):
                     try:
-                        check.initialize_run(context)
+                        check.initialize_run(context, dataset_kind=DatasetKind.TRAIN)
                     except Exception as exp:
                         results[name] = CheckFailure(check, exp)
                         single_dataset_checks_train.pop(name)
@@ -107,19 +107,19 @@ class Suite(BaseSuite):
                                   max_samples=max_samples)
 
             if test_dataset is not None:
-                for name, check in single_dataset_checks_test.items():
+                for name, check in list(single_dataset_checks_test.items()):
                     try:
-                        check.initialize_run(context)
+                        check.initialize_run(context, dataset_kind=DatasetKind.TRAIN)
                     except Exception as exp:
                         results[name] = CheckFailure(check, exp)
                         single_dataset_checks_test.pop(name)
                 self._update_loop(context=context, train_test_checks=train_test_checks,
                                   single_dataset_checks=single_dataset_checks_test, results=results,
-                                  dataset_kind=DatasetKind.TRAIN, progressbar_factory=progressbar_factory,
+                                  dataset_kind=DatasetKind.TEST, progressbar_factory=progressbar_factory,
                                   max_samples=max_samples)
 
             # Need to compute only on not SingleDatasetCheck, since they computed inside the loop
-            progress_bar = progressbar_factory.create(iterable=list(train_test_checks.items()),  unit='Check',
+            progress_bar = progressbar_factory.create(iterable=list(train_test_checks.items()), unit='Check',
                                                       name='Computing Train Test Checks')
             for name, check in progress_bar:
                 progress_bar.set_postfix({'Check': check.name()})
@@ -141,13 +141,13 @@ class Suite(BaseSuite):
 
         # Update loop over the batches
         with progressbar_factory.create_dummy(name='Ingesting Batches:' + vision_data.name):
-            for i, batch in enumerate(vision_data):
+            for batch in vision_data:
                 batch = BatchWrapper(batch, vision_data)
                 vision_data.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
-                for name, check in checks_to_update.items():
+                for name, check in list(checks_to_update.items()):
                     try:
                         check.update(context, batch, dataset_kind=dataset_kind)
-                        if vision_data.number_of_images_cached > np.min(max_samples, check.n_samples or np.inf):
+                        if vision_data.number_of_images_cached > np.min((max_samples, check.n_samples or np.inf)):
                             checks_to_update.pop(name)
                     except Exception as exp:
                         results[name] = CheckFailure(check, exp, vision_data.name)
@@ -166,7 +166,7 @@ class Suite(BaseSuite):
             checks_pbar.set_postfix({'Check': check.name()}, refresh=False)
             try:
                 result = check.compute(context, dataset_kind=dataset_kind)
-                context.finalize_check_result(result, check)
+                context.finalize_check_result(result, check, dataset_kind=dataset_kind)
                 results[name] = result
             except Exception as exp:
                 results[name] = CheckFailure(check, exp, vision_data.name)

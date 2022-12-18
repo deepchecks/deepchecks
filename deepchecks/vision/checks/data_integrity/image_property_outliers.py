@@ -19,6 +19,7 @@ from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyOutliers']
 
+
 @docstrings
 class ImagePropertyOutliers(AbstractPropertyOutliers):
     """Find outliers images with respect to the given properties.
@@ -45,7 +46,7 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
         Two percentiles which define the IQR range
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(self,

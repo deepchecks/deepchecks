@@ -24,10 +24,12 @@ from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import BatchWrapper, Context, SingleDatasetCheck
-from deepchecks.vision.utils.display_utils import draw_image
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
+from deepchecks.vision.utils.image_functions import draw_image
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['AbstractPropertyOutliers']
 
@@ -154,7 +156,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                     # Create id of alphabetic characters
                     images_and_values = self._get_property_outlier_images(property_name,
                                                                           info['lower_limit'], info['upper_limit'],
-                                                                          data.task_type, data.has_images)
+                                                                          data.task_type)
                     sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
                     values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
                                               for x in images_and_values])
@@ -190,7 +192,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         return CheckResult(check_result, display=display)
 
     def _get_property_outlier_images(self, prop_name: str, lower_limit: float, upper_limit: float,
-                                     task_type: TaskType, has_images: bool) -> t.List[t.Tuple[float, str]]:
+                                     task_type: TaskType) -> t.List[t.Tuple[float, str]]:
         """Get outlier images and their values for provided property."""
         result = []
         for idx, value in enumerate(self._lowest_property_value_images[prop_name]['property_values']):

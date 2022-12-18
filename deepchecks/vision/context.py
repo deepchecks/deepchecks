@@ -12,12 +12,11 @@
 from typing import List, Optional
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
-from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
-                                    ModelValidationError)
+from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.vision._shared_docs import docstrings
-from deepchecks.vision.utils.validation import validate_vision_data_compatibility
 from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.vision_data.utils import validate_vision_data_compatibility
 
 __all__ = ['Context']
 
@@ -95,12 +94,12 @@ class Context:
     def assert_classes_to_use(self, classes_to_use: List[str]):
         """Assert that the given classes are in the observed classes."""
         if classes_to_use is not None and self.train is not None:
-            classes_missing_train = [x for x in classes_to_use if x not in self.train.observed_classes]
+            classes_missing_train = [x for x in classes_to_use if x not in self.train.get_observed_classes()]
             if len(classes_missing_train) > 0:
                 raise DeepchecksValueError('Train dataset does not contain the following classes selected for '
                                            f'display: {classes_missing_train}')
         if classes_to_use is not None and self.test is not None:
-            classes_missing_test = [x for x in self.classes_to_display if x not in self.test.observed_classes]
+            classes_missing_test = [x for x in self.classes_to_display if x not in self.test.get_observed_classes()]
             if len(classes_missing_test) > 0:
                 raise DeepchecksValueError('Test dataset does not contain the following classes selected for '
                                            f'display: {classes_missing_test}')
@@ -112,10 +111,6 @@ class Context:
                 f'Check is irrelevant for task of type {self.train.task_type}')
         return True
 
-    def get_observed_classes(self) -> List[str]:
-        """Return the observed classes in the train and test dataset."""
-        return self.train.observed_classes + self.test.observed_classes
-
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant VisionData by given kind."""
         if kind == DatasetKind.TRAIN:
@@ -125,7 +120,7 @@ class Context:
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
-    def finalize_check_result(self, check_result, check, kind: DatasetKind = None):
+    def finalize_check_result(self, check_result, check, dataset_kind: DatasetKind = None):
         """Run final processing on a check result which includes validation and conditions processing."""
         # Validate the check result type
         if isinstance(check_result, CheckFailure):
@@ -145,8 +140,8 @@ class Context:
 
         n_samples = getattr(check, 'n_samples')
         message = ''
-        if kind:
-            dataset = self.get_data_by_kind(kind)
+        if dataset_kind:
+            dataset = self.get_data_by_kind(dataset_kind)
             if n_samples < dataset.number_of_images_cached:
                 message = f'Sampling procedure took place, check used {n_samples} images from the original dataset.'
         else:

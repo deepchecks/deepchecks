@@ -19,8 +19,11 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMetricClassMixin
 from deepchecks.utils.docref import doclink
-from deepchecks.vision import BatchWrapper, Context, SingleDatasetCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.metrics_utils.scorers import get_scorers_dict, metric_results_to_df
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 if TYPE_CHECKING:
     from deepchecks.core.checks import CheckConfig
@@ -28,6 +31,7 @@ if TYPE_CHECKING:
 __all__ = ['SingleDatasetPerformance']
 
 
+@docstrings
 class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
     """Calculate performance metrics of a given model on a given dataset.
 
@@ -36,7 +40,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
     scorers : Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
         An optional dictionary of scorer name to scorer functions.
         If none given, using default scorers
-
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(self, scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None, **kwargs):
@@ -49,10 +53,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
     def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind.TRAIN):
         """Update the metrics by passing the batch to ignite metric update method."""
-        label = batch.labels
-        prediction = batch.predictions
         for scorer in self.scorers.values():
-            scorer.update((prediction, label))
+            scorer.update((batch.numpy_predictions, batch.numpy_labels))
 
     def compute(self, context: Context, dataset_kind: DatasetKind.TRAIN) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""
@@ -65,8 +67,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         return CheckResult(result_df, header='Single Dataset Performance', display=display)
 
     def config(
-        self,
-        include_version: bool = True
+            self,
+            include_version: bool = True
     ) -> 'CheckConfig':
         """Return check configuration."""
         if isinstance(self.scorers, dict):

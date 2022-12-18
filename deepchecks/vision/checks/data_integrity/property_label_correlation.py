@@ -18,14 +18,14 @@ import pandas as pd
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
-from deepchecks.core.errors import ModelValidationError
-from deepchecks.utils.dataframes import is_float_column
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import BatchWrapper, Context, SingleDatasetCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['PropertyLabelCorrelation']
 
@@ -75,7 +75,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             Minimum PPS to show a class in the graph
     ppscore_params: dict, default: None
         dictionary of additional parameters for the ppscore predictor function
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -87,7 +87,6 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-
         self.image_properties = image_properties if image_properties else default_image_properties
 
         self.min_pps_to_show = min_pps_to_show
@@ -165,6 +164,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         -------
         FLC
         """
+
         def condition(value: Dict[Hashable, float]) -> ConditionResult:
             failed_props = {
                 prop_name: format_number(pps_value)

@@ -117,7 +117,7 @@ def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset
 
     # Assert
     assert_that(mnist_visiondata_train.number_of_images_cached, equal_to(200))
-    assert_that(sorted(mnist_visiondata_train.observed_classes), equal_to([str(x) for x in range(10)]))
+    assert_that(sorted(mnist_visiondata_train.get_observed_classes), equal_to([str(x) for x in range(10)]))
 
 
 def test_vision_cache_object_detection(coco_visiondata_train):
@@ -130,14 +130,14 @@ def test_vision_cache_object_detection(coco_visiondata_train):
 
     # Assert
     assert_that(coco_visiondata_train.number_of_images_cached,
-                equal_to(len(coco_visiondata_train.dynamic_loader.dataset)))
-    assert_that(sorted(coco_visiondata_train.observed_classes),
+                equal_to(len(coco_visiondata_train.batch_loader.dataset)))
+    assert_that(sorted(coco_visiondata_train.get_observed_classes),
                 equal_to(sorted(coco_visiondata_train.label_id_to_name(x) for x in expected_classes)))
 
     # ReAct and ReAssert
     coco_visiondata_train.init_cache()
     assert_that(coco_visiondata_train.number_of_images_cached, equal_to(0))
-    assert_that(len(coco_visiondata_train.observed_classes), equal_to(0))
+    assert_that(len(coco_visiondata_train.get_observed_classes), equal_to(0))
 
 
 def test_vision_data_label_comparison_with_different_datasets(coco_visiondata_train, mnist_visiondata_train):
@@ -152,7 +152,7 @@ def test_vision_data_format():
     coco_dataset = coco.load_dataset(object_type='DataLoader')
     assert_that(calling(VisionData).with_args(coco_dataset, TaskType.OBJECT_DETECTION.value),
                 raises(ValidationError,
-                       r'Dynamic loader batch output must be a dictionary containing a subset of the following keys:'))
+                       r'Batch loader batch output must be a dictionary containing a subset of the following keys:'))
 
 
 def test_detection_data_bad_batch_to_label_implementation(coco_dataloader_train):

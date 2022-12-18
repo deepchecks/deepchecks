@@ -80,8 +80,8 @@ def validate_labels_format(labels, task_type: TaskType):
             raise ValidationError('Semantic segmentation label per image must be a 2D array of shape (H, W),'
                                   'where H and W are the height and width of the corresponding image.')
         if np.max(single_image_label % 1) > 0:
-            raise ValidationError(f'In semantic segmentation, each pixel in label should represent a '
-                                  f'class_id and there must be a positive integer.')
+            raise ValidationError('In semantic segmentation, each pixel in label should represent a '
+                                  'class_id and there must be a positive integer.')
 
 
 def validate_predictions_format(predictions, task_type: TaskType):
@@ -130,7 +130,7 @@ def _validate_predictions_label_common_format(name, data, task_type: TaskType):
     if task_type == TaskType.OTHER and data is not None:
         raise ValidationError(f'The task type is OTHER, but {name_plural} were provided.')
     try:
-        sample = data[0]
+        _ = data[0]
         data = sequence_to_numpy(data)
     except IndexError as err:
         raise ValidationError(f'The batch {name_plural} must be a non empty iterable.') from err
@@ -168,10 +168,8 @@ def validate_additional_data_format(additional_data_batch):
     DeepchecksValueError
         If the images doesn't fit the required deepchecks format.
     """
-    try:
-        sample = additional_data_batch[0]
-    except TypeError as err:
-        raise ValidationError('The batch additional_data must be an iterable.') from err
+    if not hasattr(additional_data_batch, '__getitem__'):
+        raise ValidationError('The batch additional_data must be an iterable.')
 
 
 def validate_embeddings_format(embeddings):
@@ -186,10 +184,8 @@ def validate_embeddings_format(embeddings):
     DeepchecksValueError
         If the images doesn't fit the required deepchecks format.
     """
-    try:
-        sample = embeddings[0]
-    except TypeError as err:
-        raise ValidationError('The batch embeddings must be an iterable.') from err
+    if not hasattr(embeddings, '__getitem__'):
+        raise ValidationError('The batch embeddings must be an iterable.')
 
 
 def validate_image_identifiers_format(image_identifiers):

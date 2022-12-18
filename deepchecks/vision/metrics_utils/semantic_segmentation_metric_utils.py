@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing utils for semantic segmentation metrics utils."""
+from typing import Tuple
+
 import numpy as np
-import torch
 
 
 def format_segmentation_masks(y_true: np.ndarray, y_pred: np.ndarray, threshold):
@@ -31,7 +32,7 @@ def segmentation_counts_per_class(y_true_onehot: np.ndarray, y_pred_onehot: np.n
     return tp_count_per_class, y_true_count_per_class, pred_count_per_class
 
 
-def segmentation_counts_micro(y_true_onehot: np.ndarray, y_pred_onehot: np.ndarray):
+def segmentation_counts_micro(y_true_onehot: np.ndarray, y_pred_onehot: np.ndarray) -> Tuple[int, int, int]:
     """Compute the micro averaged ground truth, predicted and intersection areas for segmentation metrics."""
     tp_onehot = np.logical_and(y_true_onehot, y_pred_onehot)
-    return [np.sum(tp_onehot)], [np.sum(y_true_onehot)], [np.sum(y_pred_onehot)]
+    return np.sum(tp_onehot), np.sum(y_true_onehot), np.sum(y_pred_onehot)

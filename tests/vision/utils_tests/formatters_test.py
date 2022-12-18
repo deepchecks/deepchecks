@@ -16,13 +16,11 @@ import torch
 from hamcrest import assert_that, calling, close_to, equal_to, raises
 from torch.utils.data import DataLoader, Dataset
 
-from deepchecks.core.errors import ValidationError
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.utils import image_properties
 from deepchecks.vision.utils.detection_formatters import (convert_batch_of_bboxes, convert_bbox,
                                                           verify_bbox_format_notation)
 from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.utils.validation import validate_extractors
 
 
 class SimpleImageData(VisionData):
@@ -47,89 +45,10 @@ def numpy_shape_dataloader(shape: tuple = None, value: Union[float, np.ndarray] 
     return DataLoader(TwoTupleDataset(), batch_size=4, collate_fn=collate_fn)
 
 
-def test_data_formatter_not_iterable():
-    batch = 1
-    assert_that(
-        calling(SimpleImageData(numpy_shape_dataloader((10, 10, 3))).validate_image_data).with_args(batch),
-        raises(ValidationError, 'The batch data must be an iterable.')
-    )
-
-
-def test_data_formatter_not_numpy():
-    class BadImage(VisionData):
-        def batch_to_images(self, batch):
-            return [[x] for x in batch]
-
-    data_loader = numpy_shape_dataloader((10, 10, 3))
-    batch = next(iter(data_loader))
-    assert_that(
-        calling(BadImage(data_loader).validate_image_data).with_args(batch),
-        raises(ValidationError, 'The data inside the iterable must be a numpy array.')
-    )
-
-
-def test_data_formatter_missing_dimensions():
-    data_loader = numpy_shape_dataloader((10, 10))
-    batch = next(iter(data_loader))
-    assert_that(
-        calling(SimpleImageData(data_loader).validate_image_data).with_args(batch),
-        raises(ValidationError, 'The data inside the iterable must be a 3D array.')
-    )
-
-
-def test_data_formatter_wrong_color_channel():
-    data_loader = numpy_shape_dataloader((3, 10, 10))
-    batch = next(iter(data_loader))
-    assert_that(
-        calling(SimpleImageData(data_loader).validate_image_data).with_args(batch),
-        raises(ValidationError, 'The data inside the iterable must have 1 or 3 channels.')
-    )
-
-
-def test_data_formatter_large_values():
-    class BadImage(VisionData):
-        def batch_to_images(self, batch):
-            return batch * 300
-
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3))))
-    assert_that(
-        calling(BadImage(numpy_shape_dataloader((10, 10, 3))).validate_image_data).with_args(batch),
-        raises(ValidationError, r'Image data should be in uint8 format\(integers between 0 and 255\). '
-                                r'Found values in range \[76500.0, 76500.0\].')
-    )
-
-
-def test_data_formatter_normalized_data():
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3), value=1)))
-    assert_that(
-        calling(SimpleImageData(numpy_shape_dataloader((10, 10, 3))).validate_image_data).with_args(batch),
-        raises(ValidationError, r'Image data should be in uint8 format\(integers between 0 and 255\). Found values in '
-                                r'range \[1.0, 1.0\].')
-    )
-
-
-def test_data_formatter_valid_dimensions():
-    data_loader = numpy_shape_dataloader((10, 10, 3))
-    batch = next(iter(data_loader))
-    VisionData(data_loader, task_type='other')
-
-    batch = next(iter(numpy_shape_dataloader((10, 10, 3), collate_fn=list)))
-    data_loader = numpy_shape_dataloader((10, 10, 3))
-    batch = next(iter(data_loader))
-    SimpleImageData(data_loader).validate_image_data(batch)
-
-    data_loader = numpy_shape_dataloader((10, 10, 3), collate_fn=tuple)
-    batch = next(iter(data_loader))
-    SimpleImageData(data_loader).validate_image_data(batch)
-
-
 def test_brightness_grayscale():
     value = np.concatenate([np.zeros((3, 10, 1)), np.ones((7, 10, 1))], axis=0)
-
     batch = next(iter(numpy_shape_dataloader(value=value)))
-
     res = image_properties.brightness(batch)
-
     assert_that(res, equal_to([0.7] * 4))
 
 
@@ -471,12 +390,3 @@ def test_convert_bbox_function_with_ambiguous_combination_of_parameters():
         image_width=image_width,
         image_height=image_height
     )
-
-def test_validator(mnist_visiondata_train, coco_visiondata_test, mock_trained_yolov5_object_detection):
-    # verify the correctness of the data class and return True if data is the expected format
-    output = validate_extractors(coco_visiondata_test, mock_trained_yolov5_object_detection)
-    assert_that(output is True)
-
-    # verify the correctness of the data class and return False if data is NOT in the expected format
-    output = validate_extractors(mnist_visiondata_train, mock_trained_yolov5_object_detection)
-    assert_that(output is  False)

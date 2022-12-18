@@ -24,7 +24,7 @@ from numpy.random import seed
 
 
 def test_calc_properties(coco_visiondata_train):
-    images = coco_visiondata_train.batch_to_images(next(iter(coco_visiondata_train.data_loader)))
+    images = next(iter(coco_visiondata_train.batch_loader))['images']
     results = calc_vision_properties(images, default_image_properties)
     assert_that(results.keys(), contains_exactly(
         'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
@@ -34,7 +34,7 @@ def test_calc_properties(coco_visiondata_train):
 
 def test_calc_default_image_properties(coco_visiondata_train):
     seed(0)
-    images = coco_visiondata_train.batch_to_images(next(iter(coco_visiondata_train.data_loader)))
+    images = next(iter(coco_visiondata_train.batch_loader))['images']
     results = calc_default_image_properties(images)
     assert_that(results.keys(), contains_exactly(
         'Aspect Ratio', 'Area', 'Brightness', 'RMS Contrast',
@@ -44,7 +44,7 @@ def test_calc_default_image_properties(coco_visiondata_train):
 
 def test_calc_default_image_properties_grayscale(mnist_visiondata_train):
     seed(0)
-    images = mnist_visiondata_train.batch_to_images(next(iter(mnist_visiondata_train.data_loader)))
+    images = next(iter(mnist_visiondata_train.batch_loader))['images']
     results = calc_default_image_properties(images)
     assert_that(results['Mean Red Relative Intensity'][0], is_(None))
     assert_that(sum(results['Brightness']), close_to(2061.86, 0.01))
@@ -98,19 +98,21 @@ def test_validate_properties_with_bad_name_field():
     def prop(predictions):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
 
-    alternative_measurements = [
-        {'name': 'test', 'method': prop, 'output_type': 'continuous'},
-        {'name234': 'test', 'method': prop, 'output_type': 'continuous'},
-    ]
-
     # Assert
     assert_that(
-        calling(validate_properties).with_args(alternative_measurements),
+        calling(validate_properties).with_args([{'name': 'test', 'method': prop, 'output_type': 'continuous'}]),
         raises(
             DeepchecksValueError,
             r"List of properties contains next problems:\n"
-            r"\+ Property #1: dictionary must include keys \('name', 'method', 'output_type'\)\. "
-            r"Next keys are missed \['name'\]")
+            r"\+ Property test: field \"output_type\" must be one of \('categorical', 'numerical', 'class_id'\), "
+            r"instead got continuous")
+    )
+    assert_that(
+        calling(validate_properties).with_args([{'name234': 'test', 'method': prop, 'output_type': 'numerical'}]),
+        raises(
+            DeepchecksValueError,
+            r"List of properties contains next problems:\n"
+            r"\+ Item #0: property must be of type dict, and include keys \('name', 'method', 'output_type'\).")
     )
 
 
@@ -126,9 +128,6 @@ def test_validate_properties_with_incorrect_property_output_type():
             rf"\+ Property {property['name']}: field \"output_type\" must be one "
             r"of \('categorical', 'numerical', 'class_id'\), instead got hello-world")
     )
-
-
-# ===========================
 
 
 def detects_empty_list():
@@ -162,11 +161,9 @@ def detects_incorrect_property_dict_structure(property_name: str, missed_key: st
         fr"Next keys are missed \['{missed_key}'\]"
     )
 
-# ==========================
-
 
 def test_sharpness_and_texture_level(coco_visiondata_train):
     props = [{'name': 'texture', 'method': texture_level, 'output_type': 'continuous'}]
-    images = coco_visiondata_train.batch_to_images(next(iter(coco_visiondata_train.data_loader)))
+    images = next(iter(coco_visiondata_train.batch_loader))['images']
     results = calc_vision_properties(images, props)
-    assert_that(sum(results['sharpness']), close_to(50, 0.01))
+    assert_that(sum(results['texture']), close_to(1.79, 0.01))

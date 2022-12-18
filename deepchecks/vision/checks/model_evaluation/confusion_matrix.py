@@ -18,16 +18,18 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.utils.plot import create_confusion_matrix_figure
-from deepchecks.vision import BatchWrapper, Context, SingleDatasetCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.metrics_utils.iou_utils import jaccard_iou
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['ConfusionMatrixReport']
 
 
 def filter_confusion_matrix(confusion_matrix: pd.DataFrame, number_of_categories: int) -> \
-                            t.Tuple[np.ndarray, int]:
+        t.Tuple[np.ndarray, int]:
     pq = PriorityQueue()
     for row, values in enumerate(confusion_matrix):
         for col, value in enumerate(values):
@@ -42,6 +44,7 @@ def filter_confusion_matrix(confusion_matrix: pd.DataFrame, number_of_categories
         categories.add(col)
     categories = sorted(categories)
     return confusion_matrix[np.ix_(categories, categories)], categories
+
 
 @docstrings
 class ConfusionMatrixReport(SingleDatasetCheck):
@@ -61,7 +64,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         Threshold to consider detected bounding box as labeled bounding box.
     normalized (bool, default True):
         boolean that determines whether to normalize the true values of the matrix.
-    {additional_init_params:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(self,
@@ -75,11 +78,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
         self.normalized = normalized
-
         self.matrix = None
-        self.classes_list = None
-        self.not_found_idx = None
-        self.unseen_class_idx = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
@@ -111,7 +110,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             confusion_matrix, categories = filter_confusion_matrix(matrix, self.categories_to_display)
             confusion_matrix = np.nan_to_num(confusion_matrix)
 
-            description = [f'Showing {self.categories_to_display} of {dataset.num_classes} classes:']
+            description = [f'Showing {self.categories_to_display} of {len(dataset.get_observed_classes())} classes:']
             classes_to_display = []
             classes_map = dict(enumerate(classes))  # class index -> class label
 
@@ -172,7 +171,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                 continue
 
             list_of_ious = (
-                (label_index, detected_index, jaccard_iou(detected,label))
+                (label_index, detected_index, jaccard_iou(detected, label))
                 for label_index, label in enumerate(image_labels)
                 for detected_index, detected in enumerate(detections_passed_threshold)
             )

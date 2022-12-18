@@ -19,8 +19,7 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
 from typing_extensions import Literal
 
-from deepchecks.vision import VisionData
-from deepchecks.vision.vision_data import BatchOutputFormat
+from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['classification_dataset_from_directory', 'SimpleClassificationDataset']
 
@@ -31,7 +30,7 @@ def classification_dataset_from_directory(
         num_workers: int = 0,
         shuffle: bool = True,
         pin_memory: bool = True,
-        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+        object_type: Literal[VisionData, 'DataLoader'] = 'DataLoader',
         **kwargs
 ) -> t.Union[t.Tuple[t.Union[DataLoader, VisionData]], t.Union[DataLoader, VisionData]]:
     """Load a simple classification dataset.
@@ -100,7 +99,7 @@ def classification_dataset_from_directory(
         elif object_type == 'VisionData':
             dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
                                     collate_fn=deepchecks_collate, pin_memory=pin_memory, generator=torch.Generator())
-            result.append(VisionData(dynamic_loader=dataloader, label_map=dataset.reverse_classes_map,
+            result.append(VisionData(batch_loader=dataloader, label_map=dataset.reverse_classes_map,
                                      task_type='classification'))
         else:
             raise TypeError(f'Unknown value of object_type - {object_type}')
@@ -190,8 +189,7 @@ class SimpleClassificationDataset(VisionDataset):
         return len(self.images)
 
 
-def deepchecks_collate(batch) -> BatchOutputFormat:
+def deepchecks_collate(batch):
     """Process batch to deepchecks format."""
     imgs, labels = zip(*batch)
     return {'images': list(imgs), 'labels': list(labels)}
-

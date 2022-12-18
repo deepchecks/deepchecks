@@ -10,12 +10,9 @@
 #
 """Test for the check property label correlation."""
 import numpy as np
-import torch
 from hamcrest import assert_that, close_to, contains_exactly, has_entries
 
 from deepchecks.vision.checks import PropertyLabelCorrelation
-from deepchecks.vision.utils.test_utils import replace_collate_fn_visiondata
-from deepchecks.vision.utils.transformations import un_normalize_batch
 from tests.base.utils import equal_condition_result
 
 

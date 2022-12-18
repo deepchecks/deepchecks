@@ -15,49 +15,45 @@ from hamcrest import less_than_or_equal_to as le
 
 from deepchecks.vision.checks import ConfusionMatrixReport
 
+
 # TODO: more tests
 
 
-def test_classification(mnist_visiondata_train, mock_mnist_model, device):
+def test_classification(mnist_visiondata_train):
     # Arrange
-    check = ConfusionMatrixReport()
+    check = ConfusionMatrixReport(n_samples=None)
     # Act
-    result = check.run(mnist_visiondata_train, mock_mnist_model,
-                       device=device, n_samples=None)
+    result = check.run(mnist_visiondata_train)
     # Assert
     assert_that(result.value.shape, equal_to((10, 10)))
     assert_that(result.display, has_length(greater_than(0)))
 
 
-def test_classification_without_display(mnist_visiondata_train, mock_mnist_model, device):
+def test_classification_without_display(mnist_visiondata_train):
     # Arrange
     check = ConfusionMatrixReport()
     # Act
-    result = check.run(mnist_visiondata_train, mock_mnist_model,
-                       device=device, n_samples=None, with_display=False)
+    result = check.run(mnist_visiondata_train, with_display=False)
     # Assert
     assert_that(result.value.shape, equal_to((10, 10)))
     assert_that(result.display, has_length(0))
 
 
-def test_classification_not_normalize(mnist_visiondata_train, mock_mnist_model, device):
+def test_classification_not_normalize(mnist_visiondata_train):
     # Arrange
     check = ConfusionMatrixReport(normalized=False)
     # Act
-    result = check.run(mnist_visiondata_train, mock_mnist_model,
-                       device=device)
+    result = check.run(mnist_visiondata_train)
     # Assert
     assert_that(result.value.shape, equal_to((10, 10)))
 
 
-def test_detection(coco_visiondata_train, mock_trained_yolov5_object_detection, device):
+def test_detection(coco_visiondata_train):
     # Arrange
     check = ConfusionMatrixReport()
     # Act
-    result = check.run(coco_visiondata_train,
-                       mock_trained_yolov5_object_detection,
-                       device=device)
+    result = check.run(coco_visiondata_train)
 
     # Assert
-    num_of_classes = coco_visiondata_train.num_classes + 1 # plus no-overlapping
+    num_of_classes = len(coco_visiondata_train.get_observed_classes) + 1  # plus no-overlapping
     assert_that(result.value.shape, le((num_of_classes, num_of_classes)))
