@@ -72,13 +72,13 @@ class TextData:
 
     def __init__(
             self,
-            raw_text: t.Sequence[str],
+            raw_text: t.Optional[t.Sequence[str]] = None,
+            tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
             label: t.Optional[TTextLabel] = None,
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
     ):
-
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
             if label is not None:
@@ -97,8 +97,22 @@ class TextData:
             raise DeepchecksNotSupportedError(f'task_type {task_type} is not supported, must be one of '
                                               f'text_classification, token_classification, other')
 
-        self._validate_text(raw_text)
+        if raw_text is None and tokenized_text is None:
+            raise DeepchecksValueError('raw_text and tokenized_text cannot both be None')
+        elif raw_text is None:
+            self._validate_tokenized_text(tokenized_text)
+            raw_text = [' '.join(tokens) for tokens in tokenized_text]
+        elif tokenized_text is None:  # and self._task_type == TaskType.TOKEN_CLASSIFICATION.value:
+            self._validate_text(raw_text)
+            tokenized_text = [text.split() for text in raw_text]
+        else:
+            self._validate_text(raw_text)
+            self._validate_tokenized_text(tokenized_text)
+            if len(raw_text) != len(tokenized_text):
+                raise DeepchecksValueError('raw_text and tokenized_text must have the same length')
+
         self._text = raw_text
+        self._tokenized_text = tokenized_text
         self._validate_and_set_label(label, raw_text)
 
         if index is None:
@@ -121,6 +135,16 @@ class TextData:
             raise DeepchecksValueError('raw_text must be a sequence')
         if not all(isinstance(x, str) for x in raw_text):
             raise DeepchecksValueError('raw_text must be a Sequence of strings')
+
+    @staticmethod
+    def _validate_tokenized_text(tokenized_text: t.Sequence[t.Sequence[str]]):
+        """Validate tokenized text format."""
+        if not isinstance(tokenized_text, collections.abc.Sequence):
+            raise DeepchecksValueError('tokenized_text must be a sequence')
+        if not all(isinstance(x, collections.abc.Sequence) for x in tokenized_text):
+            raise DeepchecksValueError('tokenized_text must be a Sequence of sequences')
+        if not all(isinstance(x, str) for tokens in tokenized_text for x in tokens):
+            raise DeepchecksValueError('tokenized_text must be a Sequence of sequences of strings')
 
     def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str]):
         """Validate and process label to accepted formats."""
@@ -154,31 +178,36 @@ class TextData:
             if not all(isinstance(x, collections.abc.Sequence) for x in label):
                 raise DeepchecksValueError(token_class_error)
 
-            for i in range(len(label)): #TODO: Runs on all labels, very costly
+            for i in range(len(label)):  # TODO: Runs on all labels, very costly
                 if not (all(isinstance(x, str) for x in label[i]) or all(isinstance(x, int) for x in label[i])):
                     raise DeepchecksValueError(token_class_error)
                 # if not len(label[i]) == len(raw_text[i]):
                 #     raise DeepchecksValueError(f'label must be the same length as raw_text tokens. '
                 #                                f'However, for sample {raw_text[i]} received label {label[i]}')
-                    #TODO: Change when separating raw_text and tokens
+                # TODO: Change when separating raw_text and tokens
 
             # TODO: Validate IOB format (I-, B-, O)
             # TODO: Add label_map if integers?
 
         self._label = label
 
-    def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None, label: t.Optional[TTextLabel] = None,
+    def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None,
+             tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
+             label: t.Optional[TTextLabel] = None,
              index: t.Optional[t.Sequence[int]] = None) -> TDataset:
         """Create a copy of this Dataset with new data."""
         cls = type(self)
         if raw_text is None:
             raw_text = self.text
+        if tokenized_text is None:
+            tokenized_text = self.tokenized_text
         if label is None:
             label = self.label
         if index is None:
             index = self.index
         get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
-        new_copy = cls(raw_text, label, self._task_type.value, self.name, index)
+        new_copy = cls(raw_text=raw_text, tokenized_text=tokenized_text, label=label, task_type=self._task_type.value,
+                       dataset_name=self.name, index=index)
         get_logger().disabled = False
         return new_copy
 
@@ -211,10 +240,12 @@ class TextData:
         sample_idx = np.random.choice(samples, n_samples, replace=replace)
         if len(sample_idx) > 1:
             data_to_sample = {'raw_text': list(itemgetter(*sample_idx)(self._text)),
+                              'tokenized_text': list(itemgetter(*sample_idx)(self._tokenized_text)),
                               'label': list(itemgetter(*sample_idx)(self._label)),
                               'index': sample_idx}
         else:
             data_to_sample = {'raw_text': [self._text[sample_idx[0]]],
+                              'tokenized_text': [self._tokenized_text[sample_idx[0]]],
                               'label': [self._label[sample_idx[0]]],
                               'index': sample_idx}
         return self.copy(**data_to_sample)
@@ -255,6 +286,17 @@ class TextData:
            Sequence of raw text samples.
         """
         return self._text
+
+    @property
+    def tokenized_text(self) -> t.Sequence[t.Sequence[str]]:
+        """Return sequence of tokenized text samples.
+
+        Returns
+        -------
+        t.Sequence[t.Sequence[str]]
+           Sequence of tokenized text samples.
+        """
+        return self._tokenized_text
 
     @property
     def label(self) -> TTextLabel:

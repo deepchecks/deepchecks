@@ -22,24 +22,24 @@ from datasets import load_dataset
 @pytest.fixture(scope='session')
 def text_classification_dataset_mock():
     """Mock for a text classification dataset"""
-    return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
-                    [0, 0, 1],
+    return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
+                    label=[0, 0, 1],
                     task_type='text_classification')
 
 
 @pytest.fixture(scope='session')
 def text_classification_string_class_dataset_mock():
     """Mock for a text classification dataset with string labels"""
-    return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
-                    ['wise', 'meh', 'meh'],
+    return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
+                    label=['wise', 'meh', 'meh'],
                     task_type='text_classification')
 
 
 @pytest.fixture(scope='session')
 def text_multilabel_classification_dataset_mock():
     """Mock for a multilabel text classification dataset"""
-    return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
-                    [[0, 0, 1], [1, 1, 0], [0, 1, 0]],
+    return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
+                    label=[[0, 0, 1], [1, 1, 0], [0, 1, 0]],
                     task_type='text_classification')
 
 
@@ -84,9 +84,9 @@ def movie_reviews_data_negative():
 @pytest.fixture(scope='session')
 def text_token_classification_dataset_mock():
     """Mock for a token classification dataset"""
-    return TextData(['Mary had a little lamb', 'Mary lives in London and Paris',
+    return TextData(raw_text=['Mary had a little lamb', 'Mary lives in London and Paris',
                      'How much wood can a wood chuck chuck?'],
-                    [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
+                    label=[['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
                      ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']],
                     task_type='token_classification')
 

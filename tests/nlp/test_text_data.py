@@ -53,7 +53,7 @@ def test_init_mismatched_task_type():
 
     # Act & Assert
     assert_that(
-        calling(TextData).with_args(text, label, task_type='text_classification'),
+        calling(TextData).with_args(raw_text=text, label=label, task_type='text_classification'),
         raises(DeepchecksValueError,
                r'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.')
     )
@@ -77,14 +77,14 @@ def test_wrong_token_label_format(): #TODO: Fix this test
     # Not a list:
     label = 'PER'
     assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, 'label must be a Sequence')
     )
 
     # Not a list of lists:
     label = [3, 3, 3]
     assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, label_structure_error)
     )
 
@@ -93,7 +93,7 @@ def test_wrong_token_label_format(): #TODO: Fix this test
              ['B-PER', 1, 'B-GEO'],
              ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
     assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, label_structure_error)
     )
 
@@ -102,6 +102,6 @@ def test_wrong_token_label_format(): #TODO: Fix this test
              ['B-PER', 1, 'B-GEO'],
              ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
     assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, label_structure_error)
     )
