@@ -187,7 +187,7 @@ def test_bad_pred_shape(diabetes_split_dataset_and_model):
     # Act
     assert_that(
         calling(RegressionErrorDistribution().run)
-            .with_args(dataset=test, y_pred_train=y_pred_train),
+            .with_args(dataset=test, y_pred=y_pred_train),
         raises(
             ValidationError,
             r'Prediction array expected to be of shape \(146,\) but was: \(296,\)')
@@ -202,7 +202,7 @@ def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
     # Act
     assert_that(
         calling(RocReport().run)
-            .with_args(dataset=iris_labeled_dataset, y_pred_train=y_pred_train, y_proba_train=y_proba_train),
+            .with_args(dataset=iris_labeled_dataset, y_pred=y_pred_train, y_proba=y_proba_train),
         raises(
             ValidationError,
             r'Prediction probabilities expected to be of length 150 but was: 149')
@@ -228,7 +228,7 @@ def test_predict_using_proba(iris_binary_string_split_dataset_and_model):
 
     check = SingleDatasetPerformance(scorers=['f1_per_class'])
 
-    proba_result = check.run(train, y_proba_train=y_proba_train)
-    pred_result = check.run(train, y_pred_train=y_pred_train)
+    proba_result = check.run(train, y_proba=y_proba_train)
+    pred_result = check.run(train, y_pred=y_pred_train)
 
     assert_that(proba_result.value.iloc[0, -1], close_to(pred_result.value.iloc[0, -1], 0.001))
