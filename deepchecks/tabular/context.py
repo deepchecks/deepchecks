@@ -85,8 +85,8 @@ class _DummyModel:
                 else:
                     message = f'probabilities per class in y_proba_train has {y_proba_train.shape[1]} ' \
                               f'classes while observed model classes from predictions has {len(model_classes)} ' \
-                              f'classes. You can set the model\'s classes manually using the model_classes argument in ' \
-                              f'the run function.'
+                              f'classes. You can set the model\'s classes manually using the model_classes argument ' \
+                              f'in the run function.'
                 raise DeepchecksValueError(message)
             if y_pred_test is not None and y_proba_test.shape[1] != len(model_classes):
                 if user_set_classes:
@@ -95,8 +95,8 @@ class _DummyModel:
                 else:
                     message = f'probabilities per class in y_proba_test has {y_proba_test.shape[1]} ' \
                               f'classes while observed model classes from predictions has {len(model_classes)} ' \
-                              f'classes. You can set the model\'s classes manually using the model_classes argument in ' \
-                              f'the run function.'
+                              f'classes. You can set the model\'s classes manually using the model_classes argument ' \
+                              f'in the run function.'
                 raise DeepchecksValueError(message)
 
 
