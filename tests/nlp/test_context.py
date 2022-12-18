@@ -116,7 +116,7 @@ def test_wrong_multilabel_prediction_format(text_multilabel_classification_datas
         train_probabilities=[[0.9, 0.8, 0.3], [0.9, 0.8, 0.3], [0.9, 0.8, 0.3]])
 
 
-def test_wrong_token_prediction_format(text_token_classification_dataset_mock):
+def test_wrong_token_prediction_format(text_token_classification_dataset_mock): #TODO: Fix predictions
     # Arrange
     emtpy_suite = Suite('Empty Suite')
 

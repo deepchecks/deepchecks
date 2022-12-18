@@ -136,6 +136,10 @@ def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_d
     assert_that(result.value.values[0][-1], close_to(1.0, 0.001))
     assert_that(result.value.values[0][0], equal_to('a'))
 
+def test_wikiann_data(wikiann):
+    """Temp to test wikiann dataset loads correctly"""
+    data = wikiann
+
 # TODO: Fix when fixing IOB format
 # def test_run_with_scorer_token(text_token_classification_dataset_mock):
 #     # Arrange

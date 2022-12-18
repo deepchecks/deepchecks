@@ -26,7 +26,7 @@ from deepchecks.utils.logger import get_logger
 TDataset = t.TypeVar('TDataset', bound='TextData')
 TSingleLabel = t.Tuple[int, str]
 TClassLabel = t.Sequence[t.Union[TSingleLabel, t.Tuple[TSingleLabel]]]
-TTokenLabel = t.Sequence[t.Sequence[t.Tuple[str, int, int]]]
+TTokenLabel = t.Sequence[t.Sequence[t.Union[str, int]]]
 TTextLabel = t.Union[TClassLabel, TTokenLabel]
 
 
@@ -130,7 +130,7 @@ class TextData:
             self._has_label = False
             label = [None] * len(raw_text)
 
-        if not isinstance(label, collections.abc.Sequence):
+        if not isinstance(label, collections.abc.Sequence) or isinstance(label, str):
             raise DeepchecksValueError('label must be a Sequence')
 
         if not len(label) == len(raw_text):
@@ -150,22 +150,20 @@ class TextData:
                                            'of strings or ints (for multilabel classification)')
 
         if self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            token_class_error = 'label must be a Sequence of Sequences of (str, int, int) tuples, where the string' \
-                                ' is the token label, the first int is the start of the token span in the' \
-                                ' raw text and the second int is the end of the token span.'
+            token_class_error = 'label must be a Sequence of Sequences of either strings or integers'
             if not all(isinstance(x, collections.abc.Sequence) for x in label):
                 raise DeepchecksValueError(token_class_error)
 
-            for sample_label in label:
-                if not all(len(x) == 3 for x in sample_label):
+            for i in range(len(label)): #TODO: Runs on all labels, very costly
+                if not (all(isinstance(x, str) for x in label[i]) or all(isinstance(x, int) for x in label[i])):
                     raise DeepchecksValueError(token_class_error)
-                if not all(
-                        isinstance(x[0], str) and isinstance(x[1], int) and isinstance(x[2], int) for x in sample_label
-                ):
-                    raise DeepchecksValueError(token_class_error)
-                if not all(x[1] < x[2] for x in sample_label):
-                    raise DeepchecksValueError('Check requires token classification labels to have '
-                                               'token span start before span end')
+                # if not len(label[i]) == len(raw_text[i]):
+                #     raise DeepchecksValueError(f'label must be the same length as raw_text tokens. '
+                #                                f'However, for sample {raw_text[i]} received label {label[i]}')
+                    #TODO: Change when separating raw_text and tokens
+
+            # TODO: Validate IOB format (I-, B-, O)
+            # TODO: Add label_map if integers?
 
         self._label = label
 
