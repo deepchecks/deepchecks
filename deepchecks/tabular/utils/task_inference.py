@@ -85,7 +85,10 @@ def infer_task_type_and_classes(model, dataset):
     """Doing both classes inference and task type inference."""
     labels, model_classes = get_labels_and_classes(model, dataset)
     task_type = infer_task_type(dataset, labels, model_classes)
-    observed_classes = sorted(list(set(labels)))
+    if task_type in (TaskType.BINARY, TaskType.MULTICLASS):
+        observed_classes = sorted(labels.dropna().unique().tolist())
+    else:
+        observed_classes = None
     return task_type, observed_classes, model_classes
 
 

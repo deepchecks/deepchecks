@@ -228,7 +228,7 @@ class Context:
 
         self._task_type = infer_task_type(train, observed_labels, self._model_classes)
         if self._task_type in (TaskType.BINARY, TaskType.MULTICLASS):
-            self._observed_classes = sorted(list(set(observed_labels)))
+            self._observed_classes = sorted(observed_labels.dropna().unique().tolist())
         else:
             self._observed_classes = None
 
