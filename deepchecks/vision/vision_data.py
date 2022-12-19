@@ -77,7 +77,7 @@ class VisionData:
         try:
             self.validate_image_data(batch)
         except DeepchecksNotImplementedError:
-            self._image_formatter_error = 'batch_to_images() was not implemented, some checks will not run'
+            self._image_formatter_error = 'batch_to_images() was not implemented , some checks will not run'
             get_logger().warning(self._image_formatter_error)
         except ValidationError as ex:
             self._image_formatter_error = f'batch_to_images() was not implemented correctly, the validation has ' \
