@@ -10,6 +10,7 @@
 #
 """Represents fixtures for unit testing using pytest."""
 import logging
+import random
 # Disable this pylint check since we use this convention in pytest fixtures
 #pylint: disable=redefined-outer-name
 from typing import Any, Dict, Optional, Tuple
