@@ -15,6 +15,7 @@ from enum import Enum
 from numbers import Number
 
 import numpy as np
+from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DatasetValidationError
 
@@ -33,7 +34,7 @@ class TaskType(Enum):
         return [e.value for e in TaskType]
 
 
-class BatchOutputFormat(t.TypedDict):
+class BatchOutputFormat(TypedDict):
     """Batch output format required by deepchecks."""
 
     images: t.Optional[t.Union[np.ndarray, t.Sequence]]

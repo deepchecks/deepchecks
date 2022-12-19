@@ -183,7 +183,7 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
             'weird_feature': np.random.choice(np.array([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0],
                                               dtype='object'), size=1000),
             8: pd.array(np.random.choice([0, 1, 5, 6, np.nan], size=1000), dtype='Int64'),
-            'tuples': np.random.choice([(0, 2), (1, 6, 8), (9, 1), (8, 1, 9, 8)], size=1000),
+            'tuples': np.random.choice(np.array([(0, 2), (1, 6, 8), (9, 1), (8, 1, 9, 8)], dtype='object'), size=1000),
             'classification_label': np.random.choice([0, 1, 9, 8], size=1000),
             'regression_label': np.random.random_sample(1000),
         }
