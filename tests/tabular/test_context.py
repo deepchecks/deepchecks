@@ -12,8 +12,7 @@ from deepchecks.tabular import Context
 
 def test_task_type_same_with_model_or_y_pred(diabetes_split_dataset_and_model):
     # Arrange
-    train, test, model = diabetes_split_dataset_and_model
-    context = Context(train, test, model)
+    train, _, model = diabetes_split_dataset_and_model
     # Act
     ctx1 = Context(train, model=model)
     ctx2 = Context(train, y_pred_train=model.predict(train.features_columns))

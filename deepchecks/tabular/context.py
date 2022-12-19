@@ -20,8 +20,9 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
+from deepchecks.tabular.metric_utils.scorers import validate_proba
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
+from deepchecks.tabular.utils.task_inference import get_labels_and_classes, infer_task_type
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
@@ -70,24 +71,6 @@ class _DummyModel:
                  validate_data_on_predict: bool = True,
                  model_classes: t.Optional[t.List] = None):
 
-        if y_proba_train is not None or y_proba_test is not None:
-            if model_classes is None:
-                classes_test = set(y_pred_test) if y_pred_test is not None else set()
-                classes_train = set(y_pred_train) if y_pred_train is not None else set()
-                model_classes = sorted(list(classes_train.union(classes_test)))
-                error_message = f'probabilities per class in %s has %s ' \
-                                f'classes while observed model classes from predictions has {len(model_classes)} ' \
-                                f'classes. You can set the model\'s classes manually using the model_classes ' \
-                                f'argument in the run function.'
-            else:
-                error_message = f'probabilities per class in %s has %s classes while received model classes ' \
-                                f'has {len(model_classes)}.'
-            if y_proba_train is not None and y_proba_train.shape[1] != len(model_classes):
-                raise DeepchecksValueError(error_message % ('y_proba_train', y_proba_train.shape[1]))
-            if y_proba_test is not None and y_proba_test.shape[1] != len(model_classes):
-                raise DeepchecksValueError(error_message % ('y_proba_test', y_proba_test.shape[1]))
-
-
         if train is not None and test is not None:
             # check if datasets have same indexes
             if set(train.data.index) & set(test.data.index):
@@ -107,6 +90,7 @@ class _DummyModel:
             if dataset is not None:
                 feature_df_list.append(dataset.features_columns)
                 if y_pred is None and y_proba is not None:
+                    validate_proba(y_proba, model_classes)
                     y_pred = np.argmax(y_proba, axis=-1)
                     y_pred = np.array(model_classes)[y_pred]
                 if y_pred is not None:
@@ -237,14 +221,21 @@ class Context:
                 template='For more information please refer to the Supported Models guide {link}')
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
+
+        observed_labels, self._model_classes = get_labels_and_classes(
+            model, train, test, y_pred_train, y_pred_test, model_classes
+        )
+
+        self._task_type = infer_task_type(train, observed_labels, self._model_classes)
+        if self._task_type in (TaskType.BINARY, TaskType.MULTICLASS):
+            self._observed_classes = sorted(list(set(observed_labels)))
+
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                                y_proba_test=y_proba_test, y_proba_train=y_proba_train)
-
-        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
-            model, train, test, model_classes)
+                                y_proba_test=y_proba_test, y_proba_train=y_proba_train,
+                                model_classes=self.model_classes)
 
         self._train = train
         self._test = test
@@ -292,7 +283,7 @@ class Context:
     @property
     def model_classes(self) -> t.List:
         """Return ordered list of possible label classes for classification tasks or None for regression."""
-        if self._model_classes is None and self.task_type != TaskType.REGRESSION:
+        if self._model_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
             # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
             self._model_classes = self._observed_classes
             get_logger().warning('Could not find model\'s classes, using the observed classes')

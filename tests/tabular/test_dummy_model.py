@@ -8,10 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import pandas as pd
 from hamcrest import assert_that, calling, has_items, raises, close_to
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.condition import ConditionCategory
@@ -21,7 +18,6 @@ from deepchecks.tabular.checks import SingleDatasetPerformance
 from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import RegressionErrorDistribution
 from deepchecks.tabular.checks.model_evaluation.roc_report import RocReport
 from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import SimpleModelComparison
-from deepchecks.tabular.checks.model_evaluation.unused_features import UnusedFeatures
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.suites.default_suites import full_suite

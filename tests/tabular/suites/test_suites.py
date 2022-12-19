@@ -61,7 +61,8 @@ def test_generic_suite(
     iris_train, iris_test, iris_model = iris
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
     kiss_train, kiss_test, kiss_model = kiss_dataset_and_model
-    wierd_classification_train, wierd_classification_test, wierd_classification_model = wierd_classification_dataset_and_model
+    wierd_classification_train, wierd_classification_test, wierd_classification_model = \
+        wierd_classification_dataset_and_model
     wierd_regression_train, wierd_regression_test, wierd_regression_model = wierd_regression_dataset_and_model
     iris_train_single, iris_test_single, iris_model_single = iris_split_dataset_and_model_single_feature
     adult_train, adult_test, adult_model = adult_split_dataset_and_model
