@@ -76,6 +76,7 @@ def infer_task_type(train_dataset: 'tabular.Dataset', labels, model_classes: Opt
                 'the label column is of type integer. '
                 'Initialize your Dataset with either label_type=\"%s}\" or '
                 'label_type=\"regression\" to resolve this warning.', task_type.value, task_type.value)
+        return task_type
     else:
         return TaskType.REGRESSION
 
