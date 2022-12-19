@@ -273,7 +273,7 @@ class SimpleModelComparison(TrainTestCheck):
                             'scorers_perfect': scorers_perfect,
                             }, display=fig)
 
-    def config(self, include_version: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
         """Return check instance config."""
         if self.alternative_scorers is not None:
             for k, v in self.alternative_scorers.items():
@@ -286,7 +286,7 @@ class SimpleModelComparison(TrainTestCheck):
                         'Only built-in scorers are allowed when serializing check instances. '
                         f'{reference}Scorer name: {k}'
                     )
-        return super().config(include_version)
+        return super().config(include_version, include_defaults=include_defaults)
 
     def _create_simple_model(self, train_ds: Dataset, task_type: TaskType):
         """Create a simple model of given type (random/constant/tree) to the given dataset.
