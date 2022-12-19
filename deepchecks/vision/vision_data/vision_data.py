@@ -11,6 +11,8 @@
 import typing as t
 from collections import defaultdict
 
+from typing_extensions import Literal
+
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data.format_validators import (validate_additional_data_format,
@@ -45,7 +47,7 @@ class VisionData:
     def __init__(
             self,
             batch_loader,
-            task_type: t.Literal['classification', 'object_detection', 'semantic_segmentation', 'other'],
+            task_type: Literal['classification', 'object_detection', 'semantic_segmentation', 'other'],
             label_map: t.Optional[t.Dict[int, str]] = None,
             dataset_name: t.Optional[str] = None,
             shuffle_batch_loader: bool = True
