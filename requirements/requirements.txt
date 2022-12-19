@@ -1,6 +1,5 @@
 pandas>=1.1.5
-numpy>=1.19
-numpy<=1.24.0
+numpy>=1.19, <1.24.0
 scikit-learn>=0.23.2
 jsonpickle>=2
 PyNomaly>=0.3.3
