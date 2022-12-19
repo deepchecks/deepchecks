@@ -140,7 +140,7 @@ class Suite(BaseSuite):
         vision_data = context.get_data_by_kind(dataset_kind)
 
         # Update loop over the batches
-        with progressbar_factory.create_dummy(name='Ingesting Batches:' + vision_data.name):
+        with progressbar_factory.create_dummy(name='Processing Batches:' + vision_data.name):
             for batch in vision_data:
                 batch = BatchWrapper(batch, vision_data)
                 vision_data.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)

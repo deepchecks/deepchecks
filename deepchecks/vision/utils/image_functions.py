@@ -18,7 +18,6 @@ import PIL.Image as pilimage
 import PIL.ImageDraw as pildraw
 import PIL.ImageOps as pilops
 import plotly.graph_objects as go
-import torch
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.html import imagetag
@@ -82,14 +81,14 @@ def draw_image(image: np.ndarray, label, task_type: TaskType,
 
 
 def ensure_image(
-        image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+        image: t.Union[pilimage.Image, np.ndarray],
         copy: bool = True
 ) -> pilimage.Image:
     """Transform to `PIL.Image.Image` if possible.
 
     Parameters
     ----------
-    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+    image : Union[PIL.Image.Image, numpy.ndarray]
     copy : bool, default True
         if `image` is an instance of the `PIL.Image.Image` return
         it as it is or copy it.
@@ -100,8 +99,6 @@ def ensure_image(
     """
     if isinstance(image, pilimage.Image):
         return image.copy() if copy is True else image
-    if isinstance(image, torch.Tensor):
-        image = t.cast(np.ndarray, image.numpy())
     if isinstance(image, np.ndarray):
         image = image.squeeze().astype(np.uint8)
         if image.ndim == 3:
@@ -121,8 +118,8 @@ def ensure_image(
 
 
 def draw_bboxes(
-        image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
-        bboxes: t.Union[np.ndarray, torch.Tensor],
+        image: t.Union[pilimage.Image, np.ndarray],
+        bboxes: t.Union[np.ndarray],
         bbox_notation: t.Optional[str] = None,
         copy_image: bool = True,
         border_width: int = 1,
@@ -132,9 +129,9 @@ def draw_bboxes(
 
     Parameters
     ----------
-    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+    image : Union[PIL.Image.Image, numpy.ndarray]
         image to draw on
-    bboxes : Union[numpy.ndarray, torch.Tensor]
+    bboxes : Union[numpy.ndarray]
         array of bboxes
     bbox_notation : Optional[str], default None
         format of the provided bboxes
@@ -185,7 +182,7 @@ def draw_bboxes(
 
 
 def prepare_thumbnail(
-        image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
+        image: t.Union[pilimage.Image, np.ndarray],
         size: t.Optional[t.Tuple[int, int]] = None,
         copy_image: bool = True,
 ) -> str:
@@ -193,7 +190,7 @@ def prepare_thumbnail(
 
     Parameters
     ----------
-    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+    image : Union[PIL.Image.Image, numpy.ndarray]
         image to use
     size : Optional[Tuple[int, int]], default None
         size to which image should be rescaled

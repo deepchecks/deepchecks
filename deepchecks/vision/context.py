@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
-from typing import List, Optional
+from typing import Optional
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
@@ -90,19 +90,6 @@ class Context:
     def have_test(self):
         """Return whether there is test dataset defined."""
         return self._test is not None
-
-    def assert_classes_to_use(self, classes_to_use: List[str]):
-        """Assert that the given classes are in the observed classes."""
-        if classes_to_use is not None and self.train is not None:
-            classes_missing_train = [x for x in classes_to_use if x not in self.train.get_observed_classes()]
-            if len(classes_missing_train) > 0:
-                raise DeepchecksValueError('Train dataset does not contain the following classes selected for '
-                                           f'display: {classes_missing_train}')
-        if classes_to_use is not None and self.test is not None:
-            classes_missing_test = [x for x in self.classes_to_display if x not in self.test.get_observed_classes()]
-            if len(classes_missing_test) > 0:
-                raise DeepchecksValueError('Test dataset does not contain the following classes selected for '
-                                           f'display: {classes_missing_test}')
 
     def assert_task_type(self, *expected_types: TaskType):
         """Assert task_type matching given types."""

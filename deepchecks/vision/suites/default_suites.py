@@ -14,9 +14,7 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-from typing import Any, Dict, List, Tuple
-
-from ignite.metrics import Metric
+from typing import Any, Callable, Dict, List, Tuple, Union
 
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
@@ -120,7 +118,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None,
     )
 
 
-def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
+def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None,
                      area_range: Tuple[float, float] = (32 ** 2, 96 ** 2),
                      image_properties: List[Dict[str, Any]] = None,
                      prediction_properties: List[Dict[str, Any]] = None,
@@ -154,9 +152,9 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
 
     Parameters
     ----------
-    alternative_metrics : Dict[str, Metric], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
-        should be used. If None are given, use the default metrics.
+    scorers: Union[Dict[str, Union[Callable, str]], List[Any]], default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets. (For object detection tasks only)
     image_properties : List[Dict[str, Any]], default: None

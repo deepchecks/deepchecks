@@ -256,7 +256,7 @@ def test_batch_of_bboxes_convertion():
 
     for in_bbox, out_bbox in zip(input_bboxes, output_bboxes):
         assert_that(
-            (out_bbox == torch.tensor([in_bbox[-1], *in_bbox[:-1]])).all(),
+            (out_bbox == np.asarray([in_bbox[-1], *in_bbox[:-1]])).all(),
             f'Input bbox: {in_bbox}; Output bbox: {out_bbox}'
         )
 
@@ -288,7 +288,7 @@ def test_batch_of_bboxes_convertion_with_normalized_coordinates():
 
     for index, output_bbox in enumerate(output_bboxes):
         assert_that(
-            (output_bbox == torch.tensor([input_bboxes[index][-1], *input_bboxes[index][:-1]])).all(),
+            (output_bbox == np.asarray([input_bboxes[index][-1], *input_bboxes[index][:-1]])).all(),
             f'Original bbox: {input_bboxes[index]}; '
             f'Normalized bbox: {normilized_input_bboxes[index]}; '
             f'Output bbox: {output_bbox}'
@@ -298,34 +298,34 @@ def test_batch_of_bboxes_convertion_with_normalized_coordinates():
 def test_bbox_convertion_to_the_required_format():
     data = (
         (
-            dict(notation='xylxy', bbox=torch.tensor([20, 15, 2, 41, 23])),  # input
-            torch.tensor([2, 20, 15, 21, 8]),  # expected result
+            dict(notation='xylxy', bbox=np.asarray([20, 15, 2, 41, 23])),  # input
+            np.asarray([2, 20, 15, 21, 8]),  # expected result
         ),
         (
-            dict(notation='cxcywhl', bbox=torch.tensor([50, 55, 100, 100, 0])),  # input
-            torch.tensor([0, (50 - 100 / 2), (55 - 100 / 2), 100, 100]),  # expected result
+            dict(notation='cxcywhl', bbox=np.asarray([50, 55, 100, 100, 0])),  # input
+            np.asarray([0, (50 - 100 / 2), (55 - 100 / 2), 100, 100]),  # expected result
         ),
         (
-            dict(notation='whxyl', bbox=torch.tensor([35, 70, 10, 15, 1])),  # input
-            torch.tensor([1, 10, 15, 35, 70, ]),  # expected result
+            dict(notation='whxyl', bbox=np.asarray([35, 70, 10, 15, 1])),  # input
+            np.asarray([1, 10, 15, 35, 70, ]),  # expected result
         ),
         (
             dict(  # input
                 notation='nxywhl',
-                bbox=torch.tensor([0.20, 0.20, 20, 40, 1]),
+                bbox=np.asarray([0.20, 0.20, 20, 40, 1]),
                 image_width=100,
                 image_height=100,
             ),
-            torch.tensor([1, 20, 20, 20, 40, ]),  # expected result
+            np.asarray([1, 20, 20, 20, 40, ]),  # expected result
         ),
         (
             dict(  # input
                 notation='cxcylwhn',
-                bbox=torch.tensor([0.12, 0.17, 0, 50, 100]),
+                bbox=np.asarray([0.12, 0.17, 0, 50, 100]),
                 image_width=600,
                 image_height=1200,
             ),
-            torch.tensor([0, 47, 154.00000000000003, 50, 100, ]),  # expected result
+            np.asarray([0, 47, 154.00000000000003, 50, 100, ]),  # expected result
         )
     )
 

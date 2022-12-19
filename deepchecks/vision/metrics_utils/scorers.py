@@ -107,8 +107,9 @@ def get_scorers_dict(
     ----------
     dataset : VisionData
         Dataset object
-    alternative_scorers : t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[str]], default: None
-        Alternative scorers dictionary (or a list)
+    alternative_scorers: Union[Dict[str, Union[Callable, str]], List[Any]] , default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     Returns
     -------
     t.Dict[str, Metric]

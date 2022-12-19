@@ -9,12 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-import warnings
 from typing import Any, Callable, Dict, List, TypeVar, Union
 
 import pandas as pd
 import plotly.express as px
-from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_utils.class_performance_utils import (
@@ -40,11 +38,9 @@ class ClassPerformance(TrainTestCheck):
 
     Parameters
     ----------
-    scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]], default: None
+    scorers: Union[Dict[str, Union[Callable, str]], List[Any]] , default: None
         Scorers to override the default scorers (metrics), find more about the supported formats at
         https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
-    alternative_metrics : Union[Dict[str, Union[Metric,str]], List[str]], default: None
-        Deprecated, please use scorers instead.
     n_to_show : int, default: 20
         Number of classes to show in the report. If None, show all classes.
     show_only : str, default: 'largest'
@@ -64,20 +60,14 @@ class ClassPerformance(TrainTestCheck):
     """
 
     def __init__(self,
-                 scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
-                 alternative_metrics: Union[Dict[str, Union[Metric, str]], List[str]] = None,
+                 scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
                  **kwargs):
         super().__init__(**kwargs)
-        if alternative_metrics is not None:
-            warnings.warn(f'{self.__class__.__name__}: alternative_metrics is deprecated. Please use scorers instead.',
-                          DeprecationWarning)
-            self.alternative_metrics = alternative_metrics
-        else:
-            self.alternative_metrics = scorers
+        self.scorers = scorers
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show  # TODO: change to also effect the result not just display
 
@@ -87,8 +77,8 @@ class ClassPerformance(TrainTestCheck):
                                            f'["largest", "smallest", "random", "best", "worst"]')
 
             self.show_only = show_only
-            if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
-                raise DeepchecksValueError('When alternative_metrics are provided and show_only is one of: '
+            if self.scorers is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
+                raise DeepchecksValueError('When scorers are provided and show_only is one of: '
                                            '["best", "worst"], metric_to_show_by must be specified.')
 
         self.metric_to_show_by = metric_to_show_by
@@ -98,9 +88,9 @@ class ClassPerformance(TrainTestCheck):
         """Initialize run by creating the _state member with metrics for train and test."""
         self._data_metrics = {}
         self._data_metrics[DatasetKind.TRAIN] = get_scorers_dict(context.train,
-                                                                 alternative_scorers=self.alternative_metrics)
+                                                                 alternative_scorers=self.scorers)
         self._data_metrics[DatasetKind.TEST] = get_scorers_dict(context.train,
-                                                                alternative_scorers=self.alternative_metrics)
+                                                                alternative_scorers=self.scorers)
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]

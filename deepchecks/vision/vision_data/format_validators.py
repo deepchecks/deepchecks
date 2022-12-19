@@ -36,7 +36,7 @@ def validate_images_format(images):
     try:
         if len(image.shape) != 3:
             raise ValidationError('The image inside the iterable must be a 3D array.')
-    except TypeError as err:  # TODO: check if this is the correct error
+    except Exception as err:
         raise ValidationError('The image inside the iterable must be a 3D array.') from err
     if image.shape[2] not in [1, 3]:
         raise ValidationError('The image inside the iterable must have 1 or 3 channels.')

@@ -42,7 +42,7 @@ def test_vision_context_initialization_with_datasets_from_different_tasks(mnist_
     assert_that(
         calling(Context).with_args(train=coco_visiondata_train, test=mnist_visiondata_train),
         raises(
-            ValidationError,
+            DatasetValidationError,
             r'Cannot compare datasets with different task types: object_detection and classification')
     )
 

@@ -55,5 +55,5 @@ def test_detection(coco_visiondata_train):
     result = check.run(coco_visiondata_train)
 
     # Assert
-    num_of_classes = len(coco_visiondata_train.get_observed_classes) + 1  # plus no-overlapping
+    num_of_classes = len(coco_visiondata_train.get_observed_classes()) + 1  # plus no-overlapping
     assert_that(result.value.shape, le((num_of_classes, num_of_classes)))

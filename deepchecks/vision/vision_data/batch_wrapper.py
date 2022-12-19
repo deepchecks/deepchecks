@@ -35,7 +35,7 @@ class BatchWrapper:
         self._labels, self._predictions, self._images = None, None, None
         self._embeddings, self._additional_data, = None, None
         self._image_identifiers = batch.get('image_identifiers')
-        # if there are no image identifiers, use the number of  the image in loading process as identifier
+        # if there are no image identifiers, use the number of the image in loading process as identifier
         if self._image_identifiers is None:
             images_seen = self._vision_data.number_of_images_cached
             self._image_identifiers = np.asarray(range(images_seen, images_seen + len(self)), dtype='str')

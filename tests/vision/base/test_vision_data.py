@@ -15,12 +15,12 @@ import torch
 from hamcrest import assert_that, calling, equal_to, raises
 from torch.utils.data import DataLoader
 
-from deepchecks.core.errors import ValidationError
+from deepchecks.core.errors import ValidationError, DatasetValidationError
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.segmentation import segmentation_coco
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.test_utils import replace_collate_fn_dataloader
-from deepchecks.vision.utils.validation import validate_vision_data_compatibility
+from deepchecks.vision.vision_data.utils import validate_vision_data_compatibility
 from deepchecks.vision.vision_data import VisionData
 from tests.vision.vision_conftest import run_update_loop
 
@@ -117,7 +117,7 @@ def test_vision_data_n_of_samples_per_class_inference_for_classification_dataset
 
     # Assert
     assert_that(mnist_visiondata_train.number_of_images_cached, equal_to(200))
-    assert_that(sorted(mnist_visiondata_train.get_observed_classes), equal_to([str(x) for x in range(10)]))
+    assert_that(sorted(mnist_visiondata_train.get_observed_classes()), equal_to([str(x) for x in range(10)]))
 
 
 def test_vision_cache_object_detection(coco_visiondata_train):
@@ -131,20 +131,20 @@ def test_vision_cache_object_detection(coco_visiondata_train):
     # Assert
     assert_that(coco_visiondata_train.number_of_images_cached,
                 equal_to(len(coco_visiondata_train.batch_loader.dataset)))
-    assert_that(sorted(coco_visiondata_train.get_observed_classes),
+    assert_that(sorted(coco_visiondata_train.get_observed_classes()),
                 equal_to(sorted(coco_visiondata_train.label_id_to_name(x) for x in expected_classes)))
 
     # ReAct and ReAssert
     coco_visiondata_train.init_cache()
     assert_that(coco_visiondata_train.number_of_images_cached, equal_to(0))
-    assert_that(len(coco_visiondata_train.get_observed_classes), equal_to(0))
+    assert_that(len(coco_visiondata_train.get_observed_classes()), equal_to(0))
 
 
 def test_vision_data_label_comparison_with_different_datasets(coco_visiondata_train, mnist_visiondata_train):
     # Act/Assert
     assert_that(
         calling(validate_vision_data_compatibility).with_args(mnist_visiondata_train, coco_visiondata_train),
-        raises(ValidationError,
+        raises(DatasetValidationError,
                'Cannot compare datasets with different task types: classification and object_detection'))
 
 

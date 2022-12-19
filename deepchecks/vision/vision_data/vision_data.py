@@ -74,7 +74,7 @@ class VisionData:
         self._observed_classes = defaultdict()
 
     def update_cache(self, batch_size, numpy_labels, numpy_predictions):
-        """update cache based on newly arrived batch."""
+        """Update cache based on newly arrived batch."""
         self._num_images_seen += batch_size
         if numpy_labels is not None:
             for class_id, num_observed in get_class_ids_from_numpy_labels(numpy_labels, self._task_type).items():

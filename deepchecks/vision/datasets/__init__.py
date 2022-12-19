@@ -9,6 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing datasets and models for vision tasks."""
-from . import classification, detection
+from . import classification, detection, segmentation
 
-__all__ = ['classification', 'detection']
+try:
+    import torch  # noqa: F401
+    import torchvision  # noqa: F401
+except ImportError as error:
+    raise ImportError('PyTorch is not installed. Please install torch and torchvision '
+                      'in order to use deepchecks.vision.datasets.') from error
+
+__all__ = ['classification', 'detection', 'segmentation']

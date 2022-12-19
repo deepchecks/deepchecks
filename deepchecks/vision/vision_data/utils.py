@@ -8,13 +8,13 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module for VisionData functionalities."""
+import sys
 import typing as t
 from collections import Counter
 from enum import Enum
 from numbers import Number
 
 import numpy as np
-import torch
 
 from deepchecks.core.errors import DatasetValidationError
 
@@ -29,10 +29,13 @@ class TaskType(Enum):
 
     @classmethod
     def values(cls):
+        """Return all values of the enum."""
         return [e.value for e in TaskType]
 
 
 class BatchOutputFormat(t.TypedDict):
+    """Batch output format required by deepchecks."""
+
     images: t.Optional[t.Union[np.ndarray, t.Sequence]]
     labels: t.Optional[t.Union[np.ndarray, t.Sequence]]
     predictions: t.Optional[t.Union[np.ndarray, t.Sequence]]
@@ -65,7 +68,7 @@ def object_to_numpy(data, expected_dtype=None, expected_ndim=None) -> t.Union[np
     """
     if data is None:
         return None
-    if isinstance(data, torch.Tensor):
+    if is_torch_object(data):
         result = data.detach().cpu().numpy()
     elif isinstance(data, np.ndarray):
         result = data
@@ -132,6 +135,16 @@ def get_class_ids_from_numpy_preds(predictions: t.Sequence[t.Union[np.ndarray]],
         raise ValueError(f'Unsupported task type: {task_type}')
 
 
+def is_torch_object(data_object) -> bool:
+    """Check if data_object is a torch object without failing if torch isn't installed."""
+    return 'torch' in str(type(data_object))
+
+
+def is_tensorflow_object(data_object) -> bool:
+    """Check if data_object is a tensorflow object without failing if tensorflow isn't installed."""
+    return 'tensorflow' in str(type(data_object))
+
+
 def set_seeds(seed: int):
     """Set seeds for reproducibility.
 
@@ -142,11 +155,13 @@ def set_seeds(seed: int):
     """
     if seed is not None and isinstance(seed, int):
         np.random.seed(seed)
-        torch.manual_seed(seed)
+        if 'torch' in sys.modules:
+            import torch  # pylint: disable=import-outside-toplevel
+            torch.manual_seed(seed)
 
 
 def validate_vision_data_compatibility(first, second) -> None:
-    """ Validate that two vision datasets are compatible.
+    """Validate that two vision datasets are compatible.
 
     Raises:
         DeepchecksValueError: if the datasets are not compatible

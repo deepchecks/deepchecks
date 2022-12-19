@@ -339,7 +339,6 @@ def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
 
 def yolo_label_formatter(batch):
     """Translate yolo label to deepchecks format."""
-
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \

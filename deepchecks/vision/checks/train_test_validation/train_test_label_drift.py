@@ -129,6 +129,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
 
     def initialize_run(self, context: Context):
         """Initialize run.
+
         Label properties caching:
             _train_label_properties, _test_label_properties: Dicts of lists accumulating the label properties computed
             for each batch.

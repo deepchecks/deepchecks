@@ -9,39 +9,3 @@
 # ----------------------------------------------------------------------------
 #
 """This file changes default 'ignore' action of DeprecationWarnings for specific deprecation messages."""
-import warnings
-
-warnings.filterwarnings(
-    action='once',
-    message=r'.*alternative_metrics is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
-)
-
-warnings.filterwarnings(
-    action='once',
-    message=r'train_predictions is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
-)
-
-warnings.filterwarnings(
-    action='once',
-    message=r'test_predictions is deprecated and ignored.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
-)
-
-warnings.filterwarnings(
-    action='once',
-    message=r'The ModelErrorAnalysis check is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
-)
-
-warnings.filterwarnings(
-    action='once',
-    message=r'The ImageSegmentPerformance check is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
-)

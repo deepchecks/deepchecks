@@ -38,7 +38,7 @@ Object Detection   `Average Recall <https://manalelaidouni.github.io/Evaluating-
 In addition to the default metrics, the check supports custom metrics that
 should be implemented using the `torch.ignite.Metric
 <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API.
-These can be passed as a list using the alternative_metrics parameter of the
+These can be passed as a list using the scorers parameter of the
 check, which will override the default metrics.
 
 """

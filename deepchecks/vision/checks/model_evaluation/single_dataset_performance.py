@@ -12,8 +12,6 @@
 from numbers import Number
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union
 
-from ignite.metrics import Metric
-
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
@@ -37,13 +35,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
     Parameters
     ----------
-    scorers : Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
-        An optional dictionary of scorer name to scorer functions.
-        If none given, using default scorers
+    scorers: Union[Dict[str, Union[Callable, str]], List[Any]] , default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     {additional_check_init_params:2*indent}
     """
 
-    def __init__(self, scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None, **kwargs):
+    def __init__(self, scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None, **kwargs):
         super().__init__(**kwargs)
         self.scorers = scorers
 

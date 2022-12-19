@@ -62,7 +62,7 @@ Build the suite with custom checks and desired parameters
 
    from ignite.contrib.metrics import ROC_AUC
    MyModelSuite = Suite('Suite with AUC performance',
-       ClassPerformance(alternative_metrics=[ROC_AUC]),
+       ClassPerformance(scorers=[ROC_AUC]),
        TrainTestLabelDrift()
    )
 

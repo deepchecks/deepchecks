@@ -9,13 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-import warnings
 from typing import Any, Callable, Dict, Hashable, List, Union
 
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError
@@ -60,9 +58,9 @@ class SimpleModelComparison(TrainTestCheck):
           parametrized by the empirical class prior probabilities.
         * 'uniform' : Generates predictions uniformly at random from the list of unique classes observed in y,
           i.e. each class has equal probability. The predicted class is chosen randomly.
-    alternative_metrics : Dict[str, Metric], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
-        should be used. If None are given, use the default metrics.
+    scorers: Union[Dict[str, Union[Callable, str]], List[Any]], default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     n_to_show : int, default: 20
         Number of classes to show in the report. If None, show all classes.
     show_only : str, default: 'largest'
@@ -84,9 +82,8 @@ class SimpleModelComparison(TrainTestCheck):
     _state: Dict[Hashable, Any] = {}
 
     def __init__(self,
-                 scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
+                 scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None,
                  strategy: str = 'most_frequent',
-                 alternative_metrics=None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
@@ -100,12 +97,7 @@ class SimpleModelComparison(TrainTestCheck):
                 f'Unknown strategy type: {self.strategy}, expected one of{_allowed_strategies}.'
             )
 
-        if alternative_metrics is not None:
-            warnings.warn(f'{self.__class__.__name__}: alternative_metrics is deprecated. Please use scorers instead.',
-                          DeprecationWarning)
-            self.alternative_metrics = alternative_metrics
-        else:
-            self.alternative_metrics = scorers
+        self.scorers = scorers
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show
 
@@ -115,39 +107,39 @@ class SimpleModelComparison(TrainTestCheck):
                                            f'["largest", "smallest", "random", "best", "worst"]')
 
             self.show_only = show_only
-            if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
-                raise DeepchecksValueError('When alternative_metrics are provided and show_only is one of: '
+            if self.scorers is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
+                raise DeepchecksValueError('When scorers are provided and show_only is one of: '
                                            '["best", "worst"], metric_to_show_by must be specified.')
 
         self.metric_to_show_by = metric_to_show_by
-        self._test_metrics = None
-        self._perfect_metrics = None
+        self._test_scorers = None
+        self._perfect_scorers = None
 
     def initialize_run(self, context: Context):
         """Initialize the metrics for the check, and validate task type is relevant."""
         context.assert_task_type(TaskType.CLASSIFICATION)
         np.random.seed(context.random_state)
 
-        if self.alternative_metrics is None:
-            self._test_metrics = {'F1': CustomClassificationScorer('f1_per_class')}
-            self._perfect_metrics = {'F1': CustomClassificationScorer('f1_per_class')}
+        if self.scorers is None:
+            self._test_scorers = {'F1': CustomClassificationScorer('f1_per_class')}
+            self._perfect_scorers = {'F1': CustomClassificationScorer('f1_per_class')}
         else:
-            self._test_metrics = get_scorers_dict(context.train, self.alternative_metrics)
-            self._perfect_metrics = get_scorers_dict(context.train, self.alternative_metrics)
+            self._test_scorers = get_scorers_dict(context.train, self.scorers)
+            self._perfect_scorers = get_scorers_dict(context.train, self.scorers)
 
     def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Update the metrics for the check."""
         if dataset_kind == DatasetKind.TEST and context.train.task_type == TaskType.CLASSIFICATION:
             label = batch.numpy_labels
             prediction = batch.numpy_predictions
-            for _, metric in self._test_metrics.items():
+            for _, metric in self._test_scorers.items():
                 metric.update((prediction, label))
 
             # calculating perfect scores
             perfect_predictions = np.zeros((len(label), len(prediction[0])))
             perfect_predictions[np.arange(len(label)), label] = 1
             perfect_predictions = list(perfect_predictions)
-            for _, metric in self._perfect_metrics.items():
+            for _, metric in self._perfect_scorers.items():
                 metric.update((perfect_predictions, label))
 
     def compute(self, context: Context) -> CheckResult:
@@ -155,8 +147,8 @@ class SimpleModelComparison(TrainTestCheck):
         results = []
 
         metrics_to_eval = {
-            'Given Model': self._test_metrics,
-            'Perfect Model': self._perfect_metrics,
+            'Given Model': self._test_scorers,
+            'Perfect Model': self._perfect_scorers,
             'Simple Model': self._generate_simple_model_metrics(context.train, context.test)
         }
         for name, metrics in metrics_to_eval.items():
@@ -177,7 +169,7 @@ class SimpleModelComparison(TrainTestCheck):
 
         if context.with_display:
             if not self.metric_to_show_by:
-                self.metric_to_show_by = list(self._test_metrics.keys())[0]
+                self.metric_to_show_by = list(self._test_scorers.keys())[0]
             if self.class_list_to_show is not None:
                 display_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
             elif self.n_to_show is not None:
@@ -251,10 +243,10 @@ class SimpleModelComparison(TrainTestCheck):
                 dummy_predictions.append(dummy_predictor())
 
         # Get scorers
-        if self.alternative_metrics is None:
+        if self.scorers is None:
             metrics = {'F1': CustomClassificationScorer('f1_per_class')}
         else:
-            metrics = get_scorers_dict(train, self.alternative_metrics)
+            metrics = get_scorers_dict(train, self.scorers)
         for _, metric in metrics.items():
             metric.update((dummy_predictions, labels))
         return metrics

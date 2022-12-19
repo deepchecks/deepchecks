@@ -14,10 +14,15 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import torch
-from torch.utils.data import DataLoader
-from torchvision.datasets import VisionDataset
 from typing_extensions import Literal
+
+try:
+    import torch
+    from torch.utils.data import DataLoader
+    from torchvision.datasets import VisionDataset
+except ImportError as error:
+    raise ImportError('PyTorch is not installed. Please install torch and torchvision '
+                      'in order to use simple classification dataset functionality.') from error
 
 from deepchecks.vision.vision_data import VisionData
 
