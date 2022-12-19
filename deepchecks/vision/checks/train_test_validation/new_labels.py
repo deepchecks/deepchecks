@@ -19,7 +19,7 @@ import numpy as np
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.reduce_classes import ReduceMixin
+from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import TrainTestCheck
@@ -32,7 +32,7 @@ __all__ = ['NewLabels']
 
 
 @docstrings
-class NewLabels(TrainTestCheck, ReduceMixin):
+class NewLabels(TrainTestCheck, ReduceLabelMixin):
     """Detects labels that apper only in the test set.
 
     Parameters

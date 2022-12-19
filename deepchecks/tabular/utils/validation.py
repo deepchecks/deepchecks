@@ -115,7 +115,7 @@ def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
 def ensure_predictions_shape(pred: np.ndarray, data: pd.DataFrame) -> np.ndarray:
     """Ensure the predictions are in the right shape and if so return them. else raise error."""
     if pred.shape != (len(data), ):
-        raise errors.ValidationError(f'Prediction array excpected to be of shape {(len(data), )} '
+        raise errors.ValidationError(f'Prediction array expected to be of shape {(len(data), )} '
                                      f'but was: {pred.shape}')
     return pred
 
@@ -123,6 +123,6 @@ def ensure_predictions_shape(pred: np.ndarray, data: pd.DataFrame) -> np.ndarray
 def ensure_predictions_proba(pred_proba: np.ndarray, data: pd.DataFrame) -> np.ndarray:
     """Ensure the predictions are in the right shape and if so return them. else raise error."""
     if len(pred_proba) != len(data):
-        raise errors.ValidationError(f'Prediction propabilities excpected to be of length {len(data)} '
+        raise errors.ValidationError(f'Prediction probabilities expected to be of length {len(data)} '
                                      f'but was: {len(pred_proba)}')
     return pred_proba

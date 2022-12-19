@@ -157,7 +157,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[display_msg, DisplayMap(display)])
 
-    def config(self, include_version: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
         """Return checks instance config."""
         if isinstance(self.alternative_scorer, dict):
             for k, v in self.alternative_scorer.items():
@@ -170,4 +170,4 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                         'Only built-in scorers are allowed when serializing check instances. '
                         f'{reference}Scorer name: {k}'
                     )
-        return super().config(include_version)
+        return super().config(include_version, include_defaults=include_defaults)

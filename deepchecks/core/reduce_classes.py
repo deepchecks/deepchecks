@@ -23,6 +23,7 @@ __all__ = [
     'ReduceMixin',
     'ReduceFeatureMixin',
     'ReducePropertyMixin',
+    'ReduceLabelMixin',
     'ReduceMetricClassMixin'
 ]
 
@@ -50,7 +51,13 @@ class ReduceMixin(abc.ABC):
         raise NotImplementedError('Must implement reduce_output function')
 
 
-class ReduceMetricClassMixin(ReduceMixin):
+class ReduceLabelMixin(ReduceMixin):
+    """Extend ReduceMixin to for checks that use the labels."""
+
+    pass
+
+
+class ReduceMetricClassMixin(ReduceLabelMixin):
     """Extend ReduceMixin to for performance checks."""
 
     def greater_is_better(self):

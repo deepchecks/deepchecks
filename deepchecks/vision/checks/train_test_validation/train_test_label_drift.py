@@ -17,7 +17,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.checks import CheckConfig
 from deepchecks.core.errors import DeepchecksNotSupportedError
-from deepchecks.core.reduce_classes import ReducePropertyMixin
+from deepchecks.core.reduce_classes import ReduceLabelMixin, ReducePropertyMixin
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import TrainTestCheck
@@ -34,7 +34,7 @@ __all__ = ['TrainTestLabelDrift']
 
 
 @docstrings
-class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
+class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 
@@ -225,7 +225,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def config(self, include_version: bool = True) -> CheckConfig:
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
         """Return check configuration."""
         # NOTE: label_properties if passed always contain callables
         if self.label_properties is not None:
@@ -233,7 +233,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin):
                 'Serialization of check instances with provided '
                 '"label_properties" parameter is not supported'
             )
-        return super().config(include_version=include_version)
+        return super().config(include_version=include_version, include_defaults=include_defaults)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return label drift score per label property."""
