@@ -44,7 +44,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
 
     def __init__(self, 
-        feature: Hashable,
+        protected_feature: Hashable,
         control_feature: Hashable = None,
         scorer: str = None, # TODO: Allow for Callable or DeepCheckScorer
         max_segments: int = 10,
@@ -56,7 +56,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.protected_feature = feature
+        self.protected_feature = protected_feature
         self.control_feature = control_feature
         self.max_segments = max_segments
         self.min_subgroup_size = min_subgroup_size
@@ -86,11 +86,11 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         scores_df = self.make_scores_df(model, dataset, scorer, partitions)
 
         if context.with_display:
-            display = [self.make_largest_difference_figure(scores_df)]
+            fig = self.make_largest_difference_figure(scores_df)
         else:
-            display = []
+            fig = None
         
-        return CheckResult(value=scores_df, display=display)
+        return CheckResult(value=scores_df, display=fig)
     
 
     def make_largest_difference_figure(self, scores_df: pd.DataFrame):
@@ -110,11 +110,12 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         title=f"Largest differences between average score and subgroup score"
         visual_df = scores_df.copy()
         visual_df["_diff"] = visual_df._score - visual_df._avg
-        if self.control_feature is None:
-            visual_df["_group"] = visual_df[self.protected_feature]
-        else:
+        visual_df["_group"] = visual_df[self.protected_feature]
+        if self.control_feature is not None:
             title += f" at a given {self.control_feature} level"
-            visual_df["_group"] = visual_df[self.protected_feature] + ", " + visual_df[self.control_feature]
+            visual_df["_group"] += ", " + visual_df[self.control_feature]
+        if "_class" in visual_df.columns:
+            visual_df["_group"] += ", " + visual_df["_class"].astype(str)
         visual_df["_count"] = "(" + visual_df._count.astype(str) + ")"
         visual_df["_details"] = 'Score difference between "'+visual_df[self.control_feature]+'" ('+visual_df._avg.round(3).astype(str)+') and "' +visual_df["_group"] + '" ('+visual_df._score.round(3).astype(str)+').'
         visual_df = visual_df.sort_values(by="_diff", ascending=True)
@@ -152,6 +153,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
         return partitions
 
+    # TODO: Computation of group avg also needs to account for classes
     def make_scores_df(self, model, dataset, scorer, partitions):
         """
         Computes performance scores disaggregated by `feature` and `control_feature` levels, and averaged over `feature` for each `control_feature` level. Also computes subgroup size.
@@ -180,6 +182,9 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             scores_df["_score"] = scores_df.apply(lambda x: list(x["_score"].values()), axis=1)
             scores_df["_avg"] = scores_df.apply(lambda x: list(x["_avg"].values()), axis=1)
             scores_df = scores_df.explode(column=["_score", "_class", "_avg"])
+
+        scores_df["_score"] = scores_df["_score"].astype(float)
+        scores_df["_avg"] = scores_df["_avg"].astype(float)
 
         scores_df = scores_df.loc[scores_df._count >= self.min_subgroup_size]
 
@@ -225,5 +230,5 @@ def is_classwise(scorer, model, dataset: Dataset):
     """
     Check whether a given scorer provides an average score or a score for each class.
     """
-    test_result = scorer(model, dataset.copy(dataset.data.head(2)))
+    test_result = scorer(model, dataset.copy(dataset.data.head(5)))
     return isinstance(test_result, dict)
