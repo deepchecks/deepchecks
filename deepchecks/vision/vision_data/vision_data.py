@@ -45,7 +45,7 @@ class VisionData:
     def __init__(
             self,
             batch_loader,
-            task_type: str,
+            task_type: t.Literal['classification', 'object_detection', 'semantic_segmentation', 'other'],
             label_map: t.Optional[t.Dict[int, str]] = None,
             dataset_name: t.Optional[str] = None,
             shuffle_batch_loader: bool = True
@@ -69,13 +69,13 @@ class VisionData:
 
     def init_cache(self):
         """Initialize the cache."""
-        self._num_images_seen = 0
+        self._num_images_cached = 0
         # dict of class_id to number of images observed with label (num_label) and prediction (num_pred)
         self._observed_classes = defaultdict()
 
     def update_cache(self, batch_size, numpy_labels, numpy_predictions):
         """Update cache based on newly arrived batch."""
-        self._num_images_seen += batch_size
+        self._num_images_cached += batch_size
         if numpy_labels is not None:
             for class_id, num_observed in get_class_ids_from_numpy_labels(numpy_labels, self._task_type).items():
                 if self._label_map is not None and class_id not in self._label_map:
@@ -146,7 +146,7 @@ class VisionData:
             validate_image_identifiers_format(image_identifiers)
             length_dict['image_identifiers'] = len(image_identifiers)
 
-        if not all(ele == list(length_dict.values())[0] for ele in length_dict.values()):
+        if len(set(length_dict.values())) > 1:
             raise ValidationError('All formatter functions must return sequences of the same length. '
                                   f'The following lengths were found: {length_dict}')
 
@@ -173,7 +173,7 @@ class VisionData:
     @property
     def has_additional_data(self) -> bool:
         """Return True if the batch loader contains additional_data."""
-        return self._has_embeddings
+        return self._has_additional_data
 
     @property
     def has_image_identifiers(self) -> bool:
@@ -193,7 +193,7 @@ class VisionData:
     @property
     def number_of_images_cached(self) -> int:
         """Return True if the number of images processed and whose statistics were cached."""
-        return self._num_images_seen
+        return self._num_images_cached
 
     @property
     def num_classes(self) -> int:
@@ -221,7 +221,7 @@ class VisionData:
             if 'num_pred' in value:
                 num_preds_per_class[key_name] = value['num_pred']
 
-        return {'num_images_seen': self._num_images_seen, 'labels': num_labels_per_class,
+        return {'images_cached': self._num_images_cached, 'labels': num_labels_per_class,
                 'predictions': num_preds_per_class}
 
     def label_id_to_name(self, class_id: int) -> str:

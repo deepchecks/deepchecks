@@ -65,7 +65,7 @@ def deepchecks_collate(model) -> t.Callable:
 
     def _process_batch_to_deepchecks_format(data) -> BatchOutputFormat:
         raw_images = [x[0] for x in data]
-        images = [tensor.cpu().numpy().transpose((1, 2, 0)) for tensor in raw_images]
+        images = [tensor.cpu().detach().numpy().transpose((1, 2, 0)) for tensor in raw_images]
         labels = [x[1] for x in data]
 
         normalized_batch = [F.normalize(img.unsqueeze(0).float() / 255,

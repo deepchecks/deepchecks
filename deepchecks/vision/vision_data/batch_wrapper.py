@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Contains code for BatchWrapper."""
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 import numpy as np
 
@@ -42,15 +42,12 @@ class BatchWrapper:
 
         self._vision_properties_cache = dict.fromkeys(PropertiesInputType)
 
-    def _get_relevant_data_for_properties(self, input_type: PropertiesInputType,
-                                          classes_to_consider: Optional[List[str]]):
+    def _get_relevant_data_for_properties(self, input_type: PropertiesInputType):
         result = []
         if input_type == PropertiesInputType.PARTIAL_IMAGES:
             for img, bboxes_in_img in zip(self.numpy_images, self.numpy_labels):
                 if bboxes_in_img is None:
                     continue
-                if classes_to_consider is not None:
-                    bboxes_in_img = bboxes_in_img[bboxes_in_img[:, 0].isin(classes_to_consider)]
                 result = result + [crop_image(img, *bbox[1:]) for bbox in bboxes_in_img]
         elif input_type == PropertiesInputType.IMAGES:
             result = self.numpy_images
@@ -60,8 +57,7 @@ class BatchWrapper:
             result = self.numpy_predictions
         return result
 
-    def vision_properties(self, properties_list: List[Dict], input_type: PropertiesInputType,
-                          classes_to_consider: Optional[List[Union[str, int]]] = None):
+    def vision_properties(self, properties_list: List[Dict], input_type: PropertiesInputType):
         """Calculate and cache the properties for the batch according to the property input type.
 
         Parameters
@@ -70,25 +66,21 @@ class BatchWrapper:
             List of properties to calculate.
         input_type: PropertiesInputType
             The input type of the properties.
-        classes_to_consider: Optional[List[Union[str, int]]] , default : None
-            List of classes (either class name or class id) to filter the data based on.
 
         Returns
         -------
         Dict[str, Any]
             Dictionary of the properties name to list of property values per data element.
         """
-        if classes_to_consider is not None and isinstance(classes_to_consider[0], str):
-            classes_to_consider = [self._vision_data.label_id_to_name(class_id) for class_id in classes_to_consider]
         properties_list = validate_properties(properties_list)
         if self._vision_properties_cache[input_type] is None:
-            data = self._get_relevant_data_for_properties(input_type, classes_to_consider)
+            data = self._get_relevant_data_for_properties(input_type)
             self._vision_properties_cache[input_type] = calc_vision_properties(data, properties_list)
         else:
             properties_to_calc = [p for p in properties_list if p['name'] not in
                                   self._vision_properties_cache[input_type].keys()]
             if len(properties_to_calc) > 0:
-                data = self._get_relevant_data_for_properties(input_type, classes_to_consider)
+                data = self._get_relevant_data_for_properties(input_type)
                 self._vision_properties_cache[input_type].update(calc_vision_properties(data, properties_to_calc))
         return self._vision_properties_cache[input_type]
 

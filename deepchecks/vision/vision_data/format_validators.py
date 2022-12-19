@@ -9,6 +9,7 @@
 #
 """Module validating the VisionData functionalities implemented by the user."""
 from numbers import Number
+from typing import Iterable
 
 import numpy as np
 
@@ -168,7 +169,7 @@ def validate_additional_data_format(additional_data_batch):
     DeepchecksValueError
         If the images doesn't fit the required deepchecks format.
     """
-    if not hasattr(additional_data_batch, '__getitem__'):
+    if not isinstance(additional_data_batch, Iterable):
         raise ValidationError('The batch additional_data must be an iterable.')
 
 
@@ -184,7 +185,7 @@ def validate_embeddings_format(embeddings):
     DeepchecksValueError
         If the images doesn't fit the required deepchecks format.
     """
-    if not hasattr(embeddings, '__getitem__'):
+    if not isinstance(embeddings, Iterable):
         raise ValidationError('The batch embeddings must be an iterable.')
 
 

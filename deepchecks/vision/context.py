@@ -16,7 +16,7 @@ from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupporte
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.vision_data import TaskType, VisionData
-from deepchecks.vision.vision_data.utils import validate_vision_data_compatibility
+from deepchecks.vision.vision_data.utils import set_seeds, validate_vision_data_compatibility
 
 __all__ = ['Context']
 
@@ -62,9 +62,10 @@ class Context:
         self._test = test
         self._with_display = with_display
         self.random_state = random_state
+        set_seeds(random_state)
 
     @property
-    def task_type(self) -> bool:
+    def task_type(self) -> TaskType:
         """Return the common task type of the datasets."""
         return self._task_type
 

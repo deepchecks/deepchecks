@@ -220,7 +220,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         """Update the _lowest_property_value_images, _lowest_property_value_images dicts based on new batch."""
         # In case there are no images or no labels put none instead and do not display images / labels
         labels = [[None]] * len(property_values) if labels is None else labels
-        images = np.asarray([None] * len(property_values)) if images is None else np.asarray(images)
+        images = np.asarray([None] * len(property_values)) if images is None else np.asarray(images, dtype='object')
         # adds the current lowest and highest property value images to the batch before sorting
         if property_name in self._lowest_property_value_images:
             labels = [[x] for x in self._lowest_property_value_images[property_name]['labels']] + labels

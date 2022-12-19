@@ -35,7 +35,7 @@ def classification_dataset_from_directory(
         num_workers: int = 0,
         shuffle: bool = True,
         pin_memory: bool = True,
-        object_type: Literal[VisionData, 'DataLoader'] = 'DataLoader',
+        object_type: Literal[VisionData, DataLoader] = 'DataLoader',
         **kwargs
 ) -> t.Union[t.Tuple[t.Union[DataLoader, VisionData]], t.Union[DataLoader, VisionData]]:
     """Load a simple classification dataset.
