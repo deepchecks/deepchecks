@@ -229,6 +229,8 @@ class Context:
         self._task_type = infer_task_type(train, observed_labels, self._model_classes)
         if self._task_type in (TaskType.BINARY, TaskType.MULTICLASS):
             self._observed_classes = sorted(list(set(observed_labels)))
+        else:
+            self._observed_classes = None
 
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
