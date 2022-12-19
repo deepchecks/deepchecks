@@ -118,7 +118,6 @@ class SimpleModelComparison(TrainTestCheck):
     def initialize_run(self, context: Context):
         """Initialize the metrics for the check, and validate task type is relevant."""
         context.assert_task_type(TaskType.CLASSIFICATION)
-        np.random.seed(context.random_state)
 
         if self.scorers is None:
             self._test_scorers = {'F1': CustomClassificationScorer('f1_per_class')}
