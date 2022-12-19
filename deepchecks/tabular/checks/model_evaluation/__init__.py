@@ -25,6 +25,7 @@ from .train_test_performance import TrainTestPerformance
 from .train_test_prediction_drift import TrainTestPredictionDrift
 from .unused_features import UnusedFeatures
 from .weak_segments_performance import WeakSegmentsPerformance
+from .performance_disparity_report import PerformanceDisparityReport
 
 __all__ = [
     'BoostingOverfit',
@@ -42,5 +43,6 @@ __all__ = [
     'TrainTestPredictionDrift',
     'WeakSegmentsPerformance',
     'UnusedFeatures',
-    'SingleDatasetPerformance'
+    'SingleDatasetPerformance',
+    "PerformanceDisparityReport"
 ]
