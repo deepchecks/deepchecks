@@ -95,7 +95,7 @@ def wikiann():
     """Wikiann dataset for token classification"""
     dataset = load_dataset('wikiann', name='en', split='train')
 
-    data = list([' '.join(l.as_py()) for l in dataset.data['tokens']])
+    data = list([' '.join(l.as_py()) for l in dataset.data['tokens']]) #pylint: disable=consider-using-generator
     ner_tags = dataset.data['ner_tags']
     ner_to_iob_dict = {0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC', 6: 'I-LOC'}
     ner_tags_translated = [[ner_to_iob_dict[ner_tag] for ner_tag in ner_tag_list.as_py()] for ner_tag_list in ner_tags]

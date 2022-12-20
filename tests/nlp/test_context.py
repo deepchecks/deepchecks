@@ -125,7 +125,7 @@ def test_wrong_token_prediction_format(text_token_classification_dataset_mock):
     # Length of predictions does not match length of dataset:
     assert_that(calling(emtpy_suite.run).with_args(
         train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[[1,2], [3,4]]
+        train_predictions=[[1, 2], [3, 4]]
     ),
         raises(ValidationError, 'Check requires predictions for Train to have 3 rows, same as dataset')
     )
@@ -150,21 +150,21 @@ def test_wrong_token_prediction_format(text_token_classification_dataset_mock):
     assert_that(calling(emtpy_suite.run).with_args(
         train_dataset=text_token_classification_dataset_mock,
         train_predictions=[['B-PER', 'O', 1, 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
-                     ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
+                           ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
     ),
-        raises(ValidationError, 'Check requires predictions for Train to be a sequence of sequences of strings or integers')
+        raises(ValidationError,
+               'Check requires predictions for Train to be a sequence of sequences of strings or integers')
     )
 
     # Length of predictions does not match length of tokenized text:
     assert_that(calling(emtpy_suite.run).with_args(
         train_dataset=text_token_classification_dataset_mock,
         train_predictions=[['B-PER'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
-                     ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
+                           ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
     ),
-        raises(ValidationError, 'Check requires predictions for Train to have the same number of tokens as the input text')
+        raises(ValidationError,
+               'Check requires predictions for Train to have the same number of tokens as the input text')
     )
-
-
 
 
 def test_sampling(text_classification_dataset_mock):

@@ -67,7 +67,7 @@ def test_wrong_token_label_format():
     label = [['B-PER'],
              ['B-PER', 'B-GEO', 'B-GEO'],
              ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
-    text_data = TextData(raw_text=text, label=label, task_type='token_classification')
+    text_data = TextData(raw_text=text, label=label, task_type='token_classification') # pylint: disable=unused-variable
 
     # Not a list:
     label = 'PER'
