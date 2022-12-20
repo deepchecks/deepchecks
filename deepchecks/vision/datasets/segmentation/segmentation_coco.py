@@ -19,8 +19,8 @@ import albumentations as A
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
-from albumentations.pytorch.transforms import ToTensorV2
 from PIL import Image, ImageDraw
+from albumentations.pytorch.transforms import ToTensorV2
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
@@ -34,7 +34,6 @@ from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 __all__ = ['load_dataset', 'load_model', 'CocoSegmentationDataset']
 
 DATA_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'coco_segmentation'
-
 
 
 #  pylint: disable=unused-argument)

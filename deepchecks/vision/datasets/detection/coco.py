@@ -22,7 +22,6 @@ import cv2
 import numpy as np
 import torch
 from PIL import Image
-from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
 from torchvision.datasets.utils import download_and_extract_archive
@@ -75,7 +74,7 @@ def deepchecks_collate(model) -> t.Callable:
 
     Parameters
     ----------
-    model : nn.Module
+    model
         model to predict with
     Returns
     -------
@@ -365,7 +364,6 @@ def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
 
 def yolo_label_formatter(batch):
     """Translate yolo label to deepchecks format."""
-
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \

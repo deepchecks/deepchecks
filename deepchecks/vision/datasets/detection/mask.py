@@ -25,8 +25,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from bs4 import BeautifulSoup
 from PIL import Image
+from bs4 import BeautifulSoup
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
@@ -41,6 +41,7 @@ __all__ = ['load_dataset', 'load_model', 'MaskDataset', 'get_data_timestamps']
 
 MASK_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'mask_detection'
 MODEL_PATH = MASK_DIR / 'mnist_model.pth'
+
 
 class MaskPrecalculatedModel(nn.Module):
     """Model that returns pre-calculated predictions for the mask detection dataset."""
