@@ -86,7 +86,7 @@ def text_token_classification_dataset_mock():
     """Mock for a token classification dataset"""
     return TextData(raw_text=['Mary had a little lamb', 'Mary lives in London and Paris',
                      'How much wood can a wood chuck chuck?'],
-                    label=[['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
+                    label=[['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
                      ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']],
                     task_type='token_classification')
 

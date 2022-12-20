@@ -102,18 +102,15 @@ class TextData:
         elif raw_text is None:
             self._validate_tokenized_text(tokenized_text)
             raw_text = [' '.join(tokens) for tokens in tokenized_text]
-        elif tokenized_text is None:  # and self._task_type == TaskType.TOKEN_CLASSIFICATION.value:
+        elif tokenized_text is None:
             self._validate_text(raw_text)
-            tokenized_text = [text.split() for text in raw_text]
+            if self._task_type == TaskType.TOKEN_CLASSIFICATION:
+                tokenized_text = [text.split() for text in raw_text]
         else:
             self._validate_text(raw_text)
             self._validate_tokenized_text(tokenized_text)
             if len(raw_text) != len(tokenized_text):
                 raise DeepchecksValueError('raw_text and tokenized_text must have the same length')
-
-        self._text = raw_text
-        self._tokenized_text = tokenized_text
-        self._validate_and_set_label(label, raw_text)
 
         if index is None:
             index = np.arange(len(raw_text))
@@ -121,6 +118,9 @@ class TextData:
             raise DeepchecksValueError('index must be the same length as raw_text')
 
         self.index = index
+        self._text = raw_text
+        self._tokenized_text = tokenized_text
+        self._validate_and_set_label(label, raw_text, tokenized_text)
 
         if dataset_name is not None:
             if not isinstance(dataset_name, str):
@@ -146,7 +146,8 @@ class TextData:
         if not all(isinstance(x, str) for tokens in tokenized_text for x in tokens):
             raise DeepchecksValueError('tokenized_text must be a Sequence of sequences of strings')
 
-    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str]):
+    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str],
+                                tokenized_text: t.Sequence[t.Sequence[str]]):
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
         self._has_label = True
@@ -181,13 +182,10 @@ class TextData:
             for i in range(len(label)):  # TODO: Runs on all labels, very costly
                 if not (all(isinstance(x, str) for x in label[i]) or all(isinstance(x, int) for x in label[i])):
                     raise DeepchecksValueError(token_class_error)
-                # if not len(label[i]) == len(raw_text[i]):
-                #     raise DeepchecksValueError(f'label must be the same length as raw_text tokens. '
-                #                                f'However, for sample {raw_text[i]} received label {label[i]}')
-                # TODO: Change when separating raw_text and tokens
-
-            # TODO: Validate IOB format (I-, B-, O)
-            # TODO: Add label_map if integers?
+                if not len(label[i]) == len(tokenized_text[i]):
+                    raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
+                                               f'However, for sample index {self.index[i]} of length '
+                                               f'{len(tokenized_text[i])} received label of length {len(label[i])}')
 
         self._label = label
 
@@ -239,13 +237,14 @@ class TextData:
         np.random.seed(random_state)
         sample_idx = np.random.choice(samples, n_samples, replace=replace)
         if len(sample_idx) > 1:
-            data_to_sample = {'raw_text': list(itemgetter(*sample_idx)(self._text)),
-                              'tokenized_text': list(itemgetter(*sample_idx)(self._tokenized_text)),
-                              'label': list(itemgetter(*sample_idx)(self._label)),
-                              'index': sample_idx}
+            data_to_sample = {
+                'raw_text': list(itemgetter(*sample_idx)(self._text)),
+                'tokenized_text': list(itemgetter(*sample_idx)(self._tokenized_text)) if self._tokenized_text else None,
+                'label': list(itemgetter(*sample_idx)(self._label)),
+                'index': sample_idx}
         else:
             data_to_sample = {'raw_text': [self._text[sample_idx[0]]],
-                              'tokenized_text': [self._tokenized_text[sample_idx[0]]],
+                              'tokenized_text': [self._tokenized_text[sample_idx[0]]] if self._tokenized_text else None,
                               'label': [self._label[sample_idx[0]]],
                               'index': sample_idx}
         return self.copy(**data_to_sample)

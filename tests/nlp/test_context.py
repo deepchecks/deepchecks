@@ -116,67 +116,55 @@ def test_wrong_multilabel_prediction_format(text_multilabel_classification_datas
         train_probabilities=[[0.9, 0.8, 0.3], [0.9, 0.8, 0.3], [0.9, 0.8, 0.3]])
 
 
-def test_wrong_token_prediction_format(text_token_classification_dataset_mock): #TODO: Fix predictions
+def test_wrong_token_prediction_format(text_token_classification_dataset_mock):
     # Arrange
     emtpy_suite = Suite('Empty Suite')
 
-    pred_error = r'Check requires token classification for Train to have int indices representing the start ' \
-                 r'and end of the token at the second and third entry in the token prediction tuples'
-
     # Act & Assert
+
+    # Length of predictions does not match length of dataset:
     assert_that(calling(emtpy_suite.run).with_args(
         train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[[('B-PER', 'a', 4, 0.9)],
-                           [('B-PER', 0, 4, 0.9), ('B-GEO', 14, 20, 0.9), ('B-GEO', 25, 30, 0.8)],
-                           []]
+        train_predictions=[[1,2], [3,4]]
     ),
-        raises(ValidationError, pred_error)
+        raises(ValidationError, 'Check requires predictions for Train to have 3 rows, same as dataset')
     )
 
+    # Not a list:
     assert_that(calling(emtpy_suite.run).with_args(
         train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[[('B-PER', 1.5, 4, 0.9)],
-                           [('B-PER', 0, 4, 0.9), ('B-GEO', 14, 20, 0.9), ('B-GEO', 25, 30, 0.8)],
-                           []]
+        train_predictions='PER'
     ),
-        raises(ValidationError, pred_error)
+        raises(ValidationError, 'Check requires predictions for Train to be a sequence')
     )
 
+    # Not a list of lists:
     assert_that(calling(emtpy_suite.run).with_args(
         train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[[('B-PER', 5, 4, 0.9)],
-                           [('B-PER', 0, 4, 0.9), ('B-GEO', 14, 20, 0.9), ('B-GEO', 25, 30, 0.8)],
-                           []]
+        train_predictions=[3, 3, 3]
     ),
-        raises(ValidationError, 'Check requires token classification predictions for Train to have token span'
-                                ' start before span end')
+        raises(ValidationError, 'Check requires predictions for Train to be a sequence of sequences')
     )
 
+    # Mixed strings and integers:
     assert_that(calling(emtpy_suite.run).with_args(
         train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[[('B-PER', 1, 4, 0.9)],
-                           [('B-PER', 0, 4, 0.9), ('B-GEO', 14, 20, 0.9), ('B-GEO', 25, 30, -0.1)],
-                           []]
+        train_predictions=[['B-PER', 'O', 1, 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
+                     ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
     ),
-        raises(ValidationError, 'Check requires token classification for Train to have probabilities between 0 and 1, '
-                                'at the fourth entry in the token prediction tuples')
+        raises(ValidationError, 'Check requires predictions for Train to be a sequence of sequences of strings or integers')
     )
 
+    # Length of predictions does not match length of tokenized text:
     assert_that(calling(emtpy_suite.run).with_args(
         train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[[('B-PER', 1, 4)],
-                           [('B-PER', 0, 4), ('B-GEO', 14, 20), ('B-GEO', 25, 30)],
-                           []]
+        train_predictions=[['B-PER'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
+                     ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
     ),
-        raises(ValidationError, 'Check requires token classification for Train to have 4 entries')
+        raises(ValidationError, 'Check requires predictions for Train to have the same number of tokens as the input text')
     )
 
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[1, 2, 3]
-    ),
-        raises(ValidationError, 'Check requires token classification for Train to be a sequence of sequences')
-    )
+
 
 
 def test_sampling(text_classification_dataset_mock):
