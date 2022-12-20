@@ -512,7 +512,7 @@ def test_coco_thershold_scorer_list_strings(coco_train_visiondata, coco_test_vis
     result = check.run(coco_train_visiondata, coco_test_visiondata,
                        mock_trained_yolov5_object_detection, device=device)
     # Assert
-    assert_that(result.value, has_length(589))
+    assert_that(result.value, has_length(590))
     assert_that(result.display, has_length(greater_than(0)))
     assert_that(set(result.value['Metric']), equal_to(set(AVAILABLE_EVALUATING_FUNCTIONS.keys())))
 
