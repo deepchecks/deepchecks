@@ -41,9 +41,13 @@ class TextData:
     ----------
     raw_text : t.Sequence[str], default: None
         The raw text data, a sequence of strings representing the raw text of each sample.
+        If not given, tokenized_text must be given, and raw_text will be created from it by joining the tokens with
+        spaces.
     tokenized_text : t.Sequence[t.Sequence[str]], default: None
         The tokenized text data, a sequence of sequences of strings representing the tokenized text of each sample.
         Only relevant for task_type 'token_classification'.
+        If not given, raw_text must be given, and tokenized_text will be created from it by splitting the text by
+        spaces.
     label : t.Optional[TTextLabel], default: None
         The label for the text data. Can be either a text_classification label or a token_classification label.
         If None, the label is not set.
@@ -133,20 +137,22 @@ class TextData:
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
         """Validate text format."""
+        error_string = 'raw_text must be a Sequence of strings'
         if not isinstance(raw_text, collections.abc.Sequence):
-            raise DeepchecksValueError('raw_text must be a sequence')
+            raise DeepchecksValueError(error_string)
         if not all(isinstance(x, str) for x in raw_text):
-            raise DeepchecksValueError('raw_text must be a Sequence of strings')
+            raise DeepchecksValueError(error_string)
 
     @staticmethod
     def _validate_tokenized_text(tokenized_text: t.Sequence[t.Sequence[str]]):
         """Validate tokenized text format."""
+        error_string = 'tokenized_text must be a Sequence of sequences of strings'
         if not isinstance(tokenized_text, collections.abc.Sequence):
-            raise DeepchecksValueError('tokenized_text must be a sequence')
+            raise DeepchecksValueError(error_string)
         if not all(isinstance(x, collections.abc.Sequence) for x in tokenized_text):
-            raise DeepchecksValueError('tokenized_text must be a Sequence of sequences')
+            raise DeepchecksValueError(error_string)
         if not all(isinstance(x, str) for tokens in tokenized_text for x in tokens):
-            raise DeepchecksValueError('tokenized_text must be a Sequence of sequences of strings')
+            raise DeepchecksValueError(error_string)
 
     def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str],
                                 tokenized_text: t.Sequence[t.Sequence[str]]):
