@@ -115,7 +115,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 values = [[x] for x in values]
 
             values_lengths_cumsum = np.cumsum(np.array([len(v) for v in values]))
-            values_arr = np.hstack(values).astype(np.float)
+            values_arr = np.hstack(values).astype(float)
 
             try:
                 lower_limit, upper_limit = iqr_outliers_range(values_arr, self.iqr_percentiles, self.iqr_scale)
