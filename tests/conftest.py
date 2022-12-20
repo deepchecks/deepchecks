@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Represents fixtures for unit testing using pytest."""
+# pylint: skip-file
 import logging
-# Disable this pylint check since we use this convention in pytest fixtures
-# pylint: disable=redefined-outer-name
 from typing import Any, Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
