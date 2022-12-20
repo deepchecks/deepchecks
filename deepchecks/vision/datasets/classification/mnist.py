@@ -24,17 +24,15 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from typing_extensions import Literal
 
-from deepchecks.vision.utils.test_utils import get_data_loader_sequential, un_normalize_batch
+from deepchecks.vision.utils.test_utils import get_data_loader_sequential, un_normalize_batch, hash_image
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
 
-MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
+MNIST_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'mnist'
+MODEL_PATH = MNIST_DIR / 'mnist_model.pth'
 
 LOGGER = logging.getLogger(__name__)
-MODULE_DIR = pathlib.Path(__file__).absolute().parent
-DATA_PATH = MODULE_DIR / 'MNIST'
-MODEL_PATH = MODELS_DIR / 'mnist.pth'
 
 
 def load_dataset(
@@ -78,7 +76,7 @@ def load_dataset(
 
     mean = (0.1307,)
     std = (0.3081,)
-    dataset = MNIST(str(MODULE_DIR), train=train, download=True,
+    dataset = MNIST(str(MNIST_DIR), train=train, download=True,
                     transform=A.Compose([A.Normalize(mean, std), ToTensorV2(), ]), )
 
     if object_type == 'DataLoader':
@@ -128,7 +126,7 @@ def deepchecks_collate(model) -> t.Callable:
     return _process_batch_to_deepchecks_format
 
 
-def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet':
+def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockMnist':
     """Load MNIST model.
 
     Returns
@@ -145,7 +143,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
         model = MNistNet()
         model.load_state_dict(torch.load(path))
         model.eval()
-        return model
+        return MockMnist(model)
 
     model = MNistNet()
 
@@ -183,7 +181,23 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
 
     torch.save(model.state_dict(), path)
     model.eval()
-    return model
+    return MockMnist(model)
+
+
+class MockMnist:
+    """Class of MNIST model that returns cached predictions."""
+    def __init__(self, real_model):
+        self.real_model = real_model
+        self.cache = {}
+
+    def __call__(self, batch):
+        results = []
+        for img in batch:
+            hash_key = hash_image(img)
+            if hash_key not in self.cache:
+                self.cache[hash_key] = self.real_model(torch.stack([img]))[0]
+            results.append(self.cache[hash_key])
+        return torch.stack(results)
 
 
 class MNIST(datasets.MNIST):
@@ -229,3 +243,4 @@ class MNistNet(nn.Module):
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=UserWarning)
             return F.log_softmax(x, dim=1)
+

@@ -18,6 +18,7 @@ import contextlib
 import hashlib
 import json
 import os
+import pathlib
 import typing as t
 import urllib.request
 from pathlib import Path
@@ -38,8 +39,8 @@ from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'MaskDataset', 'get_data_timestamps']
 
-DATA_DIR = Path(__file__).absolute().parent
-
+MASK_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'mask_detection'
+MODEL_PATH = MASK_DIR / 'mnist_model.pth'
 
 class MaskPrecalculatedModel(nn.Module):
     """Model that returns pre-calculated predictions for the mask detection dataset."""
@@ -47,7 +48,7 @@ class MaskPrecalculatedModel(nn.Module):
     def __init__(self, device: t.Union[str, torch.device] = 'cpu'):
         super().__init__()
         self._pred_dict_url = 'https://ndownloader.figshare.com/files/38116641'
-        pred_dict_path = os.path.join(DATA_DIR, 'pred_dict.json')
+        pred_dict_path = os.path.join(MASK_DIR, 'pred_dict.json')
         urllib.request.urlretrieve(self._pred_dict_url, pred_dict_path)
         with open(pred_dict_path, 'r', encoding='utf8') as f:
             self._pred_dict = json.load(f)
@@ -137,9 +138,8 @@ def load_dataset(
 
         A DataLoader or VisionDataset instance representing mask dataset
     """
-    root = DATA_DIR
-    mask_dir = MaskDataset.download_mask(root)
-    time_to_sample_dict = MaskDataset.get_time_to_sample_dict(root)
+    mask_dir = MaskDataset.download_mask(MASK_DIR)
+    time_to_sample_dict = MaskDataset.get_time_to_sample_dict(MASK_DIR)
     if not isinstance(day_index, int) or day_index < 0 or day_index > 59:
         raise ValueError('day_index must be an integer between 0 and 59')
     time = list(time_to_sample_dict.keys())[day_index]
@@ -288,7 +288,7 @@ def get_data_timestamps() -> t.List[int]:
     t.List[int]
         A list of the data timestamps.
     """
-    return list(map(int, MaskDataset.get_time_to_sample_dict(DATA_DIR).keys()))
+    return list(map(int, MaskDataset.get_time_to_sample_dict(MASK_DIR).keys()))
 
 
 LABEL_MAP = {2: 'Improperly Worn Mask',

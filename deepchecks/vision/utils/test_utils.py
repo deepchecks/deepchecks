@@ -11,9 +11,12 @@
 #
 import random
 from copy import copy
+from hashlib import md5
 from typing import Dict, Iterator, List, Sized
 
+import numpy as np
 import torch
+from PIL import Image
 from torch.utils.data import BatchSampler, DataLoader, Sampler
 
 from deepchecks.vision import VisionData
@@ -124,3 +127,22 @@ def un_normalize_batch(tensor: torch.Tensor, mean: Sized, std: Sized, max_pixel_
     tensor = (tensor * std) + mean
     tensor = tensor * torch.tensor(max_pixel_value, device=tensor.device).reshape(reshape_shape)
     return tensor.cpu().detach().numpy()
+
+
+def hash_image(image):
+    if isinstance(image, np.ndarray):
+        image = Image.fromarray(image)
+    elif isinstance(image, torch.Tensor):
+        image = Image.fromarray(image.cpu().detach().numpy().squeeze())
+
+    image = image.resize((10, 10))
+    image = image.convert('L')
+
+    pixel_data = list(image.getdata())
+    avg_pixel = sum(pixel_data) / len(pixel_data)
+
+    bits = ''.join(['1' if (px >= avg_pixel) else '0' for px in pixel_data])
+    hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
+    md_5hash = md5()
+    md_5hash.update(hex_representation.encode())
+    return md_5hash.hexdigest()

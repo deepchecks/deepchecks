@@ -11,6 +11,7 @@
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
 import contextlib
 import os
+import pathlib
 import typing as t
 from pathlib import Path
 
@@ -32,12 +33,12 @@ from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'CocoSegmentationDataset']
 
+DATA_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'coco_segmentation'
 
-DATA_DIR = Path(__file__).absolute().parent
 
 
 #  pylint: disable=unused-argument)
-def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
+def load_model(pretrained: bool = True) -> nn.Module:
     """Load the lraspp_mobilenet_v3_large model and return it."""
     model = lraspp_mobilenet_v3_large(pretrained=pretrained, progress=False)
     _ = model.eval()

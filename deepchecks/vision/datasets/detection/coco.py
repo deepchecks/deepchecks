@@ -11,6 +11,7 @@
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
 import contextlib
 import logging
+import pathlib
 import os
 import typing as t
 import warnings
@@ -28,16 +29,15 @@ from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks import vision
-from deepchecks.vision.utils.test_utils import get_data_loader_sequential
+from deepchecks.vision.utils.test_utils import get_data_loader_sequential, hash_image
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'CocoDataset']
 
+COCO_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'coco_detection'
 
-DATA_DIR = Path(__file__).absolute().parent
 
-
-def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
+def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu'):
     """Load the yolov5s (version 6.1)  model and return it."""
     dev = torch.device(device) if isinstance(device, str) else device
     logger = logging.getLogger('yolov5')
@@ -48,7 +48,7 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
                            device=dev)
     model.eval()
     logger.disabled = False
-    return model
+    return MockCoco(model)
 
 
 def _batch_collate(batch):
@@ -143,8 +143,7 @@ def load_dataset(
 
         A DataLoader or VisionDataset instance representing COCO128 dataset
     """
-    root = DATA_DIR
-    coco_dir, dataset_name = CocoDataset.download_coco128(root)
+    coco_dir, dataset_name = CocoDataset.download_coco128(COCO_DIR)
     dataset = CocoDataset(root=str(coco_dir), name=dataset_name, train=train,
                           transforms=A.Compose([A.NoOp()], bbox_params=A.BboxParams(format='coco')))
 
@@ -162,6 +161,25 @@ def load_dataset(
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
+class MockDetections:
+    """Class which mocks YOLOv5 predictions object."""
+
+    def __init__(self, dets):
+        self.pred = dets
+class MockCoco:
+    """Class of COCO model that returns cached predictions."""
+    def __init__(self, real_model):
+        self.real_model = real_model
+        self.cache = {}
+
+    def __call__(self, batch):
+        results = []
+        for img in batch:
+            hash_key = hash_image(img)
+            if hash_key not in self.cache:
+                self.cache[hash_key] = self.real_model([img]).pred[0]
+            results.append(self.cache[hash_key])
+        return MockDetections(results)
 
 class CocoDataset(VisionDataset):
     """An instance of PyTorch VisionData the represents the COCO128 dataset.
