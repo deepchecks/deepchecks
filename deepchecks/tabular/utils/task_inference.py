@@ -22,7 +22,6 @@ from deepchecks.utils.array_math import convert_into_flat_list
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
 
-
 __all__ = ['infer_task_type_and_classes']
 
 

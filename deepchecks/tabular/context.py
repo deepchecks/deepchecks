@@ -222,7 +222,7 @@ class Context:
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
         self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
-            model, train, test, model_classes)
+            model, train, test, y_pred_train, y_pred_test, model_classes)
 
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
