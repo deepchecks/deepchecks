@@ -9,9 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing functionalities to infer the task type and possible label classes."""
-
-__all__ = ['get_labels_and_classes', 'infer_task_type', 'infer_task_type_and_classes']
-
 from typing import List, Optional
 
 import pandas as pd
@@ -24,6 +21,9 @@ from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.array_math import convert_into_flat_list
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
+
+
+__all__ = ['infer_task_type_and_classes']
 
 
 def infer_task_type_and_classes(
