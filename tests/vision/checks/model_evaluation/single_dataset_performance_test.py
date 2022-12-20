@@ -35,7 +35,7 @@ def test_detection_w_params(coco_train_visiondata, mock_trained_yolov5_object_de
     # params that should run normally
     check = SingleDatasetPerformance(scorers={'f1': ObjectDetectionTpFpFn(evaluating_function='f1')})
     result = check.run(coco_train_visiondata, mock_trained_yolov5_object_detection, device=device)
-    assert_that(result.value.Value.mean(), close_to(0.505, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.505, 0.01))
 
 
 def test_detection_many_scorers(coco_train_visiondata, mock_trained_yolov5_object_detection, device):
