@@ -41,6 +41,8 @@ from deepchecks.tabular.datasets.classification import adult, lending_club
 from deepchecks.tabular.datasets.regression import avocado
 from deepchecks.utils.logger import set_verbosity
 
+from .vision.vision_conftest import *
+
 set_verbosity(logging.WARNING)
 
 
