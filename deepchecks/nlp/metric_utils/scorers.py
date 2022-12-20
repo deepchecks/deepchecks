@@ -57,11 +57,11 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
 def infer_on_text_data(scorer: DeepcheckScorer, model: ClassificationModel, data: TextData):
     """Infer using DeepcheckScorer on NLP TextData using an NLP context _DummyModel."""
     y_pred = model.predict(data)
-    y_true = np.array(data.label)
+    y_true = data.label
 
     if data.task_type == TaskType.TEXT_CLASSIFICATION:
         y_pred = validate_multi_label_format(np.array(y_pred), scorer.model_classes)
-        y_true = validate_multi_label_format(np.array(data.label), scorer.model_classes)
+        y_true = validate_multi_label_format(np.array(y_true), scorer.model_classes)
 
     if hasattr(model, 'predict_proba'):
         y_proba = model.predict_proba(data)
