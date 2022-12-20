@@ -247,9 +247,6 @@ class MaskDataset(VisionDataset):
         img_path = Path(os.path.join(mask_dir, 'images'))
         label_path = Path(os.path.join(mask_dir, 'annotations'))
 
-        if not (root.exists() and root.is_dir()):
-            raise RuntimeError(f'root path does not exist or is not a dir - {root}')
-
         if img_path.exists() and label_path.exists():
             return mask_dir
 
