@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: skip-file
 import pathlib
 
 import numpy as np
@@ -74,7 +75,7 @@ def device():
 
 
 @pytest.fixture(scope='session')
-def seed_setup(device):
+def seed_setup():
     torch.manual_seed(42)
     np.random.seed(42)
 

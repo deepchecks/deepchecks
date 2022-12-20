@@ -10,9 +10,8 @@
 #
 """Represents fixtures for unit testing using pytest."""
 import logging
-import random
 # Disable this pylint check since we use this convention in pytest fixtures
-#pylint: disable=redefined-outer-name
+# pylint: disable=redefined-outer-name
 from typing import Any, Dict, Optional, Tuple
 
 import matplotlib.pyplot as plt
@@ -43,8 +42,6 @@ from deepchecks.tabular.datasets.classification import adult, lending_club
 from deepchecks.tabular.datasets.regression import avocado
 from deepchecks.utils.logger import set_verbosity
 
-from .vision.vision_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
-
 set_verbosity(logging.WARNING)
 
 
@@ -64,9 +61,9 @@ def get_expected_results_length(suite: BaseSuite, args: Dict):
 
 
 def validate_suite_result(
-    result: SuiteResult,
-    min_length: int,
-    exception_matcher: Optional[Matcher] = None
+        result: SuiteResult,
+        min_length: int,
+        exception_matcher: Optional[Matcher] = None
 ):
     assert_that(result, instance_of(SuiteResult))
     assert_that(result.results, instance_of(list))
@@ -93,7 +90,7 @@ def validate_suite_result(
             for cond in check_result.conditions_results:
                 assert_that(cond.category, any_of(ConditionCategory.PASS,
                                                   ConditionCategory.WARN,
-                                                  ConditionCategory.FAIL,))
+                                                  ConditionCategory.FAIL, ))
 
 
 @pytest.fixture(scope='session')
@@ -121,6 +118,7 @@ def empty_df():
 @pytest.fixture(scope='session')
 def kiss_dataset_and_model():
     """A small and stupid dataset and model to catch edge cases."""
+
     def string_to_length(data: pd.DataFrame):
         data = data.copy()
         data['string_feature'] = data['string_feature'].apply(len)
@@ -160,6 +158,7 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
             if isinstance(x, str):
                 return len(x)
             return x
+
         data['weird_feature'] = data['weird_feature'].apply(_len_or_val)
         return data
 
@@ -172,6 +171,7 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
         data = data.copy()
         data = data.fillna(0)
         return data
+
     index_col = shuffle(list(range(500)) + [str(i) for i in range(500)], random_state=42)
     df = pd.DataFrame(
         {
@@ -182,7 +182,7 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
             'fake_bool_feature': np.random.choice([True, False, 0, 1, np.nan],
                                                   p=[0.4, 0.4, 0.1, 0.05, 0.05], size=1000),
             'weird_feature': np.random.choice(np.array([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0],
-                                              dtype='object'), size=1000),
+                                                       dtype='object'), size=1000),
             8: pd.array(np.random.choice([0, 1, 5, 6, np.nan], size=1000), dtype='Int64'),
             'tuples': np.random.choice([(0, 2), (1, 6, 8), (9, 1), (8, 1, 9, 8)], size=1000),
             'classification_label': np.random.choice([0, 1, 9, 8], size=1000),
@@ -263,10 +263,12 @@ def diabetes_split_dataset_and_model_custom(diabetes, diabetes_model):
     class MyModel:
         def predict(self, *args, **kwargs):
             return diabetes_model.predict(*args, **kwargs)
+
         # sklearn scorers in python 3.6 check fit attr
 
         def fit(self, *args, **kwargs):
             return diabetes_model.fit(*args, **kwargs)
+
     return train, test, MyModel()
 
 
@@ -428,10 +430,12 @@ def iris_split_dataset_and_model_custom(iris_split_dataset_and_model) -> Tuple[D
 
         def predict_proba(self, *args, **kwargs):
             return clf.predict_proba(*args, **kwargs)
+
         # sklearn scorers in python 3.6 check fit attr
 
         def fit(self, *args, **kwargs):
             return clf.fit(*args, **kwargs)
+
     return train_ds, test_ds, MyModel()
 
 
@@ -578,7 +582,6 @@ def drifted_data_with_nulls(drifted_data) -> Tuple[Dataset, Dataset]:
 
 @pytest.fixture(scope='session')
 def drifted_data_and_model(drifted_data) -> Tuple[Dataset, Dataset, Pipeline]:
-
     train_ds, test_ds = drifted_data
 
     model = Pipeline([
@@ -679,6 +682,7 @@ def simple_custom_plt_check():
                 plt.title('Datasets Size Comparison')
 
             return CheckResult(sizes, display=[sizes_df_for_display, graph_display])
+
     return DatasetSizeComparison()
 
 
