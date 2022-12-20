@@ -64,7 +64,7 @@ def infer_task_type_and_classes(model: Optional[BasicModel], train_dataset: 'tab
             test_labels += convert_into_flat_list(model.predict(test_dataset.features_columns))
 
     observed_labels = test_labels + train_labels
-    observed_labels = pd.Series(observed_labels, dtype='object')\
+    observed_labels = pd.Series(observed_labels)\
         if len(observed_labels) > 0 else pd.Series(dtype='object')
     if model_classes is None and have_model and hasattr(model, 'classes_') and len(model.classes_) > 0:
         model_classes = sorted(list(model.classes_))
