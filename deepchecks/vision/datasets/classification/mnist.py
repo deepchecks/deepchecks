@@ -11,6 +11,7 @@
 """Module representing the MNIST dataset."""
 import logging
 import pathlib
+import pickle
 import typing as t
 import warnings
 
@@ -24,7 +25,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from typing_extensions import Literal
 
-from deepchecks.vision.utils.test_utils import get_data_loader_sequential, un_normalize_batch, hash_image
+from deepchecks.vision.utils.test_utils import get_data_loader_sequential, hash_image, un_normalize_batch
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
@@ -106,7 +107,7 @@ def deepchecks_collate(model) -> t.Callable:
 
     Parameters
     ----------
-    model : nn.Module
+    model
         model to predict with
     Returns
     -------
@@ -118,7 +119,6 @@ def deepchecks_collate(model) -> t.Callable:
         raw_images = torch.stack([x[0] for x in data])
         labels = [x[1] for x in data]
         predictions = model(raw_images)
-        predictions = nn.Softmax(dim=1)(predictions).detach()
         images = raw_images.permute(0, 2, 3, 1)
         images = un_normalize_batch(images, mean=(0.1307,), std=(0.3081,))
         return {'images': images, 'labels': labels, 'predictions': predictions}
@@ -186,16 +186,21 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockMnist
 
 class MockMnist:
     """Class of MNIST model that returns cached predictions."""
+
     def __init__(self, real_model):
         self.real_model = real_model
-        self.cache = {}
+        with open(MNIST_DIR / 'static_predictions.pickle', 'rb') as handle:
+            predictions = pickle.load(handle)
+        self.cache = {key: torch.tensor(value) for key, value in predictions.items()}
 
     def __call__(self, batch):
         results = []
         for img in batch:
             hash_key = hash_image(img)
             if hash_key not in self.cache:
-                self.cache[hash_key] = self.real_model(torch.stack([img]))[0]
+                prediction = self.real_model(torch.stack([img]))[0]
+                prediction = nn.Softmax()(prediction).detach()
+                self.cache[hash_key] = prediction
             results.append(self.cache[hash_key])
         return torch.stack(results)
 
@@ -243,4 +248,3 @@ class MNistNet(nn.Module):
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=UserWarning)
             return F.log_softmax(x, dim=1)
-

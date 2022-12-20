@@ -28,14 +28,14 @@ def test_detection_defaults(coco_visiondata_train):
     result = check.run(coco_visiondata_train)
 
     # Assert
-    assert_that(result.value.Value.mean(), close_to(0.402, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.393, 0.01))
 
 
 def test_detection_w_params(coco_visiondata_train):
     # params that should run normally
     check = SingleDatasetPerformance(scorers={'f1': ObjectDetectionTpFpFn(evaluating_function='f1')})
     result = check.run(coco_visiondata_train)
-    assert_that(result.value.Value.mean(), close_to(0.504, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.505, 0.01))
 
 
 def test_detection_many_scorers(coco_visiondata_train):
@@ -44,14 +44,14 @@ def test_detection_many_scorers(coco_visiondata_train):
     result = check.run(coco_visiondata_train).value
 
     # Assert
-    assert_that(result[result['Metric'] == 'f1_micro']['Value'].mean(), close_to(0.5666, 0.001))
+    assert_that(result[result['Metric'] == 'f1_micro']['Value'].mean(), close_to(0.571, 0.01))
     assert_that(result[result['Metric'] == 'f1_micro']['Value'], has_length(1))
-    assert_that(result[result['Metric'] == 'fnr']['Value'].mean(), close_to(0.557, 0.001))
+    assert_that(result[result['Metric'] == 'fnr']['Value'].mean(), close_to(0.554, 0.01))
     assert_that(result[result['Metric'] == 'fnr']['Value'], has_length(61))
-    assert_that(result[result['Metric'] == 'recall_macro']['Value'].mean(), close_to(0.442, 0.001))
+    assert_that(result[result['Metric'] == 'recall_macro']['Value'].mean(), close_to(0.446, 0.01))
     assert_that(result[result['Metric'] == 'recall_macro']['Value'], has_length(1))
     assert_that(result[result['Metric'] == 'recall']['Value'].mean(),
-                close_to(result[result['Metric'] == 'recall_macro']['Value'].mean(), 0.001))
+                close_to(result[result['Metric'] == 'recall_macro']['Value'].mean(), 0.01))
 
 
 def test_classification_defaults(mnist_visiondata_train):
@@ -62,7 +62,7 @@ def test_classification_defaults(mnist_visiondata_train):
     result = check.run(mnist_visiondata_train)
 
     # Assert
-    assert_that(result.value.Value.mean(), close_to(0.969, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.975, 0.01))
 
 
 def test_classification_custom_scorer(mnist_visiondata_test):
@@ -74,7 +74,7 @@ def test_classification_custom_scorer(mnist_visiondata_test):
     result = check.run(mnist_visiondata_test)
 
     # Assert
-    assert_that(result.value.Value.mean(), close_to(0.979, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.975, 0.01))
 
 
 def test_classification_sklearn_scorers(mnist_visiondata_test):
@@ -85,7 +85,7 @@ def test_classification_sklearn_scorers(mnist_visiondata_test):
     result = check.run(mnist_visiondata_test)
 
     # Assert
-    assert_that(result.value.Value.mean(), close_to(0.989, 0.001))
+    assert_that(result.value.Value.mean(), close_to(0.99, 0.01))
     assert_that(result.value.Value, has_length(10))
 
 

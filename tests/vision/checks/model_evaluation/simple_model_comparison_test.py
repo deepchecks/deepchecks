@@ -103,7 +103,7 @@ def test_condition_failed_for_multiclass(mnist_visiondata_train, mnist_visiondat
         equal_condition_result(
             is_pass=False,
             name='Model performance gain over simple model is greater than 96.8%',
-            details='Found metrics with gain below threshold: {\'F1\': {\'2\': \'96.77%\'}}')
+            details='Found metrics with gain below threshold: {\'F1\': {\'1\': \'95.09%\'}}')
 
     ))
 
@@ -117,21 +117,21 @@ def test_condition_pass_for_multiclass_avg(mnist_visiondata_train, mnist_visiond
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            details='Found minimal gain of 98.93% for metric F1',
+            details='Found minimal gain of 98.74% for metric F1',
             name='Model performance gain over simple model is greater than 43%')
     ))
 
 
 def test_condition_pass_for_multiclass_avg_with_classes(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
-    check = SimpleModelComparison().add_condition_gain_greater_than(1, average=True, classes=[2])
+    check = SimpleModelComparison().add_condition_gain_greater_than(1, average=True, classes=[4])
     # Act X
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
     # Assert
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=False,
-            name='Model performance gain over simple model is greater than 100% for classes [2]',
-            details='Found metrics with gain below threshold: {\'F1\': \'96.77%\'}'
+            name='Model performance gain over simple model is greater than 100% for classes [4]',
+            details='Found metrics with gain below threshold: {\'F1\': \'98.18%\'}'
         )
     ))

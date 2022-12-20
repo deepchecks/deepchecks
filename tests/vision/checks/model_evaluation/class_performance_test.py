@@ -63,7 +63,7 @@ def test_mnist_largest(mnist_visiondata_train, mnist_visiondata_test):
     assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
                                                           'sum of Value=%{y}<extra></extra>'))
     assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
-    assert_that(figure.data[1]['y'][1], close_to(0.961, 0.01))
+    assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
     assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
                                                           'sum of Value=%{y}<extra></extra>'))
 
@@ -138,7 +138,7 @@ def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
         equal_condition_result(
             is_pass=False,
             details=re.compile(
-                r'Found 20 scores below threshold.\nFound minimum score for r metric of value 0.94 for class \d.'),
+                r'Found 20 scores below threshold.\nFound minimum score for r metric of value 0.93 for class \d.'),
             name='Scores are greater than 1'
         )
     ))
@@ -174,7 +174,6 @@ def test_coco_best(coco_visiondata_train, coco_visiondata_test):
 
 def test_class_list(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
-
     check = ClassPerformance(class_list_to_show=[1])
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
@@ -183,15 +182,14 @@ def test_class_list(mnist_visiondata_train, mnist_visiondata_test):
     assert_that(result.display, has_length(1))
     figure = t.cast(BaseFigure, result.display[0])
     assert_that(figure, instance_of(BaseFigure))
-    assert_that(figure.data[0]['y'][0], close_to(0.961, 0.01))
+    assert_that(figure.data[0]['y'][0], close_to(1, 0.01))
     assert_that(figure.data[0]['y'], has_length(1))
-    assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
+    assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
                                                           'sum of Value=%{y}<extra></extra>'))
-    assert_that(figure.data[1]['y'][0], close_to(0.961, 0.01))
+    assert_that(figure.data[1]['y'][0], close_to(0.962, 0.01))
     assert_that(figure.data[1]['y'], has_length(1))
-    assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
+    assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
                                                           'sum of Value=%{y}<extra></extra>'))
-
     value = result.value
     assert_that(set(value['Class']), has_length(10))
     assert_that(value, has_length(40))
@@ -211,7 +209,7 @@ def test_condition_test_performance_greater_than_pass(mnist_visiondata_train,
 
     assert_that(result.conditions_results, has_items(
         equal_condition_result(is_pass=True,
-                               details=re.compile(r'Found minimum score for Recall metric of value 0.94 for class \d.'),
+                               details=re.compile(r'Found minimum score for Recall metric of value 0.93 for class \d.'),
                                name='Scores are greater than 0.5'))
                 )
 
@@ -227,7 +225,7 @@ def test_condition_train_test_relative_degradation_less_than_pass(
     assert_that(result.conditions_results, has_items(
         equal_condition_result(
             is_pass=True,
-            details=r'Found max degradation of 6.25% for metric Recall and class 2.',
+            details=r'Found max degradation of 7.14% for metric Recall and class 1.',
             name='Train-Test scores relative degradation is less than 0.1'
         )
     ))
@@ -246,9 +244,9 @@ def test_condition_class_performance_imbalance_ratio_less_than(
             is_pass=True,
             name='Relative ratio difference between labels \'Precision\' score is less than 50%',
             details='Relative ratio difference between highest and lowest in Test dataset classes '
-                    'is 5.88%, using Precision metric. Lowest class - 3: 0.94; Highest class - 0: '
+                    'is 4.76%, using Precision metric. Lowest class - 6: 0.95; Highest class - 0: '
                     '1\nRelative ratio difference between highest and lowest in Train dataset '
-                    'classes is 7.69%, using Precision metric. Lowest class - 5: 0.92; Highest class'
+                    'classes is 6.25%, using Precision metric. Lowest class - 8: 0.94; Highest class'
                     ' - 0: 1'
         )
     ))
@@ -266,9 +264,9 @@ def test_condition_class_performance_imbalance_ratio_less_than_fail(
     assert_that(result.conditions_results, has_items(
         equal_condition_result(is_pass=False,
                                details='Relative ratio difference between highest and lowest in Test dataset classes '
-                                       'is 5.88%, using Precision metric. Lowest class - 3: 0.94; Highest class - 0: '
+                                       'is 4.76%, using Precision metric. Lowest class - 6: 0.95; Highest class - 0: '
                                        '1\nRelative ratio difference between highest and lowest in Train dataset '
-                                       'classes is 7.69%, using Precision metric. Lowest class - 5: 0.92; Highest class'
+                                       'classes is 6.25%, using Precision metric. Lowest class - 8: 0.94; Highest class'
                                        ' - 0: 1',
                                name='Relative ratio difference between labels \'Precision\' score is less than 0.01%'))
                 )

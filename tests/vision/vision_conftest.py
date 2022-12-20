@@ -130,7 +130,6 @@ def mnist_drifted_datasets(mnist_visiondata_train, mnist_visiondata_test):  # py
         modified_raw_images = torch.stack(modified_raw_images)
         predictions = model(modified_raw_images)
         predictions[:, 0] = 0
-        predictions = nn.Softmax(dim=1)(predictions).detach()
         images = modified_raw_images.permute(0, 2, 3, 1)
         images = un_normalize_batch(images, mean=(0.1307,), std=(0.3081,))
         return {'images': images, 'labels': modified_labels, 'predictions': predictions}

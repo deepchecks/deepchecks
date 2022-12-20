@@ -11,8 +11,8 @@
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
 import contextlib
 import logging
-import pathlib
 import os
+import pathlib
 import typing as t
 import warnings
 from pathlib import Path
@@ -29,6 +29,7 @@ from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks import vision
+from deepchecks.vision.datasets.assets.coco_detection.static_predictions import coco_detections_static_predictions_dict
 from deepchecks.vision.utils.test_utils import get_data_loader_sequential, hash_image
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
@@ -64,6 +65,7 @@ def collate_without_model(data) -> t.Tuple[t.List[np.ndarray], t.List[torch.Tens
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
             if len(tensor) > 0 else tensor
+
     labels = [move_class(x[1]) for x in data]
     return images, labels
 
@@ -88,6 +90,7 @@ def deepchecks_collate(model) -> t.Callable:
         def move_class(tensor):
             return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
                 if len(tensor) > 0 else tensor
+
         labels = [move_class(x[1]) for x in data]
 
         predictions = []
@@ -161,16 +164,20 @@ def load_dataset(
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
+
 class MockDetections:
     """Class which mocks YOLOv5 predictions object."""
 
     def __init__(self, dets):
         self.pred = dets
+
+
 class MockCoco:
     """Class of COCO model that returns cached predictions."""
+
     def __init__(self, real_model):
         self.real_model = real_model
-        self.cache = {}
+        self.cache = coco_detections_static_predictions_dict
 
     def __call__(self, batch):
         results = []
@@ -180,6 +187,7 @@ class MockCoco:
                 self.cache[hash_key] = self.real_model([img]).pred[0]
             results.append(self.cache[hash_key])
         return MockDetections(results)
+
 
 class CocoDataset(VisionDataset):
     """An instance of PyTorch VisionData the represents the COCO128 dataset.
@@ -357,6 +365,7 @@ def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
 
 def yolo_label_formatter(batch):
     """Translate yolo label to deepchecks format."""
+
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \

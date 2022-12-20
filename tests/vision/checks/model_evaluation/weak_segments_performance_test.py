@@ -50,7 +50,7 @@ def test_classification_defaults(mnist_visiondata_train):
     result = check.run(mnist_visiondata_train)
 
     # Assert
-    assert_that(result.value['avg_score'], close_to(0.084, 0.001))
+    assert_that(result.value['avg_score'], close_to(0.082, 0.001))
 
 
 def test_segmentation_defaults(segmentation_coco_visiondata_test):
