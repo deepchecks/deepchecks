@@ -39,8 +39,11 @@ class TextData:
 
     Parameters
     ----------
-    raw_text : t.Sequence[str]
+    raw_text : t.Sequence[str], default: None
         The raw text data, a sequence of strings representing the raw text of each sample.
+    tokenized_text : t.Sequence[t.Sequence[str]], default: None
+        The tokenized text data, a sequence of sequences of strings representing the tokenized text of each sample.
+        Only relevant for task_type 'token_classification'.
     label : t.Optional[TTextLabel], default: None
         The label for the text data. Can be either a text_classification label or a token_classification label.
         If None, the label is not set.
@@ -49,16 +52,15 @@ class TextData:
           per sample that can be either a string or an integer. For multilabel data, the label should be passed as a
           sequence of sequences, with the sequence for each sample being a binary vector, representing the presence of
           the i-th label in that sample.
-        - token_classification label - For token classification the accepted label format is a sequence of sequences,
-          with the inner sequence containing tuples in the following format: (class_name, span_start, span_end).
-          span_start and span_end are the start and end character indices of the token within the text, as it was
-          passed to the raw_text argument. Each upper level sequence contains a sequence of tokens for each sample.
+        - token_classification label - For token classification the accepted label format is the IOB format or similar
+          to it. The Label must be a sequence of sequences of strings or integers, with each sequence corresponding to
+          a sample in the tokenized text, and exactly the length of the corresponding tokenized text.
     task_type : str, default: None
         The task type for the text data. Can be either 'text_classification' or 'token_classification'. Must be set if
         label is provided.
-    dataset_name : t.Optional[str], default: None
+    dataset_name : t.Optional[str] , default: None
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
-    index: t.Optional[t.Sequence[int]], default: None
+    index : t.Optional[t.Sequence[int]] , default: None
         The index of the samples. If None, the index is set to np.arange(len(raw_text)).
     """
 
