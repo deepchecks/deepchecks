@@ -22,7 +22,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import get_labels_and_classes, infer_task_type
+from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
@@ -221,16 +221,8 @@ class Context:
                 template='For more information please refer to the Supported Models guide {link}')
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
-
-        observed_labels, self._model_classes = get_labels_and_classes(
-            model, train, test, y_pred_train, y_pred_test, model_classes
-        )
-
-        self._task_type = infer_task_type(train, observed_labels, self._model_classes)
-        if self._task_type in (TaskType.BINARY, TaskType.MULTICLASS):
-            self._observed_classes = sorted(observed_labels.dropna().unique().tolist())
-        else:
-            self._observed_classes = None
+        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
+            model, train, test, model_classes)
 
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():

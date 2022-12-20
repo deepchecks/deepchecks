@@ -26,11 +26,11 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
 
 
-def get_labels_and_classes(
+def infer_task_type_and_classes(
         model: Optional[BasicModel], train_dataset: 'tabular.Dataset',
         test_dataset: Optional['tabular.Dataset'] = None, y_pred_train=None, y_pred_test=None,
         model_classes: Optional[List] = None):
-    """Get the classes of the model and the observed labels."""
+    """Doing both classes inference and task type inference."""
     labels = []
     have_model = model is not None
     if train_dataset:
@@ -51,21 +51,17 @@ def get_labels_and_classes(
     labels = pd.Series(labels) if len(labels) > 0 else pd.Series(dtype='object')
     if model_classes is None and have_model and hasattr(model, 'classes_') and len(model.classes_) > 0:
         model_classes = sorted(list(model.classes_))
-    return labels, model_classes
 
-
-def infer_task_type(train_dataset: 'tabular.Dataset', labels, model_classes: Optional[List]):
-    """Infer the task type based on dataset, observed labels and model classes."""
     # First if the user defined manually the task type (label type on dataset) we use it
     if train_dataset and train_dataset.label_type is not None:
-        return train_dataset.label_type
+        task_type = train_dataset.label_type
     # Secondly if user passed model_classes or we found classes on the model object, we use them
     elif model_classes:
-        return infer_by_class_number(len(model_classes))
+        task_type = infer_by_class_number(len(model_classes))
     # Thirdly if there are no observed labels (user didn't pass model, and datasets have no label column), then we
     # have no task type
     elif len(labels) == 0:
-        return None
+        task_type = None
     # Fourth, we check if the observed labels are categorical or not
     elif is_categorical(labels, max_categorical_ratio=0.05):
         num_classes = len(labels.dropna().unique())
@@ -76,19 +72,14 @@ def infer_task_type(train_dataset: 'tabular.Dataset', labels, model_classes: Opt
                 'the label column is of type integer. '
                 'Initialize your Dataset with either label_type=\"%s}\" or '
                 'label_type=\"regression\" to resolve this warning.', task_type.value, task_type.value)
-        return task_type
     else:
-        return TaskType.REGRESSION
+        task_type = TaskType.REGRESSION
 
-
-def infer_task_type_and_classes(model, dataset):
-    """Doing both classes inference and task type inference."""
-    labels, model_classes = get_labels_and_classes(model, dataset)
-    task_type = infer_task_type(dataset, labels, model_classes)
     if task_type in (TaskType.BINARY, TaskType.MULTICLASS):
         observed_classes = sorted(labels.dropna().unique().tolist())
     else:
         observed_classes = None
+
     return task_type, observed_classes, model_classes
 
 
