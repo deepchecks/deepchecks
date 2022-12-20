@@ -11,9 +11,8 @@
 import re
 import typing as t
 
-from hamcrest import (assert_that, calling, close_to, contains_exactly, equal_to, greater_than, has_items, has_length,
+from hamcrest import (assert_that, calling, close_to, equal_to, greater_than, has_items, has_length,
                       instance_of, raises)
-from ignite.metrics import Precision, Recall
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
@@ -21,7 +20,6 @@ from deepchecks.vision.checks import ClassPerformance
 from deepchecks.vision.metrics_utils import CustomClassificationScorer
 from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUATING_FUNCTIONS
 from tests.base.utils import equal_condition_result
-from tests.common import assert_class_performance_display
 
 
 def test_coco_segmentation(segmentation_coco_visiondata_train, segmentation_coco_visiondata_test):
@@ -110,7 +108,7 @@ def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
     scorers = {'p': CustomClassificationScorer('precision_per_class'),
                'r': CustomClassificationScorer('recall_per_class')}
-    check = ClassPerformance(n_to_show=2, show_only='smallest', scorers=scorers)\
+    check = ClassPerformance(n_to_show=2, show_only='smallest', scorers=scorers) \
         .add_condition_test_performance_greater_than(1)
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
@@ -301,7 +299,7 @@ def test_coco_deepchecks_scorer_list_strings_averaging(coco_visiondata_train, co
         assert_that(set(result.value['Metric']), equal_to(set(scorers)))
 
 
-def test_mnist_sklearn_scorer(mnist_visiondata_train,mnist_visiondata_test):
+def test_mnist_sklearn_scorer(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
     check = ClassPerformance(scorers={'f1': 'f1_per_class', 'recall': 'recall_per_class'})
 

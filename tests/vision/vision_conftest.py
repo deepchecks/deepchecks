@@ -10,6 +10,7 @@
 #
 # pylint: skip-file
 import pathlib
+import random
 
 import numpy as np
 import pytest
@@ -78,6 +79,7 @@ def device():
 def seed_setup():
     torch.manual_seed(42)
     np.random.seed(42)
+    random.seed(42)
 
 
 @pytest.fixture(scope='session')

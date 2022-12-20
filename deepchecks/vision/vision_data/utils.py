@@ -8,6 +8,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module for VisionData functionalities."""
+import random
 import sys
 import typing as t
 from collections import Counter
@@ -156,6 +157,7 @@ def set_seeds(seed: int):
     """
     if seed is not None and isinstance(seed, int):
         np.random.seed(seed)
+        random.seed(seed)
         if 'torch' in sys.modules:
             import torch  # pylint: disable=import-outside-toplevel
             torch.manual_seed(seed)
