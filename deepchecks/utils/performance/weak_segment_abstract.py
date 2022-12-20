@@ -116,8 +116,8 @@ class WeakSegmentAbstract:
                         scores_text[i][j] = f'{score}\n({format_percent(counts[i, j])})'
 
             # Plotly FigureWidget have bug with numpy nan, so replacing with python None
-            scores = scores.astype(np.object)
-            scores[np.isnan(scores.astype(np.float_))] = None
+            scores = scores.astype(object)
+            scores[np.isnan(scores.astype(float))] = None
 
             labels = dict(x=segment['Feature1'], y=segment['Feature2'], color=f'{scorer.name} score')
             fig = px.imshow(scores, x=f1_labels, y=f2_labels, labels=labels, color_continuous_scale='rdylgn')
