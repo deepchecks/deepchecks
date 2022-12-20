@@ -9,34 +9,33 @@
 # ----------------------------------------------------------------------------
 #
 import pathlib
-from hashlib import md5
 
 import numpy as np
 import pytest
 import torch
-from PIL import Image
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.context import Context
-from deepchecks.vision.vision_data import VisionData
-from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 from deepchecks.vision.datasets.classification.mnist import collate_without_model as mnist_collate_without_model
+from deepchecks.vision.datasets.classification.mnist import deepchecks_collate as mnist_deepchecks_collate
 from deepchecks.vision.datasets.classification.mnist import load_dataset as load_mnist_dataset
 from deepchecks.vision.datasets.classification.mnist import load_model as load_mnist_model
-from deepchecks.vision.datasets.classification.mnist import deepchecks_collate as mnist_deepchecks_collate
 from deepchecks.vision.datasets.detection.coco import collate_without_model as coco_collate_without_model
 from deepchecks.vision.datasets.detection.coco import load_dataset as load_coco_dataset
 from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset as load_segmentation_coco_dataset
 from deepchecks.vision.utils.test_utils import replace_collate_fn_dataloader, replace_collate_fn_visiondata
 from deepchecks.vision.utils.test_utils import un_normalize_batch
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
 torch.hub.set_dir(str(PROJECT_DIR))
 
 __all__ = ['device',
+           'seed_setup',
            'mnist_dataloader_train',
            'mnist_visiondata_train',
            'mnist_dataloader_test',
@@ -65,25 +64,6 @@ __all__ = ['device',
            ]
 
 
-def _hash_image(image):
-    if isinstance(image, np.ndarray):
-        image = Image.fromarray(image)
-    elif isinstance(image, torch.Tensor):
-        image = Image.fromarray(image.cpu().detach().numpy().squeeze())
-
-    image = image.resize((10, 10))
-    image = image.convert('L')
-
-    pixel_data = list(image.getdata())
-    avg_pixel = sum(pixel_data) / len(pixel_data)
-
-    bits = ''.join(['1' if (px >= avg_pixel) else '0' for px in pixel_data])
-    hex_representation = str(hex(int(bits, 2)))[2:][::-1].upper()
-    md_5hash = md5()
-    md_5hash.update(hex_representation.encode())
-    return md_5hash.hexdigest()
-
-
 @pytest.fixture(scope='session')
 def device():
     if torch.cuda.is_available():
@@ -94,23 +74,29 @@ def device():
 
 
 @pytest.fixture(scope='session')
-def mnist_dataloader_train():
+def seed_setup(device):
+    torch.manual_seed(42)
+    np.random.seed(42)
+
+
+@pytest.fixture(scope='session')
+def mnist_dataloader_train(seed_setup):
     return load_mnist_dataset(train=True, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
-def mnist_visiondata_train():
+def mnist_visiondata_train(seed_setup):
     """Return MNist dataset as VisionData object."""
     return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False, n_samples=200)
 
 
 @pytest.fixture(scope='session')
-def mnist_dataloader_test():
+def mnist_dataloader_test(seed_setup):
     return load_mnist_dataset(train=False, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
-def mnist_visiondata_test():
+def mnist_visiondata_test(seed_setup):
     """Return MNist dataset as VisionData object."""
     return load_mnist_dataset(train=False, object_type='VisionData', shuffle=False, n_samples=200)
 
@@ -155,7 +141,7 @@ def mnist_drifted_datasets(mnist_visiondata_train, mnist_visiondata_test):  # py
 
 
 @pytest.fixture(scope='session')
-def obj_detection_images():
+def obj_detection_images(seed_setup):
     uris = [
         'http://images.cocodataset.org/val2017/000000397133.jpg',
         'http://images.cocodataset.org/val2017/000000037777.jpg',
@@ -166,27 +152,27 @@ def obj_detection_images():
 
 
 @pytest.fixture(scope='session')
-def coco_dataloader_train():
+def coco_dataloader_train(seed_setup):
     return load_coco_dataset(train=True, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
-def coco_visiondata_train():
+def coco_visiondata_train(seed_setup):
     return load_coco_dataset(train=True, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture(scope='session')
-def coco_dataloader_test():
+def coco_dataloader_test(seed_setup):
     return load_coco_dataset(train=False, object_type='DataLoader', shuffle=False)
 
 
 @pytest.fixture(scope='session')
-def coco_visiondata_test():
+def coco_visiondata_test(seed_setup):
     return load_coco_dataset(train=False, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture(scope='session')
-def two_tuples_dataloader():
+def two_tuples_dataloader(seed_setup):
     class TwoTupleDataset(Dataset):
         def __getitem__(self, index):
             return [index, index]
@@ -232,7 +218,7 @@ def mnist_test_custom_task(mnist_dataloader_test):  # pylint: disable=redefined-
 
 
 @pytest.fixture(scope='session')
-def mnist_train_very_small():  # pylint: disable=redefined-outer-name
+def mnist_train_very_small(seed_setup):  # pylint: disable=redefined-outer-name
     return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False, n_samples=5)
 
 
@@ -272,7 +258,7 @@ def coco_train_brightness_bias(coco_visiondata_train):  # pylint: disable=redefi
 
 
 @pytest.fixture(scope='session')
-def coco_train_very_small():  # pylint: disable=redefined-outer-name
+def coco_train_very_small(seed_setup):  # pylint: disable=redefined-outer-name
     return load_coco_dataset(train=True, object_type='VisionData', shuffle=False, n_samples=5)
 
 
@@ -293,16 +279,16 @@ def run_update_loop(dataset: VisionData):
 
 
 @pytest.fixture(scope='session')
-def segmentation_coco_visiondata_train():
+def segmentation_coco_visiondata_train(seed_setup):
     return load_segmentation_coco_dataset(train=True, object_type='VisionData', shuffle=False, test_mode=True)
 
 
 @pytest.fixture(scope='session')
-def segmentation_coco_visiondata_test():
+def segmentation_coco_visiondata_test(seed_setup):
     return load_segmentation_coco_dataset(train=False, object_type='VisionData', shuffle=False, test_mode=True)
 
 
 @pytest.fixture(scope='session')
-def segmentation_coco_visiondata_test_full():
+def segmentation_coco_visiondata_test_full(seed_setup):
     return load_segmentation_coco_dataset(train=False, object_type='VisionData', shuffle=False, test_mode=False,
                                           batch_size=10)
