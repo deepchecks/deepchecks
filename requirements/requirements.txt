@@ -23,7 +23,7 @@ importlib_metadata>=1.4; python_version < '3.8'
 
 # Category encoder depends on old statsmodels version which raises pandas warning. until dependency in category-encoders
 # is updated, explicitly add it here
-statsmodels>=0.11.5
+statsmodels>=0.13.5
 scipy>=1.4.1
 dataclasses>=0.6; python_version < '3.7'
 # jupyterlab-plotly extension that is used to display plotly figures
