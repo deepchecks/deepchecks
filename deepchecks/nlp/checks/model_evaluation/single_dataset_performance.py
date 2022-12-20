@@ -46,8 +46,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, BaseSingleDatasetPerformance)
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
         model = context.model
-        span_aligner = context.span_aligner
-        scorers = context.get_scorers(self.scorers, use_avg_defaults=False, span_aligner=span_aligner)
+        scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
 
         results = []
         for scorer in scorers:

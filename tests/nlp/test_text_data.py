@@ -41,19 +41,16 @@ def test_init_mismatched_task_type():
 
     # Act & Assert
     assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
-        raises(DeepchecksValueError,
-               r'label must be a Sequence of Sequences of \(str, int, int\) tuples, where the string is the token '
-               r'label, the first int is the start of the token span in the raw text and the second int is the end of '
-               r'the token span.')
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
+        raises(DeepchecksValueError, r'label must be a Sequence of Sequences of either strings or integers')
     )
 
     # Arrange
-    label = [[('PER', 3, 5), ('ORG', 5, 7)], [('ORG', 13, 15), ('GEO', 23, 25)], []]
+    label = [['PER', 'ORG', 'ORG', 'GEO'], [], []]
 
     # Act & Assert
     assert_that(
-        calling(TextData).with_args(text, label, task_type='text_classification'),
+        calling(TextData).with_args(raw_text=text, label=label, task_type='text_classification'),
         raises(DeepchecksValueError,
                r'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.')
     )
@@ -61,48 +58,46 @@ def test_init_mismatched_task_type():
 
 def test_wrong_token_label_format():
     # Arrange
-    text = ['a', 'b', 'c']
+    text = ['a', 'b b b', 'c c c c']
 
-    label_structure_error = \
-        r'label must be a Sequence of Sequences of \(str, int, int\) tuples, where the string is the token ' \
-        r'label, the first int is the start of the token span in the raw text and the second int is the end of ' \
-        r'the token span.'
+    label_structure_error = r'label must be a Sequence of Sequences of either strings or integers'
 
-    label = [[('B-PER', 'a', 4)],
-             [('B-PER', 0, 4), ('B-GEO', 14, 20), ('B-GEO', 25, 30)],
-             []]
+    # Act & Assert
+    # OK sample:
+    label = [['B-PER'],
+             ['B-PER', 'B-GEO', 'B-GEO'],
+             ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
+    text_data = TextData(raw_text=text, label=label, task_type='token_classification') # pylint: disable=unused-variable
+
+    # Not a list:
+    label = 'PER'
     assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
+        raises(DeepchecksValueError, 'label must be a Sequence')
+    )
+
+    # Not a list of lists:
+    label = [3, 3, 3]
+    assert_that(
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, label_structure_error)
     )
 
-    label = [[('B-PER', 1)],
-             [('B-PER', 0), ('B-GEO', 14), ('B-GEO', 25)],
-             []]
+    # Mixed strings and integers:
+    label = [['B-PER'],
+             ['B-PER', 1, 'B-GEO'],
+             ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
     assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, label_structure_error)
     )
 
-    label = [[('B-PER', 3.5, 4)],
-             [('B-PER', 0, 4), ('B-GEO', 14, 20), ('B-GEO', 25, 30)],
-             []]
+    # Not of same length:
+    label = [['B-PER'],
+             ['B-PER', 'B-GEO', 'B-GEO'],
+             ['B-PER', 'B-GEO', 'B-GEO']]
     assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
-        raises(DeepchecksValueError, label_structure_error)
-    )
-
-    label = [[('B-PER', 5, 4)],
-             [('B-PER', 0, 4), ('B-GEO', 14, 20), ('B-GEO', 25, 30)],
-             []]
-    assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
-        raises(DeepchecksValueError, 'Check requires token classification labels to have '
-                                     'token span start before span end')
-    )
-
-    label = [1, 2, 3]
-    assert_that(
-        calling(TextData).with_args(text, label, task_type='token_classification'),
-        raises(DeepchecksValueError, label_structure_error)
+        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
+        raises(DeepchecksValueError, r'label must be the same length as tokenized_text. '
+                                     r'However, for sample index 2 of length 4 received label of length 3')
     )

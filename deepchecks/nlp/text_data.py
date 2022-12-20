@@ -26,7 +26,7 @@ from deepchecks.utils.logger import get_logger
 TDataset = t.TypeVar('TDataset', bound='TextData')
 TSingleLabel = t.Tuple[int, str]
 TClassLabel = t.Sequence[t.Union[TSingleLabel, t.Tuple[TSingleLabel]]]
-TTokenLabel = t.Sequence[t.Sequence[t.Tuple[str, int, int]]]
+TTokenLabel = t.Sequence[t.Sequence[t.Union[str, int]]]
 TTextLabel = t.Union[TClassLabel, TTokenLabel]
 
 
@@ -39,8 +39,15 @@ class TextData:
 
     Parameters
     ----------
-    raw_text : t.Sequence[str]
+    raw_text : t.Sequence[str], default: None
         The raw text data, a sequence of strings representing the raw text of each sample.
+        If not given, tokenized_text must be given, and raw_text will be created from it by joining the tokens with
+        spaces.
+    tokenized_text : t.Sequence[t.Sequence[str]], default: None
+        The tokenized text data, a sequence of sequences of strings representing the tokenized text of each sample.
+        Only relevant for task_type 'token_classification'.
+        If not given, raw_text must be given, and tokenized_text will be created from it by splitting the text by
+        spaces.
     label : t.Optional[TTextLabel], default: None
         The label for the text data. Can be either a text_classification label or a token_classification label.
         If None, the label is not set.
@@ -49,16 +56,15 @@ class TextData:
           per sample that can be either a string or an integer. For multilabel data, the label should be passed as a
           sequence of sequences, with the sequence for each sample being a binary vector, representing the presence of
           the i-th label in that sample.
-        - token_classification label - For token classification the accepted label format is a sequence of sequences,
-          with the inner sequence containing tuples in the following format: (class_name, span_start, span_end).
-          span_start and span_end are the start and end character indices of the token within the text, as it was
-          passed to the raw_text argument. Each upper level sequence contains a sequence of tokens for each sample.
+        - token_classification label - For token classification the accepted label format is the IOB format or similar
+          to it. The Label must be a sequence of sequences of strings or integers, with each sequence corresponding to
+          a sample in the tokenized text, and exactly the length of the corresponding tokenized text.
     task_type : str, default: None
         The task type for the text data. Can be either 'text_classification' or 'token_classification'. Must be set if
         label is provided.
-    dataset_name : t.Optional[str], default: None
+    dataset_name : t.Optional[str] , default: None
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
-    index: t.Optional[t.Sequence[int]], default: None
+    index : t.Optional[t.Sequence[int]] , default: None
         The index of the samples. If None, the index is set to np.arange(len(raw_text)).
     """
 
@@ -72,13 +78,13 @@ class TextData:
 
     def __init__(
             self,
-            raw_text: t.Sequence[str],
+            raw_text: t.Optional[t.Sequence[str]] = None,
+            tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
             label: t.Optional[TTextLabel] = None,
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
     ):
-
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
             if label is not None:
@@ -97,9 +103,20 @@ class TextData:
             raise DeepchecksNotSupportedError(f'task_type {task_type} is not supported, must be one of '
                                               f'text_classification, token_classification, other')
 
-        self._validate_text(raw_text)
-        self._text = raw_text
-        self._validate_and_set_label(label, raw_text)
+        if raw_text is None and tokenized_text is None:
+            raise DeepchecksValueError('raw_text and tokenized_text cannot both be None')
+        elif raw_text is None:
+            self._validate_tokenized_text(tokenized_text)
+            raw_text = [' '.join(tokens) for tokens in tokenized_text]
+        elif tokenized_text is None:
+            self._validate_text(raw_text)
+            if self._task_type == TaskType.TOKEN_CLASSIFICATION:
+                tokenized_text = [text.split() for text in raw_text]
+        else:
+            self._validate_text(raw_text)
+            self._validate_tokenized_text(tokenized_text)
+            if len(raw_text) != len(tokenized_text):
+                raise DeepchecksValueError('raw_text and tokenized_text must have the same length')
 
         if index is None:
             index = np.arange(len(raw_text))
@@ -107,6 +124,9 @@ class TextData:
             raise DeepchecksValueError('index must be the same length as raw_text')
 
         self.index = index
+        self._text = raw_text
+        self._tokenized_text = tokenized_text
+        self._validate_and_set_label(label, raw_text, tokenized_text)
 
         if dataset_name is not None:
             if not isinstance(dataset_name, str):
@@ -117,12 +137,25 @@ class TextData:
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
         """Validate text format."""
+        error_string = 'raw_text must be a Sequence of strings'
         if not isinstance(raw_text, collections.abc.Sequence):
-            raise DeepchecksValueError('raw_text must be a sequence')
+            raise DeepchecksValueError(error_string)
         if not all(isinstance(x, str) for x in raw_text):
-            raise DeepchecksValueError('raw_text must be a Sequence of strings')
+            raise DeepchecksValueError(error_string)
 
-    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str]):
+    @staticmethod
+    def _validate_tokenized_text(tokenized_text: t.Sequence[t.Sequence[str]]):
+        """Validate tokenized text format."""
+        error_string = 'tokenized_text must be a Sequence of sequences of strings'
+        if not isinstance(tokenized_text, collections.abc.Sequence):
+            raise DeepchecksValueError(error_string)
+        if not all(isinstance(x, collections.abc.Sequence) for x in tokenized_text):
+            raise DeepchecksValueError(error_string)
+        if not all(isinstance(x, str) for tokens in tokenized_text for x in tokens):
+            raise DeepchecksValueError(error_string)
+
+    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str],
+                                tokenized_text: t.Sequence[t.Sequence[str]]):
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
         self._has_label = True
@@ -130,7 +163,7 @@ class TextData:
             self._has_label = False
             label = [None] * len(raw_text)
 
-        if not isinstance(label, collections.abc.Sequence):
+        if not isinstance(label, collections.abc.Sequence) or isinstance(label, str):
             raise DeepchecksValueError('label must be a Sequence')
 
         if not len(label) == len(raw_text):
@@ -150,37 +183,37 @@ class TextData:
                                            'of strings or ints (for multilabel classification)')
 
         if self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            token_class_error = 'label must be a Sequence of Sequences of (str, int, int) tuples, where the string' \
-                                ' is the token label, the first int is the start of the token span in the' \
-                                ' raw text and the second int is the end of the token span.'
+            token_class_error = 'label must be a Sequence of Sequences of either strings or integers'
             if not all(isinstance(x, collections.abc.Sequence) for x in label):
                 raise DeepchecksValueError(token_class_error)
 
-            for sample_label in label:
-                if not all(len(x) == 3 for x in sample_label):
+            for i in range(len(label)):  # TODO: Runs on all labels, very costly
+                if not (all(isinstance(x, str) for x in label[i]) or all(isinstance(x, int) for x in label[i])):
                     raise DeepchecksValueError(token_class_error)
-                if not all(
-                        isinstance(x[0], str) and isinstance(x[1], int) and isinstance(x[2], int) for x in sample_label
-                ):
-                    raise DeepchecksValueError(token_class_error)
-                if not all(x[1] < x[2] for x in sample_label):
-                    raise DeepchecksValueError('Check requires token classification labels to have '
-                                               'token span start before span end')
+                if not len(label[i]) == len(tokenized_text[i]):
+                    raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
+                                               f'However, for sample index {self.index[i]} of length '
+                                               f'{len(tokenized_text[i])} received label of length {len(label[i])}')
 
         self._label = label
 
-    def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None, label: t.Optional[TTextLabel] = None,
+    def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None,
+             tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
+             label: t.Optional[TTextLabel] = None,
              index: t.Optional[t.Sequence[int]] = None) -> TDataset:
         """Create a copy of this Dataset with new data."""
         cls = type(self)
         if raw_text is None:
             raw_text = self.text
+        if tokenized_text is None:
+            tokenized_text = self.tokenized_text
         if label is None:
             label = self.label
         if index is None:
             index = self.index
         get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
-        new_copy = cls(raw_text, label, self._task_type.value, self.name, index)
+        new_copy = cls(raw_text=raw_text, tokenized_text=tokenized_text, label=label, task_type=self._task_type.value,
+                       dataset_name=self.name, index=index)
         get_logger().disabled = False
         return new_copy
 
@@ -212,11 +245,14 @@ class TextData:
         np.random.seed(random_state)
         sample_idx = np.random.choice(samples, n_samples, replace=replace)
         if len(sample_idx) > 1:
-            data_to_sample = {'raw_text': list(itemgetter(*sample_idx)(self._text)),
-                              'label': list(itemgetter(*sample_idx)(self._label)),
-                              'index': sample_idx}
+            data_to_sample = {
+                'raw_text': list(itemgetter(*sample_idx)(self._text)),
+                'tokenized_text': list(itemgetter(*sample_idx)(self._tokenized_text)) if self._tokenized_text else None,
+                'label': list(itemgetter(*sample_idx)(self._label)),
+                'index': sample_idx}
         else:
             data_to_sample = {'raw_text': [self._text[sample_idx[0]]],
+                              'tokenized_text': [self._tokenized_text[sample_idx[0]]] if self._tokenized_text else None,
                               'label': [self._label[sample_idx[0]]],
                               'index': sample_idx}
         return self.copy(**data_to_sample)
@@ -257,6 +293,17 @@ class TextData:
            Sequence of raw text samples.
         """
         return self._text
+
+    @property
+    def tokenized_text(self) -> t.Sequence[t.Sequence[str]]:
+        """Return sequence of tokenized text samples.
+
+        Returns
+        -------
+        t.Sequence[t.Sequence[str]]
+           Sequence of tokenized text samples.
+        """
+        return self._tokenized_text
 
     @property
     def label(self) -> TTextLabel:

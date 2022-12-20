@@ -46,3 +46,4 @@ beautifulsoup4>=4.11.1
 
 # NLP
 nltk<=3.6.7
+datasets

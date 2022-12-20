@@ -16,29 +16,30 @@ import pytest
 from deepchecks.nlp.text_data import TextData
 from nltk.corpus import movie_reviews
 from nltk import download as nltk_download
+from datasets import load_dataset
 
 
 @pytest.fixture(scope='session')
 def text_classification_dataset_mock():
     """Mock for a text classification dataset"""
-    return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
-                    [0, 0, 1],
+    return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
+                    label=[0, 0, 1],
                     task_type='text_classification')
 
 
 @pytest.fixture(scope='session')
 def text_classification_string_class_dataset_mock():
     """Mock for a text classification dataset with string labels"""
-    return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
-                    ['wise', 'meh', 'meh'],
+    return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
+                    label=['wise', 'meh', 'meh'],
                     task_type='text_classification')
 
 
 @pytest.fixture(scope='session')
 def text_multilabel_classification_dataset_mock():
     """Mock for a multilabel text classification dataset"""
-    return TextData(['I think therefore I am', 'I am therefore I think', 'I am'],
-                    [[0, 0, 1], [1, 1, 0], [0, 1, 0]],
+    return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
+                    label=[[0, 0, 1], [1, 1, 0], [0, 1, 0]],
                     task_type='text_classification')
 
 
@@ -83,7 +84,20 @@ def movie_reviews_data_negative():
 @pytest.fixture(scope='session')
 def text_token_classification_dataset_mock():
     """Mock for a token classification dataset"""
-    return TextData(['Mary had a little lamb', 'Mary lives in London and Paris',
+    return TextData(raw_text=['Mary had a little lamb', 'Mary lives in London and Paris',
                      'How much wood can a wood chuck chuck?'],
-                    [[('B-PER', 0, 4)], [('B-PER', 0, 4), ('B-GEO', 14, 20), ('B-GEO', 25, 30)], []],
+                    label=[['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
+                     ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']],
                     task_type='token_classification')
+
+@pytest.fixture(scope='session')
+def wikiann():
+    """Wikiann dataset for token classification"""
+    dataset = load_dataset('wikiann', name='en', split='train')
+
+    data = list([' '.join(l.as_py()) for l in dataset.data['tokens']]) #pylint: disable=consider-using-generator
+    ner_tags = dataset.data['ner_tags']
+    ner_to_iob_dict = {0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC', 6: 'I-LOC'}
+    ner_tags_translated = [[ner_to_iob_dict[ner_tag] for ner_tag in ner_tag_list.as_py()] for ner_tag_list in ner_tags]
+
+    return TextData(raw_text=data, label=ner_tags_translated, task_type='token_classification')

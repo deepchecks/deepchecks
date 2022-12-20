@@ -19,7 +19,7 @@ from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
-from deepchecks.nlp.metric_utils.token_classification import (SpanAligner, get_default_token_scorers, get_scorer_dict,
+from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
@@ -172,8 +172,8 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_prediction(dataset: TextData, prediction: TTextPred, n_classes: int):
         """Validate prediction for given dataset."""
-        if not isinstance(prediction, collections.abc.Sequence):
-            ValidationError(f'Check requires predictions for {dataset.name} to be a sequence')
+        if not isinstance(prediction, collections.abc.Sequence) or isinstance(prediction, str):
+            raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence')
         if len(prediction) != dataset.n_samples:
             raise ValidationError(f'Check requires predictions for {dataset.name} to have '
                                   f'{dataset.n_samples} rows, same as dataset')
@@ -213,24 +213,17 @@ class _DummyModel(BasicModel):
     def _validate_token_classification_prediction(dataset: TextData, prediction: TTextPred):
         """Validate prediction for given token classification dataset."""
         if not all(isinstance(pred, collections.abc.Sequence) for pred in prediction):
-            raise ValidationError(f'Check requires token classification for {dataset.name} to be a sequence '
+            raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence '
                                   f'of sequences')
-        for sample_pred in prediction:
-            for token_pred in sample_pred:
-                if len(token_pred) != 4:
-                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                          f'4 entries')
-                if not isinstance(token_pred[1], int) or not isinstance(token_pred[2], int):
-                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                          f'int indices representing the start and end of the token at the second'
-                                          f' and third entry in the token prediction tuples')
-                if not token_pred[1] < token_pred[2]:
-                    raise ValidationError(f'Check requires token classification predictions for {dataset.name} to have '
-                                          f'token span start before span end')
-                if not isinstance(token_pred[3], float) or (token_pred[3] < 0. or token_pred[3] > 1.):
-                    raise ValidationError(f'Check requires token classification for {dataset.name} to have '
-                                          f'probabilities between 0 and 1, at the fourth entry in the token '
-                                          f'prediction tuples')
+
+        for i in range(len(prediction)):  # TODO: Goes over all predictions, fix this
+            if not all(isinstance(pred, str) for pred in prediction[i]) \
+                    and not all(isinstance(pred, int) for pred in prediction[i]):
+                raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence '
+                                      f'of sequences of strings or integers')
+            if len(prediction[i]) != len(dataset.tokenized_text[i]):
+                raise ValidationError(f'Check requires predictions for {dataset.name} to have '
+                                      f'the same number of tokens as the input text')
 
     @staticmethod
     def _validate_proba(dataset: TextData, probabilities: TTextProba, n_classes: int,
@@ -336,7 +329,8 @@ class Context(BaseContext):
 
         self._observed_classes, self._model_classes = \
             infer_observed_and_model_labels(train_dataset=train_dataset, test_dataset=test_dataset,
-                                            model_classes=model_classes)
+                                            model=None, y_pred_train=train_pred, y_pred_test=test_pred,
+                                            model_classes=model_classes, task_type=self.task_type)
 
         if any(x is not None for x in (train_pred, test_pred, train_proba, test_proba)):
             self._model = _DummyModel(train=train_dataset, test=test_dataset,
@@ -355,9 +349,6 @@ class Context(BaseContext):
 
         self._validated_model = False
         self._with_display = with_display
-
-        # Init a span aligner object for the run
-        self._span_aligner = SpanAligner()
 
     @property
     def model(self) -> _DummyModel:
@@ -385,11 +376,6 @@ class Context(BaseContext):
     def observed_classes(self) -> t.List:
         """Return the observed classes in both train and test."""
         return self._observed_classes
-
-    @property
-    def span_aligner(self) -> SpanAligner:
-        """Return the cached SpanAligner object."""
-        return self._span_aligner
 
     @staticmethod
     def infer_task_type(train_dataset: TextData, test_dataset: TextData):
@@ -431,8 +417,7 @@ class Context(BaseContext):
 
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
-                    use_avg_defaults=True,
-                    span_aligner: t.Optional[SpanAligner] = None) -> t.List[DeepcheckScorer]:
+                    use_avg_defaults=True) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers in a given priority.
 
         If receive `scorers` use them,
@@ -447,8 +432,6 @@ class Context(BaseContext):
         use_avg_defaults : bool, default: True
             If no scorers were provided, for classification, determines whether to use default scorers that return
             an averaged metric, or default scorers that return a metric per class.
-        span_aligner: t.Optional[SpanAligner], default: None
-            A SpanAligner object for processing the raw token classification annotations to the seqeval accepted format
         Returns
         -------
         List[DeepcheckScorer]
@@ -460,11 +443,11 @@ class Context(BaseContext):
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
         elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            scoring_dict = get_scorer_dict(span_aligner)
+            scoring_dict = get_scorer_dict()
             if scorers is None:
                 scorers = get_default_token_scorers(use_avg_defaults)  # Get string names of default scorers
             else:
-                validate_scorers(scorers, span_aligner)  # Validate that use supplied scorer names are OK
+                validate_scorers(scorers)  # Validate that use supplied scorer names are OK
             scorers = {name: scoring_dict[name] for name in scorers}
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
