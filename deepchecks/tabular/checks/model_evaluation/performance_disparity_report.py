@@ -322,6 +322,30 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
         return self.add_condition(f'Performance differences are bounded between {lower_bound} and {upper_bound}.',
                                   bounded_performance_difference_condition)
+    
+    def add_condition_bounded_relative_performance_difference(self, lower_bound, upper_bound=np.Inf):
+        """Add condition - require relative performance difference between baselines and subgroups to be within the given bounds.
+
+        Parameters
+        ----------
+        lower_bound : float
+            Lower bound on (score - baseline)/baseline. 
+        upper_bound : float, default: Infinity
+            Upper bound on (score - baseline)/baseline. Infinite by default (large scores do no trigger the condition).
+        """
+        def bounded_performance_difference_condition(scores_df: pd.DataFrame) -> ConditionResult:
+            differences = scores_df["_score"] - scores_df["_baseline"]
+            I_zero = scores_df["_baseline"] == 0
+            differences[I_zero] = differences * np.Inf
+            differences[~I_zero] = differences[~I_zero]/scores_df["_baseline"][~I_zero]
+            I = (differences < lower_bound) | (differences > upper_bound)
+
+            details = f'Found {sum(I)} subgroups with relative performance differences outside of the given bounds.'
+            category = ConditionCategory.PASS if sum(I) == 0 else ConditionCategory.FAIL
+            return ConditionResult(category, details)
+
+        return self.add_condition(f'Relative performance differences are bounded between {lower_bound} and {upper_bound}.',
+                                  bounded_performance_difference_condition)
 
 
 def expand_grid(**kwargs):
