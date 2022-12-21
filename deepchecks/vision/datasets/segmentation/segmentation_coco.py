@@ -19,8 +19,8 @@ import albumentations as A
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
-from PIL import Image, ImageDraw
 from albumentations.pytorch.transforms import ToTensorV2
+from PIL import Image, ImageDraw
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset

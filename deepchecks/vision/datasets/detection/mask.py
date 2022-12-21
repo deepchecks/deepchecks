@@ -25,8 +25,8 @@ from pathlib import Path
 
 import numpy as np
 import torch
-from PIL import Image
 from bs4 import BeautifulSoup
+from PIL import Image
 from torch import nn
 from torch.utils.data import DataLoader
 from torchvision.datasets import VisionDataset
