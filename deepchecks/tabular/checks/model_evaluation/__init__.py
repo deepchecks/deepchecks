@@ -44,5 +44,5 @@ __all__ = [
     'WeakSegmentsPerformance',
     'UnusedFeatures',
     'SingleDatasetPerformance',
-    "PerformanceDisparityReport"
+    'PerformanceDisparityReport'
 ]

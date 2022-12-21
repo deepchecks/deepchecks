@@ -1,0 +1,118 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Tests for weak segment performance check."""
+import numpy as np
+import pandas as pd
+from hamcrest import assert_that, close_to, equal_to, has_items, has_length, calling, raises, any_of
+from sklearn.metrics import f1_score, make_scorer
+
+from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks.tabular.checks.model_evaluation import PerformanceDisparityReport
+from tests.base.utils import equal_condition_result
+
+def test_no_error(adult_split_dataset_and_model, avocado_split_dataset_and_model):
+    # Arrange
+    tasks = [
+        (
+            *adult_split_dataset_and_model, 
+            ["sex", "age"], 
+            ["education", "capital-gain"]
+        ),
+        (
+            *avocado_split_dataset_and_model, 
+            ["type", "year"], 
+            ["region", "day"]
+        ),
+    ]
+    def run_task(train, test, model, protected_feat_to_test, control_feat_to_test):
+        train = train.sample()
+        test = test.sample()
+
+        for feat1 in protected_feat_to_test:
+            check = PerformanceDisparityReport(protected_feature=feat1)
+            check.run(test, model)
+
+            for feat2 in control_feat_to_test:
+                check = PerformanceDisparityReport(protected_feature=feat1, control_feature=feat2)
+                check.run(test, model)
+
+    # Act
+    for task in tasks:
+        run_task(*task)
+
+    # Assert
+    pass # no error
+
+
+def test_run_value_error(adult_split_dataset_and_model):
+    # Arrange
+    _, test, model = adult_split_dataset_and_model
+    check = PerformanceDisparityReport(protected_feature="sex")
+    check_invalid1 = PerformanceDisparityReport(protected_feature="invalid_feature")
+    check_invalid2 = PerformanceDisparityReport(protected_feature="sex", control_feature="invalid_feature")
+    check_invalid3 = PerformanceDisparityReport(protected_feature="sex", control_feature="sex")
+
+    # Act & Assert
+    assert_that(
+        calling(check.run).with_args("invalid_data"), 
+        raises(DeepchecksValueError, r'non-empty instance of Dataset or DataFrame was expected, instead got str')
+    )
+    assert_that(
+        calling(check.run).with_args(test), 
+        raises(DeepchecksNotSupportedError, r'Check is irrelevant for Datasets without model')
+    )
+    assert_that(
+        calling(check_invalid1.run).with_args(test, model), 
+        raises(DeepchecksValueError, r'Feature invalid_feature not found in dataset.')
+    )
+    assert_that(
+        calling(check_invalid2.run).with_args(test, model), 
+        raises(DeepchecksValueError, r'Feature invalid_feature not found in dataset.')
+    )
+    assert_that(
+        calling(check_invalid3.run).with_args(test, model), 
+        raises(DeepchecksValueError, r'protected_feature sex and control_feature sex are the same.')
+    )
+
+
+def test_condition_fail(adult_split_dataset_and_model):
+    # Arrange
+    _, test, model = adult_split_dataset_and_model
+    check = PerformanceDisparityReport("sex")
+    check.add_condition_bounded_performance_difference(lower_bound=-0.03)
+    
+    # Act
+    result = check.run(test, model)
+    condition_result = result.conditions_results
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name='Performance differences are bounded between -0.03 and inf.',
+        details='Found 1 subgroups with performance differences outside of the given bounds.'
+    ))
+
+def test_condition_pass(adult_split_dataset_and_model):
+    # Arrange
+    _, test, model = adult_split_dataset_and_model
+    check = PerformanceDisparityReport("sex")
+    check.add_condition_bounded_performance_difference(lower_bound=-0.04)
+    
+    # Act
+    result = check.run(test, model)
+    condition_result = result.conditions_results
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        name='Performance differences are bounded between -0.04 and inf.',
+        details='Found 0 subgroups with performance differences outside of the given bounds.'
+    ))
