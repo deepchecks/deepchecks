@@ -687,7 +687,7 @@ def test_set_label_type(iris):
     # Arrange
     label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_type='regression_label')
+    dataset = Dataset(data, label, label_type='regression')
     # Assert
     assert_that(dataset.label_type.value, equal_to('regression'))
 

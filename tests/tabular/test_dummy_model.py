@@ -8,10 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import pandas as pd
 from hamcrest import assert_that, calling, has_items, raises, close_to
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.condition import ConditionCategory
@@ -21,7 +18,6 @@ from deepchecks.tabular.checks import SingleDatasetPerformance
 from deepchecks.tabular.checks.model_evaluation.regression_error_distribution import RegressionErrorDistribution
 from deepchecks.tabular.checks.model_evaluation.roc_report import RocReport
 from deepchecks.tabular.checks.model_evaluation.simple_model_comparison import SimpleModelComparison
-from deepchecks.tabular.checks.model_evaluation.unused_features import UnusedFeatures
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.suites.default_suites import full_suite
@@ -187,7 +183,7 @@ def test_bad_pred_shape(diabetes_split_dataset_and_model):
     # Act
     assert_that(
         calling(RegressionErrorDistribution().run)
-            .with_args(dataset=test, y_pred_train=y_pred_train),
+            .with_args(dataset=test, y_pred=y_pred_train),
         raises(
             ValidationError,
             r'Prediction array expected to be of same length as data 146, but was: 296')
@@ -202,7 +198,7 @@ def test_bad_pred_proba(iris_labeled_dataset, iris_adaboost):
     # Act
     assert_that(
         calling(RocReport().run)
-            .with_args(dataset=iris_labeled_dataset, y_pred_train=y_pred_train, y_proba_train=y_proba_train),
+            .with_args(dataset=iris_labeled_dataset, y_pred=y_pred_train, y_proba=y_proba_train),
         raises(
             ValidationError,
             r'Prediction probabilities expected to be of length 150 but was: 149')
@@ -228,7 +224,7 @@ def test_predict_using_proba(iris_binary_string_split_dataset_and_model):
 
     check = SingleDatasetPerformance(scorers=['f1_per_class'])
 
-    proba_result = check.run(train, y_proba_train=y_proba_train)
-    pred_result = check.run(train, y_pred_train=y_pred_train)
+    proba_result = check.run(train, y_proba=y_proba_train)
+    pred_result = check.run(train, y_pred=y_pred_train)
 
     assert_that(proba_result.value.iloc[0, -1], close_to(pred_result.value.iloc[0, -1], 0.001))
