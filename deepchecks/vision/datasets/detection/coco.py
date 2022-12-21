@@ -34,7 +34,9 @@ from deepchecks.vision import DetectionData
 __all__ = ['load_dataset', 'load_model', 'COCOData', 'CocoDataset']
 
 
+_MODEL_URL = 'https://figshare.com/ndownloader/files/38619935'
 DATA_DIR = Path(__file__).absolute().parent
+LOCAL_MODEL_PATH = DATA_DIR / 'yolov5s.pt'
 
 
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
@@ -42,10 +44,12 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     dev = torch.device(device) if isinstance(device, str) else device
     logger = logging.getLogger('yolov5')
     logger.disabled = True
-    model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
-                           pretrained=pretrained,
-                           verbose=False,
-                           device=dev)
+    if pretrained:
+        if not os.path.exists(LOCAL_MODEL_PATH):
+            torch.hub.download_url_to_file(_MODEL_URL, str(LOCAL_MODEL_PATH))
+        model = torch.hub.load('ultralytics/yolov5:v6.1', 'custom', path=LOCAL_MODEL_PATH, device=dev)
+    else:
+        model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s', pretrained=False, verbose=False, device=dev)
     model.eval()
     logger.disabled = False
     return model
