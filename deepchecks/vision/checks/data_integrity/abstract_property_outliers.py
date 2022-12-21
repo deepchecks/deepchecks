@@ -175,7 +175,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         # Create display
         if context.with_display:
             display = []
-            no_outliers = pd.Series([])
+            no_outliers = pd.Series([], dtype='object')
             for property_name, info in result.items():
                 # If info is string it means there was error
                 if isinstance(info, str):

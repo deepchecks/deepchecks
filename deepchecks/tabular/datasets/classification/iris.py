@@ -121,8 +121,8 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         test = pd.read_csv(_TEST_DATA_URL)
 
         if data_format == 'Dataset':
-            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES, label_type='classification_label')
-            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES, label_type='classification_label')
+            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES, label_type='multiclass')
+            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES, label_type='multiclass')
 
         return train, test
 

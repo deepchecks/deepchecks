@@ -389,9 +389,9 @@ def test_detection_data():
     device = None
     detection_data = DetectionData(coco_dataset)
     assert_that(calling(detection_data.batch_to_labels).with_args(batch),
-                raises(DeepchecksNotImplementedError, 'batch_to_labels\(\) must be implemented in a subclass'))
+                raises(DeepchecksNotImplementedError, r'batch_to_labels\(\) must be implemented in a subclass'))
     assert_that(calling(detection_data.infer_on_batch).with_args(batch, model, device),
-                raises(DeepchecksNotImplementedError, 'infer_on_batch\(\) must be implemented in a subclass'))
+                raises(DeepchecksNotImplementedError, r'infer_on_batch\(\) must be implemented in a subclass'))
 
 
 def test_detection_data_bad_implementation():
@@ -429,7 +429,7 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_label).with_args([torch.Tensor([[1, 2], [1, 2]])]),
                 raises(ValidationError,
                        'Check requires object detection label to be a list of 2D tensors, when '
-                       'each row has 5 columns: \[class_id, x, y, width, height\]'))
+                       r'each row has 5 columns: \[class_id, x, y, width, height\]'))
 
     assert_that(calling(detection_data.validate_prediction).with_args(7, None, None),
                 raises(ValidationError,
@@ -444,7 +444,7 @@ def test_detection_data_bad_implementation():
     assert_that(calling(detection_data.validate_prediction).with_args([torch.Tensor([[1, 2], [1, 2]])], None, None),
                 raises(ValidationError,
                        'Check requires detection predictions to be a sequence of 2D tensors, when '
-                       'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
+                       r'each row has 6 columns: \[x, y, width, height, class_probability, class_id\]'))
 
 
 def test_segmentation_data():
@@ -454,9 +454,9 @@ def test_segmentation_data():
     device = None
     segmentation_data = SegmentationData(coco_dataset)
     assert_that(calling(segmentation_data.batch_to_labels).with_args(batch),
-                raises(DeepchecksNotImplementedError, 'batch_to_labels\(\) must be implemented in a subclass'))
+                raises(DeepchecksNotImplementedError, r'batch_to_labels\(\) must be implemented in a subclass'))
     assert_that(calling(segmentation_data.infer_on_batch).with_args(batch, model, device),
-                raises(DeepchecksNotImplementedError, 'infer_on_batch\(\) must be implemented in a subclass'))
+                raises(DeepchecksNotImplementedError, r'infer_on_batch\(\) must be implemented in a subclass'))
 
 
 def test_segmentation_data_bad_implementation():
