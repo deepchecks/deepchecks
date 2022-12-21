@@ -11,9 +11,9 @@
 """Module representing the MNIST dataset."""
 import logging
 import pathlib
+import pickle
 import typing as t
 import warnings
-from typing import Iterable, List, Union
 
 import albumentations as A
 import numpy as np
@@ -25,36 +25,34 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from typing_extensions import Literal
 
-from deepchecks.vision.classification_data import ClassificationData
-from deepchecks.vision.utils.transformations import un_normalize_batch
+from deepchecks.vision.utils.test_utils import get_data_loader_sequential, hash_image, un_normalize_batch
+from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
-__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST', 'MNISTData']
+__all__ = ['load_dataset', 'load_model', 'MNistNet', 'MNIST']
 
-
-MODELS_DIR = pathlib.Path(__file__).absolute().parent / 'models'
+MNIST_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'mnist'
+MODEL_PATH = MNIST_DIR / 'mnist_model.pth'
 
 LOGGER = logging.getLogger(__name__)
-MODULE_DIR = pathlib.Path(__file__).absolute().parent
-DATA_PATH = MODULE_DIR / 'MNIST'
-MODEL_PATH = MODELS_DIR / 'mnist.pth'
 
 
 def load_dataset(
-    train: bool = True,
-    batch_size: t.Optional[int] = None,
-    shuffle: bool = True,
-    pin_memory: bool = True,
-    object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
-) -> t.Union[DataLoader, ClassificationData]:
+        train: bool = True,
+        batch_size: t.Optional[int] = None,
+        shuffle: bool = False,
+        pin_memory: bool = True,
+        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
+        n_samples=None,
+) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
     Parameters
     ----------
-    train : bool, default True
+    train : bool, default : True
         Train or Test dataset
     batch_size: int, optional
         how many samples per batch to load
-    shuffle : bool, default ``True``
+    shuffle : bool , default : False
         to reshuffled data at every epoch or not
     pin_memory : bool, default ``True``
         If ``True``, the data loader will copy Tensors
@@ -62,6 +60,9 @@ def load_dataset(
     object_type : Literal[Dataset, DataLoader], default 'DataLoader'
         object type to return. if `'VisionData'` then :obj:`deepchecks.vision.VisionData`
         will be returned, if `'DataLoader'` then :obj:`torch.utils.data.DataLoader`
+    n_samples : int, optional
+        Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle
+        is False otherwise selects n_samples at random. If None, returns all samples.
 
     Returns
     -------
@@ -76,55 +77,56 @@ def load_dataset(
 
     mean = (0.1307,)
     std = (0.3081,)
-    loader = DataLoader(
-        MNIST(
-            str(MODULE_DIR),
-            train=train,
-            download=True,
-            transform=A.Compose([
-                A.Normalize(mean, std),
-                ToTensorV2(),
-            ]),
-        ),
-        batch_size=batch_size,
-        shuffle=shuffle,
-        pin_memory=pin_memory,
-        generator=torch.Generator()
-    )
+    dataset = MNIST(str(MNIST_DIR), train=train, download=True,
+                    transform=A.Compose([A.Normalize(mean, std), ToTensorV2(), ]), )
 
     if object_type == 'DataLoader':
-        return loader
+        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, pin_memory=pin_memory,
+                          generator=torch.Generator())
     elif object_type == 'VisionData':
-        return MNISTData(loader, num_classes=len(datasets.MNIST.classes), transform_field='transform')
+        model = load_model()
+        loader = DataLoader(dataset, batch_size=batch_size, pin_memory=pin_memory,
+                            generator=torch.Generator(), collate_fn=deepchecks_collate(model))
+        loader = get_data_loader_sequential(loader, shuffle, n_samples)
+        return VisionData(loader, task_type='classification', shuffle_batch_loader=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
 
-class MNISTData(ClassificationData):
-    """Class for loading MNIST dataset, inherits from :obj:`deepchecks.vision.classification_data.ClassificationData`.
+def collate_without_model(data) -> t.Tuple[t.List[np.ndarray], t.List[int]]:
+    """Collate function for the mnist dataset returning images and labels in correct format as tuple."""
+    raw_images = torch.stack([x[0] for x in data])
+    labels = [x[1] for x in data]
+    images = raw_images.permute(0, 2, 3, 1)
+    images = un_normalize_batch(images, mean=(0.1307,), std=(0.3081,))
+    return images, labels
 
-    Implement the necessary methods for the :obj:`deepchecks.vision.classification_data.ClassificationData` interface.
+
+def deepchecks_collate(model) -> t.Callable:
+    """Process batch to deepchecks format.
+
+    Parameters
+    ----------
+    model
+        model to predict with
+    Returns
+    -------
+    BatchOutputFormat
+        batch of data in deepchecks format
     """
 
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
-        """Convert a batch of mnist data to labels."""
-        return batch[1]
+    def _process_batch_to_deepchecks_format(data) -> BatchOutputFormat:
+        raw_images = torch.stack([x[0] for x in data])
+        labels = [x[1] for x in data]
+        predictions = model(raw_images)
+        images = raw_images.permute(0, 2, 3, 1)
+        images = un_normalize_batch(images, mean=(0.1307,), std=(0.3081,))
+        return {'images': images, 'labels': labels, 'predictions': predictions}
 
-    def infer_on_batch(self, batch, model, device) -> Union[List[torch.Tensor], torch.Tensor]:
-        """Infer on a batch of mnist data."""
-        preds = model.to(device)(batch[0].to(device))
-        return nn.Softmax(dim=1)(preds)
-
-    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
-        """Convert a batch of mnist data to images."""
-        mean = (0.1307,)
-        std = (0.3081,)
-        tensor = batch[0]
-        tensor = tensor.permute(0, 2, 3, 1)
-        return un_normalize_batch(tensor, mean, std)
+    return _process_batch_to_deepchecks_format
 
 
-def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet':
+def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockMnist':
     """Load MNIST model.
 
     Returns
@@ -141,7 +143,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
         model = MNistNet()
         model.load_state_dict(torch.load(path))
         model.eval()
-        return model
+        return MockMnist(model)
 
     model = MNistNet()
 
@@ -150,7 +152,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
 
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters())
-    epochs = 5
+    epochs = 3
 
     model.train()
 
@@ -179,7 +181,28 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MNistNet'
 
     torch.save(model.state_dict(), path)
     model.eval()
-    return model
+    return MockMnist(model)
+
+
+class MockMnist:
+    """Class of MNIST model that returns cached predictions."""
+
+    def __init__(self, real_model):
+        self.real_model = real_model
+        with open(MNIST_DIR / 'static_predictions.pickle', 'rb') as handle:
+            predictions = pickle.load(handle)
+        self.cache = {key: torch.tensor(value) for key, value in predictions.items()}
+
+    def __call__(self, batch):
+        results = []
+        for img in batch:
+            hash_key = hash_image(img)
+            if hash_key not in self.cache:
+                prediction = self.real_model(torch.stack([img]))[0]
+                prediction = nn.Softmax()(prediction).detach()
+                self.cache[hash_key] = prediction
+            results.append(self.cache[hash_key])
+        return torch.stack(results)
 
 
 class MNIST(datasets.MNIST):

@@ -14,8 +14,8 @@ from hamcrest import assert_that, calling, instance_of, is_, raises
 from torch.utils.data import DataLoader
 
 from deepchecks import vision
-from deepchecks.vision.datasets.detection.coco import (DATA_DIR, CocoDataset, download_coco128_from_ultralytics,
-                                                       load_dataset)
+from deepchecks.vision.datasets.detection.coco import (CocoDataset, download_coco128_from_ultralytics, load_dataset,
+                                                       COCO_DIR)
 
 
 def patch_side_effect(*args, **kwargs):
@@ -27,10 +27,10 @@ def load_dataset_test(mock_download_and_extract_archive):
         assert_that(loader, instance_of(DataLoader))
         assert_that(loader.dataset, instance_of(CocoDataset))
         assert_that(loader.dataset.train is True)
-        assert_that((DATA_DIR / 'coco128' / 'images').exists())
-        assert_that((DATA_DIR / 'coco128' / 'labels').exists())
+        assert_that((COCO_DIR / 'coco128' / 'images').exists())
+        assert_that((COCO_DIR / 'coco128' / 'labels').exists())
 
-    if not (DATA_DIR / 'coco128').exists():
+    if not (COCO_DIR / 'coco128').exists():
         loader = load_dataset(train=True, object_type='DataLoader')
         verify(loader)
         mock_download_and_extract_archive.reset_mock()

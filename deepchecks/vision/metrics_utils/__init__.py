@@ -14,11 +14,10 @@ from .confusion_matrix_counts_metrics import AVAILABLE_EVALUATING_FUNCTIONS
 from .custom_scorer import CustomClassificationScorer
 from .detection_precision_recall import AveragePrecisionRecall, ObjectDetectionAveragePrecision
 from .detection_tp_fp_fn_calc import ObjectDetectionTpFpFn, TpFpFn
-from .scorers import calculate_metrics, get_scorers_dict, metric_results_to_df
+from .scorers import get_scorers_dict, metric_results_to_df
 
 __all__ = [
     'get_scorers_dict',
-    'calculate_metrics',
     'metric_results_to_df',
     'ObjectDetectionAveragePrecision',
     'AveragePrecisionRecall',

@@ -21,10 +21,11 @@ from tests.conftest import *
 
 class DummyCheck(TrainTestCheck):
 
-    def __init__(self, param1=1, param2=2):
+    def __init__(self, param1=1, param2=2, n_samples=None):
         super().__init__()
         self.param1 = param1
         self.param2 = param2
+        self.n_samples = n_samples
 
     def run_logic(self, context):
         return CheckResult(context)
@@ -147,13 +148,13 @@ def test_params():
     # Arrange
     default_check = DummyCheck()
     parameter_check = DummyCheck(param2=5)
-    all_param_check = DummyCheck(8, 9)
+    all_param_check = DummyCheck(8, 9, 10)
 
     # Assert
     assert_that(default_check.params(), equal_to({}))
     assert_that(parameter_check.params(), equal_to({'param2': 5}))
-    assert_that(all_param_check.params(), equal_to({'param1': 8, 'param2': 9}))
-    assert_that(default_check.params(show_defaults=True), equal_to({'param1': 1, 'param2': 2}))
+    assert_that(all_param_check.params(), equal_to({'param1': 8, 'param2': 9, 'n_samples': 10}))
+    assert_that(default_check.params(show_defaults=True), equal_to({'param1': 1, 'param2': 2, 'n_samples': None}))
 
 
 def test_config():
@@ -163,7 +164,7 @@ def test_config():
         'module_name': f'{DummyCheck.__module__}',
         'class_name': 'DummyCheck',
         'version': __version__,
-        'params': {'param1': 1, 'param2': 5},
+        'params': {'param1': 1, 'param2': 5, 'n_samples': None},
     }))
 
     assert_that(BaseCheck.from_config(check), instance_of(DummyCheck))

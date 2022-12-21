@@ -18,13 +18,14 @@ import pandas as pd
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
-from deepchecks.core.errors import ModelValidationError
-from deepchecks.utils.dataframes import is_float_column
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import Batch, Context, SingleDatasetCheck
-from deepchecks.vision.task_type import TaskType
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['PropertyLabelCorrelation']
 
@@ -35,6 +36,7 @@ pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 PLC = TypeVar('PLC', bound='PropertyLabelCorrelation')
 
 
+@docstrings
 class PropertyLabelCorrelation(SingleDatasetCheck):
     """
     Return the Predictive Power Score of image properties, in order to estimate their ability to predict the label.
@@ -69,37 +71,38 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
-    random_state: int, default: None
-        Random state for the ppscore.predictors function
     min_pps_to_show: float, default 0.05
             Minimum PPS to show a class in the graph
     ppscore_params: dict, default: None
         dictionary of additional parameters for the ppscore predictor function
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
             self,
             image_properties: Optional[List[Dict[str, Any]]] = None,
             n_top_properties: int = 3,
-            random_state: int = None,
             min_pps_to_show: float = 0.05,
             ppscore_params: dict = None,
             **kwargs
     ):
         super().__init__(**kwargs)
-
         self.image_properties = image_properties if image_properties else default_image_properties
 
         self.min_pps_to_show = min_pps_to_show
         self.n_top_properties = n_top_properties
-        self.random_state = random_state
         self.ppscore_params = ppscore_params or {}
         self._properties_results = defaultdict(list)
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def initialize_run(self, context: Context, dataset_kind: DatasetKind):
+        """Initialize run."""
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
+
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
+        vision_data = context.get_data_by_kind(dataset_kind)
         data_for_properties, target = calc_properties_for_property_label_correlation(
-            context, batch, dataset_kind, self.image_properties)
+            vision_data.task_type, batch, self.image_properties)
 
         self._properties_results['target'] += target
 
@@ -115,24 +118,12 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             value: dictionaries of PPS values.
             display: bar graph of the PPS of each feature.
         """
+        vision_data = context.get_data_by_kind(dataset_kind)
         df_props = pd.DataFrame(self._properties_results)
-
-        # PPS task type is inferred from label dtype. For most computer vision tasks, it's safe to assume that unless
-        # the label is a float, then the task type is not regression and thus the label is cast to object dtype.
-        # For the known task types (object detection, classification), classification is always selected.
-
-        col_dtype = 'object'
-        if context.train.task_type == TaskType.OTHER:
-            if is_float_column(df_props['target']):
-                col_dtype = 'float'
-        elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION):
-            raise ModelValidationError(
-                f'Check must be explicitly adopted to the new task type {context.train.task_type}, so that the '
-                f'label type used by the PPS predictor would be appropriate.')
-
-        df_props['target'] = df_props['target'].astype(col_dtype)
-
-        df_pps = pps.predictors(df=df_props, y='target', random_seed=self.random_state,
+        # PPS task type is inferred from label dtype. For supported task types (object detection, classification),
+        # the label should be regarded as categorical thus it is cast to object dtype.
+        df_props['target'] = df_props['target'].apply(vision_data.label_id_to_name).astype('object')
+        df_pps = pps.predictors(df=df_props, y='target', random_seed=context.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
 
@@ -173,6 +164,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         -------
         FLC
         """
+
         def condition(value: Dict[Hashable, float]) -> ConditionResult:
             failed_props = {
                 prop_name: format_number(pps_value)

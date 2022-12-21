@@ -17,13 +17,17 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['ImageDatasetDrift']
 
 
+@docstrings
 class ImageDatasetDrift(TrainTestCheck):
     """Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
 
@@ -71,6 +75,7 @@ class ImageDatasetDrift(TrainTestCheck):
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
     min_meaningful_drift_score : float , default 0.05
         Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -101,7 +106,7 @@ class ImageDatasetDrift(TrainTestCheck):
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
             properties_results = self._train_properties

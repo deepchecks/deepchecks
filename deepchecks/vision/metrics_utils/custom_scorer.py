@@ -13,13 +13,13 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.metric_utils import DeepcheckScorer
+from deepchecks.vision.vision_data.utils import is_torch_object
 
 
 class CustomClassificationScorer(Metric):
@@ -71,12 +71,11 @@ class CustomClassificationScorer(Metric):
     def update(self, output):
         """Update metric with batch of samples."""
         y_proba, y = output
-
-        if isinstance(y_proba, torch.Tensor):
+        if is_torch_object(y_proba):
             y_proba = y_proba.cpu().detach().numpy()
         else:
             y_proba = np.array(y_proba)
-        if isinstance(y, torch.Tensor):
+        if is_torch_object(y):
             y = y.cpu().detach().numpy()
         else:
             y = np.array(y)

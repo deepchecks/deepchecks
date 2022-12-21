@@ -14,13 +14,13 @@ from hamcrest import assert_that, calling, instance_of, raises
 from torch.utils.data import DataLoader
 
 from deepchecks.vision import VisionData
-from deepchecks.vision.datasets.classification.mnist import DATA_PATH, MODEL_PATH, MNistNet, load_dataset, load_model
+from deepchecks.vision.datasets.classification.mnist import MNIST_DIR, MODEL_PATH, MNistNet, load_dataset, load_model
 
 
 def test_dataset_load():
     dataloader = load_dataset(object_type="DataLoader")
     assert_that(dataloader, instance_of(DataLoader))
-    assert_that(DATA_PATH.exists() and DATA_PATH.is_dir())
+    assert_that(MNIST_DIR.exists() and MNIST_DIR.is_dir())
     assert_that(dataloader.dataset._check_exists() is True)
 
 
@@ -40,13 +40,13 @@ def test__load_dataset__func_with_unknow_object_type_parameter():
 def test_pretrained_model_load():
     if MODEL_PATH.exists():
         start = time.time()
-        model = load_model()
+        model = load_model().real_model
         end = time.time()
         assert_that((end - start) < 1, "Saved model was not used!")
         assert_that(model.training is False)
         assert_that(model, instance_of(MNistNet))
     else:
-        model = load_model()
+        model = load_model().real_model
         assert_that(model.training is False)
         assert_that(model, instance_of(MNistNet))
         assert_that(MODEL_PATH.exists() and MODEL_PATH.is_file())

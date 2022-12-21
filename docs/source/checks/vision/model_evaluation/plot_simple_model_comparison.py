@@ -63,7 +63,7 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 # -------------
 # We will run the check with the prior model type. The check will use the default
 # classification metrics - precision and recall. This can be overridden by
-# providing an alternative scorer using the ``alternative_metrics``` parameter.
+# providing an alternative scorer using the ``scorers``` parameter.
 
 check = SimpleModelComparison(strategy='stratified')
 result = check.run(train_ds, test_ds, mnist_model)

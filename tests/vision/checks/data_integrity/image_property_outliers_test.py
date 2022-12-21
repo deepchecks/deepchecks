@@ -8,18 +8,16 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import random
-
-from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, greater_than,
-                      has_entries, has_key, has_length, has_properties, instance_of, is_, raises)
-from hamcrest.core.matcher import Matcher
 
 import numpy as np
+from hamcrest import (all_of, any_of, assert_that, calling, close_to, equal_to, has_entries, has_key, has_length,
+                      has_properties, instance_of, is_, raises)
+from hamcrest.core.matcher import Matcher
+
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import ImagePropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
-from tests.vision.vision_conftest import *
 
 
 def is_correct_image_property_outliers_result(with_display: bool = True) -> Matcher:
@@ -47,9 +45,9 @@ def is_correct_image_property_outliers_result(with_display: bool = True) -> Matc
     )
 
 
-def test_image_property_outliers_check_coco(coco_train_visiondata, device):
+def test_image_property_outliers_check_coco(coco_visiondata_train):
     # Act
-    result = ImagePropertyOutliers().run(coco_train_visiondata, device=device)
+    result = ImagePropertyOutliers().run(coco_visiondata_train)
 
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
@@ -65,9 +63,9 @@ def test_image_property_outliers_check_coco(coco_train_visiondata, device):
     }))
 
 
-def test_image_property_outliers_check_coco_without_display(coco_train_visiondata, device):
+def test_image_property_outliers_check_coco_without_display(coco_visiondata_train):
     # Act
-    result = ImagePropertyOutliers().run(coco_train_visiondata, device=device, with_display=False)
+    result = ImagePropertyOutliers().run(coco_visiondata_train, with_display=False)
 
     # Assert
     assert_that(result, is_correct_image_property_outliers_result(with_display=False))
@@ -83,17 +81,17 @@ def test_image_property_outliers_check_coco_without_display(coco_train_visiondat
     }))
 
 
-def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
+def test_image_property_outliers_check_mnist(mnist_visiondata_train):
     # Act
-    result = ImagePropertyOutliers().run(mnist_dataset_train, device=device, n_samples=None)
+    result = ImagePropertyOutliers().run(mnist_visiondata_train)
 
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
     assert_that(result.value, has_entries({
         'Brightness': has_entries({
-            'outliers_identifiers': has_length(609),
-            'lower_limit': close_to(6.45, .01),
-            'upper_limit': close_to(62.37, .01)
+            'outliers_identifiers': has_length(5),
+            'lower_limit': close_to(11.87, .01),
+            'upper_limit': close_to(57.15, .01)
         }),
         'Mean Red Relative Intensity': instance_of(str),
         'Mean Green Relative Intensity': instance_of(str),
@@ -101,26 +99,25 @@ def test_image_property_outliers_check_mnist(mnist_dataset_train, device):
     }))
 
 
-def test_run_on_data_with_only_images(mnist_train_only_images, device):
+def test_run_on_data_with_only_images(mnist_train_only_images):
     # Act - Assert check runs without exception
-    result = ImagePropertyOutliers().run(mnist_train_only_images, device=device, n_samples=None)
+    result = ImagePropertyOutliers().run(mnist_train_only_images)
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
 
 
-def test_run_on_custom_task(mnist_train_custom_task, device):
+def test_run_on_custom_task(mnist_train_custom_task):
     # Act - Assert check runs without exception
-    result = ImagePropertyOutliers().run(mnist_train_custom_task, device=device, n_samples=None)
+    result = ImagePropertyOutliers().run(mnist_train_custom_task)
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
 
 
-def test_not_enough_samples_for_iqr(mnist_dataset_train, device):
+def test_not_enough_samples_for_iqr(mnist_train_very_small):
     # Arrange
-    five_samples_mnist = mnist_dataset_train.copy(n_samples=5, random_state=0)
     check = ImagePropertyOutliers()
     # Act
-    result = check.run(five_samples_mnist, device=device)
+    result = check.run(mnist_train_very_small)
     # Assert
     assert_that(result, is_correct_image_property_outliers_result())
     assert_that(result.value, has_entries({
@@ -128,10 +125,11 @@ def test_not_enough_samples_for_iqr(mnist_dataset_train, device):
     }))
 
 
-def test_string_property_exception(mnist_dataset_train, device):
+def test_string_property_exception(mnist_visiondata_train):
     # Arrange
     def string_property(images):
         return ['test'] * len(images)
+
     image_properties = [{
         'name': 'test',
         'method': string_property,
@@ -139,15 +137,16 @@ def test_string_property_exception(mnist_dataset_train, device):
     }]
     check = ImagePropertyOutliers(image_properties=image_properties)
     # Act - Assert check raise exception
-    assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
+    assert_that(calling(check.run).with_args(mnist_visiondata_train),
                 raises(DeepchecksProcessError, 'For outliers, properties are expected to be only numeric types but '
                                                'found non-numeric value for property test'))
 
 
-def test_incorrect_properties_count_exception(mnist_dataset_train, device):
+def test_incorrect_properties_count_exception(mnist_visiondata_train):
     # Arrange
     def too_many_property(images):
         return ['test'] * (len(images) + 1)
+
     image_properties = [{
         'name': 'test',
         'method': too_many_property,
@@ -155,15 +154,16 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
     }]
     check = ImagePropertyOutliers(image_properties=image_properties)
     # Act - Assert check raise exception
-    assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
+    assert_that(calling(check.run).with_args(mnist_visiondata_train),
                 raises(DeepchecksProcessError, 'Properties are expected to return value per image but instead got 65 '
                                                'values for 64 images for property test'))
 
 
-def test_property_with_nones(mnist_dataset_train, device):
+def test_property_with_nones(mnist_visiondata_train):
     # Arrange
     def property_with_none(images):
         return np.random.choice([1, None], len(images))
+
     image_properties = [{
         'name': 'test',
         'method': property_with_none,
@@ -171,7 +171,7 @@ def test_property_with_nones(mnist_dataset_train, device):
     }]
     check = ImagePropertyOutliers(image_properties=image_properties)
     # Act
-    result = check.run(mnist_dataset_train, device=device)
+    result = check.run(mnist_visiondata_train)
     assert_that(result.value, has_entries({
         'test': has_entries({
             'outliers_identifiers': has_length(0),

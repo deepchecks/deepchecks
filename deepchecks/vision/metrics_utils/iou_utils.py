@@ -12,7 +12,6 @@
 from collections import defaultdict
 
 import numpy as np
-import torch
 
 
 def jaccard_iou(dt: np.array, gt: np.array):
@@ -59,21 +58,17 @@ def compute_pairwise_ious(detected, ground_truth, iou_func):
     return ious
 
 
-def group_class_detection_label(detected, ground_truth):
+def group_class_detection_label(detected: np.ndarray, ground_truth: np.ndarray):
     """Group bounding detection and labels by class."""
     class_bounding_boxes = defaultdict(lambda: {"detected": [], "ground_truth": []})
-
     for single_detection in detected:
-        class_id = untorchify(single_detection[5])
-        class_bounding_boxes[class_id]["detected"].append(single_detection.cpu().detach().numpy())
+        class_bounding_boxes[single_detection[5]]["detected"].append(single_detection)
     for single_ground_truth in ground_truth:
-        class_id = untorchify(single_ground_truth[0])
-        class_bounding_boxes[class_id]["ground_truth"].append(single_ground_truth.cpu().detach().numpy())
-
+        class_bounding_boxes[single_ground_truth[0]]["ground_truth"].append(single_ground_truth)
     return class_bounding_boxes
 
 
-def compute_bounding_box_class_ious(detected, ground_truth):
+def compute_bounding_box_class_ious(detected: np.ndarray, ground_truth: np.ndarray):
     """Compute ious between bounding boxes of the same class."""
     bb_info = group_class_detection_label(detected, ground_truth)
 
@@ -82,7 +77,7 @@ def compute_bounding_box_class_ious(detected, ground_truth):
             for class_id, info in bb_info.items()}
 
 
-def per_sample_mean_iou(predictions, labels):
+def per_sample_mean_iou(predictions: np.ndarray, labels: np.ndarray):
     """Calculate mean iou for a single sample."""
     mean_ious = []
     for detected, ground_truth in zip(predictions, labels):
@@ -112,10 +107,3 @@ def per_sample_mean_iou(predictions, labels):
             mean_ious.append(0)
 
     return mean_ious
-
-
-def untorchify(item):
-    """If item is torch tensor do `.item()` else return item itself."""
-    if isinstance(item, torch.Tensor):
-        return item.cpu().item()
-    return item

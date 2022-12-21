@@ -12,6 +12,7 @@
 import typing as t
 
 from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
 from deepchecks.vision.utils import label_prediction_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
@@ -20,6 +21,7 @@ from deepchecks.vision.vision_data import TaskType, VisionData
 __all__ = ['LabelPropertyOutliers']
 
 
+@docstrings
 class LabelPropertyOutliers(AbstractPropertyOutliers):
     """Find outliers labels with respect to the given properties.
 
@@ -47,6 +49,7 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
         Two percentiles which define the IQR range
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(self,

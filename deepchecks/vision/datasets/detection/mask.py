@@ -18,10 +18,10 @@ import contextlib
 import hashlib
 import json
 import os
+import pathlib
 import typing as t
 import urllib.request
 from pathlib import Path
-from typing import Iterable, List
 
 import numpy as np
 import torch
@@ -34,14 +34,13 @@ from torchvision.datasets.utils import download_and_extract_archive
 from torchvision.transforms import transforms
 from typing_extensions import Literal
 
-from deepchecks import vision
-from deepchecks.vision import DetectionData
-from deepchecks.vision.vision_data import IndicesSequentialSampler
+from deepchecks.vision.utils.test_utils import IndicesSequentialSampler
+from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
-__all__ = ['load_dataset', 'load_model', 'MaskData', 'MaskDataset', 'get_data_timestamps']
+__all__ = ['load_dataset', 'load_model', 'MaskDataset', 'get_data_timestamps']
 
-
-DATA_DIR = Path(__file__).absolute().parent
+MASK_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'mask_detection'
+MODEL_PATH = MASK_DIR / 'mnist_model.pth'
 
 
 class MaskPrecalculatedModel(nn.Module):
@@ -50,7 +49,7 @@ class MaskPrecalculatedModel(nn.Module):
     def __init__(self, device: t.Union[str, torch.device] = 'cpu'):
         super().__init__()
         self._pred_dict_url = 'https://ndownloader.figshare.com/files/38116641'
-        pred_dict_path = os.path.join(DATA_DIR, 'pred_dict.json')
+        pred_dict_path = os.path.join(MASK_DIR, 'pred_dict.json')
         urllib.request.urlretrieve(self._pred_dict_url, pred_dict_path)
         with open(pred_dict_path, 'r', encoding='utf8') as f:
             self._pred_dict = json.load(f)
@@ -74,27 +73,32 @@ def load_model(device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
     return MaskPrecalculatedModel(device=dev)
 
 
-class MaskData(DetectionData):
-    """Class for loading the mask dataset, inherits from :class:`~deepchecks.vision.DetectionData`.
+def deepchecks_collate(model) -> t.Callable:
+    """Process batch to deepchecks format.
 
-    Implement the necessary methods to load the dataset.
+    Parameters
+    ----------
+    model : nn.Module
+        model to predict with
+    Returns
+    -------
+    BatchOutputFormat
+        batch of data in deepchecks format
     """
 
-    def batch_to_labels(self, batch) -> List[torch.Tensor]:
-        """Convert the batch to a list of labels."""
+    def _process_batch_to_deepchecks_format(data) -> BatchOutputFormat:
+        raw_images = [x[0] for x in data]
+        images = [np.array(x.permute(1, 2, 0)) * 255 for x in raw_images]
 
         def extract_dict(in_dict):
             return torch.concat([in_dict['labels'].reshape((-1, 1)), in_dict['boxes']], axis=1)
 
-        return [extract_dict(tensor) for tensor in batch[1]]
+        labels = [extract_dict(x[1]) for x in data]
 
-    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
-        """Convert the batch to a list of images."""
-        return [np.array(x.permute(1, 2, 0)) * 255 for x in batch[0]]
+        predictions = model(raw_images)
+        return {'images': images, 'labels': labels, 'predictions': predictions}
 
-    def infer_on_batch(self, batch, model, device: t.Union[str, torch.device] = 'cpu') -> List[torch.Tensor]:
-        """Infer on a batch using the given model."""
-        return model(batch[0])
+    return _process_batch_to_deepchecks_format
 
 
 def _batch_collate(batch):
@@ -105,10 +109,10 @@ def load_dataset(
         day_index: int = 0,
         batch_size: int = 32,
         num_workers: int = 0,
-        shuffle: bool = True,
         pin_memory: bool = True,
+        shuffle: bool = False,
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader'
-) -> t.Union[DataLoader, vision.VisionData]:
+) -> t.Union[DataLoader, VisionData]:
     """Get the mask dataset and return a dataloader.
 
     Parameters
@@ -120,7 +124,7 @@ def load_dataset(
         Batch size for the dataloader.
     num_workers : int, default: 0
         Number of workers for the dataloader.
-    shuffle : bool, default: True
+    shuffle : bool, default: False
         Whether to shuffle the dataset.
     pin_memory : bool, default: True
         If ``True``, the data loader will copy Tensors
@@ -135,42 +139,29 @@ def load_dataset(
 
         A DataLoader or VisionDataset instance representing mask dataset
     """
-    root = DATA_DIR
-    mask_dir = MaskDataset.download_mask(root)
-    time_to_sample_dict = MaskDataset.get_time_to_sample_dict(root)
+    mask_dir = MaskDataset.download_mask(MASK_DIR)
+    time_to_sample_dict = MaskDataset.get_time_to_sample_dict(MASK_DIR)
     if not isinstance(day_index, int) or day_index < 0 or day_index > 59:
         raise ValueError('day_index must be an integer between 0 and 59')
     time = list(time_to_sample_dict.keys())[day_index]
     samples_to_use = time_to_sample_dict[time]
-
     if shuffle:
         sampler = torch.utils.data.SubsetRandomSampler(samples_to_use, generator=torch.Generator())
     else:
         sampler = IndicesSequentialSampler(samples_to_use)
 
-    dataloader = DataLoader(
-        dataset=MaskDataset(
-            mask_dir=str(mask_dir),
-            transform=transforms.Compose([
-                transforms.ToTensor(),
-            ])
-        ),
-        sampler=sampler,
-        batch_size=batch_size,
-        num_workers=num_workers,
-        collate_fn=_batch_collate,
-        pin_memory=pin_memory,
-    )
-
+    dataset = MaskDataset(mask_dir=str(mask_dir), transform=transforms.Compose([transforms.ToTensor(), ]))
     if object_type == 'DataLoader':
-        return dataloader
+        if shuffle:
+            sampler = torch.utils.data.SubsetRandomSampler(samples_to_use, generator=torch.Generator())
+        return DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=_batch_collate,
+                          pin_memory=pin_memory, sampler=sampler)
     elif object_type == 'VisionData':
-        return MaskData(
-            data_loader=dataloader,
-            num_classes=3,
-            label_map=LABEL_MAP,
-            dataset_name=f'Mask Dataset at time {time}',
-        )
+        model = load_model()
+        dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, sampler=sampler,
+                                collate_fn=deepchecks_collate(model), pin_memory=pin_memory)
+        return VisionData(dataloader, task_type='object_detection', shuffle_batch_loader=False,
+                          label_map=LABEL_MAP, dataset_name=f'Mask Dataset at time {time}')
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
@@ -256,9 +247,6 @@ class MaskDataset(VisionDataset):
         img_path = Path(os.path.join(mask_dir, 'images'))
         label_path = Path(os.path.join(mask_dir, 'annotations'))
 
-        if not (root.exists() and root.is_dir()):
-            raise RuntimeError(f'root path does not exist or is not a dir - {root}')
-
         if img_path.exists() and label_path.exists():
             return mask_dir
 
@@ -298,7 +286,7 @@ def get_data_timestamps() -> t.List[int]:
     t.List[int]
         A list of the data timestamps.
     """
-    return list(map(int, MaskDataset.get_time_to_sample_dict(DATA_DIR).keys()))
+    return list(map(int, MaskDataset.get_time_to_sample_dict(MASK_DIR).keys()))
 
 
 LABEL_MAP = {2: 'Improperly Worn Mask',
