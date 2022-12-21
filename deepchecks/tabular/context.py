@@ -222,7 +222,7 @@ class Context:
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
         self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
-            model, train, test, model_classes)
+            model, train, test, y_pred_train, y_pred_test, model_classes)
 
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
@@ -277,7 +277,7 @@ class Context:
     @property
     def model_classes(self) -> t.List:
         """Return ordered list of possible label classes for classification tasks or None for regression."""
-        if self._model_classes is None and self.task_type != TaskType.REGRESSION:
+        if self._model_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
             # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
             self._model_classes = self._observed_classes
             get_logger().warning('Could not find model\'s classes, using the observed classes')

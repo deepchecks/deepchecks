@@ -32,7 +32,7 @@ def test_check_full_suite_init_before(iris_split_dataset_and_model):
 def test_check_full_suite_deticated_false(iris_split_dataset_and_model):
     train, test, model = iris_split_dataset_and_model
     suite_res = full_suite().run(train, test, model)
-    suite_res.to_wandb(dedicated_run=False)
+    suite_res.to_wandb()
     assert_that(wandb.run, not_none())
     wandb.finish()
     assert_that(wandb.run, equal_to(None))
