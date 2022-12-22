@@ -93,8 +93,8 @@ class _DummyModel(BasicModel):
         if train is not None and test is not None:
             # check if datasets have same indexes
             if set(train.index) & set(test.index):
-                train.index = map(lambda x: f'train-{x}', list(train.index))
-                test.index = map(lambda x: f'test-{x}', list(test.index))
+                train.index = list(map(lambda x: f'train-{x}', list(train.index)))
+                test.index = list(map(lambda x: f'test-{x}', list(test.index)))
                 get_logger().warning('train and test datasets have common index - adding "train"/"test"'
                                      ' prefixes. To avoid that provide datasets with no common indexes '
                                      'or pass the model object instead of the predictions.')
