@@ -1,9 +1,10 @@
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
-from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind
 from deepchecks.utils.typing import Hashable
+from typing import Union, Dict, Callable
 from deepchecks.utils.performance.partition import partition_column
 
 import plotly.graph_objects as go
@@ -18,19 +19,30 @@ class PerformanceDisparityReport(SingleDatasetCheck):
     """
     Check for performance disparities across subgroups, while optionally accounting for a control variable.
 
-    The check identifies "performance disparities": large performance difference for a subgroup compared to the baseline performance for the full population.
+    The check identifies "performance disparities": large performance difference for a subgroup compared
+    to the baseline performance for the full population.
 
-    Subgroups are defined by the levels of a "protected" feature. Numerical features are first binned into quantiles, while categorical features are preserved as-is. The baseline score is the overall score when all subgroups are combined. You can add conditions to flag performance differences outside of given bounds. A visual display is also provided to identify subgroups with the largest performance disparities.
+    Subgroups are defined by the levels of a "protected" feature. Numerical features are first binned
+    into quantiles, while categorical features are preserved as-is. The baseline score is the overall
+    score when all subgroups are combined. You can add conditions to flag performance differences outside
+    of given bounds. A visual display is also provided to identify subgroups with the largest performance
+    disparities.
 
-    Additionally, the analysis may be separated across the levels of a "control" feature. Numerical features are binned and categorical features are re-binned into `max_number` categories. To account for the control feature, baseline scores and subgroup scores are be computed within each of its levels.
+    Additionally, the analysis may be separated across the levels of a "control" feature. Numerical
+    features are binned and categorical features are re-binned into `max_number` categories. To account
+    for the control feature, baseline scores and subgroup scores are be computed within each of its levels.
 
     Parameters
     ----------
     protected_feature : Hashable
-        Feature evaluated for performance disparities. Numerical features are binned into `max_segments` quantiles. Categorical features are not transformed.
+        Feature evaluated for performance disparities. Numerical features are binned into `max_segments`
+        quantiles. Categorical features are not transformed.
     control_feature : Hashable, default: None
-        Feature used to group data prior to evaluating performance disparities (disparities are only assessed within the groups defined by this feature). Numerical features are binned into `max_segments` quantiles. Categorical features are re-grouped into at most `max_segments` groups if necessary.
-    scorer : str, default: None
+        Feature used to group data prior to evaluating performance disparities (disparities are only
+        assessed within the groups defined by this feature). Numerical features are binned into
+        `max_segments` quantiles. Categorical features are re-grouped into at most `max_segments`
+        groups if necessary.
+    scorer : str or Dict[str, Callable], default: None
         Name of the performance score function to use.
     max_segments : int, default: 10
         Maximum number of segments into which `control_feature` is binned.
@@ -41,7 +53,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
     max_categories_to_display: int, default: 3
         Maximum number of `control_feature` categories to display.
     use_avg_defaults : bool, default: True
-        If no scorer was provided, determines whether to return an average score (if True) or a score per class (if False).
+        If no scorer was provided, determines whether to return an average score (if True) or a
+        score per class (if False).
     n_samples : int, default: 1_000_000
         Number of samples from the dataset to use.
     random_state : int, default: 42
@@ -52,7 +65,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         self,
         protected_feature: Hashable,
         control_feature: Hashable = None,
-        scorer: str = None,  # TODO: Question: should we allow for Callable or DeepCheckScorer?
+        scorer: Union[str, Dict[str, Callable]] = None,
         max_segments: int = 10,
         min_subgroup_size: int = 5,
         max_subgroups_per_category_to_display: int = 3,
@@ -103,30 +116,35 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            value is a dataframe with performance scores for within each subgroup defined by `feature` and average scores across these subgroups. If `control_feature` was provided, then performance scores are further disaggregated by the gruops defined by this feature.
+            value is a dataframe with performance scores for within each subgroup defined by
+            `feature` and average scores across these subgroups. If `control_feature` was
+            provided, then performance scores are further disaggregated by the gruops defined
+            by this feature.
             display is a Figure showing the subgroups with the largest performance disparities.
         """
         model = context.model
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
-        if self.scorer is not None:
+        if isinstance(self.scorer, str):
             scorer = context.get_single_scorer({self.scorer: self.scorer}, use_avg_defaults=self.use_avg_defaults)
         else:
-            scorer = context.get_single_scorer(use_avg_defaults=self.use_avg_defaults)
+            scorer = context.get_single_scorer(self.scorer, use_avg_defaults=self.use_avg_defaults)
 
-        self.validate_run_arguments(dataset.data, model, scorer)
+        self.validate_run_arguments(dataset.data)
 
         partitions = self.make_partitions(dataset)
 
-        scores_df = self.make_scores_df(model, dataset, scorer, partitions, context.model_classes)
+        scores_df = self.make_scores_df(
+            model=model, dataset=dataset, scorer=scorer, partitions=partitions, model_classes=context.model_classes
+        )
 
         if context.with_display:
-            fig = self.make_largest_difference_figure(scores_df)
+            fig = self.make_largest_difference_figure(scores_df, scorer)
         else:
             fig = None
 
         return CheckResult(value=scores_df, display=fig)
 
-    def validate_run_arguments(self, data, model, scorer):
+    def validate_run_arguments(self, data):
         """
         Validate arguments passed to `run_logic` method.
         """
@@ -137,7 +155,10 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             raise DeepchecksValueError(f"Feature {self.control_feature} not found in dataset.")
 
         if self.control_feature is not None and self.control_feature == self.protected_feature:
-            raise DeepchecksValueError(f"protected_feature {self.control_feature} and control_feature {self.protected_feature} are the same.")
+            raise DeepchecksValueError(
+                f"protected_feature {self.control_feature} and \
+                    control_feature {self.protected_feature} are the same."
+            )
 
     def make_partitions(self, dataset):
         """
@@ -160,7 +181,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
     def make_scores_df(self, model, dataset, scorer, partitions, model_classes):
         """
-        Computes performance scores disaggregated by `feature` and `control_feature` levels, and averaged over `feature` for each `control_feature` level. Also computes subgroup size.
+        Computes performance scores disaggregated by `feature` and `control_feature` levels,
+        and averaged over `feature` for each `control_feature` level. Also computes subgroup size.
         """
         classwise = is_classwise(scorer, model, dataset)
 
@@ -175,14 +197,14 @@ class PerformanceDisparityReport(SingleDatasetCheck):
                 else:
                     return np.nan
             return scorer(model, dataset.copy(data))
+
         def apply_scorer(x):
             return score(x["_dataset"], model, x["_scorer"])
 
         scores_df["_score"] = scores_df.apply(apply_scorer, axis=1)
         if self.control_feature is not None:
             control_scores = {
-                x.label: score(x.filter(dataset.data), model, scorer) 
-                for x in scores_df[self.control_feature].unique()
+                x.label: score(x.filter(dataset.data), model, scorer) for x in scores_df[self.control_feature].unique()
             }
             control_count = {x.label: len(x.filter(dataset.data)) for x in scores_df[self.control_feature].unique()}
             scores_df["_baseline"] = scores_df.apply(lambda x: control_scores[x[self.control_feature].label], axis=1)
@@ -197,7 +219,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         scores_df["_scorer"] = scores_df.apply(lambda x: x["_scorer"].name, axis=1)
         scores_df["_count"] = scores_df.apply(lambda x: len(x["_dataset"]), axis=1)
         for col_name in partitions.keys():
-            scores_df[col_name] = scores_df.apply(lambda x: x[col_name].label, axis=1)
+            scores_df[col_name] = scores_df.apply(lambda x, col_name=col_name: x[col_name].label, axis=1)
 
         scores_df.drop(labels=["_dataset"], axis=1, inplace=True)
         if classwise:
@@ -208,7 +230,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
         scores_df["_score"] = scores_df["_score"].astype(float)
         scores_df["_baseline"] = scores_df["_baseline"].astype(float)
-        
+
         scores_df["_diff"] = scores_df["_score"] - scores_df["_baseline"]
         scores_df.sort_values("_diff", inplace=True)
 
@@ -242,17 +264,20 @@ class PerformanceDisparityReport(SingleDatasetCheck):
                     cliponaxis=False,
                 ),
                 row=row,
-                col=1,
+                col=col,
             )
 
-    def make_largest_difference_figure(self, scores_df: pd.DataFrame):
+    def make_largest_difference_figure(self, scores_df: pd.DataFrame, scorer: DeepcheckScorer):
         """
         Create "largest performance disparity" figure.
 
         Parameters
         ----------
         scores_df : DataFrame
-            Dataframe of performance scores, as returned by `make_scores_df()`, disaggregated by feature and control_feature, and with average scores for each control_feature level. Columns named after `feature` and (optionally) `control_feature` are expected, as well as columns named "_scorer", "_score", "_baseline", and "_count".
+            Dataframe of performance scores, as returned by `make_scores_df()`, disaggregated by
+            feature and control_feature, and with average scores for each control_feature level.
+            Columns named after `feature` and (optionally) `control_feature` are expected, as
+            well as columns named "_scorer", "_score", "_baseline", and "_count".
 
         Returns
         -------
@@ -288,9 +313,9 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         if has_control:
             subplot_titles += f"{self.control_feature}=" + subplots_categories[self.control_feature]
         if has_control and has_model_classes:
-            subplot_titles += f", model_class=" + subplots_categories["_class"]
+            subplot_titles += ", model_class=" + subplots_categories["_class"]
         if has_model_classes and not has_control:
-            subplot_titles = f"model_class=" + subplots_categories["_class"]
+            subplot_titles = "model_class=" + subplots_categories["_class"]
 
         fig = make_subplots(
             rows=rows,
@@ -305,11 +330,11 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             for _, cat in subplots_categories.iterrows():
                 i += 1
                 if has_control and not has_model_classes:
-                    I = visual_df[self.control_feature] == cat[self.control_feature]
+                    subset_i = visual_df[self.control_feature] == cat[self.control_feature]
                 elif has_model_classes and not has_control:
-                    I = visual_df["_class"] == cat["_class"]
+                    subset_i = visual_df["_class"] == cat["_class"]
                 elif has_control and has_model_classes:
-                    I = (visual_df[self.control_feature] == cat[self.control_feature]) & (
+                    subset_i = (visual_df[self.control_feature] == cat[self.control_feature]) & (
                         visual_df["_class"] == cat["_class"]
                     )
                 else:
@@ -317,12 +342,12 @@ class PerformanceDisparityReport(SingleDatasetCheck):
                         "Cannot use subplot categories without control_feature or model classes."
                     )
 
-                sub_visual_df = visual_df[I]
+                sub_visual_df = visual_df[subset_i]
                 self._add_differences_traces(sub_visual_df, fig, row=i, col=1)
         else:
             self._add_differences_traces(visual_df, fig, row=1, col=1)
 
-        title = f"Largest performance differences"
+        title = "Largest performance differences"
         if has_control and not has_model_classes:
             title += f" within {self.control_feature} categories"
         elif has_model_classes and not has_control:
@@ -348,7 +373,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
         fig.update_layout(title_text=title)
         fig.update_annotations(x=0, xanchor="left", font_size=12)
-        fig.update_layout({f"xaxis{rows}_title": f"{self.scorer} score"})
+        fig.update_layout({f"xaxis{rows}_title": f"{scorer.name} score"})
         fig.update_layout({f"yaxis{i}_title": self.protected_feature for i in range(1, rows + 1)})
         fig.update_layout({f"yaxis{i}_tickmode": "linear" for i in range(1, rows + 1)})
 
@@ -357,22 +382,24 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         return fig
 
     def add_condition_bounded_performance_difference(self, lower_bound, upper_bound=np.Inf):
-        """Add condition - require performance difference between baseline and subgroups to be between the given bounds.
+        """Add condition - require performance difference between baseline and subgroups to be
+        between the given bounds.
 
         Parameters
         ----------
         lower_bound : float
             Lower bound on (score - baseline).
         upper_bound : float, default: Infinity
-            Upper bound on (score - baseline). Infinite by default (large scores do no trigger the condition).
+            Upper bound on (score - baseline). Infinite by default (large scores do not
+            trigger the condition).
         """
 
         def bounded_performance_difference_condition(scores_df: pd.DataFrame) -> ConditionResult:
             differences = scores_df["_score"] - scores_df["_baseline"]
-            I = (differences < lower_bound) | (differences > upper_bound)
+            fail_i = (differences < lower_bound) | (differences > upper_bound)
 
-            details = f"Found {sum(I)} subgroups with performance differences outside of the given bounds."
-            category = ConditionCategory.PASS if sum(I) == 0 else ConditionCategory.FAIL
+            details = f"Found {sum(fail_i)} subgroups with performance differences outside of the given bounds."
+            category = ConditionCategory.PASS if sum(fail_i) == 0 else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
         return self.add_condition(
@@ -383,7 +410,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
 def expand_grid(**kwargs):
     """
-    Create a dataframe with one column for each named argument and rows corresponding to all possible combinations of the given arguments.
+    Create a dataframe with one column for each named argument and rows corresponding to all
+    possible combinations of the given arguments.
     """
     return pd.DataFrame.from_records(itertools.product(*kwargs.values()), columns=kwargs.keys())
 
@@ -395,7 +423,8 @@ def combine_filters(filters, dataframe):
     Parameters
     ----------
     filters: Series
-        Series indexed by segment names and with values corresponding to segment filters to be applied to the data.
+        Series indexed by segment names and with values corresponding to segment filters to
+        be applied to the data.
     dataframe: DataFrame
         DataFrame to which filters are applied.
 
