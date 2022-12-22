@@ -243,18 +243,18 @@ class TextData:
         n_samples = min(n_samples, len(samples))
 
         np.random.seed(random_state)
-        sample_idx = np.random.choice(samples, n_samples, replace=replace)
+        sample_idx = np.random.choice(range(len(samples)), n_samples, replace=replace)
         if len(sample_idx) > 1:
             data_to_sample = {
                 'raw_text': list(itemgetter(*sample_idx)(self._text)),
                 'tokenized_text': list(itemgetter(*sample_idx)(self._tokenized_text)) if self._tokenized_text else None,
                 'label': list(itemgetter(*sample_idx)(self._label)),
-                'index': sample_idx}
+                'index': [self.index[i] for i in sample_idx]}
         else:
             data_to_sample = {'raw_text': [self._text[sample_idx[0]]],
                               'tokenized_text': [self._tokenized_text[sample_idx[0]]] if self._tokenized_text else None,
                               'label': [self._label[sample_idx[0]]],
-                              'index': sample_idx}
+                              'index': self.index[sample_idx]}
         return self.copy(**data_to_sample)
 
     @property

@@ -144,11 +144,11 @@ class KeywordFrequencyDrift(TrainTestCheck):
         def condition(value) -> ConditionResult:
             drift_score = value['drift_score']
             if drift_score < threshold:
-                details = f'The drift score {format_number(drift_score)} is less than the threshold ' \
+                details = f'Found drift score {format_number(drift_score)} under threshold ' \
                           f'{format_number(threshold)}'
                 return ConditionResult(ConditionCategory.PASS, details)
             else:
-                details = f'The drift score {format_number(drift_score)} is not less than the threshold ' \
+                details = f'Found drift score {format_number(drift_score)} above threshold ' \
                           f'{format_number(threshold)}'
                 return ConditionResult(ConditionCategory.FAIL, details)
         return self.add_condition(f'Drift Score is Less Than {format_number(threshold)}', condition)

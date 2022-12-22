@@ -42,11 +42,11 @@ def test_drift_score_condition(movie_reviews_data_positive, movie_reviews_data_n
         .run(movie_reviews_data_positive, movie_reviews_data_negative)
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
-        details='The drift score 0.44 is not less than the threshold 0.3',
+        details='Found drift score 0.44 above threshold 0.3',
         name='Drift Score is Less Than 0.3'))
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=True,
-        details='The drift score 0.44 is less than the threshold 0.8',
+        details='Found drift score 0.44 under threshold 0.8',
         name='Drift Score is Less Than 0.8'))
 
 
