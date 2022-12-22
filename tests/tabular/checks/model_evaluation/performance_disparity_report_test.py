@@ -11,10 +11,11 @@
 """Tests for weak segment performance check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, has_items, has_length, calling, raises, any_of
+from hamcrest import assert_that, close_to, equal_to, has_items, has_length, calling, raises, any_of, all_of, has_property, has_properties
 from sklearn.metrics import f1_score, make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
+from deepchecks import ConditionCategory
 from deepchecks.tabular.checks.model_evaluation import PerformanceDisparityReport
 from tests.base.utils import equal_condition_result
 
@@ -29,7 +30,7 @@ def test_no_error(adult_split_dataset_and_model, avocado_split_dataset_and_model
         (
             *avocado_split_dataset_and_model, 
             ["type", "year"], 
-            ["region", "day"]
+            ["region", "Total Bags"]
         ),
     ]
     def run_task(train, test, model, protected_feat_to_test, control_feat_to_test):
@@ -88,31 +89,49 @@ def test_condition_fail(adult_split_dataset_and_model):
     _, test, model = adult_split_dataset_and_model
     check = PerformanceDisparityReport("sex")
     check.add_condition_bounded_performance_difference(lower_bound=-0.03)
-    
+    check2 = PerformanceDisparityReport("sex")
+    check2.add_condition_bounded_relative_performance_difference(lower_bound=-0.04)
+
     # Act
     result = check.run(test, model)
     condition_result = result.conditions_results
+    result2 = check2.run(test, model)
+    condition_result2 = result2.conditions_results
 
     # Assert
-    assert_that(condition_result, equal_condition_result(
-        is_pass=False,
-        name='Performance differences are bounded between -0.03 and inf.',
-        details='Found 1 subgroups with performance differences outside of the given bounds.'
-    ))
+    assert_that(condition_result, has_items(has_properties(
+        category=ConditionCategory.FAIL,
+        name="Performance differences are bounded between -0.03 and inf.",
+        details="Found 1 subgroups with performance differences outside of the given bounds."
+    )))
+    assert_that(condition_result2, has_items(has_properties(
+        category=ConditionCategory.FAIL,
+        name="Relative performance differences are bounded between -0.04 and inf.",
+        details="Found 1 subgroups with relative performance differences outside of the given bounds."
+    )))
 
 def test_condition_pass(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
     check = PerformanceDisparityReport("sex")
     check.add_condition_bounded_performance_difference(lower_bound=-0.04)
-    
+    check2 = PerformanceDisparityReport("sex")
+    check2.add_condition_bounded_relative_performance_difference(lower_bound=-0.042)
+
     # Act
     result = check.run(test, model)
     condition_result = result.conditions_results
+    result2 = check2.run(test, model)
+    condition_result2 = result2.conditions_results
 
     # Assert
-    assert_that(condition_result, equal_condition_result(
-        is_pass=True,
-        name='Performance differences are bounded between -0.04 and inf.',
-        details='Found 0 subgroups with performance differences outside of the given bounds.'
-    ))
+    assert_that(condition_result, has_items(has_properties(
+        category=ConditionCategory.PASS,
+        name="Performance differences are bounded between -0.04 and inf.",
+        details="Found 0 subgroups with performance differences outside of the given bounds."
+    )))
+    assert_that(condition_result2, has_items(has_properties(
+        category=ConditionCategory.PASS,
+        name="Relative performance differences are bounded between -0.042 and inf.",
+        details="Found 0 subgroups with relative performance differences outside of the given bounds."
+    )))

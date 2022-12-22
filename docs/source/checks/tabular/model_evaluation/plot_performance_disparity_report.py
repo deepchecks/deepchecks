@@ -8,7 +8,6 @@ This notebook provides an overview for using and understanding the Performance D
 **Structure:**
 
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
-* `Automatically detecting weak segments <#automatically-detecting-weak-segments>`__
 * `Generate data & model <#generate-data-model>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
@@ -41,22 +40,15 @@ model = load_fitted_model()
 # for which performance disparities are assessed. In addition, the check has several optional parameters
 # that affect its behavior and output.
 # 
-# ``control_feature``: Column to use to split the data by groups prior to computing performance disparities.
+# * ``control_feature``: Column to use to split the data by groups prior to computing performance disparities.
 # 
-# ``scorer``: Scoring function to measure performance.
+# * ``scorer``: Scoring function to measure performance. Default to "accuracy" for classification tasks 
+# and "r2" for regression tasks.
 # 
-# ``max_segments``: Maximum number of segments into which numerical features are binned. This is also a
-# maximum on the number of levels for a categorical ``control_feature``.
-#
-# ``min_subgroup_size``: Minimum size of a subgroup for which to compute a performance score.
-# 
-# ``max_subgroups_per_category_to_display``: Maximum number of subgroups (per ``control_feature`` category)
+# * ``max_subgroups_per_control_cat_to_display``: Maximum number of subgroups (per ``control_feature`` category)
 # to display.
 # 
-# ``max_categories_to_display``: Maximum number of ``control_feature`` levels to display.
-# 
-# ``use_avg_defaults``: If no scorer was provided, determines whether to return an average score (if True) 
-# or a score per class (if False).
+# * ``max_control_cat_to_display``: Maximum number of ``control_feature`` categories to display.
 # 
 # see :class:`API reference <deepchecks.tabular.checks.model_evaluation.PerformanceDisparityReport>` for 
 # more details.
