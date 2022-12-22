@@ -269,6 +269,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             baseline = df_row["_baseline"]
             score = df_row["_score"]
             color = "orangered" if df_row["_diff"] < 0 else "limegreen"
+            legendgroup = "Negative difference" if df_row["_diff"] < 0 else "Positive difference"
             extra_label = "<extra></extra>"
 
             fig.add_trace(
@@ -282,6 +283,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
                     marker=dict(
                         color=["white", "#222222"], symbol=0, size=6, line=dict(width=[2, 2], color=[color, color])
                     ),
+                    legendgroup=legendgroup,
                     line=dict(color=color, width=8),
                     opacity=1,
                     showlegend=False,
@@ -291,6 +293,23 @@ class PerformanceDisparityReport(SingleDatasetCheck):
                 row=row,
                 col=col,
             )
+
+    def _add_legend(self, fig):
+        for outline, title in [("orangered", "Negative difference"), ("limegreen", "Positive difference")]:
+            for color, label in [("white", "subgroup score"), ("#222222", "baseline score")]:
+                fig.add_traces(
+                    go.Scatter(
+                        x=[None],
+                        y=[None],
+                        mode="markers",
+                        name=label,
+                        legendgroup=title,
+                        legendgrouptitle=dict(text=title),
+                        marker=dict(color=color, symbol=0, size=6, line=dict(width=2, color=outline)),
+                    )
+                )
+
+        return fig
 
     def _make_largest_difference_figure(self, scores_df: pd.DataFrame, scorer_name: str):
         """
@@ -414,6 +433,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
         fig.update_layout(height=150 + 50 * rows + 20 * rows * n_subgroups_shown)
 
+        self._add_legend(fig)
+
         return fig
 
     def add_condition_bounded_performance_difference(self, lower_bound, upper_bound=np.Inf):
@@ -435,8 +456,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             differences = scores_df["_score"] - scores_df["_baseline"]
             fail_i = (differences < lower_bound) | (differences > upper_bound)
 
-            details = (f"Found {sum(fail_i)} subgroups with performance differences "
-                "outside of the given bounds.")
+            details = f"Found {sum(fail_i)} subgroups with performance differences " "outside of the given bounds."
             category = ConditionCategory.PASS if sum(fail_i) == 0 else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
@@ -469,8 +489,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             fail_i = (differences < lower_bound) | (differences > upper_bound)
 
             details = (
-                (f"Found {sum(fail_i)} subgroups with relative performance "
-                "differences outside of the given bounds.")
+                f"Found {sum(fail_i)} subgroups with relative performance " "differences outside of the given bounds."
             )
             category = ConditionCategory.PASS if sum(fail_i) == 0 else ConditionCategory.FAIL
             return ConditionResult(category, details)
