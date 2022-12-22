@@ -1,5 +1,15 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""The performance_disparity_report check module."""
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
 from deepchecks.core.checks import DatasetKind
@@ -30,14 +40,14 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
     Additionally, the analysis may be separated across the categories of a "control" feature. Numerical
     features are binned and categorical features are re-binned into `max_number` categories. To account
-    for the control feature, baseline scores and subgroup scores are be computed within each of its 
+    for the control feature, baseline scores and subgroup scores are be computed within each of its
     categories.
 
     The check's display is a plot of the baseline score (black point) and subgroup scores (white point)
-    for each subgroup, faceted by control feature categories, and sorted by the size of the 
+    for each subgroup, faceted by control feature categories, and sorted by the size of the
     performance disparity. The performance disparity is highlighted by a red line for negative differences
-    and a green line for positive differences. By default, only the top 3 categories of the control 
-    feature with the largest performance disparities are displayed. Within each control category 
+    and a green line for positive differences. By default, only the top 3 categories of the control
+    feature with the largest performance disparities are displayed. Within each control category
     subplot, the top 3 subgroups with the largest performance disparities are displayed.
 
     Parameters
@@ -189,7 +199,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         and averaged over `feature` for each `control_feature` level. Also computes subgroup size.
         """
         classwise = is_classwise(scorer, model, dataset)
-        
+
         scores_df = expand_grid(**partitions, _scorer=[scorer])
 
         # Get datasets for each subgroup
@@ -202,7 +212,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
                 else:
                     return np.nan
             return scorer(model, dataset.copy(data))
-        
+
         def apply_scorer(x):
             return score(x["_dataset"], model, x["_scorer"])
 
@@ -218,22 +228,22 @@ class PerformanceDisparityReport(SingleDatasetCheck):
                 lambda x: control_count[x[self.control_feature].label], axis=1
             )
         else:
-            overall_score = scorer(model, dataset)
+            overall_score = score(dataset.data, model, scorer)
             overall_len = len(dataset.data)
             scores_df["_baseline"] = scores_df.apply(lambda x: overall_score, axis=1)
             scores_df["_baseline_count"] = scores_df.apply(lambda x: overall_len, axis=1)
-        
+
         # Compute subgroup size
         scores_df["_count"] = scores_df.apply(lambda x: len(x["_dataset"]), axis=1)
-        
+
         # Replace functions and datasets by their name as a string
         scores_df["_scorer"] = scores_df.apply(lambda x: x["_scorer"].name, axis=1)
         for col_name in partitions.keys():
             scores_df[col_name] = scores_df.apply(lambda x, col_name=col_name: x[col_name].label, axis=1)
-        
+
         # Drop subgroup dataset
         scores_df.drop(labels=["_dataset"], axis=1, inplace=True)
-        
+
         # For classwise prediction, explode the scores to a row per class
         if classwise:
             scores_df.insert(len(scores_df.columns) - 3, "_class", scores_df.apply(lambda x: list(x["_score"]), axis=1))
@@ -425,7 +435,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             differences = scores_df["_score"] - scores_df["_baseline"]
             fail_i = (differences < lower_bound) | (differences > upper_bound)
 
-            details = f"Found {sum(fail_i)} subgroups with performance differences outside of the given bounds."
+            details = (f"Found {sum(fail_i)} subgroups with performance differences "
+                "outside of the given bounds.")
             category = ConditionCategory.PASS if sum(fail_i) == 0 else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
@@ -435,7 +446,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         )
 
     def add_condition_bounded_relative_performance_difference(self, lower_bound, upper_bound=np.Inf):
-        """Add condition - require relative performance difference between baseline and 
+        """Add condition - require relative performance difference between baseline and
         subgroups to be between the given bounds.
 
         Relative performance difference is defined as (score - baseline) / baseline.
@@ -445,7 +456,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         lower_bound : float
             Lower bound on (score - baseline) / baseline.
         upper_bound : float, default: Infinity
-            Upper bound on (score - baseline) / baseline. Infinite by default (large scores 
+            Upper bound on (score - baseline) / baseline. Infinite by default (large scores
             do not trigger the condition).
         """
 
@@ -454,10 +465,13 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             zero_i = scores_df["_baseline"] == 0
             differences[zero_i] = np.nan
             differences[~zero_i] = differences[~zero_i] / scores_df["_baseline"][~zero_i]
-            
+
             fail_i = (differences < lower_bound) | (differences > upper_bound)
 
-            details = f"Found {sum(fail_i)} subgroups with relative performance differences outside of the given bounds."
+            details = (
+                (f"Found {sum(fail_i)} subgroups with relative performance "
+                "differences outside of the given bounds.")
+            )
             category = ConditionCategory.PASS if sum(fail_i) == 0 else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
