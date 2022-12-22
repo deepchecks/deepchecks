@@ -149,7 +149,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             scorer = context.get_single_scorer(self.scorer)
         else:
             raise DeepchecksValueError(f"Invalid scorer: {self.scorer}")
-        
+
         self._validate_run_arguments(dataset.data)
 
         partitions = self._make_partitions(dataset)
