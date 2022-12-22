@@ -103,9 +103,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         self.validate_attributes()
 
     def validate_attributes(self):
-        """
-        Validate attributes passed to the check.
-        """
+        """Validate attributes passed to the check."""
         if self.max_categories < 2:
             raise DeepchecksValueError("Maximum number of categories must be at least 2.")
 
@@ -126,6 +124,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
     def run_logic(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """
+        Run the check logic.
+
         Returns
         -------
         CheckResult
@@ -160,9 +160,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         return CheckResult(value=scores_df, display=fig)
 
     def _validate_run_arguments(self, data):
-        """
-        Validate arguments passed to `run_logic` method.
-        """
+        """Validate arguments passed to `run_logic` method."""
         if self.protected_feature not in data.columns:
             raise DeepchecksValueError(f"Feature {self.protected_feature} not found in dataset.")
 
@@ -175,9 +173,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             )
 
     def _make_partitions(self, dataset):
-        """
-        Define partitions of a given dataset based on `feature` and `control_feature`
-        """
+        """Define partitions of a given dataset based on `feature` and `control_feature`."""
         partitions = {}
 
         if dataset.is_categorical(self.protected_feature):
@@ -195,7 +191,9 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
     def _make_scores_df(self, model, dataset, scorer, partitions, model_classes):
         """
-        Computes performance scores disaggregated by `feature` and `control_feature` categories,
+        Compute performance scores.
+
+        Compute performance scores disaggregated by `feature` and `control_feature` categories,
         and averaged over `feature` for each `control_feature` level. Also computes subgroup size.
         """
         classwise = is_classwise(scorer, model, dataset)
@@ -244,7 +242,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         # Drop subgroup dataset
         scores_df.drop(labels=["_dataset"], axis=1, inplace=True)
 
-        # For classwise prediction, explode the scores to a row per class
+        # For class-wise prediction, explode the scores to a row per class
         if classwise:
             scores_df.insert(len(scores_df.columns) - 3, "_class", scores_df.apply(lambda x: list(x["_score"]), axis=1))
             scores_df["_score"] = scores_df.apply(lambda x: list(x["_score"].values()), axis=1)
@@ -328,7 +326,6 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         Figure
             Figure showing subgroups with the largest performance disparities.
         """
-
         visual_df = scores_df.copy().dropna()
         if len(visual_df) == 0:
             # Return text figure: "No scores to display"
@@ -438,8 +435,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         return fig
 
     def add_condition_bounded_performance_difference(self, lower_bound, upper_bound=np.Inf):
-        """Add condition - require performance difference between baseline and subgroups to be
-        between the given bounds.
+        """Add condition - require performance difference to be between the given bounds.
 
         Performance difference is defined as (score - baseline).
 
@@ -466,8 +462,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         )
 
     def add_condition_bounded_relative_performance_difference(self, lower_bound, upper_bound=np.Inf):
-        """Add condition - require relative performance difference between baseline and
-        subgroups to be between the given bounds.
+        """Add condition - require relative performance difference to be between the given bounds.
 
         Relative performance difference is defined as (score - baseline) / baseline.
 
@@ -502,6 +497,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
 
 def expand_grid(**kwargs):
     """
+    Create combination of parameter values.
+
     Create a dataframe with one column for each named argument and rows corresponding to all
     possible combinations of the given arguments.
     """
@@ -510,7 +507,7 @@ def expand_grid(**kwargs):
 
 def combine_filters(filters, dataframe):
     """
-    Combine segment filters
+    Combine segment filters.
 
     Parameters
     ----------
@@ -535,8 +532,6 @@ def combine_filters(filters, dataframe):
 
 
 def is_classwise(scorer, model, dataset):
-    """
-    Check whether a given scorer provides an average score or a score for each class.
-    """
+    """Check whether a given scorer provides an average score or a score for each class."""
     test_result = scorer(model, dataset.copy(dataset.data.head()))
     return isinstance(test_result, dict)
