@@ -174,3 +174,22 @@ def test_na_scores_on_small_subgroups(adult_split_dataset_and_model):
     # Assert
     assert_that(result.value["_score"].isna().all())
     assert_that(result.value["_baseline"].isna().all())
+
+
+def test_scorers_types_no_error(adult_split_dataset_and_model):
+    # Arrange
+    _, test, model = adult_split_dataset_and_model
+    scorer_types = [
+        None,
+        "f1",
+        ('f1_score', make_scorer(f1_score, average='micro')),
+        {'f1_score': make_scorer(f1_score, average='micro')},
+    ]
+    
+    # Act
+    for scorer in scorer_types:
+        check = PerformanceDisparityReport("sex", scorer=scorer)
+        check.run(test, model)
+
+    # Assert
+    pass # no error

@@ -141,9 +141,15 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             scorer = context.get_single_scorer()
         elif isinstance(self.scorer, str):
             scorer = context.get_single_scorer({self.scorer: self.scorer})
-        else:
+        elif isinstance(self.scorer, tuple):
             scorer = context.get_single_scorer(dict([self.scorer]))
-
+        elif isinstance(self.scorer, dict):
+            if len(self.scorer) > 1:
+                raise DeepchecksValueError("Only one scorer can be passed to the check.")
+            scorer = context.get_single_scorer(self.scorer)
+        else:
+            raise DeepchecksValueError(f"Invalid scorer: {self.scorer}")
+        
         self._validate_run_arguments(dataset.data)
 
         partitions = self._make_partitions(dataset)
