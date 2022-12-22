@@ -122,7 +122,7 @@ binary_scorers_dict = {
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
     'jaccard': make_scorer(jaccard_score, zero_division=0),
     'roc_auc': get_scorer('roc_auc'),
-    'neg_log_loss': get_scorer('neg_log_loss')
+    'neg_log_loss': get_scorer('neg_log_loss', labels=[0, 1])
 }
 
 multiclass_scorers_dict = {
@@ -297,7 +297,11 @@ class DeepcheckScorer:
             else:
                 label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 
-            scores = self.scorer(updated_model, data, label)
+            try:
+                scores = self.scorer(updated_model, data, label)
+            except ValueError:
+                get_logger().debug("Scorer failed, setting scores as None", exc_info=True)
+                scores = None
 
             # The scores returned are for the observed classes but we want scores of the observed classes
             if isinstance(scores, t.Sized):
