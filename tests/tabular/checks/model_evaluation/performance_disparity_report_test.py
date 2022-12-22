@@ -159,7 +159,30 @@ def test_numeric_values(adult_split_dataset_and_model):
 
     # Assert
     assert_that(result.display, has_length(1))
-    assert_that(result.display[0].data, has_length(2))
+    assert_that(result.value.round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
+
+
+def test_numeric_values_classwise(adult_split_dataset_and_model):
+    # Arrange
+    _, test, model = adult_split_dataset_and_model
+    check = PerformanceDisparityReport("sex", scorer="f1_per_class")
+
+    expected_value = pd.DataFrame({
+        'sex': {1: ' Female', 0: ' Male'},
+        '_scorer': {1: 'f1_per_class', 0: 'f1_per_class'},
+        '_score': {1: 0.9557802895102122, 0: 0.6198331788693234},
+        '_class': {1: ' <=50K', 0: ' >50K'},
+        '_baseline': {1: 0.9054560599750104, 0: 0.5940497480084539},
+        '_baseline_count': {1: 16281, 0: 16281},
+        '_count': {1: 5421, 0: 10860},
+        '_diff': {1: 0.05032422953520177, 0: 0.02578343086086954}
+    })
+
+    # Act
+    result = check.run(test, model)
+
+    # Assert
+    assert_that(result.display, has_length(1))
     assert_that(result.value.round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
 
 
