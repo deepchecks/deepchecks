@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from sklearn.base import ClassifierMixin
-from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
+from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error, log_loss
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 from sklearn.preprocessing import LabelBinarizer
 
@@ -122,7 +122,7 @@ binary_scorers_dict = {
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
     'jaccard': make_scorer(jaccard_score, zero_division=0),
     'roc_auc': get_scorer('roc_auc'),
-    'neg_log_loss': get_scorer('neg_log_loss', labels=[0, 1])
+    'neg_log_loss': make_scorer(log_loss, greater_is_better=False, needs_proba=True, labels=[0, 1])
 }
 
 multiclass_scorers_dict = {

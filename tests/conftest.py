@@ -215,6 +215,14 @@ def wierd_classification_dataset_and_model():
 
 
 @pytest.fixture(scope='session')
+def missing_test_classes_binary_dataset_and_model():
+    """A big randomized value dataset for binary."""
+    train_ds, test_ds, clf = _get_wierd_dataset_and_model(is_classification=True)
+    test_ds.data[test_ds.label_name] = test_ds.data[test_ds.label_name].apply(lambda x: x % 2)
+    return train_ds, test_ds, clf
+
+
+@pytest.fixture(scope='session')
 def wierd_regression_dataset_and_model():
     """A big randomized value dataset for regression."""
     return _get_wierd_dataset_and_model(is_classification=False)
