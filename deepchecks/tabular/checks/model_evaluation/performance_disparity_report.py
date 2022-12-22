@@ -9,20 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """The performance_disparity_report check module."""
-from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
-from deepchecks.core.checks import DatasetKind
-from deepchecks.utils.typing import Hashable
-from typing import Union, Callable, Tuple
-from deepchecks.utils.performance.partition import partition_column
+import itertools
+from typing import Callable, Tuple, Union
 
+import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-import pandas as pd
-import numpy as np
-import itertools
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.checks import DatasetKind
+from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
+from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.performance.partition import partition_column
+from deepchecks.utils.typing import Hashable
 
 
 class PerformanceDisparityReport(SingleDatasetCheck):
@@ -274,7 +274,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             score = df_row["_score"]
             color = "orangered" if df_row["_diff"] < 0 else "limegreen"
             legendgroup = "Negative difference" if df_row["_diff"] < 0 else "Positive difference"
-            extra_label = "<extra></extra>"
+            extra_label = "<extra></extra>" # Hide extra label in hover
 
             fig.add_trace(
                 go.Scatter(

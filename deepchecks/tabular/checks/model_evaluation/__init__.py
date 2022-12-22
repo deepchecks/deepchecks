@@ -15,6 +15,7 @@ from .confusion_matrix_report import ConfusionMatrixReport
 from .model_inference_time import ModelInferenceTime
 from .model_info import ModelInfo
 from .multi_model_performance_report import MultiModelPerformanceReport
+from .performance_disparity_report import PerformanceDisparityReport
 from .regression_error_distribution import RegressionErrorDistribution
 from .regression_systematic_error import RegressionSystematicError
 from .roc_report import RocReport
@@ -25,7 +26,6 @@ from .train_test_performance import TrainTestPerformance
 from .train_test_prediction_drift import TrainTestPredictionDrift
 from .unused_features import UnusedFeatures
 from .weak_segments_performance import WeakSegmentsPerformance
-from .performance_disparity_report import PerformanceDisparityReport
 
 __all__ = [
     'BoostingOverfit',
