@@ -186,6 +186,66 @@ def test_numeric_values_classwise(adult_split_dataset_and_model):
     assert_that(result.value.round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
 
 
+def test_numeric_values_classwise_with_control(adult_split_dataset_and_model):
+    # Arrange
+    _, test, model = adult_split_dataset_and_model
+    check = PerformanceDisparityReport("sex", control_feature="race", scorer="f1_per_class")
+
+    expected_value = pd.DataFrame({
+        'sex': {5: ' Female',
+                3: ' Female',
+                4: ' Female',
+                0: ' Male',
+                2: ' Male',
+                1: ' Male'},
+        'race': {5: 'Others',
+                3: ' White',
+                4: ' Black',
+                0: ' White',
+                2: 'Others',
+                1: ' Black'},
+        '_scorer': {5: 'f1_per_class',
+                3: 'f1_per_class',
+                4: 'f1_per_class',
+                0: 'f1_per_class',
+                2: 'f1_per_class',
+                1: 'f1_per_class'},
+        '_score': {5: 0.9447619047619047,
+                3: 0.9524044389642415,
+                4: 0.9786354238456237,
+                0: 0.621011989433042,
+                2: 0.6484375,
+                1: 0.5596330275229359},
+        '_class': {5: ' <=50K',
+                3: ' <=50K',
+                4: ' <=50K',
+                0: ' >50K',
+                2: ' >50K',
+                1: ' >50K'},
+        '_baseline': {5: 0.9048760991207034,
+                3: 0.8991080632871679,
+                4: 0.9554229554229555,
+                0: 0.5966672639311952,
+                2: 0.5993265993265993,
+                1: 0.5347985347985348},
+        '_baseline_count': {5: 774, 3: 13946, 4: 1561, 0: 13946, 2: 774, 1: 1561},
+        '_count': {5: 283, 3: 4385, 4: 753, 0: 9561, 2: 491, 1: 808},
+        '_diff': {5: 0.039885805641201255,
+                3: 0.05329637567707368,
+                4: 0.02321246842266822,
+                0: 0.024344725501846853,
+                2: 0.04911090067340074,
+                1: 0.02483449272440108}
+    })
+
+    # Act
+    result = check.run(test, model)
+
+    # Assert
+    assert_that(result.display, has_length(1))
+    assert_that(result.value.round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
+
+
 def test_na_scores_on_small_subgroups(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
