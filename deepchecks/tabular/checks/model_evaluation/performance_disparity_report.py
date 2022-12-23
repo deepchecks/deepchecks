@@ -273,8 +273,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             baseline = df_row["_baseline"]
             score = df_row["_score"]
             color = "orangered" if df_row["_diff"] < 0 else "limegreen"
-            legendgroup = "Negative difference" if df_row["_diff"] < 0 else "Positive difference"
-            extra_label = "<extra></extra>" # Hide extra label in hover
+            legendgroup = "Negative differences" if df_row["_diff"] < 0 else "Positive differences"
+            extra_label = "<extra></extra>"  # Hide extra label in hover
 
             fig.add_trace(
                 go.Scatter(
@@ -299,7 +299,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             )
 
     def _add_legend(self, fig):
-        for outline, title in [("orangered", "Negative difference"), ("limegreen", "Positive difference")]:
+        for outline, title in [("orangered", "Negative differences"), ("limegreen", "Positive differences")]:
             for color, label in [("white", "subgroup score"), ("#222222", "baseline score")]:
                 fig.add_traces(
                     go.Scatter(
@@ -334,17 +334,8 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         """
         visual_df = scores_df.copy().dropna()
         if len(visual_df) == 0:
-            # Return text figure: "No scores to display"
-            fig = go.Figure()
-            fig.update_layout(xaxis_visible=False, yaxis_visible=False)
-            fig.add_annotation(
-                text="No scores to display",
-                xref="paper",
-                yref="paper",
-                showarrow=False,
-                font=dict(size=28),
-            )
-            return fig
+            return ("No scores to display. "
+                f"Subgroups may be smaller than the minimum size of {self.min_subgroup_size}.")
 
         has_control = self.control_feature is not None
         has_model_classes = "_class" in visual_df.columns.values
@@ -418,7 +409,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         n_cat = 1
         if has_control or has_model_classes:
             n_cat = len(visual_df[subplot_grouping].drop_duplicates())
-            title += f" per plot and {rows}/{n_cat} "
+            title += f" per subplot and {rows}/{n_cat} "
             if has_control and not has_model_classes:
                 title += f"{self.control_feature}"
             elif has_model_classes and not has_control:

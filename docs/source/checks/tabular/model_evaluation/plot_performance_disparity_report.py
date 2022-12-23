@@ -15,7 +15,7 @@ This notebook provides an overview for using and understanding the Performance D
 What is the purpose of the check?
 ==================================
 
-The check is designed to help you identify subgroups for which the model has a much lower performance score than its baseline score (its overall performance). The subgroups are defined by a chosen *protected* feature (e.g., "sex", "race") and you can specify a *control* feature (e.g., "education") by which to group the data before computing performance differences.
+The check is designed to help you identify subgroups for which the model has a much lower performance score than its baseline score (its overall performance). The subgroups are defined by a chosen *protected* feature (e.g., "sex", "race") and you can specify a *control* feature (e.g., "education") by which to group the data before computing performance differences. This is primarily useful for fairness analyses, but can also be used to identify other types of performance disparities.
 
 Large performance disparities can indicate a problem with the model. The training data may not be sufficient for certain subgroups or may contain biases, or the model may need to be re-calibrated when applied to certain subgroups. When using appropriate scoring functions, looking at performance disparities can help uncover issues of these kinds.
 
