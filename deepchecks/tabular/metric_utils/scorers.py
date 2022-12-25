@@ -294,12 +294,12 @@ class DeepcheckScorer:
         if self.model_classes is not None:
             model = self._wrap_classification_model(model)
             if model.is_binary:
-                label = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1}).to_numpy()
+                label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1}).to_numpy()
             else:
-                label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
+                label_col = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 
         try:
-            scores = self.scorer(model, data, label)
+            scores = self.scorer(model, data, label_col)
         except ValueError as e:
             if getattr(self.scorer, '_score_func', '').__name__ == 'roc_auc_score':
                 get_logger().warning('ROC AUC failed with error message - "%s". setting scores as None', e,
