@@ -49,8 +49,8 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     if not local_repo_dir.exists():
         repo = 'https://github.com/ultralytics/yolov5/archive/v6.1.zip'
         with urlopen(repo) as f:
-            myzip = zipfile.ZipFile(BytesIO(f.read()))
-        myzip.extractall(DATA_DIR)
+            with zipfile.ZipFile(BytesIO(f.read())) as myzip:
+                myzip.extractall(DATA_DIR)
 
     model = torch.hub.load(str(local_repo_dir), 'yolov5s', source='local', pretrained=pretrained, verbose=False,
                            device=dev)
