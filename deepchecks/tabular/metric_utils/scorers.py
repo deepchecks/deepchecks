@@ -308,7 +308,7 @@ class DeepcheckScorer:
             else:
                 raise
 
-        # The scores returned are for the observed classes but we want scores of the observed classes
+        # The scores returned are for the model classes but we want scores of the observed classes
         if self.model_classes is not None and isinstance(scores, t.Sized):
             if len(scores) != len(self.model_classes):
                 raise errors.DeepchecksValueError(
