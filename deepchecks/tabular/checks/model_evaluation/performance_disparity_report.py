@@ -334,8 +334,9 @@ class PerformanceDisparityReport(SingleDatasetCheck):
         """
         visual_df = scores_df.copy().dropna()
         if len(visual_df) == 0:
-            return ("No scores to display. "
-                f"Subgroups may be smaller than the minimum size of {self.min_subgroup_size}.")
+            return (
+                "No scores to display. " f"Subgroups may be smaller than the minimum size of {self.min_subgroup_size}."
+            )
 
         has_control = self.control_feature is not None
         has_model_classes = "_class" in visual_df.columns.values
@@ -370,7 +371,7 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             cols=1,
             shared_xaxes=True,
             subplot_titles=subplot_titles.values if isinstance(subplot_titles, pd.Series) else None,
-            vertical_spacing=0.7 / rows**1.5,
+            vertical_spacing=0.7 / rows ** 1.5,
         )
 
         if subplots_categories is not None:
