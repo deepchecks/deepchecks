@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.utils.task_type import TaskType
 
 __all__ = ['TextData', 'TTokenLabel', 'TClassLabel', 'TTextLabel']
 
@@ -256,6 +256,42 @@ class TextData:
                               'label': [self._label[sample_idx[0]]],
                               'index': self.index[sample_idx]}
         return self.copy(**data_to_sample)
+
+    def get_raw_sample(self, index: t.Any) -> str:
+        """Get the raw text of a sample.
+
+        Parameters
+        ----------
+        index : int
+            Index of sample to get.
+
+        Returns
+        -------
+        str
+            Raw text of sample.
+        """
+        return self._text[self.index.index(index)]
+
+    def get_tokenized_sample(self, index: t.Any) -> t.List[str]:
+        """Get the tokenized text of a sample.
+
+        Parameters
+        ----------
+        index : int
+            Index of sample to get.
+
+        Returns
+        -------
+        List[str]
+            Tokenized text of sample.
+        """
+        if self._tokenized_text is None:
+            raise DeepchecksValueError('Dataset does not contain tokenized text')
+        return self._tokenized_text[self.index.index(index)]
+
+    @staticmethod
+    def separate_text(text: str):
+        return text.replace_many(['.', ',', ';', ':', '!', '?', '(', ')', '[', ']', '{', '}', '"'], [' ']).split()
 
     @property
     def n_samples(self) -> int:

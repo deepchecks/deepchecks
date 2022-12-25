@@ -10,8 +10,10 @@
 #
 """Module containing the model evaluation checks in the nlp package."""
 
-from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
+from .single_dataset_performance import SingleDatasetPerformance
+from .train_test_prediction_drift import TrainTestPredictionDrift
 
 __all__ = [
-    'SingleDatasetPerformance'
+    'SingleDatasetPerformance',
+    'TrainTestPredictionDrift'
 ]

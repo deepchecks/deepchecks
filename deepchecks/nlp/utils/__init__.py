@@ -8,7 +8,5 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains all prebuilt nlp suites."""
-from .default_suites import full_suite, model_evaluation, train_test_validation, data_integrity
-
-__all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'full_suite']
+"""Module for NLP utilities routines."""
+__all__ = []

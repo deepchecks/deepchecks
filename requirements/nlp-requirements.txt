@@ -1,2 +1,3 @@
 seqeval>=1.0.0
 nltk>=3.4.0
+sentence-transformers

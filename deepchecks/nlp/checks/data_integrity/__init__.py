@@ -8,21 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module importing all nlp checks."""
+"""Module containing the data integrity checks in the nlp package."""
 
-from deepchecks.nlp.checks.data_integrity import TextPropertyOutliers
-from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance, TrainTestPredictionDrift
-from deepchecks.nlp.checks.train_test_validation import KeywordFrequencyDrift, TrainTestLabelDrift
+from .text_property_outliers import TextPropertyOutliers
 
 __all__ = [
-    # Data Integrity
     'TextPropertyOutliers',
-
-    # Train-Test Validation
-    'KeywordFrequencyDrift',
-    'TrainTestLabelDrift',
-
-    # Model Evaluation
-    'SingleDatasetPerformance',
-    'TrainTestPredictionDrift',
 ]

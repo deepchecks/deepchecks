@@ -8,7 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains all prebuilt nlp suites."""
-from .default_suites import full_suite, model_evaluation, train_test_validation, data_integrity
+# TODO: Prototype, go over and make sure code+docs+tests are good
+"""Module of text utils for NLP package."""
 
-__all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'full_suite']
+def trim(x, max_length):
+    """Trim a string to a maximum length."""
+    if len(x) <= max_length:
+        return x
+    return x[:max_length] + '...'

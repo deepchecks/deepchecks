@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# TODO: Prototype, go over and make sure code+docs+tests are good
 """Module contains Train Test Prediction Drift check."""
 
 from typing import Dict
@@ -18,8 +19,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMixin
-from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot, get_drift_plot_sidenote)
 
@@ -147,31 +147,31 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-        if (self.drift_mode == 'proba') and (context.task_type == TaskType.REGRESSION):
-            raise DeepchecksValueError('probability_drift="proba" is not supported for regression tasks')
+        # if (self.drift_mode == 'proba') and (context.task_type == TaskType.REGRESSION):
+        #     raise DeepchecksValueError('probability_drift="proba" is not supported for regression tasks')
 
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
         model = context.model
 
         drift_score_dict, drift_display_dict = {}, {}
-        method, classes = None, train_dataset.classes_in_label_col
+        method, classes = None, context.model_classes
 
         # Flag for computing drift on the probabilities rather than the predicted labels
-        proba_drift = ((context.task_type == TaskType.BINARY) and (self.drift_mode == 'auto')) or \
+        proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
                       (self.drift_mode == 'proba')
 
         if proba_drift:
-            train_prediction = np.array(model.predict_proba(train_dataset.features_columns))
-            test_prediction = np.array(model.predict_proba(test_dataset.features_columns))
+            train_prediction = np.array(model.predict_proba(train_dataset))
+            test_prediction = np.array(model.predict_proba(test_dataset))
             if test_prediction.shape[1] == 2:
                 train_prediction = train_prediction[:, [1]]
                 test_prediction = test_prediction[:, [1]]
         else:
-            train_prediction = np.array(model.predict(train_dataset.features_columns)).reshape((-1, 1))
-            test_prediction = np.array(model.predict(test_dataset.features_columns)).reshape((-1, 1))
+            train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
+            test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
 
-        samples_per_class = train_dataset.label_col.value_counts().to_dict()
+        samples_per_class = pd.Series(train_dataset.label).value_counts().to_dict()
 
         for class_idx in range(train_prediction.shape[1]):
             class_name = classes[class_idx]
@@ -180,8 +180,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 test_column=pd.Series(test_prediction[:, class_idx].flatten()),
                 value_name='model predictions' if not proba_drift else
                 f'predicted probabilities for class {class_name}',
-                column_type='categorical' if (context.task_type != TaskType.REGRESSION) and (not proba_drift)
-                else 'numerical',
+                column_type='numerical' if proba_drift else 'categorical',
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 min_category_size_ratio=self.min_category_size_ratio,

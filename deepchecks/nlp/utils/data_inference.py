@@ -20,7 +20,7 @@ import pandas as pd
 from sklearn.base import BaseEstimator
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.utils.task_type import TaskType
 
 
 def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model: BaseEstimator = None,

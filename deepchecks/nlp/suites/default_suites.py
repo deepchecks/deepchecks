@@ -16,11 +16,51 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import KeywordFrequencyDrift, SingleDatasetPerformance
+from deepchecks.nlp.checks import KeywordFrequencyDrift, SingleDatasetPerformance, TrainTestPredictionDrift, \
+    TrainTestLabelDrift, TextPropertyOutliers
 
-__all__ = ['train_test_validation',
+__all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
 
+def data_integrity(n_samples: int = None,
+                   random_state: int = 42,
+                   **kwargs) -> Suite:
+    """Suite for detecting integrity issues within a single dataset.
+
+    Parameters
+    ----------
+    n_samples : int , default: None
+        number of samples to use for checks that sample data. If none, using the default n_samples per check.
+    random_state : int, default: 42
+        random seed for all checks.
+    **kwargs : dict
+        additional arguments to pass to the checks.
+
+    Returns
+    -------
+    Suite
+        A suite for validating the data integrity.
+
+    Examples
+    --------
+    >>> from deepchecks.nlp.suites import data_integrity
+    >>> suite = data_integrity(n_samples=1_000_000)
+    >>> result = suite.run()
+    >>> result.show()
+
+    See Also
+    --------
+    :ref:`quick_data_integrity`
+    """
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
+
+    return Suite(
+        'Data Integrity Suite',
+        TextPropertyOutliers(),
+    )
 
 def train_test_validation(n_samples: int = None,
                           random_state: int = 42,
@@ -61,6 +101,7 @@ def train_test_validation(n_samples: int = None,
     return Suite(
         'Train Test Validation Suite',
         KeywordFrequencyDrift().add_condition_drift_score_less_than(),
+        TrainTestLabelDrift().add_condition_drift_score_less_than(),
     )
 
 
@@ -93,7 +134,7 @@ def model_evaluation(n_samples: int = None,
 
     See Also
     --------
-    :ref:`quick_full_suite`
+    :ref:`quick_model_evaluation`
     """
     args = locals()
     args.pop('kwargs')
@@ -103,6 +144,7 @@ def model_evaluation(n_samples: int = None,
     return Suite(
         'Model Evaluation Suite',
         SingleDatasetPerformance(),
+        TrainTestPredictionDrift().add_condition_drift_score_less_than(),
     )
 
 
@@ -110,6 +152,7 @@ def full_suite(**kwargs) -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
     return Suite(
         'Full Suite',
+        data_integrity(**kwargs),
         model_evaluation(**kwargs),
         train_test_validation(**kwargs),
     )

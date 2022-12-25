@@ -21,7 +21,7 @@ from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupport
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
-from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.utils.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.data_inference import infer_observed_and_model_labels
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType

@@ -14,7 +14,7 @@ import typing as t
 
 import numpy as np
 
-from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.utils.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.scorers import validate_multi_label_format
