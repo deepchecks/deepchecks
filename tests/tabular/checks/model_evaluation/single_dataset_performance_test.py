@@ -59,6 +59,16 @@ def assert_multiclass_classification_result(result):
         assert_that(metric_row['Value'].iloc[0], close_to(1, 0.3))
 
 
+def test_missing_y_true_binary(missing_test_classes_binary_dataset_and_model):
+    # Arrange
+    _, test, model = missing_test_classes_binary_dataset_and_model
+    check = SingleDatasetPerformance(scorers=['roc_auc'])
+    # Act
+    result = check.run(test, model)
+    # Assert
+    result.value == None
+
+
 def test_classification(iris_split_dataset_and_model):
     # Arrange
     _, test, model = iris_split_dataset_and_model

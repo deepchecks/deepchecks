@@ -312,9 +312,13 @@ class DeepcheckScorer:
                 scores = dict(zip(self.model_classes, scores))
                 # Add classes which been seen in the data but are not known to the model
                 scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
-            return scores
         else:
-            return self.scorer(model, data, label_col)
+            try:
+                scores = self.scorer(updated_model, data, label)
+            except ValueError:
+                get_logger().debug('Scorer failed, setting scores as None', exc_info=True)
+                scores = None
+        return scores
 
     def __call__(self, model, dataset: 'tabular.Dataset'):
         """Run score with labels null filtering."""
@@ -350,7 +354,7 @@ class DeepcheckScorer:
             if len(result) != len(all_classes):
                 raise errors.DeepchecksValueError(f'Expected {len(all_classes)} classes, but scorer {self.name} '
                                                   f'returned {len(result)} elements in the score array value')
-        elif not isinstance(result, Number):
+        elif result is not None and not isinstance(result, Number):
             raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number or dict '
                                               f'but got: {type(result).__name__}')
 
@@ -401,6 +405,7 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         scorers = [DeepcheckScorer(scorer, model_classes, observed_classes, name) for name, scorer in scorers.items()]
     else:
         scorers = [DeepcheckScorer(scorer, model_classes, observed_classes) for scorer in scorers]
+    scorers: t.List[DeepcheckScorer]
     for s in scorers:
         s.validate_fitting(model, dataset)
     return scorers
