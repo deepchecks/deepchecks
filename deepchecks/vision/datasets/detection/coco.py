@@ -47,9 +47,11 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     if pretrained:
         if not os.path.exists(LOCAL_MODEL_PATH):
             torch.hub.download_url_to_file(_MODEL_URL, str(LOCAL_MODEL_PATH))
-        model = torch.hub.load('ultralytics/yolov5:v6.1', 'custom', path=LOCAL_MODEL_PATH, device=dev)
+        model = torch.hub.load('ultralytics/yolov5:v6.1', 'custom', path=LOCAL_MODEL_PATH, device=dev,
+                               skip_validation=True)
     else:
-        model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s', pretrained=False, verbose=False, device=dev)
+        model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s', pretrained=False, verbose=False, device=dev,
+                               skip_validation=True)
     model.eval()
     logger.disabled = False
     return model
