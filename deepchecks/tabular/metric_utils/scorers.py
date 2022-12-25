@@ -299,7 +299,7 @@ class DeepcheckScorer:
                 label_col = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 
         try:
-            scores = self.scorer(model, data, label_col)
+            scores = self.scorer(model, data, np.array(label_col))
         except ValueError as e:
             if getattr(self.scorer, '_score_func', '').__name__ == 'roc_auc_score':
                 get_logger().warning('ROC AUC failed with error message - "%s". setting scores as None', e,
