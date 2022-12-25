@@ -294,7 +294,7 @@ class DeepcheckScorer:
         if self.model_classes is not None:
             model = self._wrap_classification_model(model)
             if model.is_binary:
-                label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1}).to_numpy()
+                label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
             else:
                 label_col = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 

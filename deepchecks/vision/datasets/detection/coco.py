@@ -42,6 +42,7 @@ LOCAL_MODEL_PATH = DATA_DIR / 'yolov5s.pt'
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
     """Load the yolov5s (version 6.1)  model and return it."""
     dev = torch.device(device) if isinstance(device, str) else device
+    torch.hub._validate_not_a_forked_repo = lambda *_: True  # pylint: disable=protected-access
     logger = logging.getLogger('yolov5')
     logger.disabled = True
     if pretrained:
@@ -342,7 +343,7 @@ def yolo_label_formatter(batch):
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
-                if len(tensor) > 0 else tensor
+            if len(tensor) > 0 else tensor
     return [move_class(tensor) for tensor in batch[1]]
 
 
