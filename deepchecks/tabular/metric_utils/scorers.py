@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for checks working with scorers."""
+import logging
 import typing as t
 import warnings
 from numbers import Number
@@ -297,27 +298,23 @@ class DeepcheckScorer:
             else:
                 label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 
-            try:
-                scores = self.scorer(updated_model, data, label)
-            except ValueError:
-                get_logger().debug('Scorer failed, setting scores as None', exc_info=True)
-                scores = None
+        try:
+            scores = self.scorer(updated_model, data, label)
+        except ValueError as e:
+            get_logger().warning('Scorer %s failed with error message - "%s". setting scores as None', self.scorer, e,
+                                 exc_info=get_logger().level == logging.DEBUG)
+            scores = None
 
-            # The scores returned are for the observed classes but we want scores of the observed classes
-            if isinstance(scores, t.Sized):
-                if len(scores) != len(self.model_classes):
-                    raise errors.DeepchecksValueError(
-                        f'Scorer returned {len(scores)} scores, but model contains '
-                        f'{len(self.model_classes)} classes. Can\'t proceed')
-                scores = dict(zip(self.model_classes, scores))
-                # Add classes which been seen in the data but are not known to the model
-                scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
-        else:
-            try:
-                scores = self.scorer(updated_model, data, label)
-            except ValueError:
-                get_logger().debug('Scorer failed, setting scores as None', exc_info=True)
-                scores = None
+        # The scores returned are for the observed classes but we want scores of the observed classes
+        if self.model_classes is not None and isinstance(scores, t.Sized):
+            if len(scores) != len(self.model_classes):
+                raise errors.DeepchecksValueError(
+                    f'Scorer returned {len(scores)} scores, but model contains '
+                    f'{len(self.model_classes)} classes. Can\'t proceed')
+            scores = dict(zip(self.model_classes, scores))
+            # Add classes which been seen in the data but are not known to the model
+            scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
+
         return scores
 
     def __call__(self, model, dataset: 'tabular.Dataset'):
