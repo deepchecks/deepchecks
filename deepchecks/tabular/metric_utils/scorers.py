@@ -282,7 +282,7 @@ class DeepcheckScorer:
 
         return MyModelWrapper(model, self.model_classes)
 
-    def _run_score(self, model, data: pd.DataFrame, label_col):
+    def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
         if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
                                                                     'predict_proba'):
