@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from sklearn.base import ClassifierMixin
-from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error, log_loss
+from sklearn.metrics import log_loss, get_scorer, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 from sklearn.preprocessing import LabelBinarizer
 
@@ -300,7 +300,7 @@ class DeepcheckScorer:
             try:
                 scores = self.scorer(updated_model, data, label)
             except ValueError:
-                get_logger().debug("Scorer failed, setting scores as None", exc_info=True)
+                get_logger().debug('Scorer failed, setting scores as None', exc_info=True)
                 scores = None
 
             # The scores returned are for the observed classes but we want scores of the observed classes
