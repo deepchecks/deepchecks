@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from sklearn.base import ClassifierMixin
-from sklearn.metrics import log_loss, get_scorer, make_scorer, mean_absolute_error, mean_squared_error
+from sklearn.metrics import get_scorer, log_loss, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 from sklearn.preprocessing import LabelBinarizer
 
