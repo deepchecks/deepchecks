@@ -18,7 +18,8 @@ from numbers import Number
 import numpy as np
 from typing_extensions import TypedDict
 
-from deepchecks.core.errors import DatasetValidationError
+from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
+from deepchecks.utils.logger import get_logger
 
 
 class TaskType(Enum):
@@ -90,7 +91,22 @@ def object_to_numpy(data, expected_dtype=None, expected_ndim=None) -> t.Union[np
 
 def shuffle_loader(batch_loader):
     """Reshuffle the batch loader."""
-    # TODO: do something here
+    if is_torch_object(batch_loader) and 'DataLoader' in str(type(batch_loader)):
+        import torch
+        from deepchecks.vision.utils.test_utils import get_data_loader_sequential
+        try:
+            _ = len(batch_loader)
+            return get_data_loader_sequential(data_loader=batch_loader, shuffle=True)
+        except Exception:
+            pass
+    elif is_tensorflow_object(batch_loader) and 'Dataset' in str(type(batch_loader)):
+        import tensorflow as tf
+        try:
+            return None
+        except Exception:
+            pass
+    get_logger().warning('Shuffling is not supported for received batch loader. Make sure that your provided '
+                         'batch loader is indeed shuffled and set shuffle_batch_loader=False')
     return batch_loader
 
 

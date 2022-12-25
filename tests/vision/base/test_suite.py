@@ -206,12 +206,15 @@ def test_suite_execution_with_missing_test():
     assert_that(executions, has_length(0))
 
 
-def test_full_suite_execution_mnist(mnist_visiondata_train, mnist_visiondata_test):
+def test_full_suite_execution_mnist(mnist_visiondata_train, mnist_visiondata_test,
+                                    mnist_iterator_visiondata_train, mnist_iterator_visiondata_test):
     suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
     arguments = (
         dict(train_dataset=mnist_visiondata_train, test_dataset=mnist_visiondata_test),
         dict(train_dataset=mnist_visiondata_train),
         dict(train_dataset=mnist_visiondata_train, with_display=False),
+        dict(train_dataset=mnist_iterator_visiondata_train, test_dataset=mnist_iterator_visiondata_test,
+             max_samples=100),
     )
 
     for args in arguments:

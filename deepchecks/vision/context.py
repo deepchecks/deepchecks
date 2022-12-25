@@ -44,17 +44,16 @@ class Context:
         # Validations
         if train is None and test is None:
             raise DeepchecksValueError('At least one dataset must be passed to the method!')
-        if test and not train:
+        if test is not None and train is None:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
-        if train and test:
-            validate_vision_data_compatibility(train, test)
 
-        if train is not None:
-            train.init_cache()
-            train.name = DEFAULT_DATASET_NAMES[0] if train.name is None else train.name
-            self._task_type = train.task_type
+        train.init_cache()
+        train.name = DEFAULT_DATASET_NAMES[0] if train.name is None else train.name
+        self._task_type = train.task_type
+
         if test is not None:
+            validate_vision_data_compatibility(train, test)
             test.init_cache()
             test.name = DEFAULT_DATASET_NAMES[1] if test.name is None else test.name
 

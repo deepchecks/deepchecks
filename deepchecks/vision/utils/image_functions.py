@@ -25,31 +25,9 @@ from deepchecks.vision.vision_data import TaskType
 
 from .detection_formatters import convert_bbox
 
-__all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
+__all__ = ['numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
            'crop_image', 'draw_image']
-
-
-class ImageInfo:
-    """Class with methods defined to extract metadata about image."""
-
-    def __init__(self, img):
-        if not isinstance(img, np.ndarray):
-            raise DeepchecksValueError('Expect image to be numpy array')
-        self.img = img
-
-    def get_size(self) -> t.Tuple[int, int]:
-        """Get size of image as (width, height) tuple."""
-        return self.img.shape[1], self.img.shape[0]
-
-    def get_dimension(self) -> int:
-        """Return the number of dimensions of the image (grayscale = 1, RGB = 3)."""
-        return self.img.shape[2]
-
-    def is_equals(self, img_b) -> bool:
-        """Compare image to another image for equality."""
-        return np.array_equal(self.img, img_b)
-
 
 def draw_image(image: np.ndarray, label, task_type: TaskType,
                thumbnail_size: t.Tuple[int, int] = (200, 200), draw_label: bool = True) -> str:

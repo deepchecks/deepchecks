@@ -11,11 +11,13 @@
 #
 
 import numpy as np
+import pytest
 import torch
-from hamcrest import assert_that, calling, equal_to, raises
+from hamcrest import assert_that, calling, equal_to, raises, is_not, has_length
 from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import ValidationError, DatasetValidationError
+from deepchecks.vision.datasets.classification.mnist import collate_without_model, IterableTorchMnistDataset
 from deepchecks.vision.datasets.detection import coco
 from deepchecks.vision.datasets.segmentation import segmentation_coco
 from deepchecks.vision.vision_data import TaskType
@@ -248,3 +250,35 @@ def test_exception_image_formatter(mnist_dataloader_train):
     assert_that(
         calling(VisionData).with_args(loader_bad_labels, task_type=TaskType.CLASSIFICATION.value),
         raises(Exception, 'The batch labels must be an iterable, received <class \'Exception\'>'))
+
+def mnist_collate_labels(data):
+    return {'labels': collate_without_model(data)[1]}
+
+def test_shuffling_regular_dataloader(mnist_dataloader_train):
+    # Arrange
+    mnist_loader_deepchecks_format = replace_collate_fn_dataloader(mnist_dataloader_train, mnist_collate_labels)
+    original_batch = next(iter(mnist_loader_deepchecks_format))
+    vision_data_shuffled = VisionData(mnist_loader_deepchecks_format, TaskType.CLASSIFICATION.value,
+                                      shuffle_batch_loader=True)
+    shuffled_batch = next(iter(vision_data_shuffled))
+    vision_data_unshuffled = VisionData(mnist_loader_deepchecks_format, TaskType.CLASSIFICATION.value,
+                                        shuffle_batch_loader=False)
+    unshuffled_batch = next(iter(vision_data_unshuffled))
+
+    # Assert
+    assert_that(original_batch['labels'], equal_to(unshuffled_batch['labels']))
+    assert_that(original_batch['labels'], is_not(equal_to(shuffled_batch['labels'])))
+
+def test_shuffling_iterator_dataloader(mnist_iterator_visiondata_train, caplog):
+    # Arrange
+    loader_deepchecks_format = mnist_iterator_visiondata_train.batch_loader
+    original_batch = next(iter(loader_deepchecks_format))
+    vision_data = VisionData(loader_deepchecks_format, TaskType.CLASSIFICATION.value, shuffle_batch_loader=True)
+    vision_data_batch = next(iter(vision_data))
+
+    # Assert
+    assert_that(original_batch['labels'], equal_to(vision_data_batch['labels'])) # no shuffling happened
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message, equal_to('Shuffling is not supported for received batch loader. '
+                                                    'Make sure that your provided batch loader is indeed shuffled '
+                                                    'and set shuffle_batch_loader=False'))

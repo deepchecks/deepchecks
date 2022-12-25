@@ -28,27 +28,31 @@ from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks import vision
-from deepchecks.vision.datasets.assets.coco_detection.static_predictions import coco_detections_static_predictions_dict
+from deepchecks.vision.datasets.assets.coco_detection_torch.static_predictions import \
+    coco_detections_static_predictions_dict
 from deepchecks.vision.utils.test_utils import get_data_loader_sequential, hash_image
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'CocoDataset']
 
-COCO_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'coco_detection'
-
+COCO_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'coco_detection_torch'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/38619935'
+LOCAL_MODEL_PATH = COCO_DIR / 'yolov5s.pt'
 
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu'):
     """Load the yolov5s (version 6.1)  model and return it."""
     dev = torch.device(device) if isinstance(device, str) else device
     logger = logging.getLogger('yolov5')
     logger.disabled = True
-    model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
-                           pretrained=pretrained,
-                           verbose=False,
-                           device=dev)
+    if pretrained:
+        if not os.path.exists(LOCAL_MODEL_PATH):
+            torch.hub.download_url_to_file(_MODEL_URL, str(LOCAL_MODEL_PATH))
+        model = torch.hub.load('ultralytics/yolov5:v6.1', 'custom', path=LOCAL_MODEL_PATH, device=dev)
+    else:
+        model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s', pretrained=False, verbose=False, device=dev)
     model.eval()
     logger.disabled = False
-    return MockCoco(model)
+    return MockModel(model)
 
 
 def _batch_collate(batch):
@@ -171,7 +175,7 @@ class MockDetections:
         self.pred = dets
 
 
-class MockCoco:
+class MockModel:
     """Class of COCO model that returns cached predictions."""
 
     def __init__(self, real_model):
@@ -341,41 +345,6 @@ def download_coco128_from_ultralytics(path: Path):
 
     return coco_dir, 'train2017'
 
-
-def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
-    """Convert from yolo Detections object to List (per image) of Tensors of the shape [N, 6] with each row being \
-    [x, y, w, h, confidence, class] for each bbox in the image."""
-    return_list = []
-
-    with warnings.catch_warnings():
-        warnings.simplefilter(action='ignore', category=UserWarning)
-
-        predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
-
-        # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
-        for single_image_tensor in predictions.pred:
-            pred_modified = torch.clone(single_image_tensor)
-            pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
-            pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
-            return_list.append(pred_modified)
-
-    return return_list
-
-
-def yolo_label_formatter(batch):
-    """Translate yolo label to deepchecks format."""
-    # our labels return at the end, and the VisionDataset expect it at the start
-    def move_class(tensor):
-        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
-            if len(tensor) > 0 else tensor
-
-    return [move_class(tensor) for tensor in batch[1]]
-
-
-def yolo_image_formatter(batch):
-    """Convert list of PIL images to deepchecks image format."""
-    # Yolo works on PIL and VisionDataset expects images as numpy arrays
-    return [np.array(x) for x in batch[0]]
 
 
 LABEL_MAP = {

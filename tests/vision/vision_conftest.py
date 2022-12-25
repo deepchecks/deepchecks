@@ -38,6 +38,8 @@ torch.hub.set_dir(str(PROJECT_DIR))
 
 __all__ = ['device',
            'seed_setup',
+           'mnist_iterator_visiondata_train',
+           'mnist_iterator_visiondata_test',
            'mnist_dataloader_train',
            'mnist_visiondata_train',
            'mnist_dataloader_test',
@@ -81,6 +83,15 @@ def seed_setup():
     np.random.seed(42)
     random.seed(42)
 
+@pytest.fixture(scope='session')
+def mnist_iterator_visiondata_train(seed_setup):
+    return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False, use_iterable_dataset=True,
+                              n_samples=200)
+
+@pytest.fixture(scope='session')
+def mnist_iterator_visiondata_test(seed_setup):
+    return load_mnist_dataset(train=False, object_type='VisionData', shuffle=False, use_iterable_dataset=True,
+                              n_samples=200)
 
 @pytest.fixture(scope='session')
 def mnist_dataloader_train(seed_setup):

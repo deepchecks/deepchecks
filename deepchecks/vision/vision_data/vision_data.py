@@ -20,7 +20,8 @@ from deepchecks.vision.vision_data.format_validators import (validate_additional
                                                              validate_image_identifiers_format, validate_images_format,
                                                              validate_labels_format, validate_predictions_format)
 from deepchecks.vision.vision_data.utils import (BatchOutputFormat, get_class_ids_from_numpy_labels,
-                                                 get_class_ids_from_numpy_preds, shuffle_loader)
+                                                 get_class_ids_from_numpy_preds, shuffle_loader, is_torch_object,
+                                                 is_tensorflow_object)
 
 VD = t.TypeVar('VD', bound='VisionData')
 
@@ -52,6 +53,9 @@ class VisionData:
             dataset_name: t.Optional[str] = None,
             shuffle_batch_loader: bool = True
     ):
+        if not hasattr(batch_loader, '__iter__'):
+            raise DeepchecksValueError(r'Batch loader must be an iterable which loads batches of data in deepcheck\'s'
+                                       'required format, see link for additional information ')
         self._batch_loader = shuffle_loader(batch_loader) if shuffle_batch_loader else batch_loader
 
         if task_type not in TaskType.values():
