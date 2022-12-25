@@ -301,9 +301,12 @@ class DeepcheckScorer:
         try:
             scores = self.scorer(updated_model, data, label)
         except ValueError as e:
-            get_logger().warning('Scorer %s failed with error message - "%s". setting scores as None', self.scorer, e,
-                                 exc_info=get_logger().level == logging.DEBUG)
-            scores = None
+            if getattr(self.scorer, '_score_func', '').__name__ == 'roc_auc_score':
+                get_logger().warning('ROC AUC failed with error message - "%s". setting scores as None', e,
+                                    exc_info=get_logger().level == logging.DEBUG)
+                scores = None
+            else:
+                raise
 
         # The scores returned are for the observed classes but we want scores of the observed classes
         if self.model_classes is not None and isinstance(scores, t.Sized):
