@@ -294,6 +294,9 @@ class DeepcheckScorer:
         if self.model_classes is not None:
             model = self._wrap_classification_model(model)
             if model.is_binary:
+                if len(label_col.unique()) > 2:
+                    raise errors.DeepchecksValueError('Model is binary but the label column has more than 2 classes: '
+                                                      f'{label_col.unique()}')
                 label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
             else:
                 label_col = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
@@ -344,7 +347,7 @@ class DeepcheckScorer:
         """Validate given scorer for the model and dataset."""
         dataset.assert_features()
         # In order for scorer to return result in right dimensions need to pass it samples from all labels
-        single_label_data = dataset.data[dataset.data[dataset.label_name].notna()].groupby(dataset.label_name).head(1)
+        single_label_data = dataset.data[dataset.label_col.notna()].groupby(dataset.label_name).head(1)
         new_dataset = dataset.copy(single_label_data)
         result = self._run_score(model, new_dataset.features_columns, new_dataset.label_col)
 
