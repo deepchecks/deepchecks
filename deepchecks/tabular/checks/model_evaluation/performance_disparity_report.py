@@ -253,7 +253,21 @@ class PerformanceDisparityReport(SingleDatasetCheck):
             scores_df.insert(len(scores_df.columns) - 3, "_class", scores_df.apply(lambda x: list(x["_score"]), axis=1))
             scores_df["_score"] = scores_df.apply(lambda x: list(x["_score"].values()), axis=1)
             scores_df["_baseline"] = scores_df.apply(lambda x: list(x["_baseline"].values()), axis=1)
-            scores_df = scores_df.explode(column=["_score", "_class", "_baseline"])
+
+            # Create a list of dictionaries, one dictionary per row
+            rows = []
+            indices = []
+            for i, row in scores_df.iterrows():
+                for score, cls, baseline in zip(row["_score"], row["_class"], row["_baseline"]):
+                    new_row = row.to_dict()
+                    new_row["_score"] = score
+                    new_row["_class"] = cls
+                    new_row["_baseline"] = baseline
+                    rows.append(new_row)
+                    indices.append(i)
+
+            # Create a new dataframe from the list of dictionaries
+            scores_df = pd.DataFrame(rows, columns=scores_df.columns, index=indices)
 
         # Ensure consistent types for scores
         scores_df["_score"] = scores_df["_score"].astype(float)
