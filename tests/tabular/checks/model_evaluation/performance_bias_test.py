@@ -16,7 +16,7 @@ from sklearn.metrics import f1_score, make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks import ConditionCategory
-from deepchecks.tabular.checks.model_evaluation import PerformanceDisparityReport
+from deepchecks.tabular.checks.model_evaluation import PerformanceBias
 from tests.base.utils import equal_condition_result
 
 
@@ -39,11 +39,11 @@ def test_no_error(adult_split_dataset_and_model, avocado_split_dataset_and_model
         test = test.sample()
 
         for feat1 in protected_feat_to_test:
-            check = PerformanceDisparityReport(protected_feature=feat1)
+            check = PerformanceBias(protected_feature=feat1)
             check.run(test, model)
 
             for feat2 in control_feat_to_test:
-                check = PerformanceDisparityReport(protected_feature=feat1, control_feature=feat2)
+                check = PerformanceBias(protected_feature=feat1, control_feature=feat2)
                 check.run(test, model)
 
     # Act
@@ -57,10 +57,10 @@ def test_no_error(adult_split_dataset_and_model, avocado_split_dataset_and_model
 def test_run_value_error(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
-    check = PerformanceDisparityReport(protected_feature="sex")
-    check_invalid1 = PerformanceDisparityReport(protected_feature="invalid_feature")
-    check_invalid2 = PerformanceDisparityReport(protected_feature="sex", control_feature="invalid_feature")
-    check_invalid3 = PerformanceDisparityReport(protected_feature="sex", control_feature="sex")
+    check = PerformanceBias(protected_feature="sex")
+    check_invalid1 = PerformanceBias(protected_feature="invalid_feature")
+    check_invalid2 = PerformanceBias(protected_feature="sex", control_feature="invalid_feature")
+    check_invalid3 = PerformanceBias(protected_feature="sex", control_feature="sex")
 
     # Act & Assert
     assert_that(
@@ -88,9 +88,9 @@ def test_run_value_error(adult_split_dataset_and_model):
 def test_condition_fail(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
-    check = PerformanceDisparityReport("sex")
+    check = PerformanceBias("sex")
     check.add_condition_bounded_performance_difference(lower_bound=-0.03)
-    check2 = PerformanceDisparityReport("sex")
+    check2 = PerformanceBias("sex")
     check2.add_condition_bounded_relative_performance_difference(lower_bound=-0.04)
 
     # Act
@@ -115,9 +115,9 @@ def test_condition_fail(adult_split_dataset_and_model):
 def test_condition_pass(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
-    check = PerformanceDisparityReport("sex")
+    check = PerformanceBias("sex")
     check.add_condition_bounded_performance_difference(lower_bound=-0.04)
-    check2 = PerformanceDisparityReport("sex")
+    check2 = PerformanceBias("sex")
     check2.add_condition_bounded_relative_performance_difference(lower_bound=-0.042)
 
     # Act
@@ -142,7 +142,7 @@ def test_condition_pass(adult_split_dataset_and_model):
 def test_numeric_values(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
-    check = PerformanceDisparityReport("sex")
+    check = PerformanceBias("sex")
 
     expected_value = pd.DataFrame({
         'sex': {0: ' Male', 1: ' Female'},
@@ -165,7 +165,7 @@ def test_numeric_values(adult_split_dataset_and_model):
 def test_numeric_values_classwise(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
-    check = PerformanceDisparityReport("sex", scorer="f1_per_class")
+    check = PerformanceBias("sex", scorer="f1_per_class")
 
     expected_value = pd.DataFrame({
         'sex': {1: ' Female', 0: ' Male'},
@@ -189,7 +189,7 @@ def test_numeric_values_classwise(adult_split_dataset_and_model):
 def test_numeric_values_classwise_with_control(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
-    check = PerformanceDisparityReport("sex", control_feature="race", scorer="f1_per_class")
+    check = PerformanceBias("sex", control_feature="race", scorer="f1_per_class")
 
     expected_value = pd.DataFrame({
         'sex': {5: ' Female',
@@ -249,7 +249,7 @@ def test_numeric_values_classwise_with_control(adult_split_dataset_and_model):
 def test_na_scores_on_small_subgroups(adult_split_dataset_and_model):
     # Arrange
     _, test, model = adult_split_dataset_and_model
-    check = PerformanceDisparityReport("sex", min_subgroup_size=1_000_000_000)
+    check = PerformanceBias("sex", min_subgroup_size=1_000_000_000)
 
     # Act
     result = check.run(test, model)
@@ -271,7 +271,7 @@ def test_scorers_types_no_error(adult_split_dataset_and_model):
     
     # Act
     for scorer in scorer_types:
-        check = PerformanceDisparityReport("sex", scorer=scorer)
+        check = PerformanceBias("sex", scorer=scorer)
         check.run(test, model)
 
     # Assert

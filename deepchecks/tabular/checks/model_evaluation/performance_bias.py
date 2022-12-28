@@ -25,11 +25,11 @@ from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.typing import Hashable
 
 
-class PerformanceDisparityReport(SingleDatasetCheck):
+class PerformanceBias(SingleDatasetCheck):
     """
     Check for performance disparities across subgroups, while optionally accounting for a control variable.
 
-    The check identifies "performance disparities": large performance difference for a subgroup compared
+    The check identifies "performance biases": large performance difference for a subgroup compared
     to the baseline performance for the full population. It is intended to be used for fairness analyses.
 
     Subgroups are defined by the categories of a "protected" feature. Numerical features are first binned

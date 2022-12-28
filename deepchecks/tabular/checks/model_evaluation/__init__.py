@@ -15,7 +15,7 @@ from .confusion_matrix_report import ConfusionMatrixReport
 from .model_inference_time import ModelInferenceTime
 from .model_info import ModelInfo
 from .multi_model_performance_report import MultiModelPerformanceReport
-from .performance_disparity_report import PerformanceDisparityReport
+from .performance_bias import PerformanceBias
 from .regression_error_distribution import RegressionErrorDistribution
 from .regression_systematic_error import RegressionSystematicError
 from .roc_report import RocReport
@@ -44,5 +44,5 @@ __all__ = [
     'WeakSegmentsPerformance',
     'UnusedFeatures',
     'SingleDatasetPerformance',
-    'PerformanceDisparityReport'
+    'PerformanceBias'
 ]

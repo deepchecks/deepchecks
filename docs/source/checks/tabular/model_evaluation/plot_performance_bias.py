@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Performance Disparity Report
-*************************
+Performance Bias
+****************
 
-This notebook provides an overview for using and understanding the Performance Disparity Report check.
+This notebook provides an overview for using and understanding the Performance Bias check.
 
 **Structure:**
 
@@ -15,12 +15,20 @@ This notebook provides an overview for using and understanding the Performance D
 What is the purpose of the check?
 ==================================
 
-The check is designed to help you identify subgroups for which the model has a much lower performance score than its baseline score (its overall performance). The subgroups are defined by a chosen *protected* feature (e.g., "sex", "race") and you can specify a *control* feature (e.g., "education") by which to group the data before computing performance differences. This is primarily useful for fairness analyses, but can also be used to identify other types of performance disparities.
+The check is designed to help you identify subgroups for which the model has a much lower performance score than its
+baseline score (its overall performance). The subgroups are defined by a chosen *protected* feature (e.g., "sex",
+"race") and you can specify a *control* feature (e.g., "education") by which to group the data before computing
+performance differences. This is primarily useful for fairness analyses, but can also be used to identify other types
+of performance disparities.
 
-Large performance disparities can indicate a problem with the model. The training data may not be sufficient for certain subgroups or may contain biases, or the model may need to be re-calibrated when applied to certain subgroups. When using appropriate scoring functions, looking at performance disparities can help uncover issues of these kinds.
+Large performance disparities can indicate a problem with the model. The training data may not be sufficient for
+certain subgroups or may contain biases, or the model may need to be re-calibrated when applied to certain subgroups.
+When using appropriate scoring functions, looking at performance disparities can help uncover issues of these kinds.
 
-Remember that this check relies on labeled data provided in the dataset. As such, it can only assess performance disparities to the extent that the labeled data is accurate and representative of the population of interest. Using scoring functions that are robust to class imbalance or that are computed for each model class can help mitigate this issue.
-"""
+Remember that this check relies on labeled data provided in the dataset. As such, it can only assess performance
+disparities to the extent that the labeled data is accurate and representative of the population of interest. Using
+scoring functions that are robust to class imbalance or that are computed for each model class can help mitigate this
+issue. """
 
 #%%
 # Generate data & model
@@ -50,12 +58,12 @@ model = load_fitted_model()
 # 
 # * ``max_control_cat_to_display``: Maximum number of ``control_feature`` categories to display.
 # 
-# see :class:`API reference <deepchecks.tabular.checks.model_evaluation.PerformanceDisparityReport>` for 
+# see :class:`API reference <deepchecks.tabular.checks.model_evaluation.PerformanceBias>` for
 # more details.
 
-from deepchecks.tabular.checks.model_evaluation import PerformanceDisparityReport
+from deepchecks.tabular.checks.model_evaluation import PerformanceBias
 
-check = PerformanceDisparityReport(
+check = PerformanceBias(
    protected_feature="race",
    control_feature="education",
    scorer="f1",
