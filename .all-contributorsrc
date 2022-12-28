@@ -349,6 +349,16 @@
         "code",
         "doc"
       ]
+    },
+    {
+      "login": "OlivierBinette",
+      "name": "Olivier Binette",
+      "avatar_url": "https://avatars.githubusercontent.com/u/784901?v=4",
+      "profile": "https://olivierbinette.github.io/",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "projectName": "deepchecks",
