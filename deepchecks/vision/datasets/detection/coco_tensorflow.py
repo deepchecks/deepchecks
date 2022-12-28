@@ -9,14 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
+try:
+    import tensorflow as tf  # noqa: F401
+    import tensorflow_hub as hub  # noqa: F401
+except ImportError as error:
+    raise ImportError('tensorflow or tensorflow_hub is not installed. Please install them '
+                      'in order to use tensorflow coco dataset.') from error
+
 import os
 import typing as t
 from pathlib import Path
 
 import albumentations as A
 import numpy as np
-import tensorflow as tf
-import tensorflow_hub as hub
 from typing_extensions import Literal
 
 from deepchecks import vision

@@ -46,5 +46,4 @@ beautifulsoup4>=4.11.1
 
 # Vision
 tensorflow>=2.0.0
-torch==1.10.2
-torchvision==0.11.3
+tensorflow_hub>=0.3.0
