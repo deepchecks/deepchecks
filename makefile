@@ -153,13 +153,6 @@ $(ENV):
 requirements: $(ENV)
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
 
-	@$(PIP) install -U pip
-	@$(PIP) install -q \
-		wheel setuptools \
-		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
-		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
-		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)
-
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
 		$(PIP) install -q\
@@ -174,6 +167,12 @@ requirements: $(ENV)
 		$(PIP) install -q torch "torchvision==0.11.3"; \
 	fi;
 
+	@$(PIP) install -U pip
+	@$(PIP) install -q \
+		wheel setuptools \
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 
 
