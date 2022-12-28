@@ -14,12 +14,13 @@ from hamcrest import assert_that, calling, instance_of, is_, raises
 from torch.utils.data import DataLoader
 
 from deepchecks import vision
-from deepchecks.vision.datasets.detection.coco import (CocoDataset, download_coco128_from_ultralytics, load_dataset,
-                                                       COCO_DIR)
+from deepchecks.vision.datasets.detection.coco_torch import \
+    (CocoDataset, load_dataset, COCO_DIR)
+from deepchecks.vision.datasets.detection.coco_utils import download_coco128
 
 
 def patch_side_effect(*args, **kwargs):
-    return download_coco128_from_ultralytics(*args, **kwargs)
+    return download_coco128(*args, **kwargs)
 
 
 def load_dataset_test(mock_download_and_extract_archive):
@@ -43,7 +44,7 @@ def load_dataset_test(mock_download_and_extract_archive):
         assert_that(loader, instance_of(DataLoader))
 
 
-@patch('deepchecks.vision.datasets.detection.coco.download_coco128_from_ultralytics')
+@patch('deepchecks.vision.datasets.detection.coco_utils.download_coco128')
 def test_load_dataset(mock_download_and_extract_archive):
     # mock object should call original function
     mock_download_and_extract_archive.side_effect = patch_side_effect

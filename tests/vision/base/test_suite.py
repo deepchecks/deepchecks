@@ -16,14 +16,14 @@ from hamcrest import assert_that, calling, instance_of, is_, raises, contains_ex
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.datasets.detection import coco_torch
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.suites.default_suites import full_suite
 from tests.conftest import get_expected_results_length, validate_suite_result
 
 
 def test_suite_execution():
-    coco_dataset = coco.load_dataset(object_type='VisionData')
+    coco_dataset = coco_torch.load_dataset(object_type='VisionData')
     executions = defaultdict(int)
 
     class DummyCheck(SingleDatasetCheck):
@@ -62,7 +62,7 @@ def test_suite_execution():
 
 
 def test_suite_execution_with_initalize_exeption():
-    coco_dataset = coco.load_dataset(object_type='VisionData')
+    coco_dataset = coco_torch.load_dataset(object_type='VisionData')
     executions = defaultdict(int)
 
     class DummyCheck(SingleDatasetCheck):
@@ -108,7 +108,7 @@ def test_suite_execution_with_initalize_exeption():
 
 
 def test_suite_execution_with_exception_on_compute():
-    coco_dataset = coco.load_dataset(object_type='VisionData')
+    coco_dataset = coco_torch.load_dataset(object_type='VisionData')
     executions = defaultdict(int)
 
     class DummyCheck(SingleDatasetCheck):
@@ -153,7 +153,7 @@ def test_suite_execution_with_exception_on_compute():
 
 
 def test_suite_execution_with_missing_train():
-    coco_dataset = coco.load_dataset(object_type='VisionData')
+    coco_dataset = coco_torch.load_dataset(object_type='VisionData')
     executions = defaultdict(int)
 
     class DummyTrainTestCheck(TrainTestCheck):
@@ -177,7 +177,7 @@ def test_suite_execution_with_missing_train():
 
 
 def test_suite_execution_with_missing_test():
-    coco_dataset = coco.load_dataset(object_type='VisionData')
+    coco_dataset = coco_torch.load_dataset(object_type='VisionData')
     executions = defaultdict(int)
 
     class DummyTrainTestCheck(TrainTestCheck):
@@ -223,12 +223,14 @@ def test_full_suite_execution_mnist(mnist_visiondata_train, mnist_visiondata_tes
         validate_suite_result(result, length)
 
 
-def test_full_suite_execution_coco(coco_visiondata_train, coco_visiondata_test):
+def test_full_suite_execution_coco(coco_visiondata_train, coco_visiondata_test,
+                                    tf_coco_visiondata_train, tf_coco_visiondata_test):
     suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
     arguments = (
         dict(train_dataset=coco_visiondata_train, test_dataset=coco_visiondata_test),
         dict(train_dataset=coco_visiondata_train),
         dict(train_dataset=coco_visiondata_train, with_display=False),
+        dict(train_dataset=tf_coco_visiondata_train, test_dataset=tf_coco_visiondata_test),
     )
 
     for args in arguments:

@@ -12,22 +12,22 @@
 import io
 import typing as t
 
-import cv2
-import numpy as np
 import PIL.Image as pilimage
 import PIL.ImageDraw as pildraw
 import PIL.ImageOps as pilops
+import cv2
+import numpy as np
 import plotly.graph_objects as go
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.html import imagetag
 from deepchecks.vision.vision_data import TaskType
-
 from .detection_formatters import convert_bbox
 
 __all__ = ['numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
            'crop_image', 'draw_image']
+
 
 def draw_image(image: np.ndarray, label, task_type: TaskType,
                thumbnail_size: t.Tuple[int, int] = (200, 200), draw_label: bool = True) -> str:
@@ -51,7 +51,7 @@ def draw_image(image: np.ndarray, label, task_type: TaskType,
         The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
     """
     if label is not None and image is not None and draw_label and task_type == TaskType.OBJECT_DETECTION:
-        image = draw_bboxes(image, label, copy_image=False, border_width=5)
+        image = draw_bboxes(image, np.asarray(label), copy_image=False, border_width=5)
     if image is not None:
         return prepare_thumbnail(image=image, size=thumbnail_size, copy_image=False)
     else:
@@ -97,7 +97,7 @@ def ensure_image(
 
 def draw_bboxes(
         image: t.Union[pilimage.Image, np.ndarray],
-        bboxes: t.Union[np.ndarray],
+        bboxes: np.ndarray,
         bbox_notation: t.Optional[str] = None,
         copy_image: bool = True,
         border_width: int = 1,
@@ -109,7 +109,7 @@ def draw_bboxes(
     ----------
     image : Union[PIL.Image.Image, numpy.ndarray]
         image to draw on
-    bboxes : Union[numpy.ndarray]
+    bboxes : numpy.ndarray
         array of bboxes
     bbox_notation : Optional[str], default None
         format of the provided bboxes
@@ -125,23 +125,14 @@ def draw_bboxes(
     PIL.Image.Image : image instance with drawen bboxes on it
     """
     image = ensure_image(image, copy=copy_image)
-
-    if bbox_notation is not None:
-        bboxes = np.array([
-            convert_bbox(
-                bbox,
-                notation=bbox_notation,
-                image_width=image.width,
-                image_height=image.height,
-                _strict=False
-            ).tolist()
-            for bbox in bboxes
-        ])
-
     draw = pildraw.ImageDraw(image)
 
     if len(bboxes.shape) == 1:
         bboxes = [bboxes]
+    if bbox_notation is not None:
+        bboxes = np.array(
+            [convert_bbox(bbox, notation=bbox_notation, image_width=image.width, image_height=image.height,
+                          _strict=False).tolist() for bbox in bboxes])
     for bbox in bboxes:
         clazz, x0, y0, w, h = bbox
         x1, y1 = x0 + w, y0 + h

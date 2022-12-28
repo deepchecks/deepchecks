@@ -18,7 +18,7 @@ from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import ValidationError, DatasetValidationError
 from deepchecks.vision.datasets.classification.mnist import collate_without_model, IterableTorchMnistDataset
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.datasets.detection import coco_torch
 from deepchecks.vision.datasets.segmentation import segmentation_coco
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.test_utils import replace_collate_fn_dataloader
@@ -151,7 +151,7 @@ def test_vision_data_label_comparison_with_different_datasets(coco_visiondata_tr
 
 
 def test_vision_data_format():
-    coco_dataset = coco.load_dataset(object_type='DataLoader')
+    coco_dataset = coco_torch.load_dataset(object_type='DataLoader')
     assert_that(calling(VisionData).with_args(coco_dataset, TaskType.OBJECT_DETECTION.value),
                 raises(ValidationError,
                        r'Batch loader batch output must be a dictionary containing a subset of the following keys:'))
@@ -191,7 +191,7 @@ def test_detection_data_bad_batch_to_predictions_implementation(coco_dataloader_
     # Assert
     assert_that(calling(VisionData).with_args(loader_empty_batch, TaskType.OBJECT_DETECTION.value),
                 raises(ValidationError,
-                       "The batch predictions must be an iterable, received <class \'int\'>"))
+                       "The batch predictions must be a non empty iterable."))
     assert_that(calling(VisionData).with_args(loader_classification_shape, TaskType.OBJECT_DETECTION.value),
                 raises(ValidationError,
                        "prediction for object_detection per image must be a multi dimensional array."))
@@ -243,13 +243,13 @@ def test_exception_image_formatter(mnist_dataloader_train):
     # Act & Assert
     assert_that(
         calling(VisionData).with_args(loader_bad_images, task_type=TaskType.CLASSIFICATION.value),
-        raises(Exception, 'The batch images must be an iterable, received <class \'Exception\'>'))
+        raises(Exception, 'The batch images must be an iterable, received <class \'Exception\'>.'))
     assert_that(
         calling(VisionData).with_args(loader_bad_predictions, task_type=TaskType.CLASSIFICATION.value),
-        raises(Exception, 'The batch predictions must be an iterable, received <class \'Exception\'>'))
+        raises(Exception, 'The batch predictions must be a non empty iterable.'))
     assert_that(
         calling(VisionData).with_args(loader_bad_labels, task_type=TaskType.CLASSIFICATION.value),
-        raises(Exception, 'The batch labels must be an iterable, received <class \'Exception\'>'))
+        raises(Exception, 'The batch labels must be a non empty iterable.'))
 
 def mnist_collate_labels(data):
     return {'labels': collate_without_model(data)[1]}
@@ -282,3 +282,18 @@ def test_shuffling_iterator_dataloader(mnist_iterator_visiondata_train, caplog):
     assert_that(caplog.records[0].message, equal_to('Shuffling is not supported for received batch loader. '
                                                     'Make sure that your provided batch loader is indeed shuffled '
                                                     'and set shuffle_batch_loader=False'))
+
+
+def test_shuffling_tf_dataset(tf_coco_visiondata_train, caplog):
+    # Arrange
+    loader_deepchecks_format = tf_coco_visiondata_train.batch_loader
+    original_batch = next(iter(loader_deepchecks_format))
+    vision_data = VisionData(loader_deepchecks_format, TaskType.OBJECT_DETECTION.value, shuffle_batch_loader=True)
+    vision_data_batch = next(iter(vision_data))
+
+    # Assert
+    assert_that(list(original_batch['labels'][0][0]), equal_to(list(vision_data_batch['labels'][0][0]))) # no shuffling happened
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message, equal_to('Shuffling for tensorflow datasets is not supported. '
+                                                    'Make sure that the data used to create the Dataset was shuffled '
+                                                    'beforehand and set shuffle_batch_loader=False'))

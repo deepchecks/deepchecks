@@ -109,12 +109,9 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                 labels = [[label_per_image] for label_per_image in batch.numpy_labels]
             else:
                 labels = batch.numpy_labels
-            if not isinstance(property_values[0], t.Sequence):  # TODO: change after changing properties api
-                property_values = [[x] for x in property_values]
 
-            self._properties_results[prop_name].extend(property_values)
             self._images_uuid += batch.numpy_image_identifiers
-            self._update_lowest_highest_property_values(batch.numpy_images, labels, property_values, prop_name)
+            self._cache_property_values_and_images(batch.numpy_images, labels, list(property_values), prop_name)
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final result."""
@@ -196,12 +193,14 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         """Get outlier images and their values for provided property."""
         result = []
         for idx, value in enumerate(self._lowest_property_value_images[prop_name]['property_values']):
+            value = value[0] if isinstance(value, t.Sequence) else value  # case of value per label value is a list
             if value < lower_limit:
                 image_thumbnail = draw_image(image=self._lowest_property_value_images[prop_name]['images'][idx],
                                              label=self._lowest_property_value_images[prop_name]['labels'][idx],
                                              task_type=task_type, draw_label=self._draw_label_on_image)
                 result.append((value, image_thumbnail))
         for idx, value in enumerate(self._highest_property_value_images[prop_name]['property_values']):
+            value = value[0] if isinstance(value, t.Sequence) else value  # case of value per label value is a list
             if value > upper_limit:
                 image_thumbnail = draw_image(
                     image=self._highest_property_value_images[prop_name]['images'][idx],
@@ -215,47 +214,61 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         """Return default properties to run in the check."""
         pass
 
-    def _update_lowest_highest_property_values(self, images: t.List, labels: t.List, property_values: t.List,
-                                               property_name: str):
+    def _cache_property_values_and_images(self, images: t.List, labels: t.List, property_values: t.List,
+                                          property_name: str):
         """Update the _lowest_property_value_images, _lowest_property_value_images dicts based on new batch."""
-        # In case there are no images or no labels put none instead and do not display images / labels
-        labels = [[None]] * len(property_values) if labels is None else labels
-        images = np.asarray([None] * len(property_values)) if images is None else np.asarray(images, dtype='object')
-        # adds the current lowest and highest property value images to the batch before sorting
-        if property_name in self._lowest_property_value_images:
-            labels = [[x] for x in self._lowest_property_value_images[property_name]['labels']] + labels
-            images = np.concatenate((self._lowest_property_value_images[property_name]['images'], images))
-            property_values = [[x] for x in
-                               self._lowest_property_value_images[property_name]['property_values']] + property_values
-        if property_name in self._highest_property_value_images:
-            labels = [[x] for x in self._highest_property_value_images[property_name]['labels']] + labels
-            images = np.concatenate((self._highest_property_value_images[property_name]['images'], images))
-            property_values = [[x] for x in
-                               self._highest_property_value_images[property_name]['property_values']] + property_values
-
-        # there are several values per image, so we flatten the list of lists before sorting based on property values
-        values_lengths_cumsum = np.cumsum(np.array([len(v) for v in property_values]))
-        values_flat_arr = np.hstack(property_values).astype(float)
-        labels_flat_arr = np.asarray([item for sublist in labels for item in sublist], dtype='object')
-
-        if len(property_values) <= self.n_show_top:
-            lowest_values_idx = range(len(property_values))
-            highest_values_idx = range(len(property_values))
+        is_property_per_label = isinstance(property_values[0], (np.ndarray, t.Sequence))
+        # Update full property values cache for outlier calculation
+        if is_property_per_label:
+            self._properties_results[property_name].extend(property_values)
         else:
-            lowest_values_idx = np.argpartition(values_flat_arr, self.n_show_top)[:self.n_show_top]
-            highest_values_idx = np.argpartition(values_flat_arr, -self.n_show_top)[-self.n_show_top:]
+            self._properties_results[property_name].extend([[x] for x in property_values])
+        # In case there are no images or no labels put none instead and do not display images / labels
+        images = [None] * len(property_values) if images is None else images
+        if labels is None:
+            labels = [[None]] * len(property_values) if is_property_per_label else [None] * len(property_values)
 
-        lowest_img_idx = [_sample_index_from_flatten_index(values_lengths_cumsum, x) for x in lowest_values_idx]
+        # adds the current lowest and highest property value images/labels/values to the batch before sorting
+        if property_name in self._lowest_property_value_images:
+            for stored_values_dict in (self._lowest_property_value_images[property_name],
+                                       self._highest_property_value_images[property_name]):
+                labels = stored_values_dict['labels'] + labels
+                images = stored_values_dict['images'] + images
+                property_values = stored_values_dict['property_values'] + property_values
+
+        if is_property_per_label:  # if property is per label flatten the list of lists to find lowest and highest
+            values_lengths_cumsum = np.cumsum(np.array([len(v) for v in property_values]))
+            property_values = np.hstack(property_values).astype(float)
+            labels = np.asarray([item for sublist in labels for item in sublist], dtype='object')
+
+        # calculate lowest and highest property values
+        not_null_indices = [idx for idx, value in enumerate(property_values) if value is not None]
+        if len(not_null_indices) <= self.n_show_top:
+            lowest_values_idx = not_null_indices
+            highest_values_idx = not_null_indices
+        else:
+            lowest_values_idx = np.argpartition([np.inf if v is None else v for v in property_values],
+                                                self.n_show_top)[:self.n_show_top]
+            highest_values_idx = np.argpartition([np.NINF if v is None else v for v in property_values],
+                                                 -self.n_show_top)[-self.n_show_top:]
+
+        if is_property_per_label:
+            lowest_img_idx = [_sample_index_from_flatten_index(values_lengths_cumsum, x) for x in lowest_values_idx]
+            highest_img_idx = [_sample_index_from_flatten_index(values_lengths_cumsum, x) for x in highest_values_idx]
+        else:
+            lowest_img_idx = lowest_values_idx
+            highest_img_idx = highest_values_idx
+
         self._lowest_property_value_images[property_name] = \
-            {'images': images[lowest_img_idx],
-             'property_values': values_flat_arr[lowest_values_idx],
-             'labels': labels_flat_arr[lowest_values_idx]}
-
-        highest_img_idx = [_sample_index_from_flatten_index(values_lengths_cumsum, x) for x in highest_values_idx]
+            {'images': [images[x] for x in lowest_img_idx],
+             'property_values': [[property_values[x]] if is_property_per_label else property_values[x]
+                                 for x in lowest_values_idx],
+             'labels': [[labels[x]] if is_property_per_label else labels[x] for x in lowest_values_idx]}
         self._highest_property_value_images[property_name] = \
-            {'images': images[highest_img_idx],
-             'property_values': values_flat_arr[highest_values_idx],
-             'labels': labels_flat_arr[highest_values_idx]}
+            {'images': [images[x] for x in highest_img_idx],
+             'property_values': [[property_values[x]] if is_property_per_label else property_values[x]
+                                 for x in highest_values_idx],
+             'labels': [[labels[x]] if is_property_per_label else labels[x] for x in highest_values_idx]}
 
 
 def _ensure_property_shape(property_values, data_len, prop_name):

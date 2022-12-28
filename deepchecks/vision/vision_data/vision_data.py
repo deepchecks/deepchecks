@@ -20,8 +20,7 @@ from deepchecks.vision.vision_data.format_validators import (validate_additional
                                                              validate_image_identifiers_format, validate_images_format,
                                                              validate_labels_format, validate_predictions_format)
 from deepchecks.vision.vision_data.utils import (BatchOutputFormat, get_class_ids_from_numpy_labels,
-                                                 get_class_ids_from_numpy_preds, shuffle_loader, is_torch_object,
-                                                 is_tensorflow_object)
+                                                 get_class_ids_from_numpy_preds, shuffle_loader)
 
 VD = t.TypeVar('VD', bound='VisionData')
 

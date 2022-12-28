@@ -27,8 +27,8 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import IterableDataset
 from torchvision import datasets
-from torchvision.datasets.mnist import read_label_file, read_image_file
-from torchvision.datasets.utils import download_and_extract_archive, check_integrity
+from torchvision.datasets.mnist import read_image_file, read_label_file
+from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks.vision.utils.test_utils import get_data_loader_sequential, hash_image, un_normalize_batch
@@ -136,7 +136,7 @@ def deepchecks_collate(model) -> t.Callable:
     return _process_batch_to_deepchecks_format
 
 
-def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockMnistModel':
+def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockModel':
     """Load MNIST model.
 
     Returns
@@ -153,7 +153,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockMnist
         model = MnistModel()
         model.load_state_dict(torch.load(path))
         model.eval()
-        return MockMnistModel(model)
+        return MockModel(model)
 
     model = MnistModel()
 
@@ -191,10 +191,10 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockMnist
 
     torch.save(model.state_dict(), path)
     model.eval()
-    return MockMnistModel(model)
+    return MockModel(model)
 
 
-class MockMnistModel:
+class MockModel:
     """Class of MNIST model that returns cached predictions."""
 
     def __init__(self, real_model):
@@ -237,13 +237,14 @@ class IterableTorchMnistDataset(IterableDataset):
     ]
 
     resources = [
-        ("train-images-idx3-ubyte.gz", "f68b3c2dcbeaaa9fbdd348bbdeb94873"),
-        ("train-labels-idx1-ubyte.gz", "d53e105ee54ea40749a09fcbcd1e9432"),
-        ("t10k-images-idx3-ubyte.gz", "9fb629c4189551a2d022fa330f9573f3"),
-        ("t10k-labels-idx1-ubyte.gz", "ec29112dd5afa0611ce80d1b7f02629c")]
+        ('train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
+        ('train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432'),
+        ('t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3'),
+        ('t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')]
 
     def __init__(self, batch_size: int = 64, train: bool = True, transform: t.Optional[t.Callable] = None,
                  n_samples: int = None) -> None:
+        super().__init__()
         self.train = train  # training set or test set
         self.transform = transform
         self.batch_size = batch_size
@@ -292,22 +293,22 @@ class IterableTorchMnistDataset(IterableDataset):
         # download files
         for filename, md5 in self.resources:
             for mirror in self.mirrors:
-                url = "{}{}".format(mirror, filename)
+                url = f'{mirror}{filename}'
                 try:
-                    print("Downloading {}".format(url))
+                    print(f'Downloading {url}')
                     download_and_extract_archive(
                         url, download_root=self.raw_folder,
                         filename=filename,
                         md5=md5
                     )
                 except URLError as error:
-                    print("Failed to download (trying next):\n{}".format(error))
+                    print(f'Failed to download (trying next):\n{error}')
                     continue
                 finally:
                     print()
                 break
             else:
-                raise RuntimeError("Error downloading {}".format(filename))
+                raise RuntimeError(f'Error downloading {filename}')
 
 
 class TorchMnistDataset(datasets.MNIST):

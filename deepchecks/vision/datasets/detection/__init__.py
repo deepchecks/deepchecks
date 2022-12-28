@@ -9,6 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for detection datasets and models."""
-from . import coco, yolo_to_coco
+from . import coco_tensorflow, coco_torch, mask
 
-__all__ = ["coco", "yolo_to_coco"]
+__all__ = ["coco_tensorflow", "coco_torch", "mask"]

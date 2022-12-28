@@ -133,10 +133,8 @@ def _validate_predictions_label_common_format(name, data, task_type: TaskType):
     try:
         _ = data[0]
         data = sequence_to_numpy(data)
-    except IndexError as err:
+    except (IndexError, KeyError, TypeError) as err:
         raise ValidationError(f'The batch {name_plural} must be a non empty iterable.') from err
-    except TypeError as err:
-        raise ValidationError(f'The batch {name_plural} must be an iterable, received {type(data)}') from err
 
     sample_idx = 0
     while data[sample_idx] is None or (isinstance(data[sample_idx], np.ndarray) and data[sample_idx].shape[0] == 0):

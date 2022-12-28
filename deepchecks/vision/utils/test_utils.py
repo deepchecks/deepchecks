@@ -20,6 +20,7 @@ from PIL import Image
 from torch.utils.data import BatchSampler, DataLoader, Sampler
 
 from deepchecks.vision import VisionData
+from deepchecks.vision.vision_data.utils import object_to_numpy
 
 
 def replace_collate_fn_visiondata(vision_data: VisionData, new_collate_fn):
@@ -126,14 +127,14 @@ def un_normalize_batch(tensor: torch.Tensor, mean: Sized, std: Sized, max_pixel_
     std = torch.tensor(std, device=tensor.device).reshape(reshape_shape)
     tensor = (tensor * std) + mean
     tensor = tensor * torch.tensor(max_pixel_value, device=tensor.device).reshape(reshape_shape)
-    return tensor.cpu().detach().numpy()
+    return object_to_numpy(tensor)
 
 
 def hash_image(image):
     if isinstance(image, np.ndarray):
         image = Image.fromarray(image)
     elif isinstance(image, torch.Tensor):
-        image = Image.fromarray(image.cpu().detach().numpy().squeeze())
+        image = Image.fromarray(object_to_numpy(image).squeeze())
 
     image = image.resize((10, 10))
     image = image.convert('L')

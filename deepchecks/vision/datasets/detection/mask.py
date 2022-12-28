@@ -39,6 +39,8 @@ from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'MaskDataset', 'get_data_timestamps']
 
+from deepchecks.vision.vision_data.utils import object_to_numpy
+
 MASK_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'mask_detection'
 MODEL_PATH = MASK_DIR / 'mnist_model.pth'
 
@@ -57,7 +59,7 @@ class MaskPrecalculatedModel(nn.Module):
         self._device = device
 
     def forward(self, images: t.Sequence[torch.Tensor]) -> t.Sequence[torch.Tensor]:
-        image_hashes = [self._hash_image((img.cpu().numpy() if isinstance(img, torch.Tensor) else img))
+        image_hashes = [self._hash_image((object_to_numpy(img) if isinstance(img, torch.Tensor) else img))
                         for img in images]
         return [torch.tensor(self._pred_dict[image_hash]).to(self._device) for image_hash in image_hashes]
 

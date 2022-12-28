@@ -59,6 +59,20 @@ def test_outliers_check_coco(coco_visiondata_train):
         'Bounding Box Area (in pixels)': instance_of(dict),
     }))
 
+def test_tf_coco_batch_without_boxes(tf_coco_visiondata_train):
+    # Act
+    result = LabelPropertyOutliers().run(tf_coco_visiondata_train)
+
+    # Assert
+    assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
+    assert_that(result.value, has_entries({
+        'Number of Bounding Boxes Per Image': has_entries({
+            'outliers_identifiers': contains_exactly('2', '11', '12', '22'),
+            'lower_limit': is_(1),
+            'upper_limit': is_(20.125)
+        }),
+        'Bounding Box Area (in pixels)': instance_of(dict),
+    }))
 
 def test_outliers_check_coco_segmentation(segmentation_coco_visiondata_train):
     # Act
