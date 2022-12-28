@@ -262,6 +262,7 @@ class IterableTorchMnistDataset(IterableDataset):
             self.data = torch.stack([self.transform(image=img.numpy())['image'] for img in self.data])
 
     def __iter__(self):
+        """Iterate over the dataset."""
         return cycle(zip(self.data, self.targets))
 
     def _load_data(self):
@@ -275,6 +276,7 @@ class IterableTorchMnistDataset(IterableDataset):
 
     @property
     def raw_folder(self) -> str:
+        """Return the path to the raw data folder."""
         return os.path.join(MNIST_DIR, 'raw_data')
 
     def _check_exists(self) -> bool:
@@ -284,7 +286,6 @@ class IterableTorchMnistDataset(IterableDataset):
 
     def download(self) -> None:
         """Download the MNIST data if it doesn't exist already."""
-
         if self._check_exists():
             return
 
@@ -316,6 +317,7 @@ class TorchMnistDataset(datasets.MNIST):
 
     @property
     def raw_folder(self) -> str:
+        """Return the path to the raw data folder."""
         return os.path.join(self.root, 'raw_data')
 
     def __getitem__(self, index: int) -> t.Tuple[t.Any, t.Any]:

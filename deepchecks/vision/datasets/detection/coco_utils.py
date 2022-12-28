@@ -49,6 +49,7 @@ def download_coco128(root: Path):
 
 
 def get_image_and_label(image_file, label_file, transforms=None):
+    """Get image and label in correct format for models from file paths."""
     opencv_image = cv2.imread(str(image_file))
     pil_image = Image.fromarray(cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB))
     if label_file is not None and label_file.exists():

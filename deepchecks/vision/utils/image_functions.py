@@ -12,16 +12,17 @@
 import io
 import typing as t
 
+import cv2
+import numpy as np
 import PIL.Image as pilimage
 import PIL.ImageDraw as pildraw
 import PIL.ImageOps as pilops
-import cv2
-import numpy as np
 import plotly.graph_objects as go
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.html import imagetag
 from deepchecks.vision.vision_data import TaskType
+
 from .detection_formatters import convert_bbox
 
 __all__ = ['numpy_grayscale_to_heatmap_figure', 'ensure_image',
