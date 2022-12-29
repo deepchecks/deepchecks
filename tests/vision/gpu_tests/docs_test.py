@@ -33,8 +33,8 @@ def test_plots_on_gpu():
         path = Path(__file__).parent.parent.parent.parent / "docs" / "source"
         # Take only source file and excluding compiled files
         source_files = set()
-        for dir in DOCS_EXAMPLES_DIR:
-            source_files.update(set(path.glob(f"**/{dir}/**/plot_*.py")))
+        for folder in DOCS_EXAMPLES_DIR:
+            source_files.update(set(path.glob(f"**/{folder}/**/plot_*.py")))
 
         if not source_files:
             raise ValueError("No plots found in docs/source")
@@ -43,5 +43,4 @@ def test_plots_on_gpu():
             start = time.time()
             run_path(str(file))
             end = time.time()
-            print(f"plot file: {str(file)}, Time: {end-start}")
-
+            print(f"plot file: {str(file)}, Time: {end - start}")

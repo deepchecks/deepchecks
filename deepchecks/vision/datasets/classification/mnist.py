@@ -308,8 +308,6 @@ class IterableTorchMnistDataset(IterableDataset):
                 except URLError as error:
                     print(f'Failed to download (trying next):\n{error}')
                     continue
-                finally:
-                    print()
                 break
             else:
                 raise RuntimeError(f'Error downloading {filename}')

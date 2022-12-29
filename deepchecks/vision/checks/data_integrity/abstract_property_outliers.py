@@ -193,14 +193,14 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         """Get outlier images and their values for provided property."""
         result = []
         for idx, value in enumerate(self._lowest_property_value_images[prop_name]['property_values']):
-            value = value[0] if isinstance(value, t.Sequence) else value  # case of value per label value is a list
+            value = value[0] if isinstance(value, t.Sequence) else value  # for property per bbox, value is a list
             if value < lower_limit:
                 image_thumbnail = draw_image(image=self._lowest_property_value_images[prop_name]['images'][idx],
                                              label=self._lowest_property_value_images[prop_name]['labels'][idx],
                                              task_type=task_type, draw_label=self._draw_label_on_image)
                 result.append((value, image_thumbnail))
         for idx, value in enumerate(self._highest_property_value_images[prop_name]['property_values']):
-            value = value[0] if isinstance(value, t.Sequence) else value  # case of value per label value is a list
+            value = value[0] if isinstance(value, t.Sequence) else value  # for property per bbox, value is a list
             if value > upper_limit:
                 image_thumbnail = draw_image(
                     image=self._highest_property_value_images[prop_name]['images'][idx],
