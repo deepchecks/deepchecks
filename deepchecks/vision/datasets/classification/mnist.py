@@ -31,8 +31,10 @@ from torchvision.datasets.mnist import read_image_file, read_label_file
 from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 from typing_extensions import Literal
 
+from deepchecks.utils.logger import get_logger
 from deepchecks.vision.utils.test_utils import get_data_loader_sequential, hash_image, un_normalize_batch
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
+from deepchecks.vision.vision_data.utils import object_to_numpy
 
 __all__ = ['load_dataset', 'load_model', 'MnistModel', 'TorchMnistDataset', 'IterableTorchMnistDataset']
 
@@ -138,7 +140,7 @@ def deepchecks_collate(model) -> t.Callable:
     return _process_batch_to_deepchecks_format
 
 
-def load_model(pretrained: bool = True, path: pathlib.Path = None, device : t.Union[str, torch.device] = 'cpu') \
+def load_model(pretrained: bool = True, path: pathlib.Path = None, device: t.Union[str, torch.device] = 'cpu') \
         -> 'MockModel':
     """Load MNIST model.
 
@@ -262,7 +264,7 @@ class IterableTorchMnistDataset(IterableDataset):
             self.data = self.data[:n_samples]
             self.targets = self.targets[:n_samples]
         if self.transform is not None:
-            self.data = torch.stack([self.transform(image=img.numpy())['image'] for img in self.data])
+            self.data = torch.stack([self.transform(image=object_to_numpy(img)['image']) for img in self.data])
 
     def __iter__(self):
         """Iterate over the dataset."""
@@ -306,7 +308,7 @@ class IterableTorchMnistDataset(IterableDataset):
                         md5=md5
                     )
                 except URLError as error:
-                    print(f'Failed to download (trying next):\n{error}')
+                    get_logger().warning('Failed to download (trying next):\n%s', error)
                     continue
                 break
             else:

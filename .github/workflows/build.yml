@@ -65,32 +65,24 @@ jobs:
 
   tests-python3.6:
     runs-on: ubuntu-20.04
-    strategy:
-      matrix:
-        python-version: [ "3.6" ]
-
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python 3.6
         uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.6
       - name: Run Tests
         run: make test args=tests/tabular
 
 
   tests-windows:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
-
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.9
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.9 #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
     - name: Run Tests
       run: make test-win
 
