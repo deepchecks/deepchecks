@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-from numbers import Number
 import warnings
 from collections import defaultdict
+from numbers import Number
 from typing import TYPE_CHECKING, Callable, Dict, Hashable, List, Mapping, Union
 
 import numpy as np
