@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
+from numbers import Number
 import warnings
 from collections import defaultdict
 from typing import TYPE_CHECKING, Callable, Dict, Hashable, List, Mapping, Union
@@ -181,20 +182,32 @@ class SimpleModelComparison(TrainTestCheck):
             for scorer in scorers:
                 model_dict = defaultdict(dict)
                 for model_name, model_type, model_instance in models:
-                    for class_value, class_score in scorer(model_instance, test_dataset).items():
-                        # New labels which do not exists on the model gets nan as score, skips them.
-                        # Also skips classes which are not in the test labels
-                        if np.isnan(class_score) or class_value not in class_counts:
-                            continue
-                        model_dict[class_value][model_type] = class_score
+                    scorer_value = scorer(model_instance, test_dataset)
+                    if isinstance(scorer_value, Number) or scorer_value is None:
+                        model_dict[None][model_type] = scorer_value
                         if context.with_display:
                             display_array.append([model_name,
                                                   model_type,
-                                                  class_score,
+                                                  scorer_value,
                                                   scorer.name,
-                                                  class_value,
-                                                  class_counts[class_value]
+                                                  None,
+                                                  None,
                                                   ])
+                    else:
+                        for class_value, class_score in scorer_value.items():
+                            # New labels which do not exists on the model gets nan as score, skips them.
+                            # Also skips classes which are not in the test labels
+                            if np.isnan(class_score) or class_value not in class_counts:
+                                continue
+                            model_dict[class_value][model_type] = class_score
+                            if context.with_display:
+                                display_array.append([model_name,
+                                                      model_type,
+                                                      class_score,
+                                                      scorer.name,
+                                                      class_value,
+                                                      class_counts[class_value]
+                                                      ])
                 results_dict[scorer.name] = model_dict
 
             if display_array:
