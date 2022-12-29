@@ -63,7 +63,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  tests-python3.6:
+  tests-python36:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
