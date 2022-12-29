@@ -54,7 +54,7 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
                            device=dev)
     model.eval()
     logger.disabled = False
-    return MockModel(model)
+    return MockModel(model, dev)
 
 
 def _batch_collate(batch):
@@ -122,6 +122,7 @@ def load_dataset(
         pin_memory: bool = True,
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
         n_samples: t.Optional[int] = None,
+        device: t.Union[str, torch.device] = 'cpu'
 ) -> t.Union[DataLoader, vision.VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
@@ -144,6 +145,8 @@ def load_dataset(
     n_samples : int, optional
         Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle
         is False otherwise selects n_samples at random. If None, returns all samples.
+    device : t.Union[str, torch.device], default : 'cpu'
+        device to use in tensor calculations
 
     Returns
     -------
@@ -158,7 +161,7 @@ def load_dataset(
         return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
                           collate_fn=_batch_collate, pin_memory=pin_memory, generator=torch.Generator())
     elif object_type == 'VisionData':
-        model = load_model()
+        model = load_model(device=device)
         dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers,
                                 collate_fn=deepchecks_collate(model), pin_memory=pin_memory,
                                 generator=torch.Generator())
@@ -179,8 +182,9 @@ class MockDetections:
 class MockModel:
     """Class of COCO model that returns cached predictions."""
 
-    def __init__(self, real_model):
+    def __init__(self, real_model, device):
         self.real_model = real_model
+        self.device = device
         self.cache = coco_detections_static_predictions_dict
 
     def __call__(self, batch):
@@ -189,7 +193,7 @@ class MockModel:
             hash_key = hash_image(img)
             if hash_key not in self.cache:
                 self.cache[hash_key] = self.real_model([img]).pred[0]
-            results.append(self.cache[hash_key])
+            results.append(self.cache[hash_key].to(self.device))
         return MockDetections(results)
 
 

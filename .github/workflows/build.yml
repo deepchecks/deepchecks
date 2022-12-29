@@ -63,6 +63,22 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  tests-python3.6:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        python-version: [ "3.6" ]
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Run Tests
+        run: make test args=tests/tabular
+
+
   tests-windows:
     runs-on: windows-latest
     strategy:
@@ -134,6 +150,7 @@ jobs:
     - name: Print report
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"
+
   gpu-tests:
     runs-on: [self-hosted, gpu]
     steps:
@@ -145,7 +162,7 @@ jobs:
       - name: Set Up Env
         run: make env
       - name: Run Tests
-        run: make test
+        run: make test args=tests/vision/gpu_tests
 
 
 #  documentation-check:

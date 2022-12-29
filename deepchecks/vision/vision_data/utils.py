@@ -178,8 +178,8 @@ def set_seeds(seed: int):
             import torch  # pylint: disable=import-outside-toplevel
             torch.manual_seed(seed)
         if 'tensorflow' in sys.modules:
-            import tensorflow  # pylint: disable=import-outside-toplevel
-            tensorflow.random.set_seed(seed)
+            import tensorflow as tf  # pylint: disable=import-outside-toplevel
+            tf.random.set_seed(seed)
 
 
 def validate_vision_data_compatibility(first, second) -> None:

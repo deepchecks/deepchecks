@@ -50,6 +50,7 @@ def load_dataset(
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
         use_iterable_dataset: bool = False,
         n_samples=None,
+        device: t.Union[str, torch.device] = 'cpu'
 ) -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
@@ -72,7 +73,8 @@ def load_dataset(
     n_samples : int, optional
         Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle
         is False otherwise selects n_samples at random. If None, returns all samples.
-
+    device : t.Union[str, torch.device], default : 'cpu'
+        device to use in tensor calculations
     Returns
     -------
     Union[:obj:`deepchecks.vision.VisionData`, :obj:`torch.utils.data.DataLoader`]
@@ -93,7 +95,7 @@ def load_dataset(
         return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, pin_memory=pin_memory,
                           generator=torch.Generator())
     elif object_type == 'VisionData':
-        model = load_model()
+        model = load_model(device=device)
         loader = DataLoader(dataset, batch_size=batch_size, pin_memory=pin_memory,
                             generator=torch.Generator(), collate_fn=deepchecks_collate(model))
         if not use_iterable_dataset:
@@ -136,7 +138,8 @@ def deepchecks_collate(model) -> t.Callable:
     return _process_batch_to_deepchecks_format
 
 
-def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockModel':
+def load_model(pretrained: bool = True, path: pathlib.Path = None, device : t.Union[str, torch.device] = 'cpu') \
+        -> 'MockModel':
     """Load MNIST model.
 
     Returns
@@ -148,15 +151,14 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockModel
         raise RuntimeError(f'Path for MNIST model not found: {str(path)}')
 
     path = path or MODEL_PATH
-
+    dev = torch.device(device) if isinstance(device, str) else device
     if pretrained and path.exists():
         model = MnistModel()
         model.load_state_dict(torch.load(path))
         model.eval()
-        return MockModel(model)
+        return MockModel(model, dev)
 
     model = MnistModel()
-
     dataloader = t.cast(DataLoader, load_dataset(train=True, object_type='DataLoader'))
     datasize = len(dataloader.dataset)
 
@@ -191,17 +193,18 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None) -> 'MockModel
 
     torch.save(model.state_dict(), path)
     model.eval()
-    return MockModel(model)
+    return MockModel(model, dev)
 
 
 class MockModel:
     """Class of MNIST model that returns cached predictions."""
 
-    def __init__(self, real_model):
-        self.real_model = real_model
+    def __init__(self, real_model, device):
+        self.device = device
+        self.real_model = real_model.to(device)
         with open(MNIST_DIR / 'static_predictions.pickle', 'rb') as handle:
             predictions = pickle.load(handle)
-        self.cache = {key: torch.tensor(value) for key, value in predictions.items()}
+        self.cache = {key: torch.tensor(value).to(device) for key, value in predictions.items()}
 
     def __call__(self, batch):
         results = []
@@ -210,7 +213,7 @@ class MockModel:
             if hash_key not in self.cache:
                 prediction = self.real_model(torch.stack([img]))[0]
                 prediction = nn.Softmax()(prediction).detach()
-                self.cache[hash_key] = prediction
+                self.cache[hash_key] = prediction.to(self.device)
             results.append(self.cache[hash_key])
         return torch.stack(results)
 
