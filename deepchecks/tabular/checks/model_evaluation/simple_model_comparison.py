@@ -184,14 +184,14 @@ class SimpleModelComparison(TrainTestCheck):
                 for model_name, model_type, model_instance in models:
                     scorer_value = scorer(model_instance, test_dataset)
                     if isinstance(scorer_value, Number) or scorer_value is None:
-                        model_dict[None][model_type] = scorer_value
+                        model_dict[model_type] = scorer_value
                         if context.with_display:
                             display_array.append([model_name,
                                                   model_type,
                                                   scorer_value,
                                                   scorer.name,
                                                   None,
-                                                  None,
+                                                  test_label.count(),
                                                   ])
                     else:
                         for class_value, class_score in scorer_value.items():

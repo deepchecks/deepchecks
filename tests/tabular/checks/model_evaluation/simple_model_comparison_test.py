@@ -71,13 +71,15 @@ def test_classification_binary_string_labels(iris_binary_string_split_dataset_an
 def test_classification_binary_string_labels_custom_scorer(iris_binary_string_split_dataset_and_model):
     # Arrange
     train_ds, test_ds, clf = iris_binary_string_split_dataset_and_model
-    check = SimpleModelComparison(scorers=[get_scorer('f1')])
+    check = SimpleModelComparison(scorers=[get_scorer('f1'), make_scorer(recall_score, average=None, zero_division=0)])
     # Act X
     result = check.run(train_ds, test_ds, clf).value
     # Assert
-    assert_that(result, equal_to({'scorers_perfect': {'f1_score': 1.0},
-                                  'scores': {'f1_score': {None: {'Origin': 0.9411764705882353, 'Simple': 0.0}}},
-                                  'type': TaskType.BINARY}))
+    assert_that(result, equal_to({'scores': {'f1_score': {'Origin': 0.9411764705882353, 'Simple': 0.0},
+                                             'recall_score': {'a': {'Origin': 0.9411764705882353, 'Simple': 1.0},
+                                                              'b': {'Origin': 1.0, 'Simple': 0.0}}},
+                                  'type': TaskType.BINARY,
+                                  'scorers_perfect': {'f1_score': 1.0, 'recall_score': 1.0}}))
 
 
 def test_classification_random_custom_metric(iris_split_dataset_and_model):
