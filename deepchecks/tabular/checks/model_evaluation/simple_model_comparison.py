@@ -265,7 +265,7 @@ class SimpleModelComparison(TrainTestCheck):
                     facet_col='Metric',
                     facet_col_spacing=0.05,
                     hover_data=['Number of samples'])
-                # .update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
+                .update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
                 .update_yaxes(title=None, matches=None)
                 .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
