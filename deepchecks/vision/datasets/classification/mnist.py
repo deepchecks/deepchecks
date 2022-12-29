@@ -264,7 +264,7 @@ class IterableTorchMnistDataset(IterableDataset):
             self.data = self.data[:n_samples]
             self.targets = self.targets[:n_samples]
         if self.transform is not None:
-            self.data = torch.stack([self.transform(image=object_to_numpy(img)['image']) for img in self.data])
+            self.data = torch.stack([self.transform(image=object_to_numpy(img))['image'] for img in self.data])
 
     def __iter__(self):
         """Iterate over the dataset."""

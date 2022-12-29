@@ -179,6 +179,7 @@ def coco_visiondata_train(seed_setup):
 
 @pytest.fixture(scope='session')
 def tf_coco_visiondata_train(seed_setup):
+    set_seeds(42)
     return coco_tensorflow.load_dataset(train=True, object_type='VisionData', shuffle=False)
 
 
