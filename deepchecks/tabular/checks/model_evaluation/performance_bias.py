@@ -175,7 +175,7 @@ class PerformanceBias(SingleDatasetCheck):
 
         if self.control_feature is not None and self.control_feature == self.protected_feature:
             raise DeepchecksValueError(
-                f"protected_feature {self.control_feature} and control_feature {self.protected_feature} are the same."
+                f"protected_feature and control_feature cannot be the same."
             )
 
     def _make_partitions(self, dataset):
