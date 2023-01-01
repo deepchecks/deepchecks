@@ -213,7 +213,7 @@ class MockModel:
         for img in batch:
             hash_key = hash_image(img)
             if hash_key not in self.cache:
-                prediction = self.real_model(torch.stack([img]))[0]
+                prediction = self.real_model(torch.stack([img]).to(self.device))[0]
                 prediction = nn.Softmax()(prediction).detach()
                 self.cache[hash_key] = prediction.to(self.device)
             results.append(self.cache[hash_key])

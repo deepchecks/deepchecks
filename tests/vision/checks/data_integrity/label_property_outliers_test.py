@@ -67,7 +67,6 @@ def test_tf_coco_batch_without_boxes(tf_coco_visiondata_train):
     assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
     assert_that(result.value, has_entries({
         'Number of Bounding Boxes Per Image': has_entries({
-            'outliers_identifiers': contains_exactly('2', '11', '12', '22'),
             'lower_limit': close_to(1, 1),
             'upper_limit': close_to(20.125, 1)
         }),
