@@ -8,9 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The performance_disparity_report check module."""
+"""The performance_bias check module."""
 import itertools
-from typing import Callable, Tuple, Union
+from typing import Callable, Dict, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ from deepchecks.utils.typing import Hashable
 
 class PerformanceBias(SingleDatasetCheck):
     """
-    Check for performance disparities across subgroups, while optionally accounting for a control variable.
+    Check for performance differences between subgroups of a feature, optionally accounting for a control variable.
 
     The check identifies "performance biases": large performance difference for a subgroup compared
     to the baseline performance for the full population. It is intended to be used for fairness analyses.
@@ -35,34 +35,26 @@ class PerformanceBias(SingleDatasetCheck):
     Subgroups are defined by the categories of a "protected" feature. Numerical features are first binned
     into quantiles, while categorical features are preserved as-is. The baseline score is the overall
     score when all subgroups are combined. You can add conditions to flag performance differences outside
-    of given bounds. A visual display is also provided to identify subgroups with the largest performance
-    disparities.
+    of given bounds.
 
     Additionally, the analysis may be separated across the categories of a "control" feature. Numerical
     features are binned and categorical features are re-binned into `max_number` categories. To account
     for the control feature, baseline scores and subgroup scores are be computed within each of its
     categories.
 
-    The check's display is a plot of the baseline score (black point) and subgroup scores (white point)
-    for each subgroup, faceted by control feature categories, and sorted by the size of the
-    performance disparity. The performance disparity is highlighted by a red line for negative differences
-    and a green line for positive differences. By default, only the top 3 categories of the control
-    feature with the largest performance disparities are displayed. Within each control category
-    subplot, the top 3 subgroups with the largest performance disparities are displayed.
-
     Parameters
     ----------
     protected_feature : Hashable
-        Feature evaluated for performance disparities. Numerical features are binned into `max_categories`
+        Feature evaluated for differences in performance. Numerical features are binned into `max_categories`
         quantiles. Categorical features are not transformed.
     control_feature : Hashable, default: None
-        Feature used to group data prior to evaluating performance disparities (disparities are only
+        Feature used to group data prior to evaluating performance differences (differences are only
         assessed within the groups defined by this feature). Numerical features are binned into
         `max_categories` quantiles. Categorical features are re-grouped into at most `max_categories`
         groups if necessary.
     scorer : str or Tuple[str, Union[str, Callable]], default: None
         Name of the performance score function to use.
-    max_categories : int, default: 10
+    max_bins : int, default: 10
         Maximum number of categories into which `control_feature` is binned.
     min_subgroup_size : int, default: 5
         Minimum size of a subgroup for which to compute a performance score.
@@ -81,7 +73,7 @@ class PerformanceBias(SingleDatasetCheck):
         protected_feature: Hashable,
         control_feature: Hashable = None,
         scorer: Union[str, Tuple[str, Union[str, Callable]]] = None,
-        max_categories: int = 10,
+        max_bins: int = 10,
         min_subgroup_size: int = 5,
         max_subgroups_per_control_cat_to_display: int = 3,
         max_control_cat_to_display: int = 3,
@@ -92,7 +84,7 @@ class PerformanceBias(SingleDatasetCheck):
         super().__init__(**kwargs)
         self.protected_feature = protected_feature
         self.control_feature = control_feature
-        self.max_categories = max_categories
+        self.max_bins = max_bins
         self.min_subgroup_size = min_subgroup_size
         self.scorer = scorer
         self.max_subgroups_per_control_cat_to_display = max_subgroups_per_control_cat_to_display
@@ -104,7 +96,7 @@ class PerformanceBias(SingleDatasetCheck):
 
     def validate_attributes(self):
         """Validate attributes passed to the check."""
-        if self.max_categories < 2:
+        if self.max_bins < 2:
             raise DeepchecksValueError("Maximum number of categories must be at least 2.")
 
         if self.min_subgroup_size < 1:
@@ -116,8 +108,8 @@ class PerformanceBias(SingleDatasetCheck):
         if self.max_control_cat_to_display < 1:
             raise DeepchecksValueError("Maximum number of categories to display must be at least 1.")
 
-        if self.n_samples < 1:
-            raise DeepchecksValueError("Number of samples must be at least 1.")
+        if self.n_samples < 10:
+            raise DeepchecksValueError("Number of samples must be at least 10.")
 
         if not isinstance(self.random_state, int):
             raise DeepchecksValueError(f"Random state must be an integer, got {self.random_state}.")
@@ -133,7 +125,7 @@ class PerformanceBias(SingleDatasetCheck):
             `feature` and average scores across these subgroups. If `control_feature` was
             provided, then performance scores are further disaggregated by the gruops defined
             by this feature.
-            display is a Figure showing the subgroups with the largest performance disparities.
+            display is a Figure showing the subgroups with the largest performance differences.
         """
         model = context.model
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
@@ -159,11 +151,22 @@ class PerformanceBias(SingleDatasetCheck):
         )
 
         if context.with_display:
-            fig = self._make_largest_difference_figure(scores_df, scorer.name)
-        else:
-            fig = None
 
-        return CheckResult(value=scores_df, display=fig)
+            display_text = f"""
+                The following plot shows the baseline score (black point) and subgroup scores (white point)
+                for each subgroup, faceted by control feature categories, and sorted by the size of the
+                difference in performance. That performance disparity is highlighted by a red line for negative
+                differences and a green line for positive differences. Only the top {self.max_control_cat_to_display}
+                categories of the control feature with the largest performance differences are displayed. Within each
+                control category subplot, the top {self.max_subgroups_per_control_cat_to_display} subgroups with the
+                largest performance differences are displayed.
+            """
+
+            display = [display_text, self._make_largest_difference_figure(scores_df, scorer.name)]
+        else:
+            display = None
+
+        return CheckResult(value={'scores_df': scores_df}, display=display)
 
     def _validate_run_arguments(self, data):
         """Validate arguments passed to `run_logic` method."""
@@ -175,22 +178,22 @@ class PerformanceBias(SingleDatasetCheck):
 
         if self.control_feature is not None and self.control_feature == self.protected_feature:
             raise DeepchecksValueError(
-                f"protected_feature and control_feature cannot be the same."
+                "protected_feature and control_feature cannot be the same."
             )
 
     def _make_partitions(self, dataset):
-        """Define partitions of a given dataset based on `feature` and `control_feature`."""
+        """Define partitions of a given dataset based on `protected_feature` and `control_feature`."""
         partitions = {}
 
         if dataset.is_categorical(self.protected_feature):
             partitions[self.protected_feature] = partition_column(dataset, self.protected_feature, max_segments=np.Inf)
         else:
             partitions[self.protected_feature] = partition_column(
-                dataset, self.protected_feature, max_segments=self.max_categories
+                dataset, self.protected_feature, max_segments=self.max_bins
             )
         if self.control_feature is not None:
             partitions[self.control_feature] = partition_column(
-                dataset, self.control_feature, max_segments=self.max_categories
+                dataset, self.control_feature, max_segments=self.max_bins
             )
 
         return partitions
@@ -210,7 +213,7 @@ class PerformanceBias(SingleDatasetCheck):
         scores_df["_dataset"] = scores_df.apply(lambda x: combine_filters(x[partitions.keys()], dataset.data), axis=1)
 
         def score(data, model, scorer):
-            if (len(data) == 0) or (len(data) < self.min_subgroup_size):
+            if len(data) < self.min_subgroup_size:
                 if classwise:
                     return {cls: np.nan for cls in model_classes}
                 else:
@@ -460,7 +463,8 @@ class PerformanceBias(SingleDatasetCheck):
             trigger the condition).
         """
 
-        def bounded_performance_difference_condition(scores_df: pd.DataFrame) -> ConditionResult:
+        def bounded_performance_difference_condition(result_dict: Dict[str, pd.DataFrame]) -> ConditionResult:
+            scores_df = result_dict["scores_df"]
             differences = scores_df["_score"] - scores_df["_baseline"]
             fail_i = (differences < lower_bound) | (differences > upper_bound)
 
@@ -487,7 +491,8 @@ class PerformanceBias(SingleDatasetCheck):
             do not trigger the condition).
         """
 
-        def bounded_performance_difference_condition(scores_df: pd.DataFrame) -> ConditionResult:
+        def bounded_performance_difference_condition(result_dict: Dict[str, pd.DataFrame]) -> ConditionResult:
+            scores_df = result_dict["scores_df"]
             differences = scores_df["_score"] - scores_df["_baseline"]
             zero_i = scores_df["_baseline"] == 0
             differences[zero_i] = np.nan
