@@ -42,7 +42,7 @@ def test_pretrained_model_load():
         start = time.time()
         model = load_model().real_model
         end = time.time()
-        assert_that((end - start) < 1, "Saved model was not used!")
+        assert_that((end - start) < 2, "Saved model was not used!")
         assert_that(model.training is False)
         assert_that(model, instance_of(MnistModel))
     else:

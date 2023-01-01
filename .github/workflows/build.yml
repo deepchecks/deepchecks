@@ -48,6 +48,7 @@ jobs:
 #        limit-access-to-actor: true
     - name: Run Tests
       run: make test
+
   coverage:
     runs-on: ubuntu-latest
     name: coveralls
@@ -63,7 +64,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  tests-python36:
+  tests-tabular-python36:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
@@ -72,7 +73,7 @@ jobs:
         with:
           python-version: 3.6
       - name: Run Tests
-        run: make test args=tests/tabular
+        run: make test-tabular-only
 
 
   tests-windows:

@@ -43,7 +43,3 @@ seaborn>=0.11.0
 wandb>=0.12.15,<0.13.0
 protobuf>=3.12.0,<4.0dev  # wandb does not work if version is higer that 4.0
 beautifulsoup4>=4.11.1
-
-# Vision
-tensorflow==2.11.0
-tensorflow_hub==0.12.0

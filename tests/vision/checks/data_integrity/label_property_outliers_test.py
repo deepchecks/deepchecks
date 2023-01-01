@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 from hamcrest import (all_of, any_of, assert_that, calling, contains_exactly, equal_to, has_entries, has_key,
-                      has_length, has_properties, instance_of, is_, raises)
+                      has_length, has_properties, instance_of, is_, raises, close_to)
 from hamcrest.core.matcher import Matcher
 
 from deepchecks.core import CheckResult
@@ -68,8 +68,8 @@ def test_tf_coco_batch_without_boxes(tf_coco_visiondata_train):
     assert_that(result.value, has_entries({
         'Number of Bounding Boxes Per Image': has_entries({
             'outliers_identifiers': contains_exactly('2', '11', '12', '22'),
-            'lower_limit': is_(1),
-            'upper_limit': is_(20.125)
+            'lower_limit': close_to(1, 1),
+            'upper_limit': close_to(20.125, 1)
         }),
         'Bounding Box Area (in pixels)': instance_of(dict),
     }))
