@@ -72,6 +72,8 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: 3.6
+      - name: Set Up Env
+        run: make env
       - name: Run Tests
         run: make test-tabular-only
 

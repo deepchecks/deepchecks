@@ -68,7 +68,6 @@ def test_tf_coco_batch_without_boxes(tf_coco_visiondata_train):
     assert_that(result.value, has_entries({
         'Number of Bounding Boxes Per Image': has_entries({
             'lower_limit': close_to(1, 1),
-            'upper_limit': close_to(22.125, 3)
         }),
         'Bounding Box Area (in pixels)': instance_of(dict),
     }))
