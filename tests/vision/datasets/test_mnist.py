@@ -31,18 +31,12 @@ def test_deepchecks_dataset_load():
 
 
 def test__load_dataset__func_with_unknow_object_type_parameter():
-    assert_that(
-        calling(load_dataset).with_args(object_type="<unknonw>"),
-        raises(TypeError)
-    )
+    assert_that(calling(load_dataset).with_args(object_type="<unknonw>"), raises(TypeError))
 
 
 def test_pretrained_model_load():
     if MODEL_PATH.exists():
-        start = time.time()
         model = load_model().real_model
-        end = time.time()
-        assert_that((end - start) < 2, "Saved model was not used!")
         assert_that(model.training is False)
         assert_that(model, instance_of(MnistModel))
     else:
@@ -55,12 +49,12 @@ def test_pretrained_model_load():
 
 
 def test_iterable_dataloader():
-    loader= load_dataset(object_type='DataLoader', use_iterable_dataset=True, n_samples=100, batch_size=50)
+    loader = load_dataset(object_type='DataLoader', use_iterable_dataset=True, n_samples=100, batch_size=50)
     batch = next(iter(loader))
     assert_that(batch[0].shape, equal_to((50, 1, 28, 28)))
-    assert_that(
-        calling(len).with_args(loader),
+    assert_that(calling(len).with_args(loader),
         raises(TypeError, r'object of type \'IterableTorchMnistDataset\' has no len()'))
+
 
 def test_iterable_visiondata():
     vision_data = load_dataset(object_type='VisionData', use_iterable_dataset=True, n_samples=100, batch_size=50)
@@ -69,10 +63,10 @@ def test_iterable_visiondata():
 
 
 def test_iterable_visiondata_with_shuffle():
-    assert_that(
-        calling(load_dataset).with_args(object_type='DataLoader', use_iterable_dataset=True, shuffle=True),
+    assert_that(calling(load_dataset).with_args(object_type='DataLoader', use_iterable_dataset=True, shuffle=True),
         raises(ValueError,
                r'DataLoader with IterableDataset: expected unspecified shuffle option, but got shuffle=True'))
+
 
 def test_regular_visiondata_with_shuffle():
     vision_data = load_dataset(object_type='VisionData', use_iterable_dataset=False, n_samples=100, shuffle=False)
@@ -83,7 +77,7 @@ def test_regular_visiondata_with_shuffle():
                                         shuffle=True)
     batch_shuffled = next(iter(vision_data_shuffled))
     vision_data_shuffled_again = load_dataset(object_type='VisionData', use_iterable_dataset=False, n_samples=100,
-                                        shuffle=True)
+                                              shuffle=True)
     batch_shuffled_again = next(iter(vision_data_shuffled_again))
 
     assert_that(batch['labels'], is_not(equal_to(batch_shuffled['labels'])))

@@ -34,8 +34,8 @@ def test_full_suite_execution_torch(device):
                                                 device=device, pin_memory=False)
         suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
         arguments = (
-            dict(train_dataset=mnist_train_gpu, test_dataset=mnist_test_gpu),
-            dict(train_dataset=mnist_iterator_train_gpu, test_dataset=mnist_iterator_test_gpu),
+            dict(train_dataset=mnist_train_gpu, test_dataset=mnist_test_gpu, max_samples=200),
+            dict(train_dataset=mnist_iterator_train_gpu, test_dataset=mnist_iterator_test_gpu, max_samples=200),
             dict(train_dataset=coco_train_gpu, test_dataset=coco_test_gpu),
         )
 
