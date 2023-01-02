@@ -19,7 +19,7 @@ from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.metric_utils import DeepcheckScorer
-from deepchecks.vision.vision_data.utils import is_torch_object
+from deepchecks.vision.vision_data.utils import object_to_numpy
 
 
 class CustomClassificationScorer(Metric):
@@ -71,17 +71,8 @@ class CustomClassificationScorer(Metric):
     def update(self, output):
         """Update metric with batch of samples."""
         y_proba, y = output
-        if is_torch_object(y_proba):
-            y_proba = y_proba.cpu().detach().numpy()
-        else:
-            y_proba = np.array(y_proba)
-        if is_torch_object(y):
-            y = y.cpu().detach().numpy()
-        else:
-            y = np.array(y)
-
-        self._y_proba.append(y_proba)
-        self._y.append(y)
+        self._y_proba.append(object_to_numpy(y_proba))
+        self._y.append(object_to_numpy(y))
 
     @sync_all_reduce("_y_proba", "_y")
     def compute(self):

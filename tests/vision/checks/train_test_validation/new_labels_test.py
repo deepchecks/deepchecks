@@ -14,7 +14,7 @@ from hamcrest import assert_that, equal_to, greater_than, has_entries, has_items
 
 from deepchecks.vision.checks import NewLabels
 from deepchecks.vision.datasets.classification.mnist import collate_without_model as mnist_collate_without_model
-from deepchecks.vision.datasets.detection.coco import collate_without_model as coco_collate_without_model
+from deepchecks.vision.datasets.detection.coco_torch import collate_without_model as coco_collate_without_model
 from deepchecks.vision.utils.test_utils import replace_collate_fn_visiondata
 from tests.base.utils import equal_condition_result
 

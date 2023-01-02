@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
+        python-version: ["3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
 
     steps:
     - uses: actions/checkout@v3
@@ -48,6 +48,7 @@ jobs:
 #        limit-access-to-actor: true
     - name: Run Tests
       run: make test
+
   coverage:
     runs-on: ubuntu-latest
     name: coveralls
@@ -63,18 +64,28 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  tests-tabular-python36:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.6
+      - name: Set Up Env
+        run: make env
+      - name: Run Tests
+        run: make test-tabular-only
+
+
   tests-windows:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
-
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.9
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.9 #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
     - name: Run Tests
       run: make test-win
 
@@ -134,6 +145,7 @@ jobs:
     - name: Print report
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"
+
   gpu-tests:
     runs-on: [self-hosted, gpu]
     steps:
@@ -145,7 +157,7 @@ jobs:
       - name: Set Up Env
         run: make env
       - name: Run Tests
-        run: make test
+        run: make test args=tests/vision/gpu_tests
 
 
 #  documentation-check:

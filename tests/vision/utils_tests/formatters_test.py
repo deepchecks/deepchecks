@@ -16,7 +16,7 @@ import torch
 from hamcrest import assert_that, calling, close_to, equal_to, raises
 from torch.utils.data import DataLoader, Dataset
 
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.datasets.detection import coco_torch
 from deepchecks.vision.utils import image_properties
 from deepchecks.vision.utils.detection_formatters import (convert_batch_of_bboxes, convert_bbox,
                                                           verify_bbox_format_notation)
@@ -245,7 +245,7 @@ def test_bbox_format_notation_with_coord_normalization_element_at_wrong_position
 
 def test_batch_of_bboxes_convertion():
     # Arrange
-    loader = coco.load_dataset()
+    loader = coco_torch.load_dataset()
     _, input_bboxes = batch = loader.dataset[9]  # it should be always the same sample
 
     # Act
@@ -263,7 +263,7 @@ def test_batch_of_bboxes_convertion():
 
 def test_batch_of_bboxes_convertion_with_normalized_coordinates():
     # Arrange
-    loader = coco.load_dataset()
+    loader = coco_torch.load_dataset()
     image, input_bboxes = loader.dataset[9]  # it should be always the same sample
 
     normilized_input_bboxes = torch.stack([

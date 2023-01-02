@@ -10,12 +10,10 @@
 #
 # pylint: skip-file
 import pathlib
-import random
 
 import numpy as np
 import pytest
 import torch
-from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.context import Context
@@ -23,14 +21,16 @@ from deepchecks.vision.datasets.classification.mnist import collate_without_mode
 from deepchecks.vision.datasets.classification.mnist import deepchecks_collate as mnist_deepchecks_collate
 from deepchecks.vision.datasets.classification.mnist import load_dataset as load_mnist_dataset
 from deepchecks.vision.datasets.classification.mnist import load_model as load_mnist_model
-from deepchecks.vision.datasets.detection.coco import collate_without_model as coco_collate_without_model
-from deepchecks.vision.datasets.detection.coco import load_dataset as load_coco_dataset
+from deepchecks.vision.datasets.detection import coco_tensorflow
+from deepchecks.vision.datasets.detection.coco_torch import collate_without_model as coco_collate_without_model
+from deepchecks.vision.datasets.detection.coco_torch import load_dataset as load_coco_dataset
 from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset as load_segmentation_coco_dataset
 from deepchecks.vision.utils.test_utils import replace_collate_fn_dataloader, replace_collate_fn_visiondata
 from deepchecks.vision.utils.test_utils import un_normalize_batch
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
+from deepchecks.vision.vision_data.utils import set_seeds
 
 # Fix bug with torch.hub path on windows
 PROJECT_DIR = pathlib.Path(__file__).absolute().parent.parent.parent
@@ -38,6 +38,8 @@ torch.hub.set_dir(str(PROJECT_DIR))
 
 __all__ = ['device',
            'seed_setup',
+           'mnist_iterator_visiondata_train',
+           'mnist_iterator_visiondata_test',
            'mnist_dataloader_train',
            'mnist_visiondata_train',
            'mnist_dataloader_test',
@@ -45,8 +47,10 @@ __all__ = ['device',
            'obj_detection_images',
            'coco_dataloader_train',
            'coco_visiondata_train',
+           'tf_coco_visiondata_train',
            'coco_dataloader_test',
            'coco_visiondata_test',
+           'tf_coco_visiondata_test',
            'two_tuples_dataloader',
            'mnist_drifted_datasets',
            'run_update_loop',
@@ -77,9 +81,19 @@ def device():
 
 @pytest.fixture(scope='session')
 def seed_setup():
-    torch.manual_seed(42)
-    np.random.seed(42)
-    random.seed(42)
+    set_seeds(42)
+
+
+@pytest.fixture(scope='session')
+def mnist_iterator_visiondata_train(seed_setup):
+    return load_mnist_dataset(train=True, object_type='VisionData', shuffle=False, use_iterable_dataset=True,
+                              n_samples=200)
+
+
+@pytest.fixture(scope='session')
+def mnist_iterator_visiondata_test(seed_setup):
+    return load_mnist_dataset(train=False, object_type='VisionData', shuffle=False, use_iterable_dataset=True,
+                              n_samples=200)
 
 
 @pytest.fixture(scope='session')
@@ -108,9 +122,9 @@ def mnist_visiondata_test(seed_setup):
 def mnist_drifted_datasets(mnist_visiondata_train, mnist_visiondata_test):  # pylint: disable=redefined-outer-name
     full_mnist = torch.utils.data.ConcatDataset([mnist_visiondata_train.batch_loader.dataset,
                                                  mnist_visiondata_test.batch_loader.dataset])
+    set_seeds(42)
     train_dataset, test_dataset, _ = torch.utils.data.random_split(full_mnist, [1000, 500, 68500],
-                                                                   generator=torch.Generator().manual_seed(42))
-    np.random.seed(42)
+                                                                   generator=torch.Generator())
     model = load_mnist_model(pretrained=True)
 
     def collate_drifted(data):
@@ -164,8 +178,19 @@ def coco_visiondata_train(seed_setup):
 
 
 @pytest.fixture(scope='session')
+def tf_coco_visiondata_train(seed_setup):
+    set_seeds(42)
+    return coco_tensorflow.load_dataset(train=True, object_type='VisionData', shuffle=False)
+
+
+@pytest.fixture(scope='session')
 def coco_dataloader_test(seed_setup):
     return load_coco_dataset(train=False, object_type='DataLoader', shuffle=False)
+
+
+@pytest.fixture(scope='session')
+def tf_coco_visiondata_test(seed_setup):
+    return coco_tensorflow.load_dataset(train=False, object_type='VisionData', shuffle=False)
 
 
 @pytest.fixture(scope='session')

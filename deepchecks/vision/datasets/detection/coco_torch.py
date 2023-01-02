@@ -9,46 +9,55 @@
 # ----------------------------------------------------------------------------
 #
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
-import contextlib
+try:
+    from torchvision.datasets import VisionDataset
+except ImportError as error:
+    raise ImportError('torchvision is not installed. Please install torchvision>=0.11.3 '
+                      'in order to use the selected dataset.') from error
 import logging
-import os
-import pathlib
 import typing as t
 import warnings
+import zipfile
+from io import BytesIO
 from pathlib import Path
+from urllib.request import urlopen
 
 import albumentations as A
-import cv2
 import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import DataLoader
-from torchvision.datasets import VisionDataset
-from torchvision.datasets.utils import download_and_extract_archive
 from typing_extensions import Literal
 
-from deepchecks import vision
-from deepchecks.vision.datasets.assets.coco_detection.static_predictions import coco_detections_static_predictions_dict
+from deepchecks.vision.datasets.assets.coco_detection.static_predictions_yolo import \
+    coco_detections_static_predictions_dict
+from deepchecks.vision.datasets.detection.coco_utils import COCO_DIR, LABEL_MAP, download_coco128, get_image_and_label
 from deepchecks.vision.utils.test_utils import get_data_loader_sequential, hash_image
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'CocoDataset']
 
-COCO_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'coco_detection'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/38619935'
+LOCAL_MODEL_PATH = COCO_DIR / 'yolov5-6.1'
 
 
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu'):
     """Load the yolov5s (version 6.1)  model and return it."""
     dev = torch.device(device) if isinstance(device, str) else device
+    torch.hub._validate_not_a_forked_repo = lambda *_: True  # pylint: disable=protected-access
     logger = logging.getLogger('yolov5')
     logger.disabled = True
-    model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s',
-                           pretrained=pretrained,
-                           verbose=False,
+    if not LOCAL_MODEL_PATH.exists():
+        repo = 'https://github.com/ultralytics/yolov5/archive/v6.1.zip'
+        with urlopen(repo) as f:
+            with zipfile.ZipFile(BytesIO(f.read())) as myzip:
+                myzip.extractall(COCO_DIR)
+
+    model = torch.hub.load(str(LOCAL_MODEL_PATH), 'yolov5s', source='local', pretrained=pretrained, verbose=False,
                            device=dev)
     model.eval()
     logger.disabled = False
-    return MockCoco(model)
+    return MockModel(model, dev)
 
 
 def _batch_collate(batch):
@@ -116,7 +125,8 @@ def load_dataset(
         pin_memory: bool = True,
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
         n_samples: t.Optional[int] = None,
-) -> t.Union[DataLoader, vision.VisionData]:
+        device: t.Union[str, torch.device] = 'cpu'
+) -> t.Union[DataLoader, VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
     Parameters
@@ -138,12 +148,13 @@ def load_dataset(
     n_samples : int, optional
         Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle
         is False otherwise selects n_samples at random. If None, returns all samples.
+    device : t.Union[str, torch.device], default : 'cpu'
+        device to use in tensor calculations
 
     Returns
     -------
-    Union[DataLoader, VisionDataset]
-
-        A DataLoader or VisionDataset instance representing COCO128 dataset
+    Union[DataLoader, VisionData]
+        A DataLoader or VisionData instance representing COCO128 dataset
     """
     coco_dir, dataset_name = CocoDataset.download_coco128(COCO_DIR)
     dataset = CocoDataset(root=str(coco_dir), name=dataset_name, train=train,
@@ -153,7 +164,7 @@ def load_dataset(
         return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers,
                           collate_fn=_batch_collate, pin_memory=pin_memory, generator=torch.Generator())
     elif object_type == 'VisionData':
-        model = load_model()
+        model = load_model(device=device)
         dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers,
                                 collate_fn=deepchecks_collate(model), pin_memory=pin_memory,
                                 generator=torch.Generator())
@@ -171,11 +182,12 @@ class MockDetections:
         self.pred = dets
 
 
-class MockCoco:
+class MockModel:
     """Class of COCO model that returns cached predictions."""
 
-    def __init__(self, real_model):
+    def __init__(self, real_model, device):
         self.real_model = real_model
+        self.device = device
         self.cache = coco_detections_static_predictions_dict
 
     def __call__(self, batch):
@@ -184,7 +196,7 @@ class MockCoco:
             hash_key = hash_image(img)
             if hash_key not in self.cache:
                 self.cache[hash_key] = self.real_model([img]).pred[0]
-            results.append(self.cache[hash_key])
+            results.append(self.cache[hash_key].to(self.device))
         return MockDetections(results)
 
 
@@ -254,47 +266,13 @@ class CocoDataset(VisionDataset):
     def __getitem__(self, idx: int) -> t.Tuple[Image.Image, np.ndarray]:
         """Get the image and label at the given index."""
         # open image using cv2, since opening with Pillow give slightly different results based on Pillow version
-        opencv_image = cv2.imread(str(self.images[idx]))
-        img = Image.fromarray(cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB))
-        label_file = self.labels[idx]
-
-        if label_file is not None:
-            img_labels = [l.split() for l in label_file.open('r').read().strip().splitlines()]
-            img_labels = np.array(img_labels, dtype=np.float32)
-        else:
-            img_labels = np.zeros((0, 5), dtype=np.float32)
-
-        # Transform x,y,w,h in yolo format (x, y are of the image center, and coordinates are normalized) to standard
-        # x,y,w,h format, where x,y are of the top left corner of the bounding box and coordinates are absolute.
-        bboxes = []
-        for label in img_labels:
-            x, y, w, h = label[1:]
-            # Note: probably the normalization loses some accuracy in the coordinates as it truncates the number,
-            # leading in some cases to `y - h / 2` or `x - w / 2` to be negative
-            bboxes.append(np.array([
-                max((x - w / 2) * img.width, 0),
-                max((y - h / 2) * img.height, 0),
-                w * img.width,
-                h * img.height,
-                label[0]
-            ]))
-
-        img, bboxes = self.apply_transform(img, bboxes)
+        img, bboxes = get_image_and_label(self.images[idx], self.labels[idx], self.transforms)
 
         # Return tensor of bboxes
         if bboxes:
             bboxes = torch.stack([torch.tensor(x) for x in bboxes])
         else:
             bboxes = torch.tensor([])
-        return img, bboxes
-
-    def apply_transform(self, img, bboxes):
-        """Implement the transform in a function to be able to override it in tests."""
-        if self.transforms is not None:
-            # Albumentations accepts images as numpy and bboxes in defined format + class at the end
-            transformed = self.transforms(image=np.array(img), bboxes=bboxes)
-            img = Image.fromarray(transformed['image'])
-            bboxes = transformed['bboxes']
         return img, bboxes
 
     def __len__(self) -> int:
@@ -304,159 +282,4 @@ class CocoDataset(VisionDataset):
     @classmethod
     def download_coco128(cls, root: t.Union[str, Path]) -> t.Tuple[Path, str]:
         """Download coco128 and returns the root path and folder name."""
-        root = root if isinstance(root, Path) else Path(root)
-        coco_dir = root / 'coco128'
-        images_dir = coco_dir / 'images' / 'train2017'
-        labels_dir = coco_dir / 'labels' / 'train2017'
-
-        if not (root.exists() and root.is_dir()):
-            raise RuntimeError(f'root path does not exist or is not a dir - {root}')
-
-        if images_dir.exists() and labels_dir.exists():
-            return coco_dir, 'train2017'
-
-        return download_coco128_from_ultralytics(root)
-
-
-def download_coco128_from_ultralytics(path: Path):
-    """Download coco from ultralytics using torchvision download_and_extract_archive."""
-    coco_dir = path / 'coco128'
-    url = 'https://ndownloader.figshare.com/files/37681632'
-    md5 = '9122f91a86e530be76c52f47d2b32bbf'
-
-    with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
-        download_and_extract_archive(
-            url,
-            download_root=str(path),
-            extract_root=str(path),
-            md5=md5,
-            filename='coco128.zip'
-        )
-
-    # Removing the README.txt file if it exists since it causes issues with sphinx-gallery
-    try:
-        os.remove(str(coco_dir / 'README.txt'))
-    except FileNotFoundError:
-        pass
-
-    return coco_dir, 'train2017'
-
-
-def yolo_prediction_formatter(batch, model, device) -> t.List[torch.Tensor]:
-    """Convert from yolo Detections object to List (per image) of Tensors of the shape [N, 6] with each row being \
-    [x, y, w, h, confidence, class] for each bbox in the image."""
-    return_list = []
-
-    with warnings.catch_warnings():
-        warnings.simplefilter(action='ignore', category=UserWarning)
-
-        predictions: 'ultralytics.models.common.Detections' = model.to(device)(batch[0])  # noqa: F821
-
-        # yolo Detections objects have List[torch.Tensor] xyxy output in .pred
-        for single_image_tensor in predictions.pred:
-            pred_modified = torch.clone(single_image_tensor)
-            pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
-            pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
-            return_list.append(pred_modified)
-
-    return return_list
-
-
-def yolo_label_formatter(batch):
-    """Translate yolo label to deepchecks format."""
-    # our labels return at the end, and the VisionDataset expect it at the start
-    def move_class(tensor):
-        return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
-            if len(tensor) > 0 else tensor
-
-    return [move_class(tensor) for tensor in batch[1]]
-
-
-def yolo_image_formatter(batch):
-    """Convert list of PIL images to deepchecks image format."""
-    # Yolo works on PIL and VisionDataset expects images as numpy arrays
-    return [np.array(x) for x in batch[0]]
-
-
-LABEL_MAP = {
-    0: 'person',
-    1: 'bicycle',
-    2: 'car',
-    3: 'motorcycle',
-    4: 'airplane',
-    5: 'bus',
-    6: 'train',
-    7: 'truck',
-    8: 'boat',
-    9: 'traffic light',
-    10: 'fire hydrant',
-    11: 'stop sign',
-    12: 'parking meter',
-    13: 'bench',
-    14: 'bird',
-    15: 'cat',
-    16: 'dog',
-    17: 'horse',
-    18: 'sheep',
-    19: 'cow',
-    20: 'elephant',
-    21: 'bear',
-    22: 'zebra',
-    23: 'giraffe',
-    24: 'backpack',
-    25: 'umbrella',
-    26: 'handbag',
-    27: 'tie',
-    28: 'suitcase',
-    29: 'frisbee',
-    30: 'skis',
-    31: 'snowboard',
-    32: 'sports ball',
-    33: 'kite',
-    34: 'baseball bat',
-    35: 'baseball glove',
-    36: 'skateboard',
-    37: 'surfboard',
-    38: 'tennis racket',
-    39: 'bottle',
-    40: 'wine glass',
-    41: 'cup',
-    42: 'fork',
-    43: 'knife',
-    44: 'spoon',
-    45: 'bowl',
-    46: 'banana',
-    47: 'apple',
-    48: 'sandwich',
-    49: 'orange',
-    50: 'broccoli',
-    51: 'carrot',
-    52: 'hot dog',
-    53: 'pizza',
-    54: 'donut',
-    55: 'cake',
-    56: 'chair',
-    57: 'couch',
-    58: 'potted plant',
-    59: 'bed',
-    60: 'dining table',
-    61: 'toilet',
-    62: 'tv',
-    63: 'laptop',
-    64: 'mouse',
-    65: 'remote',
-    66: 'keyboard',
-    67: 'cell phone',
-    68: 'microwave',
-    69: 'oven',
-    70: 'toaster',
-    71: 'sink',
-    72: 'refrigerator',
-    73: 'book',
-    74: 'clock',
-    75: 'vase',
-    76: 'scissors',
-    77: 'teddy bear',
-    78: 'hair drier',
-    79: 'toothbrush'
-}
+        return download_coco128(root)

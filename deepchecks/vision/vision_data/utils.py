@@ -19,6 +19,7 @@ import numpy as np
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DatasetValidationError
+from deepchecks.utils.logger import get_logger
 
 
 class TaskType(Enum):
@@ -71,13 +72,15 @@ def object_to_numpy(data, expected_dtype=None, expected_ndim=None) -> t.Union[np
     if data is None:
         return None
     if is_torch_object(data):
-        result = data.detach().cpu().numpy()
+        result = data.cpu().detach().numpy()
+    elif is_tensorflow_object(data):
+        result = data.cpu().numpy()
     elif isinstance(data, np.ndarray):
         result = data
     elif isinstance(data, (Number, str)):
         return data
     else:
-        raise ValueError(f'Unsupported data type: {type(data)}')
+        result = np.array(data)
 
     if expected_dtype is not None:
         result = result.astype(expected_dtype)
@@ -90,7 +93,20 @@ def object_to_numpy(data, expected_dtype=None, expected_ndim=None) -> t.Union[np
 
 def shuffle_loader(batch_loader):
     """Reshuffle the batch loader."""
-    # TODO: do something here
+    if is_torch_object(batch_loader) and 'DataLoader' in str(type(batch_loader)):
+        from deepchecks.vision.utils.test_utils import \
+            get_data_loader_sequential  # pylint: disable=import-outside-toplevel
+        try:
+            _ = len(batch_loader)
+            return get_data_loader_sequential(data_loader=batch_loader, shuffle=True)
+        except Exception:  # pylint: disable=broad-except
+            pass
+    elif is_tensorflow_object(batch_loader) and 'Dataset' in str(type(batch_loader)):
+        get_logger().warning('Shuffling for tensorflow datasets is not supported. Make sure that the data used to '
+                             'create the Dataset was shuffled beforehand and set shuffle_batch_loader=False')
+        return batch_loader
+    get_logger().warning('Shuffling is not supported for received batch loader. Make sure that your provided '
+                         'batch loader is indeed shuffled and set shuffle_batch_loader=False')
     return batch_loader
 
 
@@ -161,6 +177,9 @@ def set_seeds(seed: int):
         if 'torch' in sys.modules:
             import torch  # pylint: disable=import-outside-toplevel
             torch.manual_seed(seed)
+        if 'tensorflow' in sys.modules:
+            import tensorflow as tf  # pylint: disable=import-outside-toplevel
+            tf.random.set_seed(seed)
 
 
 def validate_vision_data_compatibility(first, second) -> None:

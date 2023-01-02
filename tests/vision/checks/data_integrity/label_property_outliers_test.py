@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 from hamcrest import (all_of, any_of, assert_that, calling, contains_exactly, equal_to, has_entries, has_key,
-                      has_length, has_properties, instance_of, is_, raises)
+                      has_length, has_properties, instance_of, is_, raises, close_to)
 from hamcrest.core.matcher import Matcher
 
 from deepchecks.core import CheckResult
@@ -59,6 +59,18 @@ def test_outliers_check_coco(coco_visiondata_train):
         'Bounding Box Area (in pixels)': instance_of(dict),
     }))
 
+def test_tf_coco_batch_without_boxes(tf_coco_visiondata_train):
+    # Act
+    result = LabelPropertyOutliers().run(tf_coco_visiondata_train)
+
+    # Assert
+    assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
+    assert_that(result.value, has_entries({
+        'Number of Bounding Boxes Per Image': has_entries({
+            'lower_limit': close_to(1, 1),
+        }),
+        'Bounding Box Area (in pixels)': instance_of(dict),
+    }))
 
 def test_outliers_check_coco_segmentation(segmentation_coco_visiondata_train):
     # Act

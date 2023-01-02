@@ -8,8 +8,3 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing datasets and models for vision tasks."""
-
-from . import classification, detection, segmentation
-
-__all__ = ['classification', 'detection', 'segmentation']

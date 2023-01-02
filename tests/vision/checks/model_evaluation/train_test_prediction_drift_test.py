@@ -1,4 +1,4 @@
-   # ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test prediction drift."""
-import torch.nn as nn
-from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
-from deepchecks.core.errors import DeepchecksValueError
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
+
 from deepchecks.vision.checks import TrainTestPredictionDrift
 from tests.base.utils import equal_condition_result
 
@@ -201,6 +200,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_visiondata_tr
     # Arrange
     def prop(predictions):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in predictions]
+
     alternative_measurements = [
         {'name': 'test', 'method': prop, 'output_type': 'numerical'}]
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', prediction_properties=alternative_measurements)
@@ -224,7 +224,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
     # Act
-    result = check.run(mod_train_ds, mod_test_ds)
+    result = check.run(mod_train_ds, mod_test_ds, random_state=42)
 
     condition_result, *_ = result.conditions_results
 
@@ -233,7 +233,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
         is_pass=False,
         name='categorical drift score < 0.15 and numerical drift score < 0.075 for prediction drift',
         details='Failed for 1 out of 1 prediction properties.\n'
-                'Found 1 categorical prediction properties with PSI above threshold: {\'Samples Per Class\': \'0.28\'}'
+                'Found 1 categorical prediction properties with PSI above threshold: {\'Samples Per Class\': \'0.39\'}'
     ))
 
 
@@ -251,5 +251,3 @@ def test_condition_pass(mnist_visiondata_train):
         details='Passed for 1 prediction properties out of 1 prediction properties.\n'
                 'Found prediction property "Samples Per Class" has the highest categorical drift score: 0'
     ))
-
-

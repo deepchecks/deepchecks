@@ -9,20 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains implementation of the simple classification dataset."""
+try:
+    from torchvision.datasets import VisionDataset
+except ImportError as error:
+    raise ImportError('torchvision is not installed. Please install torchvision>=0.11.3 '
+                      'in order to use the requested functionality.') from error
+
 import typing as t
 from pathlib import Path
 
 import cv2
 import numpy as np
+import torch
+from torch.utils.data import DataLoader
 from typing_extensions import Literal
-
-try:
-    import torch
-    from torch.utils.data import DataLoader
-    from torchvision.datasets import VisionDataset
-except ImportError as error:
-    raise ImportError('PyTorch is not installed. Please install torch and torchvision '
-                      'in order to use simple classification dataset functionality.') from error
 
 from deepchecks.vision.vision_data import VisionData
 

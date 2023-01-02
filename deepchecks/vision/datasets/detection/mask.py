@@ -14,6 +14,13 @@ The mask dataset is a dataset of various images with people wearing masks, peopl
 wearing masks incorrectly. The dataset is used for object detection, and was downloaded from
 https://www.kaggle.com/datasets/andrewmvd/face-mask-detection, licenced under CC0.
 """
+try:
+    from torchvision.datasets import VisionDataset
+    from torchvision.datasets.utils import download_and_extract_archive
+    from torchvision.transforms import transforms
+except ImportError as error:
+    raise ImportError('torchvision is not installed. Please install torchvision>=0.11.3 '
+                      'in order to use the selected dataset.') from error
 import contextlib
 import hashlib
 import json
@@ -29,15 +36,14 @@ from bs4 import BeautifulSoup
 from PIL import Image
 from torch import nn
 from torch.utils.data import DataLoader
-from torchvision.datasets import VisionDataset
-from torchvision.datasets.utils import download_and_extract_archive
-from torchvision.transforms import transforms
 from typing_extensions import Literal
 
 from deepchecks.vision.utils.test_utils import IndicesSequentialSampler
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'MaskDataset', 'get_data_timestamps']
+
+from deepchecks.vision.vision_data.utils import object_to_numpy
 
 MASK_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'mask_detection'
 MODEL_PATH = MASK_DIR / 'mnist_model.pth'
@@ -57,7 +63,7 @@ class MaskPrecalculatedModel(nn.Module):
         self._device = device
 
     def forward(self, images: t.Sequence[torch.Tensor]) -> t.Sequence[torch.Tensor]:
-        image_hashes = [self._hash_image((img.cpu().numpy() if isinstance(img, torch.Tensor) else img))
+        image_hashes = [self._hash_image((object_to_numpy(img) if isinstance(img, torch.Tensor) else img))
                         for img in images]
         return [torch.tensor(self._pred_dict[image_hash]).to(self._device) for image_hash in image_hashes]
 

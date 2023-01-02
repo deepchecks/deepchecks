@@ -13,7 +13,7 @@ import numpy as np
 from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
 from deepchecks.vision.checks import ImageDatasetDrift
-from deepchecks.vision.datasets.detection.coco import collate_without_model
+from deepchecks.vision.datasets.detection.coco_torch import collate_without_model
 from deepchecks.vision.utils.test_utils import replace_collate_fn_visiondata
 from tests.base.utils import equal_condition_result
 
@@ -81,9 +81,9 @@ def test_drift_grayscale(mnist_drifted_datasets):
     result = check.run(train, test)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.546, 0.001),
-        'domain_classifier_drift_score': close_to(0.093, 0.001),
-        'domain_classifier_feature_importance': has_entries({'Brightness': close_to(0.981, 0.001)})}))
+        'domain_classifier_auc': close_to(0.525, 0.001),
+        'domain_classifier_drift_score': close_to(0.051, 0.001),
+        'domain_classifier_feature_importance': has_entries({'Brightness': close_to(0.852, 0.001)})}))
     assert_that(result.display, has_length(greater_than(0)))
 
 
@@ -96,9 +96,9 @@ def test_drift_grayscale_without_display(mnist_drifted_datasets):
     result = check.run(train, test, with_display=False)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.546, 0.001),
-        'domain_classifier_drift_score': close_to(0.093, 0.001),
-        'domain_classifier_feature_importance': has_entries({'Brightness': close_to(0.981, 0.001)})}))
+        'domain_classifier_auc': close_to(0.525, 0.001),
+        'domain_classifier_drift_score': close_to(0.051, 0.001),
+        'domain_classifier_feature_importance': has_entries({'Brightness': close_to(0.852, 0.001)})}))
     assert_that(result.display, has_length(0))
 
 

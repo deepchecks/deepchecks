@@ -9,6 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
+try:
+    from torchvision.datasets import VisionDataset
+    from torchvision.datasets.utils import download_and_extract_archive
+    from torchvision.models.segmentation import lraspp_mobilenet_v3_large
+except ImportError as error:
+    raise ImportError('torchvision is not installed. Please install torchvision>=0.11.3 '
+                      'in order to use the selected dataset.') from error
+
 import contextlib
 import os
 import pathlib
@@ -23,15 +31,14 @@ from albumentations.pytorch.transforms import ToTensorV2
 from PIL import Image, ImageDraw
 from torch import nn
 from torch.utils.data import DataLoader
-from torchvision.datasets import VisionDataset
-from torchvision.datasets.utils import download_and_extract_archive
-from torchvision.models.segmentation import lraspp_mobilenet_v3_large
 from typing_extensions import Literal
 
 from deepchecks.vision.utils.test_utils import get_data_loader_sequential
 from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'CocoSegmentationDataset']
+
+from deepchecks.vision.vision_data.utils import object_to_numpy
 
 DATA_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'coco_segmentation'
 
@@ -65,7 +72,7 @@ def deepchecks_collate(model) -> t.Callable:
 
     def _process_batch_to_deepchecks_format(data) -> BatchOutputFormat:
         raw_images = [x[0] for x in data]
-        images = [tensor.cpu().detach().numpy().transpose((1, 2, 0)) for tensor in raw_images]
+        images = [object_to_numpy(tensor).transpose((1, 2, 0)) for tensor in raw_images]
         labels = [x[1] for x in data]
 
         normalized_batch = [F.normalize(img.unsqueeze(0).float() / 255,
