@@ -39,7 +39,7 @@ PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint -j 0
 COVERAGE := $(BIN)/coverage
 COVERALLS := $(BIN)/coveralls
-FLAKE8 := $(BIN)/flake8 --whitelist spelling-allowlist.txt --exclude=deepchecks/vision/datasets/assets
+FLAKE8 := $(BIN)/flake8 --whitelist spelling-allowlist.txt --exclude=deepchecks/vision/datasets/assets,deepchecks/ppscore.py
 FLAKE8_RST := $(BIN)/flake8-rst
 PYTEST := $(BIN)/pytest
 TOX := $(BIN)/tox
