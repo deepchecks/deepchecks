@@ -81,7 +81,7 @@ def test_run_value_error(adult_split_dataset_and_model):
     )
     assert_that(
         calling(check_invalid3.run).with_args(test, model), 
-        raises(DeepchecksValueError, r'protected_feature sex and control_feature sex are the same.')
+        raises(DeepchecksValueError, r'protected_feature and control_feature cannot be the same')
     )
 
 
@@ -158,8 +158,8 @@ def test_numeric_values(adult_split_dataset_and_model):
     result = check.run(test, model)
 
     # Assert
-    assert_that(result.display, has_length(1))
-    assert_that(result.value.round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
+    assert_that(result.display, has_length(2))
+    assert_that(result.value['scores_df'].round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
 
 
 def test_numeric_values_classwise(adult_split_dataset_and_model):
@@ -182,8 +182,8 @@ def test_numeric_values_classwise(adult_split_dataset_and_model):
     result = check.run(test, model)
 
     # Assert
-    assert_that(result.display, has_length(1))
-    assert_that(result.value.round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
+    assert_that(result.display, has_length(2))
+    assert_that(result.value['scores_df'].round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
 
 
 def test_numeric_values_classwise_with_control(adult_split_dataset_and_model):
@@ -242,8 +242,8 @@ def test_numeric_values_classwise_with_control(adult_split_dataset_and_model):
     result = check.run(test, model)
 
     # Assert
-    assert_that(result.display, has_length(1))
-    assert_that(result.value.round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
+    assert_that(result.display, has_length(2))
+    assert_that(result.value['scores_df'].round(3).to_dict(), has_entries(expected_value.round(3).to_dict()))
 
 
 def test_na_scores_on_small_subgroups(adult_split_dataset_and_model):

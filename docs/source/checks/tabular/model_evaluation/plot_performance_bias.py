@@ -79,7 +79,7 @@ result.show()
 # "Others" within the category of "HS-grad" for the control feature "education". The model performance 
 # on this subgroup is 0.095 versus 0.258 for this entire education category.
 
-result.value.head(3)
+result.value['scores_df'].head(3)
 
 #%%
 # Define a condition
