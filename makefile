@@ -249,7 +249,7 @@ test-tabular-only: env
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
-	python -m pytest -vvv $(TESTDIR)/tabular
+	$(PYTEST) -vvv $(TESTDIR)/tabular
 
 
 coverage: requirements dev-requirements
