@@ -255,8 +255,8 @@ def test_na_scores_on_small_subgroups(adult_split_dataset_and_model):
     result = check.run(test, model)
 
     # Assert
-    assert_that(result.value["_score"].isna().all())
-    assert_that(result.value["_baseline"].isna().all())
+    assert_that(result.value['scores_df']["_score"].isna().all())
+    assert_that(result.value['scores_df']["_baseline"].isna().all())
 
 
 def test_scorers_types_no_error(adult_split_dataset_and_model):
