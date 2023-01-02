@@ -39,7 +39,7 @@ PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint -j 0
 COVERAGE := $(BIN)/coverage
 COVERALLS := $(BIN)/coveralls
-FLAKE8 := $(BIN)/flake8 --whitelist spelling-allowlist.txt
+FLAKE8 := $(BIN)/flake8 --whitelist spelling-allowlist.txt --exclude=deepchecks/vision/datasets/assets
 FLAKE8_RST := $(BIN)/flake8-rst
 PYTEST := $(BIN)/pytest
 TOX := $(BIN)/tox
@@ -242,11 +242,12 @@ test-win:
 	python -m pytest -vvv $(WIN_TESTDIR)
 
 
-test-tabular-only: env dev-requirements
+test-tabular-only: env
 	@$(PIP) install -U pip
 	@$(PIP) install -q \
 		wheel setuptools \
-		-r $(REQUIRE_DIR)/$(REQUIRE_FILE)
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 	python -m pytest -vvv $(TESTDIR)/tabular
 
