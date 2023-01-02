@@ -11,9 +11,8 @@
 """Package for vision functionality."""
 try:
     import torch  # noqa: F401
-    import torchvision  # noqa: F401
 except ImportError as error:
-    raise ImportError('PyTorch is not installed. Please install torch and torchvision '
+    raise ImportError('PyTorch is not installed. Please install torch '
                       'in order to use deepchecks vision.') from error
 
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck

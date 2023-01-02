@@ -9,6 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module for loading a sample of the COCO dataset and the yolov5s model."""
+try:
+    from torchvision.datasets import VisionDataset
+except ImportError as error:
+    raise ImportError('torchvision is not installed. Please install torchvision>=0.11.3 '
+                      'in order to use the selected dataset.') from error
 import logging
 import typing as t
 import warnings
@@ -22,10 +27,8 @@ import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import DataLoader
-from torchvision.datasets import VisionDataset
 from typing_extensions import Literal
 
-from deepchecks import vision
 from deepchecks.vision.datasets.assets.coco_detection.static_predictions_yolo import \
     coco_detections_static_predictions_dict
 from deepchecks.vision.datasets.detection.coco_utils import COCO_DIR, LABEL_MAP, download_coco128, get_image_and_label
@@ -123,7 +126,7 @@ def load_dataset(
         object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
         n_samples: t.Optional[int] = None,
         device: t.Union[str, torch.device] = 'cpu'
-) -> t.Union[DataLoader, vision.VisionData]:
+) -> t.Union[DataLoader, VisionData]:
     """Get the COCO128 dataset and return a dataloader.
 
     Parameters

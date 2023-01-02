@@ -9,6 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module representing the MNIST dataset."""
+try:
+    from torchvision import datasets
+    from torchvision.datasets.mnist import read_image_file, read_label_file
+    from torchvision.datasets.utils import check_integrity, download_and_extract_archive
+except ImportError as error:
+    raise ImportError('torchvision is not installed. Please install torchvision>=0.11.3 '
+                      'in order to use the selected dataset.') from error
 import logging
 import os
 import pathlib
@@ -26,9 +33,6 @@ from albumentations.pytorch import ToTensorV2
 from torch import nn
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import IterableDataset
-from torchvision import datasets
-from torchvision.datasets.mnist import read_image_file, read_label_file
-from torchvision.datasets.utils import check_integrity, download_and_extract_archive
 from typing_extensions import Literal
 
 from deepchecks.utils.logger import get_logger
@@ -44,16 +48,9 @@ MODEL_PATH = MNIST_DIR / 'mnist_model.pth'
 LOGGER = logging.getLogger(__name__)
 
 
-def load_dataset(
-        train: bool = True,
-        batch_size: t.Optional[int] = None,
-        shuffle: bool = False,
-        pin_memory: bool = True,
-        object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader',
-        use_iterable_dataset: bool = False,
-        n_samples=None,
-        device: t.Union[str, torch.device] = 'cpu'
-) -> t.Union[DataLoader, VisionData]:
+def load_dataset(train: bool = True, batch_size: t.Optional[int] = None, shuffle: bool = False, pin_memory: bool = True,
+                 object_type: Literal['VisionData', 'DataLoader'] = 'DataLoader', use_iterable_dataset: bool = False,
+                 n_samples=None, device: t.Union[str, torch.device] = 'cpu') -> t.Union[DataLoader, VisionData]:
     """Download MNIST dataset.
 
     Parameters
@@ -62,9 +59,9 @@ def load_dataset(
         Train or Test dataset
     batch_size: int, optional
         how many samples per batch to load
-    shuffle : bool , default : ``False``
+    shuffle : bool , default : False
         to reshuffled data at every epoch or not, cannot work with use_iterable_dataset=True
-    pin_memory : bool, default ``True``
+    pin_memory : bool, default : True
         If ``True``, the data loader will copy Tensors
         into CUDA pinned memory before returning them.
     object_type : Literal[Dataset, DataLoader], default 'DataLoader'
@@ -98,8 +95,8 @@ def load_dataset(
                           generator=torch.Generator())
     elif object_type == 'VisionData':
         model = load_model(device=device)
-        loader = DataLoader(dataset, batch_size=batch_size, pin_memory=pin_memory,
-                            generator=torch.Generator(), collate_fn=deepchecks_collate(model))
+        loader = DataLoader(dataset, batch_size=batch_size, pin_memory=pin_memory, generator=torch.Generator(),
+                            collate_fn=deepchecks_collate(model))
         if not use_iterable_dataset:
             loader = get_data_loader_sequential(loader, shuffle, n_samples)
         return VisionData(loader, task_type='classification', shuffle_batch_loader=False)
@@ -140,8 +137,8 @@ def deepchecks_collate(model) -> t.Callable:
     return _process_batch_to_deepchecks_format
 
 
-def load_model(pretrained: bool = True, path: pathlib.Path = None, device: t.Union[str, torch.device] = 'cpu') \
-        -> 'MockModel':
+def load_model(pretrained: bool = True, path: pathlib.Path = None,
+               device: t.Union[str, torch.device] = 'cpu') -> 'MockModel':
     """Load MNIST model.
 
     Returns
@@ -185,10 +182,7 @@ def load_model(pretrained: bool = True, path: pathlib.Path = None, device: t.Uni
 
             if batch % 100 == 0:
                 loss, current = loss.item(), batch * len(X)
-                LOGGER.info(
-                    'Epoch: %f; loss=%f, %d/%d',
-                    epoch, loss, current, datasize
-                )
+                LOGGER.info('Epoch: %f; loss=%f, %d/%d', epoch, loss, current, datasize)
 
     if not path.parent.exists():
         path.parent.mkdir()
@@ -236,16 +230,12 @@ class IterableTorchMnistDataset(IterableDataset):
         Number of samples to use. If None, use all samples.
     """
 
-    mirrors = [
-        'http://yann.lecun.com/exdb/mnist/',
-        'https://ossci-datasets.s3.amazonaws.com/mnist/',
-    ]
+    mirrors = ['http://yann.lecun.com/exdb/mnist/', 'https://ossci-datasets.s3.amazonaws.com/mnist/', ]
 
-    resources = [
-        ('train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
-        ('train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432'),
-        ('t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3'),
-        ('t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')]
+    resources = [('train-images-idx3-ubyte.gz', 'f68b3c2dcbeaaa9fbdd348bbdeb94873'),
+                 ('train-labels-idx1-ubyte.gz', 'd53e105ee54ea40749a09fcbcd1e9432'),
+                 ('t10k-images-idx3-ubyte.gz', '9fb629c4189551a2d022fa330f9573f3'),
+                 ('t10k-labels-idx1-ubyte.gz', 'ec29112dd5afa0611ce80d1b7f02629c')]
 
     def __init__(self, batch_size: int = 64, train: bool = True, transform: t.Optional[t.Callable] = None,
                  n_samples: int = None) -> None:
@@ -256,8 +246,7 @@ class IterableTorchMnistDataset(IterableDataset):
 
         self.download()
         if not self._check_exists():
-            raise RuntimeError('Dataset not found.' +
-                               ' You can use download=True to download it')
+            raise RuntimeError('Dataset not found.' + ' You can use download=True to download it')
 
         self.data, self.targets = self._load_data()
         if n_samples:
@@ -286,8 +275,8 @@ class IterableTorchMnistDataset(IterableDataset):
 
     def _check_exists(self) -> bool:
         return all(
-            check_integrity(os.path.join(self.raw_folder, os.path.splitext(os.path.basename(url))[0]))
-            for url, _ in self.resources)
+            check_integrity(os.path.join(self.raw_folder, os.path.splitext(os.path.basename(url))[0])) for url, _ in
+            self.resources)
 
     def download(self) -> None:
         """Download the MNIST data if it doesn't exist already."""
@@ -302,13 +291,9 @@ class IterableTorchMnistDataset(IterableDataset):
                 url = f'{mirror}{filename}'
                 try:
                     print(f'Downloading {url}')
-                    download_and_extract_archive(
-                        url, download_root=self.raw_folder,
-                        filename=filename,
-                        md5=md5
-                    )
-                except URLError as error:
-                    get_logger().warning('Failed to download (trying next):\n%s', error)
+                    download_and_extract_archive(url, download_root=self.raw_folder, filename=filename, md5=md5)
+                except URLError as err:
+                    get_logger().warning('Failed to download (trying next):\n%s', err)
                     continue
                 break
             else:

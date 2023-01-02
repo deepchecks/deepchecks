@@ -53,6 +53,7 @@ class VisionData:
             shuffle_batch_loader: bool = True
     ):
         if not hasattr(batch_loader, '__iter__'):
+            # TODO: add link to documentation
             raise DeepchecksValueError(r'Batch loader must be an iterable which loads batches of data in deepcheck\'s'
                                        'required format, see link for additional information ')
         self._batch_loader = shuffle_loader(batch_loader) if shuffle_batch_loader else batch_loader
