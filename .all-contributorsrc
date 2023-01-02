@@ -360,6 +360,15 @@
         "doc",
         "ideas"
       ]
+    },
+    {
+      "login": "chendingyan",
+      "name": "陈鼎彦",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16874978?v=4",
+      "profile": "https://github.com/chendingyan",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "projectName": "deepchecks",
