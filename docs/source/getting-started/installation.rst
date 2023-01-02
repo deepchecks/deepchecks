@@ -70,7 +70,7 @@ Deepchecks For Computer Vision
    use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are
    highly encouraged for feature requests and bug reports.
 
-Istallation of deepchecks for CV should be stated explicitly and it includes
+Installation of deepchecks for CV should be stated explicitly and it includes
 both the installation of the tabular version and of the computer vision subpackage.
 Example commands from above should be altered to install `deepchecks[vision]`.
 
