@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """The UnusedFeatures check module."""
-from typing import Tuple
-
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -23,7 +21,7 @@ from sklearn.preprocessing import OrdinalEncoder, RobustScaler
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, Dataset, SingleDatasetCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.function import run_available_kwargs
 
 __all__ = ['UnusedFeatures']
@@ -98,14 +96,17 @@ class UnusedFeatures(SingleDatasetCheck):
         dataset.assert_features()
 
         # Calculate normalized variance per feature based on PCA decomposition
-        pre_pca_transformer, var_col_order = naive_encoder(dataset)
-        pca_trans = PCA(n_components=len(var_col_order) // 2, random_state=self.random_state)
+        features_to_use = dataset.numerical_features + dataset.cat_features
+        pre_pca_transformer = naive_encoder(dataset.numerical_features, dataset.cat_features)
+        pca_trans = PCA(n_components=len(features_to_use) // 2, random_state=self.random_state)
+        fit_data = dataset.features_columns[features_to_use]
+        # The naive encoder drops columns which are all nans, so fill only them with zeros
+        columns_all_none = fit_data.columns[fit_data.isnull().all()]
+        fit_data = fit_data.drop(columns_all_none, axis=1)
+        fit_data[columns_all_none] = 0
+        pca_trans.fit(pre_pca_transformer.fit_transform(fit_data))
 
-        n_samples = min(10000, dataset.n_samples)
-        fit_data = dataset.features_columns[var_col_order].sample(n_samples, random_state=self.random_state)
-        pca_trans.fit(pre_pca_transformer.fit_transform(fit_data.fillna(0)))
-
-        feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=var_col_order)
+        feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=features_to_use)
         feature_normed_variance = feature_normed_variance / feature_normed_variance.sum()
 
         feature_df = pd.concat([feature_importance, feature_normed_variance], axis=1)
@@ -144,14 +145,14 @@ class UnusedFeatures(SingleDatasetCheck):
                     y=display_feature_df.index,
                     x=display_feature_df['Feature Importance'].multiply(100).values.flatten(),
                     name='Feature Importance %',
-                    marker_color='indianred',
+                    marker=dict(color='indianred'),
                     orientation='h'
                 ))
                 fig.add_trace(go.Bar(
                     y=display_feature_df.index,
                     x=display_feature_df['Feature Variance'].multiply(100).values.flatten(),
                     name='Feature Variance %',
-                    marker_color='lightsalmon',
+                    marker=dict(color='lightsalmon'),
                     orientation='h'
                 ))
 
@@ -213,7 +214,7 @@ class UnusedFeatures(SingleDatasetCheck):
                                   max_high_variance_unused_features_condition)
 
 
-def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
+def naive_encoder(numerical_features, cat_features) -> TransformerMixin:
     """Create a naive encoder for categorical and numerical features.
 
     The encoder handles nans for all features and uses label encoder for categorical features. Then, all features are
@@ -221,13 +222,13 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
 
     Parameters
     ----------
-    dataset : Dataset
-        The dataset to encode.
+    numerical_features
+    cat_features
 
     Returns
     -------
-    Tuple[TransformerMixin, list]
-        A transformer object, a list of columns returned
+    TransformerMixin
+        A transformer object
     """
     return ColumnTransformer(
         transformers=[
@@ -235,13 +236,13 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
-                np.array(dataset.numerical_features, dtype='object')),
+                np.array(numerical_features, dtype='object')),
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
                  ('encode', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value', unknown_value=-1)),
                  ('norm', RobustScaler())
              ]),
-             np.array(dataset.cat_features, dtype='object'))
+             np.array(cat_features, dtype='object'))
         ]
-    ), dataset.numerical_features + dataset.cat_features
+    )
