@@ -132,10 +132,6 @@ class Suite(BaseSuite):
                             if train_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Test Dataset'
                         except Exception as exp:
-                            if not isinstance(exp, DeepchecksBaseError):
-                                print('$$$$$ EXCEPTION $$$$$$')
-                                traceback.print_exc()
-
                             check_result = CheckFailure(check, exp, ' - Test Dataset')
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:
