@@ -92,7 +92,7 @@ class OutlierSampleDetection(SingleDatasetCheck):
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
-        dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
+        dataset = dataset.sample(self.n_samples, random_state=self.random_state).drop_na_labels()
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
         num_neighbors = int(max(self.nearest_neighbors_percent * df.shape[0], MINIMUM_NUM_NEAREST_NEIGHBORS))
         if df.shape[0] < 1 / self.nearest_neighbors_percent:
