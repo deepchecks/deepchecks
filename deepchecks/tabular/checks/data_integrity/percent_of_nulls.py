@@ -92,7 +92,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
             display = (
                 [px.bar(x=data.columns, y=result_data['Percent of nulls in sample'],
                         title='Percent Of Nulls', range_y=(0, 1))
-                        .update_layout(yaxis_title=None, xaxis_title=None)])
+                 .update_layout(yaxis_title=None, xaxis_title=None)])
         else:
             display = None
 
