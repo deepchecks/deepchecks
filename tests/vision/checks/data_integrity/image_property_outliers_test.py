@@ -90,7 +90,7 @@ def test_image_property_outliers_check_mnist(mnist_visiondata_train):
     assert_that(result.value, has_entries({
         'Brightness': has_entries({
             'outliers_identifiers': has_length(5),
-            'lower_limit': close_to(11.87, .01),
+            'lower_limit': close_to(11.871, .01),
             'upper_limit': close_to(57.15, .01)
         }),
         'Mean Red Relative Intensity': instance_of(str),

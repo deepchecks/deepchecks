@@ -94,9 +94,9 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self._images_uuid = []
 
         self.properties_list = self.properties_list if self.properties_list else self.get_default_properties(data)
-        if any(p['output_type'] == 'class_id' for p in self.properties_list):
+        if self.properties_list is not None and any(p['output_type'] == 'class_id' for p in self.properties_list):
             warnings.warn('Properties that have class_id as output_type will be skipped.')
-        self.properties_list = [p for p in self.properties_list if p['output_type'] != 'class_id']
+            self.properties_list = [p for p in self.properties_list if p['output_type'] != 'class_id']
 
     def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Aggregate image properties from batch."""
@@ -142,7 +142,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         # Create display
         if context.with_display:
             display = []
-            no_outliers = pd.Series([])
+            no_outliers = pd.Series([], dtype='str')
             for property_name, info in check_result.items():
                 # If info is string it means there was error
                 if isinstance(info, str):

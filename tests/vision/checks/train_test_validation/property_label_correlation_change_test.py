@@ -91,9 +91,9 @@ def test_drift_object_detection(coco_train_brightness_bias, coco_visiondata_test
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.066, 0.01)}),
-        'test': has_entries({'Brightness': equal_to(0)}),
-        'train-test difference': has_entries({'Brightness': close_to(0.066, 0.01)}),
+        'train': has_entries({'Brightness': close_to(0.087, 0.01)}),
+        'test': has_entries({'Brightness': close_to(0.016, 0.01)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.071, 0.01)}),
     }))
     assert_that(result.display, has_length(greater_than(0)))
 
@@ -107,9 +107,9 @@ def test_drift_object_detection_without_display(coco_train_brightness_bias, coco
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.066, 0.01)}),
-        'test': has_entries({'Brightness': equal_to(0)}),
-        'train-test difference': has_entries({'Brightness': close_to(0.066, 0.01)}),
+        'train': has_entries({'Brightness': close_to(0.087, 0.01)}),
+        'test': has_entries({'Brightness': close_to(0.016, 0.01)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.071, 0.01)}),
     }))
     assert_that(result.display, has_length(0))
 
@@ -169,9 +169,9 @@ def test_drift_object_detections_min_pps(coco_train_brightness_bias, coco_vision
 
     # Assert
     assert_that(result.value, has_entries({
-        'train': has_entries({'Brightness': close_to(0.066, 0.01)}),
-        'test': has_entries({'Brightness': equal_to(0)}),
-        'train-test difference': has_entries({'Brightness': close_to(0.062, 0.01)}),
+        'train': has_entries({'Brightness': close_to(0.087, 0.01)}),
+        'test': has_entries({'Brightness': close_to(0.016, 0.01)}),
+        'train-test difference': has_entries({'Brightness': close_to(0.071, 0.01)}),
     }))
     assert_that(result.display, equal_to([]))
 
@@ -204,14 +204,14 @@ def test_train_test_condition_pps_train_pass(coco_visiondata_train):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='0 PPS found for all properties in train dataset',
+        details='Found highest PPS in train dataset 0.02 for property Mean Red Relative Intensity',
         name=f'Train properties\' Predictive Power Score is less than {condition_value}'
     ))
 
 
 def test_train_test_condition_pps_train_fail(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
-    condition_value = 0.08
+    condition_value = 0.10
     check = PropertyLabelCorrelationChange(per_class=False) \
         .add_condition_property_pps_in_train_less_than(condition_value)
     # Act
@@ -224,7 +224,7 @@ def test_train_test_condition_pps_train_fail(coco_train_brightness_bias, coco_vi
         name=f'Train properties\' Predictive Power Score is less than {condition_value}',
         details=(
             'Properties in train dataset with PPS above threshold: '
-            '{\'Aspect Ratio\': \'0.09\', \'Mean Red Relative Intensity\': \'0.09\'}'
+            '{\'RMS Contrast\': \'0.11\'}'
         )
     ))
 
@@ -264,14 +264,14 @@ def test_train_test_condition_pps_train_fail_per_class(coco_visiondata_train, co
         is_pass=False,
         name=f'Train properties\' Predictive Power Score is less than {condition_value}',
         details='Properties and classes in train dataset with PPS above threshold: {'
-                '\'Brightness\': {\'teddy bear\': \'0.5\'}, \'RMS Contrast\': {\'clock\': \'0.83\'}}'
+                '\'RMS Contrast\': {\'clock\': \'0.83\'}}'
     ))
 
 
 def test_train_test_condition_pps_diff_pass(coco_visiondata_train):
     # Arrange
     train, test = coco_visiondata_train, coco_visiondata_train
-    condition_value = 0.01
+    condition_value = 0.03
     check = PropertyLabelCorrelationChange(per_class=False) \
         .add_condition_property_pps_difference_less_than(condition_value)
 
@@ -282,7 +282,7 @@ def test_train_test_condition_pps_diff_pass(coco_visiondata_train):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='0 PPS found for all properties',
+        details='Found highest PPS 0.02 for property Mean Red Relative Intensity',
         name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}'
     ))
 
@@ -303,7 +303,7 @@ def test_train_test_condition_pps_positive_diff_fail(coco_train_brightness_bias,
         name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}',
         details=(
             'Properties with PPS difference above threshold: '
-            '{\'Mean Red Relative Intensity\': \'0.09\'}'
+            '{\'Mean Red Relative Intensity\': \'0.09\', \'RMS Contrast\': \'0.11\'}'
         )
     ))
 
@@ -323,7 +323,7 @@ def test_train_test_condition_pps_diff_fail(coco_train_brightness_bias, coco_vis
         name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}',
         details=(
             'Properties with PPS difference above threshold: '
-            '{\'Mean Red Relative Intensity\': \'0.09\'}'
+            '{\'Mean Red Relative Intensity\': \'0.09\', \'RMS Contrast\': \'0.11\'}'
         )
     ))
 
@@ -363,5 +363,5 @@ def test_train_test_condition_pps_positive_diff_fail_per_class(coco_visiondata_t
         is_pass=False,
         name=f'Train-Test properties\' Predictive Power Score difference is less than {condition_value}',
         details='Properties and classes with PPS difference above threshold: '
-                '{\'Brightness\': {\'teddy bear\': \'0.5\'}, \'RMS Contrast\': {\'clock\': \'0.83\'}}'
+                '{\'RMS Contrast\': {\'clock\': \'0.83\'}}'
     ))

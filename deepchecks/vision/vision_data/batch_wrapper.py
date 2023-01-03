@@ -9,11 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Contains code for BatchWrapper."""
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
+from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.utils.image_functions import crop_image
+from deepchecks.vision.utils.image_properties import calc_default_image_properties, default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType, calc_vision_properties, validate_properties
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.vision_data.utils import BatchOutputFormat, TaskType, sequence_to_numpy
@@ -24,11 +26,7 @@ __all__ = ['BatchWrapper']
 class BatchWrapper:
     """Represents dataset batch returned by the dataloader during iteration."""
 
-    def __init__(
-            self,
-            batch: BatchOutputFormat,
-            vision_data: VisionData,
-    ):
+    def __init__(self, batch: BatchOutputFormat, vision_data: VisionData, ):
         self._vision_data = vision_data
         self._task_type = vision_data.task_type
         self._batch = batch
@@ -57,13 +55,13 @@ class BatchWrapper:
             result = self.numpy_predictions
         return result
 
-    def vision_properties(self, properties_list: List[Dict], input_type: PropertiesInputType):
+    def vision_properties(self, properties_list: Optional[List[Dict]], input_type: PropertiesInputType):
         """Calculate and cache the properties for the batch according to the property input type.
 
         Parameters
         ----------
-        properties_list: List[Dict]
-            List of properties to calculate.
+        properties_list: Optional[List[Dict]]
+            List of properties to calculate. If None, default properties will be calculated.
         input_type: PropertiesInputType
             The input type of the properties.
 
@@ -72,17 +70,28 @@ class BatchWrapper:
         Dict[str, Any]
             Dictionary of the properties name to list of property values per data element.
         """
-        properties_list = validate_properties(properties_list)
         if self._vision_properties_cache[input_type] is None:
-            data = self._get_relevant_data_for_properties(input_type)
-            self._vision_properties_cache[input_type] = calc_vision_properties(data, properties_list)
-        else:
-            properties_to_calc = [p for p in properties_list if p['name'] not in
-                                  self._vision_properties_cache[input_type].keys()]
+            self._vision_properties_cache[input_type] = {}
+        keys_in_cache = self._vision_properties_cache[input_type].keys()
+
+        if properties_list is not None:
+            properties_list = validate_properties(properties_list)
+            requested_properties_names = [prop['name'] for prop in properties_list]
+            properties_to_calc = [p for p in properties_list if p['name'] not in keys_in_cache]
             if len(properties_to_calc) > 0:
                 data = self._get_relevant_data_for_properties(input_type)
                 self._vision_properties_cache[input_type].update(calc_vision_properties(data, properties_to_calc))
-        return self._vision_properties_cache[input_type]
+        else:
+            if input_type not in [PropertiesInputType.PARTIAL_IMAGES, PropertiesInputType.IMAGES]:
+                # TODO: add support for quick default properties calculation for other input types
+                raise DeepchecksProcessError(f'None was passed to properties calculation for input type {input_type}.')
+            requested_properties_names = [prop['name'] for prop in default_image_properties]
+            if any(x not in keys_in_cache for x in requested_properties_names):
+                data = self._get_relevant_data_for_properties(input_type)
+                self._vision_properties_cache[input_type].update(calc_default_image_properties(data))
+
+        return {key: value for key, value in self._vision_properties_cache[input_type].items() if
+                key in requested_properties_names}
 
     @property
     def original_labels(self):
@@ -165,7 +174,7 @@ class BatchWrapper:
 
     def __len__(self):
         """Return length of batch."""
-        data = self.numpy_images if self.numpy_images is not None else self.numpy_predictions \
-            if self.numpy_predictions is not None else self.numpy_labels if self.numpy_labels is not None else \
+        data = self.numpy_images if self.numpy_images is not None else self.numpy_predictions if \
+            self.numpy_predictions is not None else self.numpy_labels if self.numpy_labels is not None else \
             self.numpy_embeddings if self.numpy_embeddings is not None else self.numpy_additional_data
         return len(data)

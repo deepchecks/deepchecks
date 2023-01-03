@@ -90,8 +90,7 @@ class ImageDatasetDrift(TrainTestCheck):
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties if image_properties else default_image_properties
-
+        self.image_properties = image_properties
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
         self.test_size = test_size
@@ -143,7 +142,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
         numeric_features = []
         categorical_features = []
-        for prop in self.image_properties:
+        for prop in self.image_properties or default_image_properties:
             col_type = prop['output_type']
             if col_type == 'numerical':
                 numeric_features.append(prop['name'])

@@ -91,9 +91,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties if image_properties else default_image_properties
-        if len(self.image_properties) < 2:
+        if image_properties is not None and len(image_properties) < 2:
             raise DeepchecksNotSupportedError('Check requires at least two image properties in order to run.')
+        self.image_properties = image_properties
         self.n_top_features = n_top_properties
         self.scorer = scorer
         self.scorer_name = scorer_name
@@ -140,9 +140,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         results_dict = self._properties_results
         results_dict['score'] = self._sample_scores
         results_df = pd.DataFrame(results_dict)
-
-        cat_features = [p['name'] for p in self.image_properties if p['output_type'] == 'categorical']
-        num_features = [p['name'] for p in self.image_properties if p['output_type'] == 'numerical']
+        properties_used = self.image_properties or default_image_properties
+        cat_features = [p['name'] for p in properties_used if p['output_type'] == 'categorical']
+        num_features = [p['name'] for p in properties_used if p['output_type'] == 'numerical']
         all_features = cat_features + num_features
 
         dataset = Dataset(results_df, cat_features=cat_features, features=all_features, label='score')

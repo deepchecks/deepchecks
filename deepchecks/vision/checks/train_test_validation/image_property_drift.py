@@ -95,7 +95,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties if image_properties else default_image_properties
+        self.image_properties = image_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
@@ -158,7 +158,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
 
         dataset_names = (context.train.name, context.test.name)
 
-        for single_property in self.image_properties:
+        for single_property in self.image_properties or default_image_properties:
             property_name = single_property['name']
             if property_name not in df_train.columns or property_name not in df_test.columns:
                 continue
