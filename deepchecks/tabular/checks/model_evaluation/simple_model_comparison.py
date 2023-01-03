@@ -11,6 +11,7 @@
 """Module containing simple comparison check."""
 import warnings
 from collections import defaultdict
+from numbers import Number
 from typing import TYPE_CHECKING, Callable, Dict, Hashable, List, Mapping, Union
 
 import numpy as np
@@ -170,60 +171,43 @@ class SimpleModelComparison(TrainTestCheck):
             (f'{type(model).__name__} model', 'Origin', model),
             (f'Simple model - {self.strategy}', 'Simple', simple_model)
         ]
-
+        classes_display_array = []
+        display_array = []
         # Multiclass have different return type from the scorer, list of score per class instead of single score
         if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             class_counts = test_label.groupby(test_label).count()
-
-            display_array = []
             # Dict in format { Scorer : Dict { Class : Dict { Origin/Simple : score } } }
             results_dict = {}
             for scorer in scorers:
                 model_dict = defaultdict(dict)
                 for model_name, model_type, model_instance in models:
-                    for class_value, class_score in scorer(model_instance, test_dataset).items():
-                        # New labels which do not exists on the model gets nan as score, skips them.
-                        # Also skips classes which are not in the test labels
-                        if np.isnan(class_score) or class_value not in class_counts:
-                            continue
-                        model_dict[class_value][model_type] = class_score
+                    scorer_value = scorer(model_instance, test_dataset)
+                    if isinstance(scorer_value, Number) or scorer_value is None:
+                        model_dict[model_type] = scorer_value
                         if context.with_display:
                             display_array.append([model_name,
                                                   model_type,
-                                                  class_score,
+                                                  scorer_value,
                                                   scorer.name,
-                                                  class_value,
-                                                  class_counts[class_value]
+                                                  test_label.count(),
                                                   ])
+                    else:
+                        for class_value, class_score in scorer_value.items():
+                            # New labels which do not exists on the model gets nan as score, skips them.
+                            # Also skips classes which are not in the test labels
+                            if np.isnan(class_score) or class_value not in class_counts:
+                                continue
+                            model_dict[class_value][model_type] = class_score
+                            if context.with_display:
+                                classes_display_array.append([model_name,
+                                                              model_type,
+                                                              class_score,
+                                                              scorer.name,
+                                                              class_value,
+                                                              class_counts[class_value]
+                                                              ])
                 results_dict[scorer.name] = model_dict
-
-            if display_array:
-                display_df = pd.DataFrame(
-                    display_array,
-                    columns=['Model', 'Type', 'Value', 'Metric', 'Class', 'Number of samples']
-                )
-
-                # Plot the metrics in a graph, grouping by the model and class
-                fig = (
-                    px.histogram(
-                        display_df,
-                        x=['Class', 'Model'],
-                        y='Value',
-                        color='Model',
-                        barmode='group',
-                        facet_col='Metric',
-                        facet_col_spacing=0.05,
-                        hover_data=['Number of samples'])
-                    .update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
-                    .update_yaxes(title=None, matches=None)
-                    .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                    .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-                )
-            else:
-                fig = None
-
         else:
-            display_array = []
             # Dict in format { Scorer : Dict { Origin/Simple : score } }
             results_dict = {}
             for scorer in scorers:
@@ -240,30 +224,53 @@ class SimpleModelComparison(TrainTestCheck):
                                               ])
                 results_dict[scorer.name] = model_dict
 
-            if display_array:
-                display_df = pd.DataFrame(
-                    display_array,
-                    columns=['Model', 'Type', 'Value', 'Metric', 'Number of samples']
-                )
+        figs = []
+        if display_array:
+            display_df = pd.DataFrame(
+                display_array,
+                columns=['Model', 'Type', 'Value', 'Metric', 'Number of samples']
+            )
 
-                # Plot the metrics in a graph, grouping by the model
-                fig = (
-                    px.histogram(
-                        display_df,
-                        x='Model',
-                        y='Value',
-                        color='Model',
-                        barmode='group',
-                        facet_col='Metric',
-                        facet_col_spacing=0.05,
-                        hover_data=['Number of samples'])
-                    .update_xaxes(title=None)
-                    .update_yaxes(title=None, matches=None)
-                    .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                    .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-                )
-            else:
-                fig = None
+            # Plot the metrics in a graph, grouping by the model
+            fig = (
+                px.histogram(
+                    display_df,
+                    x='Model',
+                    y='Value',
+                    color='Model',
+                    barmode='group',
+                    facet_col='Metric',
+                    facet_col_spacing=0.05,
+                    hover_data=['Number of samples'])
+                .update_xaxes(title=None)
+                .update_yaxes(title=None, matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
+            figs.append(fig)
+        if classes_display_array:
+            display_df = pd.DataFrame(
+                classes_display_array,
+                columns=['Model', 'Type', 'Value', 'Metric', 'Class', 'Number of samples']
+            )
+
+            # Plot the metrics in a graph, grouping by the model and class
+            classes_fig = (
+                px.histogram(
+                    display_df,
+                    x=['Class', 'Model'],
+                    y='Value',
+                    color='Model',
+                    barmode='group',
+                    facet_col='Metric',
+                    facet_col_spacing=0.05,
+                    hover_data=['Number of samples'])
+                .update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
+                .update_yaxes(title=None, matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
+            figs.append(classes_fig)
 
         # For each scorer calculate perfect score in order to calculate later the ratio in conditions
         scorers_perfect = {scorer.name: scorer.score_perfect(test_dataset) for scorer in scorers}
@@ -271,9 +278,9 @@ class SimpleModelComparison(TrainTestCheck):
         return CheckResult({'scores': results_dict,
                             'type': task_type,
                             'scorers_perfect': scorers_perfect,
-                            }, display=fig)
+                            }, display=figs)
 
-    def config(self, include_version: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
         """Return check instance config."""
         if self.alternative_scorers is not None:
             for k, v in self.alternative_scorers.items():
@@ -286,7 +293,7 @@ class SimpleModelComparison(TrainTestCheck):
                         'Only built-in scorers are allowed when serializing check instances. '
                         f'{reference}Scorer name: {k}'
                     )
-        return super().config(include_version)
+        return super().config(include_version, include_defaults=include_defaults)
 
     def _create_simple_model(self, train_ds: Dataset, task_type: TaskType):
         """Create a simple model of given type (random/constant/tree) to the given dataset.

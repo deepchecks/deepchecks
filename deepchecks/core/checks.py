@@ -152,19 +152,20 @@ class BaseCheck(abc.ABC):
             summary=get_docs_summary(self, with_doc_link)
         )
 
-    def to_json(self, indent: int = 3) -> str:
+    def to_json(self, indent: int = 3, include_version: bool = True, include_defaults: bool = True) -> str:
         """Serialize check instance to JSON string."""
-        conf = self.config()
+        conf = self.config(include_version=include_version, include_defaults=include_defaults)
         return json.dumps(conf, indent=indent)
 
+    @classmethod
     def from_json(
-            self,
+            cls: Type[Self],
             conf: str,
             version_unmatch: 'common.VersionUnmatchAction' = 'warn'
     ) -> Self:
         """Deserialize check instance from JSON string."""
         check_conf = json.loads(conf)
-        return self.from_config(check_conf, version_unmatch=version_unmatch)
+        return cls.from_config(check_conf, version_unmatch=version_unmatch)
 
     def _prepare_config(
             self,
@@ -181,7 +182,7 @@ class BaseCheck(abc.ABC):
             conf['version'] = __version__
         return conf
 
-    def config(self, include_version: bool = True) -> CheckConfig:
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
         """Return check configuration (conditions' configuration not yet supported).
 
         Returns
@@ -204,7 +205,7 @@ class BaseCheck(abc.ABC):
         # Again if that is not true for some sub-check it must override this method and to ensure
         # this assumption
         return self._prepare_config(
-            params=initvars(self, include_defaults=True),
+            params=initvars(self, include_defaults=include_defaults),
             include_version=include_version
         )
 

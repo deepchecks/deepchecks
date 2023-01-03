@@ -157,8 +157,8 @@ class SegmentPerformance(SingleDatasetCheck):
                     scores_text[i][j] = f'{score}\n({counts[i, j]})'
 
         # Plotly FigureWidget have bug with numpy nan, so replacing with python None
-        scores = scores.astype(np.object)
-        scores[np.isnan(scores.astype(np.float_))] = None
+        scores = scores.astype(object)
+        scores[np.isnan(scores.astype(float))] = None
 
         value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1, 'feature_2': self.feature_2}
 
@@ -176,7 +176,7 @@ class SegmentPerformance(SingleDatasetCheck):
 
         return CheckResult(value, display=fig)
 
-    def config(self, include_version: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
         """Return check instance config."""
         if self.alternative_scorer is not None:
             for k, v in self.alternative_scorer.items():
@@ -189,4 +189,4 @@ class SegmentPerformance(SingleDatasetCheck):
                         'Only built-in scorers are allowed when serializing check instances. '
                         f'{reference}Scorer name: {k}'
                     )
-        return super().config(include_version)
+        return super().config(include_version, include_defaults=include_defaults)

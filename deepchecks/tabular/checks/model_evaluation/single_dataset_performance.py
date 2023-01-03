@@ -74,7 +74,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         else:
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
-                if isinstance(scorer_value, Number):
+                if isinstance(scorer_value, Number) or scorer_value is None:
                     results.append([pd.NA, scorer.name, scorer_value])
                 else:
                     results.extend(
@@ -93,7 +93,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
     def config(
         self,
-        include_version: bool = True
+        include_version: bool = True,
+        include_defaults: bool = True
     ) -> 'CheckConfig':
         """Return check configuration."""
         if isinstance(self.scorers, dict):
@@ -107,7 +108,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
                         'Only built-in scorers are allowed when serializing check instances. '
                         f'{reference}. Scorer name: {k}'
                     )
-        return super().config(include_version=include_version)
+        return super().config(include_version=include_version, include_defaults=include_defaults)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""

@@ -94,7 +94,7 @@ def test_condition_input_validation():
         'col': [1, 2, 3, 4, 5, 6] * 100,
         'label': list(range(6)) * 100
     }
-    ds = Dataset(pd.DataFrame(data), label='label', label_type='regression_label')
+    ds = Dataset(pd.DataFrame(data), label='label', label_type='regression')
     assert_that(
         calling(ClassImbalance().run).with_args(ds),
         raises(ModelValidationError, 'Check is irrelevant for regression tasks'))

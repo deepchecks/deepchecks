@@ -18,7 +18,7 @@ import torch
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.reduce_classes import ReduceMixin
+from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.vision import Batch, Context, TrainTestCheck, VisionData
 from deepchecks.vision.utils.image_functions import draw_bboxes, prepare_thumbnail
@@ -59,8 +59,8 @@ def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
     return image_thumbnail
 
 
-class NewLabels(TrainTestCheck, ReduceMixin):
-    """Detects labels that apper only in the test set.
+class NewLabels(TrainTestCheck, ReduceLabelMixin):
+    """Detects labels that appear only in the test set.
 
     Parameters
     ----------
@@ -160,7 +160,7 @@ class NewLabels(TrainTestCheck, ReduceMixin):
         Parameters
         ----------
         max_allowed_new_labels_ratio: float , default: 0.005
-            the max threshold for percentage of labels that only apper in the test set.
+            the max threshold for percentage of labels that only appear in the test set.
         """
 
         def condition(result: Dict) -> ConditionResult:
