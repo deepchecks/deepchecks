@@ -91,7 +91,8 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         if context.with_display and max(result_data['Percent of nulls in sample']) > 0:
             display = (
                 [px.bar(x=data.columns, y=result_data['Percent of nulls in sample'],
-                        title='Percent Of Nulls', range_y=(0, 1))])
+                        title='Percent Of Nulls', range_y=(0, 1))
+                        .update_layout(yaxis_title=None, xaxis_title=None)])
         else:
             display = None
 
