@@ -9,9 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 # pylint: disable=inconsistent-quotes, redefined-builtin
-from hamcrest import assert_that, calling, close_to, contains_exactly, raises, is_
+from hamcrest import assert_that, calling, close_to, contains_exactly, raises, is_, equal_to
 
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.vision import Suite
+from deepchecks.vision.checks import ImagePropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties, calc_default_image_properties, \
     texture_level
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
@@ -122,3 +124,13 @@ def test_sharpness_and_texture_level(coco_visiondata_train):
     images = next(iter(coco_visiondata_train.batch_loader))['images']
     results = calc_vision_properties(images, props)
     assert_that(sum(results['texture']), close_to(1.79, 0.01))
+
+
+def test_suite_different_properties_per_check(coco_visiondata_train):
+    props = [{'name': 'texture', 'method': texture_level, 'output_type': 'numerical'}]
+    check1 = ImagePropertyOutliers(image_properties=props)
+    check2 = ImagePropertyOutliers()
+    suite = Suite("prop_suite", check1, check2)
+    result = suite.run(coco_visiondata_train)
+    assert_that(list(result.results[0].value.keys()), contains_exactly('texture'))
+    assert_that(sorted(result.results[1].value.keys()), equal_to(sorted(x['name'] for x in default_image_properties)))

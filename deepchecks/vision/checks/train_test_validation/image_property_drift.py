@@ -92,9 +92,11 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             show_categories_by: str = 'largest_difference',
             min_samples: int = 30,
             aggregation_method: str = 'max',
+            n_samples: t.Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self.image_properties = image_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.max_num_categories_for_drift = max_num_categories_for_drift

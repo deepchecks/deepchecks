@@ -14,7 +14,7 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-from typing import Any, Callable, Dict, List, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
@@ -293,8 +293,23 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     )
 
 
-def full_suite(**kwargs) -> Suite:
-    """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
+def full_suite(n_samples: Optional[int] = 5000, **kwargs) -> Suite:
+    """Create a suite that includes many of the implemented checks, for a quick overview of your model and data.
+
+    Parameters
+    ----------
+    n_samples : Optional[int] , default : 5000
+        Number of samples to use for the checks in the suite. If None, all samples will be used.
+
+    Returns
+    -------
+    Suite
+        A suite that includes integrity checks.
+    """
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
     return Suite(
         'Full Suite',
         model_evaluation(**kwargs),

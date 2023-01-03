@@ -10,7 +10,7 @@
 #
 """Module contains Train Test Prediction Drift check."""
 from collections import OrderedDict, defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -120,10 +120,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
             aggregation_method: str = 'none',
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-        # validate prediction properties:
+        self.n_samples = n_samples
         self.prediction_properties = prediction_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.categorical_drift_method = categorical_drift_method

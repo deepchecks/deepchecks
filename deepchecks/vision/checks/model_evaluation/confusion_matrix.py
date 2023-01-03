@@ -72,8 +72,10 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                  confidence_threshold: float = 0.3,
                  iou_threshold: float = 0.5,
                  normalized: bool = True,
+                 n_samples: t.Optional[int] = 10000,
                  **kwargs):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold

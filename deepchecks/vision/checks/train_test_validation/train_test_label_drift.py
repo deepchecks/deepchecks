@@ -10,7 +10,7 @@
 #
 """Module contains Train Test label Drift check."""
 from collections import OrderedDict, defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -112,9 +112,11 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
             aggregation_method: str = 'none',
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self.margin_quantile_filter = margin_quantile_filter
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio

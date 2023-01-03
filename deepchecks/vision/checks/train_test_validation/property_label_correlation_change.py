@@ -95,10 +95,11 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
             per_class: bool = True,
             min_pps_to_show: float = 0.05,
             ppscore_params: dict = None,
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-
+        self.n_samples = n_samples
         self.image_properties = image_properties
         self.min_pps_to_show = min_pps_to_show
         self.per_class = per_class

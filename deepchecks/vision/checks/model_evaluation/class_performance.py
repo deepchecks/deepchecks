@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-from typing import Any, Callable, Dict, List, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 
 import pandas as pd
 import plotly.express as px
@@ -65,8 +65,10 @@ class ClassPerformance(TrainTestCheck):
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
+                 n_samples: Optional[int] = 10000,
                  **kwargs):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self.scorers = scorers
         self.n_to_show = n_to_show
         self.class_list_to_show = class_list_to_show  # TODO: change to also effect the result not just display

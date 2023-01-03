@@ -10,7 +10,7 @@
 #
 """Module contains the domain classifier drift check."""
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -87,9 +87,11 @@ class ImageDatasetDrift(TrainTestCheck):
             min_meaningful_drift_score: float = 0.05,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self.image_properties = image_properties
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance

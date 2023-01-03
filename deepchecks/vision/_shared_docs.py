@@ -21,7 +21,7 @@ with_display : bool , default: True
 """.strip('\n')
 
 _shared_docs['additional_check_init_params'] = """
-n_samples : Optional[int] , default : None
+n_samples : Optional[int] , default : 10000
     Number of samples to use for the check. If None, all samples will be used.
 """.strip('\n')
 

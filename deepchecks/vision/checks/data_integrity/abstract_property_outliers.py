@@ -74,6 +74,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  draw_label_on_image: bool = True,
+                 n_samples: t.Optional[int] = 10000,
                  **kwargs):
         super().__init__(**kwargs)
         self.properties_list = properties_list
@@ -83,6 +84,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self.n_show_top = n_show_top
         self._draw_label_on_image = draw_label_on_image
         self._properties_results = None
+        self.n_samples = n_samples
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""

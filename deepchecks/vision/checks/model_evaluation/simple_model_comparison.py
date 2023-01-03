@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
-from typing import Any, Callable, Dict, Hashable, List, Union
+from typing import Any, Callable, Dict, Hashable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -88,9 +88,11 @@ class SimpleModelComparison(TrainTestCheck):
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
+                 n_samples: Optional[int] = 10000,
                  **kwargs):
         super().__init__(**kwargs)
         self.strategy = strategy
+        self.n_samples = n_samples
 
         if self.strategy not in _allowed_strategies:
             raise DeepchecksValueError(

@@ -83,6 +83,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             n_top_properties: int = 3,
             min_pps_to_show: float = 0.05,
             ppscore_params: dict = None,
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -91,6 +92,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         self.n_top_properties = n_top_properties
         self.ppscore_params = ppscore_params or {}
         self._properties_results = defaultdict(list)
+        self.n_samples = n_samples
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run."""

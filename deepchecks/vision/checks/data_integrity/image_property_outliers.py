@@ -49,10 +49,11 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
     """
 
     def __init__(self, image_properties: t.List[t.Dict[str, t.Any]] = None, n_show_top: int = 3,
-                 iqr_percentiles: t.Tuple[int, int] = (25, 75), iqr_scale: float = 1.5, **kwargs):
+                 iqr_percentiles: t.Tuple[int, int] = (25, 75), iqr_scale: float = 1.5,
+                 n_samples: t.Optional[int] = 10000, **kwargs):
         super().__init__(properties_list=image_properties, property_input_type=PropertiesInputType.IMAGES,
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles, iqr_scale=iqr_scale,
-                         draw_label_on_image=False, **kwargs)
+                         draw_label_on_image=False, n_samples=n_samples, **kwargs)
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""

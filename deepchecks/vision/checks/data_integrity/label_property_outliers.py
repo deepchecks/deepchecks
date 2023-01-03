@@ -52,15 +52,12 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
     {additional_check_init_params:2*indent}
     """
 
-    def __init__(self,
-                 label_properties: t.List[t.Dict[str, t.Any]] = None,
-                 n_show_top: int = 3,
-                 iqr_percentiles: t.Tuple[int, int] = (25, 75),
-                 iqr_scale: float = 1.5,
-                 **kwargs):
+    def __init__(self, label_properties: t.List[t.Dict[str, t.Any]] = None, n_show_top: int = 3,
+                 iqr_percentiles: t.Tuple[int, int] = (25, 75), iqr_scale: float = 1.5,
+                 n_samples: t.Optional[int] = 10000, **kwargs):
         super().__init__(properties_list=label_properties, property_input_type=PropertiesInputType.LABELS,
-                         n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
-                         iqr_scale=iqr_scale, draw_label_on_image=True, **kwargs)
+                         n_show_top=n_show_top, iqr_percentiles=iqr_percentiles, iqr_scale=iqr_scale,
+                         draw_label_on_image=True, n_samples=n_samples, **kwargs)
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""
