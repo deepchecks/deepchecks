@@ -52,9 +52,9 @@ def get_expected_results_length(suite: BaseSuite, args: Dict):
     num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
     num_others = len(suite.checks.values()) - num_single
     multiply = 0
-    if 'train_dataset' in args:
+    if args.get('train_dataset') is not None:
         multiply += 1
-    if 'test_dataset' in args:
+    if args.get('test_dataset') is not None:
         multiply += 1
     # If no train and no test (only model) there will be single result of check failure
     if multiply == 0:
@@ -183,7 +183,7 @@ def _get_wierd_dataset_and_model(is_classification, seed=42):
                                                   p=[0.4, 0.4, 0.1, 0.05, 0.05], size=1000),
             'weird_feature': np.random.choice(np.array([1, 100, 1.0, 'ahh?', 'wee', np.nan, 0],
                                               dtype='object'), size=1000),
-            8: pd.array(np.random.choice([0, 1, 5, 6, np.nan], size=1000), dtype='Int64'),
+            '8': pd.array(np.random.choice([0, 1, 5, 6, np.nan], size=1000), dtype='Int64'),
             'tuples': random.choices([(0, 2), (1, 6, 8), (9, 1), (8, 1, 9, 8)], k=1000),
             'classification_label': np.random.choice([0, 1, 9, 8], size=1000),
             'regression_label': np.random.random_sample(1000),
