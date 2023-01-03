@@ -100,9 +100,7 @@ class UnusedFeatures(SingleDatasetCheck):
         # Calculate normalized variance per feature based on PCA decomposition
         pre_pca_transformer, var_col_order = naive_encoder(dataset)
         pca_trans = PCA(n_components=len(var_col_order) // 2, random_state=self.random_state)
-
-        fit_data = dataset.features_columns[var_col_order]
-        pca_trans.fit(pre_pca_transformer.fit_transform(fit_data.fillna(0)))
+        pca_trans.fit(pre_pca_transformer.fit_transform(dataset.features_columns[var_col_order]))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=var_col_order)
         feature_normed_variance = feature_normed_variance / feature_normed_variance.sum()
