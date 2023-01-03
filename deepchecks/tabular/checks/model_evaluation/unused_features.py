@@ -98,11 +98,12 @@ class UnusedFeatures(SingleDatasetCheck):
         dataset.assert_features()
 
         # Calculate normalized variance per feature based on PCA decomposition
-        pre_pca_transformer, var_col_order = naive_encoder(dataset)
-        pca_trans = PCA(n_components=len(var_col_order) // 2, random_state=self.random_state)
-        pca_trans.fit(pre_pca_transformer.fit_transform(dataset.features_columns[var_col_order]))
+        features_to_use = dataset.numerical_features + dataset.cat_features
+        pre_pca_transformer = naive_encoder(dataset.numerical_features, dataset.cat_features)
+        pca_trans = PCA(n_components=len(features_to_use) // 2, random_state=self.random_state)
+        pca_trans.fit(pre_pca_transformer.fit_transform(dataset.features_columns[features_to_use]))
 
-        feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=var_col_order)
+        feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=features_to_use)
         feature_normed_variance = feature_normed_variance / feature_normed_variance.sum()
 
         feature_df = pd.concat([feature_importance, feature_normed_variance], axis=1)
@@ -210,7 +211,7 @@ class UnusedFeatures(SingleDatasetCheck):
                                   max_high_variance_unused_features_condition)
 
 
-def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
+def naive_encoder(numerical_features, cat_features) -> TransformerMixin:
     """Create a naive encoder for categorical and numerical features.
 
     The encoder handles nans for all features and uses label encoder for categorical features. Then, all features are
@@ -218,8 +219,8 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
 
     Parameters
     ----------
-    dataset : Dataset
-        The dataset to encode.
+    numerical_features
+    cat_features
 
     Returns
     -------
@@ -232,13 +233,13 @@ def naive_encoder(dataset: Dataset) -> Tuple[TransformerMixin, list]:
                 ('nan_handling', SimpleImputer()),
                 ('norm', RobustScaler())
             ]),
-                np.array(dataset.numerical_features, dtype='object')),
+                np.array(numerical_features, dtype='object')),
             ('cat',
              Pipeline([
                  ('nan_handling', SimpleImputer(strategy='most_frequent')),
                  ('encode', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value', unknown_value=-1)),
                  ('norm', RobustScaler())
              ]),
-             np.array(dataset.cat_features, dtype='object'))
+             np.array(cat_features, dtype='object'))
         ]
-    ), dataset.numerical_features + dataset.cat_features
+    )
