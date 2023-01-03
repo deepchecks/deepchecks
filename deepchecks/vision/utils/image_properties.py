@@ -153,6 +153,8 @@ def sample_pixels(image: np.ndarray, n_pixels: int):
 
 def calc_default_image_properties(batch: List[np.ndarray], sample_n_pixels: int = 10000) -> Dict[str, list]:
     """Speed up the calculation for the default image properties by sharing common actions."""
+    if len(batch) == 0:
+        return {}
     results_dict = {}
     sizes_array = _sizes_array(batch)
     results_dict['Aspect Ratio'] = list(sizes_array[:, 0] / sizes_array[:, 1])

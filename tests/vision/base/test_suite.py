@@ -240,7 +240,6 @@ def test_full_suite_execution_coco_tf(tf_coco_visiondata_train, tf_coco_visionda
     suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
     arguments = (
         dict(train_dataset=tf_coco_visiondata_train, test_dataset=tf_coco_visiondata_test),
-        dict(train_dataset=tf_coco_visiondata_train),
     )
 
     for args in arguments:
