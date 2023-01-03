@@ -98,6 +98,7 @@ class Suite(BaseSuite):
         # Run all checks
         results = []
         for check_index, check in progress_bar:
+            start = time.time()
             try:
                 progress_bar.set_postfix({'Check': check.name()}, refresh=False)
                 if isinstance(check, TrainTestCheck):
