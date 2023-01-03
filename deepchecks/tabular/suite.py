@@ -10,6 +10,7 @@
 #
 """Module for base tabular abstractions."""
 import time
+import traceback
 # pylint: disable=broad-except
 from typing import List, Optional, Tuple, Union
 
@@ -18,7 +19,7 @@ import pandas as pd
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
@@ -121,7 +122,6 @@ class Suite(BaseSuite):
                             if test_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Train Dataset'
                         except Exception as exp:
-                            print(check.name() + ' - Train Dataset ' + str(exp))  # TODO: remove print
                             check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
                     if test_dataset is not None and (run_single_dataset in [DatasetKind.TEST.value, None]):
@@ -132,7 +132,10 @@ class Suite(BaseSuite):
                             if train_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Test Dataset'
                         except Exception as exp:
-                            print(check.name() + ' - Test Dataset ' + str(exp))  # TODO: remove print
+                            if not isinstance(exp, DeepchecksBaseError):
+                                print('$$$$$ EXCEPTION $$$$$$')
+                                traceback.print_exc()
+
                             check_result = CheckFailure(check, exp, ' - Test Dataset')
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:

@@ -101,8 +101,7 @@ class UnusedFeatures(SingleDatasetCheck):
         pre_pca_transformer, var_col_order = naive_encoder(dataset)
         pca_trans = PCA(n_components=len(var_col_order) // 2, random_state=self.random_state)
 
-        n_samples = min(10000, dataset.n_samples)
-        fit_data = dataset.features_columns[var_col_order].sample(n_samples, random_state=self.random_state)
+        fit_data = dataset.features_columns[var_col_order]
         pca_trans.fit(pre_pca_transformer.fit_transform(fit_data.fillna(0)))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=var_col_order)
@@ -144,14 +143,14 @@ class UnusedFeatures(SingleDatasetCheck):
                     y=display_feature_df.index,
                     x=display_feature_df['Feature Importance'].multiply(100).values.flatten(),
                     name='Feature Importance %',
-                    marker_color='indianred',
+                    marker=dict(color='indianred'),
                     orientation='h'
                 ))
                 fig.add_trace(go.Bar(
                     y=display_feature_df.index,
                     x=display_feature_df['Feature Variance'].multiply(100).values.flatten(),
                     name='Feature Variance %',
-                    marker_color='lightsalmon',
+                    marker=dict(color='lightsalmon'),
                     orientation='h'
                 ))
 
