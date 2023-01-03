@@ -435,7 +435,7 @@ class Dataset:
                    dataset_name=self.name)
 
     def sample(self: TDataset, n_samples: t.Optional[int] = None, replace: bool = False,
-               random_state: t.Optional[int] = None, drop_na_label: bool = False) -> TDataset:
+               random_state: t.Optional[int] = None) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
         Parameters
@@ -446,25 +446,24 @@ class Dataset:
             Whether to sample with replacement.
         random_state : t.Optional[int] , default None
             Random state.
-        drop_na_label : bool, default: False
-            Whether to take sample only from rows with exiting label.
 
         Returns
         -------
         Dataset
             instance of the Dataset with sampled internal dataframe.
         """
-        if drop_na_label and self.has_label():
-            valid_idx = self.data[self.label_name].notna()
-            data_to_sample = self.data[valid_idx]
-        else:
-            data_to_sample = self.data
-
         if n_samples is None:
-            return self.copy(data_to_sample)
+            return self
 
-        n_samples = min(n_samples, len(data_to_sample))
-        return self.copy(data_to_sample.sample(n_samples, replace=replace, random_state=random_state))
+        n_samples = min(n_samples, len(self.data))
+        return self.copy(self.data.sample(n_samples, replace=replace, random_state=random_state))
+
+    def drop_na_labels(self) -> TDataset:
+        """Create a copy of the dataset object without samples with missing labels."""
+        if not self.has_label():
+            return self
+
+        return self.copy(self.data[self.label_col.notna()])
 
     @property
     def n_samples(self) -> int:

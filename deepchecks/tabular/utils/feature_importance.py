@@ -285,7 +285,7 @@ def _calc_permutation_importance(
     if len(dataset.features) == 1:
         return pd.Series([1], index=dataset.features)
 
-    dataset_sample = dataset.sample(n_samples, drop_na_label=True, random_state=random_state)
+    dataset_sample = dataset.sample(n_samples, random_state=random_state).drop_na_labels()
 
     # Test score time on the dataset sample
     if alternative_scorer:
