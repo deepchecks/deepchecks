@@ -59,12 +59,12 @@ def _test_suite(train=None, test=None, model=None, **kwargs):
 
 
 def test_iris_single_feature_suite(iris_split_dataset_and_model_single_feature):
-    train, test, model = iris
+    train, test, model = iris_split_dataset_and_model_single_feature
     _test_suite(train, test, model)
 
 
 def test_iris_single_feature_suite_no_model(iris_split_dataset_and_model_single_feature):
-    train, test, _ = iris
+    train, test, _ = iris_split_dataset_and_model_single_feature
     _test_suite(train, test)
 
 
