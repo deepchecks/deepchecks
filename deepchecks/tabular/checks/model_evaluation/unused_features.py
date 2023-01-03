@@ -100,7 +100,7 @@ class UnusedFeatures(SingleDatasetCheck):
         pre_pca_transformer = naive_encoder(dataset.numerical_features, dataset.cat_features)
         pca_trans = PCA(n_components=len(features_to_use) // 2, random_state=self.random_state)
         fit_data = dataset.features_columns[features_to_use]
-        # The naive encoder drops columns which are all nones, so fill only them with zeros
+        # The naive encoder drops columns which are all nans, so fill only them with zeros
         columns_all_none = fit_data.columns[fit_data.isnull().all()]
         fit_data = fit_data.drop(columns_all_none, axis=1)
         fit_data[columns_all_none] = 0
