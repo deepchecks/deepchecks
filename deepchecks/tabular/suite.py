@@ -121,6 +121,7 @@ class Suite(BaseSuite):
                             if test_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Train Dataset'
                         except Exception as exp:
+                            print(check.name() + ' - Train Dataset ' + str(exp))  # TODO: remove print
                             check_result = CheckFailure(check, exp, ' - Train Dataset')
                         results.append(check_result)
                     if test_dataset is not None and (run_single_dataset in [DatasetKind.TEST.value, None]):
@@ -131,6 +132,7 @@ class Suite(BaseSuite):
                             if train_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Test Dataset'
                         except Exception as exp:
+                            print(check.name() + ' - Test Dataset ' + str(exp))  # TODO: remove print
                             check_result = CheckFailure(check, exp, ' - Test Dataset')
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:
