@@ -101,7 +101,12 @@ class UnusedFeatures(SingleDatasetCheck):
         features_to_use = dataset.numerical_features + dataset.cat_features
         pre_pca_transformer = naive_encoder(dataset.numerical_features, dataset.cat_features)
         pca_trans = PCA(n_components=len(features_to_use) // 2, random_state=self.random_state)
-        pca_trans.fit(pre_pca_transformer.fit_transform(dataset.features_columns[features_to_use]))
+        fit_data = dataset.features_columns[features_to_use]
+        # The naive encoder drops columns which are all nones, so fill only them with zeros
+        columns_all_none = fit_data.columns[fit_data.isnull().all()]
+        fit_data = fit_data.drop(columns_all_none, axis=1)
+        fit_data[columns_all_none] = 0
+        pca_trans.fit(pre_pca_transformer.fit_transform(fit_data))
 
         feature_normed_variance = pd.Series(np.abs(pca_trans.components_).sum(axis=0), index=features_to_use)
         feature_normed_variance = feature_normed_variance / feature_normed_variance.sum()
