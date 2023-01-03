@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """The UnusedFeatures check module."""
-from typing import Tuple
-
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -23,7 +21,7 @@ from sklearn.preprocessing import OrdinalEncoder, RobustScaler
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, Dataset, SingleDatasetCheck
+from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.function import run_available_kwargs
 
 __all__ = ['UnusedFeatures']
@@ -229,8 +227,8 @@ def naive_encoder(numerical_features, cat_features) -> TransformerMixin:
 
     Returns
     -------
-    Tuple[TransformerMixin, list]
-        A transformer object, a list of columns returned
+    TransformerMixin
+        A transformer object
     """
     return ColumnTransformer(
         transformers=[

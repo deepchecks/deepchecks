@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular abstractions."""
-import time
-import traceback
 # pylint: disable=broad-except
+import time
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -19,7 +18,7 @@ import pandas as pd
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksBaseError
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
