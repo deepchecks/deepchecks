@@ -9,24 +9,24 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
-import typing as t
 from functools import cmp_to_key
 from numbers import Number
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objs as go
+from plotly.basedatatypes import BaseTraceType
 from scipy.stats import gaussian_kde
 from typing_extensions import Literal as L
-
-__all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density']
-
-from typing import Dict, List, Tuple
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
+
+__all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density', 'CategoriesSortingKind']
+
 
 # For numerical plots, below this number of unique values we draw bar plots, else KDE
 MAX_NUMERICAL_UNIQUE_FOR_BARS = 20
@@ -124,19 +124,19 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
     return bars, xaxis, yaxis
 
 
-CategoriesSortingKind = t.Union[L['train_largest'], L['test_largest'], L['largest_difference']]  # noqa: F821
+CategoriesSortingKind = L['train_largest', 'test_largest', 'largest_difference']  # noqa: F821
 
 
 def feature_distribution_traces(
-    train_column: t.Union[np.ndarray, pd.Series],
-    test_column: t.Union[np.ndarray, pd.Series],
+    train_column: Union[np.ndarray, pd.Series],
+    test_column: Union[np.ndarray, pd.Series],
     column_name: str,
     is_categorical: bool = False,
     max_num_categories: int = 10,
     show_categories_by: CategoriesSortingKind = 'largest_difference',
     quantile_cut: float = 0.02,
     dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
-) -> Tuple[List[go.Trace], Dict, Dict]:
+) -> Tuple[List[BaseTraceType], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
     Parameters
@@ -170,8 +170,6 @@ def feature_distribution_traces(
         layout of x axis
     Dict
         layout of y axis
-    Dict
-        general layout
     """
     if is_categorical:
         traces, y_layout = _create_distribution_bar_graphs(train_column, test_column,
@@ -230,7 +228,7 @@ def feature_distribution_traces(
         test_density = get_density(test_column, xs)
         bars_width = (x_range_to_show[1] - x_range_to_show[0]) / 100
 
-        traces = []
+        traces: List[go.BaseTraceType] = []
         if train_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
             traces.append(go.Bar(
                 x=train_uniques,
@@ -272,12 +270,12 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
 
 
 def _create_distribution_scatter_plot(xs, ys, mean, median, is_train,
-                                      dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES):
+                                      dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES) -> List[go.Scatter]:
     traces = []
     name = dataset_names[0] if is_train else dataset_names[1]
     train_or_test = DEFAULT_DATASET_NAMES[0] if is_train else DEFAULT_DATASET_NAMES[1]
     traces.append(go.Scatter(x=xs, y=ys, fill='tozeroy', name=f'{name} Dataset',
-                             line_color=colors[train_or_test], line_shape='spline'))
+                             line=dict(color=colors[train_or_test], shape='spline')))
     y_mean_index = np.argmax(xs == mean)
     traces.append(go.Scatter(x=[mean, mean], y=[0, ys[y_mean_index]], name=f'{name} Mean',
                              line=dict(color=colors[train_or_test], dash='dash'), mode='lines+markers'))
@@ -288,12 +286,12 @@ def _create_distribution_scatter_plot(xs, ys, mean, median, is_train,
 
 
 def _create_distribution_bar_graphs(
-        train_column: t.Union[np.ndarray, pd.Series],
-        test_column: t.Union[np.ndarray, pd.Series],
+        train_column: Union[np.ndarray, pd.Series],
+        test_column: Union[np.ndarray, pd.Series],
         max_num_categories: int,
         show_categories_by: CategoriesSortingKind,
         dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
-) -> t.Tuple[t.Any, t.Any]:
+) -> Tuple[Any, Any]:
     """
     Create distribution bar graphs.
 
