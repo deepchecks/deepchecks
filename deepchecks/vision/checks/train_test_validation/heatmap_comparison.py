@@ -10,7 +10,7 @@
 #
 """Module contains Train Test label Drift check."""
 from collections import defaultdict
-from typing import Iterable, List, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import cv2
 import numpy as np
@@ -41,8 +41,9 @@ class HeatmapComparison(TrainTestCheck):
     {additional_check_init_params:2*indent}
     """
 
-    def __init__(self, **kwargs):  # pylint: disable=useless-super-delegation
+    def __init__(self, n_samples: Optional[int] = 10000, **kwargs):  # pylint: disable=useless-super-delegation
         super().__init__(**kwargs)
+        self.n_samples = n_samples
 
     def initialize_run(self, context: Context):
         """Initialize run."""

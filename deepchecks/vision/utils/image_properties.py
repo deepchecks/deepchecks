@@ -143,13 +143,18 @@ def get_dimension(img) -> int:
 def sample_pixels(image: np.ndarray, n_pixels: int):
     """Sample the image to improve runtime, expected image format H,W,C."""
     flat_image = image.reshape((-1, image.shape[-1]))
-    pixel_idxs = np.random.choice(flat_image.shape[0], n_pixels)
+    if flat_image.shape[0] > n_pixels:
+        pixel_idxs = np.random.choice(flat_image.shape[0], n_pixels)
+    else:
+        pixel_idxs = np.arange(flat_image.shape[0])
     sampled_image = flat_image[pixel_idxs, np.newaxis, :]
     return sampled_image
 
 
 def calc_default_image_properties(batch: List[np.ndarray], sample_n_pixels: int = 10000) -> Dict[str, list]:
     """Speed up the calculation for the default image properties by sharing common actions."""
+    if len(batch) == 0:
+        return {}
     results_dict = {}
     sizes_array = _sizes_array(batch)
     results_dict['Aspect Ratio'] = list(sizes_array[:, 0] / sizes_array[:, 1])

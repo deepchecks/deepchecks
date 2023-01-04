@@ -10,7 +10,7 @@
 #
 """Module containing mean average recall report check."""
 import math
-from typing import Tuple, TypeVar
+from typing import Optional, Tuple, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -41,8 +41,9 @@ class MeanAverageRecallReport(SingleDatasetCheck):
     {additional_check_init_params:2*indent}
     """
 
-    def __init__(self, area_range: Tuple = (32 ** 2, 96 ** 2), **kwargs):
+    def __init__(self, area_range: Tuple = (32 ** 2, 96 ** 2), n_samples: Optional[int] = 10000, **kwargs):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self._area_range = area_range
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):

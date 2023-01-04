@@ -10,7 +10,7 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 from numbers import Number
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
@@ -41,8 +41,10 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
     {additional_check_init_params:2*indent}
     """
 
-    def __init__(self, scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None, **kwargs):
+    def __init__(self, scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None,
+                 n_samples: Optional[int] = 10000, **kwargs):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self.scorers = scorers
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):

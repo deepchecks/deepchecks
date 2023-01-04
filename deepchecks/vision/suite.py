@@ -161,7 +161,7 @@ class Suite(BaseSuite):
 
         # Compute for single dataset checks
         checks_pbar = progressbar_factory.create(iterable=list(single_dataset_checks.items()), unit='Check',
-                                                 name='Computing Single Dataset Checks' + vision_data.name)
+                                                 name='Computing Single Dataset Checks ' + vision_data.name)
         for name, check in checks_pbar:
             checks_pbar.set_postfix({'Check': check.name()}, refresh=False)
             try:

@@ -30,7 +30,7 @@ from deepchecks.vision.vision_data import VisionData
 
 __all__ = ['load_dataset']
 
-_MODEL_URL = 'https://tfhub.dev/tensorflow/ssd_mobilenet_v2/fpnlite_320x320/1'
+_MODEL_URL = 'https://figshare.com/ndownloader/files/38695689'
 TRAIN_FRACTION = 0.5
 PROBA_THRESHOLD = 0.5
 

@@ -223,14 +223,12 @@ def test_full_suite_execution_mnist(mnist_visiondata_train, mnist_visiondata_tes
         validate_suite_result(result, length)
 
 
-def test_full_suite_execution_coco(coco_visiondata_train, coco_visiondata_test,
-                                    tf_coco_visiondata_train, tf_coco_visiondata_test):
+def test_full_suite_execution_coco_torch(coco_visiondata_train, coco_visiondata_test):
     suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
     arguments = (
         dict(train_dataset=coco_visiondata_train, test_dataset=coco_visiondata_test),
         dict(train_dataset=coco_visiondata_train),
         dict(train_dataset=coco_visiondata_train, with_display=False),
-        dict(train_dataset=tf_coco_visiondata_train, test_dataset=tf_coco_visiondata_test),
     )
 
     for args in arguments:
@@ -238,6 +236,16 @@ def test_full_suite_execution_coco(coco_visiondata_train, coco_visiondata_test,
         length = get_expected_results_length(suite, args)
         validate_suite_result(result, length)
 
+def test_full_suite_execution_coco_tf(tf_coco_visiondata_train, tf_coco_visiondata_test):
+    suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
+    arguments = (
+        dict(train_dataset=tf_coco_visiondata_train, test_dataset=tf_coco_visiondata_test),
+    )
+
+    for args in arguments:
+        result = suite.run(**args)
+        length = get_expected_results_length(suite, args)
+        validate_suite_result(result, length)
 
 def test_single_dataset(coco_visiondata_train, coco_visiondata_test):
     suite = full_suite()

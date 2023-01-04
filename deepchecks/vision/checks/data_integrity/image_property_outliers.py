@@ -14,7 +14,6 @@ import typing as t
 from deepchecks.vision import VisionData
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
-from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 
 __all__ = ['ImagePropertyOutliers']
@@ -49,16 +48,13 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
     {additional_check_init_params:2*indent}
     """
 
-    def __init__(self,
-                 image_properties: t.List[t.Dict[str, t.Any]] = None,
-                 n_show_top: int = 3,
-                 iqr_percentiles: t.Tuple[int, int] = (25, 75),
-                 iqr_scale: float = 1.5,
-                 **kwargs):
+    def __init__(self, image_properties: t.List[t.Dict[str, t.Any]] = None, n_show_top: int = 3,
+                 iqr_percentiles: t.Tuple[int, int] = (25, 75), iqr_scale: float = 1.5,
+                 n_samples: t.Optional[int] = 10000, **kwargs):
         super().__init__(properties_list=image_properties, property_input_type=PropertiesInputType.IMAGES,
-                         n_show_top=n_show_top, iqr_percentiles=iqr_percentiles,
-                         iqr_scale=iqr_scale, draw_label_on_image=False, **kwargs)
+                         n_show_top=n_show_top, iqr_percentiles=iqr_percentiles, iqr_scale=iqr_scale,
+                         draw_label_on_image=False, n_samples=n_samples, **kwargs)
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""
-        return default_image_properties
+        return None  # handled in batch wrapper properties calculation

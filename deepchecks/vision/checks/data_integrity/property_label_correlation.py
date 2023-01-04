@@ -22,7 +22,6 @@ from deepchecks.utils.strings import format_number
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import SingleDatasetCheck
 from deepchecks.vision.context import Context
-from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
@@ -84,15 +83,16 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             n_top_properties: int = 3,
             min_pps_to_show: float = 0.05,
             ppscore_params: dict = None,
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties if image_properties else default_image_properties
-
+        self.image_properties = image_properties
         self.min_pps_to_show = min_pps_to_show
         self.n_top_properties = n_top_properties
         self.ppscore_params = ppscore_params or {}
         self._properties_results = defaultdict(list)
+        self.n_samples = n_samples
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run."""

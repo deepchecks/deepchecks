@@ -110,7 +110,7 @@ def test_no_drift_rgb(coco_visiondata_train, coco_visiondata_test):
     result = check.run(coco_visiondata_train, coco_visiondata_test)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.265, 0.001),
+        'domain_classifier_auc': close_to(0.277, 0.001),
         'domain_classifier_drift_score': close_to(0, 0.001),
         'domain_classifier_feature_importance': has_entries({
             'RMS Contrast': equal_to(0),
@@ -142,8 +142,8 @@ def test_with_drift_rgb(coco_visiondata_train, coco_visiondata_test):
     result = check.run(drifted_train, coco_visiondata_test)
     # Assert
     assert_that(result.value, has_entries({
-        'domain_classifier_auc': close_to(0.972, 0.001),
-        'domain_classifier_drift_score': close_to(0.945, 0.001),
+        'domain_classifier_auc': close_to(0.977, 0.001),
+        'domain_classifier_drift_score': close_to(0.955, 0.001),
         'domain_classifier_feature_importance': has_entries({
             'Brightness': close_to(0.967, 0.001),
         })
@@ -151,5 +151,5 @@ def test_with_drift_rgb(coco_visiondata_train, coco_visiondata_test):
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         name=f'Drift score is less than 0.1',
-        details=f'Drift score 0.945 is not less than 0.1',
+        details=f'Drift score 0.955 is not less than 0.1',
     ))

@@ -10,7 +10,7 @@
 #
 """Module containing mean average precision report check."""
 import math
-from typing import Tuple, TypeVar
+from typing import Optional, Tuple, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -42,8 +42,9 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
     {additional_check_init_params:2*indent}
     """
 
-    def __init__(self, area_range: Tuple = (32 ** 2, 96 ** 2), **kwargs):
+    def __init__(self, area_range: Tuple = (32 ** 2, 96 ** 2), n_samples: Optional[int] = 10000, **kwargs):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self.area_range = area_range
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
@@ -61,17 +62,12 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
         large_area = int(math.sqrt(self.area_range[1]))
         res = self._ap_metric.compute()[0]['precision']
         rows = []
-        for title, area_name in zip(['All',
-                                     f'Small (area < {small_area}^2)',
-                                     f'Medium ({small_area}^2 < area < {large_area}^2)',
-                                     f'Large (area < {large_area}^2)'],
-                                    ['all', 'small', 'medium', 'large']):
-            rows.append([
-                title,
-                self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100),
-                self._ap_metric.get_classes_scores_at(res, iou=0.5, area=area_name, max_dets=100),
-                self._ap_metric.get_classes_scores_at(res, iou=0.75, area=area_name, max_dets=100)
-            ])
+        for title, area_name in zip(
+                ['All', f'Small (area < {small_area}^2)', f'Medium ({small_area}^2 < area < {large_area}^2)',
+                 f'Large (area < {large_area}^2)'], ['all', 'small', 'medium', 'large']):
+            rows.append([title, self._ap_metric.get_classes_scores_at(res, area=area_name, max_dets=100),
+                         self._ap_metric.get_classes_scores_at(res, iou=0.5, area=area_name, max_dets=100),
+                         self._ap_metric.get_classes_scores_at(res, iou=0.75, area=area_name, max_dets=100)])
 
         results = pd.DataFrame(data=rows, columns=['Area size', 'mAP@[.50::.95] (avg.%)', 'mAP@.50 (%)', 'mAP@.75 (%)'])
         results = results.set_index('Area size')
@@ -84,10 +80,7 @@ class MeanAveragePrecisionReport(SingleDatasetCheck):
             for i in range(filtered_res_shape[0]):
                 mean_res[i] = np.nanmean(filtered_res[i][filtered_res[i] > -1])
 
-            data = {
-                'IoU threshold': self._ap_metric.iou_thresholds,
-                'mAP (%)': mean_res
-            }
+            data = {'IoU threshold': self._ap_metric.iou_thresholds, 'mAP (%)': mean_res}
             df = pd.DataFrame.from_dict(data)
 
             fig = px.line(df, x='IoU threshold', y='mAP (%)',

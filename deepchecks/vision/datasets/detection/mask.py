@@ -158,8 +158,6 @@ def load_dataset(
 
     dataset = MaskDataset(mask_dir=str(mask_dir), transform=transforms.Compose([transforms.ToTensor(), ]))
     if object_type == 'DataLoader':
-        if shuffle:
-            sampler = torch.utils.data.SubsetRandomSampler(samples_to_use, generator=torch.Generator())
         return DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, collate_fn=_batch_collate,
                           pin_memory=pin_memory, sampler=sampler)
     elif object_type == 'VisionData':

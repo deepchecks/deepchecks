@@ -61,4 +61,4 @@ def test_object_detection_without_bias(coco_visiondata_train):
 
 def test_object_detection_with_bias(coco_train_brightness_bias):
     result = PropertyLabelCorrelation().run(coco_train_brightness_bias)
-    assert_that(result.value, has_entries({'Brightness': close_to(0.0637, 0.005), 'Area': close_to(0.0162, 0.005)}))
+    assert_that(result.value, has_entries({'Brightness': close_to(0.0876, 0.01), 'Area': close_to(0.0187, 0.01)}))

@@ -74,6 +74,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  draw_label_on_image: bool = True,
+                 n_samples: t.Optional[int] = 10000,
                  **kwargs):
         super().__init__(**kwargs)
         self.properties_list = properties_list
@@ -83,6 +84,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self.n_show_top = n_show_top
         self._draw_label_on_image = draw_label_on_image
         self._properties_results = None
+        self.n_samples = n_samples
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""
@@ -94,9 +96,9 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self._images_uuid = []
 
         self.properties_list = self.properties_list if self.properties_list else self.get_default_properties(data)
-        if any(p['output_type'] == 'class_id' for p in self.properties_list):
+        if self.properties_list is not None and any(p['output_type'] == 'class_id' for p in self.properties_list):
             warnings.warn('Properties that have class_id as output_type will be skipped.')
-        self.properties_list = [p for p in self.properties_list if p['output_type'] != 'class_id']
+            self.properties_list = [p for p in self.properties_list if p['output_type'] != 'class_id']
 
     def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Aggregate image properties from batch."""
@@ -142,7 +144,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         # Create display
         if context.with_display:
             display = []
-            no_outliers = pd.Series([])
+            no_outliers = pd.Series([], dtype='str')
             for property_name, info in check_result.items():
                 # If info is string it means there was error
                 if isinstance(info, str):

@@ -103,7 +103,7 @@ def test_classification_without_display(mnist_visiondata_train, mnist_visiondata
 
 def test_custom_task(mnist_train_custom_task, mnist_test_custom_task):
     # Arrange
-    check = HeatmapComparison()
+    check = HeatmapComparison(n_samples=None)
 
     # Act
     result = check.run(mnist_train_custom_task, mnist_test_custom_task)
