@@ -51,10 +51,10 @@ model = load_fitted_model()
 # * ``control_feature``: Column to use to split the data by groups prior to computing performance disparities.
 # 
 # * ``scorer``: Scoring function to measure performance. Default to "accuracy" for classification tasks 
-# and "r2" for regression tasks.
+#   and "r2" for regression tasks.
 # 
 # * ``max_subgroups_per_control_cat_to_display``: Maximum number of subgroups (per ``control_feature`` category)
-# to display.
+#   to display.
 # 
 # * ``max_control_cat_to_display``: Maximum number of ``control_feature`` categories to display.
 # 
@@ -66,7 +66,7 @@ from deepchecks.tabular.checks.model_evaluation import PerformanceBias
 check = PerformanceBias(
    protected_feature="race",
    control_feature="education",
-   scorer="f1",
+   scorer="accuracy",
    max_segments=3)
 result = check.run(test_dataset, model)
 result.show()
