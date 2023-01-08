@@ -192,7 +192,7 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
                               'Model Inference Time - Train Dataset',
                               'Datasets Size Comparison',
                               'New Label Train Test',
-                              'Category Mismatch Train Test',
+                              'New Category Train Test',
                               'String Mismatch Comparison',
                               'Train Test Samples Mix',
                               'Train Test Feature Drift',
