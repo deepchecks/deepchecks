@@ -17,7 +17,7 @@ It is possible to customize these suites by editing the checks and conditions in
 
 from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import KeywordFrequencyDrift, SingleDatasetPerformance, TrainTestPredictionDrift, \
-    TrainTestLabelDrift, TextPropertyOutliers
+    TrainTestLabelDrift, TextPropertyOutliers, TextEmbeddingsDrift
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -102,6 +102,7 @@ def train_test_validation(n_samples: int = None,
         'Train Test Validation Suite',
         KeywordFrequencyDrift().add_condition_drift_score_less_than(),
         TrainTestLabelDrift().add_condition_drift_score_less_than(),
+        TextEmbeddingsDrift().add_condition_overall_drift_value_less_than(),
     )
 
 

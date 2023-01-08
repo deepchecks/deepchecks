@@ -111,7 +111,7 @@ class TextData:
         elif tokenized_text is None:
             self._validate_text(raw_text)
             if self._task_type == TaskType.TOKEN_CLASSIFICATION:
-                tokenized_text = [text.split() for text in raw_text]
+                tokenized_text = [text.split() for text in raw_text] #TODO: Improve this (remove special characters etc.)
         else:
             self._validate_text(raw_text)
             self._validate_tokenized_text(tokenized_text)

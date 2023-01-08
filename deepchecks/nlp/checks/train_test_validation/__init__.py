@@ -12,6 +12,8 @@
 
 from .keyword_frequency_drift import KeywordFrequencyDrift
 from .train_test_label_drift import TrainTestLabelDrift
+from .text_embeddings_drift import TextEmbeddingsDrift
 
 __all__ = ['KeywordFrequencyDrift',
-           'TrainTestLabelDrift']
+           'TrainTestLabelDrift',
+           'TextEmbeddingsDrift']

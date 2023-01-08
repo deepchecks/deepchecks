@@ -17,7 +17,7 @@ from deepchecks.core.check_result import CheckFailure
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.base_checks import SingleDatasetCheck, TrainTestCheck
-from deepchecks.nlp.context import Context, TTextPred, TTextProba
+from deepchecks.nlp.context import Context, TTextPred, TTextProba, TTextEmbeddings
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.ipython import create_progress_bar
 
@@ -42,6 +42,8 @@ class Suite(BaseSuite):
         test_predictions: Optional[TTextPred] = None,
         train_probabilities: Optional[TTextProba] = None,
         test_probabilities: Optional[TTextProba] = None,
+        train_embeddings: Optional[TTextEmbeddings] = None,
+        test_embeddings: Optional[TTextEmbeddings] = None,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000
     ) -> SuiteResult:
@@ -63,6 +65,10 @@ class Suite(BaseSuite):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
+        train_embeddings : Union[TTextEmbeddings, None] , default: None
+            embeddings on train dataset
+        test_embeddings : Union[TTextEmbeddings, None] , default: None
+            embeddings on test dataset
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
         n_samples: int, default: 10_000
@@ -82,6 +88,8 @@ class Suite(BaseSuite):
             test_pred=test_predictions,
             train_proba=train_probabilities,
             test_proba=test_probabilities,
+            train_embeddings=train_embeddings,
+            test_embeddings=test_embeddings,
             with_display=with_display,
             n_samples=n_samples,
             random_state=random_state

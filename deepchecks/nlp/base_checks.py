@@ -15,7 +15,7 @@ from typing import List, Optional
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, SingleDatasetBaseCheck, TrainTestBaseCheck
 from deepchecks.nlp._shared_docs import docstrings
-from deepchecks.nlp.context import Context, TTextPred, TTextProba
+from deepchecks.nlp.context import Context, TTextPred, TTextProba, TTextEmbeddings
 from deepchecks.nlp.text_data import TextData
 
 __all__ = [
@@ -103,6 +103,9 @@ class TrainTestCheck(TrainTestBaseCheck):
         test_predictions: Optional[TTextPred] = None,
         train_probabilities: Optional[TTextProba] = None,
         test_probabilities: Optional[TTextProba] = None,
+        train_embeddings: Optional[TTextEmbeddings] = None,
+        test_embeddings: Optional[TTextEmbeddings] = None,
+        calculate_missing_embeddings: bool = False,
         random_state: int = 42,
         n_samples: Optional[int] = 10_000
     ) -> CheckResult:
@@ -126,6 +129,12 @@ class TrainTestCheck(TrainTestBaseCheck):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
+        train_embeddings: TTextEmbeddings, default: None
+            embeddings on train dataset
+        test_embeddings: TTextEmbeddings, default: None
+            embeddings on test_dataset dataset
+        calculate_missing_embeddings: bool, default: False
+            flag that determines if checks will calculate missing embeddings
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
         n_samples: int, default: 10_000
@@ -141,6 +150,9 @@ class TrainTestCheck(TrainTestBaseCheck):
             test_pred=test_predictions,
             train_proba=train_probabilities,
             test_proba=test_probabilities,
+            train_embeddings=train_embeddings,
+            test_embeddings=test_embeddings,
+            calculate_missing_embeddings=calculate_missing_embeddings,
             n_samples=n_samples,
             random_state=random_state,
             with_display=with_display,

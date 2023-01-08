@@ -12,7 +12,7 @@
 
 from deepchecks.nlp.checks.data_integrity import TextPropertyOutliers
 from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance, TrainTestPredictionDrift
-from deepchecks.nlp.checks.train_test_validation import KeywordFrequencyDrift, TrainTestLabelDrift
+from deepchecks.nlp.checks.train_test_validation import KeywordFrequencyDrift, TrainTestLabelDrift, TextEmbeddingsDrift
 
 __all__ = [
     # Data Integrity
@@ -21,6 +21,7 @@ __all__ = [
     # Train-Test Validation
     'KeywordFrequencyDrift',
     'TrainTestLabelDrift',
+    'TextEmbeddingsDrift',
 
     # Model Evaluation
     'SingleDatasetPerformance',

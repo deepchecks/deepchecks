@@ -44,6 +44,7 @@ TClassProba = t.Sequence[t.Sequence[float]]
 TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
 TTextPred = t.Union[TClassPred, TTokenPred]
 TTextProba = t.Union[TClassProba]
+TTextEmbeddings = np.ndarray
 
 
 class _DummyModel(BasicModel):
@@ -277,6 +278,10 @@ class Context(BaseContext):
         probabilities on train dataset
     test_proba : Union[TTextProba, None] , default: None
         probabilities on test dataset
+    train_embeddings : Union[TTextEmbeddings, None] , default: None
+        embeddings on train dataset
+    test_embeddings : Union[TTextEmbeddings, None] , default: None
+        embeddings on test dataset
     model_classes : Optional[List] , default: None
         list of classes known to the model
     random_state: int, default 42
@@ -294,6 +299,9 @@ class Context(BaseContext):
             test_pred: t.Optional[TTextPred] = None,
             train_proba: t.Optional[TTextProba] = None,
             test_proba: t.Optional[TTextProba] = None,
+            train_embeddings: t.Optional[TTextEmbeddings] = None,
+            test_embeddings: t.Optional[TTextEmbeddings] = None,
+            calculate_missing_embeddings: bool = False,
             model_classes: t.Optional[t.List] = None,
             random_state: int = 42,
             n_samples: t.Optional[int] = 10_000
@@ -350,6 +358,9 @@ class Context(BaseContext):
         self._validated_model = False
         self._with_display = with_display
 
+        self._embeddings = {'train': train_embeddings, 'test': test_embeddings}
+        self._calculate_missing_embeddings = calculate_missing_embeddings
+
     @property
     def model(self) -> _DummyModel:
         """Return model if exists, otherwise raise error."""
@@ -397,6 +408,32 @@ class Context(BaseContext):
                     raise DatasetValidationError('train_dataset and test_dataset have different task types')
             self._task_type = self.train.task_type
         return self._task_type
+
+    @property
+    def train_embeddings(self) -> np.ndarray:
+        """Return the train embeddings."""
+        return self._get_embeddings('train', self._train)
+
+    @property
+    def test_embeddings(self) -> np.ndarray:
+        """Return the test embeddings."""
+        return self._get_embeddings('test', self._test)
+
+    def _get_embeddings(self, dataset_kind: str, dataset: TextData) -> np.ndarray:
+        """Return the embeddings for the given dataset kind."""
+        if self._embeddings[dataset_kind] is None:
+            if self._calculate_missing_embeddings is True:
+                self._embeddings[dataset_kind] = self._get_default_external_embeddings(dataset)
+            else:
+                raise DeepchecksValueError(f'No embeddings for {dataset_kind} dataset')
+        return self._embeddings[dataset_kind]
+
+    @staticmethod
+    def _get_default_external_embeddings(dataset: TextData) -> np.ndarray:
+        from sentence_transformers import SentenceTransformer
+        model = SentenceTransformer('all-MiniLM-L6-v2')
+        embeddings = model.encode(dataset.text)
+        return embeddings
 
     def have_test(self):
         """Return whether there is test_dataset dataset defined."""
