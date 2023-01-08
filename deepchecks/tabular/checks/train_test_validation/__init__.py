@@ -12,7 +12,7 @@
 
 from deepchecks.tabular.checks.data_integrity.identifier_label_correlation import IdentifierLabelCorrelation
 
-from .category_mismatch_train_test import CategoryMismatchTrainTest
+from .new_category_train_test import NewCategoryTrainTest
 from .datasets_size_comparison import DatasetsSizeComparison
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
@@ -27,7 +27,7 @@ from .train_test_samples_mix import TrainTestSamplesMix
 from .whole_dataset_drift import WholeDatasetDrift
 
 __all__ = [
-    'CategoryMismatchTrainTest',
+    'NewCategoryTrainTest',
     'DatasetsSizeComparison',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',

@@ -14,7 +14,7 @@ import pandas as pd
 from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular.checks.train_test_validation import CategoryMismatchTrainTest
+from deepchecks.tabular.checks.train_test_validation import NewCategoryTrainTest
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
@@ -22,7 +22,7 @@ from tests.base.utils import equal_condition_result
 def test_dataset_wrong_input():
     x = 'wrong_input'
     # Act & Assert
-    check = CategoryMismatchTrainTest()
+    check = NewCategoryTrainTest()
     assert_that(
         calling(check.run).with_args(x, x),
         raises(
@@ -39,11 +39,11 @@ def test_no_new_category():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), cat_features=['col1'])
 
     # Arrange
-    check = CategoryMismatchTrainTest()
+    check = NewCategoryTrainTest()
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['Number of new categories']), equal_to(0))
+    assert_that(max(result['# new categories']), equal_to(0))
 
 
 def test_new_category():
@@ -53,12 +53,12 @@ def test_new_category():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), cat_features=['col1'])
 
     # Arrange
-    check = CategoryMismatchTrainTest(aggregation_method="none")
+    check = NewCategoryTrainTest(aggregation_method="none")
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(max(result.value['Number of new categories']), equal_to(1))
-    assert_that(max(result.value['Percent of new categories in sample']), equal_to(0.25))
+    assert_that(max(result.value['# new categories']), equal_to(1))
+    assert_that(max(result.value['New categories ratio in data']), equal_to(0.25))
     assert_that(result.reduce_output()['col1'], equal_to(0.25))
     assert_that(result.display, has_length(greater_than(0)))
 
@@ -70,12 +70,12 @@ def test_new_category_without_display():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), cat_features=['col1'])
 
     # Arrange
-    check = CategoryMismatchTrainTest()
+    check = NewCategoryTrainTest()
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, with_display=False)
     # Assert
-    assert_that(max(result.value['Number of new categories']), equal_to(1))
-    assert_that(max(result.value['Percent of new categories in sample']), equal_to(0.25))
+    assert_that(max(result.value['# new categories']), equal_to(1))
+    assert_that(max(result.value['New categories ratio in data']), equal_to(0.25))
     assert_that(result.reduce_output()['Max New Categories Ratio'], equal_to(0.25))
     assert_that(result.display, has_length(0))
 
@@ -87,11 +87,11 @@ def test_missing_category():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), cat_features=['col1'])
 
     # Arrange
-    check = CategoryMismatchTrainTest()
+    check = NewCategoryTrainTest()
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['Number of new categories']), equal_to(0))
+    assert_that(max(result['# new categories']), equal_to(0))
 
 
 def test_missing_new_category():
@@ -101,12 +101,12 @@ def test_missing_new_category():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']), cat_features=['col1'])
 
     # Arrange
-    check = CategoryMismatchTrainTest()
+    check = NewCategoryTrainTest()
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['Number of new categories']), equal_to(1))
-    assert_that(max(result['Percent of new categories in sample']), equal_to(0.25))
+    assert_that(max(result['# new categories']), equal_to(1))
+    assert_that(max(result['New categories ratio in data']), equal_to(0.25))
 
 
 def test_multiple_categories():
@@ -117,14 +117,14 @@ def test_multiple_categories():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest()
+    check = NewCategoryTrainTest()
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['Number of new categories']), equal_to(1))
-    assert_that(max(result['Percent of new categories in sample']), equal_to(0.25))
-    assert_that(result['Number of new categories']['col2'], equal_to(0))
-    assert_that(result['Percent of new categories in sample']['col2'], equal_to(0))
+    assert_that(max(result['# new categories']), equal_to(1))
+    assert_that(max(result['New categories ratio in data']), equal_to(0.25))
+    assert_that(result['# new categories']['col2'], equal_to(0))
+    assert_that(result['New categories ratio in data']['col2'], equal_to(0))
 
 
 def test_ignore_column():
@@ -135,12 +135,12 @@ def test_ignore_column():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest(ignore_columns='col1')
+    check = NewCategoryTrainTest(ignore_columns='col1')
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['Number of new categories']), equal_to(0))
-    assert_that(max(result['Percent of new categories in sample']), equal_to(0))
+    assert_that(max(result['# new categories']), equal_to(0))
+    assert_that(max(result['New categories ratio in data']), equal_to(0))
 
 
 def test_specific_column():
@@ -151,12 +151,12 @@ def test_specific_column():
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest(columns=['col1'])
+    check = NewCategoryTrainTest(columns=['col1'])
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['Number of new categories']), equal_to(1))
-    assert_that(max(result['Percent of new categories in sample']), equal_to(0.25))
+    assert_that(max(result['# new categories']), equal_to(1))
+    assert_that(max(result['New categories ratio in data']), equal_to(0.25))
     assert_that(result, has_length(1))
 
 
@@ -169,21 +169,20 @@ def test_nan(df_with_single_nans_in_different_rows, df_with_single_nan_in_col):
                            cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest()
+    check = NewCategoryTrainTest()
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['Number of new categories']), equal_to(1))
-    assert_that(max(result['Percent of new categories in sample']), close_to(0.09, 0.01))
-    assert_that(result
-                ['New categories in column']['col2'], equal_to([5]))
+    assert_that(max(result['# new categories']), equal_to(1))
+    assert_that(max(result['New categories ratio in data']), close_to(0.09, 0.01))
+    assert_that(result['New categories']['col2'], equal_to([5]))
 
 
 def test_none():
     train = Dataset(pd.DataFrame(data={'cat': ['a', 'b', 'c']}), cat_features=['cat'])
     test = Dataset(pd.DataFrame(data={'cat': ['a', 'b', 'c', None]}), cat_features=['cat'])
-    result = CategoryMismatchTrainTest().run(train, test).value
-    assert_that(max(result['Number of new categories']), equal_to(0))
+    result = NewCategoryTrainTest().run(train, test).value
+    assert_that(max(result['# new categories']), equal_to(0))
 
 
 def test_condition_categories_fail():
@@ -193,15 +192,17 @@ def test_condition_categories_fail():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_categories_less_or_equal(0)
+    check = NewCategoryTrainTest().add_condition_new_categories_less_or_equal(0)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
     assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               details='Found 1 columns with number of new categories above threshold: \n{\'col1\': 1}',
-                               name='Number of new category values is less or equal to 0')
+        equal_condition_result(
+            is_pass=False,
+            details='Found 1 features with number of new categories above threshold: \n{\'col1\': 1}',
+            name='Number of new category values is less or equal to 0'
+        )
     ))
 
 
@@ -212,14 +213,14 @@ def test_condition_categories_pass():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_categories_less_or_equal(1)
+    check = NewCategoryTrainTest().add_condition_new_categories_less_or_equal(1)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 2 relevant columns. Top columns with new categories count: \n'
+                               details='Passed for 2 relevant features. Top features with new categories count: \n'
                                        '{\'col1\': 1}',
                                name='Number of new category values is less or equal to 1')
     ))
@@ -232,7 +233,7 @@ def test_condition_count_fail():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_category_ratio_less_or_equal(0.1)
+    check = NewCategoryTrainTest().add_condition_new_category_ratio_less_or_equal(0.1)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
@@ -240,7 +241,7 @@ def test_condition_count_fail():
     assert_that(result, has_items(
         equal_condition_result(
             is_pass=False,
-            details='Found 1 columns with ratio of new categories above threshold: '
+            details='Found 1 features with ratio of new categories above threshold: '
                     '\n{\'col1\': \'25%\'}',
             name='Ratio of samples with a new category is less or equal to 10%')
     ))
@@ -253,14 +254,14 @@ def test_condition_count_pass():
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
 
     # Arrange
-    check = CategoryMismatchTrainTest().add_condition_new_category_ratio_less_or_equal(0.3)
+    check = NewCategoryTrainTest().add_condition_new_category_ratio_less_or_equal(0.3)
 
     # Act
     result = check.conditions_decision(check.run(train_dataset, test_dataset))
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Passed for 2 relevant columns. Top columns with new categories ratio: '
+                               details='Passed for 2 relevant features. Top features with new categories ratio: '
                                        '\n{\'col1\': \'25%\'}',
                                name='Ratio of samples with a new category is less or equal to 30%')
     ))

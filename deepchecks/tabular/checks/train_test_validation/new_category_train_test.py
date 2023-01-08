@@ -22,11 +22,11 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['CategoryMismatchTrainTest']
+__all__ = ['NewCategoryTrainTest']
 
 
 @docstrings
-class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
+class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
     """Find new categories in the test set.
 
     Parameters
@@ -113,23 +113,22 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
                 result_data.append([feature, 0, 0, [], feature_importance[feature]])
 
         result_data = pd.DataFrame(data=result_data,
-                                   columns=['Column',
-                                            'Number of new categories',
-                                            'Percent of new categories in sample',
-                                            'New categories in column',
-                                            'Feature importance']).set_index(['Column'])
-        result_data.sort_values(by='Percent of new categories in sample')
+                                   columns=['Feature Name',
+                                            '# new categories',
+                                            'New categories ratio in data',
+                                            'New categories',
+                                            'Feature importance']).set_index(['Feature Name'])
+        result_data.sort_values(by='New categories ratio in data')
         if all(feature_importance.isna()):
             result_data.drop('Feature importance', axis=1, inplace=True)
 
         if context.with_display:
             display = result_data.copy()
-            display['Percent of new categories in sample'] = display['Percent of new categories in sample'].apply(
-                format_percent)
-            display['Number of new categories'] = display['Number of new categories'].apply(format_number)
-            display['New categories examples'] = display['New categories in column']. \
+            display['New categories ratio in data'] = display['New categories ratio in data'].apply(format_percent)
+            display['# new categories'] = display['# new categories'].apply(format_number)
+            display['New categories examples'] = display['New categories']. \
                 apply(lambda x: x[:self.max_new_categories_to_show])
-            display.drop('New categories in column', axis=1, inplace=True)
+            display.drop('New categories', axis=1, inplace=True)
             display = display.iloc[:self.max_features_to_show, :]
         else:
             display = None
@@ -140,7 +139,7 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
         """Return an aggregated drift score based on aggregation method defined."""
         feature_importance = check_result.value['Feature importance'] if 'Feature importance' \
                                                                          in check_result.value.columns else None
-        values = check_result.value['Percent of new categories in sample']
+        values = check_result.value['New categories ratio in data']
         return self.feature_reduce(self.aggregation_method, values, feature_importance, 'New Categories Ratio')
 
     def add_condition_new_categories_less_or_equal(self, max_new: int = 0):
@@ -153,17 +152,17 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
         """
 
         def condition(result: pd.DataFrame) -> ConditionResult:
-            failing = result[result['Number of new categories'] > max_new]['Number of new categories']
+            failing = result[result['# new categories'] > max_new]['# new categories']
             if len(failing) > 0:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found {len(failing)} columns with number'
+                                       f'Found {len(failing)} features with number'
                                        f' of new categories above threshold: \n{dict(failing)}')
             else:
-                details = get_condition_passed_message(len(result))
-                if any(result['Number of new categories'] > 0):
+                details = get_condition_passed_message(len(result), feature=True)
+                if any(result['# new categories'] > 0):
                     new_categories_columns = dict(
-                        result[result['Number of new categories'] > 0]['Number of new categories'][:5])
-                    details += f'. Top columns with new categories count: \n{new_categories_columns}'
+                        result[result['# new categories'] > 0]['# new categories'][:5])
+                    details += f'. Top features with new categories count: \n{new_categories_columns}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(f'Number of new category values is less or equal to {max_new}', condition)
@@ -178,19 +177,19 @@ class CategoryMismatchTrainTest(TrainTestCheck, ReduceFeatureMixin):
         """
 
         def condition(result: pd.DataFrame) -> ConditionResult:
-            failing = result[result['Percent of new categories in sample'] > max_ratio][
-                'Percent of new categories in sample'].apply(format_percent)
+            failing = result[result['New categories ratio in data'] > max_ratio][
+                'New categories ratio in data'].apply(format_percent)
             if len(failing) > 0:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found {len(failing)} columns with ratio '
+                                       f'Found {len(failing)} features with ratio '
                                        f'of new categories above threshold: \n{dict(failing)}')
             else:
-                details = get_condition_passed_message(len(result))
-                if any(result['Percent of new categories in sample'] > 0):
-                    new_categories_columns = result[result['Percent of new categories in sample'] > 0]
-                    new_categories_ratio = dict(new_categories_columns['Percent of new categories in sample']
+                details = get_condition_passed_message(len(result), feature=True)
+                if any(result['New categories ratio in data'] > 0):
+                    new_categories_columns = result[result['New categories ratio in data'] > 0]
+                    new_categories_ratio = dict(new_categories_columns['New categories ratio in data']
                                                 .apply(format_percent)[:5])
-                    details += f'. Top columns with new categories ratio: \n{new_categories_ratio}'
+                    details += f'. Top features with new categories ratio: \n{new_categories_ratio}'
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(

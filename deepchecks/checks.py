@@ -36,7 +36,7 @@ __all__ = [
     'StringLengthOutOfBounds',
     'StringMismatchComparison',
     'DataDuplicates',
-    'CategoryMismatchTrainTest',
+    'NewCategoryTrainTest',
     'NewLabelTrainTest',
     'ConflictingLabels',
     'OutlierSampleDetection',

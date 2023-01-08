@@ -17,7 +17,7 @@ It is possible to customize these suites by editing the checks and conditions in
 from typing import Callable, Dict, List, Union
 
 from deepchecks.tabular import Suite
-from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, CategoryMismatchTrainTest, ConflictingLabels,
+from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, NewCategoryTrainTest, ConflictingLabels,
                                        ConfusionMatrixReport, DataDuplicates, DatasetsSizeComparison,
                                        DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
                                        FeatureFeatureCorrelation, FeatureLabelCorrelation,
@@ -212,7 +212,7 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
         'Train Test Validation Suite',
         DatasetsSizeComparison(**kwargs).add_condition_test_train_size_ratio_greater_than(),
         NewLabelTrainTest(**kwargs).add_condition_new_labels_number_less_or_equal(),
-        CategoryMismatchTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal(),
+        NewCategoryTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal(),
         StringMismatchComparison(**kwargs).add_condition_no_new_variants(),
         DateTrainTestLeakageDuplicates(**kwargs).add_condition_leakage_ratio_less_or_equal(),
         DateTrainTestLeakageOverlap(**kwargs).add_condition_leakage_ratio_less_or_equal(),

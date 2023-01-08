@@ -18,7 +18,7 @@ from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatri
                                MultiModelPerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
                                RocReport, SegmentPerformance, SimpleModelComparison, SingleDatasetPerformance,
                                TrainTestPerformance, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
-from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
+from .train_test_validation import (NewCategoryTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, MultivariateDrift,
                                     NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift,
@@ -35,7 +35,7 @@ __all__ = [
     'StringLengthOutOfBounds',
     'StringMismatchComparison',
     'DataDuplicates',
-    'CategoryMismatchTrainTest',
+    'NewCategoryTrainTest',
     'NewLabelTrainTest',
     'ConflictingLabels',
     'OutlierSampleDetection',
