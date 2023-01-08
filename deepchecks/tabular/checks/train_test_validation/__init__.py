@@ -12,13 +12,13 @@
 
 from deepchecks.tabular.checks.data_integrity.identifier_label_correlation import IdentifierLabelCorrelation
 
-from .new_category_train_test import NewCategoryTrainTest
 from .datasets_size_comparison import DatasetsSizeComparison
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
 from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .index_leakage import IndexTrainTestLeakage
 from .multivariate_drift import MultivariateDrift
+from .new_category_train_test import NewCategoryTrainTest
 from .new_label_train_test import NewLabelTrainTest
 from .string_mismatch_comparison import StringMismatchComparison
 from .train_test_feature_drift import TrainTestFeatureDrift

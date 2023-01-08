@@ -17,17 +17,17 @@ It is possible to customize these suites by editing the checks and conditions in
 from typing import Callable, Dict, List, Union
 
 from deepchecks.tabular import Suite
-from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, NewCategoryTrainTest, ConflictingLabels,
-                                       ConfusionMatrixReport, DataDuplicates, DatasetsSizeComparison,
-                                       DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
-                                       FeatureFeatureCorrelation, FeatureLabelCorrelation,
+from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, ConflictingLabels, ConfusionMatrixReport,
+                                       DataDuplicates, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
+                                       DateTrainTestLeakageOverlap, FeatureFeatureCorrelation, FeatureLabelCorrelation,
                                        FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
                                        IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
-                                       NewLabelTrainTest, OutlierSampleDetection, RegressionErrorDistribution,
-                                       RocReport, SimpleModelComparison, SpecialCharacters, StringLengthOutOfBounds,
-                                       StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
-                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
-                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
+                                       NewCategoryTrainTest, NewLabelTrainTest, OutlierSampleDetection,
+                                       RegressionErrorDistribution, RocReport, SimpleModelComparison, SpecialCharacters,
+                                       StringLengthOutOfBounds, StringMismatch, StringMismatchComparison,
+                                       TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPerformance,
+                                       TrainTestPredictionDrift, TrainTestSamplesMix, UnusedFeatures,
+                                       WeakSegmentsPerformance)
 
 __all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'full_suite']
 
