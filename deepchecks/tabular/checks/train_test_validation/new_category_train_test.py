@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The data_sample_leakage_report check module."""
+"""The new category train test check module."""
 from typing import Dict, List, Union
 
 import pandas as pd
