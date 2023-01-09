@@ -245,7 +245,7 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
     top_fi_embeddings = top_fi_embeddings.index.values
 
     # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
-    reduced_embeddings = PCA(random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
+    reduced_embeddings = PCA(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
