@@ -203,6 +203,8 @@ def run_multivariable_drift_for_embeddings(
     if top_fi is not None and len(top_fi):
         score = values_dict['domain_classifier_drift_score']
 
+        num_samples_in_display = min(num_samples_in_display, sample_size)
+
         # Prepare data for display:
         train_downsample_index = random.sample(range(train_embeddings.shape[0]), k=num_samples_in_display)
         test_downsample_index = random.sample(range(test_embeddings.shape[0]), k=num_samples_in_display)

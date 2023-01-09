@@ -88,7 +88,7 @@ def get_default_embeddings(dataset: TextData, model: str = 'miniLM', file_path: 
         raise ValueError(f"Invalid type {type}. Can be either 'miniLM' or 'open_ai'")
 
     if file_path:
-        embeddings.to_csv(file_path)
+        embeddings.to_csv(file_path, index=dataset.index)
 
     return embeddings
 

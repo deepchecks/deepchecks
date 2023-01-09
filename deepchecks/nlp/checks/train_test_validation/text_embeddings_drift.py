@@ -72,7 +72,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
             random_state: int = 42,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
-            num_samples_in_display: int = 500,
+            num_samples_in_display: int = 1000,
             **kwargs
     ):
         super().__init__(**kwargs)
