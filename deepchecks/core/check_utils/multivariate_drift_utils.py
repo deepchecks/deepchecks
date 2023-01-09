@@ -146,10 +146,11 @@ def run_multivariable_drift_for_embeddings(
         dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
 ):
     """Calculate multivariable drift."""
+    # TODO: Prototype, go over and make sure code+docs+tests are good
+
     import random
     random.seed(random_state)
 
-    # TODO: Prototype, go over and make sure code+docs+tests are good
     train_sample_df = train_embeddings.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
     test_sample_df = test_embeddings.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
 
