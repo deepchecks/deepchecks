@@ -63,7 +63,7 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     # train a model to disguise between train and test samples
     domain_classifier = HistGradientBoostingClassifier(max_depth=2, max_iter=10, random_state=random_state,
                                                        categorical_features=[x in cat_features for x in
-                                                                         domain_class_df.columns])
+                                                                             domain_class_df.columns])
     domain_classifier.fit(x_train, y_train)
 
     y_test.name = 'belongs_to_test'
@@ -135,16 +135,20 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
 
     return values_dict, displays
 
+
 def run_multivariable_drift_for_embeddings(
         train_embeddings: pd.DataFrame, test_embeddings: pd.DataFrame,
-        train_dataset, test_dataset, #Type TextData but I don't want to import
+        train_dataset, test_dataset,  # Type TextData but I don't want to import
         numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
         random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
-        min_meaningful_drift_score: float,
+        min_meaningful_drift_score: float, num_samples_in_display: int,
         with_display: bool,
         dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
 ):
     """Calculate multivariable drift."""
+    import random
+    random.seed(random_state)
+
     # TODO: Prototype, go over and make sure code+docs+tests are good
     train_sample_df = train_embeddings.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
     test_sample_df = test_embeddings.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
@@ -164,15 +168,12 @@ def run_multivariable_drift_for_embeddings(
     domain_classifier = GradientBoostingClassifier(max_depth=2, random_state=random_state)
     domain_classifier.fit(x_train, y_train)
 
-    original_embedding = pd.concat([train_embeddings, test_embeddings])
-    domain_classifier_probas =  domain_classifier.predict_proba(floatify_dataframe(original_embedding))[:,1]
-
     y_test.name = 'belongs_to_test'
 
     # calculate feature importance of domain_classifier, containing the information which features separate
     # the dataset best.
     fi = pd.Series(domain_classifier.feature_importances_, index=x_train.columns)
-    importance_type = 'internal_feature_importance' #TODO is this the correct term?
+    importance_type = 'internal_feature_importance'  # TODO is this the correct term?
 
     fi = fi.sort_values(ascending=False) if fi is not None else None
 
@@ -201,52 +202,65 @@ def run_multivariable_drift_for_embeddings(
     if top_fi is not None and len(top_fi):
         score = values_dict['domain_classifier_drift_score']
 
+        # Prepare data for display:
+        train_downsample_index = random.sample(range(train_embeddings.shape[0]), k=num_samples_in_display)
+        test_downsample_index = random.sample(range(test_embeddings.shape[0]), k=num_samples_in_display)
+
+        train_embeddings_downsampled = train_embeddings.iloc[train_downsample_index]
+        test_embeddings_downsampled = test_embeddings.iloc[test_downsample_index]
+
+        train_dataset_downsampled = train_dataset.copy(
+            raw_text=pd.Series(train_dataset.text).iloc[train_downsample_index].values.tolist(),
+            label=pd.Series(train_dataset.label).iloc[train_downsample_index].values.tolist(),
+            index=pd.Series(train_dataset.index).iloc[train_downsample_index].values.tolist())
+        test_dataset_downsampled = test_dataset.copy(
+            raw_text=pd.Series(test_dataset.text).iloc[test_downsample_index].values.tolist(),
+            label=pd.Series(test_dataset.label).iloc[test_downsample_index].values.tolist(),
+            index=pd.Series(test_dataset.index).iloc[test_downsample_index].values.tolist())
+
+        embeddings_for_display = pd.concat([train_embeddings_downsampled, test_embeddings_downsampled])
+        domain_classifier_probas = domain_classifier.predict_proba(floatify_dataframe(embeddings_for_display))[:, 1]
+
         displays = [
             feature_importance_note,
             build_drift_plot(score),
-            display_embeddings(train_embeddings=train_embeddings, test_embeddings=test_embeddings,
-                               top_fi_embeddings=top_fi, train_dataset=train_dataset, test_dataset=test_dataset,
+            display_embeddings(train_embeddings=train_embeddings_downsampled,
+                               test_embeddings=test_embeddings_downsampled,
+                               top_fi_embeddings=top_fi, train_dataset=train_dataset_downsampled,
+                               test_dataset=test_dataset_downsampled,
                                dataset_names=dataset_names),
             display_embeddings_with_domain_classifier(
-                domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings, test_embeddings=test_embeddings,
-                top_fi_embeddings=top_fi, train_dataset=train_dataset, test_dataset=test_dataset,
+                domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings_downsampled,
+                test_embeddings=test_embeddings_downsampled,
+                top_fi_embeddings=top_fi, train_dataset=train_dataset_downsampled,
+                test_dataset=test_dataset_downsampled,
                 dataset_names=dataset_names)
-            # '<h3>Main features contributing to drift</h3>',
-            # N_TOP_MESSAGE % n_top_columns,
-            # get_drift_plot_sidenote(max_num_categories_for_display, show_categories_by),
-            # *(
-            #     display_dist(
-            #         train_sample_df[feature],
-            #         test_sample_df[feature],
-            #         top_fi,
-            #         cat_features,
-            #         max_num_categories_for_display,
-            #         show_categories_by,
-            #         dataset_names)
-            #     for feature in top_fi.index
-            # )
-
         ]
     else:
         displays = None
 
     return values_dict, displays
 
-def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset, dataset_names):
+
+def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
+                       dataset_names):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
-    import plotly.express as px
-    # from umap import UMAP
-    from sklearn.decomposition import PCA
+    if top_fi_embeddings.shape[0] == 1:
+        return ''
 
-    method = 'PCA'
+    import plotly.express as px
+    from umap import UMAP
+    # from sklearn.decomposition import PCA
+
+    method = 'UMAP'
 
     embeddings = pd.concat([train_embeddings, test_embeddings])
 
     top_fi_embeddings = top_fi_embeddings.index.values
 
-    # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
-    reduced_embeddings = PCA(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
+    reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
+    # reduced_embeddings = PCA(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
@@ -263,8 +277,9 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
     return fig
 
 
-def display_embeddings_with_domain_classifier(domain_classifier_probas, train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
-                       dataset_names):
+def display_embeddings_with_domain_classifier(domain_classifier_probas, train_embeddings, test_embeddings,
+                                              top_fi_embeddings, train_dataset, test_dataset,
+                                              dataset_names):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     import plotly.express as px

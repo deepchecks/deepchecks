@@ -58,6 +58,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
     min_meaningful_drift_score : float , default 0.05
         Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
+    num_samples_in_display : int , default: 500
+        Number of samples to display in the check display scatter plot.
     """
 
     def __init__(
@@ -70,6 +72,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
             random_state: int = 42,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
+            num_samples_in_display: int = 500,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -82,6 +85,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
         self.random_state = random_state
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
+        self.num_samples_in_display = num_samples_in_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -127,6 +131,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
             test_size=self.test_size, n_top_columns=self.n_top_embeddings,
             min_feature_importance=self.min_feature_importance,
             min_meaningful_drift_score=self.min_meaningful_drift_score,
+            num_samples_in_display=self.num_samples_in_display,
             with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name),
         )
