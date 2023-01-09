@@ -18,11 +18,11 @@ from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatri
                                MultiModelPerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
                                RocReport, SegmentPerformance, SimpleModelComparison, SingleDatasetPerformance,
                                TrainTestPerformance, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
-from .train_test_validation import (DatasetsSizeComparison, DateTrainTestLeakageDuplicates, DateTrainTestLeakageOverlap,
-                                    FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
-                                    MultivariateDrift, NewCategoryTrainTest, NewLabelTrainTest,
-                                    StringMismatchComparison, TrainTestFeatureDrift, TrainTestLabelDrift,
-                                    TrainTestSamplesMix, WholeDatasetDrift, CategoryMismatchTrainTest)
+from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
+                                    DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
+                                    IdentifierLabelCorrelation, IndexTrainTestLeakage, MultivariateDrift,
+                                    NewCategoryTrainTest, NewLabelTrainTest, StringMismatchComparison,
+                                    TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestSamplesMix, WholeDatasetDrift)
 
 __all__ = [
     # integrity checks
