@@ -164,7 +164,8 @@ def run_multivariable_drift_for_embeddings(
     domain_classifier = GradientBoostingClassifier(max_depth=2, random_state=random_state)
     domain_classifier.fit(x_train, y_train)
 
-    domain_classifier_probas =  domain_classifier.predict_proba(floatify_dataframe(domain_class_df))[:,1]
+    original_embedding = pd.concat([train_embeddings, test_embeddings])
+    domain_classifier_probas =  domain_classifier.predict_proba(floatify_dataframe(original_embedding))[:,1]
 
     y_test.name = 'belongs_to_test'
 
