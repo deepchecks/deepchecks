@@ -43,7 +43,7 @@ def test_no_new_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['# new categories']), equal_to(0))
+    assert_that(max(result['# New Categories']), equal_to(0))
 
 
 def test_new_category():
@@ -57,8 +57,8 @@ def test_new_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(max(result.value['# new categories']), equal_to(1))
-    assert_that(max(result.value['New categories ratio in data']), equal_to(0.25))
+    assert_that(max(result.value['# New Categories']), equal_to(1))
+    assert_that(max(result.value['Ratio of New Categories']), equal_to(0.25))
     assert_that(result.reduce_output()['col1'], equal_to(0.25))
     assert_that(result.display, has_length(greater_than(0)))
 
@@ -74,8 +74,8 @@ def test_new_category_without_display():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, with_display=False)
     # Assert
-    assert_that(max(result.value['# new categories']), equal_to(1))
-    assert_that(max(result.value['New categories ratio in data']), equal_to(0.25))
+    assert_that(max(result.value['# New Categories']), equal_to(1))
+    assert_that(max(result.value['Ratio of New Categories']), equal_to(0.25))
     assert_that(result.reduce_output()['Max New Categories Ratio'], equal_to(0.25))
     assert_that(result.display, has_length(0))
 
@@ -91,7 +91,7 @@ def test_missing_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['# new categories']), equal_to(0))
+    assert_that(max(result['# New Categories']), equal_to(0))
 
 
 def test_missing_new_category():
@@ -105,8 +105,8 @@ def test_missing_new_category():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['# new categories']), equal_to(1))
-    assert_that(max(result['New categories ratio in data']), equal_to(0.25))
+    assert_that(max(result['# New Categories']), equal_to(1))
+    assert_that(max(result['Ratio of New Categories']), equal_to(0.25))
 
 
 def test_multiple_categories():
@@ -121,10 +121,10 @@ def test_multiple_categories():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['# new categories']), equal_to(1))
-    assert_that(max(result['New categories ratio in data']), equal_to(0.25))
-    assert_that(result['# new categories']['col2'], equal_to(0))
-    assert_that(result['New categories ratio in data']['col2'], equal_to(0))
+    assert_that(max(result['# New Categories']), equal_to(1))
+    assert_that(max(result['Ratio of New Categories']), equal_to(0.25))
+    assert_that(result['# New Categories']['col2'], equal_to(0))
+    assert_that(result['Ratio of New Categories']['col2'], equal_to(0))
 
 
 def test_ignore_column():
@@ -139,8 +139,8 @@ def test_ignore_column():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['# new categories']), equal_to(0))
-    assert_that(max(result['New categories ratio in data']), equal_to(0))
+    assert_that(max(result['# New Categories']), equal_to(0))
+    assert_that(max(result['Ratio of New Categories']), equal_to(0))
 
 
 def test_specific_column():
@@ -155,8 +155,8 @@ def test_specific_column():
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['# new categories']), equal_to(1))
-    assert_that(max(result['New categories ratio in data']), equal_to(0.25))
+    assert_that(max(result['# New Categories']), equal_to(1))
+    assert_that(max(result['Ratio of New Categories']), equal_to(0.25))
     assert_that(result, has_length(1))
 
 
@@ -173,8 +173,8 @@ def test_nan(df_with_single_nans_in_different_rows, df_with_single_nan_in_col):
     # Act X
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
     # Assert
-    assert_that(max(result['# new categories']), equal_to(1))
-    assert_that(max(result['New categories ratio in data']), close_to(0.09, 0.01))
+    assert_that(max(result['# New Categories']), equal_to(1))
+    assert_that(max(result['Ratio of New Categories']), close_to(0.09, 0.01))
     assert_that(result['New categories']['col2'], equal_to([5]))
 
 
@@ -182,7 +182,7 @@ def test_none():
     train = Dataset(pd.DataFrame(data={'cat': ['a', 'b', 'c']}), cat_features=['cat'])
     test = Dataset(pd.DataFrame(data={'cat': ['a', 'b', 'c', None]}), cat_features=['cat'])
     result = NewCategoryTrainTest().run(train, test).value
-    assert_that(max(result['# new categories']), equal_to(0))
+    assert_that(max(result['# New Categories']), equal_to(0))
 
 
 def test_condition_categories_fail():
