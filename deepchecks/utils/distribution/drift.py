@@ -10,7 +10,7 @@
 #
 """Common utilities for distribution checks."""
 from numbers import Number
-from typing import Callable, Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
