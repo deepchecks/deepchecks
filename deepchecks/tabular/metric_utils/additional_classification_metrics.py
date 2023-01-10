@@ -50,7 +50,7 @@ def _false_positive_rate_per_class(y_true, y_pred, classes):  # False Positives 
     result = []
     for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        matrix = confusion_matrix(y_true_cls, y_pred_cls, labels=[0, 1])
         result.append(matrix[0, 1] / (matrix[0, 1] + matrix[1, 1]) if (matrix[0, 1] + matrix[1, 1]) > 0 else 0)
     return np.asarray(result)
 
@@ -59,7 +59,7 @@ def _micro_false_positive_rate(y_true, y_pred, classes):
     fp, tn = 0, 0
     for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        matrix = confusion_matrix(y_true_cls, y_pred_cls, labels=[0, 1])
         fp += matrix[0, 1]
         tn += matrix[1, 1]
     return fp / (fp + tn) if (fp + tn) > 0 else 0
@@ -121,7 +121,7 @@ def _micro_false_negative_rate(y_true, y_pred, classes):
     fn, tp = 0, 0
     for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        matrix = confusion_matrix(y_true_cls, y_pred_cls, labels=[0, 1])
         fn += matrix[1, 0]
         tp += matrix[0, 0]
     return fn / (fn + tp) if (fn + tp) > 0 else 0
@@ -176,7 +176,7 @@ def _true_negative_rate_per_class(y_true, y_pred, classes):  # True Negatives / 
     result = []
     for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        matrix = confusion_matrix(y_true_cls, y_pred_cls, labels=[0, 1])
         result.append(matrix[1, 1] / (matrix[1, 1] + matrix[0, 1]) if (matrix[1, 1] + matrix[0, 1]) > 0 else 0)
     return np.asarray(result)
 
@@ -185,7 +185,7 @@ def _micro_true_negative_rate(y_true, y_pred, classes):
     tn, fp = 0, 0
     for cls in classes:
         y_true_cls, y_pred_cls = np.asarray(y_true) == cls, np.asarray(y_pred) == cls
-        matrix = confusion_matrix(y_true_cls, y_pred_cls)
+        matrix = confusion_matrix(y_true_cls, y_pred_cls, labels=[0, 1])
         tn += matrix[1, 1]
         fp += matrix[0, 1]
     return tn / (tn + fp) if (tn + fp) > 0 else 0

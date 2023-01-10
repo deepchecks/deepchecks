@@ -11,7 +11,8 @@
 """Contains unit tests for the single dataset performance report check."""
 from typing import List
 
-from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises, equal_to
+from hamcrest import (assert_that, calling, close_to, has_entries, has_items, has_length,
+                      instance_of, raises, equal_to, none)
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
@@ -57,6 +58,18 @@ def assert_multiclass_classification_result(result):
     for metric in DEFAULT_MULTICLASS_SCORERS.keys():
         metric_row = result.loc[result['Metric'] == metric]
         assert_that(metric_row['Value'].iloc[0], close_to(1, 0.3))
+
+
+def test_missing_y_true_binary(missing_test_classes_binary_dataset_and_model):
+    # Arrange
+    _, test, model = missing_test_classes_binary_dataset_and_model
+    check = SingleDatasetPerformance(scorers=['roc_auc'])
+    # Act
+    result = check.run(test, model)
+    # Assert
+    df = result.value
+    assert_that(df, has_length(1))
+    assert_that(df.loc[df['Metric'] == 'roc_auc']['Value'][0], none())
 
 
 def test_classification(iris_split_dataset_and_model):

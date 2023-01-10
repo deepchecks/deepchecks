@@ -11,7 +11,7 @@ New Category
 import pandas as pd
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import CategoryMismatchTrainTest
+from deepchecks.tabular.checks import NewCategoryTrainTest
 
 #%%
 
@@ -22,7 +22,7 @@ test = Dataset(pd.DataFrame(data=test_data), cat_features=["col1"])
 
 #%%
 
-CategoryMismatchTrainTest().run(train, test)
+NewCategoryTrainTest().run(train, test)
 
 #%%
 
@@ -33,4 +33,4 @@ test = Dataset(pd.DataFrame(data=test_data), cat_features=["col1", "col2"])
 
 #%%
 
-CategoryMismatchTrainTest().run(train, test)
+NewCategoryTrainTest().run(train, test)
