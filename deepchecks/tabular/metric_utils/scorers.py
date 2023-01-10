@@ -303,6 +303,7 @@ class DeepcheckScorer:
 
         try:
             scores = self.scorer(model, data, np.array(label_col))
+            return self.validate_scorer_multilabel_output(scores)
         except ValueError as e:
             if getattr(self.scorer, '_score_func', '').__name__ == 'roc_auc_score':
                 get_logger().warning('ROC AUC failed with error message - "%s". setting scores as None', e,
