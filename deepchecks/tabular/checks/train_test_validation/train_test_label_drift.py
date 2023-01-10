@@ -68,7 +68,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
-    ignore_na: bool, default True
+    ignore_na: bool, default False
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
     n_samples : int , default: 100_000
@@ -85,7 +85,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
-            ignore_na: bool = True,
+            ignore_na: bool = False,
             n_samples: int = 100_000,
             random_state: int = 42,
             **kwargs

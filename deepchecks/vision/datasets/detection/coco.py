@@ -14,8 +14,11 @@ import logging
 import os
 import typing as t
 import warnings
+import zipfile
+from io import BytesIO
 from pathlib import Path
 from typing import Iterable, List
+from urllib.request import urlopen
 
 import albumentations as A
 import cv2
@@ -34,22 +37,24 @@ from deepchecks.vision import DetectionData
 __all__ = ['load_dataset', 'load_model', 'COCOData', 'CocoDataset']
 
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/38619935'
 DATA_DIR = Path(__file__).absolute().parent
-LOCAL_MODEL_PATH = DATA_DIR / 'yolov5s.pt'
 
 
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu') -> nn.Module:
     """Load the yolov5s (version 6.1)  model and return it."""
     dev = torch.device(device) if isinstance(device, str) else device
+    torch.hub._validate_not_a_forked_repo = lambda *_: True  # pylint: disable=protected-access
     logger = logging.getLogger('yolov5')
     logger.disabled = True
-    if pretrained:
-        if not os.path.exists(LOCAL_MODEL_PATH):
-            torch.hub.download_url_to_file(_MODEL_URL, str(LOCAL_MODEL_PATH))
-        model = torch.hub.load('ultralytics/yolov5:v6.1', 'custom', path=LOCAL_MODEL_PATH, device=dev)
-    else:
-        model = torch.hub.load('ultralytics/yolov5:v6.1', 'yolov5s', pretrained=False, verbose=False, device=dev)
+    local_repo_dir = DATA_DIR / 'yolov5-6.1'
+    if not local_repo_dir.exists():
+        repo = 'https://github.com/ultralytics/yolov5/archive/v6.1.zip'
+        with urlopen(repo) as f:
+            with zipfile.ZipFile(BytesIO(f.read())) as myzip:
+                myzip.extractall(DATA_DIR)
+
+    model = torch.hub.load(str(local_repo_dir), 'yolov5s', source='local', pretrained=pretrained, verbose=False,
+                           device=dev)
     model.eval()
     logger.disabled = False
     return model
@@ -342,7 +347,7 @@ def yolo_label_formatter(batch):
     # our labels return at the end, and the VisionDataset expect it at the start
     def move_class(tensor):
         return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
-                if len(tensor) > 0 else tensor
+            if len(tensor) > 0 else tensor
     return [move_class(tensor) for tensor in batch[1]]
 
 

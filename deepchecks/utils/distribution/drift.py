@@ -14,15 +14,15 @@ from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
+from plotly.graph_objs import Figure
 from plotly.subplots import make_subplots
 from scipy.stats import chi2_contingency, wasserstein_distance
 
 from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
-from deepchecks.utils.distribution.plot import (drift_score_bar_traces, feature_distribution_traces,
-                                                word_counts_bar_traces)
+from deepchecks.utils.distribution.plot import (CategoriesSortingKind, drift_score_bar_traces,
+                                                feature_distribution_traces, word_counts_bar_traces)
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_number
@@ -244,13 +244,13 @@ def calc_drift_and_plot(train_column: pd.Series,
                         max_num_categories_for_drift: int = None,
                         min_category_size_ratio: float = 0.01,
                         max_num_categories_for_display: int = 10,
-                        show_categories_by: str = 'largest_difference',
+                        show_categories_by: CategoriesSortingKind = 'largest_difference',
                         categorical_drift_method: str = 'cramer_v',
                         ignore_na: bool = True,
                         min_samples: int = 10,
                         with_display: bool = True,
-                        dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
-                        ) -> Tuple[float, str, Callable]:
+                        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+                        ) -> Tuple[float, str, Optional[Figure]]:
     """
     Calculate drift score per column.
 
@@ -342,8 +342,8 @@ def calc_drift_and_plot(train_column: pd.Series,
             scorer_name = 'PSI'
             score = psi(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by)
         else:
-            raise ValueError('Excpected categorical_drift_method to be one '
-                             f'of [cramer_v, PSI], recieved: {categorical_drift_method}')
+            raise ValueError('Expected categorical_drift_method to be one '
+                             f'of [cramer_v, PSI], received: {categorical_drift_method}')
 
         if not with_display:
             return score, scorer_name, None
@@ -473,6 +473,6 @@ def word_counts_drift_plot(
         dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
 ):
     """Plot the difference between word counts or word frequencies."""
-    fig = go.Figure()
+    fig = Figure()
     fig.add_traces(word_counts_bar_traces(train_column, test_column, keyword_list, dataset_names))
     return fig

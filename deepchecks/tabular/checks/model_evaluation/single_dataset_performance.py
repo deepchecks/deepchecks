@@ -74,7 +74,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         else:
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
-                if isinstance(scorer_value, Number):
+                if isinstance(scorer_value, Number) or scorer_value is None:
                     results.append([pd.NA, scorer.name, scorer_value])
                 else:
                     results.extend(
