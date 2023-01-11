@@ -299,7 +299,7 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
     # reduced_embeddings = PCA(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
 
     plot_data = pd.DataFrame(reduced_embeddings)
-    plot_title = 'regular'
+    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features'
     return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
                                 train_dataset, train_indexes_to_highlight)
 
@@ -337,7 +337,7 @@ def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings,
     reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_nodes)
 
     plot_data = pd.DataFrame(reduced_embeddings)
-    plot_title = 'regular'
+    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features with tree-based nodes as a target'
     return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
                                 train_dataset, train_indexes_to_highlight)
 
@@ -391,7 +391,7 @@ def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test
     reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings_to_reduce)
 
     plot_data = pd.DataFrame(reduced_embeddings)
-    plot_title = 'node indexes'
+    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features with one-hot-encoded top {len(interesting_nodes)} tree-based nodes as additional embeddings'
     return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
                                 train_dataset, train_indexes_to_highlight)
 
@@ -417,7 +417,7 @@ def display_embeddings_with_domain_classifier(domain_classifier_probas, train_em
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_data[1] = domain_classifier_probas
-    plot_title = 'domain classifier proba'
+    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features with domain classifier probas as a target'
     return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
                                 train_dataset, train_indexes_to_highlight)
 
