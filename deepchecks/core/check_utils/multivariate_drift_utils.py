@@ -224,10 +224,10 @@ def run_multivariable_drift_for_embeddings(
                                top_fi_embeddings=top_fi, train_dataset=train_dataset,
                                test_dataset=test_dataset, dataset_names=dataset_names,
                                indexes_to_display=indexes_to_display),
-            display_embeddings_with_target(
-                domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings,
+            display_embeddings_with_clusters_by_nodes(
+                train_embeddings=train_embeddings,
                 test_embeddings=test_embeddings,
-                top_fi_embeddings=top_fi, train_dataset=train_dataset,
+                train_dataset=train_dataset,
                 test_dataset=test_dataset,
                 dataset_names=dataset_names, indexes_to_display=indexes_to_display),
             display_embeddings_with_domain_classifier(
