@@ -205,10 +205,12 @@ def run_multivariable_drift_for_embeddings(
         score = values_dict['domain_classifier_drift_score']
         # Sample data before display calculations
         num_samples_in_display = min(num_samples_in_display, sample_size)
-        train_dataset = train_dataset.sample(num_samples_in_display)
-        test_dataset = test_dataset.sample(num_samples_in_display)
-        train_embeddings = train_embeddings[train_embeddings.index.isin(train_dataset.index)]
-        test_embeddings = test_embeddings[test_embeddings.index.isin(test_dataset.index)]
+        train_dataset = train_dataset.sample(num_samples_in_display, random_state=42)
+        test_dataset = test_dataset.sample(num_samples_in_display, random_state=42)
+        # train_embeddings = train_embeddings[train_embeddings.index.isin(train_dataset.index)]
+        # test_embeddings = test_embeddings[test_embeddings.index.isin(test_dataset.index)]
+        train_embeddings = train_embeddings.iloc[train_dataset.index]
+        test_embeddings = test_embeddings.iloc[test_dataset.index]
         if indexes_to_display is None:
             indexes_to_display = train_dataset.index + test_dataset.index
 
@@ -225,6 +227,12 @@ def run_multivariable_drift_for_embeddings(
                                test_dataset=test_dataset, dataset_names=dataset_names,
                                indexes_to_display=indexes_to_display),
             display_embeddings_with_clusters_by_nodes(
+                train_embeddings=train_embeddings,
+                test_embeddings=test_embeddings,
+                train_dataset=train_dataset,
+                test_dataset=test_dataset,
+                dataset_names=dataset_names, indexes_to_display=indexes_to_display),
+            display_embeddings_with_clusters_by_nodes_with_onehot(
                 train_embeddings=train_embeddings,
                 test_embeddings=test_embeddings,
                 train_dataset=train_dataset,
@@ -313,6 +321,58 @@ def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings,
 
     domain_classifier_nodes = classifier.apply(embeddings)
 
+    # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
+    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_nodes)
+
+    plot_data = pd.DataFrame(reduced_embeddings)
+    plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
+    plot_data['label'] = train_dataset.label + test_dataset.label
+    plot_data['sample'] = train_dataset.text + test_dataset.text
+    plot_data['sample'] = plot_data['sample'].apply(clean_sample)
+
+    # Only keep relevant indexes
+    plot_data.index = train_dataset.index + test_dataset.index
+    plot_data = plot_data[plot_data.index.isin(indexes_to_display)]
+
+    fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
+                     title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method}) vs domain classifier probability',
+                     height=600, width=1000, opacity=0.4)
+    fig.update_traces(marker=dict(size=8,
+                                  line=dict(width=1,
+                                            color='DarkSlateGrey')),
+                      selector=dict(mode='markers'))
+    return fig
+
+def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test_embeddings, train_dataset, test_dataset,
+                                              dataset_names, indexes_to_display):
+    # TODO: Prototype, go over and make sure code+docs+tests are good
+
+    import plotly.express as px
+    from umap import UMAP
+    # from sklearn.decomposition import PCA
+
+    method = 'UMAP'
+    # method = 'PCA'
+
+    embeddings = pd.concat([train_embeddings, test_embeddings])
+
+    from sklearn.tree import DecisionTreeClassifier
+    classifier = DecisionTreeClassifier(max_depth=10, min_samples_leaf=50, random_state=42)
+    domain_class_labels = pd.Series([0] * len(train_embeddings) + [1] * len(test_embeddings))
+
+    classifier.fit(embeddings, domain_class_labels)
+
+    fi = pd.Series(classifier.feature_importances_, index=train_embeddings.columns)
+
+    fi = fi.sort_values(ascending=False) if fi is not None else None
+
+    top_fi_embeddings = fi.head(20)
+    top_fi_embeddings = top_fi_embeddings.loc[top_fi_embeddings > 0.01]
+
+    top_fi_embeddings = top_fi_embeddings.index.values
+
+    domain_classifier_nodes = classifier.apply(embeddings)
+
     node_to_label = pd.Series([0] * train_embeddings.shape[0] + [1] * test_embeddings.shape[0], index=domain_classifier_nodes)
     node_values = node_to_label.groupby(node_to_label.index).mean()
     node_values = node_values.sort_values()
@@ -324,6 +384,7 @@ def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings,
     nodes_weight = top_fi_embeddings.shape[0] * 0.002
 
     onehot = pd.get_dummies(domain_classifier_nodes) * nodes_weight
+    onehot = onehot.set_index(embeddings.index)
 
     embeddings_to_reduce = embeddings.loc[:, top_fi_embeddings].join(onehot)
 
@@ -348,6 +409,7 @@ def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings,
                                             color='DarkSlateGrey')),
                       selector=dict(mode='markers'))
     return fig
+
 
 
 def display_embeddings_with_domain_classifier(domain_classifier_probas, train_embeddings, test_embeddings,
