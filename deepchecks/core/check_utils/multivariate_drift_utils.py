@@ -232,6 +232,12 @@ def run_multivariable_drift_for_embeddings(
                                top_fi_embeddings=top_fi, train_dataset=train_dataset_downsampled,
                                test_dataset=test_dataset_downsampled,
                                dataset_names=dataset_names),
+            display_embeddings_with_target(
+                domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings_downsampled,
+                test_embeddings=test_embeddings_downsampled,
+                top_fi_embeddings=top_fi, train_dataset=train_dataset_downsampled,
+                test_dataset=test_dataset_downsampled,
+                dataset_names=dataset_names),
             display_embeddings_with_domain_classifier(
                 domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings_downsampled,
                 test_embeddings=test_embeddings_downsampled,
@@ -273,6 +279,54 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
     fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
                      title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method})',
                      height=1000, width=1000, opacity=0.4)
+    fig.update_traces(marker=dict(size=8,
+                                  line=dict(width=1,
+                                            color='DarkSlateGrey')),
+                      selector=dict(mode='markers'))
+    return fig
+
+
+def display_embeddings_with_target(domain_classifier_probas, train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
+                       dataset_names):
+    # TODO: Prototype, go over and make sure code+docs+tests are good
+
+    import plotly.express as px
+    from umap import UMAP
+    # from sklearn.decomposition import PCA
+
+    method = 'UMAP'
+    # method = 'PCA'
+
+    embeddings = pd.concat([train_embeddings, test_embeddings])
+
+    from sklearn.tree import DecisionTreeClassifier
+    classifier = DecisionTreeClassifier(max_depth=10, min_samples_leaf=50, random_state=42)
+    domain_class_labels = pd.Series([0] * len(train_embeddings) + [1] * len(test_embeddings))
+
+    classifier.fit(embeddings, domain_class_labels)
+
+    fi = pd.Series(classifier.feature_importances_, index=train_embeddings.columns)
+
+    fi = fi.sort_values(ascending=False) if fi is not None else None
+
+    top_fi_embeddings = fi.head(20)
+    top_fi_embeddings = top_fi_embeddings.loc[top_fi_embeddings > 0.01]
+
+    top_fi_embeddings = top_fi_embeddings.index.values
+
+    domain_classifier_probas = classifier.apply(embeddings)
+
+    # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
+    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_probas)
+
+    plot_data = pd.DataFrame(reduced_embeddings)
+    plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
+    plot_data['label'] = train_dataset.label + test_dataset.label
+    plot_data['sample'] = train_dataset.text + test_dataset.text
+    plot_data['sample'] = plot_data['sample'].apply(clean_sample)
+    fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
+                     title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method}) vs domain classifier probability',
+                     height=600, width=1000, opacity=0.4)
     fig.update_traces(marker=dict(size=8,
                                   line=dict(width=1,
                                             color='DarkSlateGrey')),
