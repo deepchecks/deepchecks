@@ -20,4 +20,4 @@ jobs:
     steps:
       - uses: andymckay/labeler@1.0.4
         with:
-          add-labels: "needs triage"
+          add-labels: "needs triage, linear"
