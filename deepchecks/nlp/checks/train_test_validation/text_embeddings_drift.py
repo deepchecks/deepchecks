@@ -74,7 +74,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
             num_samples_in_display: int = 500,
-            indexes_to_display: List[int] = None,
+            train_indexes_to_highlight: List[int] = [],
+            test_indexes_to_highlight: List[int] = [],
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -88,7 +89,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
         self.num_samples_in_display = num_samples_in_display
-        self.indexes_to_display = indexes_to_display
+        self.train_indexes_to_highlight = train_indexes_to_highlight
+        self.test_indexes_to_highlight = test_indexes_to_highlight
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -137,7 +139,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
             num_samples_in_display=self.num_samples_in_display,
             with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name),
-            indexes_to_display= self.indexes_to_display
+            train_indexes_to_highlight= self.train_indexes_to_highlight,
+            test_indexes_to_highlight= self.test_indexes_to_highlight,
         )
 
         if displays:

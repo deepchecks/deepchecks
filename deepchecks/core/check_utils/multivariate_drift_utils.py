@@ -144,7 +144,8 @@ def run_multivariable_drift_for_embeddings(
         min_meaningful_drift_score: float, num_samples_in_display: int,
         with_display: bool,
         dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
-        indexes_to_display: List[int] = None,
+        train_indexes_to_highlight: List[int] = [],
+        test_indexes_to_highlight: List[int] = [],
 ):
     """Calculate multivariable drift."""
     # TODO: Prototype, go over and make sure code+docs+tests are good
@@ -206,13 +207,11 @@ def run_multivariable_drift_for_embeddings(
         # Sample data before display calculations
         num_samples_in_display = min(num_samples_in_display, sample_size)
         train_dataset = train_dataset.sample(num_samples_in_display, random_state=42)
+        train_embeddings = train_embeddings[train_embeddings.index.isin(train_dataset.index)]
+        train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset.index]
         test_dataset = test_dataset.sample(num_samples_in_display, random_state=42)
-        # train_embeddings = train_embeddings[train_embeddings.index.isin(train_dataset.index)]
-        # test_embeddings = test_embeddings[test_embeddings.index.isin(test_dataset.index)]
-        train_embeddings = train_embeddings.iloc[train_dataset.index]
-        test_embeddings = test_embeddings.iloc[test_dataset.index]
-        if indexes_to_display is None:
-            indexes_to_display = train_dataset.index + test_dataset.index
+        test_embeddings = test_embeddings[test_embeddings.index.isin(test_dataset.index)]
+        test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset.index]
 
         # Calculate display
         embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
@@ -224,8 +223,8 @@ def run_multivariable_drift_for_embeddings(
             display_embeddings(train_embeddings=train_embeddings,
                                test_embeddings=test_embeddings,
                                top_fi_embeddings=top_fi, train_dataset=train_dataset,
-                               test_dataset=test_dataset, dataset_names=dataset_names,
-                               indexes_to_display=indexes_to_display),
+                               test_dataset=test_dataset, train_indexes_to_highlight=train_indexes_to_highlight,
+                               test_indexes_to_highlight=test_indexes_to_highlight),
             display_embeddings_with_clusters_by_nodes(
                 train_embeddings=train_embeddings,
                 test_embeddings=test_embeddings,
@@ -237,13 +236,15 @@ def run_multivariable_drift_for_embeddings(
                 test_embeddings=test_embeddings,
                 train_dataset=train_dataset,
                 test_dataset=test_dataset,
-                dataset_names=dataset_names, indexes_to_display=indexes_to_display),
+                train_indexes_to_highlight=train_indexes_to_highlight,
+                               test_indexes_to_highlight=test_indexes_to_highlight),
             display_embeddings_with_domain_classifier(
                 domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings,
                 test_embeddings=test_embeddings,
                 top_fi_embeddings=top_fi, train_dataset=train_dataset,
                 test_dataset=test_dataset,
-                dataset_names=dataset_names, indexes_to_display=indexes_to_display)
+                train_indexes_to_highlight=train_indexes_to_highlight,
+                               test_indexes_to_highlight=test_indexes_to_highlight)
         ]
     else:
         displays = None
@@ -251,14 +252,37 @@ def run_multivariable_drift_for_embeddings(
     return values_dict, displays
 
 
+def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
+                         train_dataset, train_indexes_to_highlight):
+    import plotly.express as px
+    plot_data['dataset'] = ['train_full'] * len(train_dataset.index) + ['test_full'] * len(test_dataset.index)
+    plot_data['label'] = train_dataset.label + test_dataset.label
+    plot_data['sample'] = train_dataset.text + test_dataset.text
+    plot_data['sample'] = plot_data['sample'].apply(clean_sample)
+
+    # Only keep relevant indexes
+    plot_data.index = train_dataset.index + test_dataset.index
+    train_to_add = plot_data[plot_data.index.isin(train_indexes_to_highlight)].copy()
+    train_to_add['dataset'] = 'classes_only_in_train'
+    test_to_add = plot_data[plot_data.index.isin(test_indexes_to_highlight)].copy()
+    test_to_add['dataset'] = 'classes_only_in_test'
+    plot_data = pd.concat([plot_data, train_to_add, test_to_add], ignore_index=True)
+    fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
+                     title=plot_title, color_discrete_sequence=['red', 'green', 'blue', 'orange'],
+                     height=1000, width=1000, opacity=0.4)
+    fig.update_traces(marker=dict(size=8,
+                                  line=dict(width=1,
+                                            color='DarkSlateGrey')),
+                      selector=dict(mode='markers'))
+    return fig
+
 def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
-                       dataset_names, indexes_to_display):
+                       train_indexes_to_highlight: List[int], test_indexes_to_highlight: List[int]):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     if top_fi_embeddings.shape[0] == 1:
         return ''
 
-    import plotly.express as px
     from umap import UMAP
     # from sklearn.decomposition import PCA
 
@@ -272,30 +296,15 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
     # reduced_embeddings = PCA(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
 
     plot_data = pd.DataFrame(reduced_embeddings)
-    plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
-    plot_data['label'] = train_dataset.label + test_dataset.label
-    plot_data['sample'] = train_dataset.text + test_dataset.text
-    plot_data['sample'] = plot_data['sample'].apply(clean_sample)
-
-    # Only keep relevant indexes
-    plot_data.index = train_dataset.index + test_dataset.index
-    plot_data = plot_data[plot_data.index.isin(indexes_to_display)]
-
-    fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
-                     title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method})',
-                     height=1000, width=1000, opacity=0.4)
-    fig.update_traces(marker=dict(size=8,
-                                  line=dict(width=1,
-                                            color='DarkSlateGrey')),
-                      selector=dict(mode='markers'))
-    return fig
+    plot_title = 'regular'
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
+                                train_dataset, train_indexes_to_highlight)
 
 
 def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings, train_dataset, test_dataset,
-                                              dataset_names, indexes_to_display):
+                                              train_indexes_to_highlight: List[int], test_indexes_to_highlight: List[int]):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
-    import plotly.express as px
     from umap import UMAP
     # from sklearn.decomposition import PCA
 
@@ -392,32 +401,17 @@ def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test
     reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings_to_reduce)
 
     plot_data = pd.DataFrame(reduced_embeddings)
-    plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
-    plot_data['label'] = train_dataset.label + test_dataset.label
-    plot_data['sample'] = train_dataset.text + test_dataset.text
-    plot_data['sample'] = plot_data['sample'].apply(clean_sample)
-
-    # Only keep relevant indexes
-    plot_data.index = train_dataset.index + test_dataset.index
-    plot_data = plot_data[plot_data.index.isin(indexes_to_display)]
-
-    fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
-                     title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method}) vs domain classifier probability',
-                     height=600, width=1000, opacity=0.4)
-    fig.update_traces(marker=dict(size=8,
-                                  line=dict(width=1,
-                                            color='DarkSlateGrey')),
-                      selector=dict(mode='markers'))
-    return fig
+    plot_title = 'node indexes'
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
+                                train_dataset, train_indexes_to_highlight)
 
 
 
 def display_embeddings_with_domain_classifier(domain_classifier_probas, train_embeddings, test_embeddings,
                                               top_fi_embeddings, train_dataset, test_dataset,
-                                              dataset_names, indexes_to_display):
+                                              train_indexes_to_highlight: List[int], test_indexes_to_highlight: List[int]):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
-    import plotly.express as px
     # from umap import UMAP
     from sklearn.decomposition import PCA
 
@@ -433,23 +427,9 @@ def display_embeddings_with_domain_classifier(domain_classifier_probas, train_em
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_data[1] = domain_classifier_probas
-    plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
-    plot_data['label'] = train_dataset.label + test_dataset.label
-    plot_data['sample'] = train_dataset.text + test_dataset.text
-    plot_data['sample'] = plot_data['sample'].apply(clean_sample)
-
-    # Only keep relevant indexes
-    plot_data.index = train_dataset.index + test_dataset.index
-    plot_data = plot_data[plot_data.index.isin(indexes_to_display)]
-
-    fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
-                     title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method}) vs domain classifier probability',
-                     height=600, width=1000, opacity=0.4)
-    fig.update_traces(marker=dict(size=8,
-                                  line=dict(width=1,
-                                            color='DarkSlateGrey')),
-                      selector=dict(mode='markers'))
-    return fig
+    plot_title = 'domain classifier proba'
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
+                                train_dataset, train_indexes_to_highlight)
 
 
 def clean_sample(s: str, max_size: int = 100):
