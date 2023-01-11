@@ -256,13 +256,13 @@ def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_hi
 
     # Only keep relevant indexes
     plot_data.index = train_dataset.index + test_dataset.index
-    train_to_add = plot_data[plot_data.index.isin(train_indexes_to_highlight)]
-    train_to_add.loc['dataset'] = 'train_highlighted'
-    test_to_add = plot_data[plot_data.index.isin(test_indexes_to_highlight)]
-    test_to_add.loc['dataset'] = 'test_highlighted'
+    train_to_add = plot_data[plot_data.index.isin(train_indexes_to_highlight)].copy()
+    train_to_add['dataset'] = 'classes_only_in_train'
+    test_to_add = plot_data[plot_data.index.isin(test_indexes_to_highlight)].copy()
+    test_to_add['dataset'] = 'classes_only_in_test'
     plot_data = pd.concat([plot_data, train_to_add, test_to_add], ignore_index=True)
     fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
-                     title=plot_title,
+                     title=plot_title, color_discrete_sequence=['red', 'green', 'blue', 'orange'],
                      height=1000, width=1000, opacity=0.4)
     fig.update_traces(marker=dict(size=8,
                                   line=dict(width=1,
