@@ -143,7 +143,8 @@ def run_multivariable_drift_for_embeddings(
         random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
         min_meaningful_drift_score: float, num_samples_in_display: int,
         with_display: bool,
-        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
+        indexes_to_display: List[int] = None,
 ):
     """Calculate multivariable drift."""
     # TODO: Prototype, go over and make sure code+docs+tests are good
@@ -202,42 +203,31 @@ def run_multivariable_drift_for_embeddings(
 
     if top_fi is not None and len(top_fi):
         score = values_dict['domain_classifier_drift_score']
-
-        num_samples_in_display = min(num_samples_in_display, sample_size)
-
         # Prepare data for display:
-        train_downsample_index = random.sample(range(train_embeddings.shape[0]), k=num_samples_in_display)
-        test_downsample_index = random.sample(range(test_embeddings.shape[0]), k=num_samples_in_display)
+        if indexes_to_display is None:
+            num_samples_in_display = min(num_samples_in_display, sample_size)
+            train_indexes_to_display = random.sample(range(train_embeddings.shape[0]), k=num_samples_in_display)
+            test_indexes_to_display = random.sample(range(test_embeddings.shape[0]), k=num_samples_in_display)
+            indexes_to_display = train_indexes_to_display + test_indexes_to_display
 
-        train_embeddings_downsampled = train_embeddings.iloc[train_downsample_index]
-        test_embeddings_downsampled = test_embeddings.iloc[test_downsample_index]
-
-        train_dataset_downsampled = train_dataset.copy(
-            raw_text=pd.Series(train_dataset.text).iloc[train_downsample_index].values.tolist(),
-            label=pd.Series(train_dataset.label).iloc[train_downsample_index].values.tolist(),
-            index=pd.Series(train_dataset.index).iloc[train_downsample_index].values.tolist())
-        test_dataset_downsampled = test_dataset.copy(
-            raw_text=pd.Series(test_dataset.text).iloc[test_downsample_index].values.tolist(),
-            label=pd.Series(test_dataset.label).iloc[test_downsample_index].values.tolist(),
-            index=pd.Series(test_dataset.index).iloc[test_downsample_index].values.tolist())
-
-        embeddings_for_display = pd.concat([train_embeddings_downsampled, test_embeddings_downsampled])
+        # Calculate display
+        embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
         domain_classifier_probas = domain_classifier.predict_proba(floatify_dataframe(embeddings_for_display))[:, 1]
 
         displays = [
             feature_importance_note,
             build_drift_plot(score),
-            display_embeddings(train_embeddings=train_embeddings_downsampled,
-                               test_embeddings=test_embeddings_downsampled,
-                               top_fi_embeddings=top_fi, train_dataset=train_dataset_downsampled,
-                               test_dataset=test_dataset_downsampled,
-                               dataset_names=dataset_names),
+            display_embeddings(train_embeddings=train_embeddings,
+                               test_embeddings=test_embeddings,
+                               top_fi_embeddings=top_fi, train_dataset=train_dataset,
+                               test_dataset=test_dataset, dataset_names=dataset_names,
+                               indexes_to_display=indexes_to_display),
             display_embeddings_with_domain_classifier(
-                domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings_downsampled,
-                test_embeddings=test_embeddings_downsampled,
-                top_fi_embeddings=top_fi, train_dataset=train_dataset_downsampled,
-                test_dataset=test_dataset_downsampled,
-                dataset_names=dataset_names)
+                domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings,
+                test_embeddings=test_embeddings,
+                top_fi_embeddings=top_fi, train_dataset=train_dataset,
+                test_dataset=test_dataset,
+                dataset_names=dataset_names, indexes_to_display=indexes_to_display)
         ]
     else:
         displays = None
@@ -246,7 +236,7 @@ def run_multivariable_drift_for_embeddings(
 
 
 def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
-                       dataset_names):
+                       dataset_names, indexes_to_display):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     if top_fi_embeddings.shape[0] == 1:
@@ -270,6 +260,11 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
     plot_data['label'] = train_dataset.label + test_dataset.label
     plot_data['sample'] = train_dataset.text + test_dataset.text
     plot_data['sample'] = plot_data['sample'].apply(clean_sample)
+
+    # Only keep relevant indexes
+    plot_data.index = train_dataset.index + test_dataset.index
+    plot_data = plot_data[plot_data.index.isin(indexes_to_display)]
+
     fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
                      title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method})',
                      height=1000, width=1000, opacity=0.4)
@@ -282,7 +277,7 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
 
 def display_embeddings_with_domain_classifier(domain_classifier_probas, train_embeddings, test_embeddings,
                                               top_fi_embeddings, train_dataset, test_dataset,
-                                              dataset_names):
+                                              dataset_names, indexes_to_display):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     import plotly.express as px
@@ -305,6 +300,11 @@ def display_embeddings_with_domain_classifier(domain_classifier_probas, train_em
     plot_data['label'] = train_dataset.label + test_dataset.label
     plot_data['sample'] = train_dataset.text + test_dataset.text
     plot_data['sample'] = plot_data['sample'].apply(clean_sample)
+
+    # Only keep relevant indexes
+    plot_data.index = train_dataset.index + test_dataset.index
+    plot_data = plot_data[plot_data.index.isin(indexes_to_display)]
+
     fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
                      title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method}) vs domain classifier probability',
                      height=600, width=1000, opacity=0.4)

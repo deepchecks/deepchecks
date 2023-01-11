@@ -10,6 +10,7 @@
 #
 # TODO: Prototype, go over and make sure code+docs+tests are good
 """Module contains the domain classifier drift check."""
+from typing import List
 
 import pandas as pd
 
@@ -72,7 +73,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
             random_state: int = 42,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
-            num_samples_in_display: int = 1000,
+            num_samples_in_display: int = 500,
+            indexes_to_display: List[int] = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -86,6 +88,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
         self.num_samples_in_display = num_samples_in_display
+        self.indexes_to_display = indexes_to_display
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -117,8 +120,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
         </span>
         """
 
-        df_train_embeddings = pd.DataFrame(context.train_embeddings)
-        df_test_embeddings = pd.DataFrame(context.test_embeddings)
+        df_train_embeddings = pd.DataFrame(context.train_embeddings, index=train_dataset.index)
+        df_test_embeddings = pd.DataFrame(context.test_embeddings, index=test_dataset.index)
 
         values_dict, displays = run_multivariable_drift_for_embeddings(
             train_embeddings=df_train_embeddings,
@@ -134,6 +137,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
             num_samples_in_display=self.num_samples_in_display,
             with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name),
+            indexes_to_display= self.indexes_to_display
         )
 
         if displays:
