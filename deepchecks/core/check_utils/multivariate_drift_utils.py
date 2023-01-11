@@ -203,12 +203,14 @@ def run_multivariable_drift_for_embeddings(
 
     if top_fi is not None and len(top_fi):
         score = values_dict['domain_classifier_drift_score']
-        # Prepare data for display:
+        # Sample data before display calculations
+        num_samples_in_display = min(num_samples_in_display, sample_size)
+        train_dataset = train_dataset.sample(num_samples_in_display)
+        test_dataset = test_dataset.sample(num_samples_in_display)
+        train_embeddings = train_embeddings[train_embeddings.index.isin(train_dataset.index)]
+        test_embeddings = test_embeddings[test_embeddings.index.isin(test_dataset.index)]
         if indexes_to_display is None:
-            num_samples_in_display = min(num_samples_in_display, sample_size)
-            train_indexes_to_display = random.sample(range(train_embeddings.shape[0]), k=num_samples_in_display)
-            test_indexes_to_display = random.sample(range(test_embeddings.shape[0]), k=num_samples_in_display)
-            indexes_to_display = train_indexes_to_display + test_indexes_to_display
+            indexes_to_display = train_dataset.index + test_dataset.index
 
         # Calculate display
         embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
@@ -227,8 +229,7 @@ def run_multivariable_drift_for_embeddings(
                 test_embeddings=test_embeddings,
                 train_dataset=train_dataset,
                 test_dataset=test_dataset,
-                dataset_names=dataset_names,
-                indexes_to_display=indexes_to_display),
+                dataset_names=dataset_names, indexes_to_display=indexes_to_display),
             display_embeddings_with_domain_classifier(
                 domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings,
                 test_embeddings=test_embeddings,
