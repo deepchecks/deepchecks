@@ -312,8 +312,22 @@ def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings,
 
     domain_classifier_nodes = classifier.apply(embeddings)
 
+    node_to_label = pd.Series([0] * train_embeddings.shape[0] + [1] * test_embeddings.shape[0], index=domain_classifier_nodes)
+    node_values = node_to_label.groupby(node_to_label.index).mean()
+    node_values = node_values.sort_values()
+    # interesting_nodes = node_values[node_values<0.25].index.tolist() + node_values[node_values>0.75].index.tolist()
+
+    interesting_nodes = node_values.head(5).index.tolist() + node_values.tail(5).index.tolist()
+    pd.Series(domain_classifier_nodes).apply(lambda x: x if x in interesting_nodes else -1)
+
+    nodes_weight = top_fi_embeddings.shape[0] * 0.002
+
+    onehot = pd.get_dummies(domain_classifier_nodes) * nodes_weight
+
+    embeddings_to_reduce = embeddings.loc[:, top_fi_embeddings].join(onehot)
+
     # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
-    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_nodes)
+    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings_to_reduce)
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
