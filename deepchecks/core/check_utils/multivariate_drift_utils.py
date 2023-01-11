@@ -222,10 +222,10 @@ def run_multivariable_drift_for_embeddings(
                                top_fi_embeddings=top_fi, train_dataset=train_dataset,
                                test_dataset=test_dataset, dataset_names=dataset_names,
                                indexes_to_display=indexes_to_display),
-            display_embeddings_with_target(
-                domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings_downsampled,
+            display_embeddings_with_clusters_by_nodes(
+                train_embeddings=train_embeddings_downsampled,
                 test_embeddings=test_embeddings_downsampled,
-                top_fi_embeddings=top_fi, train_dataset=train_dataset_downsampled,
+                train_dataset=train_dataset_downsampled,
                 test_dataset=test_dataset_downsampled,
                 dataset_names=dataset_names),
             display_embeddings_with_domain_classifier(
@@ -281,8 +281,8 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
     return fig
 
 
-def display_embeddings_with_target(domain_classifier_probas, train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
-                       dataset_names):
+def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings, train_dataset, test_dataset,
+                                              dataset_names):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     import plotly.express as px
@@ -309,10 +309,10 @@ def display_embeddings_with_target(domain_classifier_probas, train_embeddings, t
 
     top_fi_embeddings = top_fi_embeddings.index.values
 
-    domain_classifier_probas = classifier.apply(embeddings)
+    domain_classifier_nodes = classifier.apply(embeddings)
 
     # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
-    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_probas)
+    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_nodes)
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
