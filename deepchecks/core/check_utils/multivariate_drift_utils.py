@@ -283,8 +283,8 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
     return fig
 
 
-def display_embeddings_with_target(domain_classifier_probas, train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
-                       dataset_names):
+def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings, train_dataset, test_dataset,
+                                              dataset_names, indexes_to_display):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     import plotly.express as px
@@ -311,16 +311,21 @@ def display_embeddings_with_target(domain_classifier_probas, train_embeddings, t
 
     top_fi_embeddings = top_fi_embeddings.index.values
 
-    domain_classifier_probas = classifier.apply(embeddings)
+    domain_classifier_nodes = classifier.apply(embeddings)
 
     # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
-    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_probas)
+    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_nodes)
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_data['dataset'] = ['train'] * train_embeddings.shape[0] + ['test'] * test_embeddings.shape[0]
     plot_data['label'] = train_dataset.label + test_dataset.label
     plot_data['sample'] = train_dataset.text + test_dataset.text
     plot_data['sample'] = plot_data['sample'].apply(clean_sample)
+
+    # Only keep relevant indexes
+    plot_data.index = train_dataset.index + test_dataset.index
+    plot_data = plot_data[plot_data.index.isin(indexes_to_display)]
+
     fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
                      title=f'{dataset_names[0]} and {dataset_names[1]} in the embeddings space (reduced dimensions by {method}) vs domain classifier probability',
                      height=600, width=1000, opacity=0.4)
