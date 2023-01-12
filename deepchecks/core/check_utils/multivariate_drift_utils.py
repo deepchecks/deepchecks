@@ -40,11 +40,8 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
                             numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
                             random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
                             max_num_categories_for_display: int, show_categories_by: str,
-                            min_meaningful_drift_score: float,
-                            with_display: bool,
-                            dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
-                            feature_importance_timeout: int = 120,
-                            ):
+                            min_meaningful_drift_score: float, with_display: bool,
+                            dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES, feature_importance_timeout: int = 120, ):
     """Calculate multivariable drift."""
     train_sample_df = train_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
     test_sample_df = test_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
@@ -56,8 +53,7 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     domain_class_labels = pd.Series([0] * len(train_sample_df) + [1] * len(test_sample_df))
 
     x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(domain_class_df), domain_class_labels,
-                                                        stratify=domain_class_labels,
-                                                        random_state=random_state,
+                                                        stratify=domain_class_labels, random_state=random_state,
                                                         test_size=test_size)
 
     # train a model to disguise between train and test samples
@@ -72,29 +68,18 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
 
     # calculate feature importance of domain_classifier, containing the information which features separate
     # the dataset best.
-    fi, importance_type = calculate_feature_importance_or_none(
-        domain_classifier,
-        domain_test_dataset,
-        model_classes=[0, 1],
-        observed_classes=[0, 1],
-        task_type=TaskType.BINARY,
-        force_permutation=True,
-        permutation_kwargs={'n_repeats': 10,
-                            'random_state': random_state,
-                            'timeout': feature_importance_timeout,
-                            'skip_messages': True}
-    )
+    fi, importance_type = calculate_feature_importance_or_none(domain_classifier, domain_test_dataset,
+        model_classes=[0, 1], observed_classes=[0, 1], task_type=TaskType.BINARY, force_permutation=True,
+        permutation_kwargs={'n_repeats': 10, 'random_state': random_state, 'timeout': feature_importance_timeout,
+                            'skip_messages': True})
 
     fi = fi.sort_values(ascending=False) if fi is not None else None
 
     domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
     drift_score = auc_to_drift_score(domain_classifier_auc)
 
-    values_dict = {
-        'domain_classifier_auc': domain_classifier_auc,
-        'domain_classifier_drift_score': drift_score,
-        'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {},
-    }
+    values_dict = {'domain_classifier_auc': domain_classifier_auc, 'domain_classifier_drift_score': drift_score,
+        'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {}, }
 
     feature_importance_note = f"""
     <span>
@@ -112,41 +97,22 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     if top_fi is not None and len(top_fi):
         score = values_dict['domain_classifier_drift_score']
 
-        displays = [
-            feature_importance_note,
-            build_drift_plot(score),
-            '<h3>Main features contributing to drift</h3>',
-            N_TOP_MESSAGE % n_top_columns,
-            get_drift_plot_sidenote(max_num_categories_for_display, show_categories_by),
-            *(
-                display_dist(
-                    train_sample_df[feature],
-                    test_sample_df[feature],
-                    top_fi,
-                    cat_features,
-                    max_num_categories_for_display,
-                    show_categories_by,
-                    dataset_names)
-                for feature in top_fi.index
-            )
-        ]
+        displays = [feature_importance_note, build_drift_plot(score), '<h3>Main features contributing to drift</h3>',
+            N_TOP_MESSAGE % n_top_columns, get_drift_plot_sidenote(max_num_categories_for_display, show_categories_by),
+            *(display_dist(train_sample_df[feature], test_sample_df[feature], top_fi, cat_features,
+                max_num_categories_for_display, show_categories_by, dataset_names) for feature in top_fi.index)]
     else:
         displays = None
 
     return values_dict, displays
 
 
-def run_multivariable_drift_for_embeddings(
-        train_embeddings: pd.DataFrame, test_embeddings: pd.DataFrame,
-        train_dataset, test_dataset,  # Type TextData but I don't want to import
-        numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
-        random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
-        min_meaningful_drift_score: float, num_samples_in_display: int,
-        with_display: bool,
-        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
-        train_indexes_to_highlight: List[int] = [],
-        test_indexes_to_highlight: List[int] = [],
-):
+def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_embeddings: pd.DataFrame, train_dataset,
+        test_dataset,  # Type TextData but I don't want to import
+        numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int, random_state: int,
+        test_size: float, n_top_columns: int, min_feature_importance: float, min_meaningful_drift_score: float,
+        num_samples_in_display: int, with_display: bool, dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
+        train_indexes_to_highlight: List[int] = [], test_indexes_to_highlight: List[int] = [], ):
     """Calculate multivariable drift."""
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
@@ -163,8 +129,7 @@ def run_multivariable_drift_for_embeddings(
     domain_class_labels = pd.Series([0] * len(train_sample_df) + [1] * len(test_sample_df))
 
     x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(domain_class_df), domain_class_labels,
-                                                        stratify=domain_class_labels,
-                                                        random_state=random_state,
+                                                        stratify=domain_class_labels, random_state=random_state,
                                                         test_size=test_size)
 
     # train a model to disguise between train and test samples
@@ -183,11 +148,8 @@ def run_multivariable_drift_for_embeddings(
     domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
     drift_score = auc_to_drift_score(domain_classifier_auc)
 
-    values_dict = {
-        'domain_classifier_auc': domain_classifier_auc,
-        'domain_classifier_drift_score': drift_score,
-        'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {},
-    }
+    values_dict = {'domain_classifier_auc': domain_classifier_auc, 'domain_classifier_drift_score': drift_score,
+        'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {}, }
 
     feature_importance_note = f"""
     <span>
@@ -202,7 +164,7 @@ def run_multivariable_drift_for_embeddings(
     else:
         top_fi = None
 
-    if top_fi is not None and len(top_fi):
+    if True:
         score = values_dict['domain_classifier_drift_score']
         # Sample data before display calculations
         num_samples_in_display = min(num_samples_in_display, sample_size)
@@ -219,44 +181,46 @@ def run_multivariable_drift_for_embeddings(
         embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
         domain_classifier_probas = domain_classifier.predict_proba(floatify_dataframe(embeddings_for_display))[:, 1]
 
-        displays = [
-            feature_importance_note,
+        print(f'Domain classifier AUC is {domain_classifier_auc}')
+        displays = [#feature_importance_note,
             build_drift_plot(score),
-            display_embeddings(train_embeddings=train_embeddings,
-                               test_embeddings=test_embeddings,
-                               top_fi_embeddings=top_fi, train_dataset=train_dataset,
-                               test_dataset=test_dataset, train_indexes_to_highlight=train_indexes_to_highlight,
-                               test_indexes_to_highlight=test_indexes_to_highlight),
-            display_embeddings_with_clusters_by_nodes(
-                train_embeddings=train_embeddings,
-                test_embeddings=test_embeddings,
-                train_dataset=train_dataset,
-                test_dataset=test_dataset,
-                train_indexes_to_highlight=train_indexes_to_highlight,
+            # display_embeddings(train_embeddings=train_embeddings,
+            #                    test_embeddings=test_embeddings,
+            #                    top_fi_embeddings=top_fi, train_dataset=train_dataset,
+            #                    test_dataset=test_dataset, train_indexes_to_highlight=train_indexes_to_highlight,
+            #                    test_indexes_to_highlight=test_indexes_to_highlight),
+            # display_embeddings_with_clusters_by_nodes(
+            #     train_embeddings=train_embeddings,
+            #     test_embeddings=test_embeddings,
+            #     train_dataset=train_dataset,
+            #     test_dataset=test_dataset,
+            #     train_indexes_to_highlight=train_indexes_to_highlight,
+            #     test_indexes_to_highlight=test_indexes_to_highlight),
+            display_embeddings_with_clusters_proba_as_target(train_embeddings=train_embeddings,
+                                                                  test_embeddings=test_embeddings,
+                                                                  train_dataset=train_dataset,
+                                                                  test_dataset=test_dataset,
+                                                                  domain_classifier_fi=fi,
+                                                                  train_indexes_to_highlight=train_indexes_to_highlight,
+                                                                  test_indexes_to_highlight=test_indexes_to_highlight,
+                                                             domain_classifier_probas=domain_classifier_probas),
+            display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings=train_embeddings,
+                test_embeddings=test_embeddings, train_dataset=train_dataset, test_dataset=test_dataset,
+                domain_classifier_fi=fi, train_indexes_to_highlight=train_indexes_to_highlight,
                 test_indexes_to_highlight=test_indexes_to_highlight),
-            display_embeddings_with_clusters_by_nodes_with_onehot(
-                train_embeddings=train_embeddings,
-                test_embeddings=test_embeddings,
-                train_dataset=train_dataset,
-                test_dataset=test_dataset,
+            display_embeddings_with_domain_classifier(domain_classifier_probas=domain_classifier_probas,
+                train_embeddings=train_embeddings, test_embeddings=test_embeddings, top_fi_embeddings=top_fi,
+                train_dataset=train_dataset, test_dataset=test_dataset,
                 train_indexes_to_highlight=train_indexes_to_highlight,
-                               test_indexes_to_highlight=test_indexes_to_highlight),
-            display_embeddings_with_domain_classifier(
-                domain_classifier_probas=domain_classifier_probas, train_embeddings=train_embeddings,
-                test_embeddings=test_embeddings,
-                top_fi_embeddings=top_fi, train_dataset=train_dataset,
-                test_dataset=test_dataset,
-                train_indexes_to_highlight=train_indexes_to_highlight,
-                               test_indexes_to_highlight=test_indexes_to_highlight)
-        ]
+                test_indexes_to_highlight=test_indexes_to_highlight)]
     else:
         displays = None
 
     return values_dict, displays
 
 
-def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
-                         train_dataset, train_indexes_to_highlight):
+def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
+                         train_indexes_to_highlight, indexes_per_node=None):
     import plotly.express as px
     plot_data['dataset'] = ['train_full'] * len(train_dataset.index) + ['test_full'] * len(test_dataset.index)
     plot_data['label'] = train_dataset.label + test_dataset.label
@@ -265,19 +229,27 @@ def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_hi
 
     # Only keep relevant indexes
     plot_data.index = train_dataset.index + test_dataset.index
-    train_to_add = plot_data[plot_data.index.isin(train_indexes_to_highlight)].copy()
-    train_to_add['dataset'] = 'classes_only_in_train'
-    test_to_add = plot_data[plot_data.index.isin(test_indexes_to_highlight)].copy()
-    test_to_add['dataset'] = 'classes_only_in_test'
-    plot_data = pd.concat([plot_data, train_to_add, test_to_add], ignore_index=True)
+    if indexes_per_node is None:
+        train_to_add = plot_data[plot_data.index.isin(train_indexes_to_highlight)].copy()
+        train_to_add['dataset'] = 'classes_only_in_train'
+        test_to_add = plot_data[plot_data.index.isin(test_indexes_to_highlight)].copy()
+        test_to_add['dataset'] = 'classes_only_in_test'
+        plot_data = pd.concat([plot_data, train_to_add, test_to_add], ignore_index=True)
+    else:
+        stuff_to_add = []
+        for node_id, indexes in indexes_per_node.items():
+            to_add = plot_data[plot_data.index.isin(indexes)].copy()
+            to_add['dataset'] = f'node_{node_id}'
+            stuff_to_add.append(to_add)
+        plot_data = pd.concat([plot_data] + stuff_to_add, ignore_index=True)
+
     fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
-                     title=plot_title, color_discrete_sequence=['red', 'green', 'blue', 'orange'],
-                     height=1000, width=1000, opacity=0.4)
-    fig.update_traces(marker=dict(size=8,
-                                  line=dict(width=1,
-                                            color='DarkSlateGrey')),
-                      selector=dict(mode='markers'))
+                     title=plot_title, height=1000,
+                     # color_discrete_sequence=['red', 'green', 'blue', 'orange'],
+                     width=1000, opacity=0.4)
+    fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
     return fig
+
 
 def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
                        train_indexes_to_highlight: List[int], test_indexes_to_highlight: List[int]):
@@ -300,12 +272,13 @@ def display_embeddings(train_embeddings, test_embeddings, top_fi_embeddings, tra
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features'
-    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
-                                train_dataset, train_indexes_to_highlight)
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
+                                train_indexes_to_highlight)
 
 
 def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings, train_dataset, test_dataset,
-                                              train_indexes_to_highlight: List[int], test_indexes_to_highlight: List[int]):
+                                              train_indexes_to_highlight: List[int],
+                                              test_indexes_to_highlight: List[int]):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     from umap import UMAP
@@ -334,21 +307,47 @@ def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings,
     domain_classifier_nodes = classifier.apply(embeddings)
 
     # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
-    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings], y=domain_classifier_nodes)
+    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings],
+                                                                             y=domain_classifier_nodes)
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features with tree-based nodes as a target'
-    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
-                                train_dataset, train_indexes_to_highlight)
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
+                                train_indexes_to_highlight)
 
 
-def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test_embeddings, train_dataset, test_dataset,
-                                              train_indexes_to_highlight: List[int], test_indexes_to_highlight: List[int]):
+def display_embeddings_with_clusters_proba_as_target(train_embeddings, test_embeddings, train_dataset,
+                                                          test_dataset, domain_classifier_fi,
+                                                          train_indexes_to_highlight: List[int],
+                                                          test_indexes_to_highlight: List[int],
+                                                     domain_classifier_probas):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
-    import plotly.express as px
     from umap import UMAP
-    # from sklearn.decomposition import PCA
+
+    method = 'UMAP'
+    # method = 'PCA'
+
+    embeddings = pd.concat([train_embeddings, test_embeddings])
+    top_fi_embeddings = domain_classifier_fi.head(20)
+    top_fi_embeddings = top_fi_embeddings.loc[top_fi_embeddings > 0.01].index.values
+    data_to_reduce = embeddings.loc[:, top_fi_embeddings]
+    reduced_data = UMAP(n_components=2, random_state=42).fit_transform(data_to_reduce, y=domain_classifier_probas)
+
+    plot_data = pd.DataFrame(reduced_data)
+    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} ' \
+                 f'features with proba as target'
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
+                                train_indexes_to_highlight)
+
+
+def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test_embeddings, train_dataset,
+                                                          test_dataset, domain_classifier_fi,
+                                                          train_indexes_to_highlight: List[int],
+                                                          test_indexes_to_highlight: List[int]):
+    # TODO: Prototype, go over and make sure code+docs+tests are good
+
+    from umap import UMAP
 
     method = 'UMAP'
     # method = 'PCA'
@@ -356,50 +355,44 @@ def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test
     embeddings = pd.concat([train_embeddings, test_embeddings])
 
     from sklearn.tree import DecisionTreeClassifier
-    classifier = DecisionTreeClassifier(max_depth=10, min_samples_leaf=50, random_state=42)
     domain_class_labels = pd.Series([0] * len(train_embeddings) + [1] * len(test_embeddings))
+    train, test, train_labels, test_labels = train_test_split(embeddings, domain_class_labels, test_size=0.2,
+                                                              random_state=42)
+    min_cluster_size = max(50, int(len(train) * 0.04))
+    classifier = DecisionTreeClassifier(max_depth=8, min_samples_leaf=min_cluster_size,
+                                        random_state=42, criterion='entropy')
+    classifier.fit(train, train_labels)
+    classifier_auc = roc_auc_score(test_labels, classifier.predict_proba(test)[:, 1])
+    print(f'Classifier AUC: {classifier_auc}')
 
-    classifier.fit(embeddings, domain_class_labels)
+    tree_node_values = test_labels.groupby(classifier.apply(test)).mean()
+    interesting_nodes = tree_node_values[tree_node_values < 0.25].index.tolist() + \
+                        tree_node_values[tree_node_values > 0.75].index.tolist()
+    print(f'Number of interesting nodes: {len(interesting_nodes)}')
 
-    fi = pd.Series(classifier.feature_importances_, index=train_embeddings.columns)
+    train_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(train)), index=train.index)
+    test_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(test)), index=test.index)
+    node_per_sample = pd.concat([train_node_ids, test_node_ids])
+    one_hot_node_data = pd.get_dummies(node_per_sample).iloc[:,1:] * ([0.01] * len(interesting_nodes))
 
-    fi = fi.sort_values(ascending=False) if fi is not None else None
+    top_fi_embeddings = domain_classifier_fi.head(20)
+    top_fi_embeddings = top_fi_embeddings.loc[top_fi_embeddings > 0.01].index.values
+    data_to_reduce = embeddings.loc[:, top_fi_embeddings].join(one_hot_node_data)
+    reduced_data = UMAP(n_components=2, random_state=42).fit_transform(data_to_reduce)
 
-    top_fi_embeddings = fi.head(20)
-    top_fi_embeddings = top_fi_embeddings.loc[top_fi_embeddings > 0.01]
-
-    top_fi_embeddings = top_fi_embeddings.index.values
-
-    domain_classifier_nodes = classifier.apply(embeddings)
-
-    node_to_label = pd.Series([0] * train_embeddings.shape[0] + [1] * test_embeddings.shape[0], index=domain_classifier_nodes)
-    node_values = node_to_label.groupby(node_to_label.index).mean()
-    node_values = node_values.sort_values()
-    # interesting_nodes = node_values[node_values<0.25].index.tolist() + node_values[node_values>0.75].index.tolist()
-
-    interesting_nodes = node_values.head(5).index.tolist() + node_values.tail(5).index.tolist()
-    pd.Series(domain_classifier_nodes).apply(lambda x: x if x in interesting_nodes else -1)
-
-    nodes_weight = top_fi_embeddings.shape[0] * 0.002
-
-    onehot = pd.get_dummies(domain_classifier_nodes) * nodes_weight
-    onehot = onehot.set_index(embeddings.index)
-
-    embeddings_to_reduce = embeddings.loc[:, top_fi_embeddings].join(onehot)
-
-    # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
-    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings_to_reduce)
-
-    plot_data = pd.DataFrame(reduced_embeddings)
-    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features with one-hot-encoded top {len(interesting_nodes)} tree-based nodes as additional embeddings'
-    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
-                                train_dataset, train_indexes_to_highlight)
-
+    plot_data = pd.DataFrame(reduced_data)
+    nodes_ids = sorted(node_per_sample.unique())[1:]
+    nodes_to_highlight = {x:list(node_per_sample[node_per_sample == x].index) for x in nodes_ids}
+    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} ' \
+                 f'features with one-hot-encoded top {len(interesting_nodes)} nodes as additional embeddings'
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
+                                train_indexes_to_highlight, nodes_to_highlight)
 
 
 def display_embeddings_with_domain_classifier(domain_classifier_probas, train_embeddings, test_embeddings,
                                               top_fi_embeddings, train_dataset, test_dataset,
-                                              train_indexes_to_highlight: List[int], test_indexes_to_highlight: List[int]):
+                                              train_indexes_to_highlight: List[int],
+                                              test_indexes_to_highlight: List[int]):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     # from umap import UMAP
@@ -417,9 +410,9 @@ def display_embeddings_with_domain_classifier(domain_classifier_probas, train_em
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_data[1] = domain_classifier_probas
-    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features with domain classifier probas as a target'
-    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight,
-                                train_dataset, train_indexes_to_highlight)
+    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features to 1 dimension with probas as y axis'
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
+                                train_indexes_to_highlight)
 
 
 def clean_sample(s: str, max_size: int = 100):
@@ -458,52 +451,25 @@ def build_drift_plot(score):
     """Build traffic light drift plot."""
     bar_traces, x_axis, y_axis = drift_score_bar_traces(score)
     x_axis['title'] = 'Drift score'
-    drift_plot = go.Figure(layout=dict(
-        title='Drift Score - Multivariable',
-        xaxis=x_axis,
-        yaxis=y_axis,
-        height=200
-    ))
+    drift_plot = go.Figure(layout=dict(title='Drift Score - Multivariable', xaxis=x_axis, yaxis=y_axis, height=200))
 
     drift_plot.add_traces(bar_traces)
     return drift_plot
 
 
-def display_dist(
-        train_column: pd.Series,
-        test_column: pd.Series,
-        fi: pd.Series,
-        cat_features: Container[str],
-        max_num_categories: int,
-        show_categories_by: str,
-        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
-):
+def display_dist(train_column: pd.Series, test_column: pd.Series, fi: pd.Series, cat_features: Container[str],
+        max_num_categories: int, show_categories_by: str, dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES):
     """Create a distribution comparison plot for the given columns."""
     column_name = train_column.name or ''
     column_fi = fi.loc[column_name]
     title = f'Feature: {column_name} - Explains {format_percent(column_fi)} of dataset difference'
 
-    dist_traces, xaxis_layout, yaxis_layout = feature_distribution_traces(
-        train_column.dropna(),
-        test_column.dropna(),
-        column_name,
-        is_categorical=column_name in cat_features,
-        max_num_categories=max_num_categories,
-        show_categories_by=show_categories_by,
-        dataset_names=dataset_names
-    )
+    dist_traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_column.dropna(), test_column.dropna(),
+        column_name, is_categorical=column_name in cat_features, max_num_categories=max_num_categories,
+        show_categories_by=show_categories_by, dataset_names=dataset_names)
 
     fig = go.Figure()
     fig.add_traces(dist_traces)
 
-    return fig.update_layout(go.Layout(
-        title=title,
-        xaxis=xaxis_layout,
-        yaxis=yaxis_layout,
-        legend=dict(
-            title='Dataset',
-            yanchor='top',
-            y=0.9,
-            xanchor='left'),
-        height=300
-    ))
+    return fig.update_layout(go.Layout(title=title, xaxis=xaxis_layout, yaxis=yaxis_layout,
+        legend=dict(title='Dataset', yanchor='top', y=0.9, xanchor='left'), height=300))
