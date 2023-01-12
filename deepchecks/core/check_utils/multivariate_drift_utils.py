@@ -176,14 +176,12 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
         score = values_dict['domain_classifier_drift_score']
         # Sample data before display calculations
         num_samples_in_display = min(num_samples_in_display, sample_size)
-        train_dataset = train_dataset.sample(num_samples_in_display, random_state=42)
-        train_embeddings = train_embeddings[train_embeddings.index.isin(train_dataset.index)]
-        # train_embeddings = train_embeddings.iloc[train_dataset.index]
-        train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset.index]
-        test_dataset = test_dataset.sample(num_samples_in_display, random_state=42)
-        test_embeddings = test_embeddings[test_embeddings.index.isin(test_dataset.index)]
-        # test_embeddings = test_embeddings.iloc[test_dataset.index]
-        test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset.index]
+        train_dataset_for_display = train_dataset.sample(num_samples_in_display, random_state=42)
+        train_embeddings = train_embeddings.loc[train_dataset_for_display.index]
+        train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset_for_display.index]
+        test_dataset_for_display = test_dataset.sample(num_samples_in_display, random_state=42)
+        test_embeddings = test_embeddings.loc[test_dataset_for_display.index]
+        test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset_for_display.index]
 
         # Calculate display
         embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
@@ -194,34 +192,34 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
             build_drift_plot(score),
             display_embeddings(train_embeddings=train_embeddings,
                                test_embeddings=test_embeddings,
-                               top_fi_embeddings=top_fi, train_dataset=train_dataset,
-                               test_dataset=test_dataset, train_indexes_to_highlight=train_indexes_to_highlight,
+                               top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
+                               test_dataset=test_dataset_for_display, train_indexes_to_highlight=train_indexes_to_highlight,
                                test_indexes_to_highlight=test_indexes_to_highlight),
             display_embeddings_with_clusters_by_nodes(
                 train_embeddings=train_embeddings,
                 test_embeddings=test_embeddings,
                 top_fi_embeddings=fi,
-                train_dataset=train_dataset,
-                test_dataset=test_dataset,
+                train_dataset=train_dataset_for_display,
+                test_dataset=test_dataset_for_display,
                 train_indexes_to_highlight=train_indexes_to_highlight,
                 test_indexes_to_highlight=test_indexes_to_highlight),
             display_embeddings_with_clusters_proba_as_target(train_embeddings=train_embeddings,
                                                              test_embeddings=test_embeddings,
-                                                             train_dataset=train_dataset, test_dataset=test_dataset,
+                                                             train_dataset=train_dataset_for_display, test_dataset=test_dataset_for_display,
                                                              top_fi_embeddings=top_fi,
                                                              train_indexes_to_highlight=train_indexes_to_highlight,
                                                              test_indexes_to_highlight=test_indexes_to_highlight,
                                                              domain_classifier_probas=domain_classifier_probas),
             display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings=train_embeddings,
                                                                   test_embeddings=test_embeddings,
-                                                                  train_dataset=train_dataset,
-                                                                  test_dataset=test_dataset, top_fi_embeddings=top_fi,
+                                                                  train_dataset=train_dataset_for_display,
+                                                                  test_dataset=test_dataset_for_display, top_fi_embeddings=top_fi,
                                                                   train_indexes_to_highlight=train_indexes_to_highlight,
                                                                   test_indexes_to_highlight=test_indexes_to_highlight),
             display_embeddings_with_domain_classifier(domain_classifier_probas=domain_classifier_probas,
                                                       train_embeddings=train_embeddings,
                                                       test_embeddings=test_embeddings, top_fi_embeddings=top_fi,
-                                                      train_dataset=train_dataset, test_dataset=test_dataset,
+                                                      train_dataset=train_dataset_for_display, test_dataset=test_dataset_for_display,
                                                       train_indexes_to_highlight=train_indexes_to_highlight,
                                                       test_indexes_to_highlight=test_indexes_to_highlight)]
     else:
@@ -368,11 +366,8 @@ def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test
         tree_node_values > 0.75].index.tolist()
     print(f'Number of interesting nodes: {len(interesting_nodes)}')
 
-    train_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(train)),
-                               index=train.index)
-    test_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(test)), index=test.index)
-    node_per_sample = pd.concat([train_node_ids, test_node_ids])
-    one_hot_node_data = pd.get_dummies(node_per_sample).iloc[:, 1:] * ([0.01] * len(interesting_nodes))
+    node_per_sample = pd.Series(classifier.apply(embeddings), index=embeddings.index)
+    one_hot_node_data = pd.get_dummies(node_per_sample) * 0.01 * len(interesting_nodes)
 
     data_to_reduce = embeddings.loc[:, top_fi_embeddings.index].join(one_hot_node_data)
     reduced_data = UMAP(n_components=2, random_state=42).fit_transform(data_to_reduce)
