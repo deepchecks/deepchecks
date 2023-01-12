@@ -69,9 +69,12 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     # calculate feature importance of domain_classifier, containing the information which features separate
     # the dataset best.
     fi, importance_type = calculate_feature_importance_or_none(domain_classifier, domain_test_dataset,
-        model_classes=[0, 1], observed_classes=[0, 1], task_type=TaskType.BINARY, force_permutation=True,
-        permutation_kwargs={'n_repeats': 10, 'random_state': random_state, 'timeout': feature_importance_timeout,
-                            'skip_messages': True})
+                                                               model_classes=[0, 1], observed_classes=[0, 1],
+                                                               task_type=TaskType.BINARY, force_permutation=True,
+                                                               permutation_kwargs={'n_repeats': 10,
+                                                                                   'random_state': random_state,
+                                                                                   'timeout': feature_importance_timeout,
+                                                                                   'skip_messages': True})
 
     fi = fi.sort_values(ascending=False) if fi is not None else None
 
@@ -79,7 +82,7 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     drift_score = auc_to_drift_score(domain_classifier_auc)
 
     values_dict = {'domain_classifier_auc': domain_classifier_auc, 'domain_classifier_drift_score': drift_score,
-        'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {}, }
+                   'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {}, }
 
     feature_importance_note = f"""
     <span>
@@ -98,9 +101,11 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
         score = values_dict['domain_classifier_drift_score']
 
         displays = [feature_importance_note, build_drift_plot(score), '<h3>Main features contributing to drift</h3>',
-            N_TOP_MESSAGE % n_top_columns, get_drift_plot_sidenote(max_num_categories_for_display, show_categories_by),
-            *(display_dist(train_sample_df[feature], test_sample_df[feature], top_fi, cat_features,
-                max_num_categories_for_display, show_categories_by, dataset_names) for feature in top_fi.index)]
+                    N_TOP_MESSAGE % n_top_columns,
+                    get_drift_plot_sidenote(max_num_categories_for_display, show_categories_by), *(
+                display_dist(train_sample_df[feature], test_sample_df[feature], top_fi, cat_features,
+                             max_num_categories_for_display, show_categories_by, dataset_names) for feature in
+                top_fi.index)]
     else:
         displays = None
 
@@ -108,11 +113,14 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
 
 
 def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_embeddings: pd.DataFrame, train_dataset,
-        test_dataset,  # Type TextData but I don't want to import
-        numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int, random_state: int,
-        test_size: float, n_top_columns: int, min_feature_importance: float, min_meaningful_drift_score: float,
-        num_samples_in_display: int, with_display: bool, dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
-        train_indexes_to_highlight: List[int] = [], test_indexes_to_highlight: List[int] = [], ):
+                                           test_dataset,  # Type TextData but I don't want to import
+                                           numerical_features: List[Hashable], cat_features: List[Hashable],
+                                           sample_size: int, random_state: int, test_size: float, n_top_columns: int,
+                                           min_feature_importance: float, min_meaningful_drift_score: float,
+                                           num_samples_in_display: int, with_display: bool,
+                                           dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
+                                           train_indexes_to_highlight: List[int] = [],
+                                           test_indexes_to_highlight: List[int] = [], ):
     """Calculate multivariable drift."""
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
@@ -149,7 +157,7 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
     drift_score = auc_to_drift_score(domain_classifier_auc)
 
     values_dict = {'domain_classifier_auc': domain_classifier_auc, 'domain_classifier_drift_score': drift_score,
-        'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {}, }
+                   'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {}, }
 
     feature_importance_note = f"""
     <span>
@@ -182,9 +190,8 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
         domain_classifier_probas = domain_classifier.predict_proba(floatify_dataframe(embeddings_for_display))[:, 1]
 
         print(f'Domain classifier AUC is {domain_classifier_auc}')
-        displays = [#feature_importance_note,
-            build_drift_plot(score),
-            # display_embeddings(train_embeddings=train_embeddings,
+        displays = [  # feature_importance_note,
+            build_drift_plot(score),  # display_embeddings(train_embeddings=train_embeddings,
             #                    test_embeddings=test_embeddings,
             #                    top_fi_embeddings=top_fi, train_dataset=train_dataset,
             #                    test_dataset=test_dataset, train_indexes_to_highlight=train_indexes_to_highlight,
@@ -197,22 +204,24 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
             #     train_indexes_to_highlight=train_indexes_to_highlight,
             #     test_indexes_to_highlight=test_indexes_to_highlight),
             display_embeddings_with_clusters_proba_as_target(train_embeddings=train_embeddings,
-                                                                  test_embeddings=test_embeddings,
-                                                                  train_dataset=train_dataset,
-                                                                  test_dataset=test_dataset,
-                                                                  domain_classifier_fi=fi,
-                                                                  train_indexes_to_highlight=train_indexes_to_highlight,
-                                                                  test_indexes_to_highlight=test_indexes_to_highlight,
+                                                             test_embeddings=test_embeddings,
+                                                             train_dataset=train_dataset, test_dataset=test_dataset,
+                                                             domain_classifier_fi=fi,
+                                                             train_indexes_to_highlight=train_indexes_to_highlight,
+                                                             test_indexes_to_highlight=test_indexes_to_highlight,
                                                              domain_classifier_probas=domain_classifier_probas),
             display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings=train_embeddings,
-                test_embeddings=test_embeddings, train_dataset=train_dataset, test_dataset=test_dataset,
-                domain_classifier_fi=fi, train_indexes_to_highlight=train_indexes_to_highlight,
-                test_indexes_to_highlight=test_indexes_to_highlight),
+                                                                  test_embeddings=test_embeddings,
+                                                                  train_dataset=train_dataset,
+                                                                  test_dataset=test_dataset, domain_classifier_fi=fi,
+                                                                  train_indexes_to_highlight=train_indexes_to_highlight,
+                                                                  test_indexes_to_highlight=test_indexes_to_highlight),
             display_embeddings_with_domain_classifier(domain_classifier_probas=domain_classifier_probas,
-                train_embeddings=train_embeddings, test_embeddings=test_embeddings, top_fi_embeddings=top_fi,
-                train_dataset=train_dataset, test_dataset=test_dataset,
-                train_indexes_to_highlight=train_indexes_to_highlight,
-                test_indexes_to_highlight=test_indexes_to_highlight)]
+                                                      train_embeddings=train_embeddings,
+                                                      test_embeddings=test_embeddings, top_fi_embeddings=top_fi,
+                                                      train_dataset=train_dataset, test_dataset=test_dataset,
+                                                      train_indexes_to_highlight=train_indexes_to_highlight,
+                                                      test_indexes_to_highlight=test_indexes_to_highlight)]
     else:
         displays = None
 
@@ -244,8 +253,7 @@ def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_hi
         plot_data = pd.concat([plot_data] + stuff_to_add, ignore_index=True)
 
     fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
-                     title=plot_title, height=1000,
-                     # color_discrete_sequence=['red', 'green', 'blue', 'orange'],
+                     title=plot_title, height=1000,  # color_discrete_sequence=['red', 'green', 'blue', 'orange'],
                      width=1000, opacity=0.4)
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
     return fig
@@ -316,11 +324,9 @@ def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings,
                                 train_indexes_to_highlight)
 
 
-def display_embeddings_with_clusters_proba_as_target(train_embeddings, test_embeddings, train_dataset,
-                                                          test_dataset, domain_classifier_fi,
-                                                          train_indexes_to_highlight: List[int],
-                                                          test_indexes_to_highlight: List[int],
-                                                     domain_classifier_probas):
+def display_embeddings_with_clusters_proba_as_target(train_embeddings, test_embeddings, train_dataset, test_dataset,
+                                                     domain_classifier_fi, train_indexes_to_highlight: List[int],
+                                                     test_indexes_to_highlight: List[int], domain_classifier_probas):
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
     from umap import UMAP
@@ -359,21 +365,22 @@ def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test
     train, test, train_labels, test_labels = train_test_split(embeddings, domain_class_labels, test_size=0.2,
                                                               random_state=42)
     min_cluster_size = max(50, int(len(train) * 0.04))
-    classifier = DecisionTreeClassifier(max_depth=8, min_samples_leaf=min_cluster_size,
-                                        random_state=42, criterion='entropy')
+    classifier = DecisionTreeClassifier(max_depth=8, min_samples_leaf=min_cluster_size, random_state=42,
+                                        criterion='entropy')
     classifier.fit(train, train_labels)
     classifier_auc = roc_auc_score(test_labels, classifier.predict_proba(test)[:, 1])
     print(f'Classifier AUC: {classifier_auc}')
 
     tree_node_values = test_labels.groupby(classifier.apply(test)).mean()
-    interesting_nodes = tree_node_values[tree_node_values < 0.25].index.tolist() + \
-                        tree_node_values[tree_node_values > 0.75].index.tolist()
+    interesting_nodes = tree_node_values[tree_node_values < 0.25].index.tolist() + tree_node_values[
+        tree_node_values > 0.75].index.tolist()
     print(f'Number of interesting nodes: {len(interesting_nodes)}')
 
-    train_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(train)), index=train.index)
+    train_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(train)),
+                               index=train.index)
     test_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(test)), index=test.index)
     node_per_sample = pd.concat([train_node_ids, test_node_ids])
-    one_hot_node_data = pd.get_dummies(node_per_sample).iloc[:,1:] * ([0.01] * len(interesting_nodes))
+    one_hot_node_data = pd.get_dummies(node_per_sample).iloc[:, 1:] * ([0.01] * len(interesting_nodes))
 
     top_fi_embeddings = domain_classifier_fi.head(20)
     top_fi_embeddings = top_fi_embeddings.loc[top_fi_embeddings > 0.01].index.values
@@ -382,7 +389,7 @@ def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test
 
     plot_data = pd.DataFrame(reduced_data)
     nodes_ids = sorted(node_per_sample.unique())[1:]
-    nodes_to_highlight = {x:list(node_per_sample[node_per_sample == x].index) for x in nodes_ids}
+    nodes_to_highlight = {x: list(node_per_sample[node_per_sample == x].index) for x in nodes_ids}
     plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} ' \
                  f'features with one-hot-encoded top {len(interesting_nodes)} nodes as additional embeddings'
     return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
@@ -458,18 +465,21 @@ def build_drift_plot(score):
 
 
 def display_dist(train_column: pd.Series, test_column: pd.Series, fi: pd.Series, cat_features: Container[str],
-        max_num_categories: int, show_categories_by: str, dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES):
+                 max_num_categories: int, show_categories_by: str, dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES):
     """Create a distribution comparison plot for the given columns."""
     column_name = train_column.name or ''
     column_fi = fi.loc[column_name]
     title = f'Feature: {column_name} - Explains {format_percent(column_fi)} of dataset difference'
 
     dist_traces, xaxis_layout, yaxis_layout = feature_distribution_traces(train_column.dropna(), test_column.dropna(),
-        column_name, is_categorical=column_name in cat_features, max_num_categories=max_num_categories,
-        show_categories_by=show_categories_by, dataset_names=dataset_names)
+                                                                          column_name,
+                                                                          is_categorical=column_name in cat_features,
+                                                                          max_num_categories=max_num_categories,
+                                                                          show_categories_by=show_categories_by,
+                                                                          dataset_names=dataset_names)
 
     fig = go.Figure()
     fig.add_traces(dist_traces)
 
     return fig.update_layout(go.Layout(title=title, xaxis=xaxis_layout, yaxis=yaxis_layout,
-        legend=dict(title='Dataset', yanchor='top', y=0.9, xanchor='left'), height=300))
+                                       legend=dict(title='Dataset', yanchor='top', y=0.9, xanchor='left'), height=300))
