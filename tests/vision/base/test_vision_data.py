@@ -24,7 +24,7 @@ from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.utils.test_utils import replace_collate_fn_dataloader
 from deepchecks.vision.vision_data.utils import validate_vision_data_compatibility
 from deepchecks.vision.vision_data import VisionData
-from tests.vision.vision_conftest import run_update_loop
+from tests.vision.conftest import run_update_loop
 
 
 def _simple_batch_collate(batch):
