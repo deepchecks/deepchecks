@@ -14,6 +14,8 @@ from hamcrest import assert_that, equal_to, has_items, is_
 from deepchecks.tabular import Context
 from deepchecks.tabular.utils.task_type import TaskType
 
+# pylint: disable=protected-access
+
 
 def test_infer_task_type_binary(iris_dataset_single_class, iris_random_forest_single_class):
     context = Context(iris_dataset_single_class, model=iris_random_forest_single_class)

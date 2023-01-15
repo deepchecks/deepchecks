@@ -22,8 +22,8 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model, infer_task_type_by_labels, \
-    infer_task_type_by_class_number
+from deepchecks.tabular.utils.task_inference import (get_all_labels, infer_classes_from_model,
+                                                     infer_task_type_by_class_number, infer_task_type_by_labels)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
