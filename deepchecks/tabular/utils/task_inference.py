@@ -34,7 +34,7 @@ def infer_model_classes(model: Optional[BasicModel], model_classes: Optional[Lis
     return None
 
 
-def get_all_labels(model, train_dataset, test_dataset=None):
+def get_all_labels(model, train_dataset, test_dataset=None, y_pred_train=None, y_pred_test=None):
     labels = np.asarray([])
     if train_dataset:
         if train_dataset.has_label():
@@ -46,14 +46,17 @@ def get_all_labels(model, train_dataset, test_dataset=None):
             labels = np.append(labels, test_dataset.label_col.to_numpy())
         if model:
             labels = np.append(labels, sequence_to_numpy(model.predict(test_dataset.features_columns)))
+    if y_pred_train is not None:
+        labels = np.append(labels, y_pred_train)
+    if y_pred_test is not None:
+        labels = np.append(labels, y_pred_test)
 
     return pd.Series(labels) if len(labels) > 0 else pd.Series(dtype='object')
 
 
 def infer_task_type_and_classes(
-        model: Optional[BasicModel],
         train_dataset: 'tabular.Dataset',
-        test_dataset: Optional['tabular.Dataset'] = None,
+        labels: pd.Series,
         model_classes: Optional[List] = None,
         task_type=None,
         observed_classes=None):
@@ -61,9 +64,6 @@ def infer_task_type_and_classes(
     if task_type:
         # Return only task type. If observed classes are needed later they will be lazy-calculated.
         return task_type, None
-
-    # If no task type must calculate observed labels in order to infer task type.
-    labels = get_all_labels(model, train_dataset, test_dataset)
 
     # First if the user defined manually the task type (label type on dataset) we use it
     if train_dataset and train_dataset.label_type is not None:
