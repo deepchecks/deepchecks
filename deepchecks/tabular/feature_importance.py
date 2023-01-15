@@ -21,7 +21,8 @@ from deepchecks.tabular.utils.feature_importance import _calculate_feature_impor
 
 __all__ = ['calculate_feature_importance']
 
-from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model, infer_task_type_by_labels
+from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model, infer_task_type_by_labels, \
+    infer_task_type_by_class_number
 
 
 def calculate_feature_importance(
@@ -92,10 +93,16 @@ def calculate_feature_importance(
                                    'In order to force permutation feature importance, please use the Dataset'
                                    ' object.')
 
-    labels = get_all_labels(model, dataset)
     model_classes = infer_classes_from_model(model)
-    task_type = infer_task_type_by_labels(dataset, labels, model_classes)
+    labels = get_all_labels(model, dataset)
     observed_classes = sorted(labels.dropna().unique().tolist())
+
+    if dataset.label_type:
+        task_type = dataset.label_type
+    elif model_classes:
+        task_type = infer_task_type_by_class_number(len(model_classes))
+    else:
+        task_type = infer_task_type_by_labels(labels)
 
     fi, _ = _calculate_feature_importance(model=model,
                                           dataset=dataset,

@@ -234,19 +234,15 @@ class Context:
             task_type = infer_task_type_by_labels(labels)
 
         observed_classes = None
-        need_observed_classes_for_dummy_model = \
-            (model is None and model_classes is None and
-             task_type in (TaskType.BINARY, TaskType.MULTICLASS) and
-             ((y_proba_test is not None and y_pred_test is None) or
-              (y_proba_train is not None and y_pred_train is None)))
-        if need_observed_classes_for_dummy_model:
-            # Does not calculate labels twice
-            labels = labels or get_all_labels(model, train, test, y_pred_train, y_pred_test)
-            observed_classes = sorted(labels.dropna().unique().tolist())
 
         if (model is None and
                 (y_pred_train is not None or y_pred_test is not None or y_proba_train is not None
                  or y_proba_test is not None)):
+            # If there is no pred, we use the observed classes to zip between the proba and the classes
+            if y_pred_train is None and model_classes is None:
+                # Does not calculate labels twice
+                labels = labels if labels is not None else get_all_labels(model, train, test, y_pred_train, y_pred_test)
+                observed_classes = sorted(labels.dropna().unique().tolist())
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train,
@@ -397,7 +393,7 @@ class Context:
             A list of initialized & validated scorers.
         """
         scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
-        return init_validate_scorers(scorers, self.model, self.train, self.model_classes, self._observed_classes)
+        return init_validate_scorers(scorers, self.model, self.train, self.model_classes, self.observed_classes)
 
     def get_single_scorer(self,
                           scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
