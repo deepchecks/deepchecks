@@ -22,7 +22,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import get_all_labels, infer_model_classes, infer_task_type
+from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model, infer_task_type
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
@@ -223,7 +223,8 @@ class Context:
                 template='For more information please refer to the Supported Models guide {link}')
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
-        model_classes = infer_model_classes(model, model_classes)
+        if model_classes is None:
+            model_classes = infer_classes_from_model(model)
         labels = None
         if task_type is None:
             labels = get_all_labels(model, train, test, y_pred_train, y_pred_test)
@@ -422,7 +423,7 @@ class Context:
         scorer_name = next(iter(scorers))
         single_scorer_dict = {scorer_name: scorers[scorer_name]}
         return init_validate_scorers(single_scorer_dict, self.model, self.train, self.model_classes,
-                                     self._observed_classes)[0]
+                                     self.observed_classes)[0]
 
     def get_data_by_kind(self, kind: DatasetKind) -> Dataset:
         """Return the relevant Dataset by given kind."""

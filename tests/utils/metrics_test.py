@@ -20,11 +20,11 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
-from deepchecks.tabular.utils.task_inference import infer_model_classes, get_all_labels
+from deepchecks.tabular.utils.task_inference import infer_classes_from_model, get_all_labels
 
 
 def deepchecks_scorer(scorer, clf, dataset):
-    model_classes = infer_model_classes(clf)
+    model_classes = infer_classes_from_model(clf)
     labels = get_all_labels(clf, dataset)
     observed_classes = sorted(labels.unique().tolist())
     return DeepcheckScorer(scorer, model_classes, observed_classes)

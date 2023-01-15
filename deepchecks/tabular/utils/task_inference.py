@@ -23,15 +23,12 @@ from deepchecks.utils.array_math import sequence_to_numpy
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
 
-__all__ = ['infer_task_type', 'infer_model_classes', 'get_all_labels']
+__all__ = ['infer_task_type', 'infer_classes_from_model', 'get_all_labels']
 
 
-def infer_model_classes(model: Optional[BasicModel], model_classes: Optional[List] = None):
-    if model_classes:
-        return model_classes
+def infer_classes_from_model(model: Optional[BasicModel]):
     if model and hasattr(model, 'classes_') and len(model.classes_) > 0:
         return sorted(list(model.classes_))
-    return None
 
 
 def get_all_labels(model, train_dataset, test_dataset=None, y_pred_train=None, y_pred_test=None):

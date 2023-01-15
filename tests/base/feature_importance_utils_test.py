@@ -23,13 +23,15 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.utils.feature_importance import (calculate_feature_importance_or_none,
                                                          column_importance_sorter_df, column_importance_sorter_dict,
                                                          _calculate_feature_importance)
-from deepchecks.tabular.utils.task_inference import infer_task_type
+from deepchecks.tabular.utils.task_inference import infer_task_type, get_all_labels, infer_classes_from_model
 from deepchecks.tabular.utils.task_type import TaskType
 
 
 def run_fi_calculation(model, dataset,  permutation_kwargs=None, force_permutation=False):
-    task_type, observed_classes, model_classes = infer_task_type(model, dataset)
-    model_classes = model_classes if model_classes is not None else observed_classes
+    labels = get_all_labels(model, dataset)
+    model_classes = infer_classes_from_model(model)
+    task_type = infer_task_type(dataset, labels, model_classes)
+    observed_classes = sorted(labels.dropna().unique().tolist())
     return _calculate_feature_importance(model=model, dataset=dataset, model_classes=model_classes,
                                          observed_classes=observed_classes, task_type=task_type,
                                          permutation_kwargs=permutation_kwargs, force_permutation=force_permutation)

@@ -11,12 +11,12 @@
 """Test task type inference"""
 from hamcrest import assert_that, equal_to, has_items, is_
 
-from deepchecks.tabular.utils.task_inference import infer_task_type, get_all_labels, infer_model_classes
+from deepchecks.tabular.utils.task_inference import infer_task_type, get_all_labels, infer_classes_from_model
 from deepchecks.tabular.utils.task_type import TaskType
 
 
 def test_infer_task_type_binary(iris_dataset_single_class, iris_random_forest_single_class):
-    model_classes = infer_model_classes(iris_random_forest_single_class)
+    model_classes = infer_classes_from_model(iris_random_forest_single_class)
     labels = get_all_labels(iris_random_forest_single_class, iris_dataset_single_class)
     res = infer_task_type(iris_dataset_single_class, labels)
 
@@ -28,7 +28,7 @@ def test_infer_task_type_binary(iris_dataset_single_class, iris_random_forest_si
 def test_infer_task_type_multiclass(iris_split_dataset_and_model_rf):
     train_ds, _, clf = iris_split_dataset_and_model_rf
 
-    model_classes = infer_model_classes(clf)
+    model_classes = infer_classes_from_model(clf)
     labels = get_all_labels(clf, train_ds)
     res = infer_task_type(train_ds, labels)
 
@@ -40,7 +40,7 @@ def test_infer_task_type_multiclass(iris_split_dataset_and_model_rf):
 def test_infer_task_type_regression(diabetes, diabetes_model):
     train_ds, _, = diabetes
 
-    model_classes = infer_model_classes(diabetes_model)
+    model_classes = infer_classes_from_model(diabetes_model)
     labels = get_all_labels(diabetes_model, train_ds)
     res = infer_task_type(train_ds, labels)
 
@@ -56,7 +56,7 @@ def test_task_type_not_sklearn_regression(diabetes):
     train_ds, _, = diabetes
     model = RegressionModel()
 
-    model_classes = infer_model_classes(model)
+    model_classes = infer_classes_from_model(model)
     labels = get_all_labels(model, train_ds)
     res = infer_task_type(train_ds, labels)
 
@@ -73,7 +73,7 @@ def test_task_type_not_sklearn_binary(iris_dataset_single_class):
             return [[1, 0]] * len(x)
 
     model = ClassificationModel()
-    model_classes = infer_model_classes(model)
+    model_classes = infer_classes_from_model(model)
     labels = get_all_labels(model, iris_dataset_single_class)
     res = infer_task_type(iris_dataset_single_class, labels)
 
@@ -91,7 +91,7 @@ def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
             return [[1, 0]] * len(x)
 
     model = ClassificationModel()
-    model_classes = infer_model_classes(model)
+    model_classes = infer_classes_from_model(model)
     labels = get_all_labels(model, iris_labeled_dataset)
     res = infer_task_type(iris_labeled_dataset, labels)
 
