@@ -14,6 +14,7 @@ import typing as t
 from operator import itemgetter
 
 import numpy as np
+import pandas as pd
 
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
@@ -44,7 +45,7 @@ TClassProba = t.Sequence[t.Sequence[float]]
 TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
 TTextPred = t.Union[TClassPred, TTokenPred]
 TTextProba = t.Union[TClassProba]
-TTextEmbeddings = np.ndarray
+TTextEmbeddings = t.Union[np.ndarray, pd.DataFrame]
 
 
 class _DummyModel(BasicModel):
@@ -90,15 +91,6 @@ class _DummyModel(BasicModel):
                                               'element in the token annotation tuples within the predictions argument '
                                               'of the rum method, while the probabilities argument of the run method'
                                               ' should be left empty.')
-
-        if train is not None and test is not None:
-            # check if datasets have same indexes
-            if set(train.index) & set(test.index):
-                train.index = list(map(lambda x: f'train-{x}', list(train.index)))
-                test.index = list(map(lambda x: f'test-{x}', list(test.index)))
-                get_logger().warning('train and test datasets have common index - adding "train"/"test"'
-                                     ' prefixes. To avoid that provide datasets with no common indexes '
-                                     'or pass the model object instead of the predictions.')
 
         for dataset, y_pred, y_proba in zip([train, test],
                                             [y_pred_train, y_pred_test],
@@ -332,6 +324,9 @@ class Context(BaseContext):
                 'nlp-supported-predictions-format',
                 template='For more information please refer to the Supported Tasks guide {link}')
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
+        train_dataset, test_dataset = self._validate_train_test_indexes(train_dataset, test_dataset)
+        train_embeddings = self._validate_embeddings(embeddings=train_embeddings, dataset=train_dataset)
+        test_embeddings = self._validate_embeddings(embeddings=test_embeddings, dataset=test_dataset)
 
         self._task_type = self.infer_task_type(train_dataset, test_dataset)
 
@@ -340,20 +335,26 @@ class Context(BaseContext):
                                             model=None, y_pred_train=train_pred, y_pred_test=test_pred,
                                             model_classes=model_classes, task_type=self.task_type)
 
+
+
         if any(x is not None for x in (train_pred, test_pred, train_proba, test_proba)):
             self._model = _DummyModel(train=train_dataset, test=test_dataset,
                                       y_pred_train=train_pred, y_pred_test=test_pred,
                                       y_proba_train=train_proba, y_proba_test=test_proba,
                                       model_classes=self.model_classes)
+
         else:
             self._model = None
 
         self._train = train_dataset
         self._test = test_dataset
+
         if n_samples is not None and self._train is not None:
             self._train = self._train.sample(n_samples, random_state=random_state)
+            train_embeddings = train_embeddings.loc[self._train.index] if train_embeddings is not None else None
         if n_samples is not None and self._test is not None:
             self._test = self._test.sample(n_samples, random_state=random_state)
+            test_embeddings = test_embeddings.loc[self._test.index] if test_embeddings is not None else None
 
         self._validated_model = False
         self._with_display = with_display
@@ -410,16 +411,16 @@ class Context(BaseContext):
         return self._task_type
 
     @property
-    def train_embeddings(self) -> np.ndarray:
+    def train_embeddings(self) -> pd.DataFrame:
         """Return the train embeddings."""
         return self._get_embeddings('train', self._train)
 
     @property
-    def test_embeddings(self) -> np.ndarray:
+    def test_embeddings(self) -> pd.DataFrame:
         """Return the test embeddings."""
         return self._get_embeddings('test', self._test)
 
-    def _get_embeddings(self, dataset_kind: str, dataset: TextData) -> np.ndarray:
+    def _get_embeddings(self, dataset_kind: str, dataset: TextData) -> pd.DataFrame:
         """Return the embeddings for the given dataset kind."""
         if self._embeddings[dataset_kind] is None:
             if self._calculate_missing_embeddings is True:
@@ -427,6 +428,37 @@ class Context(BaseContext):
             else:
                 raise DeepchecksValueError(f'No embeddings for {dataset_kind} dataset')
         return self._embeddings[dataset_kind]
+
+    @staticmethod
+    def _validate_embeddings(embeddings: TTextEmbeddings, dataset: TextData):
+        """validate embeddings received in Context"""
+        if embeddings is not None:
+            if len(embeddings) != len(dataset):
+                raise DatasetValidationError(f'Embeddings length for {dataset.name} dataset '
+                                             f'must be equal to the dataset length')
+            if isinstance(embeddings, pd.DataFrame):
+                if not set(embeddings.index) == set(dataset.index):
+                    raise DatasetValidationError(f'Embeddings index for {dataset.name} dataset '
+                                                 f'must be equal to the dataset index')
+            if embeddings is not None and isinstance(embeddings, np.ndarray):
+                embeddings = pd.DataFrame(embeddings, index=dataset.index)
+
+            # Sort embeddings by dataset's index - so if it changes, the embeddings will be in the same order
+            embeddings = embeddings.loc[dataset.index]
+        return embeddings
+
+    @staticmethod
+    def _validate_train_test_indexes(train_dataset: TextData, test_dataset: TextData):
+        """Validate that train and test datasets don't have the same index."""
+        if train_dataset is not None and test_dataset is not None:
+            # check if datasets have same indexes
+            if set(train_dataset.index) & set(test_dataset.index):
+                train_dataset.index = list(map(lambda x: f'train-{x}', list(train_dataset.index)))
+                test_dataset.index = list(map(lambda x: f'test-{x}', list(test_dataset.index)))
+                get_logger().warning('train and test datasets have common index - adding "train"/"test"'
+                                     ' prefixes. To avoid that provide datasets with no common indexes '
+                                     'or pass the model object instead of the predictions.')
+        return train_dataset, test_dataset
 
     @staticmethod
     def _get_default_external_embeddings(dataset: TextData) -> np.ndarray:

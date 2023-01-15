@@ -176,14 +176,12 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
         score = values_dict['domain_classifier_drift_score']
         # Sample data before display calculations
         num_samples_in_display = min(num_samples_in_display, sample_size)
-        train_dataset = train_dataset.sample(num_samples_in_display, random_state=42)
-        train_embeddings = train_embeddings[train_embeddings.index.isin(train_dataset.index)]
-        # train_embeddings = train_embeddings.iloc[train_dataset.index]
-        train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset.index]
-        test_dataset = test_dataset.sample(num_samples_in_display, random_state=42)
-        test_embeddings = test_embeddings[test_embeddings.index.isin(test_dataset.index)]
-        # test_embeddings = test_embeddings.iloc[test_dataset.index]
-        test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset.index]
+        train_dataset_for_display = train_dataset.sample(num_samples_in_display, random_state=42)
+        train_embeddings = train_embeddings.loc[train_dataset_for_display.index]
+        train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset_for_display.index]
+        test_dataset_for_display = test_dataset.sample(num_samples_in_display, random_state=42)
+        test_embeddings = test_embeddings.loc[test_dataset_for_display.index]
+        test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset_for_display.index]
 
         # Calculate display
         embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
@@ -277,6 +275,46 @@ def display_embeddings_only(train_embeddings, test_embeddings, top_fi_embeddings
 
     plot_data = pd.DataFrame(reduced_embeddings)
     plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features'
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
+                                train_indexes_to_highlight)
+
+
+def display_embeddings_with_clusters_by_nodes(train_embeddings, test_embeddings, train_dataset, test_dataset,
+                                              train_indexes_to_highlight: List[int],
+                                              test_indexes_to_highlight: List[int]):
+    # TODO: Prototype, go over and make sure code+docs+tests are good
+
+    from umap import UMAP
+    # from sklearn.decomposition import PCA
+
+    method = 'UMAP'
+    # method = 'PCA'
+
+    embeddings = pd.concat([train_embeddings, test_embeddings])
+
+    from sklearn.tree import DecisionTreeClassifier
+    classifier = DecisionTreeClassifier(max_depth=10, min_samples_leaf=50, random_state=42)
+    domain_class_labels = pd.Series([0] * len(train_embeddings) + [1] * len(test_embeddings))
+
+    classifier.fit(embeddings, domain_class_labels)
+
+    fi = pd.Series(classifier.feature_importances_, index=train_embeddings.columns)
+
+    fi = fi.sort_values(ascending=False) if fi is not None else None
+
+    top_fi_embeddings = fi.head(20)
+    top_fi_embeddings = top_fi_embeddings.loc[top_fi_embeddings > 0.01]
+
+    top_fi_embeddings = top_fi_embeddings.index.values
+
+    domain_classifier_nodes = classifier.apply(embeddings)
+
+    # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
+    reduced_embeddings = UMAP(n_components=2, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings],
+                                                                             y=domain_classifier_nodes)
+
+    plot_data = pd.DataFrame(reduced_embeddings)
+    plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} features with tree-based nodes as a target'
     return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
                                 train_indexes_to_highlight)
 

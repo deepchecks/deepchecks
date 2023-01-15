@@ -122,15 +122,12 @@ class TextEmbeddingsDrift(TrainTestCheck):
         </span>
         """
 
-        df_train_embeddings = pd.DataFrame(context.train_embeddings, index=train_dataset.index)
-        df_test_embeddings = pd.DataFrame(context.test_embeddings, index=test_dataset.index)
-
         values_dict, displays = run_multivariable_drift_for_embeddings(
-            train_embeddings=df_train_embeddings,
-            test_embeddings=df_test_embeddings,
+            train_embeddings=context.train_embeddings,
+            test_embeddings=context.test_embeddings,
             train_dataset=train_dataset,
             test_dataset=test_dataset,
-            numerical_features=list(df_train_embeddings.columns),
+            numerical_features=list(context.train_embeddings.columns),
             cat_features=[],
             sample_size=sample_size, random_state=self.random_state,
             test_size=self.test_size, n_top_columns=self.n_top_embeddings,
