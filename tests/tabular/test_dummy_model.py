@@ -55,7 +55,7 @@ def test_roc_condition_ratio_more_than_passed(iris_split_dataset_and_model):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='All classes passed, minimum AUC found is 1 for class 2',
+                               details='All classes passed, minimum AUC found is 1 for class 2.0',
                                name='AUC score for all the classes is greater than 0.7')
     ))
 
