@@ -27,7 +27,7 @@ __all__ = ['infer_task_type_by_labels', 'infer_classes_from_model', 'get_all_lab
 
 def infer_classes_from_model(model: Optional[BasicModel]):
     """Get classes_ attribute from model object if exists."""
-    if model and hasattr(model, 'classes_') and len(model.classes_) > 0:
+    if model is not None and hasattr(model, 'classes_') and len(model.classes_) > 0:
         return sorted(list(model.classes_))
 
 
