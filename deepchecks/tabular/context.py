@@ -22,7 +22,8 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model, infer_task_type
+from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model, infer_task_type_by_labels, \
+    infer_task_type_by_class_number
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
@@ -175,8 +176,6 @@ class Context:
             y_proba_train: t.Optional[np.ndarray] = None,
             y_proba_test: t.Optional[np.ndarray] = None,
             model_classes: t.Optional[t.List] = None,
-            task_type: t.Optional[TaskType] = None,
-            observed_classes: t.Optional[t.List] = None,
     ):
         # Validations
         if train is None and test is None and model is None:
@@ -226,12 +225,17 @@ class Context:
         if model_classes is None:
             model_classes = infer_classes_from_model(model)
         labels = None
-        if task_type is None:
+        if train and train.label_type:
+            task_type = train.label_type
+        elif model_classes:
+            task_type = infer_task_type_by_class_number(len(model_classes))
+        else:
             labels = get_all_labels(model, train, test, y_pred_train, y_pred_test)
-            task_type = infer_task_type(train, labels, model_classes)
+            task_type = infer_task_type_by_labels(labels)
 
+        observed_classes = None
         need_observed_classes_for_dummy_model = \
-            (model is None and model_classes is None and observed_classes is None and
+            (model is None and model_classes is None and
              task_type in (TaskType.BINARY, TaskType.MULTICLASS) and
              ((y_proba_test is not None and y_pred_test is None) or
               (y_proba_train is not None and y_pred_train is None)))
@@ -300,8 +304,8 @@ class Context:
         """Return ordered list of possible label classes for classification tasks or None for regression."""
         if self._model_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
             # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
-            self._model_classes = self._observed_classes
             get_logger().warning('Could not find model\'s classes, using the observed classes')
+            return self.observed_classes
         return self._model_classes
 
     @property
@@ -309,7 +313,7 @@ class Context:
         """Return the observed classes in both train and test. None for regression."""
         # If did not cache yet the observed classes than calculate them
         if self._observed_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
-            labels = get_all_labels(self.model, self.train, self.test)
+            labels = get_all_labels(self._model, self._train, self._test)
             self._observed_classes = sorted(labels.dropna().unique().tolist())
         return self._observed_classes
 
