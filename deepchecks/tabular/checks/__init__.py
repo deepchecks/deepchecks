@@ -21,8 +21,8 @@ from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatri
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, MultivariateDrift,
-                                    NewLabelTrainTest, StringMismatchComparison, TrainTestFeatureDrift,
-                                    TrainTestLabelDrift, TrainTestSamplesMix, WholeDatasetDrift)
+                                    NewCategoryTrainTest, NewLabelTrainTest, StringMismatchComparison,
+                                    TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestSamplesMix, WholeDatasetDrift)
 
 __all__ = [
     # integrity checks
@@ -35,11 +35,12 @@ __all__ = [
     'StringLengthOutOfBounds',
     'StringMismatchComparison',
     'DataDuplicates',
-    'CategoryMismatchTrainTest',
+    'NewCategoryTrainTest',
     'NewLabelTrainTest',
     'ConflictingLabels',
     'OutlierSampleDetection',
     'PercentOfNulls',
+    'CategoryMismatchTrainTest',
 
     # methodology checks
     'BoostingOverfit',

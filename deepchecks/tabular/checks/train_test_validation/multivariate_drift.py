@@ -63,7 +63,7 @@ class MultivariateDrift(TrainTestCheck):
             min_feature_importance: float = 0.05,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            sample_size: int = 10_000,
+            n_samples: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
@@ -75,7 +75,7 @@ class MultivariateDrift(TrainTestCheck):
         self.min_feature_importance = min_feature_importance
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        self.sample_size = sample_size
+        self.n_samples = n_samples
         self.random_state = random_state
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
@@ -101,7 +101,7 @@ class MultivariateDrift(TrainTestCheck):
         cat_features = train_dataset.cat_features
         numerical_features = train_dataset.numerical_features
 
-        sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
+        sample_size = min(self.n_samples, train_dataset.n_samples, test_dataset.n_samples)
 
         headnote = """
         <span>

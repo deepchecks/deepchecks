@@ -51,49 +51,76 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     return train, test, model
 
 
-def test_generic_suite(
-        iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-        diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
-        iris_split_dataset_and_model_single_feature: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-        kiss_dataset_and_model, wierd_classification_dataset_and_model,
-        wierd_regression_dataset_and_model, missing_test_classes_binary_dataset_and_model,
-        adult_split_dataset_and_model
-):
-    iris_train, iris_test, iris_model = iris
-    diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model
-    kiss_train, kiss_test, kiss_model = kiss_dataset_and_model
-    wierd_classification_train, wierd_classification_test, wierd_classification_model = \
-        wierd_classification_dataset_and_model
-    wierd_regression_train, wierd_regression_test, wierd_regression_model = wierd_regression_dataset_and_model
-    wierd_binary_train, wierd_binary_test, wierd_binary_model = \
-        missing_test_classes_binary_dataset_and_model
-    iris_train_single, iris_test_single, iris_model_single = iris_split_dataset_and_model_single_feature
-    adult_train, adult_test, adult_model = adult_split_dataset_and_model
+def _test_suite(train=None, test=None, model=None, **kwargs):
     suite = suites.full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
+    result = suite.run(train_dataset=train, test_dataset=test, model=model, **kwargs)
+    length = get_expected_results_length(suite, dict(train_dataset=train, test_dataset=test, model=model))
+    validate_suite_result(result, length)
 
-    arguments = (
-        dict(train_dataset=iris_train_single, test_dataset=iris_test_single, model=iris_model_single),
-        dict(train_dataset=iris_train_single, test_dataset=iris_test_single),
-        dict(train_dataset=kiss_train, test_dataset=kiss_test, model=kiss_model),
-        dict(train_dataset=wierd_classification_train, test_dataset=wierd_classification_test,
-             model=wierd_classification_model),
-        dict(train_dataset=wierd_regression_train, test_dataset=wierd_regression_test, model=wierd_regression_model),
-        dict(train_dataset=wierd_binary_train, test_dataset=wierd_binary_test, model=wierd_binary_model),
-        dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model),
-        dict(train_dataset=iris_train, test_dataset=iris_test, model=iris_model, with_display=False),
-        dict(train_dataset=iris_train, test_dataset=iris_test),
-        dict(train_dataset=iris_train, model=iris_model),
-        dict(train_dataset=adult_train, test_dataset=adult_test, model=adult_model),
-        dict(train_dataset=diabetes_train, model=diabetes_model),
-        dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model),
-        dict(train_dataset=diabetes_train, test_dataset=diabetes_test, model=diabetes_model, with_display=False),
-        dict(model=diabetes_model)
-    )
 
-    for args in arguments:
-        result = suite.run(**args)
-        length = get_expected_results_length(suite, args)
-        validate_suite_result(result, length)
+def test_iris_single_feature_suite(iris_split_dataset_and_model_single_feature):
+    train, test, model = iris_split_dataset_and_model_single_feature
+    _test_suite(train, test, model)
+
+
+def test_iris_single_feature_suite_no_model(iris_split_dataset_and_model_single_feature):
+    train, test, _ = iris_split_dataset_and_model_single_feature
+    _test_suite(train, test)
+
+
+def test_kiss_dataset_suite(kiss_dataset_and_model):
+    train, test, model = kiss_dataset_and_model
+    _test_suite(train, test, model)
+
+
+def test_weird_classification_suite(wierd_classification_dataset_and_model):
+    train, test, model = wierd_classification_dataset_and_model
+    _test_suite(train, test, model)
+
+
+def test_weird_regression_suite(wierd_regression_dataset_and_model):
+    train, test, model = wierd_regression_dataset_and_model
+    _test_suite(train, test, model)
+
+
+def test_missing_test_classes_suite(missing_test_classes_binary_dataset_and_model):
+    train, test, model = missing_test_classes_binary_dataset_and_model
+    _test_suite(train, test, model)
+
+
+def test_iris_suite(iris):
+    train, test, model = iris
+    _test_suite(train, test, model)
+
+
+def test_iris_no_display(iris):
+    train, test, model = iris
+    _test_suite(train, test, model, with_display=False)
+
+
+def test_iris_no_model(iris):
+    train, test, _ = iris
+    _test_suite(train, test)
+
+
+def test_iris_no_test_dataset(iris):
+    train, _, model = iris
+    _test_suite(train, None, model)
+
+
+def test_iris_only_model(iris):
+    _, _, model = iris
+    _test_suite(None, None, model)
+
+
+def test_adult_dataset_suite(adult_split_dataset_and_model):
+    train, test, model = adult_split_dataset_and_model
+    _test_suite(train, test, model)
+
+
+def test_diabetes_dataset_suite(diabetes_split_dataset_and_model):
+    train, test, model = diabetes_split_dataset_and_model
+    _test_suite(train, test, model)
 
 
 def test_generic_boost(
@@ -165,7 +192,7 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
                               'Model Inference Time - Train Dataset',
                               'Datasets Size Comparison',
                               'New Label Train Test',
-                              'Category Mismatch Train Test',
+                              'New Category Train Test',
                               'String Mismatch Comparison',
                               'Train Test Samples Mix',
                               'Train Test Feature Drift',
