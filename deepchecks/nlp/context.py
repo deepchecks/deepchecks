@@ -456,8 +456,7 @@ class Context(BaseContext):
                 train_dataset.index = list(map(lambda x: f'train-{x}', list(train_dataset.index)))
                 test_dataset.index = list(map(lambda x: f'test-{x}', list(test_dataset.index)))
                 get_logger().warning('train and test datasets have common index - adding "train"/"test"'
-                                     ' prefixes. To avoid that provide datasets with no common indexes '
-                                     'or pass the model object instead of the predictions.')
+                                     ' prefixes. To avoid that provide datasets with no common indexes.')
         return train_dataset, test_dataset
 
     @staticmethod
