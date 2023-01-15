@@ -30,6 +30,11 @@ y_proba_test: Optional[np.ndarray] , default: None
     Array of the model prediction probabilities over the test dataset.
 model_classes: Optional[List] , default: None
     For classification: list of classes known to the model
+task_type: Optional[TaskType] , default: None,
+    Current task type
+observed_classes: Optional[t.List] , default: None
+    For classification: list of all observed classes in the data (also ones which are unknown to the model)
+
 """.strip('\n')
 
 _shared_docstrings['feature_aggregation_method_argument'] = """

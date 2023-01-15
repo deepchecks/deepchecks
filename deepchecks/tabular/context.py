@@ -22,7 +22,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
+from deepchecks.tabular.utils.task_inference import get_all_labels, infer_model_classes, infer_task_type_and_classes
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
@@ -174,7 +174,9 @@ class Context:
             y_pred_test: t.Optional[np.ndarray] = None,
             y_proba_train: t.Optional[np.ndarray] = None,
             y_proba_test: t.Optional[np.ndarray] = None,
-            model_classes: t.Optional[t.List] = None
+            model_classes: t.Optional[t.List] = None,
+            task_type: t.Optional[TaskType] = None,
+            observed_classes: t.Optional[t.List] = None,
     ):
         # Validations
         if train is None and test is None and model is None:
@@ -221,16 +223,17 @@ class Context:
                 template='For more information please refer to the Supported Models guide {link}')
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
-        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
-            model, train, test, y_pred_train, y_pred_test, model_classes)
-
+        model_classes = infer_model_classes(model, model_classes)
         if model is None and \
                 not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train,
-                                model_classes=self.model_classes)
+                                model_classes=model_classes)
+        self._task_type, self._observed_classes = infer_task_type_and_classes(
+            model, train, test, model_classes, task_type, observed_classes)
 
+        self._model_classes = model_classes
         self._train = train
         self._test = test
         self._model = model
@@ -286,6 +289,10 @@ class Context:
     @property
     def observed_classes(self) -> t.List:
         """Return the observed classes in both train and test. None for regression."""
+        # If did not cache yet the observed classes than calculate them
+        if self._observed_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
+            labels = get_all_labels(self.model, self.train, self.test)
+            self._observed_classes = sorted(labels.dropna().unique().tolist())
         return self._observed_classes
 
     @property
