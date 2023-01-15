@@ -21,7 +21,7 @@ from deepchecks.tabular.utils.feature_importance import _calculate_feature_impor
 
 __all__ = ['calculate_feature_importance']
 
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes, infer_model_classes, get_all_labels
+from deepchecks.tabular.utils.task_inference import infer_task_type, infer_model_classes, get_all_labels
 
 
 def calculate_feature_importance(
@@ -94,7 +94,8 @@ def calculate_feature_importance(
 
     labels = get_all_labels(model, dataset)
     model_classes = infer_model_classes(model)
-    task_type, observed_classes = infer_task_type_and_classes(dataset, labels, model_classes)
+    task_type = infer_task_type(dataset, labels, model_classes)
+    observed_classes = sorted(labels.dropna().unique().tolist())
 
     fi, _ = _calculate_feature_importance(model=model,
                                           dataset=dataset,

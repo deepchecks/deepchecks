@@ -11,36 +11,40 @@
 """Test task type inference"""
 from hamcrest import assert_that, equal_to, has_items, is_
 
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
+from deepchecks.tabular.utils.task_inference import infer_task_type, get_all_labels, infer_model_classes
 from deepchecks.tabular.utils.task_type import TaskType
 
 
 def test_infer_task_type_binary(iris_dataset_single_class, iris_random_forest_single_class):
-    res, observed_classes, model_classes = infer_task_type_and_classes(iris_random_forest_single_class,
-                                                                       iris_dataset_single_class)
+    model_classes = infer_model_classes(iris_random_forest_single_class)
+    labels = get_all_labels(iris_random_forest_single_class, iris_dataset_single_class)
+    res = infer_task_type(iris_dataset_single_class, labels)
 
     assert_that(res, equal_to(TaskType.BINARY))
-    assert_that(observed_classes, has_items(0, 1))
+    assert_that(labels.unique(), has_items(0, 1))
     assert_that(model_classes, has_items(0, 1))
 
 
 def test_infer_task_type_multiclass(iris_split_dataset_and_model_rf):
     train_ds, _, clf = iris_split_dataset_and_model_rf
 
-    res, observed_classes, model_classes = infer_task_type_and_classes(clf, train_ds)
+    model_classes = infer_model_classes(clf)
+    labels = get_all_labels(clf, train_ds)
+    res = infer_task_type(train_ds, labels)
 
     assert_that(res, equal_to(TaskType.MULTICLASS))
-    assert_that(observed_classes, has_items(0, 1, 2))
+    assert_that(labels.unique(), has_items(0, 1, 2))
     assert_that(model_classes, has_items(0, 1, 2))
 
 
 def test_infer_task_type_regression(diabetes, diabetes_model):
     train_ds, _, = diabetes
 
-    res, observed_classes, model_classes = infer_task_type_and_classes(diabetes_model, train_ds)
+    model_classes = infer_model_classes(diabetes_model)
+    labels = get_all_labels(diabetes_model, train_ds)
+    res = infer_task_type(train_ds, labels)
 
     assert_that(res, equal_to(TaskType.REGRESSION))
-    assert_that(observed_classes, is_(None))
     assert_that(model_classes, is_(None))
 
 
@@ -50,11 +54,13 @@ def test_task_type_not_sklearn_regression(diabetes):
             return [0] * len(x)
 
     train_ds, _, = diabetes
+    model = RegressionModel()
 
-    res, observed_classes, model_classes = infer_task_type_and_classes(RegressionModel(), train_ds)
+    model_classes = infer_model_classes(model)
+    labels = get_all_labels(model, train_ds)
+    res = infer_task_type(train_ds, labels)
 
     assert_that(res, equal_to(TaskType.REGRESSION))
-    assert_that(observed_classes, is_(None))
     assert_that(model_classes, is_(None))
 
 
@@ -66,11 +72,13 @@ def test_task_type_not_sklearn_binary(iris_dataset_single_class):
         def predict_proba(self, x):
             return [[1, 0]] * len(x)
 
-    res, observed_classes, model_classes = infer_task_type_and_classes(ClassificationModel(),
-                                                                       iris_dataset_single_class)
+    model = ClassificationModel()
+    model_classes = infer_model_classes(model)
+    labels = get_all_labels(model, iris_dataset_single_class)
+    res = infer_task_type(iris_dataset_single_class, labels)
 
     assert_that(res, equal_to(TaskType.BINARY))
-    assert_that(observed_classes, has_items(0, 1))
+    assert_that(labels.unique(), has_items(0, 1))
     assert_that(model_classes, is_(None))
 
 
@@ -82,9 +90,11 @@ def test_task_type_not_sklearn_multiclass(iris_labeled_dataset):
         def predict_proba(self, x):
             return [[1, 0]] * len(x)
 
-    res, observed_classes, model_classes = infer_task_type_and_classes(ClassificationModel(),
-                                                                       iris_labeled_dataset)
+    model = ClassificationModel()
+    model_classes = infer_model_classes(model)
+    labels = get_all_labels(model, iris_labeled_dataset)
+    res = infer_task_type(iris_labeled_dataset, labels)
 
     assert_that(res, equal_to(TaskType.MULTICLASS))
-    assert_that(observed_classes, has_items(0, 1, 2))
+    assert_that(labels.unique(), has_items(0, 1, 2))
     assert_that(model_classes, is_(None))

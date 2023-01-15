@@ -22,7 +22,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
 from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import get_all_labels, infer_model_classes, infer_task_type_and_classes
+from deepchecks.tabular.utils.task_inference import get_all_labels, infer_model_classes, infer_task_type
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
@@ -224,19 +224,24 @@ class Context:
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
         model_classes = infer_model_classes(model, model_classes)
-        need_labels_for_dummy_model = (model is None and model_classes is None and
-                                       ((y_proba_test is not None and y_pred_test is None) or
-                                        (y_proba_train is not None and y_pred_train is None)))
-
-        # If no task type - need labels in order to infer it
-        # If need to create dummy model and no model classes - need to read labels to infer classes
-        if task_type is None or need_labels_for_dummy_model:
+        labels = None
+        if task_type is None:
             labels = get_all_labels(model, train, test, y_pred_train, y_pred_test)
-            task_type, observed_classes = infer_task_type_and_classes(train, labels,
-                                                                      model_classes, task_type, observed_classes)
+            task_type = infer_task_type(train, labels, model_classes)
+
+        need_observed_classes_for_dummy_model = \
+            (model is None and model_classes is None and observed_classes is None and
+             task_type in (TaskType.BINARY, TaskType.MULTICLASS) and
+             ((y_proba_test is not None and y_pred_test is None) or
+              (y_proba_train is not None and y_pred_train is None)))
+        if need_observed_classes_for_dummy_model:
+            # Does not calculate labels twice
+            labels = labels or get_all_labels(model, train, test, y_pred_train, y_pred_test)
+            observed_classes = sorted(labels.dropna().unique().tolist())
 
         if (model is None and
-                not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all()):
+                (y_pred_train is not None or y_pred_test is not None or y_proba_train is not None
+                 or y_proba_test is not None)):
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train,
