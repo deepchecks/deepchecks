@@ -41,7 +41,7 @@ from deepchecks.vision.checks import ModelErrorAnalysis
 #
 # Generate data and model:
 # ~~~~~~~~~~~~~~~~~~~~~~~~
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
 mnist_model = mnist.load_model()
 train_ds = mnist.load_dataset(train=True, object_type='VisionData')

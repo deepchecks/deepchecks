@@ -17,7 +17,7 @@ from hamcrest import assert_that, calling, equal_to, raises, is_not, has_length
 from torch.utils.data import DataLoader
 
 from deepchecks.core.errors import ValidationError, DatasetValidationError
-from deepchecks.vision.datasets.classification.mnist import collate_without_model, IterableTorchMnistDataset
+from deepchecks.vision.datasets.classification.mnist_torch import collate_without_model, IterableTorchMnistDataset
 from deepchecks.vision.datasets.detection import coco_torch
 from deepchecks.vision.datasets.segmentation import segmentation_coco
 from deepchecks.vision.vision_data import TaskType

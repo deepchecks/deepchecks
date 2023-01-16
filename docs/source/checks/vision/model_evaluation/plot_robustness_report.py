@@ -76,8 +76,8 @@ RGB               `RGBShift <https://albumentations.ai/docs/api_reference/augmen
 # Generate data and model
 # -----------------------
 
-from deepchecks.vision.datasets.classification.mnist import (load_dataset,
-                                                             load_model)
+from deepchecks.vision.datasets.classification.mnist_torch import (load_dataset,
+                                                                   load_model)
 
 mnist_dataloader_test = load_dataset(train=False, batch_size=1000, object_type='VisionData')
 model = load_model()
