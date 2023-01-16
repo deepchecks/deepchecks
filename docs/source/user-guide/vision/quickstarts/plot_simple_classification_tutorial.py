@@ -8,11 +8,12 @@ Image Data Validation in 5 Minutes
 Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
 :doc:`ClassificationData </user-guide/vision/auto_tutorials/plot_classification_tutorial>` or
-:doc:`DetectionData </user-guide/vision/auto_tutorials/plot_detection_tutorial>`. In the case of a simple classification
-task, there is quite a few checks that can be run writing only a few lines of code. In this tutorial, we will show you
+:doc:`DetectionData </user-guide/vision/auto_tutorials/plot_detection_tutorial>` or
+:doc:`DetectionData </user-guide/vision/auto_tutorials/plot_segmentation_tutorial>`. In the case of a simple classification
+task, there are quite a few checks that can be run writing only a few lines of code. In this tutorial, we will show you
 how to run all checks that do not require a model on a simple classification task.
 
-This is ideal, for example, when receiving a new dataset for a classification task. Running these checks on the dataset
+This is ideal, for example, when receiving a new dataset for a any given task. Running these checks on the dataset
 before even starting with training will give you a quick idea of how the dataset looks like and what potential issues
 it contains.
 
@@ -90,7 +91,7 @@ result = suite.run(train_ds, test_ds)
 #%%
 # Observing the Results
 # ======================
-# The results can be saved as a html file with the following code:
+# The results can be saved as an HTML file with the following code:
 
 result.save_as_html('output.html')
 
@@ -102,21 +103,14 @@ result.show()
 #%%
 # Understanding the Results
 # ===========================
-# Looking at the results we see two checks whose conditions have failed:
+# Looking at the results we see one check whose condition has failed: Feature Label Correlation.
 #
-# 1. Similar Image Leakage
-# 2. Feature Label Correlation
-#
-# The first has clearly failed due to the naturally occurring similarity between different ocean / lake image,
-# and the prevailing green of some forest images. We may wish to remove some of these duplicate images but for this
-# dataset they make sense.
-#
-# The second failure is more interesting. The :doc:`Property Label Correlation Change
+# The :doc:`Property Label Correlation Change
 # </checks_gallery/vision/train_test_validation/plot_property_label_correlation_change>` check computes various
 # :doc:`image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measured by the Predictive Power Score (PPS) and this measure is compared between the training
-# and test dataset. In this case, the condition alerts us to the fact that this PPS for the "RMS Contrast" property was
+# and test dataset. In this case, the condition alerts us to the fact that the PPS for the "RMS Contrast" property was
 # significantly higher in the training dataset than in the test dataset.
 #
 # We'll show the relevant plot again for ease of discussion:
@@ -130,6 +124,6 @@ result.results[check_idx]
 # image by calculating the grayscale standard deviation of the image. This plot shows us that specifically for the
 # classes "Forest" and "SeaLake" (the same culprits from the Similar Image Leakage condition), the contrast is a
 # great predictor, but only in the training data! This means we have a critical problem - or model may learn to
-# classify these classes using only the contrast, without actually learning anything about the image content. We now
-# can go on and fix this issue (perhaps by adding train augmentations, or enriching our training set) even before we
-# start thinking about what model to train for the task.
+# classify these classes using only the contrast, without actually learning anything about the image content. We can
+# now go on and fix this issue (perhaps by adding train augmentations, or enriching our training set), before we
+# have even trained a model on this task.
