@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module representing the MNIST dataset."""
+"""Module representing the MNIST dataset in pytorch."""
 try:
     from torchvision import datasets
     from torchvision.datasets.mnist import read_image_file, read_label_file
