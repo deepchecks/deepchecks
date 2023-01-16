@@ -51,8 +51,6 @@ from torch.utils.data import DataLoader, Dataset
 from torchvision.models.detection import _utils as det_utils
 from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
 
-from deepchecks.vision.detection_data import DetectionData
-
 #%%
 # Load Data
 # ~~~~~~~~~
@@ -89,9 +87,6 @@ class TomatoDataset(Dataset):
         with open(ann_path, 'r') as f:
             tree = ET.parse(f)
             root = tree.getroot()
-            size = root.find('size')
-            w = int(size.find('width').text)
-            h = int(size.find('height').text)
 
             for obj in root.iter('object'):
                 difficult = obj.find('difficult').text
@@ -245,77 +240,72 @@ print("Example output of a label from the dataloader ", batch[1][0])
 # To learn more about the expected format please visit the API reference for the
 # :class:`deepchecks.vision.detection_data.DetectionData` class.
 
-from deepchecks.vision.detection_data import DetectionData
+from deepchecks.vision.vision_data import VisionData
 
 
-class TomatoData(DetectionData):
+def batch_to_images(batch):
+    """
+    Convert a batch of data to images in the expected format. The expected format is an iterable of cv2 images,
+    where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
+    range [0, 255] in a uint8 format.
+    """
+    inp = torch.stack(list(batch[0])).cpu().detach().numpy().transpose((0, 2, 3, 1))
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    # Un-normalize the images
+    inp = std * inp + mean
+    inp = np.clip(inp, 0, 1)
+    return inp * 255
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+def batch_to_labels(batch):
+    """
+    Convert a batch of data to labels in the expected format. The expected format is a list of tensors of length N,
+    where N is the number of samples. Each tensor element is in a shape of [B, 5], where B is the number of bboxes
+    in the image, and each bounding box is in the structure of [class_id, x, y, w, h].
+    """
+    tensor_annotations = batch[1]
+    label = []
+    for annotation in tensor_annotations:
+        if len(annotation["boxes"]):
+            bbox = torch.stack(annotation["boxes"])
+            # Convert the Pascal VOC xyxy format to xywh format
+            bbox[:, 2:] = bbox[:, 2:] - bbox[:, :2]
+            # The label shape is [class_id, x, y, w, h]
+            label.append(
+                torch.concat([torch.stack(annotation["labels"]).reshape((-1, 1)), bbox], dim=1)
+            )
+        else:
+            # If it's an empty image, we need to add an empty label
+            label.append(torch.tensor([]))
+    return label
 
-    def batch_to_images(self, batch):
-        """
-        Convert a batch of data to images in the expected format. The expected format is an iterable of cv2 images,
-        where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
-        range [0, 255] in a uint8 format.
-        """
-        inp = torch.stack(list(batch[0])).cpu().detach().numpy().transpose((0, 2, 3, 1))
-        mean = [0.485, 0.456, 0.406]
-        std = [0.229, 0.224, 0.225]
-        # Un-normalize the images
-        inp = std * inp + mean
-        inp = np.clip(inp, 0, 1)
-        return inp * 255
+def infer_on_batch(batch, model, device):
+    """
+    Returns the predictions for a batch of data. The expected format is a list of tensors of shape length N, where N
+    is the number of samples. Each tensor element is in a shape of [B, 6], where B is the number of bboxes in the
+    predictions, and each bounding box is in the structure of [x, y, w, h, score, class_id].
+    """
+    nm_thrs = 0.2
+    score_thrs = 0.7
+    imgs = list(img.to(device) for img in batch[0])
+    # Getting the predictions of the model on the batch
+    with torch.no_grad():
+        preds = model(imgs)
+    processed_pred = []
+    for pred in preds:
+        # Performoing non-maximum suppression on the detections
+        keep_boxes = torchvision.ops.nms(pred['boxes'], pred['scores'], nm_thrs)
+        score_filter = pred['scores'][keep_boxes] > score_thrs
 
-    def batch_to_labels(self, batch):
-        """
-        Convert a batch of data to labels in the expected format. The expected format is a list of tensors of length N,
-        where N is the number of samples. Each tensor element is in a shape of [B, 5], where B is the number of bboxes
-        in the image, and each bounding box is in the structure of [class_id, x, y, w, h].
-        """
-        tensor_annotations = batch[1]
-        label = []
-        for annotation in tensor_annotations:
-            if len(annotation["boxes"]):
-                bbox = torch.stack(annotation["boxes"])
-                # Convert the Pascal VOC xyxy format to xywh format
-                bbox[:, 2:] = bbox[:, 2:] - bbox[:, :2]
-                # The label shape is [class_id, x, y, w, h]
-                label.append(
-                    torch.concat([torch.stack(annotation["labels"]).reshape((-1, 1)), bbox], dim=1)
-                )
-            else:
-                # If it's an empty image, we need to add an empty label
-                label.append(torch.tensor([]))
-        return label
+        # get the filtered result
+        test_boxes = pred['boxes'][keep_boxes][score_filter].reshape((-1, 4))
+        test_boxes[:, 2:] = test_boxes[:, 2:] - test_boxes[:, :2]  # xyxy to xywh
+        test_labels = pred['labels'][keep_boxes][score_filter]
+        test_scores = pred['scores'][keep_boxes][score_filter]
 
-    def infer_on_batch(self, batch, model, device):
-        """
-        Returns the predictions for a batch of data. The expected format is a list of tensors of shape length N, where N
-        is the number of samples. Each tensor element is in a shape of [B, 6], where B is the number of bboxes in the
-        predictions, and each bounding box is in the structure of [x, y, w, h, score, class_id].
-        """
-        nm_thrs = 0.2
-        score_thrs = 0.7
-        imgs = list(img.to(device) for img in batch[0])
-        # Getting the predictions of the model on the batch
-        with torch.no_grad():
-            preds = model(imgs)
-        processed_pred = []
-        for pred in preds:
-            # Performoing non-maximum suppression on the detections
-            keep_boxes = torchvision.ops.nms(pred['boxes'], pred['scores'], nm_thrs)
-            score_filter = pred['scores'][keep_boxes] > score_thrs
-
-            # get the filtered result
-            test_boxes = pred['boxes'][keep_boxes][score_filter].reshape((-1, 4))
-            test_boxes[:, 2:] = test_boxes[:, 2:] - test_boxes[:, :2]  # xyxy to xywh
-            test_labels = pred['labels'][keep_boxes][score_filter]
-            test_scores = pred['scores'][keep_boxes][score_filter]
-
-            processed_pred.append(
-                torch.concat([test_boxes, test_scores.reshape((-1, 1)), test_labels.reshape((-1, 1))], dim=1))
-        return processed_pred
+        processed_pred.append(
+            torch.concat([test_boxes, test_scores.reshape((-1, 1)), test_labels.reshape((-1, 1))], dim=1))
+    return processed_pred
 
 #%%
 # After defining the task class, we can validate it by running the following code:
@@ -325,11 +315,20 @@ class TomatoData(DetectionData):
 LABEL_MAP = {
     1: 'Tomato'
 }
-training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
-test_data = TomatoData(data_loader=test_loader, label_map=LABEL_MAP)
 
-training_data.validate_format(model, device=device)
-test_data.validate_format(model, device=device)
+def collate_fn(batch):
+    batch = tuple(zip(*batch))
+    images = batch_to_images(batch)
+    labels = batch_to_labels(batch)
+    predictions = infer_on_batch(batch, model, device)
+    return {'images': images, 'labels': labels, 'predictions': predictions}
+
+train_loader = DataLoader(train_set, batch_size=64, collate_fn=collate_fn)
+test_loader = DataLoader(test_set, batch_size=64, collate_fn=collate_fn)
+
+
+training_data = VisionData(batch_loader=train_loader, task_type='classification', label_map=LABEL_MAP)
+test_data = VisionData(batch_loader=test_loader, task_type='classification', label_map=LABEL_MAP)
 
 # And observe the output:
 
