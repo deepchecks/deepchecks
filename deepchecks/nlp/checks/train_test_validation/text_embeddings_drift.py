@@ -111,10 +111,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
         train_dataset = context.train
         test_dataset = context.test
 
-        # sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
-        sample_size = min(100000, train_dataset.n_samples, test_dataset.n_samples)
-        #TODO: sample_size doesnt currently work because we only sample the embeddings and
-        # for the display we use the label and text which are not sampled
+        sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
         headnote = """
         <span>
         The shown features are the features that are most important for the domain classifier - the
