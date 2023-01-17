@@ -56,7 +56,7 @@ Imports
 
 #%%
 from deepchecks.vision.checks import TrainTestLabelDrift
-from deepchecks.vision.datasets.classification.mnist import load_dataset
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
 # Loading Data
@@ -82,7 +82,7 @@ result
 # performance of a simple model trained on MNIST.
 
 from deepchecks.vision.checks import ClassPerformance
-from deepchecks.vision.datasets.classification.mnist import \
+from deepchecks.vision.datasets.classification.mnist_torch import \
     load_model as load_mnist_model
 
 mnist_model = load_mnist_model(pretrained=True)
@@ -142,7 +142,7 @@ mod_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, colla
 
 #%%
 
-from deepchecks.vision.datasets.classification.mnist import MNISTData
+from deepchecks.vision.datasets.classification.mnist_torch import MNISTData
 
 mod_train_ds = MNISTData(mod_train_loader)
 mod_test_ds = MNISTData(mod_test_loader)

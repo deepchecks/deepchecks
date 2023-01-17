@@ -14,7 +14,8 @@ from hamcrest import assert_that, calling, instance_of, raises, equal_to, is_not
 from torch.utils.data import DataLoader
 
 from deepchecks.vision import VisionData
-from deepchecks.vision.datasets.classification.mnist import MNIST_DIR, MODEL_PATH, MnistModel, load_dataset, load_model
+from deepchecks.vision.datasets.classification.mnist_torch import (MNIST_DIR, MODEL_PATH, MnistModel, load_dataset,
+                                                                   load_model)
 
 
 def test_dataset_load():
@@ -53,7 +54,7 @@ def test_iterable_dataloader():
     batch = next(iter(loader))
     assert_that(batch[0].shape, equal_to((50, 1, 28, 28)))
     assert_that(calling(len).with_args(loader),
-        raises(TypeError, r'object of type \'IterableTorchMnistDataset\' has no len()'))
+                raises(TypeError, r'object of type \'IterableTorchMnistDataset\' has no len()'))
 
 
 def test_iterable_visiondata():
@@ -64,8 +65,8 @@ def test_iterable_visiondata():
 
 def test_iterable_visiondata_with_shuffle():
     assert_that(calling(load_dataset).with_args(object_type='DataLoader', use_iterable_dataset=True, shuffle=True),
-        raises(ValueError,
-               r'DataLoader with IterableDataset: expected unspecified shuffle option, but got shuffle=True'))
+                raises(ValueError,
+                       r'DataLoader with IterableDataset: expected unspecified shuffle option, but got shuffle=True'))
 
 
 def test_regular_visiondata_with_shuffle():

@@ -26,7 +26,7 @@ Use this check to evaluate the performance on a single vision dataset such as a 
 # -----------------------
 
 from deepchecks.vision.checks import SingleDatasetPerformance
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
 #%%
 
