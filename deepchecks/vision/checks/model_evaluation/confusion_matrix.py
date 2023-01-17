@@ -127,7 +127,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     )
                     classes_to_display.append('no-overlapping')
                 elif isinstance(category, int):
-                    classes_to_display.append(dataset.label_map(category))
+                    classes_to_display.append(dataset.label_map[category])
                 else:
                     raise RuntimeError(
                         'Internal Error! categories list must '
