@@ -8,14 +8,13 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-
 import tensorflow as tf
 import torch
 
 from deepchecks.vision.datasets.classification import mnist
 from deepchecks.vision.datasets.detection import coco_tensorflow, coco_torch
 from deepchecks.vision.suites.default_suites import full_suite
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 
 
 def test_full_suite_mnist_torch(device):
