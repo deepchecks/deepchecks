@@ -209,7 +209,7 @@ def draw_masks(
 def get_font_with_size(text, desired_width):
     font_size = 1
     here = Path(__file__)
-    font_file = here.parent.parent / "fonts" / "quicksand" / "Quicksand-Bold.otf"
+    font_file = here.parent.parent / 'fonts' / 'quicksand' / 'Quicksand-Bold.otf'
     font = ImageFont.truetype(str(font_file), font_size)
     # Don't want to have size too small
     desired_width = max(100, desired_width)

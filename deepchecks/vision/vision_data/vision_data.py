@@ -131,10 +131,10 @@ class VisionData:
             self._has_predictions = True
             validate_predictions_format(predictions, self._task_type)
             if self._task_type == TaskType.CLASSIFICATION:
-                if self._label_map and len(predictions[0]) != len(self._label_map):
+                if self.label_map and len(predictions[0]) != len(self.label_map):
                     raise ValidationError('Number of entries in proba does not match number of classes in label_map')
-                if not self._label_map:
-                    self._label_map = LabelMap({i: str(i) for i in range(len(predictions[0]))})
+                if not self.label_map:
+                    self.label_map = LabelMap({i: str(i) for i in range(len(predictions[0]))})
             length_dict['predictions'] = len(predictions)
 
         additional_data = batch.get('additional_data')
