@@ -35,7 +35,9 @@ LOGGER = logging.getLogger(__name__)
 
 def load_dataset(train: bool = True, with_predictions: bool = True, batch_size: t.Optional[int] = None,
                  shuffle: bool = False, n_samples: int = None, object_type='VisionData') -> VisionData:
-    """Return MNIST VisionData.
+    """Return MNIST VisionData, containing prediction produced by a simple fully connected model.
+
+    Model and data are taken from https://www.tensorflow.org/tutorials/quickstart/beginner.
 
     Parameters
     ----------
@@ -46,16 +48,19 @@ def load_dataset(train: bool = True, with_predictions: bool = True, batch_size: 
     batch_size: int, optional
         how many samples per batch to load
     shuffle : bool , default : False
-        to reshuffled data at every epoch or not, cannot work with use_iterable_dataset=True
+        To reshuffled data at every epoch or not.
     n_samples : int, optional
-        Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle
-        is False otherwise selects n_samples at random. If None, returns all samples.
+        Number of samples to load. Return the first n_samples if shuffle is False otherwise selects n_samples at random.
+        If None, returns all samples.
     object_type : str, default : 'VisionData'
         Kept for compatibility with torch datasets. Not used.
     Returns
     -------
     :obj:`deepchecks.vision.VisionData`
     """
+    if object_type != 'VisionData':
+        raise ValueError('only VisionData is supported for MNIST dataset')
+
     batch_size = batch_size or (64 if train else 1000)
 
     if with_predictions:
@@ -73,7 +78,7 @@ def load_dataset(train: bool = True, with_predictions: bool = True, batch_size: 
 
 def mnist_generator(shuffle: bool = False, batch_size: int = 64, train: bool = True, n_samples: int = None,
                     model=None) -> t.Generator:
-    """Generator for MNIST dataset.
+    """Generate an MNIST dataset.
 
     Parameters
     ----------
@@ -103,8 +108,7 @@ def mnist_generator(shuffle: bool = False, batch_size: int = 64, train: bool = T
     if n_samples is None:
         n_samples = len(x)
 
-    i = 0
-    while i < n_samples:
+    for i in range(0, n_samples, batch_size):
         return_dict = {'images': x[i:(i + batch_size):], 'labels': y[i:(i + batch_size):]}
         if model is not None:
             return_dict.update({'predictions': model(return_dict['images'])})
@@ -112,7 +116,6 @@ def mnist_generator(shuffle: bool = False, batch_size: int = 64, train: bool = T
         # deepchecks expects images to be in the range [0, 255]
         return_dict['images'] = return_dict['images'] * 255.0
         yield return_dict
-        i += batch_size
 
 
 def load_mnist_data(train: bool = True) -> t.Tuple[np.array, np.array]:
@@ -204,7 +207,7 @@ class MockModel:
         self.real_model = real_model
         with open(MNIST_DIR / 'static_predictions.pickle', 'rb') as handle:
             predictions = pickle.load(handle)
-        self.cache = {key: value for key, value in predictions.items()}
+        self.cache = predictions
 
     def __call__(self, batch):
         results = []

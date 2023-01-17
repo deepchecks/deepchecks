@@ -13,6 +13,7 @@ import tensorflow as tf
 import torch
 
 from deepchecks.vision.datasets.classification import mnist_torch as mnist
+from deepchecks.vision.datasets.classification import mnist_tensorflow as mnist_tf
 from deepchecks.vision.datasets.detection import coco_tensorflow, coco_torch
 from deepchecks.vision.suites.default_suites import full_suite
 from tests.conftest import get_expected_results_length, validate_suite_result
@@ -36,6 +37,24 @@ def test_full_suite_mnist_torch(device):
             result = suite.run(**args)
             length = get_expected_results_length(suite, args)
             validate_suite_result(result, length)
+
+
+def test_full_suite_mnist_tensorflow():
+    if len(tf.config.list_physical_devices('GPU')) > 0:
+        with tf.device('/device:GPU:0'):
+            mnist_train_gpu = mnist_tf.load_dataset(train=True, object_type='VisionData', n_samples=200)
+            mnist_test_gpu = mnist_tf.load_dataset(train=False, object_type='VisionData', n_samples=200)
+            mnist_iterator_train_gpu = mnist_tf.load_dataset(train=True, object_type='VisionData', n_samples=200)
+            mnist_iterator_test_gpu = mnist_tf.load_dataset(train=False, n_samples=200)
+            suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
+            arguments = (dict(train_dataset=mnist_train_gpu, test_dataset=mnist_test_gpu, max_samples=200),
+                         dict(train_dataset=mnist_iterator_train_gpu, test_dataset=mnist_iterator_test_gpu,
+                              max_samples=200))
+
+            for args in arguments:
+                result = suite.run(**args)
+                length = get_expected_results_length(suite, args)
+                validate_suite_result(result, length)
 
 
 def test_full_suite_coco_torch(device):
