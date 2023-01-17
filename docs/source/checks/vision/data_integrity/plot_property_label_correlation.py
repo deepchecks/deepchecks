@@ -98,7 +98,7 @@ The process of calculating the PPS is the following:
 
 from deepchecks.vision.checks import PropertyLabelCorrelation
 from deepchecks.vision.vision_data.simple_classification_data import classification_dataset_from_directory
-from deepchecks.vision.utils import visualize_vision_data
+from deepchecks.vision.utils import visualize_vision_data  # TODO: Replace with vision_data.head() when implemented
 import albumentations as A
 import urllib.request
 import zipfile

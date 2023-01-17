@@ -41,7 +41,7 @@ class CustomClassificationScorer(Metric):
     >>> from sklearn.metrics import make_scorer, cohen_kappa_score
     ... from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationScorer
     ... from deepchecks.vision.checks.model_evaluation import SingleDatasetPerformance
-    ... from deepchecks.vision.datasets.classification import mnist
+    ... from deepchecks.vision.datasets.classification import mnist_torch as mnist
     ...
     ... mnist_model = mnist.load_model()
     ... test_ds = mnist.load_dataset(root='Data', object_type='VisionData')

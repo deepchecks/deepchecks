@@ -12,7 +12,8 @@
 import tensorflow as tf
 import torch
 
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
+from deepchecks.vision.datasets.classification import mnist_tensorflow as mnist_tf
 from deepchecks.vision.datasets.detection import coco_tensorflow, coco_torch
 from deepchecks.vision.suites.default_suites import full_suite
 from tests.conftest import get_expected_results_length, validate_suite_result
@@ -36,6 +37,22 @@ def test_full_suite_mnist_torch(device):
             result = suite.run(**args)
             length = get_expected_results_length(suite, args)
             validate_suite_result(result, length)
+
+
+def test_full_suite_mnist_tensorflow():
+    if len(tf.config.list_physical_devices('GPU')) > 0:
+        with tf.device('/device:GPU:0'):
+            suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
+            mnist_visiondata_train = mnist_tf.load_dataset(train=True)
+            mnist_visiondata_test = mnist_tf.load_dataset(train=False)
+            arguments = (
+                dict(train_dataset=mnist_visiondata_train, test_dataset=mnist_visiondata_test),
+            )
+
+            for args in arguments:
+                result = suite.run(**args)
+                length = get_expected_results_length(suite, args)
+                validate_suite_result(result, length)
 
 
 def test_full_suite_coco_torch(device):

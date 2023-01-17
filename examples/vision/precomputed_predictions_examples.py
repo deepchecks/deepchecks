@@ -1,5 +1,5 @@
 # load MNIST
-from deepchecks.vision.datasets.classification.mnist import load_dataset, load_model
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset, load_model
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
 model = load_model()

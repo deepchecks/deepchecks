@@ -57,7 +57,7 @@ Run the Check on a Classification Task (MNIST)
 # Imports
 # -------
 
-from deepchecks.vision.datasets.classification.mnist import load_dataset
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
 # Loading Data

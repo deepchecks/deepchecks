@@ -49,7 +49,7 @@ This checks applies only to classification datasets.
 # -----------------------
 
 from deepchecks.vision.checks import SimpleModelComparison
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
 #%%
 
