@@ -64,8 +64,8 @@ Run the Check on a Classification Task (MNIST)
 # -------
 
 from deepchecks.vision.checks import TrainTestPredictionDrift
-from deepchecks.vision.datasets.classification.mnist import (load_dataset,
-                                                             load_model)
+from deepchecks.vision.datasets.classification.mnist_torch import (load_dataset,
+                                                                   load_model)
 
 #%%
 # Loading data and model:
@@ -155,7 +155,7 @@ mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64)
 mod_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, collate_fn=collate_test)
 
 #%%
-from deepchecks.vision.datasets.classification.mnist import MNISTData
+from deepchecks.vision.datasets.classification.mnist_torch import MNISTData
 
 mod_train_ds = MNISTData(mod_train_loader)
 mod_test_ds = MNISTData(mod_test_loader)

@@ -48,7 +48,7 @@ check, which will override the default metrics.
 # -------
 
 from deepchecks.vision.checks import ClassPerformance
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
 #%%
 # Classification Performance Report
@@ -93,8 +93,14 @@ result
 # Average Precision. The definition of the Average Precision is identical to how
 # the COCO dataset defined it - mean of the average precision per class, over
 # the range [0.5, 0.95, 0.05] of IoU thresholds.
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection import coco_tensorflow as coco
 
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.datasets.detection import coco_torch as coco
 
 #%%
 # Generate Data and Model

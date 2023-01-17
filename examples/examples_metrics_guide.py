@@ -1,6 +1,6 @@
 # Default metrics example
 from deepchecks.vision.checks import ClassPerformance
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
 mnist_model = mnist.load_model()
 train_ds = mnist.load_dataset(train=True, object_type='VisionData')
 test_ds = mnist.load_dataset(train=False, object_type='VisionData')

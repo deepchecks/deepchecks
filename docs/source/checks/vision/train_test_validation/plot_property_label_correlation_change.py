@@ -109,7 +109,7 @@ The process of calculating the PPS is the following:
 
 import numpy as np
 from deepchecks.vision.checks import PropertyLabelCorrelationChange
-from deepchecks.vision.datasets.classification.mnist import load_dataset
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
