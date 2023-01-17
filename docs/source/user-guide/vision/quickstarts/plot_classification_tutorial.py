@@ -44,7 +44,6 @@ from torch import nn
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 
-from deepchecks.vision.classification_data import ClassificationData
 
 #%%
 # Downloading the dataset

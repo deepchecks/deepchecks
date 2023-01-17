@@ -148,7 +148,7 @@ num_anchors = model.anchor_generator.num_anchors_per_location()
 norm_layer = partial(nn.BatchNorm2d, eps=0.001, momentum=0.03)
 
 model.head.classification_head = SSDLiteClassificationHead(in_channels, num_anchors, 2, norm_layer)
-model.to(device)
+_ = model.to(device)
 
 #%%
 # Loading Pre-trained Weights
