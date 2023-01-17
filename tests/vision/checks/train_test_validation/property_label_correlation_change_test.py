@@ -113,6 +113,7 @@ def test_drift_object_detection_tf(tf_coco_visiondata_train, tf_coco_visiondata_
     }))
     assert_that(result.display, has_length(greater_than(0)))
 
+
 def test_drift_object_detection_without_display(coco_train_brightness_bias, coco_visiondata_test):
     # Arrange
     check = PropertyLabelCorrelationChange(per_class=False)

@@ -17,6 +17,7 @@ from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.datasets.detection import coco_torch
+from deepchecks.vision.datasets.classification import mnist_tensorflow
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.suites.default_suites import full_suite
 from tests.conftest import get_expected_results_length, validate_suite_result
@@ -215,6 +216,20 @@ def test_full_suite_execution_mnist(mnist_visiondata_train, mnist_visiondata_tes
         dict(train_dataset=mnist_visiondata_train, with_display=False),
         dict(train_dataset=mnist_iterator_visiondata_train, test_dataset=mnist_iterator_visiondata_test,
              max_samples=100),
+    )
+
+    for args in arguments:
+        result = suite.run(**args)
+        length = get_expected_results_length(suite, args)
+        validate_suite_result(result, length)
+
+
+def test_full_suite_execution_mnist_tf():
+    suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
+    mnist_visiondata_train = mnist_tensorflow.load_dataset(train=True)
+    mnist_visiondata_test = mnist_tensorflow.load_dataset(train=False)
+    arguments = (
+        dict(train_dataset=mnist_visiondata_train, test_dataset=mnist_visiondata_test),
     )
 
     for args in arguments:

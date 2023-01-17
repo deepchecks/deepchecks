@@ -132,7 +132,7 @@ def un_normalize_batch(tensor: torch.Tensor, mean: Sized, std: Sized, max_pixel_
 
 def hash_image(image):
     if isinstance(image, np.ndarray):
-        image = Image.fromarray(image)
+        image = Image.fromarray(image.squeeze())
     elif isinstance(image, torch.Tensor):
         image = Image.fromarray(object_to_numpy(image).squeeze())
 
