@@ -34,8 +34,6 @@ __all__ = ['numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'crop_image', 'draw_image', 'draw_masks']
 
 
-
-
 def draw_image(image: np.ndarray, label, task_type: TaskType, label_map: LabelMap,
                thumbnail_size: t.Tuple[int, int] = (200, 200), draw_label: bool = True) -> str:
     """Return an image to show as output of the display.
