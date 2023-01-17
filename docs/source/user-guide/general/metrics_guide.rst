@@ -82,7 +82,7 @@ parameter. We will demonstrate it using the
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 2-8
+    :lines: 26-31
     :tab-width: 0
 
 Alternative Metrics
@@ -94,31 +94,33 @@ If this is the case, you can pass a list of supported metric strings or a dict i
 The metrics in the dict can be some of the existing:
 
 *   Strings from Deepchecks' `supported strings <#list-of-supported-strings>`__ for both vision and tabular.
-*   `Ignite Metrics <https://pytorch.org/ignite/metrics.html#complete-list-of-metrics>`__ for vision.
-    An Ignite Metric is a class with the methods: reset, compute, and update, that iterates over batches of data and
-    aggregates the result.
-*   :py:mod:`Deepchecks Metrics <deepchecks.vision.metrics>` for vision Metrics implemented by Deepchecks as
-    custom Ignite Metrics. Using customized Deepchecks Metrics, such as the object detection metric
-    ``MeanIoU``, is useful for example when defining custom confidence or IoU thresholds is needed.
-    You can import them from ``deepchecks.vision.metrics``.
 *   `Scikit-learn Scorers <https://scikit-learn.org/stable/modules/model_evaluation.html>`__ for both vision and tabular.
     A Scikit-learn Scorer is a function that accepts the parameters: (model, x, y_true), and returns a score with the
-    convention that higher is better.
-*  `Your own implementation <#custom-metrics>`__.
+    convention that higher is better. This is the method for developing custom tabular metrics, and is also the advised
+    method for developing custom vision metrics for classification tasks.
+*   :py:mod:`Deepchecks Metrics <deepchecks.vision.metrics>` for vision Metrics implemented by Deepchecks. These are
+    dedicated metrics for object detection and semantic segmentation, such as the ``MeanIoU`` metric. Using them is
+    advised for example when defining custom confidence or IoU thresholds is needed.
+    You can import them from ``deepchecks.vision.metrics``.
+*   For cases in which a new vision custom metrics is needed, such as for implementing additional object detection
+    or segmentation metrics, deepchecks also supports `Ignite Metrics <https://pytorch.org/ignite/metrics.html>`__.
+
+Jump to the `Custom Metrics <#custom-metrics>`__ section for further information about implementing your own metrics
+using the Scikit-learn Scorer api or Ignite Metrics.
 
 
 Example for passing strings:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 11-18
+    :lines: 2-9
     :tab-width: 0
 
 Example for passing Deepchecks metrics:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 45-53
+    :lines: 70-77
     :tab-width: 0
 
 
@@ -127,7 +129,7 @@ List of Supported Strings
 
 In addition to the strings listed below, all Sklearn `scorer strings
 <https://scikit-learn.org/stable/modules/model_evaluation.html#the-scoring-parameter-defining-model-evaluation-rules>`__
-apply.
+apply for all tabular task types, and for computer vision classification tasks.
 
 Regression
 __________
@@ -259,11 +261,25 @@ Custom Metrics
 ==============
 You can also pass your own custom metric to relevant checks and suites.
 
-For computer vision the custom metrics should support the
-`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API.
-
 For tabular metrics the custom metrics should support the
-`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API.
+`sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API, which is
+a function that accepts the parameters: (model, x, y_true), and returns a score with the convention that higher is
+better.
+
+For computer vision the custom metrics should support the
+`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API. Ignite Metrics are
+classes that inherit from the ``Metric`` class and implement the ``reset``, ``update`` and ``compute`` methods.
+The ``update`` method is called on each batch of data, and the ``compute`` method is called to compute the final metric.
+Note that contrary to the natively implemented ignite metrics, which expect the the labels and predictions to be
+pytorch tensors, your custom metrics should expect lists of numpy objets. For example, for classification the labels
+will be a list of integers, while the predictions will be lists of numpy array representing the softmax outputs. This is
+designed to enable deepcheck to function regardless of the underlying framework.
+
+Fir the same reason, for classification you shouldn't implement custom Ignite Metrics, but rather use the (simpler)
+Scikit-learn Scorer API which deepchecks supports natively also for computer vision tasks. Ignite metrics are
+recommended only if you haven't found a suitable metric in the list of deepchecks metrics above, or for new tasks that
+are not yet supported by deepchecks.
+
 Multiclass classification scorers should assume that the labels are given in a
 `multi-label format <https://scikit-learn.org/stable/glossary.html#term-multilabel-indicator-matrices>`__ (a binary
 matrix). Binary classification scorers should assume that the labels are given as 0 and 1.
@@ -274,7 +290,7 @@ _______________
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 21-32
+    :lines: 12-23
     :tab-width: 0
 
 
@@ -283,5 +299,5 @@ ______________
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 35-42
+    :lines: 34-67
     :tab-width: 0
