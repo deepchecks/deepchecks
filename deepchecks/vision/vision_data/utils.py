@@ -16,7 +16,7 @@ from enum import Enum
 from numbers import Number
 
 import numpy as np
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.utils.logger import get_logger
@@ -39,12 +39,12 @@ class TaskType(Enum):
 class BatchOutputFormat(TypedDict):
     """Batch output format required by deepchecks."""
 
-    images: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    labels: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    predictions: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    additional_data: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    embeddings: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    image_identifiers: t.Optional[t.Union[np.ndarray, t.Sequence]]
+    images: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    labels: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    predictions: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    additional_data: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    embeddings: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    image_identifiers: NotRequired[t.Union[np.ndarray, t.Sequence]]
 
 
 def sequence_to_numpy(data: t.Optional[t.Sequence], expected_dtype=None, expected_ndim_per_object=None) -> \
