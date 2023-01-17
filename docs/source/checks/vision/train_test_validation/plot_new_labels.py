@@ -24,7 +24,14 @@ possible that class ids that are rare in the train set will also be considered a
 # %%
 # Run the Check
 # -------------
-from deepchecks.vision.datasets.detection import coco
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection import coco_tensorflow as coco
+
+from deepchecks.vision.datasets.detection import coco_torch as coco
 from deepchecks.vision.checks import NewLabels
 
 coco_train = coco.load_dataset(train=True, object_type='VisionData', shuffle=False)
