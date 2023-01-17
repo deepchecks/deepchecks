@@ -94,7 +94,6 @@ def deepchecks_collate(model) -> t.Callable:
     def _process_batch_to_deepchecks_format(data) -> BatchOutputFormat:
         raw_images = [x[0] for x in data]
         images = [np.array(x) for x in raw_images]
-        identifiers = [str(x[2]) for x in data]
 
         def move_class(tensor):
             return torch.index_select(tensor, 1, torch.LongTensor([4, 0, 1, 2, 3]).to(tensor.device)) \
@@ -113,7 +112,7 @@ def deepchecks_collate(model) -> t.Callable:
                 pred_modified[:, 2] = pred_modified[:, 2] - pred_modified[:, 0]  # w = x_right - x_left
                 pred_modified[:, 3] = pred_modified[:, 3] - pred_modified[:, 1]  # h = y_bottom - y_top
                 predictions.append(pred_modified)
-        return BatchOutputFormat(images=images, labels=labels, predictions=predictions, image_identifiers=identifiers)
+        return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
     return _process_batch_to_deepchecks_format
 
@@ -264,7 +263,7 @@ class CocoDataset(VisionDataset):
             self.images = images[train_len:]
             self.labels = labels[train_len:]
 
-    def __getitem__(self, idx: int) -> t.Tuple[Image.Image, torch.Tensor, Path]:
+    def __getitem__(self, idx: int) -> t.Tuple[Image.Image, torch.Tensor]:
         """Get the image and label at the given index."""
         # open image using cv2, since opening with Pillow give slightly different results based on Pillow version
         img, bboxes = get_image_and_label(self.images[idx], self.labels[idx], self.transforms)
@@ -274,7 +273,7 @@ class CocoDataset(VisionDataset):
             bboxes = torch.stack([torch.tensor(x) for x in bboxes])
         else:
             bboxes = torch.tensor([])
-        return img, bboxes, self.images[idx]
+        return img, bboxes
 
     def __len__(self) -> int:
         """Return the number of images in the dataset."""
