@@ -42,14 +42,12 @@ def test_full_suite_mnist_torch(device):
 def test_full_suite_mnist_tensorflow():
     if len(tf.config.list_physical_devices('GPU')) > 0:
         with tf.device('/device:GPU:0'):
-            mnist_train_gpu = mnist_tf.load_dataset(train=True, object_type='VisionData', n_samples=200)
-            mnist_test_gpu = mnist_tf.load_dataset(train=False, object_type='VisionData', n_samples=200)
-            mnist_iterator_train_gpu = mnist_tf.load_dataset(train=True, object_type='VisionData', n_samples=200)
-            mnist_iterator_test_gpu = mnist_tf.load_dataset(train=False, n_samples=200)
             suite = full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
-            arguments = (dict(train_dataset=mnist_train_gpu, test_dataset=mnist_test_gpu, max_samples=200),
-                         dict(train_dataset=mnist_iterator_train_gpu, test_dataset=mnist_iterator_test_gpu,
-                              max_samples=200))
+            mnist_visiondata_train = mnist_tf.load_dataset(train=True)
+            mnist_visiondata_test = mnist_tf.load_dataset(train=False)
+            arguments = (
+                dict(train_dataset=mnist_visiondata_train, test_dataset=mnist_visiondata_test),
+            )
 
             for args in arguments:
                 result = suite.run(**args)
