@@ -16,7 +16,6 @@ from pathlib import Path
 
 import cv2
 import numpy as np
-import PIL
 import PIL.Image as pilimage
 import PIL.ImageDraw as pildraw
 import PIL.ImageOps as pilops
@@ -26,6 +25,7 @@ from PIL import ImageColor, ImageFont
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.html import imagetag
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.utils import LabelMap
 
 from .detection_formatters import convert_bbox
 
@@ -34,7 +34,9 @@ __all__ = ['numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'crop_image', 'draw_image', 'draw_masks']
 
 
-def draw_image(image: np.ndarray, label, task_type: TaskType,
+
+
+def draw_image(image: np.ndarray, label, task_type: TaskType, label_map: LabelMap,
                thumbnail_size: t.Tuple[int, int] = (200, 200), draw_label: bool = True) -> str:
     """Return an image to show as output of the display.
 
@@ -46,6 +48,7 @@ def draw_image(image: np.ndarray, label, task_type: TaskType,
         2-dim labels tensor for the image to draw on top of the image, shape depends on task type.
     task_type : TaskType
         The task type associated with the label.
+    label_map
     thumbnail_size: t.Tuple[int,int]
         The required size of the image for display.
     draw_label : bool, default: True
@@ -56,7 +59,7 @@ def draw_image(image: np.ndarray, label, task_type: TaskType,
         The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
     """
     if label is not None and image is not None and draw_label and task_type == TaskType.OBJECT_DETECTION:
-        image = draw_bboxes(image, np.asarray(label), copy_image=False, border_width=5)
+        image = draw_bboxes(image, np.asarray(label), copy_image=False, border_width=5, label_map=label_map)
     if image is not None:
         return prepare_thumbnail(image=image, size=thumbnail_size, copy_image=False)
     else:
@@ -103,7 +106,7 @@ def ensure_image(
 def draw_bboxes(
         image: t.Union[pilimage.Image, np.ndarray],
         bboxes: np.ndarray,
-        label_map,
+        label_map: LabelMap,
         bbox_notation: t.Optional[str] = None,
         copy_image: bool = True,
         border_width: int = 1,
@@ -117,7 +120,7 @@ def draw_bboxes(
         image to draw on
     bboxes : numpy.ndarray
         array of bboxes
-    label_map
+    label_map: LabelMap
     bbox_notation
     copy_image : bool, default True
         copy image before drawing or not

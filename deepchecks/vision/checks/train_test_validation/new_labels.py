@@ -114,7 +114,7 @@ class NewLabels(TrainTestCheck, ReduceLabelMixin):
             for class_name, num_occurrences in labels_only_in_test.items():
                 # Create id of alphabetic characters
                 sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
-                thumbnail_images = [draw_image(img, labels, test_data.task_type) for img, labels in
+                thumbnail_images = [draw_image(img, labels, test_data.task_type, test_data.label_map) for img, labels in
                                     zip(images_per_class[class_name]['images'],
                                         images_per_class[class_name]['labels'])]
                 images_combine = ''.join([f'<div class="{sid}-item">{img}</div>' for img in thumbnail_images])

@@ -47,6 +47,21 @@ class BatchOutputFormat(TypedDict):
     image_identifiers: NotRequired[t.Union[np.ndarray, t.Sequence]]
 
 
+class LabelMap(dict):
+    """Smarter dict for label map."""
+
+    def __init__(self, seq=None, **kwargs):
+        seq = seq or {}
+        super().__init__(seq, **kwargs)
+
+    def __getitem__(self, class_id: int) -> str:
+        """Return the name of the class with the given id."""
+        class_id = int(class_id)
+        if class_id in self:
+            return dict.__getitem__(self, class_id)
+        return str(class_id)
+
+
 def sequence_to_numpy(data: t.Optional[t.Sequence], expected_dtype=None, expected_ndim_per_object=None) -> \
         t.Optional[t.List]:
     """Convert a sequence containing some type of array to a List of numpy arrays.

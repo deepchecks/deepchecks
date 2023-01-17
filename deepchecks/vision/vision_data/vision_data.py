@@ -28,23 +28,9 @@ from deepchecks.vision.vision_data.format_validators import (validate_additional
                                                              validate_image_identifiers_format, validate_images_format,
                                                              validate_labels_format, validate_predictions_format)
 from deepchecks.vision.vision_data.utils import (BatchOutputFormat, get_class_ids_from_numpy_labels,
-                                                 get_class_ids_from_numpy_preds, shuffle_loader)
+                                                 get_class_ids_from_numpy_preds, shuffle_loader, LabelMap)
 
 VD = t.TypeVar('VD', bound='VisionData')
-
-
-class LabelMap(dict):
-
-    def __init__(self, seq=None, **kwargs):
-        seq = seq or {}
-        super().__init__(seq, **kwargs)
-
-    def __getitem__(self, class_id: int) -> str:
-        """Return the name of the class with the given id."""
-        class_id = int(class_id)
-        if class_id in self:
-            return dict.__getitem__(self, class_id)
-        return str(class_id)
 
 
 class VisionData:
@@ -86,7 +72,7 @@ class VisionData:
 
         if label_map is not None and not isinstance(label_map, dict):
             raise ValueError('label_map must be a dictionary')
-        self._label_map = LabelMap(label_map)
+        self.label_map = LabelMap(label_map)
         self.name = dataset_name
 
         # indicator will be set to true in 'validate' method if the user implements the relevant formatters
@@ -234,7 +220,7 @@ class VisionData:
     def get_observed_classes(self, use_class_names: bool = True) -> t.List[str]:
         """Return a dictionary of observed classes either as class ids or as the class names."""
         if use_class_names:
-            return [self.label_id_to_name(x) for x in self._observed_classes.keys()]
+            return [self.label_map[x] for x in self._observed_classes.keys()]
         else:
             return list(self._observed_classes.keys())
 
@@ -243,7 +229,7 @@ class VisionData:
         num_labels_per_class = {}
         num_preds_per_class = {}
         for key, value in self._observed_classes.items():
-            key_name = self.label_id_to_name(key) if use_class_names else key
+            key_name = self.label_map[key] if use_class_names else key
             if 'num_label' in value:
                 num_labels_per_class[key_name] = value['num_label']
             if 'num_pred' in value:
@@ -251,10 +237,6 @@ class VisionData:
 
         return {'images_cached': self._num_images_cached, 'labels': num_labels_per_class,
                 'predictions': num_preds_per_class}
-
-    def label_id_to_name(self, class_id: int) -> str:
-        """Return the name of the class with the given id."""
-        return self._label_map[class_id]
 
     def copy(self, reshuffle_batch_loader: bool = False, batch_loader=None) -> VD:
         """Create new copy of the vision data object with clean cache.
