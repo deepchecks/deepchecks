@@ -119,15 +119,15 @@ def add_brightness(img):
 #%%
 drifted_train_ds = load_dataset(train=True, object_type='VisionData')
 
-def drifted_collate_fn(collate_fn):
-    def wrapper(batch):
+def created_drifted_collate_function(collate_fn):
+    def drifted_collate_function(batch):
         data_dict = collate_fn(batch)
         data_dict['images'] = [add_brightness(np.array(img)) for img in data_dict['images']]
         return data_dict
-    return wrapper
+    return drifted_collate_function
 
 
-drifted_train_ds._batch_loader.collate_fn = drifted_collate_fn(drifted_train_ds._batch_loader.collate_fn)
+drifted_train_ds._batch_loader.collate_fn = created_drifted_collate_function(drifted_train_ds._batch_loader.collate_fn)
 
 
 #%%

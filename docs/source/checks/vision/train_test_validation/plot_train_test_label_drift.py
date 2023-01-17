@@ -116,8 +116,8 @@ import numpy as np
 np.random.seed(42)
 
 
-def mod_collate_fn(collate_fn):
-    def collate_test(batch):
+def generate_collate_fn_with_label_drift(collate_fn):
+    def collate_fn_with_label_drift(batch):
         batch_dict = collate_fn(batch)
         images = batch_dict['images']
         labels = batch_dict['labels']
@@ -128,14 +128,11 @@ def mod_collate_fn(collate_fn):
                     batch_dict['labels'][i] = 1
 
         return batch_dict
-    return collate_test
+    return collate_fn_with_label_drift
 
 
 mod_test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
-mod_test_ds._batch_loader.collate_fn = mod_collate_fn(mod_test_ds._batch_loader.collate_fn)
-
-mod_train_ds = MNISTData(mod_train_loader)
-mod_test_ds = MNISTData(mod_test_loader)
+mod_test_ds._batch_loader.collate_fn = generate_collate_fn_with_label_drift(mod_test_ds._batch_loader.collate_fn)
 
 #%%
 # Run the check

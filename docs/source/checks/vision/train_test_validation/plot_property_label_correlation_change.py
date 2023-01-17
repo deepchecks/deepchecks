@@ -130,8 +130,8 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 # and the label (also a small correlation of the index)
 
 
-def mnist_batch_to_images_with_bias_mod(collate_fn, mod):
-    def mnist_batch_to_images_with_bias(batch):
+def generate_collate_function_with_leakage(collate_fn, mod):
+    def collate_function_with_leakage(batch):
         """Create function which inverse the data normalization."""
         batch_dict = collate_fn(batch)
         images = batch_dict['images']
@@ -143,12 +143,12 @@ def mnist_batch_to_images_with_bias_mod(collate_fn, mod):
 
         batch_dict['images'] = images
         return batch_dict
-    return mnist_batch_to_images_with_bias
+    return collate_function_with_leakage
 
 #%%
 
-train_ds._batch_loader.collate_fn = mnist_batch_to_images_with_bias_mod(train_ds._batch_loader.collate_fn, 9)
-test_ds._batch_loader.collate_fn = mnist_batch_to_images_with_bias_mod(test_ds._batch_loader.collate_fn, 2)
+train_ds._batch_loader.collate_fn = generate_collate_function_with_leakage(train_ds._batch_loader.collate_fn, 9)
+test_ds._batch_loader.collate_fn = generate_collate_function_with_leakage(test_ds._batch_loader.collate_fn, 2)
 
 #%%
 # Run the check
@@ -199,8 +199,8 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 
 # Increase the pixel values of all bounding boxes by the labels value:
 
-def coco_batch_to_images_with_bias_mod(collate_fn, mod):
-    def coco_batch_to_images_with_bias(batch):
+def generate_collate_function_with_leakage_coco(collate_fn, mod):
+    def collate_function_with_leakage_coco(batch):
         import numpy as np
         batch_dict = collate_fn(batch)
         images = batch_dict['images']
@@ -213,11 +213,11 @@ def coco_batch_to_images_with_bias_mod(collate_fn, mod):
                     ret[i][y:y+h, x:x+w] = (ret[i][y:y+h, x:x+w] * int(label[0])).clip(min=200, max=255)
         batch_dict['images'] = ret
         return batch_dict
-    return coco_batch_to_images_with_bias
+    return collate_function_with_leakage_coco
 
 
-train_ds._batch_loader.collate_fn = coco_batch_to_images_with_bias_mod(train_ds._batch_loader.collate_fn, 12)
-test_ds._batch_loader.collate_fn = coco_batch_to_images_with_bias_mod(test_ds._batch_loader.collate_fn, 2)
+train_ds._batch_loader.collate_fn = generate_collate_function_with_leakage_coco(train_ds._batch_loader.collate_fn, 12)
+test_ds._batch_loader.collate_fn = generate_collate_function_with_leakage_coco(test_ds._batch_loader.collate_fn, 2)
 
 
 #%%
