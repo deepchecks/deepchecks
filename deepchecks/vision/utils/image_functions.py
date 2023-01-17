@@ -31,7 +31,7 @@ from .detection_formatters import convert_bbox
 
 __all__ = ['numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
-           'crop_image', 'draw_image', 'draw_masks']
+           'crop_image', 'draw_image', 'draw_masks', 'random_color_dict']
 
 
 def draw_image(image: np.ndarray, label, task_type: TaskType, label_map: LabelMap,
@@ -56,8 +56,11 @@ def draw_image(image: np.ndarray, label, task_type: TaskType, label_map: LabelMa
     str
         The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
     """
-    if label is not None and image is not None and draw_label and task_type == TaskType.OBJECT_DETECTION:
-        image = draw_bboxes(image, np.asarray(label), copy_image=False, border_width=5, label_map=label_map)
+    if label is not None and image is not None and draw_label:
+        if task_type == TaskType.OBJECT_DETECTION:
+            image = draw_bboxes(image, np.asarray(label), copy_image=False, border_width=5, label_map=label_map)
+        elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+            image = draw_masks(image, label, copy_image=False)
     if image is not None:
         return prepare_thumbnail(image=image, size=thumbnail_size, copy_image=False)
     else:
@@ -162,7 +165,7 @@ def draw_bboxes(
 def draw_masks(
         image: t.Union[pilimage.Image, np.ndarray],
         mask: np.ndarray,
-        color: t.Dict[Number, str],
+        color: t.Dict[Number, str] = None,
         copy_image: bool = True,
         alpha: float = 0.5
 ) -> pilimage.Image:
@@ -189,6 +192,9 @@ def draw_masks(
     image = np.array(ensure_image(image, copy=copy_image))
     image_mask = np.zeros(shape=image.shape)
     classes = set(np.unique(mask))
+
+    if color is None:
+        color = random_color_dict(len(classes))
 
     for class_id in classes:
         color_to_use = color.get(class_id, 'gray')
@@ -293,3 +299,8 @@ def crop_image(img: np.ndarray, x, y, w, h) -> np.ndarray:
     w = min(w, img.shape[1] - x - 1)
 
     return img[y:y + h, x:x + w]
+
+
+def random_color_dict(size):
+    """Create a random color dict to be used for coloring masks."""
+    return {index: tuple(np.random.choice(range(256), size=3)) for index in range(size)}

@@ -20,15 +20,15 @@ from typing_extensions import Literal
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.utils.ipython import is_notebook
 from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
-from deepchecks.vision.utils.image_functions import draw_bboxes, draw_masks, prepare_thumbnail
+from deepchecks.vision.utils.image_functions import draw_bboxes, draw_masks, prepare_thumbnail, random_color_dict
 from deepchecks.vision.vision_data import TaskType
 from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 from deepchecks.vision.vision_data.format_validators import (validate_additional_data_format,
                                                              validate_embeddings_format,
                                                              validate_image_identifiers_format, validate_images_format,
                                                              validate_labels_format, validate_predictions_format)
-from deepchecks.vision.vision_data.utils import (BatchOutputFormat, get_class_ids_from_numpy_labels,
-                                                 get_class_ids_from_numpy_preds, shuffle_loader, LabelMap)
+from deepchecks.vision.vision_data.utils import (BatchOutputFormat, LabelMap, get_class_ids_from_numpy_labels,
+                                                 get_class_ids_from_numpy_preds, shuffle_loader)
 
 VD = t.TypeVar('VD', bound='VisionData')
 
@@ -92,7 +92,7 @@ class VisionData:
         self._num_images_cached += batch_size
         if numpy_labels is not None:
             for class_id, num_observed in get_class_ids_from_numpy_labels(numpy_labels, self._task_type).items():
-                if self._label_map and class_id not in self._label_map:
+                if self.label_map and class_id not in self.label_map:
                     raise DeepchecksValueError(f'Class id {class_id} is not in the provided label map or out of bounds '
                                                f'for the given probability vector')
                 if class_id not in self._observed_classes:
@@ -212,8 +212,8 @@ class VisionData:
     @property
     def num_classes(self) -> int:
         """Return a number of possible classes based on model proba, label map or observed classes."""
-        if self._label_map:
-            return len(self._label_map)
+        if self.label_map:
+            return len(self.label_map)
         else:
             return len(self._observed_classes)
 
@@ -254,7 +254,7 @@ class VisionData:
         """
         cls = type(self)
         batch_loader = batch_loader if batch_loader is not None else self._batch_loader
-        return cls(batch_loader=batch_loader, task_type=self._task_type.value, label_map=self._label_map,
+        return cls(batch_loader=batch_loader, task_type=self._task_type.value, label_map=self.label_map,
                    dataset_name=self.name, shuffle_batch_loader=reshuffle_batch_loader)
 
     def __iter__(self):
@@ -266,6 +266,13 @@ class VisionData:
         return len(self._batch_loader) if hasattr(self._batch_loader, '__len__') else None
 
     def head(self, num: int = 5):
+        """Show data from a single batch of this VisionData. Works only inside a notebook.
+
+        Parameters
+        ----------
+        num: int, default = 5
+            Number of images to show. Does not show more images than the size of single batch
+        """
         if not is_notebook():
             print('head function is supported only inside a notebook', file=sys.stderr)
             return
@@ -288,8 +295,7 @@ class VisionData:
             elif self.has_labels:
                 num_classes = max(np.max(label) for label in batch.numpy_labels[:num])
 
-            color_dict = {index: tuple(np.random.choice(range(256), size=3))
-                          for index in range(num_classes)}
+            color_dict = random_color_dict(num_classes)
 
         if self.has_image_identifiers:
             headers_row.append('<h4>Identifier</h4>')
@@ -307,21 +313,21 @@ class VisionData:
             labels = batch.numpy_labels[:num]
             for index, label in enumerate(labels):
                 if self.task_type == TaskType.OBJECT_DETECTION:
-                    label_image = draw_bboxes(images[index], label, self._label_map, copy_image=False, border_width=5)
+                    label_image = draw_bboxes(images[index], label, self.label_map, copy_image=False, border_width=5)
                     rows[index].append(prepare_thumbnail(label_image, size=image_size))
                 elif self.task_type == TaskType.SEMANTIC_SEGMENTATION:
                     label_image = draw_masks(images[index], label, copy_image=False, color=color_dict)
                     rows[index].append(prepare_thumbnail(label_image, size=image_size))
                 else:
                     rows[index].append(f'<p style="overflow-wrap: anywhere;font-size:2em;">'
-                                       f'{self._label_map[label]}</p>')
+                                       f'{self.label_map[label]}</p>')
 
         if self.has_predictions:
             headers_row.append('<h4>Predictions</h4>')
             predictions = batch.numpy_predictions[:num]
             for index, prediction in enumerate(predictions):
                 if self.task_type == TaskType.OBJECT_DETECTION:
-                    pred_image = draw_bboxes(images[index], prediction, self._label_map, copy_image=False, color='blue',
+                    pred_image = draw_bboxes(images[index], prediction, self.label_map, copy_image=False, color='blue',
                                              border_width=5, bbox_notation=DEFAULT_PREDICTION_FORMAT)
                     rows[index].append(prepare_thumbnail(pred_image, size=image_size))
                 elif self.task_type == TaskType.SEMANTIC_SEGMENTATION:
@@ -332,7 +338,7 @@ class VisionData:
                 else:
                     prediction = np.argmax(prediction)
                     rows[index].append(f'<p style="overflow-wrap: anywhere;font-size:2em;">'
-                                       f'{self._label_map[prediction]}</p>')
+                                       f'{self.label_map[prediction]}</p>')
 
         html = '<div style="display:flex; flex-direction: column; gap: 10px;">'
 
