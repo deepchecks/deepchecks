@@ -134,6 +134,8 @@ def mod_collate_fn(collate_fn):
 mod_test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
 mod_test_ds._batch_loader.collate_fn = mod_collate_fn(mod_test_ds._batch_loader.collate_fn)
 
+mod_train_ds = MNISTData(mod_train_loader)
+mod_test_ds = MNISTData(mod_test_loader)
 
 #%%
 # Run the check
