@@ -265,25 +265,28 @@ class VisionData:
         """Return the number of batches in the batch loader if it is known, otherwise returns None."""
         return len(self._batch_loader) if hasattr(self._batch_loader, '__len__') else None
 
-    def head(self, num: int = 5):
+    def head(self, num_images_to_display: int = 5):
         """Show data from a single batch of this VisionData. Works only inside a notebook.
 
         Parameters
         ----------
-        num: int, default = 5
+        num_images_to_display: int, default = 5
             Number of images to show. Does not show more images than the size of single batch
         """
         if not is_notebook():
             print('head function is supported only inside a notebook', file=sys.stderr)
             return
-        if num < 1:
-            print('num must be larger than 1', file=sys.stderr)
+        if not isinstance(num_images_to_display, int):
+            print('num_images_to_display must be an integer')
+            return
+        if num_images_to_display < 1:
+            print('num_images_to_display can\'t be smaller than 1', file=sys.stderr)
             return
 
         image_size = (300, 300)
         images = []
         headers_row = []
-        rows = [[] for _ in range(num)]
+        rows = [[] for _ in range(num_images_to_display)]
         color_dict = None
         batch = BatchWrapper(next(iter(self._batch_loader)), self.task_type, self.number_of_images_cached)
 
@@ -304,13 +307,13 @@ class VisionData:
 
         if self.has_images:
             headers_row.append('<h4>Images</h4>')
-            images = batch.numpy_images[:num]
+            images = batch.numpy_images[:num_images_to_display]
             for index, image in enumerate(images):
                 rows[index].append(prepare_thumbnail(image, size=image_size))
 
         if self.has_labels:
             headers_row.append('<h4>Labels</h4>')
-            labels = batch.numpy_labels[:num]
+            labels = batch.numpy_labels[:num_images_to_display]
             for index, label in enumerate(labels):
                 if self.task_type == TaskType.OBJECT_DETECTION:
                     label_image = draw_bboxes(images[index], label, self.label_map, copy_image=False, border_width=5)
@@ -324,7 +327,7 @@ class VisionData:
 
         if self.has_predictions:
             headers_row.append('<h4>Predictions</h4>')
-            predictions = batch.numpy_predictions[:num]
+            predictions = batch.numpy_predictions[:num_images_to_display]
             for index, prediction in enumerate(predictions):
                 if self.task_type == TaskType.OBJECT_DETECTION:
                     pred_image = draw_bboxes(images[index], prediction, self.label_map, copy_image=False, color='blue',
