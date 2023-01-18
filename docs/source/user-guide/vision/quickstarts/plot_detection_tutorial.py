@@ -31,7 +31,9 @@ their classes.
 #%%
 # Defining the data and model
 # ===========================
-#
+# .. note::
+#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow,
+#   please refer to #TODO
 #
 # Load Data
 # ~~~~~~~~~
@@ -183,7 +185,6 @@ print("Example output of a label from the dataloader ", batch[1][0])
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
 # predictions. In order to do that, those must be in a pre-defined format, according to the task type.
-# Whether you're using pytorch or tensorflow, your batch loader must return the data in a specific format.
 # In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to #TODO
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
 # the correct format. Then, we'll create a VisionData object, that will hold the data loader.#
@@ -191,7 +192,7 @@ print("Example output of a label from the dataloader ", batch[1][0])
 # The VisionData class contains additional data and general methods intended for easy access to relevant metadata
 # for object detection ML models validation.
 # To learn more about the expected format please visit the API reference for the
-# :class:`deepchecks.vision.vision_data.VisionData` class.
+# :doc:Deepchecks' format </user-guide/vision/supported_tasks_and_formats>``
 #
 # First, we will create some functions that transform our batch to the correct format of images, labels and predictions:
 
@@ -231,11 +232,14 @@ def batch_to_labels(batch):
             label.append(torch.tensor([]))
     return label
 
-def infer_on_batch(batch, model, device):
+def infer_on_batch(batch):
     """
     Returns the predictions for a batch of data. The expected format is an iterator of arrays, each array
     corresponding to a sample. Each array element is in a shape of [B, 6], where B is the number of bboxes in the
     predictions, and each bounding box is in the structure of [x, y, w, h, score, class_id].
+
+    Note that model and device here are global variables, and are defined in the previous code block, as the collate
+    function cannot recieve other arguments than the batch.
     """
     nm_thrs = 0.2
     score_thrs = 0.7
@@ -260,7 +264,9 @@ def infer_on_batch(batch, model, device):
     return processed_pred
 
 #%%
-# Now we'll create the collate function that will be used by the DataLoader:
+# Now we'll create the collate function that will be used by the DataLoader.
+# In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
+# in order to transform the batch to the correct format for the checks.
 
 def deepchecks_collate_fn(batch):
     """Return a batch of images, labels and predictions in the expected format."""

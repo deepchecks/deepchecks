@@ -26,6 +26,9 @@ Currently deepchecks supports only single label classification (either binary or
 #%%
 # Defining the data and model
 # ===========================
+# .. note::
+#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow,
+#   please refer to #TODO
 
 #%%
 # Downloading the dataset
@@ -122,10 +125,6 @@ class_names = ['ants', 'bees']
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 #%%
-# .. image :: /_static/images/tutorials/ants-bees.png
-#   :width: 400
-#   :alt: Ants and Bees
-#
 # Downloading a pre-trained model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Now, we will download a pre-trained model from torchvision, that was trained on the ImageNet dataset.
@@ -163,7 +162,6 @@ print("Image values", batch[1][0])
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
 # predictions. In order to do that, those must be in a pre-defined format, according to the task type.
-# Whether you're using pytorch or tensorflow, your batch loader must return the data in a specific format.
 # In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to #TODO
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
 # the correct format. Then, we'll create a VisionData object, that will hold the data loader.#
@@ -171,49 +169,45 @@ print("Image values", batch[1][0])
 # The VisionData class contains additional data and general methods intended for easy access to relevant metadata
 # for object detection ML models validation.
 # To learn more about the expected format please visit the API reference for the
-# :class:`deepchecks.vision.vision_data.VisionData` class.
+# :doc:Deepchecks' format </user-guide/vision/supported_tasks_and_formats>``
 #
-# First, we will create some functions that transform our batch to the correct format of images, labels and predictions:
+# First, we'll create the collate function that will be used by the DataLoader.
+# In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
+# in order to transform the batch to the correct format for the checks.
 
+def deepchecks_collate_fn(batch):
+    """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
+    the following keys: 'images', 'labels' and 'predictions', each value is in the predefined format for the task:
 
-def batch_to_images(batch):
-    """
-    Convert a batch of data to images in the expected format. The expected format is an iterable of images,
+    For images, The expected format is an iterable of images,
     where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
     range [0, 255]
+
+    For labels, The expected format is an array of shape (N,), where N is the number of samples. Each element is an
+    integer representing the class index.
+
+    For predictions, The expected format is an array of shape (N, n_classes), The expected format is an array of
+    shape (N, n_classes), where N is the number of samples. Each element is an array of length n_classes that represent
+    the probability of each class.
+
+    Note that model and device here are global variables, and are defined in the previous code block, as the collate
+    function cannot recieve other arguments than the batch.
     """
+    batch = tuple(zip(*batch))
+
+    # images:
     inp = torch.stack(batch[0]).detach().numpy().transpose((0, 2, 3, 1))
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
     inp = std * inp + mean
-    inp = np.clip(inp, 0, 1)
-    return inp*255
+    images = np.clip(inp, 0, 1) * 255
 
-def batch_to_labels(batch):
-    """
-    Convert a batch of data to labels in the expected format. The expected format is an array of shape (N,),
-    where N is the number of samples. Each element is an integer representing the class index.
-    """
-    return batch[1]
+    #labels:
+    labels = batch[1]
 
-def infer_on_batch(batch, model, device):
-    """
-    Returns the predictions for a batch of data. The expected format is an array of shape (N, n_classes),
-    where N is the number of samples. Each element is an array of length n_classes that represent the probability of
-    each class.
-    """
+    #predictions:
     logits = model.to(device)(torch.stack(batch[0]).to(device))
-    return nn.Softmax(dim=1)(logits)
-
-#%%
-# Now we'll create the collate function that will be used by the DataLoader:
-
-def deepchecks_collate_fn(batch):
-    """Return a batch of images, labels and predictions in the expected format."""
-    batch = tuple(zip(*batch))
-    images = batch_to_images(batch)
-    labels = batch_to_labels(batch)
-    predictions = infer_on_batch(batch, model, device)
+    predictions = nn.Softmax(dim=1)(logits)
     return {'images': images, 'labels': labels, 'predictions': predictions}
 
 #%%
