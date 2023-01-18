@@ -14,8 +14,9 @@ from typing import Sized
 __all__ = ['get_condition_passed_message']
 
 
-def get_condition_passed_message(sized):
+def get_condition_passed_message(sized, feature=False):
     """Get a message for a condition that passed that specifies the number of columns passed."""
+    verb = 'feature' if feature else 'column'
     if isinstance(sized, int):
         num_columns = sized
     elif isinstance(sized, Sized):
@@ -24,9 +25,9 @@ def get_condition_passed_message(sized):
         raise TypeError('sized must be an int or a Sized')
 
     if num_columns == 0:
-        return 'No relevant columns to check were found'
+        return f'No relevant {verb}s to check were found'
 
-    message = f'Passed for {num_columns} relevant column'
+    message = f'Passed for {num_columns} relevant {verb}'
     if num_columns > 1:
         message += 's'
     return message
