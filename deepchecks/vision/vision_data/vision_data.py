@@ -238,12 +238,12 @@ class VisionData:
         return {'images_cached': self._num_images_cached, 'labels': num_labels_per_class,
                 'predictions': num_preds_per_class}
 
-    def copy(self, reshuffle_batch_loader: bool = False, batch_loader=None) -> VD:
+    def copy(self, reshuffle_data: bool = False, batch_loader=None) -> VD:
         """Create new copy of the vision data object with clean cache.
 
         Parameters
         ----------
-        reshuffle_batch_loader: bool, default=False
+        reshuffle_data: bool, default=False
             If True and the batch loader is of known type that can be shuffled, it will be shuffled.
         batch_loader:
             If not None, the batch loader of the new object will be set to this value.
@@ -255,7 +255,7 @@ class VisionData:
         cls = type(self)
         batch_loader = batch_loader if batch_loader is not None else self._batch_loader
         return cls(batch_loader=batch_loader, task_type=self._task_type.value, label_map=self.label_map,
-                   dataset_name=self.name, shuffle_batch_loader=reshuffle_batch_loader)
+                   dataset_name=self.name, reshuffle_data=reshuffle_data)
 
     def __iter__(self):
         """Return an iterator over the batch loader."""

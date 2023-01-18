@@ -72,7 +72,7 @@ def load_dataset(train: bool = True, with_predictions: bool = True, batch_size: 
         batch_loader=mnist_generator(shuffle, batch_size, train, n_samples, model),
         task_type='classification',
         dataset_name=f'mnist {"train" if train else "test"}',
-        shuffle_batch_loader=False
+        reshuffle_data=False
     )
 
 
