@@ -10,7 +10,7 @@
 #
 
 import tensorflow as tf
-from hamcrest import assert_that, calling, instance_of, raises, equal_to, is_not
+from hamcrest import assert_that, calling, equal_to, instance_of, is_not, raises
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.datasets.detection.coco_tensorflow import load_dataset

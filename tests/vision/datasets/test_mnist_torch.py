@@ -10,7 +10,7 @@
 #
 import time
 
-from hamcrest import assert_that, calling, instance_of, raises, equal_to, is_not
+from hamcrest import assert_that, calling, equal_to, instance_of, is_not, raises
 from torch.utils.data import DataLoader
 
 from deepchecks.vision import VisionData

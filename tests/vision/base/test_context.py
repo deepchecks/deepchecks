@@ -10,14 +10,13 @@
 #
 #
 
-from hamcrest import (assert_that, calling, has_properties, instance_of, is_, raises)
+from hamcrest import assert_that, calling, has_properties, instance_of, is_, raises
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
 from deepchecks.vision.base_checks import Context
-from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data import TaskType, VisionData
 
 
 def test_vision_context_initialization_for_classification_task(mnist_visiondata_train, mnist_visiondata_test):

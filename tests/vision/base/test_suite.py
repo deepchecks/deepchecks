@@ -11,7 +11,7 @@
 #
 from collections import defaultdict
 
-from hamcrest import assert_that, calling, instance_of, is_, raises, contains_exactly, has_length
+from hamcrest import assert_that, calling, contains_exactly, has_length, instance_of, is_, raises
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
@@ -20,7 +20,7 @@ from deepchecks.vision.datasets.detection import coco_torch
 from deepchecks.vision.datasets.classification import mnist_tensorflow
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.suites.default_suites import full_suite
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 
 
 def test_suite_execution():
