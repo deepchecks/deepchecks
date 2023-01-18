@@ -125,7 +125,7 @@ def get_scorers_dict(
         scorers = {}
         for name, metric in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
-            if isinstance(metric, Metric):
+            if isinstance(metric, (Metric, CustomMetric)):
                 metric.reset()
                 scorers[name] = copy(metric)
             elif isinstance(metric, str):

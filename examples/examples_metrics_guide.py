@@ -32,12 +32,14 @@ result = check.run(train_ds, test_ds)
 
 # Vision custom metric example
 import numpy as np
+import typing as t
 from deepchecks.vision.checks import SingleDatasetPerformance
+from deepchecks.vision.metrics_utils import CustomMetric
 
 # For simplicity, we will implement the accuracy metric, although it is already implemented in deepchecks and
 # can be passed as a string, and even otherwise we'd recommend using the sklearn API for custom classification metrics.
 
-class CustomAccuracy:
+class CustomAccuracy(CustomMetric):
 
     def __init__(self):
         super().__init__()
@@ -47,7 +49,7 @@ class CustomAccuracy:
         self._total = 0
         super().reset()
 
-    def update(self, output):
+    def update(self, output: t.Tuple[t.List[np.ndarray], t.List[int]]):
         y_pred, y = output
         y_pred = np.array(y_pred).argmax(axis=1)
         y = np.array(y)

@@ -13,13 +13,13 @@ from typing import Dict
 import numpy as np
 from sklearn.metrics import make_scorer, jaccard_score
 
-from deepchecks.vision.metrics_utils import get_scorers_dict
 from hamcrest import assert_that, close_to, has_items, has_length
 from ignite.engine import Engine
 from ignite.metrics import Metric
 from numpy import nanmean
 
 from deepchecks.vision import VisionData
+from deepchecks.vision.metrics_utils import get_scorers_dict
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU, per_sample_dice
 from deepchecks.vision.vision_data.utils import sequence_to_numpy

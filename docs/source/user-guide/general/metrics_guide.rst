@@ -120,7 +120,7 @@ Example for passing Deepchecks metrics:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 65-72
+    :lines: 67-74
     :tab-width: 0
 
 
@@ -267,17 +267,19 @@ a function that accepts the parameters: (model, x, y_true), and returns a score 
 better.
 
 For other computer vision tasks, the custom metrics should be a custom metric class. Deepchecks Custom Metric classes
-are inspired by `Ignite metrics <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ and implement
-the following methods: ``reset``, ``update`` and ``compute``.
+are inspired by `Ignite metrics <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__, must
+inherit from :class:`deepchecks.vision.metric_utils.custom_metric.CustomMetric` and implement the following methods:
+``reset``, ``update`` and ``compute``.
 
     * ``reset`` - resets the metric to its initial state, creates or resets any internal variables.
-    * ``update`` - updates the metric's internal state based on the provided. The method's signature
-        should be ``update(self, y_pred, y_true)``, where ``y_pred`` is the model's output and ``y_true`` is the ground
-        truth, both given  as lists of numpy objets. For example, for object detection the label would be a list
-        where each element is a numpy array of bounding boxes annotations, and the prediction would be a list where each
-        element is a numpy array of bounding boxes predictions, both in the
-        :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats.rst>`.
-    * ``compute`` - returns the metric's value based on the internal state.
+    * ``update`` - updates the metric's internal state based on the provided labels and predictions. The method's
+        signature should be ``update(self, output)``, where output is a tuple containing first ``y_pred`` which is the
+        model's output and second ``y_true`` is the ground truth, both given  as lists of numpy objets. For example, for
+        object detection the label would be a list where each element is a numpy array of bounding boxes annotations,
+        and the prediction would be a list where each element is a numpy array of bounding boxes predictions, both in
+        the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats.rst>`.
+    * ``compute`` - returns the metric's value based on the internal state. Can be either a single number, or a numpy
+        array of metrics values per class.
 
 The ``update`` method is called on each batch of data, and the ``compute`` method is called to compute the final metric.
 
@@ -300,5 +302,5 @@ ______________
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 34-62
+    :lines: 34-64
     :tab-width: 0

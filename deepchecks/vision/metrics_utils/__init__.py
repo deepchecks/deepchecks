@@ -15,6 +15,7 @@ from .custom_scorer import CustomClassificationScorer
 from .detection_precision_recall import AveragePrecisionRecall, ObjectDetectionAveragePrecision
 from .detection_tp_fp_fn_calc import ObjectDetectionTpFpFn, TpFpFn
 from .scorers import get_scorers_dict, metric_results_to_df
+from .custom_metric import CustomMetric
 
 __all__ = [
     'get_scorers_dict',
@@ -25,4 +26,5 @@ __all__ = [
     'TpFpFn',
     'AVAILABLE_EVALUATING_FUNCTIONS',
     'CustomClassificationScorer',
+    'CustomMetric'
 ]
