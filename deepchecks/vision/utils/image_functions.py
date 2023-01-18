@@ -46,7 +46,8 @@ def draw_image(image: np.ndarray, label, task_type: TaskType, label_map: LabelMa
         2-dim labels tensor for the image to draw on top of the image, shape depends on task type.
     task_type : TaskType
         The task type associated with the label.
-    label_map
+    label_map: LabelMap
+        Map of class id to label
     thumbnail_size: t.Tuple[int,int]
         The required size of the image for display.
     draw_label : bool, default: True
@@ -122,6 +123,7 @@ def draw_bboxes(
     bboxes : numpy.ndarray
         array of bboxes
     label_map: LabelMap
+        Map of class id to label
     bbox_notation
     copy_image : bool, default True
         copy image before drawing or not
@@ -176,12 +178,13 @@ def draw_masks(
     image : Union[PIL.Image.Image, numpy.ndarray]
         image to draw on
     mask : numpy.ndarray
+        A mask label. Shape of H,W with every value represents the class id at that location.
     copy_image : bool, default True
         copy image before drawing or not
-        width of the bbox outline
-    alpha
+    alpha: float, default 0.5
+        Transparency of the mask over the image. When 1 the mask is solid and the image below is hidden
     color: Dict[Number, str]
-        color of the bbox outline. It could be a map mapping class id to the color
+        color of the masks. A map of class id to the color (either string name or rgb list)
 
     Returns
     -------

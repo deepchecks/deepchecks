@@ -54,9 +54,12 @@ class LabelMap(dict):
         seq = seq or {}
         super().__init__(seq, **kwargs)
 
-    def __getitem__(self, class_id: int) -> str:
+    def __getitem__(self, class_id) -> str:
         """Return the name of the class with the given id."""
-        class_id = int(class_id)
+        try:
+            class_id = int(class_id)
+        except ValueError:
+            pass
         if class_id in self:
             return dict.__getitem__(self, class_id)
         return str(class_id)
