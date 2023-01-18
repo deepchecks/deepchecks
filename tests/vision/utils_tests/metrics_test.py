@@ -10,6 +10,10 @@
 #
 from typing import Dict
 
+import numpy as np
+from sklearn.metrics import make_scorer, jaccard_score
+
+from deepchecks.vision.metrics_utils import get_scorers_dict
 from hamcrest import assert_that, close_to, has_items, has_length
 from ignite.engine import Engine
 from ignite.metrics import Metric
@@ -130,3 +134,16 @@ def test_per_sample_dice(segmentation_coco_visiondata_train):
     batch = next(iter(segmentation_coco_visiondata_train))
     res = per_sample_dice(batch['predictions'], batch['labels'])
     assert_that(sum(res), close_to(9.513, 0.001))
+
+
+def test_string_metric_classification(mnist_visiondata_test):
+    metric_dict = get_scorers_dict(mnist_visiondata_test, {'acc': 'accuracy'})
+    res = calculate_metrics(metric_dict, mnist_visiondata_test)
+    assert_that(res['acc'], close_to(0.985, 0.001))
+
+
+def test_scorer_metric_classification(mnist_visiondata_test):
+    scorer = make_scorer(jaccard_score, average=None, zero_division=0)
+    metric_dict = get_scorers_dict(mnist_visiondata_test, {'kappa': scorer})
+    res = calculate_metrics(metric_dict, mnist_visiondata_test)
+    assert_that(np.mean(list(res['kappa'].values())), close_to(0.976, 0.001))

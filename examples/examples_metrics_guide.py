@@ -32,25 +32,21 @@ result = check.run(train_ds, test_ds)
 
 # Vision custom metric example
 import numpy as np
-from ignite.metrics import Metric
-from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 from deepchecks.vision.checks import SingleDatasetPerformance
 
 # For simplicity, we will implement the accuracy metric, although it is already implemented in deepchecks and
 # can be passed as a string, and even otherwise we'd recommend using the sklearn API for custom classification metrics.
 
-class CustomAccuracy(Metric):
+class CustomAccuracy:
 
     def __init__(self):
-        super().__init__(device="cpu")
+        super().__init__()
 
-    @reinit__is_reduced
     def reset(self):
         self._correct = 0
         self._total = 0
         super().reset()
 
-    @reinit__is_reduced
     def update(self, output):
         y_pred, y = output
         y_pred = np.array(y_pred).argmax(axis=1)
@@ -59,7 +55,6 @@ class CustomAccuracy(Metric):
         self._total += y_pred.shape[0]
         super().update(output)
 
-    @sync_all_reduce("_correct", "_total")
     def compute(self):
         return self._correct / self._total
 

@@ -140,9 +140,15 @@ def get_scorers_dict(
                     raise DeepchecksNotSupportedError(
                         f'Unsupported metric: {name} of type {type(metric).__name__} was given.')
                 scorers[name] = converted_met
+            elif isinstance(metric, t.Callable):
+                if task_type == TaskType.CLASSIFICATION:
+                    scorers[name] = CustomClassificationScorer(metric)
+                else:
+                    raise DeepchecksNotSupportedError('Custom scikit-learn scorers are only supported for'
+                                                      ' classification.')
             else:
                 raise DeepchecksValueError(
-                    f'Excepted metric type one of [ignite.Metric, str], was {type(metric).__name__}.')
+                    f'Excepted metric type one of [ignite.Metric, callable, str], was {type(metric).__name__}.')
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()

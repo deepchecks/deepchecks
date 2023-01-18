@@ -103,10 +103,10 @@ The metrics in the dict can be some of the existing:
     advised for example when defining custom confidence or IoU thresholds is needed.
     You can import them from ``deepchecks.vision.metrics``.
 *   For cases in which a new vision custom metrics is needed, such as for implementing additional object detection
-    or segmentation metrics, deepchecks also supports `Ignite Metrics <https://pytorch.org/ignite/metrics.html>`__.
+    or segmentation metrics, deepchecks also supports custom metric classes.
 
 Jump to the `Custom Metrics <#custom-metrics>`__ section for further information about implementing your own metrics
-using the Scikit-learn Scorer api or Ignite Metrics.
+using the Scikit-learn Scorer api or a custom metric class.
 
 
 Example for passing strings:
@@ -120,7 +120,7 @@ Example for passing Deepchecks metrics:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 70-77
+    :lines: 65-72
     :tab-width: 0
 
 
@@ -261,26 +261,27 @@ Custom Metrics
 ==============
 You can also pass your own custom metric to relevant checks and suites.
 
-For tabular metrics the custom metrics should support the
+For tabular metrics and vision classification tasks the custom metrics function should follow the
 `sklearn scorer <https://scikit-learn.org/stable/modules/generated/sklearn.metrics.make_scorer.html>`__ API, which is
 a function that accepts the parameters: (model, x, y_true), and returns a score with the convention that higher is
 better.
 
-For computer vision the custom metrics should support the
-`Ignite Metric <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API. Ignite Metrics are
-classes that inherit from the ``Metric`` class and implement the ``reset``, ``update`` and ``compute`` methods.
+For other computer vision tasks, the custom metrics should be a custom metric class. Deepchecks Custom Metric classes
+are inspired by `Ignite metrics <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ and implement
+the following methods: ``reset``, ``update`` and ``compute``.
+
+    * ``reset`` - resets the metric to its initial state, creates or resets any internal variables.
+    * ``update`` - updates the metric's internal state based on the provided. The method's signature
+        should be ``update(self, y_pred, y_true)``, where ``y_pred`` is the model's output and ``y_true`` is the ground
+        truth, both given  as lists of numpy objets. For example, for object detection the label would be a list
+        where each element is a numpy array of bounding boxes annotations, and the prediction would be a list where each
+        element is a numpy array of bounding boxes predictions, both in the
+        :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats.rst>`.
+    * ``compute`` - returns the metric's value based on the internal state.
+
 The ``update`` method is called on each batch of data, and the ``compute`` method is called to compute the final metric.
-Note that contrary to the natively implemented ignite metrics, which expect the the labels and predictions to be
-pytorch tensors, your custom metrics should expect lists of numpy objets. For example, for classification the labels
-will be a list of integers, while the predictions will be lists of numpy array representing the softmax outputs. This is
-designed to enable deepcheck to function regardless of the underlying framework.
 
-Fir the same reason, for classification you shouldn't implement custom Ignite Metrics, but rather use the (simpler)
-Scikit-learn Scorer API which deepchecks supports natively also for computer vision tasks. Ignite metrics are
-recommended only if you haven't found a suitable metric in the list of deepchecks metrics above, or for new tasks that
-are not yet supported by deepchecks.
-
-Multiclass classification scorers should assume that the labels are given in a
+Note that in all cases, multiclass classification scorers should assume that the labels are given in a
 `multi-label format <https://scikit-learn.org/stable/glossary.html#term-multilabel-indicator-matrices>`__ (a binary
 matrix). Binary classification scorers should assume that the labels are given as 0 and 1.
 
@@ -299,5 +300,5 @@ ______________
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
-    :lines: 34-67
+    :lines: 34-62
     :tab-width: 0

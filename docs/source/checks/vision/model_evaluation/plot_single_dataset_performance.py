@@ -17,7 +17,8 @@ This notebooks provides an overview for using and understanding single dataset p
 What Is the Purpose of the Check?
 =================================
 This check returns the results from a dict of metrics, in the format metric name: scorer, calculated for the
-given model dataset. The scorer should be either a sklearn scorer or a (see :doc:`` for further details).
+given model dataset. The scorer should be either a sklearn scorer or a custom metric (see
+:doc:`Metrics Guide <user-guide/general/metrics_guide>` for further details).
 Use this check to evaluate the performance on a single vision dataset such as a test set.
 
 """
