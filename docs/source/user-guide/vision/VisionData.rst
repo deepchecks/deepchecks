@@ -7,7 +7,8 @@ The :class:`VisionData <deepchecks.vision>` data class is the base deepchecks cl
 representing the data for a vision task. It is essentially a wrapper around a batch loader of images, labels,
 and predictions in :doc:`Deepchecks' format </user-guide/vision/supported_tasks_and_formats>`
 which is used as the input for the different :doc:`vision checks </checks_gallery/vision>`.
-In addition it stores cache regarding the data, labels and predictions it encountered during the check run.
+In addition it stores cached information about the data, labels and predictions it encountered
+during the check run.
 
 
 Class Properties
@@ -16,8 +17,7 @@ Class Properties
 The common properties are:
 
 - **batch_loader** - The batch loader can be either a pytorch DataLoader, a tensorflow Dataset or any custom
-  generator. It is important to note that the data loaded by the
-  batch loader iterator must be **shuffled**.
+  generator. It is important to note that the data loaded by the batch loader must be **shuffled**.
 
 - **task_type** - The task type of the data, can be either ``classification``, ``object_detection``,
   ``semantic_segmentation``, or ``other``. Data format validation is done upon creation of VisionData based
@@ -27,14 +27,17 @@ The common properties are:
 
 Creating a VisionData Object
 ============================
+The sub-sections below contain simple examples how to create a VisionData object without predictions, in
+order to learn how to supply them see the :ref:`following section <vision_data__adding_predictions>`.
 
 From Generic Generator
 ----------------------
-If you are not already using pytorch or tensorflow for the project, this is the most recommended option.
+If you are not already using a pytorch DataLoader or a tensorflow Dataset for the project, for example
+if you are using fastai, jax or any autoML framework, this is the most recommended option.
 The custom generator can be implemented in any way you like, as long as it outputs the data in the
 :doc:`required format </user-guide/vision/supported_tasks_and_formats>`
-and that it loads the data in a shuffled manner. The following is an example of a custom generator based on data that
-is loaded and stored in memory as numpy arrays.
+and that it loads the data in a shuffled manner. The following is an example of a custom generator
+based on data that is fully stored in memory as numpy arrays.
 
 For an example of a custom generator that loads the data from disk batch by batch see the
 :ref:`following section <vision_data__precalculated_predictions>`.
@@ -56,17 +59,23 @@ For an example of a custom generator that loads the data from disk batch by batc
             yield BatchOutputFormat(images= images_in_batch, labels= labels_in_batch)
 
     vision_data = VisionData(custom_generator(), task_type='classification', shuffle_batch_loader=False)
+    # Visualize the data and verify it is in the correct format
     vision_data.head()
 
 From Pytorch DataLoader
 -----------------------
-In order to create a pytorch DataLoader, you must first create a pytorch Dataset object (link). When creating a pytorch
-Dataset object, you must implement either the ``__get_item__`` function or the ``__iter__`` function, whose output is
-a single data element.
+In order to create a VisionData object from a
+`PyTorch DataLoader <https://pytorch.org/tutorials/beginner/basics/data_tutorial.html>`_,
+all you need is to replace the default
+`collate function <https://pytorch.org/docs/stable/data.html#working-with-collate-fn>`_.
 
-Based on the output format we will create a collate function that will group several data
-elements into a batch in :doc:`Deepchecks' format </user-guide/vision/supported_tasks_and_formats>`.
-This collate function will be used as the ``collate_fn`` argument in the creation of the DataLoader.
+The collate function receives a list containing the results of running your implemented
+`dataset's <https://pytorch.org/docs/stable/data.html?highlight=dataset#torch.utils.data.Dataset>`_
+``__getitem__`` function on several indexes and returns a batch in any desired format.
+
+In order create a deepchecks compatible DataLoader, you need to create a collate function that
+returns a batch in the :doc:`following format </user-guide/vision/supported_tasks_and_formats>`
+and replace the default collate function via the ``collate_fn`` argument in the creation of the DataLoader.
 
 .. code-block:: python
 
@@ -83,17 +92,17 @@ This collate function will be used as the ``collate_fn`` argument in the creatio
         images = np.clip(std * images.numpy() + mean, 0, 1) * 255
         return BatchOutputFormat(images= images, labels= labels)
 
-    data_loader = DataLoader(my_dataset, batch_size=64, generator=torch.Generator(),
-                             collate_fn=deepchecks_collate)
+    data_loader = DataLoader(my_dataset, batch_size=64, collate_fn=deepchecks_collate)
     vision_data = VisionData(data_loader, task_type='classification')
+    # Visualize the data and verify it is in the correct format
     vision_data.head()
 
 From TensorFlow Dataset
 -----------------------
 There are two possible ways to create a deepchecks compatible tensorflow
 `Dataset object <https://www.tensorflow.org/api_docs/python/tf/data/Dataset>`_. You can either create it
-in a way that directly outputs the data in the required format or convert an existing dataset,
-we will demonstrate the latter.
+in a way that directly outputs the data in the required format or convert an existing dataset.
+We will demonstrate the second option.
 
 Assume a tensorflow dataset object that outputs a batch of images and labels as a tuple of (images, labels).
 We will use the `map <https://www.tensorflow.org/api_docs/python/tf/data/Dataset#map>`_
@@ -114,10 +123,11 @@ function to convert the data into :doc:`Deepchecks' format </user-guide/vision/s
 
     deepchecks_dataset = my_dataset.map(deepchecks_map)
     vision_data = VisionData(deepchecks_dataset, task_type='classification')
+    # Visualize the data and verify it is in the correct format
     vision_data.head()
 
 
-
+.. _vision_data__adding_predictions:
 Adding Model Predictions
 ========================
 Some of deepchecks tests, including the :doc:`model evaluation checks and suite </checks_gallery/vision>`,
@@ -128,9 +138,11 @@ on-demand inference.
 
 On-demand Inference
 -------------------
-In this case we will need to incorporate the model object in the relevant format transformation function. This can be
+In this case we will need to incorporate the model object in the relevant format transformation function
+(the ``collate`` function for pytorch or the ``map`` function for tensorflow). This can be
 done either by using the model as a global variable, creating a wrapper class for the transformation function or
-creating a closure function. We will demonstrate the last option via the pytorch interface.
+creating a closure function.
+We will demonstrate the last option via the pytorch interface.
 
 .. code-block:: python
 
@@ -138,11 +150,11 @@ creating a closure function. We will demonstrate the last option via the pytorch
     from torch.utils.data import DataLoader
     from deepchecks.vision import VisionData, BatchOutputFormat
 
-    def create_deepchecks_collate(model):
+    def create_deepchecks_collate(model, device):
         def deepchecks_collate(data) -> BatchOutputFormat:
             # Extracting images and label and predicting using the model
             raw_images = torch.stack([x[0] for x in data])
-            predictions = model(images)
+            predictions = model(images.to(device)).detach()
             labels = [x[1] for x in data]
             # Convert ImageNet format images into to [0, 255] range format images.
             mean, std  = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
@@ -150,9 +162,10 @@ creating a closure function. We will demonstrate the last option via the pytorch
             return BatchOutputFormat(images= images, labels= labels, predictions= predictions)
         return deepchecks_collate
 
-    data_loader = DataLoader(my_dataset, batch_size=64, generator=torch.Generator(),
-                             collate_fn=create_deepchecks_collate(my_model))
+    data_loader = DataLoader(my_dataset, batch_size=64,
+                             collate_fn=create_deepchecks_collate(my_model, device))
     vision_data = VisionData(data_loader, task_type='classification')
+    # Visualize the data and verify it is in the correct format
     vision_data.head()
 
 .. _vision_data__precalculated_predictions:
@@ -181,4 +194,5 @@ a csv file containing the path to the image, the label and the prediction probab
                                     predictions= np.array(prediction_probabilities_as_arr, dtype=np.float32))
 
     vision_data = VisionData(data_from_file_generator(), task_type='classification', shuffle_batch_loader=False)
+    # Visualize the data and verify it is in the correct format
     vision_data.head()

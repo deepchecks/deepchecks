@@ -4,7 +4,7 @@
 Supported Tasks and Formats
 ===========================
 
-In order to accurately analyze the images, labels and predictions provided in the
+In order to analyze the images, labels and predictions provided in the
 :doc:`VisionData object </user-guide/vision/vision_data_class>`,
 they must be provided in deepchecks accepted format. In this section we will describe the supported formats
 for each supported task type.
@@ -13,12 +13,15 @@ The data formats are validated at the creation of the VisionData object based on
 in addition to the automatic validations, it is also important to make sure visually that the data was provided in the
 correct format via the :func:`head <deepchecks.vision.VisionData.head>` functionality.
 
+.. note::
+    In order to properly function, in addition for the data being in the correct format,
+    the data must also be loaded in a **shuffled** manner.
 
 Common Formats
 ==============
-All types of data are loaded in a batch by batch manner meaning that each data input contain
-information about several samples. In order to support this, all data inputs are expected to be provided
-as either an iterable in which each entry is the data for a single sample or as a high dimension array or tensor in
+In each batch, every data input (ex. images) contain information about several samples.
+In order to support this, all data inputs are expected to be provided
+as either an iterable in which each entry represent a single sample or as a high dimension array or tensor in
 which the first dimension is the number of samples.
 
 Image Format
@@ -50,6 +53,17 @@ Prediction Format
 Classification prediction per sample should be **prediction probabilities** per class, meaning that it should be an
 iterable of floats in the range [0, 1] with length equal to the number of classes.
 
+For example, predictions of a batch containing 2 samples for a classification task with 3 possible
+classes may look like this:
+
+.. code-block:: python
+
+    [
+        [0.1, 0.2, 0.7],
+        [0.3, 0.6, 0.1]
+    ]
+
+
 .. _supported_tasks__object_detection:
 Object Detection
 ================
@@ -74,7 +88,7 @@ sample has 2 bounding boxes, should be provided as follows:
 Prediction Format
 -----------------
 Object detection prediction per sample should be an iterable of predicted bounding boxes and their corresponding
-confidence provided by the model. Each bounding box should be an iterable of 6 elements in the following order:
+confidence scores provided by the model. Each bounding box should be an iterable of 6 elements in the following order:
 ``(x_min, y_min, w, h, confidence, class_id)``.
 
     ``x_min``, ``y_min``, ``w`` and ``h`` represent the bounding box location as above,
