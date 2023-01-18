@@ -18,7 +18,7 @@ from ipywidgets import HTML
 from typing_extensions import Literal
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
-from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.ipython import is_notebook, is_sphinx
 from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
 from deepchecks.vision.utils.image_functions import draw_bboxes, draw_masks, prepare_thumbnail, random_color_dict
 from deepchecks.vision.vision_data import TaskType
@@ -273,7 +273,7 @@ class VisionData:
         num_images_to_display: int, default = 5
             Number of images to show. Does not show more images than the size of single batch
         """
-        if not is_notebook():
+        if not (is_notebook() or is_sphinx()):
             print('head function is supported only inside a notebook', file=sys.stderr)
             return
         if not isinstance(num_images_to_display, int):
@@ -354,4 +354,11 @@ class VisionData:
             """
         html += '</div>'
 
-        display(HTML(html))
+        if is_notebook():
+            display(HTML(html))
+        else:
+            class TempSphinx:
+                def _repr_html_(self):
+                    return html
+
+            return TempSphinx()
