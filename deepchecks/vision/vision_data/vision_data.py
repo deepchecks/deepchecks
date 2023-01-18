@@ -296,13 +296,13 @@ class VisionData:
             if self.has_predictions:
                 num_classes = batch.numpy_predictions[0].shape[0]
             elif self.has_labels:
-                num_classes = max(np.max(label) for label in batch.numpy_labels[:num])
+                num_classes = max(np.max(label) for label in batch.numpy_labels[:num_images_to_display])
 
             color_dict = random_color_dict(num_classes)
 
         if self.has_image_identifiers:
             headers_row.append('<h4>Identifier</h4>')
-            for index, image_id in enumerate(batch.numpy_image_identifiers[:num]):
+            for index, image_id in enumerate(batch.numpy_image_identifiers[:num_images_to_display]):
                 rows[index].append(f'<p style="overflow-wrap: anywhere;font-size:2em;">{image_id}</p>')
 
         if self.has_images:
