@@ -11,11 +11,11 @@
 """Module containing metrics utils."""
 
 from .confusion_matrix_counts_metrics import AVAILABLE_EVALUATING_FUNCTIONS
+from .custom_metric import CustomMetric
 from .custom_scorer import CustomClassificationScorer
 from .detection_precision_recall import AveragePrecisionRecall, ObjectDetectionAveragePrecision
 from .detection_tp_fp_fn_calc import ObjectDetectionTpFpFn, TpFpFn
 from .scorers import get_scorers_dict, metric_results_to_df
-from .custom_metric import CustomMetric
 
 __all__ = [
     'get_scorers_dict',

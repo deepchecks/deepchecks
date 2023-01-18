@@ -21,7 +21,7 @@ from ignite.metrics import Metric
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.metrics import get_scorer_name
-from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
+from deepchecks.vision.metrics_utils import (CustomClassificationScorer, CustomMetric, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU
 from deepchecks.vision.vision_data import TaskType, VisionData
