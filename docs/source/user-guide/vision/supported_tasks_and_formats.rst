@@ -6,12 +6,12 @@ Supported Tasks and Formats
 
 In order to analyze the images, labels and predictions provided in the
 :doc:`VisionData object </user-guide/vision/vision_data_class>`,
-they must be provided in deepchecks accepted format. In this section we will describe the supported formats
+they must be provided the accepted deepchecks format. In this section we will describe the supported formats
 for each supported task type.
 
-The data formats are validated at the creation of the VisionData object based on the first batch of data. However,
+The VisionData object automatically validates your data formats when initialized, using the first batch of data. However,
 in addition to the automatic validations, it is also important to make sure visually that the data was provided in the
-correct format via the :func:`head <deepchecks.vision.VisionData.head>` functionality.
+correct format via the :func:`head <deepchecks.vision.vision_data.VisionData.head>` functionality.
 
 .. note::
     In order to properly function, in addition for the data being in the correct format,
@@ -19,26 +19,32 @@ correct format via the :func:`head <deepchecks.vision.VisionData.head>` function
 
 Common Formats
 ==============
-In each batch, every data input (ex. images) contain information about several samples.
-In order to support this, all data inputs are expected to be provided
+Batch General Format
+--------------------
+Each batch, which is the output the :doc:`batch loader </user-guide/vision/vision_data_class>`,
+required to be a :class:`dictionary <deepchecks.vision.vision_data.utils.BatchOutputFormat>`
+with keys for each provided data input: images, labels and so on.
+Since each data input represent multiple samples,
+all data inputs are expected to be provided
 as either an iterable in which each entry represent a single sample or as a high dimension array or tensor in
 which the first dimension is the number of samples.
 
 Image Format
 ------------
-Each image in the batch can either be a `PIL image object <https://pillow.readthedocs.io/en/stable/reference/Image.html>`_
-or a ``[H, W, C]`` 3D array (can be either numpy or a tensor).
-For the array format, the first dimension must be the image y axis, the second being the image x axis, and the
-third being the number of channels.
-The numbers in the array should be integers in the range [0, 255]. Color images should be in RGB format and
+Each image in the batch can either be a
+`PIL image object <https://pillow.readthedocs.io/en/stable/reference/Image.html>`_
+or a ``[H, W, C]`` 3D array (can be either numpy or a tensor),
+where ``H``, ``W`` and ``C`` represent the height, width and channel of the image.
+The array values should be integers in the range [0, 255]. Color images should be in RGB format and
 have 3 channels, while grayscale images should have 1 channel.
 
 
 Image Identifiers Format
 ------------------------
 Image identifiers is a mechanism that allow identifying relevant images in the check results so that they can
-be easily retrieved from the original dataset by the user. Common uses for this can be identifying images by
-the path to the image or by their name or id in a database.
+be easily retrieved later on from the original dataset by the user.
+
+Common implementations for this can be the path to the image or the image name or id in a database.
 Image identifiers need to be provided as an iterable of strings.
 
 .. _supported_tasks__classification:
@@ -46,7 +52,12 @@ Classification
 ==============
 Label Format
 ------------
-Classification label per sample is expected to be provided as either a string or an int representing the class index.
+Classification label per sample is expected to be provided as either a string or an int
+representing the class index. For example, labels for a batch containing 2 samples can be provided as:
+
+.. code-block:: python
+
+    [1, 3]
 
 Prediction Format
 -----------------
@@ -93,7 +104,7 @@ confidence scores provided by the model. Each bounding box should be an iterable
 
     ``x_min``, ``y_min``, ``w`` and ``h`` represent the bounding box location as above,
     ``confidence`` is the confidence score given by
-    the model to bounding box and ``class_id`` is the class id predicted by the model.
+    the model to the bounding box and ``class_id`` is the class id predicted by the model.
 
 For example, predictions of a batch containing 2 samples, where the first sample has two predicted bounding boxes and
 the second one has no predicted bounding boxes, should be provided as follows:
@@ -127,12 +138,16 @@ probabilities should be 1.
 
 Other Tasks
 ===========
-For other tasks, the label and prediction formats are not validated nor used by the different checks.
-However, there are many checks that require only the images themself. Few examples for such checks include:
+For other tasks, there is no specific format required for the labels and predictions and their format is
+not validated. There are two ways in which Deepchecks can provide value for these sort of tasks:
+
+The quick option - Run checks that require only the images themself.
+Few examples for such checks include:
 :doc:`Image Property Outliers </checks_gallery/vision/data_integrity/plot_image_property_outliers.html>`,
 :doc:`Image Dataset Drift </checks_gallery/vision/train_test_validation/plot_image_dataset_drift.html>` and
 :doc:`Image Property Drift </checks_gallery/vision/train_test_validation/plot_image_property_drift.html>`.
 
-In addition it is possible to generate custom metrics and properties for the predictions and labels
-provided and run additional checks. For more information on how to do so, see the
+The advanced option - Generate custom metrics and properties for the
+predictions and labels provided and run additional checks.
+For more information on how to do so, see the
 :doc:`custom task tutorial </user-guide/vision/tutorials/custom_task_tutorial>`.

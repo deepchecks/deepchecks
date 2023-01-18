@@ -3,27 +3,30 @@
 ========================
 The Vision Data Class
 ========================
-The :class:`VisionData <deepchecks.vision>` data class is the base deepchecks class for
-representing the data for a vision task. It is essentially a wrapper around a batch loader of images, labels,
-and predictions in :doc:`Deepchecks' format </user-guide/vision/supported_tasks_and_formats>`
-which is used as the input for the different :doc:`vision checks </checks_gallery/vision>`.
-In addition it stores cached information about the data, labels and predictions it encountered
-during the check run.
+The :class:`VisionData <deepchecks.vision>` data class is the deepchecks base class for
+storing your data for a vision task. It is essentially a wrapper around a batch loader of images, labels,
+and predictions, that allows deepchecks to efficiently calculate different
+:doc:`checks </checks_gallery/vision>` on your data, by caching some of the information.
+
+Information about the supported task types and the required formats for each task is available
+:doc:`here </user-guide/vision/supported_tasks_and_formats>`.
 
 
-Class Properties
-================
-
-The common properties are:
+Common Class Parameters
+=======================
 
 - **batch_loader** - The batch loader can be either a pytorch DataLoader, a tensorflow Dataset or any custom
   generator. It is important to note that the data loaded by the batch loader must be **shuffled**.
 
 - **task_type** - The task type of the data, can be either ``classification``, ``object_detection``,
   ``semantic_segmentation``, or ``other``. Data format validation is done upon creation of VisionData based
-  on the selected task type.
+  on the selected task type. See :doc:`section </user-guide/vision/supported_tasks_and_formats>`
+  for more information.
 
 - **label_map** - A dictionary mapping class ids to their names.
+
+- **reshuffle_data** - Whether to reshuffle the data. Since data must be shuffled for the checks to
+  work properly, only set this to False if you are sure that the data is already shuffled.
 
 Creating a VisionData Object
 ============================
@@ -58,7 +61,8 @@ For an example of a custom generator that loads the data from disk batch by batc
             images_in_batch = np.clip(std * images_in_batch + mean, 0, 1) * 255
             yield BatchOutputFormat(images= images_in_batch, labels= labels_in_batch)
 
-    vision_data = VisionData(custom_generator(), task_type='classification', shuffle_batch_loader=False)
+    # Since the data is loaded is a shuffled manner, we do not need to reshuffle it.
+    vision_data = VisionData(custom_generator(), task_type='classification', reshuffle_data=False)
     # Visualize the data and verify it is in the correct format
     vision_data.head()
 
@@ -104,7 +108,8 @@ There are two possible ways to create a deepchecks compatible tensorflow
 in a way that directly outputs the data in the required format or convert an existing dataset.
 We will demonstrate the second option.
 
-Assume a tensorflow dataset object that outputs a batch of images and labels as a tuple of (images, labels).
+In the following example, we have a tensorflow dataset object that outputs a
+batch of images and labels as a tuple of (images, labels).
 We will use the `map <https://www.tensorflow.org/api_docs/python/tf/data/Dataset#map>`_
 function to convert the data into :doc:`Deepchecks' format </user-guide/vision/supported_tasks_and_formats>`.
 
@@ -117,7 +122,7 @@ function to convert the data into :doc:`Deepchecks' format </user-guide/vision/s
         images = batch[0].permute(0, 2, 3, 1)
         labels = batch[1]
         # Convert ImageNet format images into to [0, 255] range format images.
-        mean, std  = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+        mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
         images = np.clip(std * images.numpy() + mean, 0, 1) * 255
         return BatchOutputFormat(images= images, labels= labels)
 
@@ -126,15 +131,44 @@ function to convert the data into :doc:`Deepchecks' format </user-guide/vision/s
     # Visualize the data and verify it is in the correct format
     vision_data.head()
 
-
 .. _vision_data__adding_predictions:
 Adding Model Predictions
 ========================
-Some of deepchecks tests, including the :doc:`model evaluation checks and suite </checks_gallery/vision>`,
+Some checks, including the :doc:`model evaluation checks and suite </checks_gallery/vision>`,
 require model predictions in
-order to run. Models prediction are supplied via the batch loader in a similar fashion to the images and labels.
-There are several ways to supply them which can be divide into two categories: Pre-calculated predictions and
+order to run. Model predictions are supplied via the batch loader in a similar fashion to the images and labels.
+There are several ways to supply them which can be roughly divide into two categories: Pre-calculated predictions and
 on-demand inference.
+
+.. _vision_data__precalculated_predictions:
+Pre-calculated Predictions
+--------------------------
+It is recommended to use this option if your model object is unavailable locally (for example if
+placed on a separate prediction server) or if the predicting process is computationally expensive or time consuming.
+
+In the example below we will read the pre-calculated predictions, as well as the images and labels, from
+a csv file containing the path to the image, the label and the prediction probabilities per sample.
+
+.. code-block:: python
+
+    from PIL import Image
+    from deepchecks.vision import VisionData, BatchOutputFormat
+
+    def data_from_file_generator(batch_size = 64):
+        # Shuffling is a must for generic generators in order to achieve accurate results
+        data = pd.read_csv('classification_data.csv', index_col=0).sample(frac=1)
+        for i in range(0, len(data), batch_size):
+            images = [Image.open(x) for x in data['path_to_image'][i:(i + batch_size):]]
+            labels = data['label'][i:(i + batch_size):]
+            prediction_probabilities_as_str = data['prediction_probabilities'][i:(i + batch_size):]
+            prediction_probabilities_as_arr = [x.strip('][').split(', ') for x in prediction_probabilities_as_str]
+            yield BatchOutputFormat(images= images, labels=labels,
+                                    predictions= np.array(prediction_probabilities_as_arr, dtype=np.float32))
+
+    # Since the data is shuffled beforehand, we do not need to reshuffle it.
+    vision_data = VisionData(data_from_file_generator(), task_type='classification', reshuffle_data=False)
+    # Visualize the data and verify it is in the correct format
+    vision_data.head()
 
 On-demand Inference
 -------------------
@@ -168,31 +202,4 @@ We will demonstrate the last option via the pytorch interface.
     # Visualize the data and verify it is in the correct format
     vision_data.head()
 
-.. _vision_data__precalculated_predictions:
-Pre-calculated Predictions
---------------------------
-It is specifically recommended to use this option if your model object is unavailable locally (for example if
-placed on a separate prediction server) or if the predicting process is computationally expensive or time consuming.
 
-In the example below we will read the pre-calculated predictions, as well as the images and labels, from
-a csv file containing the path to the image, the label and the prediction probabilities per sample.
-
-.. code-block:: python
-
-    from PIL import Image
-    from deepchecks.vision import VisionData, BatchOutputFormat
-
-    def data_from_file_generator(batch_size = 64):
-        # Shuffling is a must for generic generators in order to achieve accurate results
-        data = pd.read_csv('classification_data.csv', index_col=0).sample(frac=1)
-        for i in range(0, len(data), batch_size):
-            images = [Image.open(x) for x in data['path_to_image'][i:(i + batch_size):]]
-            labels = data['label'][i:(i + batch_size):]
-            prediction_probabilities_as_str = data['prediction_probabilities'][i:(i + batch_size):]
-            prediction_probabilities_as_arr = [x.strip('][').split(', ') for x in prediction_probabilities_as_str]
-            yield BatchOutputFormat(images= images, labels=labels,
-                                    predictions= np.array(prediction_probabilities_as_arr, dtype=np.float32))
-
-    vision_data = VisionData(data_from_file_generator(), task_type='classification', shuffle_batch_loader=False)
-    # Visualize the data and verify it is in the correct format
-    vision_data.head()

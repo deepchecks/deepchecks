@@ -40,8 +40,8 @@ class VisionData:
         A dictionary mapping class ids to their names.
     dataset_name: str, optional
         Name of the dataset to use in the displays instead of "Train" or "Test".
-    shuffle_batch_loader: bool, default=True
-        If True and the batch loader is of known type that can be shuffled, it will be shuffled.
+    reshuffle_data: bool, default=True
+        If True we will attempt to shuffle the batch loader. Only set this to False if the data is already shuffled.
     """
 
     def __init__(
@@ -50,13 +50,13 @@ class VisionData:
             task_type: Literal['classification', 'object_detection', 'semantic_segmentation', 'other'],
             label_map: t.Optional[t.Dict[int, str]] = None,
             dataset_name: t.Optional[str] = None,
-            shuffle_batch_loader: bool = True
+            reshuffle_data: bool = True
     ):
         if not hasattr(batch_loader, '__iter__'):
             # TODO: add link to documentation
             raise DeepchecksValueError(r'Batch loader must be an iterable which loads batches of data in deepcheck\'s'
                                        'required format, see link for additional information ')
-        self._batch_loader = shuffle_loader(batch_loader) if shuffle_batch_loader else batch_loader
+        self._batch_loader = shuffle_loader(batch_loader) if reshuffle_data else batch_loader
 
         if task_type not in TaskType.values():
             raise ValueError(f'Invalid task type: {task_type}, must be one of the following: {TaskType.values()}')
