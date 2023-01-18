@@ -33,7 +33,7 @@ their classes.
 # ===========================
 # .. note::
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
-#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
 #
 # Load Data
 # ~~~~~~~~~
@@ -184,7 +184,7 @@ _ = model.eval()
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected format please visit
-# :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`
 #
 # First, we will create some functions that transform our batch to the correct format of images, labels and predictions:
 

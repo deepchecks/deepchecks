@@ -28,7 +28,7 @@ Currently, deepchecks supports only single label classification (either binary o
 # ===========================
 # .. note::
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
-#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
 
 #%%
 # Downloading the dataset
@@ -143,7 +143,7 @@ _ = model.eval()
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected formats, please visit the
-# :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`
 #
 # First, we'll create the collate function that will be used by the DataLoader.
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that

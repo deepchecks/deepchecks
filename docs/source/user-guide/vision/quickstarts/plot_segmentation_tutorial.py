@@ -29,7 +29,7 @@ of the probability for each class.
 # ===========================
 # .. note::
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
-#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
 
 # Load Data
 # ~~~~~~~~~
@@ -69,7 +69,7 @@ model = load_model(pretrained=True)
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected formats, please visit the
-# :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`
 #
 # First, we'll create the collate function that will be used by the DataLoader.
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
@@ -155,6 +155,7 @@ result.save_as_html('output.html')
 
 result.show()
 
+# %%
 # From these results, we can see that mostly our model performs well. However, the model had an issue with identifying
 # a specific class ("bicycle") in the test set, which casued a major degradation in the
 # `Dice metric <https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient>`_ for that class,
