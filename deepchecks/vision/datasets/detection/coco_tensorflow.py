@@ -72,7 +72,7 @@ def load_dataset(
         model = hub.load(_MODEL_URL)
         coco_dataset = coco_dataset.map(deepchecks_map(model))
         return VisionData(batch_loader=coco_dataset, label_map=LABEL_MAP, task_type='object_detection',
-                          shuffle_batch_loader=False)
+                          reshuffle_data=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 

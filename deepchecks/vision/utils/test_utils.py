@@ -26,7 +26,7 @@ from deepchecks.vision.vision_data.utils import object_to_numpy
 def replace_collate_fn_visiondata(vision_data: VisionData, new_collate_fn):
     """Create a new VisionData based on the same attributes as the old one with updated collate function."""
     new_data_loader = replace_collate_fn_dataloader(vision_data.batch_loader, new_collate_fn)
-    return VisionData(new_data_loader, task_type=vision_data.task_type.value, shuffle_batch_loader=False,
+    return VisionData(new_data_loader, task_type=vision_data.task_type.value, reshuffle_data=False,
                       dataset_name=vision_data.name,
                       label_map=vision_data.label_map)
 

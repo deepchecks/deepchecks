@@ -19,9 +19,11 @@ from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, Tr
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.vision_data.simple_classification_data import classification_dataset_from_directory
+from deepchecks.vision.vision_data.utils import BatchOutputFormat
 
 __all__ = [
     'VisionData',
+    'BatchOutputFormat',
     'classification_dataset_from_directory',
     'SingleDatasetCheck',
     'TrainTestCheck',
