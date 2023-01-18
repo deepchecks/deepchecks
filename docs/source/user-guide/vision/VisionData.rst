@@ -60,9 +60,9 @@ method for the MNIST dataset can be seen at the following
             images_in_batch = images[i:i+batch_size].transpose((0, 2, 3, 1))
             labels_in_batch = labels[i:i+batch_size]
             # Convert ImageNet format images into to [0, 255] range format images.
-            mean, std  = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
+            mean, std = [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
             images_in_batch = np.clip(std * images_in_batch + mean, 0, 1) * 255
-            yield BatchOutputFormat(images= images_in_batch, labels= labels_in_batch)
+            yield BatchOutputFormat(images=images_in_batch, labels=labels_in_batch)
 
     # Since the data is loaded is a shuffled manner, we do not need to reshuffle it.
     vision_data = VisionData(custom_generator(), task_type='classification', reshuffle_data=False)
@@ -164,8 +164,9 @@ a csv file containing the path to the image, the label and the prediction probab
     from deepchecks.vision import VisionData, BatchOutputFormat
 
     def data_from_file_generator(batch_size = 64):
+        data = pd.read_csv('classification_data.csv', index_col=0)
         # Shuffling is a must for generic generators in order to achieve accurate results
-        data = pd.read_csv('classification_data.csv', index_col=0).sample(frac=1)
+        data = data.sample(frac=1)
         for i in range(0, len(data), batch_size):
             images = [Image.open(x) for x in data['path_to_image'][i:(i + batch_size):]]
             labels = data['label'][i:(i + batch_size):]

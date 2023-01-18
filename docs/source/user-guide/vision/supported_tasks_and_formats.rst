@@ -17,16 +17,19 @@ correct format via the :func:`head <deepchecks.vision.vision_data.VisionData.hea
     In order to properly function, in addition for the data being in the correct format,
     the data must also be loaded in a **shuffled** manner.
 
+We will first describe the formats which are common for all tasks, and then describe the label and
+prediction formats which vary between tasks.
+
 Common Formats
 ==============
 Batch General Format
 --------------------
-Each batch, which is the output the :doc:`batch loader </user-guide/vision/vision_data_class>`,
-required to be a :class:`dictionary <deepchecks.vision.vision_data.utils.BatchOutputFormat>`
-with keys for each provided data input: images, labels and so on.
-Since each data input represent multiple samples,
+Each batch, which is the output of the :doc:`batch loader </user-guide/vision/vision_data_class>`,
+is required to be a :class:`dictionary <deepchecks.vision.vision_data.utils.BatchOutputFormat>`
+with keys for each provided data input: images, labels, predictions and image identifiers.
+Since each data input represents multiple samples,
 all data inputs are expected to be provided
-as either an iterable in which each entry represent a single sample or as a high dimension array or tensor in
+as either an iterable in which each entry represents a single sample, or as a high dimension array or tensor in
 which the first dimension is the number of samples.
 
 Image Format
@@ -61,7 +64,7 @@ representing the class index. For example, labels for a batch containing 2 sampl
 
 Prediction Format
 -----------------
-Classification prediction per sample should be **prediction probabilities** per class, meaning that it should be an
+Classification prediction for each sample should be the **prediction probabilities** per class, meaning that it should be an
 iterable of floats in the range [0, 1] with length equal to the number of classes.
 
 For example, predictions of a batch containing 2 samples for a classification task with 3 possible
@@ -92,8 +95,8 @@ sample has 2 bounding boxes, should be provided as follows:
 .. code-block:: python
 
     [
-        [(1, 50, 20, 9.4, 5.5)],
-        [(3, 12, 23, 3.4, 9.5), (5, 42, 63, 9.4, 11.5)]
+        [(1, 50, 20, 9, 5)],
+        [(3, 12, 23, 3, 9), (5, 42, 63, 9, 11)]
     ]
 
 Prediction Format
@@ -112,7 +115,7 @@ the second one has no predicted bounding boxes, should be provided as follows:
 .. code-block:: python
 
     [
-        [(50, 20, 9.4, 5.5, 0.8, 3), (50, 20, 9.4, 5.5, 0.4, 1)],
+        [(33, 11, 7, 9, 0.8, 3), (50, 20, 9, 5, 0.4, 1)],
         []
     ]
 
@@ -141,13 +144,13 @@ Other Tasks
 For other tasks, there is no specific format required for the labels and predictions and their format is
 not validated. There are two ways in which Deepchecks can provide value for these sort of tasks:
 
-The quick option - Run checks that require only the images themself.
+The quick option: Run checks that require only the images themselves.
 Few examples for such checks include:
 :doc:`Image Property Outliers </checks_gallery/vision/data_integrity/plot_image_property_outliers.html>`,
 :doc:`Image Dataset Drift </checks_gallery/vision/train_test_validation/plot_image_dataset_drift.html>` and
 :doc:`Image Property Drift </checks_gallery/vision/train_test_validation/plot_image_property_drift.html>`.
 
-The advanced option - Generate custom metrics and properties for the
+The advanced option: Add custom metrics and properties for the
 predictions and labels provided and run additional checks.
 For more information on how to do so, see the
 :doc:`custom task tutorial </user-guide/vision/tutorials/custom_task_tutorial>`.
