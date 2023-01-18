@@ -25,10 +25,9 @@ from deepchecks.vision.datasets.detection import coco_tensorflow
 from deepchecks.vision.datasets.detection.coco_torch import collate_without_model as coco_collate_without_model
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset as load_coco_dataset
 from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset as load_segmentation_coco_dataset
-from deepchecks.vision.utils.test_utils import replace_collate_fn_dataloader, replace_collate_fn_visiondata
-from deepchecks.vision.utils.test_utils import un_normalize_batch
-from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.utils.test_utils import (replace_collate_fn_dataloader, replace_collate_fn_visiondata,
+                                                un_normalize_batch)
+from deepchecks.vision.vision_data import TaskType, VisionData
 from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 from deepchecks.vision.vision_data.utils import set_seeds
 

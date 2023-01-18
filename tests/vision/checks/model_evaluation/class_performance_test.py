@@ -11,8 +11,7 @@
 import re
 import typing as t
 
-from hamcrest import (assert_that, calling, close_to, equal_to, greater_than, has_items, has_length,
-                      instance_of, raises)
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_items, has_length, instance_of, raises
 from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError

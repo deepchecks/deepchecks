@@ -9,14 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for BaseCheck class."""
+import numpy as np
 # pylint: disable-all
-from hamcrest import all_of, calling, contains_exactly, equal_to, has_items, has_length, has_property, is_, raises
+import pandas as pd
+from hamcrest import *
 
 from deepchecks import __version__
-from deepchecks.core import ConditionResult
-from deepchecks.core.checks import BaseCheck
+from deepchecks.core import BaseCheck, CheckResult, ConditionResult
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
-from tests.conftest import *
+from deepchecks.tabular import Context, TrainTestCheck
 
 
 class DummyCheck(TrainTestCheck):
