@@ -122,7 +122,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         df_props = pd.DataFrame(self._properties_results)
         # PPS task type is inferred from label dtype. For supported task types (object detection, classification),
         # the label should be regarded as categorical thus it is cast to object dtype.
-        df_props['target'] = df_props['target'].apply(vision_data.label_id_to_name).astype('object')
+        df_props['target'] = df_props['target'].apply(vision_data.label_map.get).astype('object')
         df_pps = pps.predictors(df=df_props, y='target', random_seed=context.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']

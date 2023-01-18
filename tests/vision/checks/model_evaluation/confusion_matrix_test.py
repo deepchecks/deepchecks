@@ -15,7 +15,6 @@ from hamcrest import less_than_or_equal_to as le
 
 from deepchecks.vision.checks import ConfusionMatrixReport
 
-
 # TODO: more tests
 
 

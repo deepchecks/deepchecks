@@ -16,7 +16,7 @@ from enum import Enum
 from numbers import Number
 
 import numpy as np
-from typing_extensions import TypedDict
+from typing_extensions import NotRequired, TypedDict
 
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.utils.logger import get_logger
@@ -39,12 +39,30 @@ class TaskType(Enum):
 class BatchOutputFormat(TypedDict):
     """Batch output format required by deepchecks."""
 
-    images: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    labels: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    predictions: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    additional_data: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    embeddings: t.Optional[t.Union[np.ndarray, t.Sequence]]
-    image_identifiers: t.Optional[t.Union[np.ndarray, t.Sequence]]
+    images: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    labels: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    predictions: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    additional_data: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    embeddings: NotRequired[t.Union[np.ndarray, t.Sequence]]
+    image_identifiers: NotRequired[t.Union[np.ndarray, t.Sequence]]
+
+
+class LabelMap(dict):
+    """Smarter dict for label map."""
+
+    def __init__(self, seq=None, **kwargs):
+        seq = seq or {}
+        super().__init__(seq, **kwargs)
+
+    def __getitem__(self, class_id) -> str:
+        """Return the name of the class with the given id."""
+        try:
+            class_id = int(class_id)
+        except ValueError:
+            pass
+        if class_id in self:
+            return dict.__getitem__(self, class_id)
+        return str(class_id)
 
 
 def sequence_to_numpy(data: t.Optional[t.Sequence], expected_dtype=None, expected_ndim_per_object=None) -> \

@@ -168,7 +168,7 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
             # Deepchecks scorers returns classification class scores as dict but object detection as array TODO: unify
             scores_iterator = scores.items() if isinstance(scores, dict) else enumerate(scores)
             for class_id, class_score in scores_iterator:
-                class_name = dataset.label_id_to_name(class_id)
+                class_name = dataset.label_map[class_id]
                 # The data might contain fewer classes than the model was trained on. filtering out
                 # any class id which is not presented in the data.
                 if np.isnan(class_score) or class_name not in dataset.get_observed_classes() or class_score == -1:

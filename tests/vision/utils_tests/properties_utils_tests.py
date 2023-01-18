@@ -9,13 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 # pylint: disable=inconsistent-quotes, redefined-builtin
-from hamcrest import assert_that, calling, close_to, contains_exactly, raises, is_, equal_to
+from hamcrest import assert_that, calling, close_to, contains_exactly, equal_to, is_, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import ImagePropertyOutliers
-from deepchecks.vision.utils.image_properties import default_image_properties, calc_default_image_properties, \
-    texture_level
+from deepchecks.vision.utils.image_properties import (calc_default_image_properties, default_image_properties,
+                                                      texture_level)
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,

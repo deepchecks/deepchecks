@@ -11,10 +11,11 @@
 import torch
 from hamcrest import assert_that, contains_exactly
 
-from deepchecks.vision.utils.label_prediction_properties import _get_segment_area, \
-    _get_samples_per_class_semantic_segmentation, _count_classes_by_segment_in_image, \
-    _get_predicted_classes_per_image_semantic_segmentation, _get_segment_pred_area, \
-    _count_pred_classes_by_segment_in_image
+from deepchecks.vision.utils.label_prediction_properties import (_count_classes_by_segment_in_image,
+                                                                 _count_pred_classes_by_segment_in_image,
+                                                                 _get_predicted_classes_per_image_semantic_segmentation,
+                                                                 _get_samples_per_class_semantic_segmentation,
+                                                                 _get_segment_area, _get_segment_pred_area)
 
 
 def test_segment_area():

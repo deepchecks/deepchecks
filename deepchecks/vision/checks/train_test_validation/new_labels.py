@@ -110,11 +110,11 @@ class NewLabels(TrainTestCheck, ReduceLabelMixin):
         if context.with_display:
             # Create display
             displays = []
-            images_per_class = {test_data.label_id_to_name(key): value for key, value in self._display_images.items()}
+            images_per_class = {test_data.label_map[key]: value for key, value in self._display_images.items()}
             for class_name, num_occurrences in labels_only_in_test.items():
                 # Create id of alphabetic characters
                 sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
-                thumbnail_images = [draw_image(img, labels, test_data.task_type) for img, labels in
+                thumbnail_images = [draw_image(img, labels, test_data.task_type, test_data.label_map) for img, labels in
                                     zip(images_per_class[class_name]['images'],
                                         images_per_class[class_name]['labels'])]
                 images_combine = ''.join([f'<div class="{sid}-item">{img}</div>' for img in thumbnail_images])

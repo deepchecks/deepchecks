@@ -17,7 +17,6 @@ from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import calc_default_image_properties, default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType, calc_vision_properties, validate_properties
-from deepchecks.vision.vision_data import VisionData
 from deepchecks.vision.vision_data.utils import BatchOutputFormat, TaskType, sequence_to_numpy
 
 __all__ = ['BatchWrapper']
@@ -26,17 +25,15 @@ __all__ = ['BatchWrapper']
 class BatchWrapper:
     """Represents dataset batch returned by the dataloader during iteration."""
 
-    def __init__(self, batch: BatchOutputFormat, vision_data: VisionData, ):
-        self._vision_data = vision_data
-        self._task_type = vision_data.task_type
+    def __init__(self, batch: BatchOutputFormat, task_type: TaskType, images_seen_num: int):
+        self._task_type = task_type
         self._batch = batch
         self._labels, self._predictions, self._images = None, None, None
         self._embeddings, self._additional_data, = None, None
         self._image_identifiers = batch.get('image_identifiers')
         # if there are no image identifiers, use the number of the image in loading process as identifier
         if self._image_identifiers is None:
-            images_seen = self._vision_data.number_of_images_cached
-            self._image_identifiers = np.asarray(range(images_seen, images_seen + len(self)), dtype='str')
+            self._image_identifiers = np.asarray(range(images_seen_num, images_seen_num + len(self)), dtype='str')
 
         self._vision_properties_cache = dict.fromkeys(PropertiesInputType)
 

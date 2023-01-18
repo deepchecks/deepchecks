@@ -17,18 +17,17 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from deepchecks.vision.context import Context
-from deepchecks.vision.datasets.classification.mnist import collate_without_model as mnist_collate_without_model
-from deepchecks.vision.datasets.classification.mnist import deepchecks_collate as mnist_deepchecks_collate
-from deepchecks.vision.datasets.classification.mnist import load_dataset as load_mnist_dataset
-from deepchecks.vision.datasets.classification.mnist import load_model as load_mnist_model
+from deepchecks.vision.datasets.classification.mnist_torch import collate_without_model as mnist_collate_without_model
+from deepchecks.vision.datasets.classification.mnist_torch import deepchecks_collate as mnist_deepchecks_collate
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset as load_mnist_dataset
+from deepchecks.vision.datasets.classification.mnist_torch import load_model as load_mnist_model
 from deepchecks.vision.datasets.detection import coco_tensorflow
 from deepchecks.vision.datasets.detection.coco_torch import collate_without_model as coco_collate_without_model
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset as load_coco_dataset
 from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset as load_segmentation_coco_dataset
-from deepchecks.vision.utils.test_utils import replace_collate_fn_dataloader, replace_collate_fn_visiondata
-from deepchecks.vision.utils.test_utils import un_normalize_batch
-from deepchecks.vision.vision_data import TaskType
-from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.utils.test_utils import (replace_collate_fn_dataloader, replace_collate_fn_visiondata,
+                                                un_normalize_batch)
+from deepchecks.vision.vision_data import TaskType, VisionData
 from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 from deepchecks.vision.vision_data.utils import set_seeds
 
@@ -301,7 +300,7 @@ def run_update_loop(dataset: VisionData):
     context: Context = Context(dataset, random_state=0)
     dataset.init_cache()
     for batch in context.train:
-        batch = BatchWrapper(batch, dataset)
+        batch = BatchWrapper(batch, dataset.task_type, dataset.number_of_images_cached)
         dataset.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
 
 

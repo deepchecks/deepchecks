@@ -48,7 +48,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
             with progressbar_factory.create_dummy(name='Processing Batches'):
                 for batch in context.train:
-                    batch = BatchWrapper(batch, context.train)
+                    batch = BatchWrapper(batch, context.train.task_type, context.train.number_of_images_cached)
                     context.train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                     self.update(context, batch, DatasetKind.TRAIN)
                     if self.n_samples is not None and context.train.number_of_images_cached >= self.n_samples:
@@ -100,7 +100,7 @@ class TrainTestCheck(TrainTestBaseCheck):
 
             with progressbar_factory.create_dummy(name='Processing Train Batches'):
                 for batch in context.train:
-                    batch = BatchWrapper(batch, context.train)
+                    batch = BatchWrapper(batch, context.train.task_type, context.train.number_of_images_cached)
                     context.train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                     self.update(context, batch, DatasetKind.TRAIN)
                     if self.n_samples is not None and context.train.number_of_images_cached >= self.n_samples:
@@ -108,7 +108,7 @@ class TrainTestCheck(TrainTestBaseCheck):
 
             with progressbar_factory.create_dummy(name='Processing Test Batches'):
                 for batch in context.test:
-                    batch = BatchWrapper(batch, context.test)
+                    batch = BatchWrapper(batch, context.test.task_type, context.test.number_of_images_cached)
                     context.test.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                     self.update(context, batch, DatasetKind.TEST)
                     if self.n_samples is not None and context.test.number_of_images_cached >= self.n_samples:

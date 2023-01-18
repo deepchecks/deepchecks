@@ -106,10 +106,16 @@ The process of calculating the PPS is the following:
 #%%
 # Loading data (MNIST)
 # --------------------
+#
+# .. note::
+#   In this example, we use the pytorch version of the mnist dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset
 
 import numpy as np
 from deepchecks.vision.checks import PropertyLabelCorrelationChange
-from deepchecks.vision.datasets.classification.mnist import load_dataset
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
@@ -123,25 +129,26 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 # on the label (0 to 9) so there is a correlation between brightness of image
 # and the label (also a small correlation of the index)
 
-from deepchecks.vision.utils.transformations import un_normalize_batch
 
-def mnist_batch_to_images_with_bias_mod(mod):
-    def mnist_batch_to_images_with_bias(batch):
+def generate_collate_function_with_leakage(collate_fn, mod):
+    def collate_function_with_leakage(batch):
         """Create function which inverse the data normalization."""
-        tensor = batch[0]
-        tensor = tensor.permute(0, 2, 3, 1)
-        ret = un_normalize_batch(tensor, (0.1307,), (0.3081,))
+        batch_dict = collate_fn(batch)
+        images = batch_dict['images']
+        labels = batch_dict['labels']
         # add some label/index correlation
-        for i, label in enumerate(batch[1]):
+        for i, label in enumerate(labels):
             if i % mod != 0:
-                ret[i] = np.ones(ret[i].shape) * int(i % 3 + 1) * int(label)
+                images[i] = np.ones(images[i].shape) * int(i % 3 + 1) * int(label)
 
-        return ret
-    return mnist_batch_to_images_with_bias
+        batch_dict['images'] = images
+        return batch_dict
+    return collate_function_with_leakage
+
 #%%
 
-train_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(9)
-test_ds.batch_to_images = mnist_batch_to_images_with_bias_mod(2)
+train_ds._batch_loader.collate_fn = generate_collate_function_with_leakage(train_ds._batch_loader.collate_fn, 9)
+test_ds._batch_loader.collate_fn = generate_collate_function_with_leakage(test_ds._batch_loader.collate_fn, 2)
 
 #%%
 # Run the check
@@ -160,8 +167,8 @@ result.show()
 
 #%%
 # We can see that the check detected the bias we inserted, and that the
-# brightness property of the image has a high PPS, meaning it can be used to
-# solely predict the label.
+# brightness property of the image has a high PPS in train and then nearly none in test, implying that there might have
+# been some leakage in the train dataset.
 #
 # Run the check on an Object Detection task
 # =========================================
@@ -169,7 +176,14 @@ result.show()
 #%%
 # Loading data (COCO)
 # --------------------
-from deepchecks.vision.datasets.detection.coco import load_dataset
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection.coco_tensorflow import load_dataset
+
+from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
@@ -185,21 +199,25 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 
 # Increase the pixel values of all bounding boxes by the labels value:
 
-def coco_batch_to_images_with_bias_mod(mod):
-    def coco_batch_to_images_with_bias(batch):
+def generate_collate_function_with_leakage_coco(collate_fn, mod):
+    def collate_function_with_leakage_coco(batch):
         import numpy as np
-        ret = [np.array(x) for x in batch[0]]
-        for i, labels in enumerate(train_ds.batch_to_labels(batch)):
+        batch_dict = collate_fn(batch)
+        images = batch_dict['images']
+        labels = batch_dict['labels']
+        ret = [np.array(x) for x in images]
+        for i, labels in enumerate(labels):
             if i % mod != 0:
                 for label in labels:
                     x, y, w, h = np.array(label[1:]).astype(int)
-                    ret[i][y:y+h, x:x+w] = ret[i][y:y+h, x:x+w].clip(min=200) * int(label[0])
-        return ret
-    return coco_batch_to_images_with_bias
+                    ret[i][y:y+h, x:x+w] = (ret[i][y:y+h, x:x+w] * int(label[0])).clip(min=200, max=255)
+        batch_dict['images'] = ret
+        return batch_dict
+    return collate_function_with_leakage_coco
 
 
-train_ds.batch_to_images = coco_batch_to_images_with_bias_mod(12)
-test_ds.batch_to_images = coco_batch_to_images_with_bias_mod(2)
+train_ds._batch_loader.collate_fn = generate_collate_function_with_leakage_coco(train_ds._batch_loader.collate_fn, 12)
+test_ds._batch_loader.collate_fn = generate_collate_function_with_leakage_coco(test_ds._batch_loader.collate_fn, 2)
 
 
 #%%
@@ -211,8 +229,8 @@ result = check.run(train_ds, test_ds)
 result.show()
 
 #%%
-# We can see that the check detected the bias we inserted, and that the brightness
-# property of the image has a high PPS, meaning it can be used to solely predict the label.
+# We can see that the check detected the bias we inserted, and that the PPS of the brightness
+# property has changed, implying that there might have been some leakage in the train dataset.
 #
 # Define a condition
 # ==================
