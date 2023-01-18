@@ -12,7 +12,7 @@ You can read more about the different checks and suites for computer vision use 
 A classification model is usually used to classify an image into one of a number of classes. Although there are
 multi label use-cases, in which the model is used to classify an image into multiple classes, most use-cases
 require the model to classify images into a single class.
-Currently deepchecks supports only single label classification (either binary or multi-class).
+Currently, deepchecks supports only single label classification (either binary or multi-class).
 
 .. code-block:: bash
 
@@ -156,6 +156,7 @@ def deepchecks_collate_fn(batch):
     To learn more about the expected formats, please visit the
     :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
     """
+    # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
     batch = tuple(zip(*batch))
 
     # images:
