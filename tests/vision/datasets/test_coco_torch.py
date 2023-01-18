@@ -14,8 +14,7 @@ from hamcrest import assert_that, calling, instance_of, is_, raises
 from torch.utils.data import DataLoader
 
 from deepchecks import vision
-from deepchecks.vision.datasets.detection.coco_torch import \
-    (CocoDataset, load_dataset, COCO_DIR)
+from deepchecks.vision.datasets.detection.coco_torch import COCO_DIR, CocoDataset, load_dataset
 from deepchecks.vision.datasets.detection.coco_utils import download_coco128
 
 

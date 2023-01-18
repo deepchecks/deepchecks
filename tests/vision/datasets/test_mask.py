@@ -10,11 +10,11 @@
 #
 from unittest.mock import patch
 
-from hamcrest import assert_that, calling, instance_of, is_, raises, equal_to
+from hamcrest import assert_that, calling, equal_to, instance_of, is_, raises
 from torch.utils.data import DataLoader
 
 from deepchecks.vision import VisionData
-from deepchecks.vision.datasets.detection.mask import (MASK_DIR, MaskDataset, load_dataset)
+from deepchecks.vision.datasets.detection.mask import MASK_DIR, MaskDataset, load_dataset
 
 
 def patch_side_effect(*args, **kwargs):

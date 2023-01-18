@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import pandas as pd
-from hamcrest import assert_that, calling, has_items, raises, close_to
+from hamcrest import assert_that, calling, close_to, has_items, raises
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
@@ -27,7 +27,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.suites.default_suites import full_suite
 from deepchecks.tabular.utils.task_type import TaskType
 from tests.base.utils import equal_condition_result
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 from tests.tabular.checks.model_evaluation.simple_model_comparison_test import assert_regression
 
 

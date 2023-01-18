@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 
-from hamcrest import assert_that, close_to, has_length, equal_to
+from hamcrest import assert_that, close_to, equal_to, has_length
 from ignite.metrics import Accuracy, Precision
-from sklearn.metrics import make_scorer, jaccard_score
+from sklearn.metrics import jaccard_score, make_scorer
 
 from deepchecks.core import ConditionCategory
 from deepchecks.vision.checks import SingleDatasetPerformance
