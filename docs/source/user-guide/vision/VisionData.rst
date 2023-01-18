@@ -28,6 +28,7 @@ Common Class Parameters
 - **reshuffle_data** - Whether to reshuffle the data. Since data must be shuffled for the checks to
   work properly, only set this to False if you are sure that the data is already shuffled.
 
+.. _vision_data__creating_vision_data:
 Creating a VisionData Object
 ============================
 The sub-sections below contain simple examples how to create a VisionData object without predictions, in
@@ -43,7 +44,9 @@ and that it loads the data in a shuffled manner. The following is an example of 
 based on data that is fully stored in memory as numpy arrays.
 
 For an example of a custom generator that loads the data from disk batch by batch see the
-:ref:`following section <vision_data__precalculated_predictions>`.
+:ref:`following section <vision_data__precalculated_predictions>`. A full code implementation of this
+method for the MNIST dataset can be seen at the following
+`link <https://github.com/deepchecks/deepchecks/tree/main/deepchecks/vision/datasets/classification/mnist_tensorflow.py>`_.
 
 
 .. code-block:: python
@@ -81,6 +84,9 @@ In order create a deepchecks compatible DataLoader, you need to create a collate
 returns a batch in the :doc:`following format </user-guide/vision/supported_tasks_and_formats>`
 and replace the default collate function via the ``collate_fn`` argument in the creation of the DataLoader.
 
+A full code implementation of this method for the COCO128 dataset can be seen at the following
+`link <https://github.com/deepchecks/deepchecks/tree/main/deepchecks/vision/datasets/detection/coco_torch.py>`_.
+
 .. code-block:: python
 
     import torch
@@ -112,6 +118,9 @@ In the following example, we have a tensorflow dataset object that outputs a
 batch of images and labels as a tuple of (images, labels).
 We will use the `map <https://www.tensorflow.org/api_docs/python/tf/data/Dataset#map>`_
 function to convert the data into :doc:`Deepchecks' format </user-guide/vision/supported_tasks_and_formats>`.
+
+A full code implementation of this method for the COCO128 dataset can be seen at the following
+`link <https://github.com/deepchecks/deepchecks/tree/main/deepchecks/vision/datasets/detection/coco_tensorflow.py>`_.
 
 .. code-block:: python
 
