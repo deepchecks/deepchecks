@@ -28,7 +28,7 @@ def replace_collate_fn_visiondata(vision_data: VisionData, new_collate_fn):
     new_data_loader = replace_collate_fn_dataloader(vision_data.batch_loader, new_collate_fn)
     return VisionData(new_data_loader, task_type=vision_data.task_type.value, shuffle_batch_loader=False,
                       dataset_name=vision_data.name,
-                      label_map=vision_data._label_map)  # pylint: disable=protected-access
+                      label_map=vision_data.label_map)
 
 
 def replace_collate_fn_dataloader(data_loader: DataLoader, new_collate_fn):

@@ -48,7 +48,6 @@ class HeatmapComparison(TrainTestCheck):
     def initialize_run(self, context: Context):
         """Initialize run."""
         self._task_type = context.train.task_type
-        self._class_to_string = context.train.label_id_to_name
 
         # State members to store the average grayscale image throughout update steps
         self._grayscale_heatmap = defaultdict(lambda: 0)

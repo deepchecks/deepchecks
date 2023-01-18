@@ -133,7 +133,7 @@ def test_vision_cache_object_detection(coco_visiondata_train):
     assert_that(coco_visiondata_train.number_of_images_cached,
                 equal_to(len(coco_visiondata_train.batch_loader.dataset)))
     assert_that(sorted(coco_visiondata_train.get_observed_classes()),
-                equal_to(sorted(coco_visiondata_train.label_id_to_name(x) for x in expected_classes)))
+                equal_to(sorted(coco_visiondata_train.label_map[x] for x in expected_classes)))
 
     # ReAct and ReAssert
     coco_visiondata_train.init_cache()

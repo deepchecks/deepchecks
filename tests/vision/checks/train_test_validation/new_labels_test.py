@@ -100,7 +100,8 @@ def test_classification_mnist_change_label_with_condition(mnist_visiondata_train
 
     train = replace_collate_fn_visiondata(mnist_visiondata_train, collate_fn)
     modified_test = replace_collate_fn_visiondata(mnist_visiondata_test, modified_labels_collate)
-    train._label_map, modified_test._label_map = None, None
+    train.label_map.clear()
+    modified_test.label_map.clear()
     check = NewLabels().add_condition_new_label_ratio_less_or_equal(0)
     # Act
     result = check.run(train, modified_test)
@@ -127,7 +128,8 @@ def test_classification_mnist_new_labels(mnist_visiondata_train, mnist_visiondat
 
     modified_test = replace_collate_fn_visiondata(mnist_visiondata_test, modified_labels_collate)
     train = replace_collate_fn_visiondata(mnist_visiondata_train, collate_fn)
-    train._label_map, modified_test._label_map = None, None
+    train.label_map.clear()
+    modified_test.label_map.clear()
     check = NewLabels().add_condition_new_label_ratio_less_or_equal(0)
     # Act
     result = check.run(train, modified_test)

@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision data class and utilities."""
-from deepchecks.vision.vision_data.utils import TaskType
-from deepchecks.vision.vision_data.vision_data import BatchOutputFormat, VisionData
+from deepchecks.vision.vision_data.utils import BatchOutputFormat, TaskType
+from deepchecks.vision.vision_data.vision_data import VisionData
 
 __all__ = ['VisionData', 'BatchOutputFormat', 'TaskType']

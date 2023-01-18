@@ -49,11 +49,11 @@ def test_train_test_split():
     test = load_dataset(train=False, object_type='VisionData')
 
     for batch in train:
-        batch = BatchWrapper(batch, train)
+        batch = BatchWrapper(batch, train.task_type, train.number_of_images_cached)
         train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
 
     for batch in test:
-        batch = BatchWrapper(batch, test)
+        batch = BatchWrapper(batch, test.task_type, test.number_of_images_cached)
         test.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
 
     assert_that(train.number_of_images_cached + test.number_of_images_cached, equal_to(128))

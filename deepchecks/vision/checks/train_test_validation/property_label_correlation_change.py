@@ -141,8 +141,8 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         dataset_names = (context.train.name, context.test.name)
         # PPS task type is inferred from label dtype. For supported task types (object detection, classification),
         # the label should be regarded as categorical thus it is cast to object dtype.
-        df_train['target'] = df_train['target'].apply(context.train.label_id_to_name).astype('object')
-        df_test['target'] = df_test['target'].apply(context.test.label_id_to_name).astype('object')
+        df_train['target'] = df_train['target'].apply(context.train.label_map.get).astype('object')
+        df_test['target'] = df_test['target'].apply(context.test.label_map.get).astype('object')
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of an image property (such as brightness)'
