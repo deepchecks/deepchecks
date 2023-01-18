@@ -13,18 +13,18 @@
 # pylint: disable=redefined-outer-name
 import typing as t
 from datetime import datetime
-from hamcrest import assert_that, has_length, contains_exactly
 
 import pandas as pd
 import pytest
 from catboost import CatBoostClassifier, CatBoostRegressor
+from hamcrest import assert_that, contains_exactly, has_length
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.tabular import Dataset, suites
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 
 
 @pytest.fixture()
@@ -55,7 +55,9 @@ def test_generic_suite(
         iris: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
         diabetes_split_dataset_and_model: t.Tuple[Dataset, Dataset, object],
         iris_split_dataset_and_model_single_feature: t.Tuple[Dataset, Dataset, AdaBoostClassifier],
-        kiss_dataset_and_model, wierd_classification_dataset_and_model, wierd_regression_dataset_and_model,
+        kiss_dataset_and_model,
+        wierd_classification_dataset_and_model,
+        wierd_regression_dataset_and_model,
         adult_split_dataset_and_model
 ):
     iris_train, iris_test, iris_model = iris

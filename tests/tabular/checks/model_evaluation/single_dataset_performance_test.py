@@ -11,17 +11,17 @@
 """Contains unit tests for the single dataset performance report check."""
 from typing import List
 
-from hamcrest import assert_that, calling, close_to, has_entries, has_items, has_length, instance_of, raises, equal_to
+from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_items, has_length, instance_of, raises
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
-from tests.common import is_nan
 from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks import SingleDatasetPerformance
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DEFAULT_MULTICLASS_SCORERS, DEFAULT_REGRESSION_SCORERS
 from tests.base.utils import equal_condition_result
+from tests.common import is_nan
 
 
 def test_dataset_wrong_input():

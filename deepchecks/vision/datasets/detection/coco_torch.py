@@ -263,7 +263,7 @@ class CocoDataset(VisionDataset):
             self.images = images[train_len:]
             self.labels = labels[train_len:]
 
-    def __getitem__(self, idx: int) -> t.Tuple[Image.Image, np.ndarray]:
+    def __getitem__(self, idx: int) -> t.Tuple[Image.Image, torch.Tensor]:
         """Get the image and label at the given index."""
         # open image using cv2, since opening with Pillow give slightly different results based on Pillow version
         img, bboxes = get_image_and_label(self.images[idx], self.labels[idx], self.transforms)

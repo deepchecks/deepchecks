@@ -142,7 +142,7 @@ class Suite(BaseSuite):
         # Update loop over the batches
         with progressbar_factory.create_dummy(name='Processing Batches:' + vision_data.name):
             for batch in vision_data:
-                batch = BatchWrapper(batch, vision_data)
+                batch = BatchWrapper(batch, vision_data.task_type, vision_data.number_of_images_cached)
                 vision_data.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
                 for name, check in list(checks_to_update.items()):
                     try:

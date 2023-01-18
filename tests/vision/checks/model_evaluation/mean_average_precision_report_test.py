@@ -10,7 +10,7 @@
 #
 from hamcrest import assert_that, calling, close_to, greater_than, has_length, raises
 
-from deepchecks.core.errors import ModelValidationError, DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError, ModelValidationError
 from deepchecks.vision.checks import MeanAveragePrecisionReport
 from tests.base.utils import equal_condition_result
 

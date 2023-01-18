@@ -55,8 +55,15 @@ Imports
 """
 
 #%%
+#
+# .. note::
+#   In this example, we use the pytorch version of the mnist dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset
+
 from deepchecks.vision.checks import TrainTestLabelDrift
-from deepchecks.vision.datasets.classification.mnist import load_dataset
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
 # Loading Data
@@ -82,11 +89,8 @@ result
 # performance of a simple model trained on MNIST.
 
 from deepchecks.vision.checks import ClassPerformance
-from deepchecks.vision.datasets.classification.mnist import \
-    load_model as load_mnist_model
 
-mnist_model = load_mnist_model(pretrained=True)
-ClassPerformance().run(train_ds, test_ds, mnist_model)
+ClassPerformance().run(train_ds, test_ds)
 
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
@@ -103,56 +107,39 @@ ClassPerformance().run(train_ds, test_ds, mnist_model)
 # custom `collate_fn`` in the test dataset, that will select samples with class 0 in
 # a 1/10 chances.
 
-import torch
-
-mnist_dataloader_train = load_dataset(train=True, batch_size=64, object_type='DataLoader')
-mnist_dataloader_test = load_dataset(train=False, batch_size=1000, object_type='DataLoader')
-full_mnist = torch.utils.data.ConcatDataset([mnist_dataloader_train.dataset, mnist_dataloader_test.dataset])
-
-#%%
-train_dataset, test_dataset = torch.utils.data.random_split(full_mnist, [60000,10000], generator=torch.Generator().manual_seed(42))
-
 #%%
 # Inserting drift to the test set
 # -------------------------------
 
 import numpy as np
-from torch.utils.data._utils.collate import default_collate
 
 np.random.seed(42)
 
 
-def collate_test(batch):
-    modified_batch = []
-    for item in batch:
-        image, label = item
-        if label == 0:
-            if np.random.randint(5) == 0:
-                modified_batch.append(item)
-            else:
-                modified_batch.append((image, 1))
-        else:
-            modified_batch.append(item)
+def generate_collate_fn_with_label_drift(collate_fn):
+    def collate_fn_with_label_drift(batch):
+        batch_dict = collate_fn(batch)
+        images = batch_dict['images']
+        labels = batch_dict['labels']
+        for i in range(len(images)):
+            image, label = images[i], labels[i]
+            if label == 0:
+                if np.random.randint(5) != 0:
+                    batch_dict['labels'][i] = 1
 
-    return default_collate(modified_batch)
+        return batch_dict
+    return collate_fn_with_label_drift
 
 
-mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64)
-mod_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, collate_fn=collate_test)
-
-#%%
-
-from deepchecks.vision.datasets.classification.mnist import MNISTData
-
-mod_train_ds = MNISTData(mod_train_loader)
-mod_test_ds = MNISTData(mod_test_loader)
+mod_test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
+mod_test_ds._batch_loader.collate_fn = generate_collate_fn_with_label_drift(mod_test_ds._batch_loader.collate_fn)
 
 #%%
 # Run the check
 # =============
 
 check = TrainTestLabelDrift()
-check.run(mod_train_ds, mod_test_ds)
+check.run(train_ds, mod_test_ds)
 
 #%%
 # Add a condition
@@ -161,7 +148,7 @@ check.run(mod_train_ds, mod_test_ds)
 # distribution, such as the one that occurred here.
 
 check = TrainTestLabelDrift().add_condition_drift_score_less_than()
-check.run(mod_train_ds, mod_test_ds)
+check.run(train_ds, mod_test_ds)
 
 # As we can see, the condition alerts us to the present of drift in the label.
 
@@ -175,7 +162,7 @@ check.run(mod_train_ds, mod_test_ds)
 # But how does this affect the performance of the model?
 # ------------------------------------------------------
 
-ClassPerformance().run(mod_train_ds, mod_test_ds, mnist_model)
+ClassPerformance().run(train_ds, mod_test_ds)
 
 #%%
 # Inferring the results
@@ -185,8 +172,14 @@ ClassPerformance().run(mod_train_ds, mod_test_ds, mnist_model)
 #%%
 # Run the check on an Object Detection task (COCO)
 # ================================================
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection.coco_tensorflow import load_dataset
 
-from deepchecks.vision.datasets.detection.coco import load_dataset
+from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')

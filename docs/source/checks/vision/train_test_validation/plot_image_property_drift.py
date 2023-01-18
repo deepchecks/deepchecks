@@ -64,9 +64,15 @@ Imports
 """
 
 #%%
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection import coco_tensorflow as coco
 
 from deepchecks.vision.checks import ImagePropertyDrift
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.datasets.detection import coco_torch as coco
 #%%
 # Prepare data
 # ------------

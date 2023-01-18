@@ -56,8 +56,14 @@ Run the Check on a Classification Task (MNIST)
 #%%
 # Imports
 # -------
+#
+# .. note::
+#   In this example, we use the pytorch version of the mnist dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset
 
-from deepchecks.vision.datasets.classification.mnist import load_dataset
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
 # Loading Data
@@ -85,8 +91,14 @@ result
 #%%
 # Run the Check on an Object Detection Task (Coco)
 # ================================================
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection.coco_tensorflow import load_dataset
 
-from deepchecks.vision.datasets.detection.coco import load_dataset
+from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
