@@ -108,12 +108,9 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
 
         self._train_properties = None
         self._test_properties = None
-        self._class_to_string = None
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
-        self._class_to_string = context.train.label_id_to_name
-
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 

@@ -187,9 +187,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             output_type = label_prop['output_type']
             # If type is class converts to label names
             if output_type == 'class_id':
-                self._train_label_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
+                self._train_label_properties[name] = [context.train.label_map[class_id] for class_id in
                                                       self._train_label_properties[name]]
-                self._test_label_properties[name] = [context.test.label_id_to_name(class_id) for class_id in
+                self._test_label_properties[name] = [context.test.label_map[class_id] for class_id in
                                                      self._test_label_properties[name]]
 
             value, method, display = calc_drift_and_plot(
