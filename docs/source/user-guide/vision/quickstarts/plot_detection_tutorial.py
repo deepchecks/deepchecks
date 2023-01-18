@@ -32,8 +32,8 @@ their classes.
 # Defining the data and model
 # ===========================
 # .. note::
-#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow,
-#   please refer to #TODO
+#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
 #
 # Load Data
 # ~~~~~~~~~
@@ -327,3 +327,12 @@ result.save_as_html('output.html')
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
 result
+
+#%%
+# We can see that our model does not perform well, as can be seen in the "Class Performance" check under the
+# "Didn't Pass" section of the suite results. This is because the model was trained on a different dataset, and
+# the model was not trained to detect tomatoes.
+# Moreover, we can see that lowering the IoU threshold could have fixed this a bit (as can be seen in the
+# "Mean Average Precision Report" Check), but would still keep the overall precision low.
+# Moreover, under the "Passed" section, we can see that our drift checks have passed, which means that the distribution
+# of the predictions on the training and test data is similar, and the issue is not there but in the model itself.

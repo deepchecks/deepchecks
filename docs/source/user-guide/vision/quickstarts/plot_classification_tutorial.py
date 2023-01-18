@@ -27,8 +27,8 @@ Currently deepchecks supports only single label classification (either binary or
 # Defining the data and model
 # ===========================
 # .. note::
-#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow,
-#   please refer to #TODO
+#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
 
 #%%
 # Downloading the dataset
@@ -236,3 +236,12 @@ result.save_as_html('output.html')
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
 result
+
+#%%
+# We can see that we do not have any meaningful issues with our data, and although there's some drift between the
+# train and test datasets (under the "Passed" section), this is not significant enough to cause any issues (and therefor
+# is not displayed in the "Didn't Pass" section).
+# However, under the "Other" section, that details checks without a specific pass/fail condition, we can see that the
+# heatmap of brightness in the images is not uniformly distributed, which means that in most images, there are brighter
+# objects in the center of the image. This makes sense as these images of bees and ents tend to have the insects in the
+# center of the image, but it is something to be aware of and maybe use data augmentation to fix.

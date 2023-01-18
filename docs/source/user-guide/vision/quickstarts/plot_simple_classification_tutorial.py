@@ -69,6 +69,7 @@ with zipfile.ZipFile('EuroSAT_data.zip', 'r') as zip_ref:
 #                 - class1/
 #                     image1.jpeg
 
+# Note that the following function requires torchvision>=0.11.3 to be installed
 from deepchecks.vision import classification_dataset_from_directory
 
 train_ds, test_ds = classification_dataset_from_directory(
