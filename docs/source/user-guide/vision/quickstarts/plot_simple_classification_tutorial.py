@@ -8,7 +8,7 @@ Image Data Validation in 5 Minutes
 Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
 :doc:`classification task </user-guide/vision/auto_tutorials/plot_classification_tutorial>`,
-:doc:`object detection task </user-guide/vision/auto_tutorials/plot_detection_tutorial>` or,
+:doc:`object detection task </user-guide/vision/auto_tutorials/plot_detection_tutorial>` or
 :doc:`semantic segmentation task </user-guide/vision/auto_tutorials/plot_segmentation_tutorial>`. In the case of a simple classification
 task, there are quite a few checks that can be run writing only a few lines of code. In this tutorial, we will show you
 how to run all checks that do not require a model on a simple classification task.
