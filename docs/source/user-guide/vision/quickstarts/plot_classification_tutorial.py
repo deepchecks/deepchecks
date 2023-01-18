@@ -243,5 +243,5 @@ result
 # is not displayed in the "Didn't Pass" section).
 # However, under the "Other" section, that details checks without a specific pass/fail condition, we can see that the
 # heatmap of brightness in the images is not uniformly distributed, which means that in most images, there are brighter
-# objects in the center of the image. This makes sense as these images of bees and ents tend to have the insects in the
+# objects in the center of the image. This makes sense as these images of bees and ants tend to have the insects in the
 # center of the image, but it is something to be aware of and maybe use data augmentation to fix.
