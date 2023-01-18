@@ -178,7 +178,8 @@ _ = model.eval()
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
 # predictions. In order to do that, those must be in a pre-defined format, according to the task type.
-# In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to #TODO
+# In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to
+# :ref:`creating VisionData guide <vision_data__creating_vision_data>`
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
