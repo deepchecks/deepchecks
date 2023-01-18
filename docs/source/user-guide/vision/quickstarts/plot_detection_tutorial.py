@@ -118,12 +118,20 @@ data_transforms = A.Compose([
 
 dataset = TomatoDataset(root=os.path.join(os.path.curdir, 'tomato-detection/data'),
                         transforms=data_transforms)
-train_set, test_set = torch.utils.data.random_split(dataset,
-                                                    [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)],
-                                                    generator=torch.Generator().manual_seed(42))
-test_set.transforms = A.Compose([ToTensorV2()])
-train_loader = DataLoader(train_set, batch_size=64, collate_fn=(lambda batch: tuple(zip(*batch))))
-test_loader = DataLoader(test_set, batch_size=64, collate_fn=(lambda batch: tuple(zip(*batch))))
+train_dataset, test_dataset = torch.utils.data.random_split(dataset,
+                                                            [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)],
+                                                            generator=torch.Generator().manual_seed(42))
+test_dataset.transforms = A.Compose([ToTensorV2()])
+
+#%%
+# Visualize the dataset
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Let's see how our data looks like.
+
+print(f'Number of training images: {len(train_dataset)}')
+print(f'Number of test images: {len(test_dataset)}')
+print(f'Example output of an image shape: {train_dataset[0][0].shape}')
+print(f'Example output of a label: {train_dataset[0][1]}')
 
 
 #%%
@@ -166,43 +174,26 @@ _ = model.eval()
 # Now, after we have the training data, test data and the model, we can validate the model with
 # deepchecks test suites.
 #
-# Visualize the Data Loader and the Model Outputs
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# First we'll make sure we are familiar with the data loader and the model outputs.
-
-batch = next(iter(train_loader))
-
-print("Batch type is: ", type(batch))
-print("First element is: ", type(batch[0]), "with len of ", len(batch[0]))
-print("Example output of an image shape from the dataloader ", batch[0][0].shape)
-print("-"*80)
-
-print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
-print("Example output of a label from the dataloader ", batch[1][0])
-
-#%%
 # Implementing the VisionData class
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
 # predictions. In order to do that, those must be in a pre-defined format, according to the task type.
 # In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to #TODO
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
-# the correct format. Then, we'll create a VisionData object, that will hold the data loader.#
+# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
-# The VisionData class contains additional data and general methods intended for easy access to relevant metadata
-# for object detection ML models validation.
-# To learn more about the expected format please visit the API reference for the
-# :doc:Deepchecks' format </user-guide/vision/supported_tasks_and_formats>``
+# To learn more about the expected format please visit
+# :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
 #
 # First, we will create some functions that transform our batch to the correct format of images, labels and predictions:
 
-def batch_to_images(batch):
+def get_untransformed_images(original_images):
     """
     Convert a batch of data to images in the expected format. The expected format is an iterable of images,
     where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
     range [0, 255] in a uint8 format.
     """
-    inp = torch.stack(list(batch[0])).cpu().detach().numpy().transpose((0, 2, 3, 1))
+    inp = torch.stack(list(original_images)).cpu().detach().numpy().transpose((0, 2, 3, 1))
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
     # Un-normalize the images
@@ -210,15 +201,14 @@ def batch_to_images(batch):
     inp = np.clip(inp, 0, 1)
     return inp * 255
 
-def batch_to_labels(batch):
+def transform_labels_to_cxywh(original_labels):
     """
     Convert a batch of data to labels in the expected format. The expected format is an iterator of arrays, each array
     corresponding to a sample. Each array element is in a shape of [B, 5], where B is the number of bboxes
     in the image, and each bounding box is in the structure of [class_id, x, y, w, h].
     """
-    tensor_annotations = batch[1]
     label = []
-    for annotation in tensor_annotations:
+    for annotation in original_labels:
         if len(annotation["boxes"]):
             bbox = torch.stack(annotation["boxes"])
             # Convert the Pascal VOC xyxy format to xywh format
@@ -232,7 +222,7 @@ def batch_to_labels(batch):
             label.append(torch.tensor([]))
     return label
 
-def infer_on_batch(batch):
+def infer_on_images(original_images):
     """
     Returns the predictions for a batch of data. The expected format is an iterator of arrays, each array
     corresponding to a sample. Each array element is in a shape of [B, 6], where B is the number of bboxes in the
@@ -243,7 +233,7 @@ def infer_on_batch(batch):
     """
     nm_thrs = 0.2
     score_thrs = 0.7
-    imgs = list(img.to(device) for img in batch[0])
+    imgs = list(img.to(device) for img in original_images)
     # Getting the predictions of the model on the batch
     with torch.no_grad():
         preds = model(imgs)
@@ -270,10 +260,11 @@ def infer_on_batch(batch):
 
 def deepchecks_collate_fn(batch):
     """Return a batch of images, labels and predictions in the expected format."""
+    # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
     batch = tuple(zip(*batch))
-    images = batch_to_images(batch)
-    labels = batch_to_labels(batch)
-    predictions = infer_on_batch(batch, model, device)
+    images = get_untransformed_images(batch[0])
+    labels = transform_labels_to_cxywh(batch[1])
+    predictions = infer_on_images(batch[0])
     return {'images': images, 'labels': labels, 'predictions': predictions}
 
 #%%
@@ -290,8 +281,8 @@ LABEL_MAP = {
 
 from deepchecks.vision.vision_data import VisionData
 
-train_loader = DataLoader(train_set, batch_size=64, collate_fn=deepchecks_collate_fn)
-test_loader = DataLoader(test_set, batch_size=64, collate_fn=deepchecks_collate_fn)
+train_loader = DataLoader(train_dataset, batch_size=64, collate_fn=deepchecks_collate_fn)
+test_loader = DataLoader(test_dataset, batch_size=64, collate_fn=deepchecks_collate_fn)
 
 training_data = VisionData(batch_loader=train_loader, task_type='object_detection', label_map=LABEL_MAP)
 test_data = VisionData(batch_loader=test_loader, task_type='object_detection', label_map=LABEL_MAP)
@@ -314,7 +305,7 @@ training_data.head()
 from deepchecks.vision.suites import model_evaluation
 
 suite = model_evaluation()
-result = suite.run(training_data, test_data, model)
+result = suite.run(training_data, test_data)
 
 #%%
 # We also have suites for:
