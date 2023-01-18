@@ -12,7 +12,7 @@ This notebooks provides an overview for using and understanding the class perfor
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
 * `Classification <#classification-performance-report>`__
 
-  - `Generate data set <#generate-dataset>`__
+  - `Generate Dataset <#generate-dataset>`__
   - `Run the check <#run-the-check>`__
 
 * `Object Detection <#object-detection-class-performance>`__
@@ -56,7 +56,7 @@ from deepchecks.vision.datasets.classification import mnist_torch as mnist
 #%%
 # Classification Performance Report
 # =================================
-# Generate dataset:
+# Generate Dataset:
 # -----------------
 
 
