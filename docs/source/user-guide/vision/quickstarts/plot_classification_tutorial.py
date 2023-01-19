@@ -12,7 +12,7 @@ You can read more about the different checks and suites for computer vision use 
 A classification model is usually used to classify an image into one of a number of classes. Although there are
 multi label use-cases, in which the model is used to classify an image into multiple classes, most use-cases
 require the model to classify images into a single class.
-Currently deepchecks supports only single label classification (either binary or multi-class).
+Currently, deepchecks supports only single label classification (either binary or multi-class).
 
 .. code-block:: bash
 
@@ -28,7 +28,7 @@ Currently deepchecks supports only single label classification (either binary or
 # ===========================
 # .. note::
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
-#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
 
 #%%
 # Downloading the dataset
@@ -143,19 +143,20 @@ _ = model.eval()
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected formats, please visit the
-# :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`.
 #
 # First, we'll create the collate function that will be used by the DataLoader.
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
 # in order to transform the batch to the correct format for the checks.
 
-def deepchecks_collate_fn(batch):
-    """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
-    the following keys: 'images', 'labels' and 'predictions', each value is in the predefined format for the task.
+from deepchecks.vision.vision_data import BatchOutputFormat
 
-    To learn more about the expected formats, please visit the
-    :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+def deepchecks_collate_fn(batch) -> BatchOutputFormat:
+    """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
+    the following keys: 'images', 'labels' and 'predictions', each value is in the deepchecks format for the task.
+    You can also use the BatchOutputFormat class to create the output.
     """
+    # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
     batch = tuple(zip(*batch))
 
     # images:
@@ -171,7 +172,7 @@ def deepchecks_collate_fn(batch):
     #predictions:
     logits = model.to(device)(torch.stack(batch[0]).to(device))
     predictions = nn.Softmax(dim=1)(logits)
-    return {'images': images, 'labels': labels, 'predictions': predictions}
+    return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
 #%%
 # We have a single label here, which is the tomato class

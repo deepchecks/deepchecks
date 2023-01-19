@@ -7,7 +7,7 @@ Semantic Segmentation Tutorial
 
 In this tutorial, you will learn how to validate your **semantic segmentation model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
-:doc:`examples section  </checks_gallery/vision/index>`.
+:doc:`examples section </checks_gallery/vision/index>`.
 
 If you just want to see the output of this tutorial, jump to :ref:`observing_the_result` section.
 
@@ -27,151 +27,117 @@ of the probability for each class.
 # %%
 # Defining the data and model
 # ===========================
-
-# Importing the required packages
-import matplotlib.pyplot as plt
-import numpy as np
-import torch
-import torchvision.transforms.functional as F
-
+# .. note::
+#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
 
 # %%
 # Load Data
 # ~~~~~~~~~
-# The model in this tutorial is used to detect different objects in images (labels based on the Pascal VOC dataset).
+# The model in this tutorial is used to detect different object segments in images (labels based on the Pascal VOC dataset).
 # The model is trained to identify 20 different objects (person, bicycle etc.) and background.
 # The dataset itself is the COCO128 dataset with semantic segmentation labels, mapped to the Pascal VOC labels
-# (Originally, the COCO dataset includes more labels, but those has been filtered out)
-# The dataset can be loaded as a pytorch DataLoader object from deepchecks.vision.datasets.segmentation, as is done in
-# this tutorial, but can also be loaded as a SegmentationData object
+# (Originally, the COCO dataset includes more labels, but those have been filtered out).
+# The dataset can be loaded as a pytorch Dataset object from deepchecks.vision.datasets.segmentation, as is done in
+# this tutorial, but can also be loaded as a VisionData object using the "load_dataset" function from that directory,
 
 # The full pascal VOC data and information can be found here: http://host.robots.ox.ac.uk/pascal/VOC/voc2012/
 # And the COCO128 dataset can be found here: https://www.kaggle.com/datasets/ultralytics/coco128
 
-from torchvision.utils import draw_segmentation_masks
+from deepchecks.vision.datasets.segmentation.segmentation_coco import CocoSegmentationDataset, load_model
 
-from deepchecks.vision.datasets.segmentation.segmentation_coco import load_dataset, load_model
-from deepchecks.vision.segmentation_data import SegmentationData
-
-train_loader = load_dataset(object_type='DataLoader', train=True)
-test_loader = load_dataset(object_type='DataLoader', train=False)
-
-# %%
-# Visualize a Few Images
-# ~~~~~~~~~~~~~~~~~~~~~~
-# Let's visualize a few images with their segmentation, to understand the data augmentation.
-batch = next(iter(test_loader))
-
-masked_images = [draw_segmentation_masks(batch[0][i], masks=torch.stack([batch[1][i] == j for j in range(20)]),
-                                         alpha=0.6) for i in range(5)]
-
-fix, axs = plt.subplots(ncols=len(masked_images), figsize=(20, 20))
-for i, img in enumerate(masked_images):
-    img = img.detach()
-    img = F.to_pil_image(img)
-    axs[i].imshow(np.asarray(img))
-    axs[i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
-
-fix.show()
+train_dataset = CocoSegmentationDataset.load_or_download(train=True)
+test_dataset = CocoSegmentationDataset.load_or_download(train=False)
 
 #%%
-# .. image :: /_static/images/tutorials/segmentation_5_examples.png
-#     :alt: COCO images with segmentation labels
-#
+# Visualize the dataset
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Let's see how our data looks like.
+
+print(f'Number of training images: {len(train_dataset)}')
+print(f'Number of test images: {len(test_dataset)}')
+print(f'Example output of an image shape: {train_dataset[0][0].shape}')
+print(f'Example output of a label shape: {train_dataset[0][1].shape}')
+
+# %%
 # Downloading a Pre-trained Model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # In this tutorial, we will download a pre-trained LRSAPP model and a MobileNetV3 Large backbone
 # from the official PyTorch repository. For more details, please refer to the
 # `official documentation <https://pytorch.org/vision/main/models/generated/torchvision.models.segmentation.lraspp_mobilenet_v3_large.html>`__.
 
+model = load_model(pretrained=True)
 
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-model = load_model(pretrained=True, device=device)
-
-# %%
-# Validating the Model With Deepchecks
-# =====================================
-# Now, after we have the training data, test data and the model, we can validate the model with
-# deepchecks test suites.
-#
-# Visualize the Data Loader and the Model Outputs
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# First we'll make sure we are familiar with the data loader and the model outputs.
-
-batch = next(iter(train_loader))
-
-print("Batch type is: ", type(batch))
-print("First element is: ", type(batch[0]), "with len of ", len(batch[0]))
-print("Example output of an image shape from the dataloader ", batch[0][0].shape)
-print("Image values", batch[0][0])
-print("-" * 80)
-
-print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
-print("Example output of a label shape from the dataloader ", batch[1][0].shape)
-
-
-# %%
-# Implementing the SegmentationData class
+#%%
+# Implementing the VisionData class
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
 # predictions. In order to do that, those must be in a pre-defined format, according to the task type.
-# The first step is to implement a class that enables deepchecks to interact with your model and data and transform
-# them to this pre-defined format, which is set for each task type.
-# In this tutorial, we will implement the semantic segmentation task type by implementing a class that inherits from the
-# :class:`deepchecks.vision.segmentation_data.SegmentationData` class.
+# In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to
+# :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+# For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
+# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
-# The SegmentationData class contains additional data and general methods intended for easy access to relevant metadata
-# for semantic segmentation ML models validation.
-# To learn more about the expected format please visit the API reference for the
-# :class:`deepchecks.vision.segmentation_data.SegmentationData` class.
+# To learn more about the expected formats, please visit the
+# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`.
+#
+# First, we'll create the collate function that will be used by the DataLoader.
+# In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
+# in order to transform the batch to the correct format for the checks.
 
+import torch
+import torchvision.transforms.functional as F
+from deepchecks.vision.vision_data import BatchOutputFormat
 
-class CocoSegmentationData(SegmentationData):
-    """Class for loading the COCO segmentation dataset, inherits from :class:`~deepchecks.vision.SegmentationData`.
-
-    Implement the necessary methods to load the dataset.
+def deepchecks_collate_fn(batch) -> BatchOutputFormat:
+    """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
+    the following keys: 'images', 'labels' and 'predictions', each value is in the deepchecks format for the task.
+    You can also use the BatchOutputFormat class to create the output.
     """
+    # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
+    batch = tuple(zip(*batch))
 
-    def batch_to_labels(self, batch):
-        """Extract from the batch only the labels and return the labels in format (H, W).
+    # images:
+    images = [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
-        See SegmentationData for more details on format.
-        """
-        return batch[1]
+    #labels:
+    labels = batch[1]
 
-    def infer_on_batch(self, batch, model, device):
-        """Infer on a batch of images and return predictions in format (C, H, W), where C is the class_id dimension.
+    #predictions:
+    normalized_batch = [F.normalize(img.unsqueeze(0).float() / 255,
+                                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for img in batch[0]]
+    predictions = [model(img)["out"].squeeze(0).detach() for img in normalized_batch]
+    predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
 
-        See SegmentationData for more details on format.
-        """
-        normalized_batch = [F.normalize(img.unsqueeze(0).float() / 255,
-                                        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for img in batch[0]]
-
-        predictions = [model(img)["out"].squeeze(0).detach() for img in normalized_batch]
-        predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
-
-        return predictions
-
-    def batch_to_images(self, batch):
-        """Convert the batch to a list of images, where each image is a 3D numpy array in the format (H, W, C)."""
-        return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
-
+    return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
 # %%
-# After defining the task class, we can validate it by running the following code:
-
 # The label_map is a dictionary that maps the class id to the class name, for display purposes.
 LABEL_MAP = {0: 'background', 1: 'airplane', 2: 'bicycle', 3: 'bird', 4: 'boat', 5: 'bottle', 6: 'bus', 7: 'car',
              8: 'cat', 9: 'chair', 10: 'cow', 11: 'dining table', 12: 'dog', 13: 'horse', 14: 'motorcycle',
              15: 'person', 16: 'potted plant', 17: 'sheep', 18: 'couch', 19: 'train', 20: 'tv'}
 
-training_data = CocoSegmentationData(data_loader=train_loader, label_map=LABEL_MAP)
-test_data = CocoSegmentationData(data_loader=test_loader, label_map=LABEL_MAP)
+#%%
+# Now that we have our updated collate function, we can create the dataloader in the deepchecks format, and use it
+# to create a VisionData object:
 
-training_data.validate_format(model, device=device)
-test_data.validate_format(model, device=device)
+from torch.utils.data import DataLoader
+from deepchecks.vision import VisionData
 
-# And observe the output:
+train_loader = DataLoader(dataset=train_dataset, shuffle=True, collate_fn=deepchecks_collate_fn)
+test_loader = DataLoader(dataset=test_dataset, shuffle=True, collate_fn=deepchecks_collate_fn)
+
+training_data = VisionData(batch_loader=train_loader, task_type='semantic_segmentation', label_map=LABEL_MAP)
+test_data = VisionData(batch_loader=test_loader, task_type='semantic_segmentation', label_map=LABEL_MAP)
+
+#%%
+# Making sure our data is in the correct format:
+# ~~~~~~~~~~~~~~~~~~~~~~
+# The VisionData object automatically validates your data format and will alert you if there is a problem.
+# However, you can also manually view your images and labels to make sure they are in the correct format by using
+# the ``head`` function to conveniently visualize your data:
+
+training_data.head()
 
 # %%
 # Running Deepchecks' model evaluation suite on our data and model!
@@ -182,7 +148,7 @@ test_data.validate_format(model, device=device)
 from deepchecks.vision.suites import model_evaluation
 
 suite = model_evaluation()
-result = suite.run(training_data, test_data, model, device=device)
+result = suite.run(training_data, test_data)
 
 # %%
 # .. _vision_segmentation_tutorial__observing_the_result:
@@ -197,3 +163,16 @@ result.save_as_html('output.html')
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
 result.show()
+
+# %%
+# From these results, we can see that mostly our model performs well. However, the model had an issue with identifying
+# a specific class ("bicycle") in the test set, which casued a major degradation in the
+# `Dice metric <https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient>`_ for that class,
+# as can be seen in the check "Class Performance" under the "Didn't Pass" section.
+# However, as this dataset has very few samples, this would require further investigation.
+#
+# We can also see that there are significant changes between the train and test set, regarding the model's predictions
+# on them. in the "Train Test Prediction Drift" check, which checks drift in 3 properties of the predictions, we can
+# see there's a change in the distribution of the predicted classes.
+# This can tell us that the train set is not representing the test set well, even without knowing the actual test set
+# labels.
