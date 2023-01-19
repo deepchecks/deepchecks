@@ -79,7 +79,7 @@ model = load_model(pretrained=True)
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected formats, please visit the
-# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`
+# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`.
 #
 # First, we'll create the collate function that will be used by the DataLoader.
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that

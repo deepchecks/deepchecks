@@ -265,7 +265,7 @@ class CocoSegmentationDataset(VisionDataset):
         return len(self.images)
 
     @classmethod
-    def load_or_download(cls, train: bool, root: Path=DATA_DIR, test_mode: bool=False) -> 'CocoSegmentationDataset':
+    def load_or_download(cls, train: bool, root: Path = DATA_DIR, test_mode: bool = False) -> 'CocoSegmentationDataset':
         """Load or download the coco128 dataset with segment annotations."""
         extract_dir = root / 'coco128segments'
         coco_dir = root / 'coco128segments' / 'coco128-seg'

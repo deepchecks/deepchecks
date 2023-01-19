@@ -21,6 +21,7 @@ from deepchecks.vision.metrics_utils.semantic_segmentation_metric_utils import (
                                                                                 segmentation_counts_micro,
                                                                                 segmentation_counts_per_class)
 
+
 class MeanDice(Metric):
     """Metric that calculates the mean Dice metric for each class.
 
