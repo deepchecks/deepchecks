@@ -279,7 +279,7 @@ inherit from :class:`deepchecks.vision.metric_utils.custom_metric.CustomMetric` 
         and the prediction would be a list where each element is a numpy array of bounding boxes predictions, both in
         the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats.rst>`.
     * ``compute`` - returns the metric's value based on the internal state. Can be either a single number, or a numpy
-        array of metrics values per class.
+        array of containing a number for each class.
 
 The ``update`` method is called on each batch of data, and the ``compute`` method is called to compute the final metric.
 
