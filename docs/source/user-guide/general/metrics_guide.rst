@@ -266,16 +266,16 @@ For tabular metrics and vision classification tasks the custom metrics function 
 a function that accepts the parameters: (model, x, y_true), and returns a score with the convention that higher is
 better.
 
-For other computer vision tasks, the custom metrics should be a custom metric class. Deepchecks Custom Metric classes
-are inspired by `Ignite metrics <https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__, must
+For other computer vision tasks, you should implement a Deepchecks CustomMetric. A Deepchecks CustomMetric must
 inherit from :class:`deepchecks.vision.metric_utils.custom_metric.CustomMetric` and implement the following methods:
 ``reset``, ``update`` and ``compute``.
 
-    * ``reset`` - resets the metric to its initial state, creates or resets any internal variables.
+    * ``reset`` - resets the metric to its initial state, resets any internal variables.
     * ``update`` - updates the metric's internal state based on the provided labels and predictions. The method's
         signature should be ``update(self, output)``, where output is a tuple containing first ``y_pred`` which is the
-        model's output and second ``y_true`` is the ground truth, both given  as lists of numpy objets. For example, for
-        object detection the label would be a list where each element is a numpy array of bounding boxes annotations,
+        model's output and second ``y_true`` is the ground truth, both given  as lists of numpy objects, adhereing to
+        the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats.rst>`. For example, a
+        object detection label would be a list where each element is a numpy array of bounding boxes annotations,
         and the prediction would be a list where each element is a numpy array of bounding boxes predictions, both in
         the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats.rst>`.
     * ``compute`` - returns the metric's value based on the internal state. Can be either a single number, or a numpy
