@@ -38,7 +38,7 @@ of the probability for each class.
 # The dataset itself is the COCO128 dataset with semantic segmentation labels, mapped to the Pascal VOC labels
 # (Originally, the COCO dataset includes more labels, but those have been filtered out).
 # The dataset can be loaded as a pytorch Dataset object from deepchecks.vision.datasets.segmentation, as is done in
-# this tutorial, but can also be loaded as a Vision object using the "load_dataset" function from that directory,
+# this tutorial, but can also be loaded as a VisionData object using the "load_dataset" function from that directory,
 
 # The full pascal VOC data and information can be found here: http://host.robots.ox.ac.uk/pascal/VOC/voc2012/
 # And the COCO128 dataset can be found here: https://www.kaggle.com/datasets/ultralytics/coco128
