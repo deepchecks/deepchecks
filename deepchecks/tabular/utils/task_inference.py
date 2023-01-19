@@ -66,7 +66,7 @@ def infer_task_type_by_labels(labels: pd.Series):
             get_logger().warning(
                 'Due to the small number of unique labels task type was inferred as %s classification in spite of '
                 'the label column is of type integer. '
-                'Initialize your Dataset with either label_type=\"%s}\" or '
+                'Initialize your Dataset with either label_type=\"%s\" or '
                 'label_type=\"regression\" to resolve this warning.', task_type.value, task_type.value)
         return task_type
     else:
