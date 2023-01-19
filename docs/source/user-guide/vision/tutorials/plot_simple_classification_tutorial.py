@@ -50,9 +50,9 @@ import zipfile
 import numpy as np
 
 url = 'https://figshare.com/ndownloader/files/34912884'
-urllib.request.urlretrieve(url, '../quickstarts/EuroSAT_data.zip')
+urllib.request.urlretrieve(url, '../tutorials/EuroSAT_data.zip')
 
-with zipfile.ZipFile('../quickstarts/EuroSAT_data.zip', 'r') as zip_ref:
+with zipfile.ZipFile('../tutorials/EuroSAT_data.zip', 'r') as zip_ref:
     zip_ref.extractall('EuroSAT')
 
 #%%
