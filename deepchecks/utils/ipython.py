@@ -66,7 +66,7 @@ def is_sphinx() -> bool:
     bool
         True if we are in a sphinx gallery context, False otherwise
     """
-    return 'sphinx_gallery' == pio.renderers.default
+    return pio.renderers.default.startswith('sphinx_gallery')
 
 
 @lru_cache(maxsize=None)
