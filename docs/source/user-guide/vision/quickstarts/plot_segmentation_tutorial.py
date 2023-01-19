@@ -31,6 +31,7 @@ of the probability for each class.
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
 #   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
 
+# %%
 # Load Data
 # ~~~~~~~~~
 # The model in this tutorial is used to detect different object segments in images (labels based on the Pascal VOC dataset).
@@ -48,8 +49,17 @@ from deepchecks.vision.datasets.segmentation.segmentation_coco import CocoSegmen
 train_dataset = CocoSegmentationDataset.load_or_download(train=True)
 test_dataset = CocoSegmentationDataset.load_or_download(train=False)
 
+#%%
+# Visualize the dataset
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Let's see how our data looks like.
+
+print(f'Number of training images: {len(train_dataset)}')
+print(f'Number of test images: {len(test_dataset)}')
+print(f'Example output of an image shape: {train_dataset[0][0].shape}')
+print(f'Example output of a label shape: {train_dataset[0][1].shape}')
+
 # %%
-#
 # Downloading a Pre-trained Model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # In this tutorial, we will download a pre-trained LRSAPP model and a MobileNetV3 Large backbone
@@ -77,13 +87,12 @@ model = load_model(pretrained=True)
 
 import torch
 import torchvision.transforms.functional as F
+from deepchecks.vision.vision_data import BatchOutputFormat
 
-def deepchecks_collate_fn(batch):
+def deepchecks_collate_fn(batch) -> BatchOutputFormat:
     """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
-    the following keys: 'images', 'labels' and 'predictions', each value is in the predefined format for the task.
-
-    To learn more about the expected formats, please visit the
-    :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+    the following keys: 'images', 'labels' and 'predictions', each value is in the deepchecks format for the task.
+    You can also use the BatchOutputFormat class to create the output.
     """
     # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
     batch = tuple(zip(*batch))
@@ -100,7 +109,7 @@ def deepchecks_collate_fn(batch):
     predictions = [model(img)["out"].squeeze(0).detach() for img in normalized_batch]
     predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
 
-    return {'images': images, 'labels': labels, 'predictions': predictions}
+    return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
 # %%
 # The label_map is a dictionary that maps the class id to the class name, for display purposes.
@@ -161,10 +170,9 @@ result.show()
 # `Dice metric <https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient>`_ for that class,
 # as can be seen in the check "Class Performance" under the "Didn't Pass" section.
 # However, as this dataset has very few samples, this would require further investigation.
+#
 # We can also see that there are significant changes between the train and test set, regarding the model's predictions
-# on them. in the "Train Test Prediction Drift" check, which checks drift in 3 properties of the predictions (the class
-# distributions, the number of classes per image, and the ovarall area of segments), we can see there's a change in the
-# distribution of the predicted classes, though the change did not affect the number of classes per image or the overall
-# areas. This makes sense as we used a very small test set - so the distribution of the shape and number of segments is
-# similar as the images come from the same dataset, but the labels' distribution has changed as we specifically chose images with
-# different labels.
+# on them. in the "Train Test Prediction Drift" check, which checks drift in 3 properties of the predictions, we can
+# see there's a change in the distribution of the predicted classes.
+# This can tell us that the train set is not representing the test set well, even without knowing the actual test set
+# labels.

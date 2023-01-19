@@ -259,14 +259,16 @@ def infer_on_images(original_images):
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
 # in order to transform the batch to the correct format for the checks.
 
-def deepchecks_collate_fn(batch):
-    """Return a batch of images, labels and predictions in the expected format."""
+from deepchecks.vision.vision_data import BatchOutputFormat
+
+def deepchecks_collate_fn(batch) -> BatchOutputFormat:
+    """Return a batch of images, labels and predictions in the deepchecks format."""
     # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
     batch = tuple(zip(*batch))
     images = get_untransformed_images(batch[0])
     labels = transform_labels_to_cxywh(batch[1])
     predictions = infer_on_images(batch[0])
-    return {'images': images, 'labels': labels, 'predictions': predictions}
+    return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
 #%%
 # We have a single label here, which is the tomato class

@@ -149,12 +149,12 @@ _ = model.eval()
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
 # in order to transform the batch to the correct format for the checks.
 
-def deepchecks_collate_fn(batch):
-    """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
-    the following keys: 'images', 'labels' and 'predictions', each value is in the predefined format for the task.
+from deepchecks.vision.vision_data import BatchOutputFormat
 
-    To learn more about the expected formats, please visit the
-    :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+def deepchecks_collate_fn(batch) -> BatchOutputFormat:
+    """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
+    the following keys: 'images', 'labels' and 'predictions', each value is in the deepchecks format for the task.
+    You can also use the BatchOutputFormat class to create the output.
     """
     # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
     batch = tuple(zip(*batch))
@@ -172,7 +172,7 @@ def deepchecks_collate_fn(batch):
     #predictions:
     logits = model.to(device)(torch.stack(batch[0]).to(device))
     predictions = nn.Softmax(dim=1)(logits)
-    return {'images': images, 'labels': labels, 'predictions': predictions}
+    return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
 #%%
 # We have a single label here, which is the tomato class
