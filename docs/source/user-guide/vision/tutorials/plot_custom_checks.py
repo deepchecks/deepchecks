@@ -102,9 +102,9 @@ def count_pixels_in_batch(batch: BatchWrapper) -> int:
 class ColorAveragesCheck(TrainTestCheck):
     """Check if the average of each color channel is the same between the train and test dataset."""
 
-    def __init__(self, channel_names: t.Tuple[str] = None):
+    def __init__(self, channel_names: t.Tuple[str] = None, **kwargs):
         """Init the check and enable customization of the channel_names."""
-        super().__init__()
+        super().__init__(**kwargs)
         if channel_names is None:
             self.channel_names = ('R', 'G', 'B')
 
@@ -170,9 +170,9 @@ import plotly.express as px
 class ColorAveragesCheck(TrainTestCheck):
     """Check if the average of each color channel is the same between the train and test dataset."""
 
-    def __init__(self, channel_names: t.Tuple[str] = None):
+    def __init__(self, channel_names: t.Tuple[str] = None, **kwargs):
         """Init the check and enable customization of the channel_names."""
-        super().__init__()
+        super().__init__(**kwargs)
         if channel_names is None:
             self.channel_names = ('R', 'G', 'B')
 
@@ -232,9 +232,9 @@ from deepchecks.core import ConditionResult
 class ColorAveragesCheck(TrainTestCheck):
     """Check if the average of each color channel is the same between the train and test dataset."""
 
-    def __init__(self, channel_names: t.Tuple[str] = None):
+    def __init__(self, channel_names: t.Tuple[str] = None, **kwargs):
         """Init the check and enable customization of the channel_names."""
-        super().__init__()
+        super().__init__(**kwargs)
         if channel_names is None:
             self.channel_names = ('R', 'G', 'B')
 
