@@ -1,8 +1,8 @@
 .. _vision_properties_guide:
 
-===============
-Data Properties
-===============
+=================
+Vision Properties
+=================
 
 Properties are one-dimension values that are extracted from either the images, labels or predictions. For example, an
 image property is **brightness**, and a label property is **bounding box area** (for detection tasks).

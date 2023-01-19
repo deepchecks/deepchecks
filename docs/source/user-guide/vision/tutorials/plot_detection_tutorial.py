@@ -60,9 +60,9 @@ import urllib.request
 import zipfile
 
 url = 'https://figshare.com/ndownloader/files/34488599'
-urllib.request.urlretrieve(url, 'tomato-detection.zip')
+urllib.request.urlretrieve(url, '../quickstarts/tomato-detection.zip')
 
-with zipfile.ZipFile('tomato-detection.zip', 'r') as zip_ref:
+with zipfile.ZipFile('../quickstarts/tomato-detection.zip', 'r') as zip_ref:
     zip_ref.extractall('.')
 
 class TomatoDataset(Dataset):
@@ -116,7 +116,7 @@ data_transforms = A.Compose([
     ToTensorV2(),
 ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
 
-dataset = TomatoDataset(root=os.path.join(os.path.curdir, 'tomato-detection/data'),
+dataset = TomatoDataset(root=os.path.join(os.path.curdir, '../quickstarts/tomato-detection/data'),
                         transforms=data_transforms)
 train_dataset, test_dataset = torch.utils.data.random_split(dataset,
                                                             [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)],

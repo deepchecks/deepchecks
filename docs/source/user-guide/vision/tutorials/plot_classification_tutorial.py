@@ -40,9 +40,9 @@ import urllib.request
 import zipfile
 
 url = 'https://download.pytorch.org/tutorial/hymenoptera_data.zip'
-urllib.request.urlretrieve(url, 'hymenoptera_data.zip')
+urllib.request.urlretrieve(url, '../quickstarts/hymenoptera_data.zip')
 
-with zipfile.ZipFile('hymenoptera_data.zip', 'r') as zip_ref:
+with zipfile.ZipFile('../quickstarts/hymenoptera_data.zip', 'r') as zip_ref:
     zip_ref.extractall('.')
 #%%
 # Load Data
@@ -89,7 +89,7 @@ class AntsBeesDataset(torchvision.datasets.ImageFolder):
         else:
             raise RuntimeError("Only PIL.Image and CV2 loaders currently supported!")
 
-data_dir = 'hymenoptera_data'
+data_dir = '../quickstarts/hymenoptera_data'
 # Just normalization for validation
 data_transforms = A.Compose([
     A.Resize(height=256, width=256),
