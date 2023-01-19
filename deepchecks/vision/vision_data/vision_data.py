@@ -90,7 +90,7 @@ class VisionData:
     def update_cache(self, batch_size, numpy_labels, numpy_predictions):
         """Update cache based on newly arrived batch."""
         self._num_images_cached += batch_size
-        if numpy_labels is not None:
+        if numpy_labels is not None and self.task_type != TaskType.OTHER:
             for class_id, num_observed in get_class_ids_from_numpy_labels(numpy_labels, self._task_type).items():
                 if self.label_map and class_id not in self.label_map:
                     raise DeepchecksValueError(f'Class id {class_id} is not in the provided label map or out of bounds '
@@ -99,7 +99,7 @@ class VisionData:
                     self._observed_classes[class_id] = {'num_label': 0, 'num_pred': 0}
                 self._observed_classes[class_id]['num_label'] += num_observed
 
-        if numpy_predictions is not None:
+        if numpy_predictions is not None and self.task_type != TaskType.OTHER:
             for class_id, num_observed in get_class_ids_from_numpy_preds(numpy_predictions, self._task_type).items():
                 if class_id not in self._observed_classes:
                     self._observed_classes[class_id] = {'num_label': 0, 'num_pred': 0}
