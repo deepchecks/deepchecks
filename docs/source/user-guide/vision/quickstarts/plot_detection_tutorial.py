@@ -31,29 +31,10 @@ their classes.
 #%%
 # Defining the data and model
 # ===========================
-
-# Importing the required packages
-import os
-import urllib.request
-import xml.etree.ElementTree as ET
-import zipfile
-from functools import partial
-
-import albumentations as A
-import matplotlib.pyplot as plt
-import numpy as np
-import torch
-import torchvision
-from albumentations.pytorch import ToTensorV2
-from PIL import Image
-from torch import nn
-from torch.utils.data import DataLoader, Dataset
-from torchvision.models.detection import _utils as det_utils
-from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
-
-from deepchecks.vision.detection_data import DetectionData
-
-#%%
+# .. note::
+#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+#
 # Load Data
 # ~~~~~~~~~
 # The model in this tutorial is used to detect tomatoes in images. The model is trained on a dataset consisted of
@@ -65,6 +46,18 @@ from deepchecks.vision.detection_data import DetectionData
 #     https://www.kaggle.com/andrewmvd/tomato-detection
 #
 #     We thank the authors of the dataset for providing the dataset.
+
+import os
+import numpy as np
+import torch
+from torch.utils.data import DataLoader, Dataset
+
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
+from PIL import Image
+import xml.etree.ElementTree as ET
+import urllib.request
+import zipfile
 
 url = 'https://figshare.com/ndownloader/files/34488599'
 urllib.request.urlretrieve(url, 'tomato-detection.zip')
@@ -84,14 +77,9 @@ class TomatoDataset(Dataset):
         img_path = os.path.join(self.root, "images", self.images[idx])
         ann_path = os.path.join(self.root, "annotations", self.annotations[idx])
         img = Image.open(img_path).convert("RGB")
-        bboxes = []
-        labels = []
+        bboxes, labels = [], []
         with open(ann_path, 'r') as f:
-            tree = ET.parse(f)
-            root = tree.getroot()
-            size = root.find('size')
-            w = int(size.find('width').text)
-            h = int(size.find('height').text)
+            root = ET.parse(f).getroot()
 
             for obj in root.iter('object'):
                 difficult = obj.find('difficult').text
@@ -114,7 +102,6 @@ class TomatoDataset(Dataset):
             'boxes': [torch.Tensor(x) for x in res['bboxes']],
             'labels': res['class_labels']
         }
-
         img = res['image']
 
         return img, target
@@ -131,56 +118,23 @@ data_transforms = A.Compose([
 
 dataset = TomatoDataset(root=os.path.join(os.path.curdir, 'tomato-detection/data'),
                         transforms=data_transforms)
-train_set, test_set = torch.utils.data.random_split(dataset,
-                                                    [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)],
-                                                    generator=torch.Generator().manual_seed(42))
-test_set.transforms = A.Compose([ToTensorV2()])
-train_loader = DataLoader(train_set, batch_size=64, collate_fn=(lambda batch: tuple(zip(*batch))))
-test_loader = DataLoader(test_set, batch_size=64, collate_fn=(lambda batch: tuple(zip(*batch))))
+train_dataset, test_dataset = torch.utils.data.random_split(dataset,
+                                                            [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)],
+                                                            generator=torch.Generator().manual_seed(42))
+test_dataset.transforms = A.Compose([ToTensorV2()])
 
 #%%
-# Visualize a Few Images
-# ~~~~~~~~~~~~~~~~~~~~~~
-# Let's visualize a few training images so as to understand the data augmentation.
+# Visualize the dataset
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Let's see how our data looks like.
 
-def prepare(inp):
-    """Imshow for Tensor."""
-    inp = inp.numpy().transpose((1, 2, 0))
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    inp = std * inp + mean
-    inp = np.clip(inp, 0, 1) * 255
-    inp = inp.transpose((2,0,1))
-    return torch.tensor(inp, dtype=torch.uint8)
+print(f'Number of training images: {len(train_dataset)}')
+print(f'Number of test images: {len(test_dataset)}')
+print(f'Example output of an image shape: {train_dataset[0][0].shape}')
+print(f'Example output of a label: {train_dataset[0][1]}')
 
-import torchvision.transforms.functional as F
-
-
-def show(imgs):
-    if not isinstance(imgs, list):
-        imgs = [imgs]
-    fig, axs = plt.subplots(ncols=len(imgs), squeeze=False, figsize=(20,20))
-    for i, img in enumerate(imgs):
-        img = img.detach()
-        img = F.to_pil_image(img)
-        axs[0, i].imshow(np.asarray(img))
-        axs[0, i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
-
-from torchvision.utils import draw_bounding_boxes
-
-data = next(iter(train_loader))
-inp, targets = data[0][:4], data[1][:4]
-
-
-result = [draw_bounding_boxes(prepare(inp[i]), torch.stack(targets[i]['boxes']),
-                              colors=['yellow'] * torch.stack(targets[i]['boxes']).shape[0], width=5)
-          for i in range(len(targets))]
-show(result)
 
 #%%
-# .. image :: /_static/images/tutorials/tomatoes.png
-#     :alt: Tomatoes with bbox
-#
 # Downloading a Pre-trained Model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # In this tutorial, we will download a pre-trained SSDlite model and a MobileNetV3 Large backbone
@@ -189,6 +143,11 @@ show(result)
 #
 # After downloading the model, we will fine-tune it for our particular classes. We will do it by replacing the pre-trained
 # head with a new one that matches our needs.
+from functools import partial
+from torch import nn
+import torchvision
+from torchvision.models.detection import _utils as det_utils
+from torchvision.models.detection.ssdlite import SSDLiteClassificationHead
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -199,7 +158,7 @@ num_anchors = model.anchor_generator.num_anchors_per_location()
 norm_layer = partial(nn.BatchNorm2d, eps=0.001, momentum=0.03)
 
 model.head.classification_head = SSDLiteClassificationHead(in_channels, num_anchors, 2, norm_layer)
-model.to(device)
+_ = model.to(device)
 
 #%%
 # Loading Pre-trained Weights
@@ -215,123 +174,128 @@ _ = model.eval()
 # Now, after we have the training data, test data and the model, we can validate the model with
 # deepchecks test suites.
 #
-# Visualize the Data Loader and the Model Outputs
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# First we'll make sure we are familiar with the data loader and the model outputs.
-
-batch = next(iter(train_loader))
-
-print("Batch type is: ", type(batch))
-print("First element is: ", type(batch[0]), "with len of ", len(batch[0]))
-print("Example output of an image shape from the dataloader ", batch[0][0].shape)
-print("Image values", batch[0][0])
-print("-"*80)
-
-print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
-print("Example output of a label from the dataloader ", batch[1][0])
-
-#%%
-# Implementing the DetectionData class
+# Implementing the VisionData class
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
 # predictions. In order to do that, those must be in a pre-defined format, according to the task type.
-# The first step is to implement a class that enables deepchecks to interact with your model and data and transform
-# them to this pre-defined format, which is set for each task type.
-# In this tutorial, we will implement the object detection task type by implementing a class that inherits from the
-# :class:`deepchecks.vision.detection_data.DetectionData` class.
+# In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to
+# :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+# For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
+# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
-# The DetectionData class contains additional data and general methods intended for easy access to relevant metadata
-# for object detection ML models validation.
-# To learn more about the expected format please visit the API reference for the
-# :class:`deepchecks.vision.detection_data.DetectionData` class.
+# To learn more about the expected format please visit
+# :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+#
+# First, we will create some functions that transform our batch to the correct format of images, labels and predictions:
 
-from deepchecks.vision.detection_data import DetectionData
+def get_untransformed_images(original_images):
+    """
+    Convert a batch of data to images in the expected format. The expected format is an iterable of images,
+    where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
+    range [0, 255] in a uint8 format.
+    """
+    inp = torch.stack(list(original_images)).cpu().detach().numpy().transpose((0, 2, 3, 1))
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    # Un-normalize the images
+    inp = std * inp + mean
+    inp = np.clip(inp, 0, 1)
+    return inp * 255
 
+def transform_labels_to_cxywh(original_labels):
+    """
+    Convert a batch of data to labels in the expected format. The expected format is an iterator of arrays, each array
+    corresponding to a sample. Each array element is in a shape of [B, 5], where B is the number of bboxes
+    in the image, and each bounding box is in the structure of [class_id, x, y, w, h].
+    """
+    label = []
+    for annotation in original_labels:
+        if len(annotation["boxes"]):
+            bbox = torch.stack(annotation["boxes"])
+            # Convert the Pascal VOC xyxy format to xywh format
+            bbox[:, 2:] = bbox[:, 2:] - bbox[:, :2]
+            # The label shape is [class_id, x, y, w, h]
+            label.append(
+                torch.concat([torch.stack(annotation["labels"]).reshape((-1, 1)), bbox], dim=1)
+            )
+        else:
+            # If it's an empty image, we need to add an empty label
+            label.append(torch.tensor([]))
+    return label
 
-class TomatoData(DetectionData):
+def infer_on_images(original_images):
+    """
+    Returns the predictions for a batch of data. The expected format is an iterator of arrays, each array
+    corresponding to a sample. Each array element is in a shape of [B, 6], where B is the number of bboxes in the
+    predictions, and each bounding box is in the structure of [x, y, w, h, score, class_id].
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    Note that model and device here are global variables, and are defined in the previous code block, as the collate
+    function cannot recieve other arguments than the batch.
+    """
+    nm_thrs = 0.2
+    score_thrs = 0.7
+    imgs = list(img.to(device) for img in original_images)
+    # Getting the predictions of the model on the batch
+    with torch.no_grad():
+        preds = model(imgs)
+    processed_pred = []
+    for pred in preds:
+        # Performoing non-maximum suppression on the detections
+        keep_boxes = torchvision.ops.nms(pred['boxes'], pred['scores'], nm_thrs)
+        score_filter = pred['scores'][keep_boxes] > score_thrs
 
-    def batch_to_images(self, batch):
-        """
-        Convert a batch of data to images in the expected format. The expected format is an iterable of cv2 images,
-        where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
-        range [0, 255] in a uint8 format.
-        """
-        inp = torch.stack(list(batch[0])).cpu().detach().numpy().transpose((0, 2, 3, 1))
-        mean = [0.485, 0.456, 0.406]
-        std = [0.229, 0.224, 0.225]
-        # Un-normalize the images
-        inp = std * inp + mean
-        inp = np.clip(inp, 0, 1)
-        return inp * 255
+        # get the filtered result
+        test_boxes = pred['boxes'][keep_boxes][score_filter].reshape((-1, 4))
+        test_boxes[:, 2:] = test_boxes[:, 2:] - test_boxes[:, :2]  # xyxy to xywh
+        test_labels = pred['labels'][keep_boxes][score_filter]
+        test_scores = pred['scores'][keep_boxes][score_filter]
 
-    def batch_to_labels(self, batch):
-        """
-        Convert a batch of data to labels in the expected format. The expected format is a list of tensors of length N,
-        where N is the number of samples. Each tensor element is in a shape of [B, 5], where B is the number of bboxes
-        in the image, and each bounding box is in the structure of [class_id, x, y, w, h].
-        """
-        tensor_annotations = batch[1]
-        label = []
-        for annotation in tensor_annotations:
-            if len(annotation["boxes"]):
-                bbox = torch.stack(annotation["boxes"])
-                # Convert the Pascal VOC xyxy format to xywh format
-                bbox[:, 2:] = bbox[:, 2:] - bbox[:, :2]
-                # The label shape is [class_id, x, y, w, h]
-                label.append(
-                    torch.concat([torch.stack(annotation["labels"]).reshape((-1, 1)), bbox], dim=1)
-                )
-            else:
-                # If it's an empty image, we need to add an empty label
-                label.append(torch.tensor([]))
-        return label
-
-    def infer_on_batch(self, batch, model, device):
-        """
-        Returns the predictions for a batch of data. The expected format is a list of tensors of shape length N, where N
-        is the number of samples. Each tensor element is in a shape of [B, 6], where B is the number of bboxes in the
-        predictions, and each bounding box is in the structure of [x, y, w, h, score, class_id].
-        """
-        nm_thrs = 0.2
-        score_thrs = 0.7
-        imgs = list(img.to(device) for img in batch[0])
-        # Getting the predictions of the model on the batch
-        with torch.no_grad():
-            preds = model(imgs)
-        processed_pred = []
-        for pred in preds:
-            # Performoing non-maximum suppression on the detections
-            keep_boxes = torchvision.ops.nms(pred['boxes'], pred['scores'], nm_thrs)
-            score_filter = pred['scores'][keep_boxes] > score_thrs
-
-            # get the filtered result
-            test_boxes = pred['boxes'][keep_boxes][score_filter].reshape((-1, 4))
-            test_boxes[:, 2:] = test_boxes[:, 2:] - test_boxes[:, :2]  # xyxy to xywh
-            test_labels = pred['labels'][keep_boxes][score_filter]
-            test_scores = pred['scores'][keep_boxes][score_filter]
-
-            processed_pred.append(
-                torch.concat([test_boxes, test_scores.reshape((-1, 1)), test_labels.reshape((-1, 1))], dim=1))
-        return processed_pred
+        processed_pred.append(
+            torch.concat([test_boxes, test_scores.reshape((-1, 1)), test_labels.reshape((-1, 1))], dim=1))
+    return processed_pred
 
 #%%
-# After defining the task class, we can validate it by running the following code:
+# Now we'll create the collate function that will be used by the DataLoader.
+# In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
+# in order to transform the batch to the correct format for the checks.
 
+def deepchecks_collate_fn(batch):
+    """Return a batch of images, labels and predictions in the expected format."""
+    # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
+    batch = tuple(zip(*batch))
+    images = get_untransformed_images(batch[0])
+    labels = transform_labels_to_cxywh(batch[1])
+    predictions = infer_on_images(batch[0])
+    return {'images': images, 'labels': labels, 'predictions': predictions}
+
+#%%
 # We have a single label here, which is the tomato class
 # The label_map is a dictionary that maps the class id to the class name, for display purposes.
+
 LABEL_MAP = {
     1: 'Tomato'
 }
-training_data = TomatoData(data_loader=train_loader, label_map=LABEL_MAP)
-test_data = TomatoData(data_loader=test_loader, label_map=LABEL_MAP)
 
-training_data.validate_format(model, device=device)
-test_data.validate_format(model, device=device)
+#%%
+# Now that we have our updated collate function, we can recreate the dataloader in the deepchecks format, and use it
+# to create a VisionData object:
 
-# And observe the output:
+from deepchecks.vision.vision_data import VisionData
+
+train_loader = DataLoader(train_dataset, batch_size=64, collate_fn=deepchecks_collate_fn)
+test_loader = DataLoader(test_dataset, batch_size=64, collate_fn=deepchecks_collate_fn)
+
+training_data = VisionData(batch_loader=train_loader, task_type='object_detection', label_map=LABEL_MAP)
+test_data = VisionData(batch_loader=test_loader, task_type='object_detection', label_map=LABEL_MAP)
+
+#%%
+# Making sure our data is in the correct format:
+# ~~~~~~~~~~~~~~~~~~~~~~
+# The VisionData object automatically validates your data format and will alert you if there is a problem.
+# However, you can also manually view your images and labels to make sure they are in the correct format by using
+# the ``head`` function to conveniently visualize your data:
+
+training_data.head()
 
 #%%
 # Running Deepchecks' suite on our data and model!
@@ -342,7 +306,7 @@ test_data.validate_format(model, device=device)
 from deepchecks.vision.suites import model_evaluation
 
 suite = model_evaluation()
-result = suite.run(training_data, test_data, model, device=device)
+result = suite.run(training_data, test_data)
 
 #%%
 # We also have suites for:
@@ -364,3 +328,12 @@ result.save_as_html('output.html')
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
 result
+
+#%%
+# We can see that our model does not perform well, as can be seen in the "Class Performance" check under the
+# "Didn't Pass" section of the suite results. This is because the model was trained on a different dataset, and
+# the model was not trained to detect tomatoes.
+# Moreover, we can see that lowering the IoU threshold could have fixed this a bit (as can be seen in the
+# "Mean Average Precision Report" Check), but would still keep the overall precision low.
+# Moreover, under the "Passed" section, we can see that our drift checks have passed, which means that the distribution
+# of the predictions on the training and test data is similar, and the issue is not there but in the model itself.

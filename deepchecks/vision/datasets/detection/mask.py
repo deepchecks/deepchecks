@@ -164,7 +164,7 @@ def load_dataset(
         model = load_model()
         dataloader = DataLoader(dataset=dataset, batch_size=batch_size, num_workers=num_workers, sampler=sampler,
                                 collate_fn=deepchecks_collate(model), pin_memory=pin_memory)
-        return VisionData(dataloader, task_type='object_detection', shuffle_batch_loader=False,
+        return VisionData(dataloader, task_type='object_detection', reshuffle_data=False,
                           label_map=LABEL_MAP, dataset_name=f'Mask Dataset at time {time}')
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')

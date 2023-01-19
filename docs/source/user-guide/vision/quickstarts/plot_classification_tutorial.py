@@ -2,7 +2,7 @@
 .. _vision_classification_tutorial:
 
 ==============================================
-Classification Model Validation Tutorial
+Image Classification Tutorial
 ==============================================
 
 In this tutorial, you will learn how to validate your **classification model** using deepchecks test suites.
@@ -26,30 +26,18 @@ Currently deepchecks supports only single label classification (either binary or
 #%%
 # Defining the data and model
 # ===========================
-
-# Importing the required packages
-
-import os
-import urllib.request
-import zipfile
-
-import albumentations as A
-import matplotlib.pyplot as plt
-import numpy as np
-import PIL.Image
-import torch
-import torchvision
-from albumentations.pytorch import ToTensorV2
-from torch import nn
-from torchvision import transforms
-from torchvision.datasets import ImageFolder
-
-from deepchecks.vision.classification_data import ClassificationData
+# .. note::
+#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
 
 #%%
 # Downloading the dataset
 # ~~~~~~~~~~~~~~~~~~~~~~~
 # The data is available from the torch library. We will download and extract it to the current directory.
+
+import os
+import urllib.request
+import zipfile
 
 url = 'https://download.pytorch.org/tutorial/hymenoptera_data.zip'
 urllib.request.urlretrieve(url, 'hymenoptera_data.zip')
@@ -66,23 +54,19 @@ with zipfile.ZipFile('hymenoptera_data.zip', 'r') as zip_ref:
 # There are 75 validation images for each class.
 # This dataset is a very small subset of imagenet.
 
-class AntsBeesDataset(ImageFolder):
-    def __init__(self, *args, **kwargs):
-        """
-        Overrides initialization method to replace default loader with OpenCV loader
-        :param args:
-        :param kwargs:
-        """
-        super(AntsBeesDataset, self).__init__(*args, **kwargs)
+import albumentations as A
+import numpy as np
+import PIL.Image
+import torch
+import torchvision
+from albumentations.pytorch import ToTensorV2
+from torch import nn
+from torch.utils.data import DataLoader
+
+class AntsBeesDataset(torchvision.datasets.ImageFolder):
 
     def __getitem__(self, index: int):
-        """
-        overrides __getitem__ to be compatible to albumentations
-        Args:
-            index (int): Index
-        Returns:
-            tuple: (sample, target) where target is class_index of the target class.
-        """
+        """overrides __getitem__ to be compatible to albumentations"""
         path, target = self.samples[index]
         sample = self.loader(path)
         sample = self.get_cv2_image(sample)
@@ -99,20 +83,11 @@ class AntsBeesDataset(ImageFolder):
 
     def get_cv2_image(self, image):
         if isinstance(image, PIL.Image.Image):
-            image_np = np.array(image).astype('uint8')
-            return image_np
+            return np.array(image).astype('uint8')
         elif isinstance(image, np.ndarray):
             return image
         else:
             raise RuntimeError("Only PIL.Image and CV2 loaders currently supported!")
-
-# Just normalization for validation
-data_transforms = transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
 
 data_dir = 'hymenoptera_data'
 # Just normalization for validation
@@ -125,54 +100,25 @@ data_transforms = A.Compose([
 train_dataset = AntsBeesDataset(root=os.path.join(data_dir,'train'))
 train_dataset.transforms = data_transforms
 
-val_dataset = AntsBeesDataset(root=os.path.join(data_dir,'val'))
-val_dataset.transforms = data_transforms
-
-dataloaders = {
-    'train':torch.utils.data.DataLoader(train_dataset, batch_size=4,
-                                                shuffle=True),
-    'val': torch.utils.data.DataLoader(val_dataset, batch_size=4,
-                                                shuffle=True)
-}
-
-class_names = ['ants', 'bees']
-
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+test_dataset = AntsBeesDataset(root=os.path.join(data_dir, 'val'))
+test_dataset.transforms = data_transforms
 
 #%%
-# Visualize a Few Images
-# ~~~~~~~~~~~~~~~~~~~~~~
-# Let's visualize a few training images so as to understand the data augmentation.
+# Visualize the dataset
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Let's see how our data looks like.
 
-def imshow(inp, title=None):
-    """Imshow for Tensor."""
-    inp = inp.numpy().transpose((1, 2, 0))
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
-    inp = std * inp + mean
-    inp = np.clip(inp, 0, 1)
-    plt.imshow(inp)
-    if title is not None:
-        plt.title(title)
-    plt.pause(0.001)  # pause a bit so that plots are updated
-
-
-# Get a batch of training data
-inputs, classes = next(iter(dataloaders['train']))
-
-# Make a grid from batch
-out = torchvision.utils.make_grid(inputs)
-
-imshow(out, title=[class_names[x] for x in classes])
+print(f'Number of training images: {len(train_dataset)}')
+print(f'Number of validation images: {len(test_dataset)}')
+print(f'Example output of an image shape: {train_dataset[0][0].shape}')
+print(f'Example output of a label: {train_dataset[0][1]}')
 
 #%%
-# .. image :: /_static/images/tutorials/ants-bees.png
-#   :width: 400
-#   :alt: Ants and Bees
-#
 # Downloading a pre-trained model
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Now, we will download a pre-trained model from torchvision, that was trained on the ImageNet dataset.
+
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 model = torchvision.models.resnet18(pretrained=True)
 num_ftrs = model.fc.in_features
@@ -186,81 +132,75 @@ _ = model.eval()
 # =====================================
 # Now, after we have the training data, validation data and the model, we can validate the model with
 # deepchecks test suites.
-# 
-# Visualize the data loader and the model outputs
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# First we'll make sure we are familiar with the data loader and the model outputs.
-
-batch = next(iter(dataloaders['train']))
-
-print("Batch type is: ", type(batch))
-print("First element is: ", type(batch[0]), "with len of ", len(batch[0]))
-print("Example output of an image shape from the dataloader ", batch[0][0].shape)
-print("Image values", batch[0][0])
-print("-"*80)
-
-print("Second element is: ", type(batch[1]), "with len of ", len(batch[1]))
-print("Example output of a label shape from the dataloader ", batch[1][0].shape)
-print("Image values", batch[1][0])
-
-#%%
-# Implementing the ClassificationData class
+#
+# Implementing the VisionData class
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# The first step is to implement a class that enables deepchecks to interact with your model and data.
-# The appropriate class to implement should be selected according to you models task type. In this tutorial,
-# we will implement the classification task type by implementing a class that inherits from the
-# :class:`deepchecks.vision.classification_data.ClassificationData` class.
+# The checks in the package validate the model & data by calculating various quantities over the data, labels and
+# predictions. In order to do that, those must be in a pre-defined format, according to the task type.
+# In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to
+# :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+# For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
+# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
+#
+# To learn more about the expected formats, please visit the
+# :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+#
+# First, we'll create the collate function that will be used by the DataLoader.
+# In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
+# in order to transform the batch to the correct format for the checks.
 
-# The goal of this class is to make sure the outputs of the model and of the dataloader are in the correct format.
-# To learn more about the expected format please visit the API reference for the
-# :class:`deepchecks.vision.classification_data.ClassificationData` class.
+def deepchecks_collate_fn(batch):
+    """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
+    the following keys: 'images', 'labels' and 'predictions', each value is in the predefined format for the task.
 
-class AntsBeesData(ClassificationData):
+    To learn more about the expected formats, please visit the
+    :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+    """
+    batch = tuple(zip(*batch))
 
-    def __init__(self, *args, **kwargs):
-      super().__init__(*args, **kwargs)
+    # images:
+    inp = torch.stack(batch[0]).detach().numpy().transpose((0, 2, 3, 1))
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    inp = std * inp + mean
+    images = np.clip(inp, 0, 1) * 255
 
-    def batch_to_images(self, batch):
-        """
-        Convert a batch of data to images in the expected format. The expected format is an iterable of cv2 images,
-        where each image is a numpy array of shape (height, width, channels). The numbers in the array should be in the
-        range [0, 255]
-        """
-        inp = batch[0].detach().numpy().transpose((0, 2, 3, 1))
-        mean = [0.485, 0.456, 0.406]
-        std = [0.229, 0.224, 0.225]
-        inp = std * inp + mean
-        inp = np.clip(inp, 0, 1)
-        return inp*255
+    #labels:
+    labels = batch[1]
 
-    def batch_to_labels(self, batch):
-        """
-        Convert a batch of data to labels in the expected format. The expected format is a tensor of shape (N,),
-        where N is the number of samples. Each element is an integer representing the class index.
-        """
-        return batch[1]
-
-    def infer_on_batch(self, batch, model, device):
-        """
-        Returns the predictions for a batch of data. The expected format is a tensor of shape (N, n_classes),
-        where N is the number of samples. Each element is an array of length n_classes that represent the probability of
-        each class.
-        """
-        logits = model.to(device)(batch[0].to(device))
-        return nn.Softmax(dim=1)(logits)
+    #predictions:
+    logits = model.to(device)(torch.stack(batch[0]).to(device))
+    predictions = nn.Softmax(dim=1)(logits)
+    return {'images': images, 'labels': labels, 'predictions': predictions}
 
 #%%
-# After defining the task class, we can validate it by running the following code:
+# We have a single label here, which is the tomato class
+# The label_map is a dictionary that maps the class id to the class name, for display purposes.
 
 LABEL_MAP = {
     0: 'ants',
     1: 'bees'
   }
-training_data = AntsBeesData(data_loader=dataloaders["train"], label_map=LABEL_MAP)
-val_data = AntsBeesData(data_loader=dataloaders["val"], label_map=LABEL_MAP)
 
-training_data.validate_format(model)
-val_data.validate_format(model)
+#%%
+# Now that we have our updated collate function, we can recreate the dataloader in the deepchecks format, and use it
+# to create a VisionData object:
+
+from deepchecks.vision import VisionData
+
+train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True, collate_fn=deepchecks_collate_fn)
+test_loader = DataLoader(test_dataset, batch_size=4, shuffle=True, collate_fn=deepchecks_collate_fn)
+
+training_data = VisionData(batch_loader=train_loader, task_type='classification', label_map=LABEL_MAP)
+test_data = VisionData(batch_loader=test_loader, task_type='classification', label_map=LABEL_MAP)
+#%%
+# Making sure our data is in the correct format:
+# ~~~~~~~~~~~~~~~~~~~~~~
+# The VisionData object automatically validates your data format and will alert you if there is a problem.
+# However, you can also manually view your images and labels to make sure they are in the correct format by using
+# the ``head`` function to conveniently visualize your data:
+
+training_data.head()
 
 #%%
 # And observe the output:
@@ -274,7 +214,7 @@ val_data.validate_format(model)
 from deepchecks.vision.suites import train_test_validation
 
 suite = train_test_validation()
-result = suite.run(training_data, val_data, model, device=device)
+result = suite.run(training_data, test_data,  max_samples = 5000)
 
 #%%
 # We also have suites for:
@@ -297,3 +237,12 @@ result.save_as_html('output.html')
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
 result
+
+#%%
+# We can see that we do not have any meaningful issues with our data, and although there's some drift between the
+# train and test datasets (under the "Passed" section), this is not significant enough to cause any issues (and therefor
+# is not displayed in the "Didn't Pass" section).
+# However, under the "Other" section, that details checks without a specific pass/fail condition, we can see that the
+# heatmap of brightness in the images is not uniformly distributed, which means that in most images, there are brighter
+# objects in the center of the image. This makes sense as these images of bees and ants tend to have the insects in the
+# center of the image, but it is something to be aware of and maybe use data augmentation to fix.

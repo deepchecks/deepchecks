@@ -258,10 +258,10 @@ def test_shuffling_regular_dataloader(mnist_dataloader_train):
     mnist_loader_deepchecks_format = replace_collate_fn_dataloader(mnist_dataloader_train, mnist_collate_labels)
     original_batch = next(iter(mnist_loader_deepchecks_format))
     vision_data_shuffled = VisionData(mnist_loader_deepchecks_format, TaskType.CLASSIFICATION.value,
-                                      shuffle_batch_loader=True)
+                                      reshuffle_data=True)
     shuffled_batch = next(iter(vision_data_shuffled))
     vision_data_unshuffled = VisionData(mnist_loader_deepchecks_format, TaskType.CLASSIFICATION.value,
-                                        shuffle_batch_loader=False)
+                                        reshuffle_data=False)
     unshuffled_batch = next(iter(vision_data_unshuffled))
 
     # Assert
@@ -272,7 +272,7 @@ def test_shuffling_iterator_dataloader(mnist_iterator_visiondata_train, caplog):
     # Arrange
     loader_deepchecks_format = mnist_iterator_visiondata_train.batch_loader
     original_batch = next(iter(loader_deepchecks_format))
-    vision_data = VisionData(loader_deepchecks_format, TaskType.CLASSIFICATION.value, shuffle_batch_loader=True)
+    vision_data = VisionData(loader_deepchecks_format, TaskType.CLASSIFICATION.value, reshuffle_data=True)
     vision_data_batch = next(iter(vision_data))
 
     # Assert
@@ -287,7 +287,7 @@ def test_shuffling_tf_dataset(tf_coco_visiondata_train, caplog):
     # Arrange
     loader_deepchecks_format = tf_coco_visiondata_train.batch_loader
     original_batch = next(iter(loader_deepchecks_format))
-    vision_data = VisionData(loader_deepchecks_format, TaskType.OBJECT_DETECTION.value, shuffle_batch_loader=True)
+    vision_data = VisionData(loader_deepchecks_format, TaskType.OBJECT_DETECTION.value, reshuffle_data=True)
     vision_data_batch = next(iter(vision_data))
 
     # Assert

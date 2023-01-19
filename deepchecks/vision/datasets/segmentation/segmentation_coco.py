@@ -134,7 +134,7 @@ def load_dataset(
                             collate_fn=deepchecks_collate(model), pin_memory=pin_memory, generator=torch.Generator())
         loader = get_data_loader_sequential(loader, shuffle=shuffle)
         return VisionData(batch_loader=loader, task_type='semantic_segmentation', label_map=LABEL_MAP,
-                          shuffle_batch_loader=False)
+                          reshuffle_data=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 

@@ -234,13 +234,13 @@ def mnist_test_only_images(mnist_visiondata_test):  # pylint: disable=redefined-
 @pytest.fixture(scope='session')
 def mnist_train_custom_task(mnist_dataloader_train):  # pylint: disable=redefined-outer-name
     loader_correct_format = replace_collate_fn_dataloader(mnist_dataloader_train, _mnist_collate_only_images)
-    return VisionData(loader_correct_format, task_type=TaskType.OTHER.value, shuffle_batch_loader=False)
+    return VisionData(loader_correct_format, task_type=TaskType.OTHER.value, reshuffle_data=False)
 
 
 @pytest.fixture(scope='session')
 def mnist_test_custom_task(mnist_dataloader_test):  # pylint: disable=redefined-outer-name
     loader_correct_format = replace_collate_fn_dataloader(mnist_dataloader_test, _mnist_collate_only_images)
-    return VisionData(loader_correct_format, task_type=TaskType.OTHER.value, shuffle_batch_loader=False)
+    return VisionData(loader_correct_format, task_type=TaskType.OTHER.value, reshuffle_data=False)
 
 
 @pytest.fixture(scope='session')

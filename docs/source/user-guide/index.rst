@@ -43,7 +43,8 @@ Vision
 
     vision/auto_quickstarts/index
     vision/auto_tutorials/index
-    vision/data-classes/index
+    vision/vision_data_class
+    vision/supported_tasks_and_formats
     vision/vision_properties
     vision/custom_check_templates
     vision/using_precomputed_predictions_vision

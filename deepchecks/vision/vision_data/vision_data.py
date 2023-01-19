@@ -18,7 +18,7 @@ from ipywidgets import HTML
 from typing_extensions import Literal
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
-from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.ipython import is_notebook, is_sphinx
 from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
 from deepchecks.vision.utils.image_functions import draw_bboxes, draw_masks, prepare_thumbnail, random_color_dict
 from deepchecks.vision.vision_data import TaskType
@@ -48,8 +48,8 @@ class VisionData:
         A dictionary mapping class ids to their names.
     dataset_name: str, optional
         Name of the dataset to use in the displays instead of "Train" or "Test".
-    shuffle_batch_loader: bool, default=True
-        If True and the batch loader is of known type that can be shuffled, it will be shuffled.
+    reshuffle_data: bool, default=True
+        If True we will attempt to shuffle the batch loader. Only set this to False if the data is already shuffled.
     """
 
     def __init__(
@@ -58,13 +58,13 @@ class VisionData:
             task_type: Literal['classification', 'object_detection', 'semantic_segmentation', 'other'],
             label_map: t.Optional[t.Dict[int, str]] = None,
             dataset_name: t.Optional[str] = None,
-            shuffle_batch_loader: bool = True
+            reshuffle_data: bool = True
     ):
         if not hasattr(batch_loader, '__iter__'):
             # TODO: add link to documentation
             raise DeepchecksValueError(r'Batch loader must be an iterable which loads batches of data in deepcheck\'s'
                                        'required format, see link for additional information ')
-        self._batch_loader = shuffle_loader(batch_loader) if shuffle_batch_loader else batch_loader
+        self._batch_loader = shuffle_loader(batch_loader) if reshuffle_data else batch_loader
 
         if task_type not in TaskType.values():
             raise ValueError(f'Invalid task type: {task_type}, must be one of the following: {TaskType.values()}')
@@ -238,12 +238,12 @@ class VisionData:
         return {'images_cached': self._num_images_cached, 'labels': num_labels_per_class,
                 'predictions': num_preds_per_class}
 
-    def copy(self, reshuffle_batch_loader: bool = False, batch_loader=None) -> VD:
+    def copy(self, reshuffle_data: bool = False, batch_loader=None) -> VD:
         """Create new copy of the vision data object with clean cache.
 
         Parameters
         ----------
-        reshuffle_batch_loader: bool, default=False
+        reshuffle_data: bool, default=False
             If True and the batch loader is of known type that can be shuffled, it will be shuffled.
         batch_loader:
             If not None, the batch loader of the new object will be set to this value.
@@ -255,7 +255,7 @@ class VisionData:
         cls = type(self)
         batch_loader = batch_loader if batch_loader is not None else self._batch_loader
         return cls(batch_loader=batch_loader, task_type=self._task_type.value, label_map=self.label_map,
-                   dataset_name=self.name, shuffle_batch_loader=reshuffle_batch_loader)
+                   dataset_name=self.name, reshuffle_data=reshuffle_data)
 
     def __iter__(self):
         """Return an iterator over the batch loader."""
@@ -273,7 +273,7 @@ class VisionData:
         num_images_to_display: int, default = 5
             Number of images to show. Does not show more images than the size of single batch
         """
-        if not is_notebook():
+        if not (is_notebook() or is_sphinx()):
             print('head function is supported only inside a notebook', file=sys.stderr)
             return
         if not isinstance(num_images_to_display, int):
@@ -354,4 +354,11 @@ class VisionData:
             """
         html += '</div>'
 
-        display(HTML(html))
+        if is_notebook():
+            display(HTML(html))
+        else:
+            class TempSphinx:
+                def _repr_html_(self):
+                    return html
+
+            return TempSphinx()

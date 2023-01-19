@@ -99,7 +99,7 @@ def load_dataset(train: bool = True, batch_size: t.Optional[int] = None, shuffle
                             collate_fn=deepchecks_collate(model))
         if not use_iterable_dataset:
             loader = get_data_loader_sequential(loader, shuffle, n_samples)
-        return VisionData(loader, task_type='classification', shuffle_batch_loader=False)
+        return VisionData(loader, task_type='classification', reshuffle_data=False)
     else:
         raise TypeError(f'Unknown value of object_type - {object_type}')
 
