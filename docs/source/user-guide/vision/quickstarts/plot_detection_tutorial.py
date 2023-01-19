@@ -33,7 +33,7 @@ their classes.
 # ===========================
 # .. note::
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
-#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
 #
 # Load Data
 # ~~~~~~~~~
@@ -184,7 +184,7 @@ _ = model.eval()
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected format please visit
-# :doc:supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>``
+# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`.
 #
 # First, we will create some functions that transform our batch to the correct format of images, labels and predictions:
 
@@ -259,14 +259,16 @@ def infer_on_images(original_images):
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
 # in order to transform the batch to the correct format for the checks.
 
-def deepchecks_collate_fn(batch):
-    """Return a batch of images, labels and predictions in the expected format."""
+from deepchecks.vision.vision_data import BatchOutputFormat
+
+def deepchecks_collate_fn(batch) -> BatchOutputFormat:
+    """Return a batch of images, labels and predictions in the deepchecks format."""
     # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
     batch = tuple(zip(*batch))
     images = get_untransformed_images(batch[0])
     labels = transform_labels_to_cxywh(batch[1])
     predictions = infer_on_images(batch[0])
-    return {'images': images, 'labels': labels, 'predictions': predictions}
+    return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
 #%%
 # We have a single label here, which is the tomato class
