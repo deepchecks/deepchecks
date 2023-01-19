@@ -42,8 +42,6 @@ class BatchOutputFormat(TypedDict):
     images: NotRequired[t.Union[np.ndarray, t.Sequence]]
     labels: NotRequired[t.Union[np.ndarray, t.Sequence]]
     predictions: NotRequired[t.Union[np.ndarray, t.Sequence]]
-    additional_data: NotRequired[t.Union[np.ndarray, t.Sequence]]
-    embeddings: NotRequired[t.Union[np.ndarray, t.Sequence]]
     image_identifiers: NotRequired[t.Union[np.ndarray, t.Sequence]]
 
 

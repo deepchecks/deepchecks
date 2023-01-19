@@ -224,27 +224,3 @@ implement properties which apply to the Detection task type.
   check = TrainTestPredictionDrift(prediction_properties=properties)
 
 
-Pre-Calculated Properties
-=========================
-Properties can be calculated and saved ahead of time and then passed to the check. This can be useful in cases where 
-calculation on the fly is not practical, for example demands extra computing resources that are not always available,
-as well as for using meta-data as properties such as the camera type for images and annotator identity for labels.
-
-To use this option, pass the static properties to the `check.run` argument `train_properties` in the case of the train
-dataset or single dataset, and to the argument `test_properties` in the case tf the test set.
-
-The expected format for the static properties is the following nested dictionary:
-    * sample index (int):
-        * properties input type (PropertiesInputType):
-            * property name (str):
-                * property values per sample (list)
-The values per sample is a list to support the case of object detection where there might be multiple bounding boxes per
-image.
-
-Code Example
-------------
-
-.. literalinclude:: ../../../../examples/vision/static_properties_example.py
-    :language: python
-    :lines: 1-17
-    :tab-width: 0

@@ -1,7 +1,7 @@
 """
-=============================================
-Writing Custom Computer Vision Checks
-=============================================
+=======================
+Creating a Custom Check
+=======================
 
 Deepchecks offers a wide range of checks for computer vision problems, addressing distribution issues, performance
 checks and more. Nevertheless, in order to fully validate your ML pipeline you often need to write your own checks.
@@ -50,7 +50,7 @@ The three methods of the vision check - initialize_run, update and compute, make
 object.
 
 The context object contains the basic objects deepchecks uses - the train and test
-`VisionData </user-guide/vision/data_classes/VisionData>`__ objects, and the use model itself.
+`VisionData </user-guide/vision/VisionData>`__ objects, and the use model itself.
 The Batch objects contains processed data from the dataloader, such as the images, labels and model predictions.
 For some checks, such as the one shown in this example, the Context object is not needed.
 
@@ -68,8 +68,8 @@ from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.vision.base_checks import TrainTestCheck
-from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 
 def init_color_averages_dict() -> t.Dict[str, np.array]:
@@ -88,15 +88,15 @@ def init_pixel_counts_dict() -> t.Dict[str, int]:
     }
 
 
-def sum_pixel_values(batch: Batch) -> np.array:
+def sum_pixel_values(batch: BatchWrapper) -> np.array:
     """Sum the values of all the pixels in the batch, returning a numpy array with an entry per channel."""
-    images = batch.images
+    images = batch.original_images
     return sum(image.sum(axis=(0, 1)) for image in images)  # sum over the batch and pixels
 
 
-def count_pixels_in_batch(batch: Batch) -> int:
+def count_pixels_in_batch(batch: BatchWrapper) -> int:
     """Count the pixels in the batch."""
-    return sum((image.shape[0] * image.shape[1] for image in batch.images))
+    return sum((image.shape[0] * image.shape[1] for image in batch.original_images))
 
 
 class ColorAveragesCheck(TrainTestCheck):
@@ -113,7 +113,7 @@ class ColorAveragesCheck(TrainTestCheck):
         self._color_averages = init_color_averages_dict()
         self._pixel_count = init_pixel_counts_dict()
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Add the batch color counts to the color_averages dict, and update counter."""
 
         self._color_averages[dataset_kind.value] += sum_pixel_values(batch)  # add to the color_averages dict
@@ -133,13 +133,13 @@ class ColorAveragesCheck(TrainTestCheck):
 #%%
 # Hooray! we just implemented a custom check. To read more about the internal objects  Let's run it and see what happens:
 
-from deepchecks.vision.datasets.detection.coco import load_dataset
+from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
 
 result = ColorAveragesCheck().run(train_ds, test_ds)
-result
+result.show()
 
 #%%
 # Our check ran successfully, but we got the print “Nothing found”. This is because we haven’t defined to the check
@@ -181,7 +181,7 @@ class ColorAveragesCheck(TrainTestCheck):
         self._color_averages = init_color_averages_dict()
         self._pixel_count = init_pixel_counts_dict()
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Add the batch color counts to the color_averages dict, and update counter."""
 
         self._color_averages[dataset_kind.value] += sum_pixel_values(batch)  # add to the color_averages dict
@@ -211,7 +211,7 @@ class ColorAveragesCheck(TrainTestCheck):
 # Let check it out:
 
 result = ColorAveragesCheck().run(train_ds, test_ds)
-result
+result.show()
 
 # %%
 # Voilà! Now we have a check that prints a graph and has a value. We can add this check
@@ -243,7 +243,7 @@ class ColorAveragesCheck(TrainTestCheck):
         self._color_averages = init_color_averages_dict()
         self._pixel_count = init_pixel_counts_dict()
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Add the batch color counts to the color_averages dict, and update counter."""
 
         self._color_averages[dataset_kind.value] += sum_pixel_values(batch)  # add to the color_averages dict
@@ -292,7 +292,7 @@ class ColorAveragesCheck(TrainTestCheck):
 #%%
 # Let check it out:
 result = ColorAveragesCheck().run(train_ds, test_ds)
-result
+result.show()
 
 #%%
 # And now our check we will alert us automatically if the color averages have changed by more than 10%!
