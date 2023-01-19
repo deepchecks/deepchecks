@@ -21,7 +21,7 @@ from ignite.metrics import Metric
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.metrics import get_scorer_name
-from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
+from deepchecks.vision.metrics_utils import (CustomClassificationScorer, CustomMetric, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU
 from deepchecks.vision.vision_data import TaskType, VisionData
@@ -125,7 +125,7 @@ def get_scorers_dict(
         scorers = {}
         for name, metric in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
-            if isinstance(metric, Metric):
+            if isinstance(metric, (Metric, CustomMetric)):
                 metric.reset()
                 scorers[name] = copy(metric)
             elif isinstance(metric, str):
@@ -140,9 +140,15 @@ def get_scorers_dict(
                     raise DeepchecksNotSupportedError(
                         f'Unsupported metric: {name} of type {type(metric).__name__} was given.')
                 scorers[name] = converted_met
+            elif isinstance(metric, t.Callable):
+                if task_type == TaskType.CLASSIFICATION:
+                    scorers[name] = CustomClassificationScorer(metric)
+                else:
+                    raise DeepchecksNotSupportedError('Custom scikit-learn scorers are only supported for'
+                                                      ' classification.')
             else:
                 raise DeepchecksValueError(
-                    f'Excepted metric type one of [ignite.Metric, str], was {type(metric).__name__}.')
+                    f'Excepted metric type one of [ignite.Metric, callable, str], was {type(metric).__name__}.')
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()

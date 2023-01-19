@@ -68,7 +68,7 @@ def test_classification_defaults(mnist_visiondata_train):
 def test_classification_custom_scorer(mnist_visiondata_test):
     # Arrange
     scorer = make_scorer(jaccard_score, average=None, zero_division=0)
-    check = SingleDatasetPerformance(scorers={'kappa': CustomClassificationScorer(scorer)})
+    check = SingleDatasetPerformance(scorers={'kappa': scorer})
 
     # Act
     result = check.run(mnist_visiondata_test)

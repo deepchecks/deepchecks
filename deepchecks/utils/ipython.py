@@ -16,6 +16,7 @@ import time
 import typing as t
 from functools import lru_cache
 
+import plotly.io as pio
 import tqdm
 from ipykernel.zmqshell import ZMQInteractiveShell
 from IPython import get_ipython
@@ -35,7 +36,8 @@ __all__ = [
     'is_sagemaker_env',
     'is_terminal_interactive_shell',
     'is_zmq_interactive_shell',
-    'ProgressBarGroup'
+    'ProgressBarGroup',
+    'is_sphinx'
 ]
 
 
@@ -53,6 +55,18 @@ def is_notebook() -> bool:
         return hasattr(shell, 'config')
     except NameError:
         return False  # Probably standard Python interpreter
+
+
+@lru_cache(maxsize=None)
+def is_sphinx() -> bool:
+    """Check if we're in a sphinx gallery env.
+
+    Returns
+    -------
+    bool
+        True if we are in a sphinx gallery context, False otherwise
+    """
+    return pio.renderers.default.startswith('sphinx_gallery')
 
 
 @lru_cache(maxsize=None)
