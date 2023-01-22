@@ -131,7 +131,12 @@ class ColorAveragesCheck(TrainTestCheck):
         return CheckResult(return_value)
 
 #%%
-# Hooray! we just implemented a custom check. To read more about the internal objects  Let's run it and see what happens:
+# Hooray! we just implemented a custom check. Next, we will run it on the COCO128 dataset:
+#
+# .. note::
+#   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
+#
 
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
