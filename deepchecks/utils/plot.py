@@ -189,7 +189,7 @@ def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
     """
     if normalized:
         confusion_matrix_norm = confusion_matrix.astype('float') / \
-            confusion_matrix.sum(axis=1)[:, np.newaxis] * 100
+            (confusion_matrix.sum(axis=1)[:, np.newaxis] + np.finfo(float).eps) * 100
         z = np.vectorize(format_number_if_not_nan)(confusion_matrix_norm)
         texttemplate = '%{z}%<br>(%{text})'
         colorbar_title = '% out of<br>True Values'

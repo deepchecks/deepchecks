@@ -20,16 +20,24 @@ from sklearn.pipeline import Pipeline
 
 from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.feature_importance import (_calculate_feature_importance,
-                                                         calculate_feature_importance_or_none,
-                                                         column_importance_sorter_df, column_importance_sorter_dict)
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
+from deepchecks.tabular.utils.feature_importance import (calculate_feature_importance_or_none,
+                                                         column_importance_sorter_df, column_importance_sorter_dict,
+                                                         _calculate_feature_importance)
+from deepchecks.tabular.utils.task_inference import infer_task_type_by_labels, get_all_labels, infer_classes_from_model, \
+    infer_task_type_by_class_number
 from deepchecks.tabular.utils.task_type import TaskType
 
 
-def run_fi_calculation(model, dataset,  permutation_kwargs=None, force_permutation=False):
-    task_type, observed_classes, model_classes = infer_task_type_and_classes(model, dataset)
-    model_classes = model_classes if model_classes is not None else observed_classes
+def run_fi_calculation(model, dataset, permutation_kwargs=None, force_permutation=False):
+    labels = get_all_labels(model, dataset)
+    observed_classes = sorted(labels.dropna().unique().tolist())
+    model_classes = infer_classes_from_model(model)
+    if dataset and dataset.label_type:
+        task_type = dataset.label_type
+    elif model_classes:
+        task_type = infer_task_type_by_class_number(len(model_classes))
+    else:
+        task_type = infer_task_type_by_labels(labels)
     return _calculate_feature_importance(model=model, dataset=dataset, model_classes=model_classes,
                                          observed_classes=observed_classes, task_type=task_type,
                                          permutation_kwargs=permutation_kwargs, force_permutation=force_permutation)

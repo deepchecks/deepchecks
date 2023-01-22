@@ -35,9 +35,9 @@ def test_no_new_label():
     train_data = {'col1': [1, 2, 3]}
     test_data = {'col1': [1, 1, 2, 3]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -51,9 +51,9 @@ def test_new_label():
     train_data = {'col1': [1, 2, 3]}
     test_data = {'col1': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -71,9 +71,9 @@ def test_new_label_without_display():
     train_data = {'col1': [1, 2, 3]}
     test_data = {'col1': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -91,9 +91,9 @@ def test_missing_label():
     train_data = {'col1': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -107,9 +107,9 @@ def test_missing_new_label():
     train_data = {'col1': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -126,9 +126,9 @@ def test_multiple_categories():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest()
@@ -145,9 +145,9 @@ def test_condition_number_of_new_labels_pass():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest().add_condition_new_labels_number_less_or_equal(3)
@@ -166,9 +166,9 @@ def test_condition_number_of_new_labels_fail():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest().add_condition_new_labels_number_less_or_equal(0)
@@ -187,9 +187,9 @@ def test_condition_ratio_of_new_label_samples_pass():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest().add_condition_new_label_ratio_less_or_equal(0.3)
@@ -208,9 +208,9 @@ def test_condition_ratio_of_new_label_samples_fail():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
     train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
-                            label='col1', label_type="classification_label")
+                            label='col1', label_type="multiclass")
     test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
-                           label='col1', label_type="classification_label")
+                           label='col1', label_type="multiclass")
 
     # Arrange
     check = NewLabelTrainTest().add_condition_new_label_ratio_less_or_equal(0.1)

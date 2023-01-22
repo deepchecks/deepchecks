@@ -687,7 +687,7 @@ def test_set_label_type(iris):
     # Arrange
     label = iris['target'].rename('actual')
     data = iris.drop('target', axis=1)
-    dataset = Dataset(data, label, label_type='regression_label')
+    dataset = Dataset(data, label, label_type='regression')
     # Assert
     assert_that(dataset.label_type.value, equal_to('regression'))
 
@@ -811,7 +811,7 @@ def test_sample_drop_nan_labels(iris):
     iris.loc[iris['target'] != 2, 'target'] = None
     dataset = Dataset(iris, label='target')
     # Act
-    sample = dataset.sample(10000, drop_na_label=True)
+    sample = dataset.sample(10000).drop_na_labels()
     # Assert
     assert_that(sample, has_length(50))
 

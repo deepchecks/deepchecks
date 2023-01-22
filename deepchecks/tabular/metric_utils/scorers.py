@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for checks working with scorers."""
+import logging
 import typing as t
 import warnings
 from numbers import Number
@@ -17,7 +18,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 import pandas as pd
 from sklearn.base import ClassifierMixin
-from sklearn.metrics import get_scorer, make_scorer, mean_absolute_error, mean_squared_error
+from sklearn.metrics import get_scorer, log_loss, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
 from sklearn.preprocessing import LabelBinarizer
 
@@ -122,7 +123,7 @@ binary_scorers_dict = {
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
     'jaccard': make_scorer(jaccard_score, zero_division=0),
     'roc_auc': get_scorer('roc_auc'),
-    'neg_log_loss': get_scorer('neg_log_loss')
+    'neg_log_loss': make_scorer(log_loss, greater_is_better=False, needs_proba=True, labels=[0, 1])
 }
 
 multiclass_scorers_dict = {
@@ -281,7 +282,7 @@ class DeepcheckScorer:
 
         return MyModelWrapper(model, self.model_classes)
 
-    def _run_score(self, model, data: pd.DataFrame, label_col):
+    def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
         if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
                                                                     'predict_proba'):
@@ -291,26 +292,36 @@ class DeepcheckScorer:
                 f'manually provide predicted probabilities to the check. '
                 f'{SUPPORTED_MODELS_DOCLINK}')
         if self.model_classes is not None:
-            updated_model = self._wrap_classification_model(model)
-            if updated_model.is_binary:
-                label = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1}).to_numpy()
+            model = self._wrap_classification_model(model)
+            if model.is_binary:
+                if len(label_col.unique()) > 2:
+                    raise errors.DeepchecksValueError('Model is binary but the label column has more than 2 classes: '
+                                                      f'{label_col.unique()}')
+                label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
             else:
-                label = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
+                label_col = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 
-            scores = self.scorer(updated_model, data, label)
+        try:
+            scores = self.scorer(model, data, np.array(label_col))
+        except ValueError as e:
+            if getattr(self.scorer, '_score_func', '').__name__ == 'roc_auc_score':
+                get_logger().warning('ROC AUC failed with error message - "%s". setting scores as None', e,
+                                     exc_info=get_logger().level == logging.DEBUG)
+                scores = None
+            else:
+                raise
 
-            # The scores returned are for the observed classes but we want scores of the observed classes
-            if isinstance(scores, t.Sized):
-                if len(scores) != len(self.model_classes):
-                    raise errors.DeepchecksValueError(
-                        f'Scorer returned {len(scores)} scores, but model contains '
-                        f'{len(self.model_classes)} classes. Can\'t proceed')
-                scores = dict(zip(self.model_classes, scores))
-                # Add classes which been seen in the data but are not known to the model
-                scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
-            return scores
-        else:
-            return self.scorer(model, data, label_col)
+        # The scores returned are for the model classes but we want scores of the observed classes
+        if self.model_classes is not None and isinstance(scores, t.Sized):
+            if len(scores) != len(self.model_classes):
+                raise errors.DeepchecksValueError(
+                    f'Scorer returned {len(scores)} scores, but model contains '
+                    f'{len(self.model_classes)} classes. Can\'t proceed')
+            scores = dict(zip(self.model_classes, scores))
+            # Add classes which been seen in the data but are not known to the model
+            scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
+
+        return scores
 
     def __call__(self, model, dataset: 'tabular.Dataset'):
         """Run score with labels null filtering."""
@@ -336,7 +347,7 @@ class DeepcheckScorer:
         """Validate given scorer for the model and dataset."""
         dataset.assert_features()
         # In order for scorer to return result in right dimensions need to pass it samples from all labels
-        single_label_data = dataset.data[dataset.data[dataset.label_name].notna()].groupby(dataset.label_name).head(1)
+        single_label_data = dataset.data[dataset.label_col.notna()].groupby(dataset.label_name).head(1)
         new_dataset = dataset.copy(single_label_data)
         result = self._run_score(model, new_dataset.features_columns, new_dataset.label_col)
 
@@ -346,7 +357,7 @@ class DeepcheckScorer:
             if len(result) != len(all_classes):
                 raise errors.DeepchecksValueError(f'Expected {len(all_classes)} classes, but scorer {self.name} '
                                                   f'returned {len(result)} elements in the score array value')
-        elif not isinstance(result, Number):
+        elif result is not None and not isinstance(result, Number):
             raise errors.DeepchecksValueError(f'Expected scorer {self.name} to return number or dict '
                                               f'but got: {type(result).__name__}')
 
@@ -397,6 +408,7 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
         scorers = [DeepcheckScorer(scorer, model_classes, observed_classes, name) for name, scorer in scorers.items()]
     else:
         scorers = [DeepcheckScorer(scorer, model_classes, observed_classes) for scorer in scorers]
+    scorers: t.List[DeepcheckScorer]
     for s in scorers:
         s.validate_fitting(model, dataset)
     return scorers

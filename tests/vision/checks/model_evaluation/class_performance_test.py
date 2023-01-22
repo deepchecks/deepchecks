@@ -278,7 +278,7 @@ def test_coco_thershold_scorer_list_strings(coco_visiondata_train, coco_visionda
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test)
     # Assert
-    assert_that(result.value, has_length(589))
+    assert_that(result.value, has_length(590))
     assert_that(result.display, has_length(greater_than(0)))
     assert_that(set(result.value['Metric']), equal_to(set(AVAILABLE_EVALUATING_FUNCTIONS.keys())))
 

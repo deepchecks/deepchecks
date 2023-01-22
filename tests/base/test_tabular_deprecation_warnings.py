@@ -9,16 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the tabular package deprecation warnings."""
-import warnings
-
 import numpy as np
 import pandas as pd
 import pytest
 from sklearn.metrics import accuracy_score
+import warnings
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import (MultiModelPerformanceReport, RegressionSystematicError, SegmentPerformance,
-                                       SimpleModelComparison, WeakSegmentsPerformance, WholeDatasetDrift)
+from deepchecks.tabular.checks import (MultiModelPerformanceReport, SegmentPerformance, SimpleModelComparison,
+                                       WeakSegmentsPerformance, WholeDatasetDrift, RegressionSystematicError,
+                                       CategoryMismatchTrainTest)
 
 
 def test_deprecation_segment_performance_warning():
@@ -93,3 +93,9 @@ def test_deprecation_warning_multi_model_performance_report():
     with warnings.catch_warnings():
         warnings.simplefilter('error')
         _ = MultiModelPerformanceReport()
+
+
+def test_deprecation_category_mismatch_train_test():
+    with pytest.warns(DeprecationWarning, match='CategoryMismatchTrainTest is deprecated, use NewCategoryTrainTest '
+                                                'instead'):
+        _ = CategoryMismatchTrainTest()

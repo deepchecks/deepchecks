@@ -11,17 +11,18 @@
 """Contains unit tests for the single dataset performance report check."""
 from typing import List
 
-from hamcrest import assert_that, calling, close_to, equal_to, has_entries, has_items, has_length, instance_of, raises
+from hamcrest import (assert_that, calling, close_to, has_entries, has_items, has_length,
+                      instance_of, raises, equal_to, none)
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 from sklearn.model_selection import train_test_split
 
+from tests.common import is_nan
 from deepchecks.core import ConditionResult
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.checks import SingleDatasetPerformance
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DEFAULT_MULTICLASS_SCORERS, DEFAULT_REGRESSION_SCORERS
 from tests.base.utils import equal_condition_result
-from tests.common import is_nan
 
 
 def test_dataset_wrong_input():
@@ -57,6 +58,18 @@ def assert_multiclass_classification_result(result):
     for metric in DEFAULT_MULTICLASS_SCORERS.keys():
         metric_row = result.loc[result['Metric'] == metric]
         assert_that(metric_row['Value'].iloc[0], close_to(1, 0.3))
+
+
+def test_missing_y_true_binary(missing_test_classes_binary_dataset_and_model):
+    # Arrange
+    _, test, model = missing_test_classes_binary_dataset_and_model
+    check = SingleDatasetPerformance(scorers=['roc_auc'])
+    # Act
+    result = check.run(test, model)
+    # Assert
+    df = result.value
+    assert_that(df, has_length(1))
+    assert_that(df.loc[df['Metric'] == 'roc_auc']['Value'][0], none())
 
 
 def test_classification(iris_split_dataset_and_model):

@@ -8,16 +8,13 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-name: Labels Blank issues
+from deepchecks.tabular import Context
 
-on:
-  issues:
-    types: [opened]
-
-jobs:
-  label-blank-issues:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: andymckay/labeler@1.0.4
-        with:
-          add-labels: "needs triage, linear"
+def test_task_type_same_with_model_or_y_pred(diabetes_split_dataset_and_model):
+    # Arrange
+    train, _, model = diabetes_split_dataset_and_model
+    # Act
+    ctx1 = Context(train, model=model)
+    ctx2 = Context(train, y_pred_train=model.predict(train.features_columns))
+    # Assert
+    assert ctx1.task_type == ctx2.task_type

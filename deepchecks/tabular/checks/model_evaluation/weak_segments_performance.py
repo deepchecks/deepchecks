@@ -100,7 +100,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
         dataset.assert_features()
-        dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
+        dataset = dataset.sample(self.n_samples, random_state=self.random_state).drop_na_labels()
         predictions = context.model.predict(dataset.features_columns)
         if context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
             if not hasattr(context.model, 'predict_proba'):
