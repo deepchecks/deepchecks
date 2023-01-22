@@ -191,9 +191,9 @@ def get_expected_results_length(
     num_others = len(suite.checks.values()) - num_single
     multiply = 0
 
-    if 'train_dataset' in args:
+    if 'train_dataset' in args and args['train_dataset'] is not None:
         multiply += 1
-    if 'test_dataset' in args:
+    if 'test_dataset' in args and args['test_dataset'] is not None:
         multiply += 1
     # If no train and no test (only model) there will be single result of check failure
     if multiply == 0:

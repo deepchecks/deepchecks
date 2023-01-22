@@ -514,3 +514,10 @@ def df_with_mixed_datatypes_and_missing_values():
         'target': [0, 1, 0, 1, 0]
     }, index=['a', 'b', 'c', 'd', 'e'])
     return df
+
+@pytest.fixture(scope='session')
+def missing_test_classes_binary_dataset_and_model():
+    """A big randomized value dataset for binary."""
+    train_ds, test_ds, clf = _get_wierd_dataset_and_model(is_classification=True)
+    test_ds.data[test_ds.label_name] = test_ds.data[test_ds.label_name].apply(lambda x: x % 2)
+    return train_ds, test_ds, clf
