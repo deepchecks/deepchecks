@@ -24,7 +24,7 @@ from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.tabular import Dataset, suites
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 
 
 @pytest.fixture()
