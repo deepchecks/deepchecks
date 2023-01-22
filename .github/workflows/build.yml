@@ -14,7 +14,7 @@ on:
   push:
     branches: [ main ]
   pull_request: 
-    branches: [ main, nlp-base, Vision_renewed ]
+    branches: [ main, nlp-base]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
