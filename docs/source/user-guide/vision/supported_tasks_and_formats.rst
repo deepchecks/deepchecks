@@ -25,7 +25,7 @@ Common Formats
 Batch General Format
 --------------------
 Each batch, which is the output of the :doc:`batch loader </user-guide/vision/vision_data_class>`,
-is required to be a :class:`dictionary <deepchecks.vision.vision_data.utils.BatchOutputFormat>`
+is required to be a :class:`dictionary <deepchecks.vision.vision_data.BatchOutputFormat>`
 with keys for each provided data input: images, labels, predictions and image identifiers.
 Since each data input represents multiple samples,
 all data inputs are expected to be provided

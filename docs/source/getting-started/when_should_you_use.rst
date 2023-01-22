@@ -49,7 +49,7 @@ As part of your EDA you want to ensure your data's integrity, and have it ready 
 For example, you want to know if there are many duplicate samples, problems with string or categorical features,
 significant outliers, inconsistent labels, etc.
 
-For these purposes you can use the :func:`deepchecks.tabular.suites.single_dataset_integrity` suite.
+For these purposes you can use the :func:`deepchecks.tabular.suites.data_integrity` suite.
 
 .. _when_should_you_use__split_data:
 

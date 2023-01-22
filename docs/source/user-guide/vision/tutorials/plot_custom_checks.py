@@ -23,7 +23,7 @@ Vision Checks Structure
 
 The first step when writing a vision check is to decide what check base class to use. You can read more in the
 `Base Checks Types <#base-checks-types>`__ section. In this case, we wish to compare train and test dataset, so we select the
-``TrainTestBaseCheck``. This type of check must implement the following three methods:
+:class:`deepchecks.core.checks.TrainTestBaseCheck`. This type of check must implement the following three methods:
 
 - initialize_run - Actions to be performed before starting to iterate over the dataloader batches.
 - update - Actions to be performed on each batch.

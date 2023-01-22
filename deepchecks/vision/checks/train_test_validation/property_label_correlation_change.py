@@ -188,7 +188,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         if display:
             display += text
 
-        return CheckResult(value=ret_value, display=display, header='Feature Label Correlation Change')
+        return CheckResult(value=ret_value, display=display, header='Property Label Correlation Change')
 
     def add_condition_property_pps_difference_less_than(self: PLC, threshold: float = 0.2,
                                                         include_negative_diff: bool = False) -> PLC:

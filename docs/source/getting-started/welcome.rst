@@ -133,7 +133,7 @@ subset** of the following:
 -  **Test data** (which the model isn't exposed to) with labels
 -  | A **supported model** that you wish to validate, including: **scikit-learn, XGBoost, PyTorch, and more**.
    | For tabular data models see :doc:`supported models </user-guide/tabular/supported_models>`, for more details about the supported model API.
-   | For **Computer Vision**, we currently support the **PyTorch** framework. See :doc:`/user-guide/vision/data-classes/index` to understand how to integrate your data.
+   | For **Computer Vision**, we currently support the **PyTorch** framework. See :doc:`/user-guide/vision/VisionData` to understand how to integrate your data.
 
 
 

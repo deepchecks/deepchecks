@@ -7,7 +7,7 @@ Computer vision is an umbrella term for a wide spectrum of objectives models are
 on the structure of the data and the possible actions on it.
 
 The first step before running any Deepchecks checks is to create an implementation of
-:class:`VisionData <vision_data.VisionData>`. Each implementation represents and standardize a computer vision task
+:class:`deepchecks.vision.vision_data.vision_data.VisionData`. Each implementation represents and standardize a computer vision task
 and allows to run a more complex checks which relates to the given task's characteristics. There are default
 base classes for a few known tasks like classification, object detection, and semantic segmentation however not all
 tasks have a base implementation, meaning you will have to create your own task.
@@ -179,7 +179,7 @@ fig.show()
 # please refer to :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
 #
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
-# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object,
+# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.vision_data.VisionData` object,
 # that will hold the data loader.
 #
 # For a custom task, only the images have a pre-defined format while the labels and predictions can arrive

@@ -76,7 +76,7 @@ model = load_model(pretrained=True)
 # In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to
 # :ref:`creating VisionData guide <vision_data__creating_vision_data>`
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
-# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.VisionData` object, that will hold the data loader.
+# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected formats, please visit the
 # :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`.
