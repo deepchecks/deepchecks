@@ -11,7 +11,7 @@
 #
 from collections import defaultdict
 
-from hamcrest import assert_that, calling, contains_exactly, has_length, instance_of, is_, raises
+from hamcrest import assert_that, calling, contains_inanyorder, has_length, instance_of, is_, raises
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
@@ -266,7 +266,7 @@ def test_single_dataset(coco_visiondata_train, coco_visiondata_test):
     suite = full_suite()
     res_train = suite.run(coco_visiondata_train, coco_visiondata_test,
                           max_samples=100, with_display=False, run_single_dataset='Train')
-    expected_train_headers = ['Class Performance', 'Confusion Matrix', 'Feature Label Correlation Change',
+    expected_train_headers = ['Class Performance', 'Confusion Matrix', 'Property Label Correlation Change',
                               'Heatmap Comparison', 'Image Dataset Drift', 'Image Property Drift',
                               'Image Property Outliers', 'Label Property Outliers', 'Mean Average Precision Report',
                               'Mean Average Recall Report', 'New Labels', 'Property Label Correlation',
@@ -278,6 +278,6 @@ def test_single_dataset(coco_visiondata_train, coco_visiondata_test):
     res_full = suite.run(coco_visiondata_train, coco_visiondata_test,
                          max_samples=100, with_display=False)
     res_names = sorted(x.get_header() for x in res_train.results)
-    assert_that(res_names, contains_exactly(*expected_train_headers))
+    assert_that(res_names, contains_inanyorder(*expected_train_headers))
     assert_that(res_test.results, has_length(16))
     assert_that(res_full.results, has_length(23))

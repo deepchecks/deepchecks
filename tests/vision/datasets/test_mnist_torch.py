@@ -19,14 +19,15 @@ from deepchecks.vision.datasets.classification.mnist_torch import (MNIST_DIR, MO
 
 
 def test_dataset_load():
-    dataloader = load_dataset(object_type="DataLoader")
+    dataloader = load_dataset(object_type="DataLoader", n_samples=100)
     assert_that(dataloader, instance_of(DataLoader))
     assert_that(MNIST_DIR.exists() and MNIST_DIR.is_dir())
     assert_that(dataloader.dataset._check_exists() is True)
 
 
 def test_deepchecks_dataset_load():
-    dataloader, dataset = load_dataset(object_type='DataLoader'), load_dataset(object_type='VisionData')
+    dataloader = load_dataset(object_type='DataLoader', n_samples=100)
+    dataset = load_dataset(object_type='VisionData', n_samples=100)
     assert_that(dataset, instance_of(VisionData))
     assert_that(dataloader, instance_of(DataLoader))
 
@@ -64,7 +65,8 @@ def test_iterable_visiondata():
 
 
 def test_iterable_visiondata_with_shuffle():
-    assert_that(calling(load_dataset).with_args(object_type='DataLoader', use_iterable_dataset=True, shuffle=True),
+    assert_that(calling(load_dataset).with_args(object_type='DataLoader', use_iterable_dataset=True, shuffle=True,
+                                                n_samples=100),
                 raises(ValueError,
                        r'DataLoader with IterableDataset: expected unspecified shuffle option, but got shuffle=True'))
 

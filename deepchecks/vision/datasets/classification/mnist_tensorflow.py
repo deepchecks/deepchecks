@@ -108,8 +108,14 @@ def mnist_generator(shuffle: bool = False, batch_size: int = 64, train: bool = T
     if n_samples is None:
         n_samples = len(x)
 
+    # create sampled version of original vectors and delete the originals
+    x_sampled = x[:n_samples]
+    y_sampled = y[:n_samples]
+    del x
+    del y
+
     for i in range(0, n_samples, batch_size):
-        return_dict = {'images': x[i:(i + batch_size):], 'labels': y[i:(i + batch_size):]}
+        return_dict = {'images': x_sampled[i:(i + batch_size):], 'labels': y_sampled[i:(i + batch_size):]}
         if model is not None:
             return_dict.update({'predictions': model(return_dict['images'])})
 
