@@ -111,17 +111,10 @@ docs/source/user-guide/tabular/auto_tutorials
 docs/source/user-guide/vision/auto_tutorials
 
 docs/source/user-guide/tabular/auto_quickstarts
-docs/source/user-guide/vision/auto_quickstarts
 
 # build artifacts from running docs (vision and wandb export)
 docs/source/tutorials/vision/*.html
-docs/source/user-guide/vision/quickstarts/*.html
 docs/source/tutorials/vision/deepchecks_formatted_image*.jpg
-docs/source/tutorials/vision/tomato-detection/
-docs/source/user-guide/vision/quickstarts/tomato-detection
-docs/source/user-guide/vision/quickstarts/hymenoptera_data
-docs/source/tutorials/vision/hymenoptera_data/
-docs/source/user-guide/vision/quickstarts/EuroSAT/
 docs/source/user-guide/general/exporting_results/wandb
 deepchecks/vision/datasets/classification/models/
 
