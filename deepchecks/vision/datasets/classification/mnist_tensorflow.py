@@ -82,15 +82,14 @@ def mnist_generator(shuffle: bool = False, batch_size: int = 64, train: bool = T
 
     Parameters
     ----------
-    shuffle : bool , default : False
-        to reshuffled data at every epoch or not, cannot work with use_iterable_dataset=True
     batch_size: int, optional
         how many samples per batch to load
     train : bool, default : True
         Train or Test dataset
     n_samples : int, optional
-        Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle
-        is False otherwise selects n_samples at random. If None, returns all samples.
+        Number of samples to load.
+    shuffle : bool , default : False
+        whether to shuffle the data or not.
     model : MockModel, optional
         Model to use for predictions
 
@@ -98,24 +97,10 @@ def mnist_generator(shuffle: bool = False, batch_size: int = 64, train: bool = T
     -------
     :obj:`t.Generator`
     """
-    x, y = load_mnist_data(train)
+    images, labels = load_mnist_data(train, n_samples=n_samples, shuffle=shuffle)
 
-    if shuffle:
-        indices = np.random.permutation(len(x))
-        x = x[indices]
-        y = y[indices]
-
-    if n_samples is None:
-        n_samples = len(x)
-
-    # create sampled version of original vectors and delete the originals
-    x_sampled = x[:n_samples]
-    y_sampled = y[:n_samples]
-    del x
-    del y
-
-    for i in range(0, n_samples, batch_size):
-        return_dict = {'images': x_sampled[i:(i + batch_size):], 'labels': y_sampled[i:(i + batch_size):]}
+    for i in range(0, len(images), batch_size):
+        return_dict = {'images': images[i:(i + batch_size):], 'labels': labels[i:(i + batch_size):]}
         if model is not None:
             return_dict.update({'predictions': model(return_dict['images'])})
 
@@ -124,33 +109,42 @@ def mnist_generator(shuffle: bool = False, batch_size: int = 64, train: bool = T
         yield return_dict
 
 
-def load_mnist_data(train: bool = True) -> t.Tuple[np.array, np.array]:
+def load_mnist_data(train: bool = True, n_samples: int = None, shuffle : bool = False) -> t.Tuple[np.array, np.array]:
     """Load MNIST dataset.
 
     Parameters
     ----------
     train : bool, default : True
         Train or Test dataset
-
+    n_samples : int, optional
+        Number of samples to load.
+    shuffle : bool , default : False
+        whether to shuffle the data or not.
     Returns
     -------
     Tuple[np.ndarray, np.ndarray]
     """
     # Load the dataset
-    (x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
-
-    # Normalize the data
-    x_train = x_train / 255.0
-    x_test = x_test / 255.0
-
-    # Expand the data to 4D
-    x_train = np.expand_dims(x_train, axis=-1)
-    x_test = np.expand_dims(x_test, axis=-1)
-
     if train:
-        return x_train, y_train
+        (images, labels), _ = keras.datasets.mnist.load_data()
     else:
-        return x_test, y_test
+        _, (images, labels) = keras.datasets.mnist.load_data()
+
+    if shuffle:
+        indices = np.random.permutation(len(images))
+        images = images[indices]
+        labels = labels[indices]
+        del indices
+
+    if n_samples is not None:
+        images = images[:n_samples]
+        labels = labels[:n_samples]
+
+    # Normalize the data and expand the data to 4D
+    images = images / 255.0
+    images = np.expand_dims(images, axis=-1)
+
+    return images, labels
 
 
 def load_model() -> 'MockModel':
@@ -194,6 +188,7 @@ def load_model() -> 'MockModel':
     x_train, y_train = load_mnist_data(train=True)
 
     model.fit(x_train, y_train, epochs=2)
+    del x_train, y_train
 
     model.save_weights(path)
 

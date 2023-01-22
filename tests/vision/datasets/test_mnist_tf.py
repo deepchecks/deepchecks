@@ -30,8 +30,7 @@ def test_regular_visiondata_with_shuffle():
     batch = next(iter(vision_data))
     vision_data_again = load_dataset(n_samples=100, shuffle=False)
     batch_again = next(iter(vision_data_again))
-    vision_data_shuffled = load_dataset(n_samples=100,
-                                        shuffle=True)
+    vision_data_shuffled = load_dataset(n_samples=100, shuffle=True)
     batch_shuffled = next(iter(vision_data_shuffled))
     vision_data_shuffled_again = load_dataset(n_samples=100, shuffle=True)
     batch_shuffled_again = next(iter(vision_data_shuffled_again))
