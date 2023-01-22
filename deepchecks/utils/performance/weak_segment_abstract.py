@@ -39,13 +39,11 @@ class WeakSegmentAbstract:
                  n_to_show: int = 3,
                  categorical_aggregation_threshold: float = 0.05,
                  segment_minimum_size_ratio: float = 0.05,
-                 random_state: Optional[int] = 42
                  ):
         self.n_top_features = n_top_features
         self.n_to_show = n_to_show
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
-        self.random_state = random_state
 
     def _target_encode_categorical_features_fill_na(self, dataset: Dataset,
                                                     possible_classes: Optional[List] = None) -> Dataset:
@@ -194,7 +192,13 @@ class WeakSegmentAbstract:
         def neg_worst_segment_score(clf: DecisionTreeRegressor, x, y) -> float:  # pylint: disable=unused-argument
             return -get_worst_leaf_filter(clf.tree_)[0]
 
-        grid_searcher = GridSearchCV(DecisionTreeRegressor(random_state=self.random_state),
+        if hasattr(self, 'random_state'):
+            random_state = self.random_state
+        elif hasattr(self, 'context'):
+            random_state = self.context.random_state
+        else:
+            random_state = None
+        grid_searcher = GridSearchCV(DecisionTreeRegressor(random_state=random_state),
                                      scoring=neg_worst_segment_score, param_grid=search_space, n_jobs=-1, cv=3)
         try:
             grid_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
