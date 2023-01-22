@@ -57,7 +57,6 @@ def is_notebook() -> bool:
         return False  # Probably standard Python interpreter
 
 
-@lru_cache(maxsize=None)
 def is_sphinx() -> bool:
     """Check if we're in a sphinx gallery env.
 

@@ -1,8 +1,8 @@
 .. _vision_data_class:
 
-========================
+=====================
 The Vision Data Class
-========================
+=====================
 The :class:`VisionData <deepchecks.vision>` data class is the deepchecks base class for
 storing your data for a vision task. It is essentially a wrapper around a batch loader of images, labels,
 and predictions, that allows deepchecks to efficiently calculate different

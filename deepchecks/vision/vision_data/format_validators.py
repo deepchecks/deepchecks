@@ -128,8 +128,8 @@ def validate_predictions_format(predictions, task_type: TaskType):
 def _validate_predictions_label_common_format(name, data, task_type: TaskType):
     """Validate that the data is in the required format and returns a non-empty sample in numpy format."""
     name_plural = name + 's'
-    if task_type == TaskType.OTHER and data is not None:
-        raise ValidationError(f'The task type is OTHER, but {name_plural} were provided.')
+    if task_type == TaskType.OTHER:
+        return None
     try:
         _ = data[0]
         data = sequence_to_numpy(data)

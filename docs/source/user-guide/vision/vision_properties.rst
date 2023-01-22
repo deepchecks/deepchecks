@@ -1,8 +1,8 @@
 .. _vision_properties_guide:
 
-===============
-Data Properties
-===============
+=================
+Vision Properties
+=================
 
 Properties are one-dimension values that are extracted from either the images, labels or predictions. For example, an
 image property is **brightness**, and a label property is **bounding box area** (for detection tasks).
@@ -105,7 +105,7 @@ The Method's Input
 ----------------------
 
 Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
-as demonstrated in :doc:`Deepchecks' format </user-guide/vision/data-classes/index>`.
+as demonstrated in :doc:`supported tasks and formats </user-guide/vision/supported_tasks_and_formats>`.
 Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if
 they calculate similar values.
 
@@ -176,13 +176,12 @@ properties which apply to the Detection task type.
 .. code-block:: python
 
   from deepchecks.vision.checks.distribution import TrainTestLabelDrift
-  import torch
 
-  def number_of_labels(labels: List[torch.Tensor]) -> List[int]:
+  def number_of_labels(labels: List[np.ndarray]) -> List[int]:
     """Return a list containing the number of detections per sample in batch."""
     return [label.shape[0] for label in labels]
 
-  def classes_in_labels(labels: List[torch.Tensor]) -> List[List[int]]:
+  def classes_in_labels(labels: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
     return [label.reshape((-1, 5))[:, 0].tolist() for label in labels]
 
@@ -204,13 +203,12 @@ implement properties which apply to the Detection task type.
 .. code-block:: python
 
   from deepchecks.vision.checks.distribution import TrainTestPredictionDrift
-  import torch
 
-  def classes_of_predictions(predictions: List[torch.Tensor]) -> List[List[int]]:
+  def classes_of_predictions(predictions: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
-    return [tensor.reshape((-1, 6))[:, -1].tolist() for tensor in predictions]
+    return [pred.reshape((-1, 6))[:, -1].tolist() for pred in predictions]
 
-  def bbox_area(predictions: List[torch.Tensor]) -> List[List[float]]:
+  def bbox_area(predictions: List[np.ndarray]) -> List[List[float]]:
     """Return a list containing the area of bboxes per image in batch."""
     return [(prediction.reshape((-1, 6))[:, 2] * prediction.reshape((-1, 6))[:, 3]).tolist()
              for prediction in predictions]
@@ -224,27 +222,3 @@ implement properties which apply to the Detection task type.
   check = TrainTestPredictionDrift(prediction_properties=properties)
 
 
-Pre-Calculated Properties
-=========================
-Properties can be calculated and saved ahead of time and then passed to the check. This can be useful in cases where 
-calculation on the fly is not practical, for example demands extra computing resources that are not always available,
-as well as for using meta-data as properties such as the camera type for images and annotator identity for labels.
-
-To use this option, pass the static properties to the `check.run` argument `train_properties` in the case of the train
-dataset or single dataset, and to the argument `test_properties` in the case tf the test set.
-
-The expected format for the static properties is the following nested dictionary:
-    * sample index (int):
-        * properties input type (PropertiesInputType):
-            * property name (str):
-                * property values per sample (list)
-The values per sample is a list to support the case of object detection where there might be multiple bounding boxes per
-image.
-
-Code Example
-------------
-
-.. literalinclude:: ../../../../examples/vision/static_properties_example.py
-    :language: python
-    :lines: 1-17
-    :tab-width: 0

@@ -163,7 +163,7 @@ from deepchecks.vision.detection_data import DetectionData
 class TomatoData(DetectionData):
 
     def batch_to_images(self, batch):
-        inp = torch.stack(list(batch[0])).cpu().detach().numpy().transpose((0, 2, 3, 1))
+        inp = torch.stack(list(batch[0])).numpy().transpose((0, 2, 3, 1))
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
         inp = std * inp + mean

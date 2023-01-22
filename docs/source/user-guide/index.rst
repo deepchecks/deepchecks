@@ -41,13 +41,11 @@ Vision
     :maxdepth: 2
     :caption: Vision
 
-    vision/auto_quickstarts/index
     vision/auto_tutorials/index
     vision/vision_data_class
     vision/supported_tasks_and_formats
     vision/vision_properties
     vision/custom_check_templates
-    vision/using_precomputed_predictions_vision
 
 
 .. _user_guide__integrations:

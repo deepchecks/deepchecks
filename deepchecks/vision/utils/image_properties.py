@@ -162,7 +162,7 @@ def calc_default_image_properties(batch: List[np.ndarray], sample_n_pixels: int 
 
     sampled_images = [sample_pixels(img, sample_n_pixels) for img in batch]
 
-    grayscale_images = [img if _is_grayscale(img) else rgb2gray(img) for img in sampled_images]
+    grayscale_images = [img if _is_grayscale(img) else rgb2gray(img)*255 for img in sampled_images]
     results_dict['Brightness'] = [image.mean() for image in grayscale_images]
     results_dict['RMS Contrast'] = [image.std() for image in grayscale_images]
 

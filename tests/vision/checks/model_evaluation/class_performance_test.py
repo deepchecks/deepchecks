@@ -339,5 +339,5 @@ def test_coco_bad_value_type_scorers(coco_visiondata_train, coco_visiondata_test
         calling(check.run
                 ).with_args(coco_visiondata_train, coco_visiondata_test),
         raises(DeepchecksValueError,
-               r'Excepted metric type one of \[ignite.Metric, str\], was int.')
+               r'Excepted metric type one of \[ignite.Metric, callable, str\], was int.')
     )
