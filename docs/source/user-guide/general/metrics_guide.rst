@@ -100,7 +100,7 @@ The metrics in the dict can be some of the existing:
     method for developing custom vision metrics for classification tasks.
 *   :py:mod:`Deepchecks Metrics <deepchecks.vision.metrics>` for vision Metrics implemented by Deepchecks. These are
     dedicated metrics for object detection and semantic segmentation, such as the ``MeanIoU`` metric. Using them is
-    advised for example when defining custom confidence or IoU thresholds is needed.
+    advised when, for example, defining custom confidence or custom IoU thresholds is needed.
     You can import them from ``deepchecks.vision.metrics``.
 *   For cases in which a new vision custom metrics is needed, such as for implementing additional object detection
     or segmentation metrics, deepchecks also supports custom metric classes.
@@ -268,16 +268,15 @@ better.
 
 For other computer vision tasks, you should implement a Deepchecks CustomMetric. A Deepchecks CustomMetric must
 inherit from :class:`deepchecks.vision.metric_utils.CustomMetric` and implement the following methods:
-``reset``, ``update`` and ``compute``.
-
+``reset``, ``update`` and ``compute``:
     * ``reset`` - Resets the metric to its initial state, resets any internal variables.
     * ``update`` - Updates the metric's internal state based on the provided labels and predictions. The method's
       signature should be ``update(self, output)``, where output is a tuple containing first ``y_pred`` which is the
-      model's output and second ``y_true`` is the ground truth, both given  as lists of numpy objects, adhereing to
-      the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats.rst>`. For example, a
+      model's output and second ``y_true`` is the ground truth, both given  as lists of numpy objects, adhering to
+      the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats>`. For example, a
       object detection label would be a list where each element is a numpy array of bounding boxes annotations,
       and the prediction would be a list where each element is a numpy array of bounding boxes predictions, both in
-      the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats.rst>`.
+      the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats>`.
     * ``compute`` - Returns the metric's value based on the internal state. Can be either a single number, or a numpy
       array of containing a number for each class.
 

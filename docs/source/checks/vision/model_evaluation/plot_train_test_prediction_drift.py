@@ -73,7 +73,7 @@ from deepchecks.vision.checks import TrainTestPredictionDrift
 from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
-# Loading Dataset:
+# Load Dataset
 # ----------------
 
 
@@ -82,7 +82,7 @@ test_ds = load_dataset(train=False, batch_size=64, object_type='VisionData')
 
 
 #%%
-# Running TrainTestLabelDrift on classification
+# Running TrainTestPredictionDrift on classification
 # ---------------------------------------------
 
 check = TrainTestPredictionDrift()
@@ -99,7 +99,7 @@ result
 #%%
 # Understanding the results
 # -------------------------
-# We can see there is almost no drift between the train & test labels. This means the
+# We can see there is almost no drift between the train & test predictions. This means the
 # split to train and test was good (as it is balanced and random). Let's check the
 # performance of a simple model trained on MNIST.
 
@@ -108,12 +108,12 @@ from deepchecks.vision.checks import ClassPerformance
 ClassPerformance().run(train_ds, test_ds)
 
 #%%
-# MNIST with label drift
+# MNIST with prediction drift
 # ======================
 # Now, let's try to separate the MNIST dataset in a different manner that will result
 # in a prediction drift, and see how it affects the performance. We are going to create a
-# custom `collate_fn`` in the test dataset, that will select samples with class 0 in
-# a 1/10 chances. The prediction will change to that class in 9/10 of the cases.
+# custom `collate_fn`` in the test dataset, that will select a few of the samples with class 0
+# and change their most of their predicted classes to 1.
 
 #%%
 # Inserting drift to the test set
@@ -156,7 +156,7 @@ result
 #%%
 # Add a condition
 # ---------------
-# We could also add a condition to the check to alert us to changes in the prediction
+# We could also add a condition to the check to alert us about changes in the prediction
 # distribution, such as the one that occurred here.
 
 check = TrainTestPredictionDrift().add_condition_drift_score_less_than()
@@ -164,7 +164,7 @@ result = check.run(train_ds, mod_test_ds)
 result
 
 #%%
-# As we can see, the condition alerts us to the present of drift in the prediction.
+# As we can see, the condition alerts us to the presence of drift in the predictions.
 
 #%%
 # Results
@@ -185,7 +185,6 @@ result
 #%%
 # Inferring the results
 # ---------------------
-
 # We can see the drop in the precision of class 0, which was caused by the class
 # imbalance indicated earlier by the label drift check.
 

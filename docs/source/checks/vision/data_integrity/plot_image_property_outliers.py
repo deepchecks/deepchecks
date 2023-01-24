@@ -32,7 +32,7 @@ Ideally we would like to directly find images which are outliers, but this is co
 have a clear and explainable results. Therefore, we use image properties in order to find outliers (such as brightness,
 aspect ratio etc.) which are much more efficient to compute, and each outlier is easily explained.
 
-We use `Inter-quartile Range <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to define our upper
+We use `Interquartile Range <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to define our upper
 and lower limit for the properties' values.
 
 

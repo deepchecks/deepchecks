@@ -3,7 +3,7 @@
 =====================
 The Vision Data Class
 =====================
-The :class:`VisionData <deepchecks.vision>` data class is the deepchecks base class for
+The :class:`VisionData <deepchecks.vision.VisionData>` data class is the deepchecks base class for
 storing your data for a vision task. It is essentially a wrapper around a batch loader of images, labels,
 and predictions, that allows deepchecks to efficiently calculate different
 :doc:`checks </checks_gallery/vision>` on your data, by caching some of the information.
@@ -20,7 +20,7 @@ Common Class Parameters
 
 - **task_type** - The task type of the data, can be either ``classification``, ``object_detection``,
   ``semantic_segmentation``, or ``other``. Data format validation is done upon creation of VisionData based
-  on the selected task type. See :doc:`section </user-guide/vision/supported_tasks_and_formats>`
+  on the selected task type. See the :doc:`supported tasks and formats </user-guide/vision/supported_tasks_and_formats>` section
   for more information.
 
 - **label_map** - A dictionary mapping class ids to their names.
@@ -31,11 +31,11 @@ Common Class Parameters
 .. _vision_data__creating_vision_data:
 Creating a VisionData Object
 ============================
-The sub-sections below contain simple examples how to create a VisionData object without predictions, in
-order to learn how to supply them see the :ref:`following section <vision_data__adding_predictions>`.
+The sub-sections below contain simple examples for how to create a VisionData object without predictions, in
+order to learn how to supply them see the section about :ref:`adding model predictions <vision_data__adding_predictions>`.
 
-From Generic Generator
-----------------------
+From a Generic Generator
+----------------------------
 If you are not already using a pytorch DataLoader or a tensorflow Dataset for the project, for example
 if you are using fastai, jax or any autoML framework, this is the most recommended option.
 The custom generator can be implemented in any way you like, as long as it outputs the data in the
@@ -77,7 +77,7 @@ all you need is to replace the default
 `collate function <https://pytorch.org/docs/stable/data.html#working-with-collate-fn>`_.
 
 The collate function receives a list containing the results of running your implemented
-`dataset's <https://pytorch.org/docs/stable/data.html?highlight=dataset#torch.utils.data.Dataset>`_
+`Dataset's <https://pytorch.org/docs/stable/data.html?highlight=dataset#torch.utils.data.Dataset>`_
 ``__getitem__`` function on several indexes and returns a batch in any desired format.
 
 In order create a deepchecks compatible DataLoader, you need to create a collate function that

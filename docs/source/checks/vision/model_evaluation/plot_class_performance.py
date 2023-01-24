@@ -36,7 +36,7 @@ Object Detection   `Average Recall <https://manalelaidouni.github.io/Evaluating-
 =================  ====================
 
 In addition to the default metrics, the check supports custom metrics, as detailed in the
-:doc:`Metrics Guide <user-guide/general/metrics_guide>`.
+:doc:`Metrics Guide </user-guide/general/metrics_guide>`.
 These can be passed as a list using the scorers parameter of the check, which will override the default metrics.
 """
 
@@ -56,7 +56,7 @@ from deepchecks.vision.datasets.classification import mnist_torch as mnist
 #%%
 # Classification Performance Report
 # =================================
-# Generate Dataset:
+# Generate Dataset
 # -----------------
 
 
@@ -77,6 +77,7 @@ result
 # .. code-block:: python
 #
 #    result.show_in_window()
+
 #%%
 # The result will be displayed in a new window.
 
@@ -111,7 +112,7 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 
 check = ClassPerformance(show_only='best')
 result = check.run(train_ds, test_ds)
-result
+result.show()
 
 #%%
 # If you have a GPU, you can speed up this check by calling:
@@ -135,7 +136,7 @@ result
 check = ClassPerformance(show_only='worst')
 check.add_condition_test_performance_greater_than(0.2)
 result = check.run(train_ds, test_ds)
-result
+result.show()
 
 
 #%%

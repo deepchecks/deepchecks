@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Train Test label Drift check."""
+"""Module contains the New Labels check."""
 import string
 from collections import defaultdict
 from secrets import choice
@@ -33,7 +33,7 @@ __all__ = ['NewLabels']
 
 @docstrings
 class NewLabels(TrainTestCheck, ReduceLabelMixin):
-    """Detects labels that apper only in the test set.
+    """Detects labels that appear only in the test set.
 
     Parameters
     ----------

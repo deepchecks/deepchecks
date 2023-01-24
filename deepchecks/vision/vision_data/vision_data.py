@@ -247,6 +247,7 @@ class VisionData:
             If True and the batch loader is of known type that can be shuffled, it will be shuffled.
         batch_loader:
             If not None, the batch loader of the new object will be set to this value.
+            
         Returns
         -------
         VisionData

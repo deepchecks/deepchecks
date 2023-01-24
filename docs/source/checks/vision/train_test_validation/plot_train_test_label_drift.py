@@ -104,8 +104,8 @@ ClassPerformance().run(train_ds, test_ds)
 # ======================
 # Now, let's try to separate the MNIST dataset in a different manner that will result
 # in a label drift, and see how it affects the performance. We are going to create a
-# custom `collate_fn`` in the test dataset, that will select samples with class 0 in
-# a 1/10 chances.
+# custom `collate_fn`` in the test dataset, that will select samples with class 0 with
+# a probability of 1/10.
 
 #%%
 # Inserting drift to the test set
@@ -150,7 +150,7 @@ check.run(train_ds, mod_test_ds)
 check = TrainTestLabelDrift().add_condition_drift_score_less_than()
 check.run(train_ds, mod_test_ds)
 
-# As we can see, the condition alerts us to the present of drift in the label.
+# As we can see, the condition alerts us to the presence of drift in the label.
 
 #%%
 # Results
@@ -165,7 +165,7 @@ check.run(train_ds, mod_test_ds)
 ClassPerformance().run(train_ds, mod_test_ds)
 
 #%%
-# Inferring the results
+# Understanding the results
 # ---------------------
 # We can see the drop in the precision of class 0, which was caused by the class imbalance indicated earlier by the label drift check.
 

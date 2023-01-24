@@ -74,7 +74,7 @@ check = SimpleModelComparison(strategy='stratified')
 result = check.run(train_ds, test_ds)
 
 #%%
-result
+result.show()
 
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
@@ -118,7 +118,7 @@ result.value.sort_values(by=['Class', 'Metric']).head(10)
 check = SimpleModelComparison(strategy='stratified')
 check.add_condition_gain_greater_than(min_allowed_gain=0.99)
 result = check.run(train_ds, test_ds)
-result
+result.show()
 
 #%%
 # We detected that for several classes our gain did not passed the target gain we

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains the domain classifier drift check."""
+"""Module contains the image dataset drift check."""
 from collections import defaultdict
 from typing import Any, Dict, List, Optional
 
