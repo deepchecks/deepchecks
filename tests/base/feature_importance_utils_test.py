@@ -20,11 +20,11 @@ from sklearn.pipeline import Pipeline
 
 from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError, ModelValidationError
 from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.feature_importance import (calculate_feature_importance_or_none,
-                                                         column_importance_sorter_df, column_importance_sorter_dict,
-                                                         _calculate_feature_importance)
-from deepchecks.tabular.utils.task_inference import infer_task_type_by_labels, get_all_labels, infer_classes_from_model, \
-    infer_task_type_by_class_number
+from deepchecks.tabular.utils.feature_importance import (_calculate_feature_importance,
+                                                         calculate_feature_importance_or_none,
+                                                         column_importance_sorter_df, column_importance_sorter_dict)
+from deepchecks.tabular.utils.task_inference import (get_all_labels, infer_classes_from_model,
+                                                     infer_task_type_by_class_number, infer_task_type_by_labels)
 from deepchecks.tabular.utils.task_type import TaskType
 
 

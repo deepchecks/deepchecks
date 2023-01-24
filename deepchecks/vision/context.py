@@ -10,13 +10,14 @@
 #
 """Module for base vision context."""
 from operator import itemgetter
-from typing import Dict, List, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Dict, List, Mapping, Optional, Sequence, Union
 
 import torch
 from ignite.metrics import Metric
 from torch import nn
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind, SuiteResult
+from deepchecks.core.check_result import _SuiteExecutionInfo
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
                                     DeepchecksValueError, ModelValidationError, ValidationError)
 from deepchecks.utils.logger import get_logger
@@ -25,6 +26,9 @@ from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT, PropertiesInputType
 from deepchecks.vision.vision_data import VisionData
+
+if TYPE_CHECKING:
+    from deepchecks.core.checks import BaseCheck
 
 __all__ = ['Context']
 
@@ -273,7 +277,13 @@ class Context:
             elif isinstance(result, SuiteResult):
                 result.extra_info.append(message)
 
-    def finalize_check_result(self, check_result, check):
+    def finalize_check_result(
+        self,
+        check_result: 'CheckResult',
+        check: 'BaseCheck',
+        check_index: Optional[int] = None,
+        kind: Optional['DatasetKind'] = None
+    ):
         """Run final processing on a check result which includes validation and conditions processing."""
         # Validate the check result type
         if isinstance(check_result, CheckFailure):
@@ -286,3 +296,7 @@ class Context:
         check_result.check = check
         # Calculate conditions results
         check_result.process_conditions()
+
+        if check_index is not None:
+            info = _SuiteExecutionInfo(check_index, kind)  # pylint: disable=protected-access
+            check_result._suite_execution_info = info  # pylint: disable=protected-access

@@ -10,17 +10,17 @@
 #
 """Test metrics utils"""
 import pandas as pd
-from hamcrest import assert_that, close_to, calling, raises, has_entries, is_
+from hamcrest import assert_that, calling, close_to, has_entries, is_, raises
 from sklearn.metrics import make_scorer
 
-from tests.common import is_nan
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
-from deepchecks.tabular.utils.task_inference import infer_classes_from_model, get_all_labels
+from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model
+from tests.common import is_nan
 
 
 def deepchecks_scorer(scorer, clf, dataset):

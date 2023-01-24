@@ -11,11 +11,12 @@
 """Tests for weak segment performance check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, has_items, has_length, calling, raises, any_of, all_of, has_property, has_properties, has_entries
+from hamcrest import (all_of, any_of, assert_that, calling, close_to, equal_to, has_entries, has_items, has_length,
+                      has_properties, has_property, raises)
 from sklearn.metrics import f1_score, make_scorer
 
-from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks import ConditionCategory
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.checks.model_evaluation import PerformanceBias
 from tests.base.utils import equal_condition_result
 
@@ -24,13 +25,13 @@ def test_no_error(adult_split_dataset_and_model, avocado_split_dataset_and_model
     # Arrange
     tasks = [
         (
-            *adult_split_dataset_and_model, 
-            ["sex", "age"], 
+            *adult_split_dataset_and_model,
+            ["sex", "age"],
             ["education", "capital-gain"]
         ),
         (
-            *avocado_split_dataset_and_model, 
-            ["type", "year"], 
+            *avocado_split_dataset_and_model,
+            ["type", "year"],
             ["region", "Total Bags"]
         ),
     ]
@@ -64,23 +65,23 @@ def test_run_value_error(adult_split_dataset_and_model):
 
     # Act & Assert
     assert_that(
-        calling(check.run).with_args("invalid_data"), 
+        calling(check.run).with_args("invalid_data"),
         raises(DeepchecksValueError, r'non-empty instance of Dataset or DataFrame was expected, instead got str')
     )
     assert_that(
-        calling(check.run).with_args(test), 
+        calling(check.run).with_args(test),
         raises(DeepchecksNotSupportedError, r'Check is irrelevant for Datasets without model')
     )
     assert_that(
-        calling(check_invalid1.run).with_args(test, model), 
+        calling(check_invalid1.run).with_args(test, model),
         raises(DeepchecksValueError, r'Feature invalid_feature not found in dataset.')
     )
     assert_that(
-        calling(check_invalid2.run).with_args(test, model), 
+        calling(check_invalid2.run).with_args(test, model),
         raises(DeepchecksValueError, r'Feature invalid_feature not found in dataset.')
     )
     assert_that(
-        calling(check_invalid3.run).with_args(test, model), 
+        calling(check_invalid3.run).with_args(test, model),
         raises(DeepchecksValueError, r'protected_feature and control_feature cannot be the same')
     )
 
@@ -268,7 +269,7 @@ def test_scorers_types_no_error(adult_split_dataset_and_model):
         ('f1_score', make_scorer(f1_score, average='micro')),
         {'f1_score': make_scorer(f1_score, average='micro')},
     ]
-    
+
     # Act
     for scorer in scorer_types:
         check = PerformanceBias("sex", scorer=scorer)

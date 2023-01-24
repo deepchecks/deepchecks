@@ -13,11 +13,11 @@
 # pylint: disable=redefined-outer-name
 import typing as t
 from datetime import datetime
-from hamcrest import assert_that, has_length, contains_exactly
 
 import pandas as pd
 import pytest
 from catboost import CatBoostClassifier, CatBoostRegressor
+from hamcrest import assert_that, contains_exactly, has_length
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split

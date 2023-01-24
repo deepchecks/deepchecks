@@ -12,8 +12,8 @@
 
 from copy import copy
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from hamcrest import assert_that, calling, close_to, contains_exactly, contains_inanyorder, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -21,7 +21,8 @@ from deepchecks.vision.checks import ImagePropertyOutliers, PropertyLabelCorrela
 from deepchecks.vision.detection_data import DetectionData
 from deepchecks.vision.utils.image_functions import crop_image
 from deepchecks.vision.utils.image_properties import aspect_ratio, default_image_properties
-from deepchecks.vision.utils.vision_properties import calc_vision_properties, PropertiesInputType, static_properties_from_df
+from deepchecks.vision.utils.vision_properties import (PropertiesInputType, calc_vision_properties,
+                                                       static_properties_from_df)
 from deepchecks.vision.vision_data import VisionData
 from tests.base.utils import equal_condition_result
 from tests.vision.checks.train_test_validation.property_label_correlation_change_test import \

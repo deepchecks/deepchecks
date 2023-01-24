@@ -12,11 +12,13 @@
 """Module containing ipywidget serializer for the SuiteResult type."""
 import typing as t
 import warnings
+from collections import defaultdict
 
-from ipywidgets import HTML, Accordion, VBox, Widget
+from ipywidgets import HTML, Accordion, Tab, VBox, Widget
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
+from deepchecks.core.checks import DatasetKind
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
@@ -205,11 +207,65 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             section_id = f'{output_id}-section-{get_random_string()}'
             section_anchor = HTML(value=f'<span id="{form_output_anchor(section_id)}"></span>')
 
-            serialized_results = [
-                select_serializer(it).serialize(output_id=section_id, **kwargs)
-                for it in results
-                if it.display  # we do not form full-output for the check results without display
-            ]
+            grouped_results: t.Dict[
+                int,
+                t.Dict[t.Union[None, DatasetKind], 'check_types.CheckResult']
+            ] = defaultdict(dict)
+
+            for it in results:
+                if not it.display:
+                    # we do not form full-output for the check results without display
+                    continue
+
+                if it._suite_execution_info is None:  # pylint: disable=protected-access
+                    # internal error
+                    raise ValueError(
+                        "'CheckResult' instance that was not produced by a 'Suite' "
+                        "instance was added to a 'SuiteResult' collection instance"
+                    )
+
+                check_index = it._suite_execution_info.check_unique_index  # pylint: disable=protected-access
+                check_input_kind = it._suite_execution_info.check_input_kind  # pylint: disable=protected-access
+
+                if (
+                    check_index in grouped_results
+                    and check_input_kind in grouped_results[check_index]
+                ):
+                    # internal error
+                    raise ValueError('CheckResult duplication')
+
+                # serialization_result = select_serializer(it).serialize(output_id=section_id, **kwargs)
+                grouped_results[check_index][check_input_kind] = it
+
+            serialized_results = []
+
+            for check_index, check_results in grouped_results.items():
+                if len(check_results) == 1:
+                    check_result = list(check_results.values())[0]
+                    serialized_result = select_serializer(check_result).serialize(output_id=section_id, **kwargs)
+                    serialized_results.append(serialized_result)
+
+                elif len(check_results) == 2:
+                    tab = Tab()
+                    children = []
+                    anchor_ids = []
+
+                    for (i, (k, v)) in enumerate(check_results.items()):
+                        tab.set_title(i, t.cast(DatasetKind, k).value)
+                        anchor_ids.append(v.get_check_id(section_id))
+                        children.append(select_serializer(v).serialize(**kwargs))
+
+                    anchor_tags = ''.join(
+                        f"<h6 id='{id}'></h6>"
+                        for id in anchor_ids
+                    )
+
+                    tab.children = children
+                    serialized_results.append(VBox(children=[HTML(value=anchor_tags), tab]))
+
+                else:
+                    # internal error
+                    raise ValueError('Unexpected number of widgets')
 
             if callable(summary_creation_method):
                 children = (

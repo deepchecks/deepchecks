@@ -90,22 +90,25 @@ class Suite(BaseSuite):
         )
 
         progress_bar = create_progress_bar(
-            iterable=list(self.checks.values()),
+            iterable=list(self.checks.items()),
             name=self.name,
             unit='Check'
         )
 
         # Run all checks
         results = []
-        for check in progress_bar:
+        for check_index, check in progress_bar:
             start = time.time()
-
             try:
                 progress_bar.set_postfix({'Check': check.name()}, refresh=False)
                 if isinstance(check, TrainTestCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run_logic(context)
-                        context.finalize_check_result(check_result, check)
+                        context.finalize_check_result(
+                            check_result=check_result,
+                            check=check,
+                            check_index=check_index
+                        )
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if not supplied with both train and test datasets'
@@ -116,7 +119,12 @@ class Suite(BaseSuite):
                         # wrap it in try/except
                         try:
                             check_result = check.run_logic(context, dataset_kind=DatasetKind.TRAIN)
-                            context.finalize_check_result(check_result, check, DatasetKind.TRAIN)
+                            context.finalize_check_result(
+                                check_result=check_result,
+                                check=check,
+                                kind=DatasetKind.TRAIN,
+                                check_index=check_index
+                            )
                             # In case of single dataset not need to edit the header
                             if test_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Train Dataset'
@@ -126,7 +134,12 @@ class Suite(BaseSuite):
                     if test_dataset is not None and (run_single_dataset in [DatasetKind.TEST.value, None]):
                         try:
                             check_result = check.run_logic(context, dataset_kind=DatasetKind.TEST)
-                            context.finalize_check_result(check_result, check, DatasetKind.TEST)
+                            context.finalize_check_result(
+                                check_result=check_result,
+                                check=check,
+                                kind=DatasetKind.TEST,
+                                check_index=check_index
+                            )
                             # In case of single dataset not need to edit the header
                             if train_dataset is not None:
                                 check_result.header = f'{check_result.get_header()} - Test Dataset'
@@ -139,7 +152,11 @@ class Suite(BaseSuite):
                 elif isinstance(check, ModelOnlyCheck):
                     if model is not None:
                         check_result = check.run_logic(context)
-                        context.finalize_check_result(check_result, check)
+                        context.finalize_check_result(
+                            check_result=check_result,
+                            check=check,
+                            check_index=check_index
+                        )
                         results.append(check_result)
                     else:
                         msg = 'Check is irrelevant if model is not supplied'
