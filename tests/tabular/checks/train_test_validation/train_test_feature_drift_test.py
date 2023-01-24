@@ -51,8 +51,8 @@ def test_drift_with_model(drifted_data_and_model):
 def test_drift_with_model_n_top(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', columns=['categorical_with_drift'], n_top_columns=1
-                                  , max_num_categories=10, min_category_size_ratio=0)
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', columns=[
+                                  'categorical_with_drift'], n_top_columns=1, max_num_categories=10, min_category_size_ratio=0)
 
     # Act
     result = check.run(train, test, model)
@@ -257,7 +257,10 @@ def test_none_aggregation_drift_with_model(drifted_data_and_model):
 def test_weighted_aggregation_drift_no_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0)
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI',
+                                  aggregation_method='mean',
+                                  max_num_categories=10,
+                                  min_category_size_ratio=0)
     # Act
     aggregated_result = check.run(train, test).reduce_output()
     # Assert
