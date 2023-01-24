@@ -53,7 +53,8 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
     Calculate the Theil's U correlation of y to x.
 
     Theil's U is an asymmetric measure ranges [0,1] based on entropy which answers the question: how well does
-    variable y explains variable x? For more information see https://en.wikipedia.org/wiki/Uncertainty_coefficient
+    the variable y explain the variable x? For more information see 
+    https://en.wikipedia.org/wiki/Uncertainty_coefficient
     Parameters:
     -----------
     x: Union[List, np.ndarray, pd.Series]
