@@ -228,19 +228,6 @@ def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
     assert_that(aggregated_result['Weighted Drift Score'], close_to(0.1195, 0.01))
 
 
-def test_top5_aggregation_drift_with_model(drifted_data_and_model):
-    # Arrange
-    train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method='top_5')
-
-    # Act
-    aggregated_result = check.run(train, test, model).reduce_output()
-    # Assert
-    assert_that(aggregated_result.keys(), has_length(4))
-    assert_that(aggregated_result.keys(), has_item('numeric_with_drift'))
-    assert_that(aggregated_result['numeric_with_drift'], close_to(0.343, 0.01))
-
-
 def test_l2_aggregation_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model

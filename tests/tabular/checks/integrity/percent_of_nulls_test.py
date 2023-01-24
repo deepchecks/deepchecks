@@ -87,17 +87,6 @@ def test_columns_parameter():
     assert_that(result.value.iloc[0, 0], equal_to(0.5))
 
 
-def test_aggregation_parameter(adult_split_dataset_and_model):
-    # Arrange
-    train_ds, test_ds, model = adult_split_dataset_and_model
-    # Act
-    result = PercentOfNulls(aggregation_method='top_5').run(dataset=test_ds, model=model)
-    # Assert
-    assert_that(max(result.value['Percent of nulls in sample']), equal_to(0))
-    assert_that(result.value['Percent of nulls in sample'], has_length(14))
-    assert_that(result.reduce_output(), has_length(5))
-
-
 def test_condition():
     # Arrange
     df = pd.DataFrame({'foo': ['a', 'b'], 'bar': ['a', 'a']})
