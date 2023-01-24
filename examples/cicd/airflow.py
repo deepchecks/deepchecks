@@ -14,7 +14,7 @@ from airflow.providers.amazon.aws.hooks.s3 import S3Hook
      },
      params={
          'bucket': 'deepchecks-public',
-         'data_key': 'matan/data.csv',
+         'data_key': 'data.csv',
          'train_path': 'train.csv',
          'test_path': 'test.csv',
          'model_path': 'model.joblib'

@@ -2,33 +2,42 @@
 Using Deepchecks In CI/CD
 =================================
 
-CI/CD is a practice of automating steps in a software life cycle such as testing, and deploying. The same practice of
-traditional software development can be applied to machine learning, which allows for frequent and automated testing
-and validation of models, which reduce the risk of errors and improve the overall quality of the model.
+CI/CD is a software engineering concept that is used to streamline the process of building, testing and deploying
+software products. CI/CD can also be utilized for the ML model lifecycle - to streamline the process of model training
+(and retraining), model validation and model deployment. This in turn reduces the risk of errors and improve the overall
+quality of the model.
 
-For example, CI/CD in machine learning can be used in scenarios such as:
+For example, CI/CD in machine learning can be used in different steps such as:
 
-* Data integrity checks: Before the model training process, it’s important to validate the integrity of the data used
-  for training. This can include checks such as data completeness, missing values, and data type consistency.
+* Data integrity validation: When the data used for training is collected via automatic processes and pipelines,
+  it is possible the data will contain errors and problems we haven't encountered before, either due to a bug in the
+  collection process or due to a change in the data source.
+  Examples of such problems include: missing values, outliers samples, high correlation between features,
+  label imbalance, etc.
+* Datasets comparison: In various scenarios it is needed to validate that there isn't any leakage or drift between 2
+  datasets. For example when doing a time based split of the data, there is increased chance that the split will create
+  a drift. Additional example can be for a periodic model retraining, where we might want to compare the new dataset
+  to the previous.
 * Model training: The model is trained on the validated data set.
-* Model evaluation: The trained model is evaluated using test data and various metrics such as accuracy, precision,
+* Model validation: The trained model is evaluated using test data and various metrics such as accuracy, precision,
   recall, etc.
 * Model deployment: The model is deployed to production if it meets the specified criteria.
 
+The steps above are being performed manually today by running local tests, and inspecting graphs and reports. By
+embracing CI/CD the time consuming tasks are automated, leaving the development team to invest in more meaningful work.
 
-By automating these steps through a CI/CD engine and utilizing deepchecks package in the pipeline, it ensures that the
-model is thoroughly tested and validated before it is deployed to production.
+Deepchecks can be used in the CI/CD process at 2 main steps of the model development process:
 
-Deepchecks can be used in the CI/CD process at 2 main steps of the model training process:
+* Before the model training process, to validate the integrity of the data used for training, and check for any data
+  drift or leakage between the train and test datasets.
+* After the model training process, to get detailed statistics on the model performance across different
+metrics and data segments.
 
-* Before the model training process, it’s important to validate the integrity of the data used for training, and the
-  train-test split
-* After the model training process, it’s important to validate the model’s performance.
-
-In this guide we will show an end to end examples of validating both data and the trained model, but in reality
-you may want to split the process into 2 separate pipelines, one for data validation and one for model validation.
-In addition we will use the default suites which are provided by deepchecks, but you can also create your own
-custom suites which fit your needs.
+In this guide we will show an end to end examples of validating both data and the trained model. In reality, in most
+use cases those processes will be separated into 2 separate pipelines, one for data validation and one for model
+validation.
+We will use the default suites which are provided by deepchecks, but it's possible to create a custom suite containing
+hand chosen checks and condition in order to cater to the specific needs of the project.
 
 Integrations
 ============
@@ -42,8 +51,8 @@ Airflow Integration
    :alt: Airflow DAG example
    :align: center
 
-Apache Airflow is an open-source workflow management system. It is commonly used to automate data processing,
-data science, and data engineering pipelines.
+Apache Airflow is an open-source workflow management system which is commonly used to automate data processing
+pipelines.
 In the following example we will use S3 to load the training data and to store our suite results. We define the first
 2 tasks as short circuit tasks, which means the rest of the downstream tasks will be skipped if the return value of
 them is false. This is useful in cases where we want to stop the pipeline if the data validation failed.
@@ -66,8 +75,8 @@ GitHub Actions is a service that allows you to run automated workflows, which ca
 pushing to a repository or creating a pull request.
 
 We will use the same functions as defined in airflow above with slight changes, and run them in the GitHub Actions
-steps on every push to the `main` branch. Note that we might want to stop the pipeline in case of a suite not passing,
-in this case we can change the methods return types from `return suite_result.passed()` to:
+steps on every push to the `main` branch. Note that we might want to stop the pipeline when a suite fails.
+In this case we can change the methods return types from `return suite_result.passed()` to:
 
 .. code-block:: python
 
