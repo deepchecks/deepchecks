@@ -7,7 +7,7 @@ Object Detection Tutorial
 
 In this tutorial, you will learn how to validate your **object detection model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
-:doc:`examples section  </checks_gallery/vision/index>`
+:doc:`examples section </checks_gallery/vision/index>`.
 
 If you just want to see the output of this tutorial, jump to the :ref:`observing the results <vision_segmentation_tutorial__observing_the_result>` section.
 

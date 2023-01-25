@@ -17,11 +17,11 @@ correct format via the :func:`VisionData.head() <deepchecks.vision.vision_data.V
 .. admonition:: Shuffling your Data
    :class: attention
    In order to properly function, in addition for the data being in the correct format,
-   the data must also be loaded in a **shuffled** manner. For When using python data loaders, deepchecks will by default
-   attempt re-shuffle the data. However, if you are using any other framework, you must make sure to shuffle the data
-   yourself before passing it to deepchecks. The behaviour of re-shuffling the data can be controlled via the
+   the data must also be loaded in a **shuffled** manner. When using PyTorch DataLoaders, deepchecks will by default
+   attempt reshuffle the data. However, if you are using any other framework, you must make sure to shuffle the data
+   yourself before passing it to deepchecks. The behaviour of reshuffling the data can be controlled via the
    ``reshuffle_data`` argument of the :class:`VisionData <deepchecks.vision.vision_data.VisionData>` constructor,
-   and it should be manually set to `False` for non-pytorch data.
+   and it should be manually set to `False` for non-PyTorch data.
 
 We will first describe the formats which are common for all tasks, and then describe the label and
 prediction formats which vary between tasks.
@@ -37,6 +37,30 @@ Since each data input represents multiple samples,
 all data inputs are expected to be provided
 as either an iterable in which each entry represents a single sample, or as a high dimension array or tensor in
 which the first dimension is the number of samples.
+
+That means that the following are all valid batch formats for a single batch:
+
+.. code-block:: python
+
+    {
+        'images': [image1, image2, ...],
+        'labels': [label1, label2, ...],
+        'predictions': [prediction1, prediction2, ...],
+        'image_identifiers': [image_identifier1, image_identifier2, ...]
+    }
+
+Or:
+
+.. code-block:: python
+
+    from deepchecks.vision.vision_data import BatchOutputFormat
+
+    BatchOutputFormat(
+        images=[image1, image2, ...],
+        labels=[label1, label2, ...],
+        predictions=[prediction1, prediction2, ...],
+        image_identifiers=[image_identifier1, image_identifier2, ...]
+    )
 
 Image Format
 ------------
@@ -55,6 +79,10 @@ be easily retrieved later on from the original dataset by the user.
 
 Common implementations for this can be the path to the image or the image name or id in a database.
 Image identifiers need to be provided as an iterable of strings.
+
+.. code-block:: python
+
+    ['s3://my_images/dogs/1.jpg', 's3://my_images/cats/2.jpg', ...]
 
 .. _supported_tasks__classification:
 Classification

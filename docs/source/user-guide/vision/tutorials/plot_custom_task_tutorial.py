@@ -176,7 +176,7 @@ fig.show()
 # predictions (when available). In order to do that, those must be in a pre-defined format, according to the task type.
 #
 # In the following example we're using pytorch. To see how this can be done using tensorflow or a generic generator,
-# please refer to :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
+# please refer to :doc:`creating VisionData guide </user-guide/vision/VisionData#creating-a-visiondata-object>`.
 #
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.vision_data.VisionData` object,
@@ -223,8 +223,8 @@ test_vision_data = VisionData(batch_loader=test_loader, task_type='other', label
 # Running Checks
 # ==============
 # After the vision data objects were created, we can run checks on them. For custom tasks, since the images are
-# in the standard Deepchecks format, we can run image based checks without addition effort.
-# Let's run ImagePropertyDrift check with our task:
+# in the standard Deepchecks format, we can run image based checks without additional effort.
+# Let's run the ImagePropertyDrift check with our task:
 
 from deepchecks.vision.checks import ImagePropertyDrift
 

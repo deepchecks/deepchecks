@@ -105,7 +105,7 @@ The Method's Input
 ----------------------
 
 Each property is built for the specific data type that it runs on, and receives its deepchecks-expected format,
-as demonstrated in :doc:`supported tasks and formats </user-guide/vision/supported_tasks_and_formats>`.
+as demonstrated in :doc:`/user-guide/vision/supported_tasks_and_formats`.
 Note that prediction and label-based properties are not interchangeable due to their slightly different format, even if
 they calculate similar values.
 
