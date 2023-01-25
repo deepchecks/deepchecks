@@ -233,7 +233,7 @@ test-win:
 
 
 coverage: requirements dev-requirements
-	$(COVERAGE) run --source deepchecks/,tests/ --omit ultralytics_yolov5_master/ -m pytest
+	$(COVERAGE) run --source deepchecks/,tests/ --omit */.* -m pytest
 
 coveralls: coverage
 	$(COVERALLS) --service=github

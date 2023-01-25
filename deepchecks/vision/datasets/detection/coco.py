@@ -46,7 +46,7 @@ def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cp
     torch.hub._validate_not_a_forked_repo = lambda *_: True  # pylint: disable=protected-access
     logger = logging.getLogger('yolov5')
     logger.disabled = True
-    local_repo_dir = DATA_DIR / 'yolov5-6.1'
+    local_repo_dir = DATA_DIR / '.yolov5-6.1'
     if not local_repo_dir.exists():
         repo = 'https://github.com/ultralytics/yolov5/archive/v6.1.zip'
         with urlopen(repo) as f:
