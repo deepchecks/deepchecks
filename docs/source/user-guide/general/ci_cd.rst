@@ -2,6 +2,18 @@
 Using Deepchecks In CI/CD
 =================================
 
+This guide will explain the basics of using CI/CD for machine learning, and how deepchecks can be incorporated into
+the process.
+
+**Structure:**
+
+* `CI/CD In Machine Learning <#ci/cd-in-machine-learning>`__
+* `Airflow Integration <#airflow-integration>`__
+* `GitHub Actions Integration <#github-actions-integration>`__
+
+CI/CD In Machine Learning
+==========================
+
 CI/CD is a software engineering concept that is used to streamline the process of building, testing and deploying
 software products. CI/CD can also be utilized for the ML model lifecycle - to streamline the process of model training
 (and retraining), model validation and model deployment.
