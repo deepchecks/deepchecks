@@ -4,40 +4,53 @@ Using Deepchecks In CI/CD
 
 CI/CD is a software engineering concept that is used to streamline the process of building, testing and deploying
 software products. CI/CD can also be utilized for the ML model lifecycle - to streamline the process of model training
-(and retraining), model validation and model deployment. This in turn reduces the risk of errors and improve the overall
-quality of the model.
+(and retraining), model validation and model deployment.
 
 For example, CI/CD in machine learning can be used in different steps such as:
 
 * Data integrity validation: When the data used for training is collected via automatic processes and pipelines,
-  it is possible the data will contain errors and problems we haven't encountered before, either due to a bug in the
-  collection process or due to a change in the data source.
-  Examples of such problems include: missing values, outliers samples, high correlation between features,
-  label imbalance, etc.
-* Datasets comparison: In various scenarios it is needed to validate that there isn't any leakage or drift between 2
-  datasets. For example when doing a time based split of the data, there is increased chance that the split will create
-  a drift. Additional example can be for a periodic model retraining, where we might want to compare the new dataset
-  to the previous.
+  the data may contain errors and problems we haven't encountered before, either due to a bug in the
+  data processing pipeline or due to a change in the data source.
+  Examples of such problems include:
+  :doc:`conflicting labels between similar samples</checks_gallery/tabular/data_integrity/plot_conflicting_labels>`,
+  :doc:`high correlation between features</checks_gallery/tabular/data_integrity/plot_feature_feature_correlation>`,
+  :doc:`spelling errors in categorical features</checks_gallery/tabular/data_integrity/plot_string_mismatch>`,
+  and more.
+* Datasets comparison: In many cases it's useful to make sure that there isn't any leakage or drift between 2
+  datasets. For example, when doing a time based split of the data there is a risk that the datasets will have
+  significant differences, or when doing a periodic model retraining we might want to compare the new dataset
+  to the previous one.
+  Examples of checks that can be used are:
+  :doc:`drift between features</checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`,
+  :doc:`change in correlation between features and label</checks_gallery/tabular/train_test_validation/plot_feature_label_correlation_change>`,
+  :doc:`duplicate samples between the datasets</checks_gallery/tabular/train_test_validation/plot_train_test_samples_mix>`,
+  and more.
 * Model training: The model is trained on the validated data set.
-* Model validation: The trained model is evaluated using test data and various metrics such as accuracy, precision,
-  recall, etc.
+* Model validation: The trained model is evaluated using test data to get metrics and insights.
+  Such metrics include:
+  :doc:`performance compared to naive model</checks_gallery/tabular/model_evaluation/plot_simple_model_comparison>`,
+  :doc:`calibration score for each class</checks_gallery/tabular/model_evaluation/plot_calibration_score>`,
+  :doc:`weak segments in the data</checks_gallery/tabular/model_evaluation/plot_weak_segments_performance>`,
+  and more.
 * Model deployment: The model is deployed to production if it meets the specified criteria.
 
-The steps above are being performed manually today by running local tests, and inspecting graphs and reports. By
-embracing CI/CD the time consuming tasks are automated, leaving the development team to invest in more meaningful work.
+In most cases, the steps above are done manually today by running local tests, and inspecting graphs and reports.
+By using CI/CD these time consuming tasks can be automated, freeing up time for more meaningful work.
 
 Deepchecks can be used in the CI/CD process at 2 main steps of the model development process:
 
 * Before the model training process, to validate the integrity of the data used for training, and check for any data
   drift or leakage between the train and test datasets.
-* After the model training process, to get detailed statistics on the model performance across different
-metrics and data segments.
+* After the model training process, testing model performance across different metrics and data segments, and get
+  deeper insights on the model's behavior, such as weak segments and performance bias.
 
-In this guide we will show an end to end examples of validating both data and the trained model. In reality, in most
-use cases those processes will be separated into 2 separate pipelines, one for data validation and one for model
-validation.
-We will use the default suites which are provided by deepchecks, but it's possible to create a custom suite containing
-hand chosen checks and condition in order to cater to the specific needs of the project.
+In this guide we will show end to end examples of validating both data and the trained model. In most use cases those
+processes will be separated into 2 separate pipelines, one for data validation and one for model validation.
+We will use the default suites provided by deepchecks, but it's possible to create a
+:doc:`custom suite</user-guide/general/customizations/plot_create_a_custom_suite>`
+containing hand chosen checks and
+:doc:`conditions</user-guide/general/customizations/plot_configure_check_conditions>`
+in order to cater to the specific needs of the project.
 
 Integrations
 ============
