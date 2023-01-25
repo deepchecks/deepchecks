@@ -16,29 +16,27 @@ from numbers import Number
 import numpy as np
 import pandas as pd
 import torch
-from ignite.engine import Engine
-from ignite.metrics import Metric, Precision, Recall
+from ignite.metrics import Metric
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.metrics import get_scorer_name
-from deepchecks.vision.metrics_utils import (CustomClassificationScorer, ObjectDetectionAveragePrecision,
+from deepchecks.vision.metrics_utils import (CustomClassificationScorer, CustomMetric, ObjectDetectionAveragePrecision,
                                              ObjectDetectionTpFpFn)
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import MeanDice, MeanIoU
 from deepchecks.vision.vision_data import TaskType, VisionData
 
 __all__ = [
     'get_scorers_dict',
-    'calculate_metrics',
     'metric_results_to_df',
     'filter_classes_for_display',
 ]
 
 
-def get_default_classification_scorers():
+def get_default_classification_scorers():  # will use sklearn scorers
     return {
-        'Precision': classification_dict['precision_per_class'](),
-        'Recall':  classification_dict['recall_per_class']()
+        'Precision': CustomClassificationScorer('precision_per_class'),
+        'Recall': CustomClassificationScorer('recall_per_class')
     }
 
 
@@ -54,11 +52,6 @@ def get_default_semantic_segmentation_scorers() -> t.Dict[str, Metric]:
         'Dice': semantic_segmentation_dict['dice_per_class']()
     }
 
-
-classification_dict = {
-    'precision_per_class': Precision,
-    'recall_per_class': Recall,
-}
 
 detection_dict = {
     'precision_per_class': lambda: ObjectDetectionTpFpFn(evaluating_function='precision', averaging_method='per_class'),
@@ -114,8 +107,9 @@ def get_scorers_dict(
     ----------
     dataset : VisionData
         Dataset object
-    alternative_scorers : t.Union[t.Dict[str, t.Union[Metric, t.Callable, str]], t.List[str]], default: None
-        Alternative scorers dictionary (or a list)
+    alternative_scorers: Union[Dict[str, Union[Callable, str]], List[Any]] , default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     Returns
     -------
     t.Dict[str, Metric]
@@ -131,7 +125,7 @@ def get_scorers_dict(
         scorers = {}
         for name, metric in alternative_scorers.items():
             # Validate that each alternative scorer is a correct type
-            if isinstance(metric, Metric):
+            if isinstance(metric, (Metric, CustomMetric)):
                 metric.reset()
                 scorers[name] = copy(metric)
             elif isinstance(metric, str):
@@ -139,19 +133,22 @@ def get_scorers_dict(
                 if task_type == TaskType.OBJECT_DETECTION and metric_name in detection_dict:
                     converted_met = detection_dict[metric_name]()
                 elif task_type == TaskType.CLASSIFICATION:
-                    if metric_name in classification_dict:
-                        converted_met = classification_dict[metric_name]()
-                    else:
-                        converted_met = CustomClassificationScorer(metric)
+                    converted_met = CustomClassificationScorer(metric)
                 elif task_type == TaskType.SEMANTIC_SEGMENTATION:
                     converted_met = semantic_segmentation_dict[metric_name]()
                 else:
                     raise DeepchecksNotSupportedError(
                         f'Unsupported metric: {name} of type {type(metric).__name__} was given.')
                 scorers[name] = converted_met
+            elif isinstance(metric, t.Callable):
+                if task_type == TaskType.CLASSIFICATION:
+                    scorers[name] = CustomClassificationScorer(metric)
+                else:
+                    raise DeepchecksNotSupportedError('Custom scikit-learn scorers are only supported for'
+                                                      ' classification.')
             else:
                 raise DeepchecksValueError(
-                    f'Excepted metric type one of [ignite.Metric, str], was {type(metric).__name__}.')
+                    f'Excepted metric type one of [ignite.Metric, callable, str], was {type(metric).__name__}.')
         return scorers
     elif task_type == TaskType.CLASSIFICATION:
         scorers = get_default_classification_scorers()
@@ -165,64 +162,24 @@ def get_scorers_dict(
     return scorers
 
 
-def calculate_metrics(
-    metrics: t.Dict[str, Metric],
-    dataset: VisionData,
-    model: torch.nn.Module,
-    device: torch.device
-) -> t.Dict[str, float]:
-    """Calculate a list of ignite metrics on a given model and dataset.
-
-    Parameters
-    ----------
-    metrics : Dict[str, Metric]
-        List of ignite metrics to calculate
-    dataset : VisionData
-        Dataset object
-    model : nn.Module
-        Model object
-    device : Union[str, torch.device, None]
-
-    Returns
-    -------
-    t.Dict[str, float]
-        Dictionary of metrics with the metric name as key and the metric value as value
-    """
-
-    def process_function(_, batch):
-        return dataset.infer_on_batch(batch, model, device), dataset.batch_to_labels(batch)
-
-    engine = Engine(process_function)
-
-    for name, metric in metrics.items():
-        metric.reset()
-        metric.attach(engine, name)
-
-    state = engine.run(dataset.data_loader)
-    return state.metrics
-
-
 def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
-    data_classes = dataset.classes_indices.keys()
     result_list = []
-
     for metric, scores in results.items():
         if isinstance(scores, Number):
             result_list.append([metric, pd.NA, pd.NA, scores])
         elif len(scores) == 1:
-            score = scores[0].item() if isinstance(scores[0], torch.Tensor) else scores[0]
-            result_list.append([metric, pd.NA, pd.NA, score])
+            result_list.append([metric, pd.NA, pd.NA, scores[0]])
         elif isinstance(scores, (torch.Tensor, list, np.ndarray, dict)):
-            # Deepchecks scorers returns classification class scores as dict
+            # Deepchecks scorers returns classification class scores as dict but object detection as array TODO: unify
             scores_iterator = scores.items() if isinstance(scores, dict) else enumerate(scores)
             for class_id, class_score in scores_iterator:
+                class_name = dataset.label_map[class_id]
                 # The data might contain fewer classes than the model was trained on. filtering out
                 # any class id which is not presented in the data.
-                if np.isnan(class_score) or class_id not in data_classes:
+                if np.isnan(class_score) or class_name not in dataset.get_observed_classes() or class_score == -1:
                     continue
-                score = class_score.item() if isinstance(class_score, torch.Tensor) else class_score
-                result_list.append([metric, class_id, dataset.label_id_to_name(class_id), score])
+                result_list.append([metric, class_id, class_name, class_score])
         else:
             raise DeepchecksValueError(f'The metric {metric} returned a '
                                        f'{type(scores)} instead of an array/tensor')

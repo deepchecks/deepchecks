@@ -8,6 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=unused-wildcard-import, wildcard-import
 """Common functions."""
 import typing as t
 
@@ -15,13 +16,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from hamcrest import all_of, any_of, contains_exactly, contains_string, equal_to, has_property, instance_of
+from hamcrest import *
 from hamcrest.core.base_matcher import BaseMatcher
+from hamcrest.core.matcher import Matcher
 from plotly.graph_objects import Histogram
 
+from deepchecks.core import BaseSuite
 from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
-from deepchecks.core.checks import BaseCheck
+from deepchecks.core.checks import BaseCheck, SingleDatasetBaseCheck
 from deepchecks.core.condition import ConditionCategory, ConditionResult
+from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.serialization.abc import (HTMLFormatter, IPythonDisplayFormatter, JPEGFormatter, JSONFormatter,
                                                MarkdownFormatter, MimeBundleFormatter, PNGFormatter)
 from deepchecks.core.suite import SuiteResult
@@ -174,5 +178,63 @@ class IsNan(BaseMatcher):
     def describe_to(self, description):
         description.append_text('item is not nan')
 
+
 def is_nan():
     return IsNan()
+
+
+def get_expected_results_length(
+    suite: BaseSuite,
+    args: t.Dict[t.Any, t.Any]
+):
+    num_single = len([c for c in suite.checks.values() if isinstance(c, SingleDatasetBaseCheck)])
+    num_others = len(suite.checks.values()) - num_single
+    multiply = 0
+
+    if 'train_dataset' in args and args['train_dataset'] is not None:
+        multiply += 1
+    if 'test_dataset' in args and args['test_dataset'] is not None:
+        multiply += 1
+    # If no train and no test (only model) there will be single result of check failure
+    if multiply == 0:
+        multiply = 1
+
+    return num_single * multiply + num_others
+
+
+def validate_suite_result(
+    result: SuiteResult,
+    min_length: int,
+    exception_matcher: t.Optional[Matcher] = None
+):
+    assert_that(result, instance_of(SuiteResult))
+    assert_that(result.results, instance_of(list))
+    assert_that(len(result.results) >= min_length)
+
+    exception_matcher = exception_matcher or only_contains(instance_of(DeepchecksBaseError))
+
+    assert_that(result.results, only_contains(any_of(  # type: ignore
+        instance_of(CheckFailure),
+        instance_of(CheckResult),
+    )))
+
+    failures = [
+        it.exception
+        for it in result.results
+        if isinstance(it, CheckFailure)
+    ]
+
+    if len(failures) != 0:
+        assert_that(failures, matcher=exception_matcher)  # type: ignore
+
+    for check_result in result.results:
+        if isinstance(check_result, CheckResult) and check_result.have_conditions():
+            for cond in check_result.conditions_results:
+                assert_that(
+                    cond.category,
+                    any_of(
+                        ConditionCategory.PASS,
+                        ConditionCategory.WARN,
+                        ConditionCategory.FAIL
+                    )
+                )

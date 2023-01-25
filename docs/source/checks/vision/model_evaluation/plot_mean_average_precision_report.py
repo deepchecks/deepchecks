@@ -10,7 +10,7 @@ This notebooks provides an overview for using and understanding the mean average
 **Structure:**
 
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
-* `Generate data & model <#generate-data-and-model>`__
+* `Generate Dataset <#generate-dataset>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
@@ -25,30 +25,32 @@ This check only works on the Object Detection task.
 """
 
 # %%
-# Generate Data and Model
-# =================================
+# Generate Dataset
+# ================
 # We generate a sample dataset of 128 images from the `COCO dataset <https://cocodataset.org/#home>`__,
 # and using the `YOLOv5 model <https://github.com/ultralytics/yolov5>`__.
 #
-
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection import coco_tensorflow as coco
 
 from deepchecks.vision.checks import MeanAveragePrecisionReport
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.datasets.detection import coco_torch as coco
 
-yolo = coco.load_model(pretrained=True)
 test_ds = coco.load_dataset(train=False, object_type='VisionData')
 
 # %%
 # Run the check
-# =================================
+# =============
 
 check = MeanAveragePrecisionReport()
-result = check.run(test_ds, yolo)
+result = check.run(test_ds)
 result
 
 #%%
-# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
-#
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
@@ -72,5 +74,5 @@ result.value
 # a given threshold for all bounding box sizes.
 
 check = MeanAveragePrecisionReport().add_condition_average_mean_average_precision_greater_than(0.4)
-result = check.run(test_ds, yolo)
+result = check.run(test_ds)
 result.show(show_additional_outputs=False)

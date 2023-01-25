@@ -315,8 +315,6 @@ class SimpleModelComparison(TrainTestCheck):
         NotImplementedError
             If the strategy is not supported
         """
-        np.random.seed(self.random_state)
-
         if self.strategy == 'uniform':
             if task_type in [TaskType.BINARY, TaskType.MULTICLASS]:
                 simple_model = ClassificationUniformModel()

@@ -133,14 +133,15 @@ subset** of the following:
 -  **Test data** (which the model isn't exposed to) with labels
 -  | A **supported model** that you wish to validate, including: **scikit-learn, XGBoost, PyTorch, and more**.
    | For tabular data models see :doc:`supported models </user-guide/tabular/supported_models>`, for more details about the supported model API.
-   | For **Computer Vision**, we currently support the **PyTorch** framework. See :doc:`/user-guide/vision/data-classes/index` to understand how to integrate your data.
+   | For **Computer Vision** we support any framework, with special integrations for **PyTorch** and
+   | **TensorFlow**. See :doc:`/user-guide/vision/VisionData` to understand how to integrate your data.
 
 
 
 👀 Viewing and Saving the Results
 ====================================
 
-The package's check and suite results can be consumed in various formats. Check out the folloing guides for more info about:
+The package's check and suite results can be consumed in various formats. Check out the following guides for more info about:
 
 - :doc:`Viewing the results when working with Jupyter or with other IDE's </user-guide/general/showing_results>`
 - :doc:`Saving an HTML report of the results </user-guide/general/export_save_results>`
