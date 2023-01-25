@@ -166,7 +166,7 @@ ClassPerformance().run(train_ds, mod_test_ds)
 
 #%%
 # Understanding the results
-# ---------------------
+# -------------------------------
 # We can see the drop in the precision of class 0, which was caused by the class imbalance indicated earlier by the label drift check.
 
 #%%

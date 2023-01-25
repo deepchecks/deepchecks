@@ -37,11 +37,12 @@ Common Class Parameters
 
 To see all other class parameters, see the :class:`VisionData <deepchecks.vision.VisionData>` API reference.
 
-.. _vision_data__creating_vision_data:
 Creating a VisionData Object
 ============================
 In the sub-sections below we will go over three different ways to create a VisionData object:
-1. From a Generic Generator 2. From a PyTorch DataLoader 3. From a TensorFlow Dataset.
+1. From a `Generic Generator <#from-a-generic-generator>`__
+2. From a `PyTorch DataLoader <#from-pytorch-dataloader>`__
+3. From a `TensorFlow Dataset <#from-tensorflow-dataset>`__
 
 The sub-sections contain simple examples for how to create a VisionData object without predictions, in
 order to learn how to supply them see the section about :ref:`adding model predictions <vision_data__adding_predictions>`.

@@ -6,16 +6,22 @@ Supported Tasks and Formats
 
 In order to analyze the images, labels and predictions provided in the
 :doc:`VisionData object </user-guide/vision/VisionData>`,
-they must be provided the accepted deepchecks format. In this section we will describe the supported formats
+they must be provided in the accepted deepchecks format. In this section we will describe the supported formats
 for each supported task type.
 
 The VisionData object automatically validates your data formats when initialized, using the first batch of data. However,
 in addition to the automatic validations, it is also important to make sure visually that the data was provided in the
-correct format via the :func:`head <deepchecks.vision.vision_data.VisionData.head>` functionality.
+correct format via the :func:`VisionData.head() <deepchecks.vision.vision_data.VisionData.head>` functionality.
 
-.. note::
-    In order to properly function, in addition for the data being in the correct format,
-    the data must also be loaded in a **shuffled** manner.
+
+.. admonition:: Shuffling your Data
+   :class: attention
+   In order to properly function, in addition for the data being in the correct format,
+   the data must also be loaded in a **shuffled** manner. For When using python data loaders, deepchecks will by default
+   attempt re-shuffle the data. However, if you are using any other framework, you must make sure to shuffle the data
+   yourself before passing it to deepchecks. The behaviour of re-shuffling the data can be controlled via the
+   ``reshuffle_data`` argument of the :class:`VisionData <deepchecks.vision.vision_data.VisionData>` constructor,
+   and it should be manually set to `False` for non-pytorch data.
 
 We will first describe the formats which are common for all tasks, and then describe the label and
 prediction formats which vary between tasks.
