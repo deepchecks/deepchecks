@@ -14,7 +14,7 @@ Information about the supported task types and the required formats for each tas
 
 This file contain three main sections:
 
-* `Common Class Parameters <#common-class=parameters>`__
+* `Common Class Parameters <#common-class-parameters>`__
 * `Creating a VisionData Object <#creating-a-visiondata-object>`__
 * `Adding Model Predictions <#adding-model-predictions>`__
 
@@ -56,7 +56,7 @@ and that it loads the data in a shuffled manner. The following is an example of 
 based on data that is fully stored in memory as numpy arrays.
 
 For an example of a custom generator that loads the data from disk batch by batch see the
-:ref:`following section <vision_data__precalculated_predictions>`. A full code implementation of this
+`following section <#pre-calculated-predictions>`__. A full code implementation of this
 method for the MNIST dataset can be seen at
 :mod:`deepchecks.vision.datasets.classification.mnist_tensorflow`.
 
