@@ -126,105 +126,79 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
     """Calculate multivariable drift."""
     # TODO: Prototype, go over and make sure code+docs+tests are good
 
-    import random
-    random.seed(random_state)
-
-    train_sample_df = train_embeddings.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
-    test_sample_df = test_embeddings.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
+    # import random
+    # random.seed(random_state)
+    # train_sample_df = train_embeddings.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
+    # test_sample_df = test_embeddings.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
 
     # create new dataset, with label denoting whether sample belongs to test dataset
-    domain_class_df = pd.concat([train_sample_df, test_sample_df])
-    domain_class_df[cat_features] = RareCategoryEncoder(254).fit_transform(domain_class_df[cat_features].astype(str))
-    domain_class_df[cat_features] = OrdinalEncoder().fit_transform(domain_class_df[cat_features].astype(str))
-    domain_class_labels = pd.Series([0] * len(train_sample_df) + [1] * len(test_sample_df))
-
-    x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(domain_class_df), domain_class_labels,
-                                                        stratify=domain_class_labels, random_state=random_state,
+    all_embeddings = pd.concat([train_embeddings, test_embeddings])
+    all_embeddings_labels = pd.Series([0] * len(train_embeddings) + [1] * len(test_embeddings), index=all_embeddings.index)
+    x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(all_embeddings), all_embeddings_labels,
+                                                        stratify=all_embeddings_labels, random_state=random_state,
                                                         test_size=test_size)
 
     # train a model to disguise between train and test samples
     domain_classifier = GradientBoostingClassifier(max_depth=2, random_state=random_state)
     domain_classifier.fit(x_train, y_train)
 
-    y_test.name = 'belongs_to_test'
-
-    # calculate feature importance of domain_classifier, containing the information which features separate
-    # the dataset best.
-    fi = pd.Series(domain_classifier.feature_importances_, index=x_train.columns)
-    importance_type = 'internal_feature_importance'  # TODO is this the correct term?
-
-    fi = fi.sort_values(ascending=False) if fi is not None else None
+    # calculate feature importance of domain_classifier
+    top_fi = pd.Series(domain_classifier.feature_importances_, index=x_train.columns).sort_values(ascending=False).head(30)
+    top_fi_embedding = top_fi.loc[top_fi > 0.01].index.values
 
     domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
+    print('domain_classifier_auc is ', domain_classifier_auc)
     drift_score = auc_to_drift_score(domain_classifier_auc)
 
     values_dict = {'domain_classifier_auc': domain_classifier_auc, 'domain_classifier_drift_score': drift_score,
-                   'domain_classifier_feature_importance': fi.to_dict() if fi is not None else {}, }
+                   'domain_classifier_feature_importance': top_fi.to_dict() if top_fi is not None else {}, }
 
-    feature_importance_note = f"""
-    <span>
-    The percents of explained dataset difference are the importance values for the feature calculated
-    using `{importance_type}`.
-    </span><br><br>
-    """
+    # Sample data before display calculations
+    # num_samples_in_display = min(num_samples_in_display, sample_size)
+    # train_dataset_for_display = train_dataset.sample(num_samples_in_display, random_state=42)
+    # train_embeddings = train_embeddings.loc[train_dataset_for_display.index]
+    # train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset_for_display.index]
+    # test_dataset_for_display = test_dataset.sample(num_samples_in_display, random_state=42)
+    # test_embeddings = test_embeddings.loc[test_dataset_for_display.index]
+    # test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset_for_display.index]
 
-    if with_display and fi is not None and drift_score > min_meaningful_drift_score:
-        top_fi = fi.head(n_top_columns)
-        top_fi = top_fi.loc[top_fi > min_feature_importance]
-    else:
-        top_fi = None
+    # Calculate display
+    # embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
+    domain_classifier_probas = domain_classifier.predict_proba(floatify_dataframe(all_embeddings))[:, 1]
 
-    if True:
-        score = values_dict['domain_classifier_drift_score']
-        # Sample data before display calculations
-        num_samples_in_display = min(num_samples_in_display, sample_size)
-        train_dataset_for_display = train_dataset.sample(num_samples_in_display, random_state=42)
-        train_embeddings = train_embeddings.loc[train_dataset_for_display.index]
-        train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset_for_display.index]
-        test_dataset_for_display = test_dataset.sample(num_samples_in_display, random_state=42)
-        test_embeddings = test_embeddings.loc[test_dataset_for_display.index]
-        test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset_for_display.index]
-
-        # Calculate display
-        embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
-        domain_classifier_probas = domain_classifier.predict_proba(floatify_dataframe(embeddings_for_display))[:, 1]
-
-        print(f'Domain classifier AUC is {domain_classifier_auc}')
-        displays = [feature_importance_note, build_drift_plot(score),
-                    # display_embeddings_only(train_embeddings=train_embeddings, test_embeddings=test_embeddings,
-                    #                         top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
-                    #                         test_dataset=test_dataset_for_display,
-                    #                         train_indexes_to_highlight=train_indexes_to_highlight,
-                    #                         test_indexes_to_highlight=test_indexes_to_highlight),
-                    # display_embeddings_with_clusters_proba_as_target(train_embeddings=train_embeddings,
-                    #                                                  test_embeddings=test_embeddings,
-                    #                                                  train_dataset=train_dataset_for_display,
-                    #                                                  test_dataset=test_dataset_for_display, domain_classifier_fi=fi,
-                    #                                                  train_indexes_to_highlight=train_indexes_to_highlight,
-                    #                                                  test_indexes_to_highlight=test_indexes_to_highlight,
-                    #                                                  domain_classifier_probas=domain_classifier_probas),
-                    # display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings=train_embeddings,
-                    #                                                       test_embeddings=test_embeddings,
-                    #                                                       train_dataset=train_dataset_for_display,
-                    #                                                       test_dataset=test_dataset_for_display,
-                    #                                                       domain_classifier_fi=fi,
-                    #                                                       train_indexes_to_highlight=train_indexes_to_highlight,
-                    #                                                       test_indexes_to_highlight=test_indexes_to_highlight),
-                    display_embeddings_node_dist_as_axis(train_embeddings=train_embeddings,
-                                                          test_embeddings=test_embeddings,
-                                                          train_dataset=train_dataset_for_display,
-                                                          test_dataset=test_dataset_for_display,
-                                                          domain_classifier_fi=fi,
-                                                          train_indexes_to_highlight=train_indexes_to_highlight,
-                                                          test_indexes_to_highlight=test_indexes_to_highlight),
-                    display_embeddings_proba_as_axis(domain_classifier_probas=domain_classifier_probas,
-                                                     train_embeddings=train_embeddings, test_embeddings=test_embeddings,
-                                                     top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
-                                                     test_dataset=test_dataset_for_display,
-                                                     train_indexes_to_highlight=train_indexes_to_highlight,
-                                                     test_indexes_to_highlight=test_indexes_to_highlight)]
-    else:
-        displays = None
+    displays = [build_drift_plot(drift_score),
+                # display_embeddings_only(train_embeddings=train_embeddings, test_embeddings=test_embeddings,
+                #                         top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
+                #                         test_dataset=test_dataset_for_display,
+                #                         train_indexes_to_highlight=train_indexes_to_highlight,
+                #                         test_indexes_to_highlight=test_indexes_to_highlight),
+                # display_embeddings_with_clusters_proba_as_target(train_embeddings=train_embeddings,
+                #                                                  test_embeddings=test_embeddings,
+                #                                                  train_dataset=train_dataset_for_display,
+                #                                                  test_dataset=test_dataset_for_display, domain_classifier_fi=fi,
+                #                                                  train_indexes_to_highlight=train_indexes_to_highlight,
+                #                                                  test_indexes_to_highlight=test_indexes_to_highlight,
+                #                                                  domain_classifier_probas=domain_classifier_probas),
+                # display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings=train_embeddings,
+                #                                                       test_embeddings=test_embeddings,
+                #                                                       train_dataset=train_dataset_for_display,
+                #                                                       test_dataset=test_dataset_for_display,
+                #                                                       domain_classifier_fi=fi,
+                #                                                       train_indexes_to_highlight=train_indexes_to_highlight,
+                #                                                       test_indexes_to_highlight=test_indexes_to_highlight),
+                display_embeddings_node_dist_as_axis(all_embeddings=all_embeddings,
+                                                     embedding_label=test_embeddings,
+                                                      train_dataset=train_dataset,
+                                                      test_dataset=test_dataset,
+                                                      domain_classifier_fi=top_fi_embedding,
+                                                      train_indexes_to_highlight=train_indexes_to_highlight,
+                                                      test_indexes_to_highlight=test_indexes_to_highlight),
+                display_embeddings_proba_as_axis(domain_classifier_probas=domain_classifier_probas,
+                                                 train_embeddings=train_embeddings, test_embeddings=test_embeddings,
+                                                 top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
+                                                 test_dataset=test_dataset_for_display,
+                                                 train_indexes_to_highlight=train_indexes_to_highlight,
+                                                 test_indexes_to_highlight=test_indexes_to_highlight)]
 
     return values_dict, displays
 
