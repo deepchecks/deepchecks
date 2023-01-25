@@ -10,8 +10,8 @@ Building a VisionData Object for the DETR Model
 -----------------------------------------------
 
 In order to use the DETR model, we need to translate the image, label and prediction formats to the ones supported by
-deepchecks (see the:doc:`Format Guide </user-guide/vision/supported_tasks_and_formats>') and define a
-:class:`deepchecks.vision.data.VisionData` object that will be used to run the checks.
+deepchecks (see the :doc:`Format Guide </user-guide/vision/supported_tasks_and_formats>`) and define a
+:class:`deepchecks.vision.vision_data.VisionData` object that will be used to run the checks.
 
 We'll start by loading the DETR ResNet model from the Hugging Face Transformers library:
 
@@ -30,11 +30,11 @@ conversions in one place.
     :end-before: # CREATE VALIDATE DETR
     :tab-width: 0
 
-We can now create :class:`VisionData <deepchecks.vision.data.VisionData>` object. This deepchecks object accepts
+We can now create :class:`VisionData <deepchecks.vision.vision_data.VisionData>` object. This deepchecks object accepts
 a batch loader, which is an iterator that yields batches of images, labels, predictions and any other required
-information. To read more about it, see the :doc:`Vision Data Guide` </user-guide/vision/VisionData>`. In this example
+information. To read more about it, see the :doc:`Vision Data Guide </user-guide/vision/VisionData>`. In this example
 our batch loader is a python dataloader, so we'll create a custom collate function that will convert the data to the
-required formats and generate the predictions. We'll then use the :meth:`head <deepchecks.vision.data.VisionData.head>`
+required formats and generate the predictions. We'll then use the :meth:`head <deepchecks.vision.vision_data.VisionData.head>`
 method to make sure the dataset was created successfully.
 
 .. literalinclude:: ../../../../examples/integrations/hugging_face/deepchecks_hugging_face_tutorial.py
@@ -53,7 +53,7 @@ Great! We can see that the labels match the object locations, and that the label
 Load Pre-Made YOLOv5s
 ---------------------
 
-Next, we'll load from :mod:`deepchecks.vision.datasets.detection.coco_pytorch` a VisionData containing a sample of the COCO dataset (coco 128)
+Next, we'll load from :mod:`deepchecks.vision.datasets.detection.coco_torch` a VisionData containing a sample of the COCO dataset (coco 128)
 complete with YOLO predictions on this dataset, both downloaded from `ultralytics <https://github.com/ultralytics/yolov5>`__ repository. We'll use yolo
 to benchmark the results achieved by the DETR model.
 
