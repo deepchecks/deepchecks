@@ -10,12 +10,12 @@ detr_resnet = detr_resnet.eval()
 # IMPLEMENT DETR INTEGRATION
 from typing import Union, List, Iterable
 import numpy as np
-from deepchecks.vision.detection_data import DetectionData
+from deepchecks.vision import VisionData
 import torchvision.transforms as T
 
 
-class COCODETRData(DetectionData):
-    """Class for loading the COCO dataset meant for the DETR ResNet50 model, inherits from `deepchecks.vision.DetectionData`.
+class COCODETRData:
+    """Class for loading the COCO dataset meant for the DETR ResNet50 model`.
 
     Implement the necessary methods to load the images, labels and generate model predictions in a format comprehensible
      by deepchecks.
@@ -40,8 +40,7 @@ class COCODETRData(DetectionData):
         'toothbrush'
     ]
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
 
         # Create a transform to pre-process the images into a format acceptable by the DETR model.
         self.transforms = T.Compose([
@@ -60,7 +59,8 @@ class COCODETRData(DetectionData):
                 detr_shift += 1
             self.label_translation[i] = i - detr_shift
 
-    def batch_to_labels(self, batch) -> Union[List[torch.Tensor], torch.Tensor]:
+    @staticmethod
+    def batch_to_labels(batch) -> Union[List[torch.Tensor], torch.Tensor]:
         """Convert the batch to a list of labels. Copied from deepchecks.vision.datasets.detection.coco"""
 
         def move_class(tensor):
@@ -69,7 +69,8 @@ class COCODETRData(DetectionData):
 
         return [move_class(tensor) for tensor in batch[1]]
 
-    def batch_to_images(self, batch) -> Iterable[np.ndarray]:
+    @staticmethod
+    def batch_to_images(batch) -> Iterable[np.ndarray]:
         """Convert the batch to a list of images. Copied from deepchecks.vision.datasets.detection.coco"""
         return [np.array(x) for x in batch[0]]
 
@@ -133,29 +134,53 @@ class COCODETRData(DetectionData):
 
         return processed_preds
 
-# VALIDATE DETR
-from deepchecks.vision.datasets.detection import coco
+# CREATE VALIDATE DETR
+from deepchecks.vision.datasets.detection import coco_torch as coco
+from deepchecks.vision.datasets.detection import coco_utils
+from deepchecks.vision.vision_data import BatchOutputFormat
 
-detr_train_ds = coco.load_dataset(batch_size=8)
-detr_test_ds = coco.load_dataset(batch_size=8, train=False)
+detr_train_datalaoder = coco.load_dataset(batch_size=8, object_type='DataLoader')
+detr_test_datalaoder = coco.load_dataset(batch_size=8, train=False, object_type='DataLoader')
 
-detr_train_ds.validate_format(detr_resnet, device)
+
+def deepchecks_collate_fn_generator(model, device):
+    """Generates a collate function that converts the batch to the deepchecks format, using the given model."""
+
+    detr_formatter = COCODETRData()
+
+    def deepchecks_collate_fn(batch):
+        """A collate function that converts the batch to the format expected by deepchecks."""
+
+        # Reproduce the steps of the default collate function
+        batch = list(zip(*batch))
+
+        images = detr_formatter.batch_to_images(batch)
+        labels = detr_formatter.batch_to_labels(batch)
+        predictions = detr_formatter.infer_on_batch(batch, model, device)
+
+        return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
+
+    return deepchecks_collate_fn
+
+
+detr_test_datalaoder.collate_fn = deepchecks_collate_fn_generator(detr_resnet, device)
+detr_test_ds = VisionData(detr_test_datalaoder, task_type='object_detection', label_map=coco_utils.LABEL_MAP)
+
+detr_test_ds.head()
 
 # LOAD YOLO
-yolo_train_ds = coco.load_dataset(object_type='VisionData')
 yolo_test_ds = coco.load_dataset(object_type='VisionData', train=False)
-yolo = coco.load_model()
 
 # CHECK ON YOLO
 from deepchecks.vision.checks import MeanAveragePrecisionReport
 
-yolo_map_result = MeanAveragePrecisionReport().run(yolo_test_ds, yolo, device=device)
+yolo_map_result = MeanAveragePrecisionReport().run(yolo_test_ds)
 yolo_map_result.show()
 
 # CHECK ON DETR
 # The test data contains the same dataloader as the yolo_test_ds, the only difference being them being wrapped by
 # different subclasses of DetectionData facilitating the interface to the different models.
-detr_map_result = MeanAveragePrecisionReport().run(detr_test_ds, detr_resnet, device)
+detr_map_result = MeanAveragePrecisionReport().run(detr_test_ds)
 detr_map_result.show()
 
 # SHOW ON YOLO
