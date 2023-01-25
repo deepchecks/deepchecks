@@ -5,7 +5,7 @@ Supported Tasks and Formats
 ===========================
 
 In order to analyze the images, labels and predictions provided in the
-:doc:`VisionData object </user-guide/vision/vision_data_class>`,
+:doc:`VisionData object </user-guide/vision/VisionData>`,
 they must be provided the accepted deepchecks format. In this section we will describe the supported formats
 for each supported task type.
 
@@ -146,11 +146,11 @@ not validated. There are two ways in which Deepchecks can provide value for thes
 
 The quick option: Run checks that require only the images themselves.
 Few examples for such checks include:
-:doc:`Image Property Outliers </checks_gallery/vision/data_integrity/plot_image_property_outliers.html>`,
-:doc:`Image Dataset Drift </checks_gallery/vision/train_test_validation/plot_image_dataset_drift.html>` and
-:doc:`Image Property Drift </checks_gallery/vision/train_test_validation/plot_image_property_drift.html>`.
+:doc:`Image Property Outliers </checks_gallery/vision/data_integrity/plot_image_property_outliers>`,
+:doc:`Image Dataset Drift </checks_gallery/vision/train_test_validation/plot_image_dataset_drift>` and
+:doc:`Image Property Drift </checks_gallery/vision/train_test_validation/plot_image_property_drift>`.
 
 The advanced option: Add custom metrics and properties for the
 predictions and labels provided and run additional checks.
 For more information on how to do so, see the
-:doc:`custom task tutorial </user-guide/vision/tutorials/custom_task_tutorial>`.
+:doc:`custom task tutorial </user-guide/vision/auto_tutorials/custom_task_tutorial>`.

@@ -9,3 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for classification datasets and models."""
+
+from . import mnist_tensorflow, mnist_torch
+
+__all__ = ['mnist_tensorflow', 'mnist_torch']
