@@ -269,7 +269,7 @@ better.
 For other computer vision tasks, you should implement a Deepchecks CustomMetric. A Deepchecks CustomMetric is an object
 that calculates a metric by accumulating information about the labels and predictions batch by batch, and then
 finalizes the metric computation once all batches have been processed. The metric must
-inherit from :class:`deepchecks.vision.metric_utils.CustomMetric` and implement the following methods:
+inherit from :class:`deepchecks.vision.metrics_utils.CustomMetric` and implement the following methods:
 ``reset``, ``update`` and ``compute``:
     * ``reset`` - Resets the metric to its initial state, resets any internal variables. Called by deepchecks before
       first call to the ``update`` method.

@@ -14,7 +14,7 @@ try:
 except ImportError as error:
     raise ImportError('PyTorch is not installed. Please install torch '
                       'in order to use deepchecks vision.') from error
-import deepchecks.vision.metrics
+from deepchecks.vision import metrics
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.vision_data import VisionData
