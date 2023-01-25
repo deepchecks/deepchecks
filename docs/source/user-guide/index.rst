@@ -42,7 +42,7 @@ Vision
     :caption: Vision
 
     vision/auto_tutorials/index
-    vision/vision_data_class
+    vision/VisionData
     vision/supported_tasks_and_formats
     vision/vision_properties
     vision/custom_check_templates

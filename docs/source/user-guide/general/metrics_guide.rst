@@ -266,19 +266,24 @@ For tabular metrics and vision classification tasks the custom metrics function 
 a function that accepts the parameters: (model, x, y_true), and returns a score with the convention that higher is
 better.
 
-For other computer vision tasks, you should implement a Deepchecks CustomMetric. A Deepchecks CustomMetric must
+For other computer vision tasks, you should implement a Deepchecks CustomMetric. A Deepchecks CustomMetric is an object
+that calculates a metric by accumulating information about the labels and predictions batch by batch, and then
+computing the metric once all batches have been processed. The metric must
 inherit from :class:`deepchecks.vision.metric_utils.CustomMetric` and implement the following methods:
 ``reset``, ``update`` and ``compute``:
-    * ``reset`` - Resets the metric to its initial state, resets any internal variables.
-    * ``update`` - Updates the metric's internal state based on the provided labels and predictions. The method's
-      signature should be ``update(self, output)``, where output is a tuple containing first ``y_pred`` which is the
-      model's output and second ``y_true`` is the ground truth, both given  as lists of numpy objects, adhering to
-      the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats>`. For example, a
+    * ``reset`` - Resets the metric to its initial state, resets any internal variables. Called to initialize and after
+      each call to ``compute`` to reset the metric to a clean state.
+    * ``update`` - Called once for each batch in the data, this method updates the metric's internal state based on the
+      labels and predictions of one batch. The method's signature should be ``update(self, output)``, where output is a
+      tuple containing first ``y_pred`` which is the model's output and second ``y_true`` is the ground truth, both
+      given  as lists of numpy objects, adhering to the
+      :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats>`. For example, a
       object detection label would be a list where each element is a numpy array of bounding boxes annotations,
       and the prediction would be a list where each element is a numpy array of bounding boxes predictions, both in
       the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats>`.
     * ``compute`` - Returns the metric's value based on the internal state. Can be either a single number, or a numpy
-      array of containing a number for each class.
+      array of containing a number for each class. This method is called only once, after all batches have been
+      processed.
 
 The ``update`` method is called on each batch of data, and the ``compute`` method is called to compute the final metric.
 
