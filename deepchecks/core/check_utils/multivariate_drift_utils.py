@@ -34,6 +34,7 @@ from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEnco
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
+import numpy as np
 
 
 def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
@@ -110,6 +111,7 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
         displays = None
 
     return values_dict, displays
+
 
 
 def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_embeddings: pd.DataFrame, train_dataset,
@@ -189,25 +191,32 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
 
         print(f'Domain classifier AUC is {domain_classifier_auc}')
         displays = [feature_importance_note, build_drift_plot(score),
-                    display_embeddings_only(train_embeddings=train_embeddings, test_embeddings=test_embeddings,
-                                            top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
-                                            test_dataset=test_dataset_for_display,
-                                            train_indexes_to_highlight=train_indexes_to_highlight,
-                                            test_indexes_to_highlight=test_indexes_to_highlight),
-                    display_embeddings_with_clusters_proba_as_target(train_embeddings=train_embeddings,
-                                                                     test_embeddings=test_embeddings,
-                                                                     train_dataset=train_dataset_for_display,
-                                                                     test_dataset=test_dataset_for_display, domain_classifier_fi=fi,
-                                                                     train_indexes_to_highlight=train_indexes_to_highlight,
-                                                                     test_indexes_to_highlight=test_indexes_to_highlight,
-                                                                     domain_classifier_probas=domain_classifier_probas),
-                    display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings=train_embeddings,
-                                                                          test_embeddings=test_embeddings,
-                                                                          train_dataset=train_dataset_for_display,
-                                                                          test_dataset=test_dataset_for_display,
-                                                                          domain_classifier_fi=fi,
-                                                                          train_indexes_to_highlight=train_indexes_to_highlight,
-                                                                          test_indexes_to_highlight=test_indexes_to_highlight),
+                    # display_embeddings_only(train_embeddings=train_embeddings, test_embeddings=test_embeddings,
+                    #                         top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
+                    #                         test_dataset=test_dataset_for_display,
+                    #                         train_indexes_to_highlight=train_indexes_to_highlight,
+                    #                         test_indexes_to_highlight=test_indexes_to_highlight),
+                    # display_embeddings_with_clusters_proba_as_target(train_embeddings=train_embeddings,
+                    #                                                  test_embeddings=test_embeddings,
+                    #                                                  train_dataset=train_dataset_for_display,
+                    #                                                  test_dataset=test_dataset_for_display, domain_classifier_fi=fi,
+                    #                                                  train_indexes_to_highlight=train_indexes_to_highlight,
+                    #                                                  test_indexes_to_highlight=test_indexes_to_highlight,
+                    #                                                  domain_classifier_probas=domain_classifier_probas),
+                    # display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings=train_embeddings,
+                    #                                                       test_embeddings=test_embeddings,
+                    #                                                       train_dataset=train_dataset_for_display,
+                    #                                                       test_dataset=test_dataset_for_display,
+                    #                                                       domain_classifier_fi=fi,
+                    #                                                       train_indexes_to_highlight=train_indexes_to_highlight,
+                    #                                                       test_indexes_to_highlight=test_indexes_to_highlight),
+                    display_embeddings_node_dist_as_axis(train_embeddings=train_embeddings,
+                                                          test_embeddings=test_embeddings,
+                                                          train_dataset=train_dataset_for_display,
+                                                          test_dataset=test_dataset_for_display,
+                                                          domain_classifier_fi=fi,
+                                                          train_indexes_to_highlight=train_indexes_to_highlight,
+                                                          test_indexes_to_highlight=test_indexes_to_highlight),
                     display_embeddings_proba_as_axis(domain_classifier_probas=domain_classifier_probas,
                                                      train_embeddings=train_embeddings, test_embeddings=test_embeddings,
                                                      top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
@@ -241,17 +250,48 @@ def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_hi
         for node_id, indexes in indexes_per_node.items():
             print(f'Node {node_id} has {len(indexes)} samples')
             to_add = plot_data[plot_data.index.isin(indexes)].copy()
+
             print('Percent of train in node is {}'.format(to_add['dataset'].value_counts()['train_full'] / len(to_add)))
+            print('Percent of unique in train in node is {}'.format(len(to_add[to_add.index.isin(train_indexes_to_highlight)]) / len(to_add)))
+            print('Percent of unique in test in node is {}'.format(len(to_add[to_add.index.isin(test_indexes_to_highlight)]) / len(to_add)))
+
             print(to_add['label'].value_counts().to_dict())
+            print('*************************************')
             to_add['dataset'] = f'node_{node_id}'
             stuff_to_add.append(to_add)
         plot_data = pd.concat([plot_data] + stuff_to_add, ignore_index=True)
 
     fig = px.scatter(plot_data, x=1, y=0, color='dataset', hover_data=['label', 'sample'], hover_name='dataset',
-                     title=plot_title, height=1000,  # color_discrete_sequence=['red', 'green', 'blue', 'orange'],
+                     title=plot_title, height=1000,   color_discrete_sequence=['red', 'green', 'blue', 'orange'],
                      width=1000, opacity=0.4)
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
     return fig
+
+
+def _get_tree_dist_values(clf, data):
+    feature = clf.tree_.feature
+    threshold = clf.tree_.threshold
+    node_indicator = clf.decision_path(data)
+    leaf_for_sample = clf.apply(data)
+    print(f'Number of leafs is {len(np.unique(leaf_for_sample))}')
+
+    result = np.zeros(len(data))
+
+    for sample_id in range(len(data)):
+        # obtain ids of the nodes `sample_id` goes through, i.e., row `sample_id`
+        node_index = node_indicator.indices[
+                     node_indicator.indptr[sample_id]: node_indicator.indptr[sample_id + 1]]
+        for tree_depth, tree_node_id in enumerate(node_index):
+            # we arrived to a leaf
+            if leaf_for_sample[sample_id] == tree_node_id:
+                break
+
+            if data.iloc[sample_id, feature[tree_node_id]] <= threshold[tree_node_id]:
+                result[sample_id] = result[sample_id] + 2 ** (clf.max_depth - tree_depth)
+            else:
+                result[sample_id] = result[sample_id] - 2 ** (clf.max_depth - tree_depth)
+
+    return result
 
 
 def display_embeddings_only(train_embeddings, test_embeddings, top_fi_embeddings, train_dataset, test_dataset,
@@ -387,6 +427,53 @@ def display_embeddings_with_clusters_by_nodes_with_onehot(train_embeddings, test
     nodes_to_highlight = {x: list(node_per_sample[node_per_sample == x].index) for x in nodes_ids}
     plot_title = f'Embeddings in 2D using {method} on top {top_fi_embeddings.shape[0]} ' \
                  f'features with one-hot-encoded top {len(interesting_nodes)} nodes as additional embeddings'
+    return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
+                                train_indexes_to_highlight, nodes_to_highlight)
+
+
+def display_embeddings_node_dist_as_axis(train_embeddings, test_embeddings, domain_classifier_fi,
+                                     train_dataset, test_dataset, train_indexes_to_highlight: List[int],
+                                     test_indexes_to_highlight: List[int]):
+    # TODO: Prototype, go over and make sure code+docs+tests are good
+
+    # from umap import UMAP
+    from sklearn.decomposition import PCA
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn import tree
+    from matplotlib import pyplot as plt
+
+    # method = 'UMAP'
+    method = 'PCA'
+
+    embeddings = pd.concat([train_embeddings, test_embeddings])
+    domain_class_labels = pd.Series([0] * len(train_embeddings) + [1] * len(test_embeddings))
+    top_fi_embeddings = domain_classifier_fi.head(30)
+    top_fi_embeddings = top_fi_embeddings.loc[top_fi_embeddings > 0.01].index.values
+
+    train_data, test_data, train_labels, test_labels = train_test_split(embeddings.loc[:, top_fi_embeddings],
+                                                                        domain_class_labels,
+                                                                        test_size=0.2, random_state=42)
+    min_cluster_size = max(50, int(len(train_data) * 0.04))
+    classifier = DecisionTreeClassifier(max_depth=8, min_samples_leaf=min_cluster_size, random_state=42,
+                                        criterion='entropy')
+    classifier.fit(train_data, train_labels)
+    classifier_auc = roc_auc_score(test_labels, classifier.predict_proba(test_data)[:, 1])
+    print(f'Classifier AUC: {classifier_auc}')
+
+    tree_node_values = test_labels.groupby(classifier.apply(test_data)).mean()
+    interesting_nodes = tree_node_values[tree_node_values < 0.25].index.tolist() + tree_node_values[
+        tree_node_values > 0.75].index.tolist()
+    print(f'Number of interesting nodes: {len(interesting_nodes)}')
+    node_per_sample = pd.Series(classifier.apply(embeddings.loc[:, top_fi_embeddings]), index=embeddings.index)
+    nodes_to_highlight = {x: list(node_per_sample[node_per_sample == x].index) for x in interesting_nodes}
+
+
+    # reduced_embeddings = UMAP(init='random', random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
+    reduced_embeddings = PCA(n_components=1, random_state=42).fit_transform(embeddings.loc[:, top_fi_embeddings])
+
+    plot_data = pd.DataFrame(reduced_embeddings, index=embeddings.index)
+    plot_data[1] = _get_tree_dist_values(classifier, embeddings.loc[:, top_fi_embeddings])
+    plot_title = f'Top {top_fi_embeddings.shape[0]} embeddings to 1 dimension via {method} with tree node distance values as y axis'
     return _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_highlight, train_dataset,
                                 train_indexes_to_highlight, nodes_to_highlight)
 
