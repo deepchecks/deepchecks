@@ -13,11 +13,26 @@ deepchecks.utils
     :recursive:
     :toctree: generated
 
+    array_math
+    correlation_methods
     dataframes
-    features
+    decorators
+    dict_funcs
+    display
+    docref
+    function
+    gower_distance
+    html
     ipython
+    json_utils
+    logger
     metrics
+    model
+    outliers
     plot
+    simple_models
+    single_sample_metrics
     strings
     typing
     validation
+    wandb_utils

@@ -86,7 +86,7 @@ properties = [{'name': 'brightness', 'method': brightness, 'output_type': 'numer
               {'name': ' texture', 'method': texture_level, 'output_type': 'numerical'}]
 check = WeakSegmentsPerformance(segment_minimum_size_ratio=0.03, image_properties=properties)
 result = check.run(coco_data)
-result.show_in_window()
+result.show()
 
 
 #%%

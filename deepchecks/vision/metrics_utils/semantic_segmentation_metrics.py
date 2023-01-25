@@ -26,6 +26,7 @@ class MeanDice(Metric):
     """Metric that calculates the mean Dice metric for each class.
 
     See more: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient
+
     Parameters
     ----------
     threshold: float, default: 0.5
@@ -88,7 +89,8 @@ class MeanIoU(Metric):
     """Metric that calculates the mean IoU metric for each class.
 
     See more: https://en.wikipedia.org/wiki/Jaccard_index
-        Parameters
+
+    Parameters
     ----------
     threshold: float, default: 0.5
         prediction value per pixel above which the pixel is considered True.

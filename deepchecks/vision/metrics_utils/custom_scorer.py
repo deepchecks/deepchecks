@@ -32,7 +32,7 @@ class CustomClassificationScorer(Metric):
         sklearn scorer name or deepchecks supported string o rcallable
 
     Returns
-    --------
+    -------
     scorer: DeepcheckScorer
         An initialized DeepcheckScorer.
 
