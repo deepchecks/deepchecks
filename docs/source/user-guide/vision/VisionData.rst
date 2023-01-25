@@ -12,6 +12,13 @@ Information about the supported task types and the required formats for each tas
 :doc:`/user-guide/vision/supported_tasks_and_formats`.
 
 
+This file contain three main sections:
+
+* `Common Class Parameters <#common-class=parameters>`__
+* `Creating a VisionData Object <#creating-a-visiondata-object>`__
+* `Adding Model Predictions <#adding-model-predictions>`__
+
+
 Common Class Parameters
 =======================
 
@@ -33,7 +40,10 @@ To see all other class parameters, see the :class:`VisionData <deepchecks.vision
 .. _vision_data__creating_vision_data:
 Creating a VisionData Object
 ============================
-The sub-sections below contain simple examples for how to create a VisionData object without predictions, in
+In the sub-sections below we will go over three different ways to create a VisionData object:
+1. From a Generic Generator 2. From a PyTorch DataLoader 3. From a TensorFlow Dataset.
+
+The sub-sections contain simple examples for how to create a VisionData object without predictions, in
 order to learn how to supply them see the section about :ref:`adding model predictions <vision_data__adding_predictions>`.
 
 From a Generic Generator
