@@ -10,6 +10,13 @@
 #
 """Module for detection datasets and models."""
 
-from . import coco_tensorflow, coco_torch, mask
+from . import coco_torch, mask
 
-__all__ = ['coco_torch', 'coco_tensorflow', 'mask']
+__all__ = ['coco_torch', 'mask']
+
+try:
+    from . import coco_tensorflow  # noqa: F401
+except ImportError:
+    pass
+else:
+    __all__.append('coco_tensorflow')
