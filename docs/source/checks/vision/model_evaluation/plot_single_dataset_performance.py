@@ -10,47 +10,47 @@ This notebooks provides an overview for using and understanding single dataset p
 **Structure:**
 
 * `What Is the Purpose of the Check? <#what-is-the-purpose-of-the-check>`__
-* `Generate data an model <#generate-data-and-model>`__
+* `Generate Dataset <#generate-dataset>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
 What Is the Purpose of the Check?
 =================================
 This check returns the results from a dict of metrics, in the format metric name: scorer, calculated for the
-given model dataset. The scorer can be an ignite.Metric or Sklearn scorer.
+given model dataset. The scorer should be either a sklearn scorer or a custom metric (see
+:doc:`Metrics Guide </user-guide/general/metrics_guide>` for further details).
 Use this check to evaluate the performance on a single vision dataset such as a test set.
 
 """
 #%%
-# Generate data and model
-# -----------------------
+# Generate Dataset
+# ----------------
+#
+# .. note::
+#   In this example, we use the pytorch version of the mnist dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.classification import mnist_tensorflow as mnist
 
 from deepchecks.vision.checks import SingleDatasetPerformance
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
 #%%
 
-
-mnist_model = mnist.load_model()
 train_ds = mnist.load_dataset(train=True, object_type='VisionData')
 
 #%%
 # Run the check
 # -------------
-# We will run the check with the model defined above.
 #
-# The check will use the default classification metrics - `Precision
-# <https://pytorch.org/ignite/generated/ignite.metrics.precision.Precision.html#ignite.metrics.precision.Precision>`__.
-# and `Recall <https://pytorch.org/ignite/generated/ignite.metrics.recall.Recall.html#ignite.metrics.recall.Recall>`__.
+# The check will use the default classification metrics - precision and recall.
 
 
 check = SingleDatasetPerformance()
-result = check.run(train_ds, mnist_model)
-result
+result = check.run(train_ds)
+result.show()
 
 #%%
-# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
-#
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
@@ -59,10 +59,10 @@ result
 
 #%%
 # Now we will run a check with a metric different from the defaults- F-1.
-from ignite.metrics import Fbeta
+# You can read more about setting metrics in the :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
 
-check = SingleDatasetPerformance(scorers={'f1': Fbeta(1)})
-result = check.run(train_ds, mnist_model)
+check = SingleDatasetPerformance(scorers={'f1': 'f1_per_class'})
+result = check.run(train_ds)
 result
 
 #%%
@@ -74,7 +74,7 @@ result
 
 check = SingleDatasetPerformance()
 check.add_condition_greater_than(0.5)
-result = check.run(train_ds, mnist_model)
+result = check.run(train_ds)
 result.show(show_additional_outputs=False)
 
 #%%
@@ -83,5 +83,5 @@ result.show(show_additional_outputs=False)
 
 check = SingleDatasetPerformance()
 check.add_condition_greater_than(0.8, metrics=['Precision'], class_mode='3')
-result = check.run(train_ds, mnist_model)
+result = check.run(train_ds)
 result.show(show_additional_outputs=False)

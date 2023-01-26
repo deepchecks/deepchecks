@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing datasets and models for vision tasks."""
-from . import classification, detection
 
-__all__ = ['classification', 'detection']
+from . import classification, detection, segmentation
+
+__all__ = ['classification', 'detection', 'segmentation']

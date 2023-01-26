@@ -10,7 +10,7 @@
 #
 """Module contains Train Test Prediction Drift check."""
 from collections import OrderedDict, defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -19,14 +19,16 @@ from deepchecks.core.checks import CheckConfig
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
-from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_PREDICTION_PROPERTIES,
                                                                  DEFAULT_SEMANTIC_SEGMENTATION_PREDICTION_PROPERTIES,
                                                                  get_column_type, properties_flatten)
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['TrainTestPredictionDrift']
 
@@ -105,6 +107,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     aggregation_method: str, default: 'none'
         {property_aggregation_method_argument:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -117,10 +120,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
             aggregation_method: str = 'none',
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-        # validate prediction properties:
+        self.n_samples = n_samples
         self.prediction_properties = prediction_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.categorical_drift_method = categorical_drift_method
@@ -162,7 +166,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         self._train_prediction_properties = defaultdict(list)
         self._test_prediction_properties = defaultdict(list)
 
-    def update(self, context: Context, batch: Batch, dataset_kind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:
@@ -195,9 +199,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
             output_type = prediction_property['output_type']
             # If type is class converts to label names
             if output_type == 'class_id':
-                self._train_prediction_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
+                self._train_prediction_properties[name] = [context.train.label_map[class_id] for class_id in
                                                            self._train_prediction_properties[name]]
-                self._test_prediction_properties[name] = [context.test.label_id_to_name(class_id) for class_id in
+                self._test_prediction_properties[name] = [context.test.label_map[class_id] for class_id in
                                                           self._test_prediction_properties[name]]
 
             value, method, display = calc_drift_and_plot(

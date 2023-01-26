@@ -13,13 +13,13 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.metric_utils import DeepcheckScorer
+from deepchecks.vision.vision_data.utils import object_to_numpy
 
 
 class CustomClassificationScorer(Metric):
@@ -32,7 +32,7 @@ class CustomClassificationScorer(Metric):
         sklearn scorer name or deepchecks supported string o rcallable
 
     Returns
-    --------
+    -------
     scorer: DeepcheckScorer
         An initialized DeepcheckScorer.
 
@@ -41,7 +41,7 @@ class CustomClassificationScorer(Metric):
     >>> from sklearn.metrics import make_scorer, cohen_kappa_score
     ... from deepchecks.vision.metrics_utils.custom_scorer import CustomClassificationScorer
     ... from deepchecks.vision.checks.model_evaluation import SingleDatasetPerformance
-    ... from deepchecks.vision.datasets.classification import mnist
+    ... from deepchecks.vision.datasets.classification import mnist_torch as mnist
     ...
     ... mnist_model = mnist.load_model()
     ... test_ds = mnist.load_dataset(root='Data', object_type='VisionData')
@@ -71,18 +71,8 @@ class CustomClassificationScorer(Metric):
     def update(self, output):
         """Update metric with batch of samples."""
         y_proba, y = output
-
-        if isinstance(y_proba, torch.Tensor):
-            y_proba = y_proba.cpu().detach().numpy()
-        else:
-            y_proba = np.array(y_proba)
-        if isinstance(y, torch.Tensor):
-            y = y.cpu().detach().numpy()
-        else:
-            y = np.array(y)
-
-        self._y_proba.append(y_proba)
-        self._y.append(y)
+        self._y_proba.append(object_to_numpy(y_proba))
+        self._y.append(object_to_numpy(y))
 
     @sync_all_reduce("_y_proba", "_y")
     def compute(self):

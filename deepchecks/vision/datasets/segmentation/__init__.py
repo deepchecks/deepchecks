@@ -9,6 +9,3 @@
 # ----------------------------------------------------------------------------
 #
 """Module for segmentation datasets and models."""
-from . import segmentation_coco
-
-__all__ = ["segmentation_coco"]

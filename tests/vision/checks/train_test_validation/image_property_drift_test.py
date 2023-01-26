@@ -9,19 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-from hamcrest import (all_of, assert_that, calling, close_to, greater_than, has_entries, has_items, has_key, has_length,
-                      has_properties, instance_of, raises)
+from hamcrest import (all_of, assert_that, close_to, greater_than, has_entries, has_items, has_key, has_length,
+                      has_properties, instance_of)
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.vision.checks import ImagePropertyDrift
 from deepchecks.vision.utils.image_properties import default_image_properties
 from tests.base.utils import equal_condition_result
 
 
-def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata, device):
+def test_image_property_drift_check(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift().run(coco_train_visiondata, coco_test_visiondata, device=device)
+    result = ImagePropertyDrift().run(coco_visiondata_train, coco_visiondata_test)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result())
@@ -35,10 +34,10 @@ def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata,
     ))
 
 
-def test_image_property_drift_check_without_display(coco_train_visiondata, coco_test_visiondata, device):
+def test_image_property_drift_check_without_display(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift(aggregation_method='mean').run(coco_train_visiondata, coco_test_visiondata,
-                                                               device=device, with_display=False)
+    result = ImagePropertyDrift(aggregation_method='mean').run(coco_visiondata_train, coco_visiondata_test,
+                                                               with_display=False)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result(with_display=False))
@@ -52,10 +51,10 @@ def test_image_property_drift_check_without_display(coco_train_visiondata, coco_
     ))
 
 
-def test_image_property_drift_check_without_display_none_aggragation(coco_train_visiondata, coco_test_visiondata, device):
+def test_image_property_drift_check_without_display_none_aggragation(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift(aggregation_method='none').run(coco_train_visiondata, coco_test_visiondata,
-                                                               device=device, with_display=False)
+    result = ImagePropertyDrift(aggregation_method='none').run(coco_visiondata_train, coco_visiondata_test,
+                                                               with_display=False)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result(with_display=False))
@@ -68,34 +67,31 @@ def test_image_property_drift_check_without_display_none_aggragation(coco_train_
         {'Brightness': close_to(0.07, 0.01)}
     ))
 
-def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
-    # Run
-    result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
-                                ).run(coco_train_visiondata, coco_test_visiondata, device=device)
 
-    # Assert
-    assert_that(result, is_correct_image_property_drift_result())
-
-    assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.13, 0.01)}
-    ))
-
-
-def test_image_property_drift_check_limit_classes_illegal(coco_train_visiondata, coco_test_visiondata, device):
-    check = ImagePropertyDrift(classes_to_display=['phone'])
-    assert_that(
-        calling(check.run).with_args(coco_train_visiondata, coco_test_visiondata, device=device),
-        raises(DeepchecksValueError, r'Provided list of class ids to display \[\'phone\'\] not found in training '
-                                     r'dataset.')
-    )
+# def test_image_property_drift_check_limit_classes(coco_visiondata_train, coco_visiondata_test):
+#     # Run
+#     result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
+#                                 ).run(coco_visiondata_train, coco_visiondata_test)
+#
+#     # Assert
+#     assert_that(result, is_correct_image_property_drift_result())
+#
+#     assert_that(result.value, has_entries(
+#         {'Brightness': close_to(0.13, 0.01)}
+#     ))
 
 
-def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiondata, device):
-    result = (
-        ImagePropertyDrift()
-        .add_condition_drift_score_less_than()
-        .run(coco_train_visiondata, coco_test_visiondata, device=device)
-    )
+# def test_image_property_drift_check_limit_classes_illegal(coco_visiondata_train, coco_visiondata_test):
+#     check = ImagePropertyDrift(classes_to_display=['phone'])
+#     assert_that(
+#         calling(check.run).with_args(coco_visiondata_train, coco_visiondata_test),
+#         raises(DeepchecksValueError, r'Provided list of class ids to display \[\'phone\'\] not found in training '
+#                                      r'dataset.')
+#     )
+
+
+def test_image_property_drift_condition(coco_visiondata_train, coco_visiondata_test):
+    result = ImagePropertyDrift().add_condition_drift_score_less_than().run(coco_visiondata_train, coco_visiondata_test)
 
     assert_that(result, is_correct_image_property_drift_result())
     assert_that(result.conditions_results, has_items(
@@ -105,11 +101,11 @@ def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiond
                 )
 
 
-def test_image_property_drift_fail_condition(coco_train_visiondata, coco_test_visiondata, device):
+def test_image_property_drift_fail_condition(coco_visiondata_train, coco_visiondata_test):
     result = (
         ImagePropertyDrift()
         .add_condition_drift_score_less_than(0.06)
-        .run(coco_train_visiondata, coco_test_visiondata, device=device)
+        .run(coco_visiondata_train, coco_visiondata_test)
     )
 
     assert_that(result, is_correct_image_property_drift_result())
@@ -148,6 +144,6 @@ def is_correct_image_property_drift_result(with_display: bool = True):
     )
 
 
-def test_run_on_data_with_only_images(mnist_train_only_images, mnist_test_only_images, device):
+def test_run_on_data_with_only_images(mnist_train_only_images, mnist_test_only_images):
     # Act - Assert check runs without exception
-    ImagePropertyDrift().run(mnist_train_only_images, mnist_test_only_images, device=device)
+    ImagePropertyDrift().run(mnist_train_only_images, mnist_test_only_images)

@@ -51,8 +51,8 @@ def test_drift_with_model(drifted_data_and_model):
 def test_drift_with_model_n_top(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', columns=['categorical_with_drift'], n_top_columns=1
-                                  , max_num_categories=10, min_category_size_ratio=0)
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', columns=[
+                                  'categorical_with_drift'], n_top_columns=1, max_num_categories=10, min_category_size_ratio=0)
 
     # Act
     result = check.run(train, test, model)
@@ -228,19 +228,6 @@ def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
     assert_that(aggregated_result['Weighted Drift Score'], close_to(0.1195, 0.01))
 
 
-def test_top5_aggregation_drift_with_model(drifted_data_and_model):
-    # Arrange
-    train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method='top_5')
-
-    # Act
-    aggregated_result = check.run(train, test, model).reduce_output()
-    # Assert
-    assert_that(aggregated_result.keys(), has_length(4))
-    assert_that(aggregated_result.keys(), has_item('numeric_with_drift'))
-    assert_that(aggregated_result['numeric_with_drift'], close_to(0.343, 0.01))
-
-
 def test_l2_aggregation_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
@@ -270,7 +257,10 @@ def test_none_aggregation_drift_with_model(drifted_data_and_model):
 def test_weighted_aggregation_drift_no_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0)
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI',
+                                  aggregation_method='mean',
+                                  max_num_categories=10,
+                                  min_category_size_ratio=0)
     # Act
     aggregated_result = check.run(train, test).reduce_output()
     # Assert

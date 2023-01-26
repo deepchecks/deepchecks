@@ -9,23 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module for vision base checks."""
-import warnings
-from typing import Any, Dict, Mapping, Optional, Sequence, Union
-
-import torch
-from ignite.metrics import Metric
-from torch import nn
+from typing import Any
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck, TrainTestBaseCheck
-from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.ipython import ProgressBarGroup
 from deepchecks.vision import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.vision._shared_docs import docstrings
-from deepchecks.vision.batch_wrapper import Batch
 from deepchecks.vision.context import Context
-from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT
 from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = [
     'SingleDatasetCheck',
@@ -40,82 +33,31 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     context_type = Context
 
     @docstrings
-    def run(
-        self,
-        dataset: VisionData,
-        model: Optional[nn.Module] = None,
-        model_name: str = '',
-        scorers: Optional[Mapping[str, Metric]] = None,
-        scorers_per_class: Optional[Mapping[str, Metric]] = None,
-        device: Union[str, torch.device, None] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = 10_000,
-        with_display: bool = True,
-        predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
-
-    ) -> CheckResult:
+    def run(self, dataset: VisionData, random_state: int = 42, with_display: bool = True) -> CheckResult:
         """Run check.
 
         Parameters
         ----------
         dataset: VisionData
             VisionData object to process
-        model: Optional[nn.Module] , default None
-            pytorch neural network module instance
-        {additional_context_params:2*indent}
+        {additional_run_params:2*indent}
         """
-        assert self.context_type is not None
-        if train_predictions is not None:
-            warnings.warn('train_predictions is deprecated, please use predictions instead.',
-                          DeprecationWarning, stacklevel=2)
-        if test_predictions is not None:
-            warnings.warn('test_predictions is deprecated and ignored.',
-                          DeprecationWarning, stacklevel=2)
-        if (train_predictions is not None) and (predictions is not None):
-            raise DeepchecksValueError('Cannot accept both train_predictions and predictions, please pass the data only'
-                                       ' to predictions.')
-
-        train_predictions = train_predictions if train_predictions is not None else predictions
         with ProgressBarGroup() as progressbar_factory:
+            context: Context = self.context_type(train=dataset, random_state=random_state, with_display=with_display)
+            self.initialize_run(context, DatasetKind.TRAIN)
 
-            with progressbar_factory.create_dummy(name='Validating Input'):
-                # Context is copying the data object, then not using the original after the init
-                context: Context = self.context_type(
-                    dataset,
-                    model=model,
-                    model_name=model_name,
-                    scorers=scorers,
-                    scorers_per_class=scorers_per_class,
-                    device=device,
-                    random_state=random_state,
-                    n_samples=n_samples,
-                    with_display=with_display,
-                    train_predictions=train_predictions,
-                    train_properties=train_properties,
-                    test_properties=test_properties
-                )
-                self.initialize_run(context, DatasetKind.TRAIN)
-
-            context.train.init_cache()
-
-            for i, batch in enumerate(progressbar_factory.create(
-                iterable=context.train,
-                name='Ingesting Batches',
-                unit='Batch'
-            )):
-                batch = Batch(batch, context, DatasetKind.TRAIN, i)
-                context.train.update_cache(batch)
-                self.update(context, batch, DatasetKind.TRAIN)
+            with progressbar_factory.create_dummy(name='Processing Batches'):
+                for batch in context.train:
+                    batch = BatchWrapper(batch, context.train.task_type, context.train.number_of_images_cached)
+                    context.train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
+                    self.update(context, batch, DatasetKind.TRAIN)
+                    if self.n_samples is not None and context.train.number_of_images_cached >= self.n_samples:
+                        break
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context, DatasetKind.TRAIN)
-                context.finalize_check_result(result, self)
-                context.add_is_sampled_footnote(result, DatasetKind.TRAIN)
-                return result
+                context.finalize_check_result(result, self, DatasetKind.TRAIN)
+        return result
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize run before starting updating on batches. Optional."""
@@ -139,88 +81,43 @@ class TrainTestCheck(TrainTestBaseCheck):
     context_type = Context
 
     @docstrings
-    def run(
-        self,
-        train_dataset: VisionData,
-        test_dataset: VisionData,
-        model: Optional[nn.Module] = None,
-        model_name: str = '',
-        scorers: Optional[Mapping[str, Metric]] = None,
-        scorers_per_class: Optional[Mapping[str, Metric]] = None,
-        device: Union[str, torch.device, None] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = 10_000,
-        with_display: bool = True,
-        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
-    ) -> CheckResult:
+    def run(self, train_dataset: VisionData, test_dataset: VisionData,
+            random_state: int = 42, with_display: bool = True) -> CheckResult:
         """Run check.
 
         Parameters
         ----------
-        train_dataset: VisionData
-            VisionData object, representing data an neural network was fitted on
-        test_dataset: VisionData
-            VisionData object, representing data an neural network predicts on
-        model: Optional[nn.Module] , default None
-            pytorch neural network module instance
-        {additional_context_params:2*indent}
+        train_dataset : VisionData
+            VisionData object, representing data the model was fitted on
+        test_dataset : VisionData
+            VisionData object, representing data the models predicts on
+        {additional_run_params:2*indent}
         """
-        assert self.context_type is not None
-
         with ProgressBarGroup() as progressbar_factory:
+            context: Context = self.context_type(train=train_dataset, test=test_dataset,
+                                                 random_state=random_state, with_display=with_display)
+            self.initialize_run(context)
 
-            with progressbar_factory.create_dummy(name='Validating Input'):
-                # Context is copying the data object, then not using the original after the init
-                context: Context = self.context_type(
-                    train_dataset,
-                    test_dataset,
-                    model=model,
-                    model_name=model_name,
-                    scorers=scorers,
-                    scorers_per_class=scorers_per_class,
-                    device=device,
-                    random_state=random_state,
-                    n_samples=n_samples,
-                    with_display=with_display,
-                    train_predictions=train_predictions,
-                    test_predictions=test_predictions,
-                    train_properties=train_properties,
-                    test_properties=test_properties
-                )
-                self.initialize_run(context)
+            with progressbar_factory.create_dummy(name='Processing Train Batches'):
+                for batch in context.train:
+                    batch = BatchWrapper(batch, context.train.task_type, context.train.number_of_images_cached)
+                    context.train.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
+                    self.update(context, batch, DatasetKind.TRAIN)
+                    if self.n_samples is not None and context.train.number_of_images_cached >= self.n_samples:
+                        break
 
-            train_pbar = progressbar_factory.create(
-                iterable=context.train,
-                name='Ingesting Batches - Train Dataset',
-                unit='Batch'
-            )
-
-            context.train.init_cache()
-
-            for i, batch in enumerate(train_pbar):
-                batch = Batch(batch, context, DatasetKind.TRAIN, i)
-                context.train.update_cache(batch)
-                self.update(context, batch, DatasetKind.TRAIN)
-
-            context.test.init_cache()
-
-            for i, batch in enumerate(progressbar_factory.create(
-                iterable=context.test,
-                name='Ingesting Batches - Test Dataset',
-                unit='Batch'
-            )):
-                batch = Batch(batch, context, DatasetKind.TEST, i)
-                context.test.update_cache(batch)
-                self.update(context, batch, DatasetKind.TEST)
+            with progressbar_factory.create_dummy(name='Processing Test Batches'):
+                for batch in context.test:
+                    batch = BatchWrapper(batch, context.test.task_type, context.test.number_of_images_cached)
+                    context.test.update_cache(len(batch), batch.numpy_labels, batch.numpy_predictions)
+                    self.update(context, batch, DatasetKind.TEST)
+                    if self.n_samples is not None and context.test.number_of_images_cached >= self.n_samples:
+                        break
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)
                 context.finalize_check_result(result, self)
-                context.add_is_sampled_footnote(result)
-                return result
+        return result
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""
@@ -241,54 +138,24 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
     context_type = Context
 
     @docstrings
-    def run(
-        self,
-        model: nn.Module,
-        model_name: str = '',
-        scorers: Optional[Mapping[str, Metric]] = None,
-        scorers_per_class: Optional[Mapping[str, Metric]] = None,
-        device: Union[str, torch.device, None] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = None,
-        with_display: bool = True,
-        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
-    ) -> CheckResult:
+    def run(self, model, random_state: int = 42, with_display: bool = True) -> CheckResult:
         """Run check.
 
         Parameters
         ----------
-        model: nn.Module
-            pytorch neural network module instance
-        {additional_context_params:2*indent}
+        model
+            Model to run the check on
+        {additional_run_params:2*indent}
         """
-        assert self.context_type is not None
-
         with ProgressBarGroup() as progressbar_factory:
-
-            with progressbar_factory.create_dummy(name='Validating Input'):
-                context: Context = self.context_type(
-                    model=model,
-                    model_name=model_name,
-                    scorers=scorers,
-                    scorers_per_class=scorers_per_class,
-                    device=device,
-                    random_state=random_state,
-                    n_samples=n_samples,
-                    with_display=with_display,
-                    train_predictions=train_predictions,
-                    test_predictions=test_predictions,
-                    train_properties=train_properties,
-                    test_properties=test_properties
-                )
-                self.initialize_run(context)
+            # Currently we do not receive model into context since there are no model only checks
+            context: Context = self.context_type(random_state=random_state, with_display=with_display)
+            self.initialize_run(context)
 
             with progressbar_factory.create_dummy(name='Computing Check', unit='Check'):
                 result = self.compute(context)
                 context.finalize_check_result(result, self)
-                return result
+        return result
 
     def initialize_run(self, context: Context):
         """Initialize run before starting updating on batches. Optional."""

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import (all_of, any_of, assert_that, calling, contains_exactly, empty, equal_to, has_entries, has_key,
+from hamcrest import (all_of, any_of, assert_that, calling, close_to, contains_exactly, equal_to, has_entries, has_key,
                       has_length, has_properties, instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
@@ -16,7 +16,6 @@ from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.vision.checks import LabelPropertyOutliers
 from deepchecks.vision.utils.label_prediction_properties import DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES
-from tests.vision.vision_conftest import *
 
 
 def is_correct_label_property_outliers_result(props, with_display: bool = True) -> Matcher:
@@ -45,30 +44,42 @@ def is_correct_label_property_outliers_result(props, with_display: bool = True) 
     )
 
 
-def test_outliers_check_coco(coco_train_visiondata, device):
+def test_outliers_check_coco(coco_visiondata_train):
     # Act
-    result = LabelPropertyOutliers().run(coco_train_visiondata, device=device)
+    result = LabelPropertyOutliers().run(coco_visiondata_train)
 
     # Assert
     assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
     assert_that(result.value, has_entries({
         'Number of Bounding Boxes Per Image': has_entries({
-            'indices': contains_exactly(30, 21, 43, 52, 33, 37),
+            'outliers_identifiers': contains_exactly('21', '30', '1', '5', '11', '20'),
             'lower_limit': is_(0),
             'upper_limit': is_(20.125)
         }),
         'Bounding Box Area (in pixels)': instance_of(dict),
     }))
 
-
-def test_outliers_check_coco_segmentation(segmentation_coco_train_visiondata, device):
+def test_tf_coco_batch_without_boxes(tf_coco_visiondata_train):
     # Act
-    result = LabelPropertyOutliers().run(segmentation_coco_train_visiondata, device=device)
+    result = LabelPropertyOutliers().run(tf_coco_visiondata_train)
+
+    # Assert
+    assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
+    assert_that(result.value, has_entries({
+        'Number of Bounding Boxes Per Image': has_entries({
+            'lower_limit': close_to(1, 1),
+        }),
+        'Bounding Box Area (in pixels)': instance_of(dict),
+    }))
+
+def test_outliers_check_coco_segmentation(segmentation_coco_visiondata_train):
+    # Act
+    result = LabelPropertyOutliers().run(segmentation_coco_visiondata_train)
 
     # Assert
     assert_that(result.value, has_entries({
         'Number of Classes Per Image': has_entries({
-            'indices': [8, 3],
+            'outliers_identifiers': contains_exactly('3', '8'),
             'lower_limit': is_(2),
             'upper_limit': is_(2)
         }),
@@ -76,16 +87,16 @@ def test_outliers_check_coco_segmentation(segmentation_coco_train_visiondata, de
     }))
 
 
-def test_outliers_check_coco_without_display(coco_train_visiondata, device):
+def test_outliers_check_coco_without_display(coco_visiondata_train):
     # Act
-    result = LabelPropertyOutliers().run(coco_train_visiondata, device=device, with_display=False)
+    result = LabelPropertyOutliers().run(coco_visiondata_train, with_display=False)
 
     # Assert
     assert_that(result,
                 is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES, with_display=False))
     assert_that(result.value, has_entries({
         'Number of Bounding Boxes Per Image': has_entries({
-            'indices': contains_exactly(30, 21, 43, 52, 33, 37),
+            'outliers_identifiers': contains_exactly('21', '30', '1', '5', '11', '20'),
             'lower_limit': is_(0),
             'upper_limit': is_(20.125)
         }),
@@ -93,70 +104,50 @@ def test_outliers_check_coco_without_display(coco_train_visiondata, device):
     }))
 
 
-def test_property_outliers_check_mnist(mnist_dataset_train, device):
+def test_property_outliers_check_mnist(mnist_visiondata_train):
     # Arrange
     properties = [{
         'name': 'test',
-        'method': lambda labels: labels.tolist(),
+        'method': lambda labels: labels,
         'output_type': 'categorical'
     }]
     check = LabelPropertyOutliers(label_properties=properties)
     # Act
-    result = check.run(mnist_dataset_train, device=device, n_samples=None)
+    result = check.run(mnist_visiondata_train)
 
     # Assert
     assert_that(result, is_correct_label_property_outliers_result(properties))
     assert_that(result.value, has_entries({
         'test': has_entries({
-            'indices': has_length(0),
+            'outliers_identifiers': has_length(0),
             'lower_limit': is_(0),
             'upper_limit': is_(9)
         })
     }))
 
 
-def test_run_on_data_with_only_labels(coco_train_visiondata, device):
-    # Arrange
-    data = coco_train_visiondata.copy(random_state=0)
-    data._image_formatter_error = 'fake error'
+def test_run_on_data_with_only_labels(coco_test_only_labels):
     # Act - Assert check runs without exception
-    result = LabelPropertyOutliers().run(data, device=device)
+    result = LabelPropertyOutliers().run(coco_test_only_labels)
     # Assert
     assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
 
 
-def test_exception_on_custom_task(coco_train_custom_task, device):
+def test_exception_on_custom_task(mnist_train_custom_task):
     # Arrange
     check = LabelPropertyOutliers()
 
     # Act & Assert exception
-    assert_that(calling(check.run).with_args(coco_train_custom_task, device=device),
+    assert_that(calling(check.run).with_args(mnist_train_custom_task),
                 raises(DeepchecksProcessError, 'task type TaskType.OTHER does not have default label properties '
                                                'defined'))
 
 
-def test_run_on_custom_task_with_custom_properties(coco_train_custom_task, device):
+def test_not_enough_samples_for_iqr(coco_train_very_small):
     # Arrange
-    def custom_property(labels):
-        return [1] * len(labels)
-    properties = [{
-        'name': 'test',
-        'method': custom_property,
-        'output_type': 'categorical'
-    }]
-
-    # Act - Assert check runs without exception
-    result = LabelPropertyOutliers(label_properties=properties).run(coco_train_custom_task, device=device)
-    # Assert
-    assert_that(result, is_correct_label_property_outliers_result(properties))
-
-
-def test_not_enough_samples_for_iqr(coco_train_visiondata, device):
-    # Arrange
-    five_samples_mnist = coco_train_visiondata.copy(n_samples=5, random_state=0)
     check = LabelPropertyOutliers()
     # Act
-    result = check.run(five_samples_mnist, device=device)
+    result = check.run(coco_train_very_small)
     # Assert
     assert_that(result, is_correct_label_property_outliers_result(DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES))
     assert_that(result.value, has_entries({
@@ -165,7 +156,7 @@ def test_not_enough_samples_for_iqr(coco_train_visiondata, device):
     }))
 
 
-def test_string_property_exception(mnist_dataset_train, device):
+def test_string_property_exception(mnist_visiondata_train):
     # Arrange
     def string_property(labels):
         return ['test'] * len(labels)
@@ -176,12 +167,12 @@ def test_string_property_exception(mnist_dataset_train, device):
     }]
     check = LabelPropertyOutliers(label_properties=image_properties)
     # Act - Assert check raise exception
-    assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
+    assert_that(calling(check.run).with_args(mnist_visiondata_train),
                 raises(DeepchecksProcessError, 'For outliers, properties are expected to be only numeric types but '
                                                'found non-numeric value for property test'))
 
 
-def test_incorrect_properties_count_exception(mnist_dataset_train, device):
+def test_incorrect_properties_count_exception(mnist_visiondata_train):
     # Arrange
     def too_many_property(labels):
         return ['test'] * (len(labels) + 1)
@@ -192,6 +183,7 @@ def test_incorrect_properties_count_exception(mnist_dataset_train, device):
     }]
     check = LabelPropertyOutliers(label_properties=image_properties)
     # Act - Assert check raise exception
-    assert_that(calling(check.run).with_args(mnist_dataset_train, device=device),
+    assert_that(calling(check.run).with_args(mnist_visiondata_train),
                 raises(DeepchecksProcessError, 'Properties are expected to return value per image but instead got 65 '
                                                'values for 64 images for property test'))
+
