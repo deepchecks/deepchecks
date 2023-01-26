@@ -15,7 +15,7 @@ from . import coco_torch, mask
 __all__ = ['coco_torch', 'mask']
 
 try:
-    from . import coco_tensorflow
+    from . import coco_tensorflow  # noqa: F401
 except ImportError:
     pass
 else:

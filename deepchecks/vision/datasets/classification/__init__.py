@@ -15,7 +15,7 @@ from . import mnist_torch
 __all__ = ['mnist_torch']
 
 try:
-    from . import mnist_tensorflow
+    from . import mnist_tensorflow  # noqa: F401
 except ImportError:
     pass
 else:

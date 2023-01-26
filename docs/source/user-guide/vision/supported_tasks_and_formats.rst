@@ -15,10 +15,10 @@ correct format via the :func:`VisionData.head() <deepchecks.vision.vision_data.V
 
 
 .. attention:: Shuffling your Data
-   In order to properly function, in addition for the data being in the correct format,
-   the data must also be loaded in a **shuffled** manner. When using PyTorch DataLoaders, deepchecks will by default
-   attempt reshuffle the data. However, if you are using any other framework, you must make sure to shuffle the data
-   yourself before passing it to deepchecks. The behaviour of reshuffling the data can be controlled via the
+   In addition for the data being in the correct format, the data must also be loaded in a **shuffled** manner.
+   When using PyTorch DataLoaders, deepchecks will by default attempt reshuffle the data. However, if you are using any
+   other framework, you must make sure to shuffle the data yourself before passing it to deepchecks. The behaviour of
+   reshuffling the data can be controlled via the
    ``reshuffle_data`` argument of the :class:`VisionData <deepchecks.vision.vision_data.VisionData>` constructor,
    and it should be manually set to `False` for non-PyTorch data.
 

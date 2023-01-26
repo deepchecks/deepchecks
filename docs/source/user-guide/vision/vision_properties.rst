@@ -123,14 +123,9 @@ label/prediction.
 Customizing the Checks' Properties
 ==================================
 By default, checks using properties will use the :ref:`built-in properties <Deepchecks' Built-in Properties>`.
-Those default properties can be overridden in one of two ways:
 
-#. **Properties** - a list of functions to be calculated on the data during the check (in the format specified above)
-   passed to the check init. :ref:`Properties format <Property Structure>`.
-
-
-Properties Demonstration
-========================
+In order to override the default properties and use custom ones, a list of functions to be calculated on the data during
+the check (in the format specified above) passed to the check init. :ref:`Properties format <Property Structure>`.
 
 We will demonstrate the 3 drift checks (for each property type) and implement the properties to pass to it.
 
