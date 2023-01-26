@@ -95,8 +95,10 @@ intersphinx_mapping = {
     'np': ('https://numpy.org/doc/stable/', None),
     'torch':  ('https://pytorch.org/docs/stable/', None),
     'datetime':  ('https://docs.python.org/3', None),
-    'tensorflow':  ('https://www.tensorflow.org/api_docs/python/', None),
-    'tf': ('https://www.tensorflow.org/api_docs/python/', None),
+    'tensorflow': ("https://www.tensorflow.org/api_docs/python",
+                   "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv"),
+    'tf': ("https://www.tensorflow.org/api_docs/python",
+           "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv")
 }
 
 redirects = {
