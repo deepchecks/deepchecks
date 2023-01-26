@@ -39,7 +39,6 @@ For example, CI/CD in machine learning can be used in different steps such as:
   and more.
 * Model training: The model is trained on the (previously validated) training set.
 * Model validation: The trained model is evaluated on test data, testing for performance, weak segments and more:
-  Such metrics include:
   :doc:`performance compared to naive model</checks_gallery/tabular/model_evaluation/plot_simple_model_comparison>`,
   :doc:`calibration score for each class</checks_gallery/tabular/model_evaluation/plot_calibration_score>`,
   etc.
