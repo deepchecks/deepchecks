@@ -257,6 +257,7 @@ ________________
      - suffixes apply as with 'average_precision'
 
 .. _metrics_guide__custom_metrics:
+
 Custom Metrics
 ==============
 You can also pass your own custom metric to relevant checks and suites.

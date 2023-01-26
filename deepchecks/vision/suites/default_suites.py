@@ -41,8 +41,6 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
              - API Reference
            * - :ref:`plot_vision_new_labels`
              - :class:`~deepchecks.vision.checks.train_test_validation.NewLabels`
-           * - :ref:`plot_vision_similar_image_leakage`
-             - :class:`~deepchecks.vision.checks.train_test_validation.SimilarImageLeakage`
            * - :ref:`plot_vision_heatmap_comparison`
              - :class:`~deepchecks.vision.checks.train_test_validation.HeatmapComparison`
            * - :ref:`plot_vision_train_test_label_drift`
@@ -136,12 +134,8 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
              - :class:`~deepchecks.vision.checks.model_evaluation.TrainTestPredictionDrift`
            * - :ref:`plot_vision_simple_model_comparison`
              - :class:`~deepchecks.vision.checks.model_evaluation.SimpleModelComparison`
-           * - :ref:`plot_vision_confusion_matrix`
-             - :class:`~deepchecks.vision.checks.model_evaluation.ConfusionMatrixReport`
-           * - :ref:`plot_vision_image_segment_performance`
-             - :class:`~deepchecks.vision.checks.model_evaluation.ImageSegmentPerformance`
-           * - :ref:`plot_vision_model_error_analysis`
-             - :class:`~deepchecks.vision.checks.model_evaluation.ModelErrorAnalysis`
+           * - :ref:`plot_weak_segment_performance`
+             - :class:`~deepchecks.vision.checks.model_evaluation.WeakSegmentPerformance`
 
     Parameters
     ----------

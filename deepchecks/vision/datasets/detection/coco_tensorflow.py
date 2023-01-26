@@ -50,7 +50,7 @@ def load_dataset(
     shuffle : bool, default: False
         Whether to shuffle the dataset.
     object_type : Literal['Dataset', 'Dataset'], default: 'Dataset'
-        type of the return value. If 'Dataset', :obj:`deepchecks.vision.VisionDataset`
+        type of the return value. If 'Dataset', :obj:`deepchecks.vision.VisionData`
         will be returned, otherwise :obj:`tf.data.Dataset`.
     n_samples : int, optional
         Number of samples to load. Return the first n_samples if shuffle

@@ -127,8 +127,6 @@ Those default properties can be overridden in one of two ways:
 
 #. **Properties** - a list of functions to be calculated on the data during the check (in the format specified above)
    passed to the check init. :ref:`Properties format <Property Structure>`.
-#. **Pre-Calculated Properties** - a dictionary with the result of pre calculated properties per sample passed to the
-   check run. :ref:`Pre-calculated properties format <Pre-Calculated Properties>`.
 
 
 Properties Demonstration
