@@ -37,23 +37,22 @@ For example, CI/CD in machine learning can be used in different steps such as:
   :doc:`change in correlation between features and label</checks_gallery/tabular/train_test_validation/plot_feature_label_correlation_change>`,
   :doc:`duplicate samples between the datasets</checks_gallery/tabular/train_test_validation/plot_train_test_samples_mix>`,
   and more.
-* Model training: The model is trained on the validated data set.
-* Model validation: The trained model is evaluated using test data to get metrics and insights.
+* Model training: The model is trained on the (previously validated) training set.
+* Model validation: The trained model is evaluated on test data, testing for performance, weak segments and more:
   Such metrics include:
   :doc:`performance compared to naive model</checks_gallery/tabular/model_evaluation/plot_simple_model_comparison>`,
   :doc:`calibration score for each class</checks_gallery/tabular/model_evaluation/plot_calibration_score>`,
-  :doc:`weak segments in the data</checks_gallery/tabular/model_evaluation/plot_weak_segments_performance>`,
-  and more.
+  etc.
 * Model deployment: The model is deployed to production if it meets the specified criteria.
 
 In most cases, the steps above are done manually today by running local tests, and inspecting graphs and reports.
 By using CI/CD these time consuming tasks can be automated, freeing up time for more meaningful work.
 
-Deepchecks can be used in the CI/CD process at 2 main steps of the model development process:
+Deepchecks can be used in the CI/CD process at 2 main steps of model development:
 
-* Before the model training process, to validate the integrity of the data used for training, and check for any data
+* Before model training, to validate the integrity of the data used for training, and check for any data
   drift or leakage between the train and test datasets.
-* After the model training process, testing model performance across different metrics and data segments, and get
+* After model training, testing model performance across different metrics and data segments, and get
   deeper insights on the model's behavior, such as weak segments and performance bias.
 
 In this guide we will show end to end examples of validating both data and the trained model. In most use cases those
