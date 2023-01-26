@@ -10,13 +10,6 @@
 #
 """Module for classification datasets and models."""
 
-from . import mnist_torch
+from . import mnist_tensorflow, mnist_torch
 
-__all__ = ['mnist_torch']
-
-try:
-    from . import mnist_tensorflow  # noqa: F401
-except ImportError:
-    pass
-else:
-    __all__.append('mnist_tensorflow')
+__all__ = ['mnist_tensorflow', 'mnist_torch']
