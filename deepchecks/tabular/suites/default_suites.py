@@ -330,7 +330,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
     )
 
 
-def production_suite(task_type: str,
+def production_suite(task_type: str = None,
                      is_comparative: bool = True,
                      alternative_scorers: Dict[str, Callable] = None,
                      columns: Union[Hashable, List[Hashable]] = None,
@@ -385,10 +385,12 @@ def production_suite(task_type: str,
 
     Parameters
     ----------
-    task_type : str
-        The type of the task. Must be one of 'binary', 'multiclass' or 'regression'.
+    task_type : str, default: None
+        The type of the task. Must be one of 'binary', 'multiclass' or 'regression'. If not given, both checks for
+        classification and regression will be added to the suite.
     is_comparative : bool, default: True
-        Whether to run the checks comparing the production data to some reference data.
+        Whether to add the checks comparing the production data to some reference data, or if False, to add the
+        checks inspecting the production data only.
     alternative_scorers : Dict[str, Callable], default: None
         An optional dictionary of scorer name to scorer functions.
         If none given, use default scorers
@@ -430,11 +432,17 @@ def production_suite(task_type: str,
 
     checks = [WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
               PercentOfNulls(**kwargs)]
-    if task_type == TaskType.REGRESSION.value:
-        checks.append(RegressionErrorDistribution(**kwargs).add_condition_kurtosis_greater_than())
+
+    # Add checks for regression and classification
+    regression_checks = [RegressionErrorDistribution(**kwargs).add_condition_kurtosis_greater_than()]
+    classification_checks = [ConfusionMatrixReport(**kwargs), RocReport(**kwargs).add_condition_auc_greater_than()]
+    if task_type is None:
+        checks.extend(classification_checks)
+        checks.extend(regression_checks)
+    elif task_type == TaskType.REGRESSION.value:
+        checks.extend(regression_checks)
     else:
-        checks.append(ConfusionMatrixReport(**kwargs))
-        checks.append(RocReport(**kwargs).add_condition_auc_greater_than())
+        checks.extend(classification_checks)
 
     if is_comparative:
         checks.append(StringMismatchComparison(**kwargs).add_condition_no_new_variants())
