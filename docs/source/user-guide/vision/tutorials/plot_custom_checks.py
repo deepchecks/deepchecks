@@ -135,7 +135,7 @@ class ColorAveragesCheck(TrainTestCheck):
 #
 # .. note::
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
-#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data__creating_vision_data>`.
+#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data_class>`.
 #
 
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset

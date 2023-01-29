@@ -83,7 +83,23 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     "sphinx.ext.imgmath",
     'sphinx_reredirects',
+    'sphinx.ext.intersphinx',
 ]
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None),
+    'pd': ('https://pandas.pydata.org/docs/', None),
+    'requests':  ('https://requests.readthedocs.io/en/latest/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'np': ('https://numpy.org/doc/stable/', None),
+    'torch':  ('https://pytorch.org/docs/stable/', None),
+    'datetime':  ('https://docs.python.org/3', None),
+    'tensorflow': ("https://www.tensorflow.org/api_docs/python",
+                   "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv"),
+    'tf': ("https://www.tensorflow.org/api_docs/python",
+           "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv")
+}
 
 redirects = {
     "index": "getting-started/welcome.html",

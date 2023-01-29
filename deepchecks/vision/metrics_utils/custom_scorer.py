@@ -26,6 +26,7 @@ class CustomClassificationScorer(Metric):
     """Scorer that runs a custom metric for the vision classification task.
 
     Custom scorers can be passed to all model evaluation related checks as can be seen in the example below.
+
     Parameters
     ----------
     scorer : t.Union[str, t.Callable]

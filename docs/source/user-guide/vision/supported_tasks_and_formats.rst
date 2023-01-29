@@ -14,12 +14,11 @@ in addition to the automatic validations, it is also important to make sure visu
 correct format via the :func:`VisionData.head() <deepchecks.vision.vision_data.VisionData.head>` functionality.
 
 
-.. admonition:: Shuffling your Data
-   :class: attention
-   In order to properly function, in addition for the data being in the correct format,
-   the data must also be loaded in a **shuffled** manner. When using PyTorch DataLoaders, deepchecks will by default
-   attempt reshuffle the data. However, if you are using any other framework, you must make sure to shuffle the data
-   yourself before passing it to deepchecks. The behaviour of reshuffling the data can be controlled via the
+.. attention:: Shuffling your Data
+   In addition for the data being in the correct format, the data must also be loaded in a **shuffled** manner.
+   When using PyTorch DataLoaders, deepchecks will by default attempt reshuffle the data. However, if you are using any
+   other framework, you must make sure to shuffle the data yourself before passing it to deepchecks. The behaviour of
+   reshuffling the data can be controlled via the
    ``reshuffle_data`` argument of the :class:`VisionData <deepchecks.vision.vision_data.VisionData>` constructor,
    and it should be manually set to `False` for non-PyTorch data.
 
@@ -28,9 +27,10 @@ prediction formats which vary between tasks.
 
 Common Formats
 ==============
+
 Batch General Format
 --------------------
-Each batch, which is the output of the :doc:`batch loader </user-guide/vision/vision_data_class>`,
+Each batch, which is the output of the :doc:`batch loader </user-guide/vision/VisionData>`,
 is required to be a :class:`dictionary <deepchecks.vision.vision_data.BatchOutputFormat>`
 with keys for each provided data input: images, labels, predictions and image identifiers.
 Since each data input represents multiple samples,
@@ -87,6 +87,7 @@ Image identifiers need to be provided as an iterable of strings.
 .. _supported_tasks__classification:
 Classification
 ==============
+
 Label Format
 ------------
 Classification label per sample is expected to be provided as either a string or an int
@@ -115,6 +116,7 @@ classes may look like this:
 .. _supported_tasks__object_detection:
 Object Detection
 ================
+
 Label Format
 ------------
 Object detection label per sample should be an iterable of bounding boxes. Each bounding box should be an iterable
@@ -156,6 +158,7 @@ the second one has no predicted bounding boxes, should be provided as follows:
 .. _supported_tasks__segmentation:
 Semantic Segmentation
 =====================
+
 Label Format
 ------------
 Semantic segmentation label per sample should be an array of shape ``[H, W]`` where ``H`` and ``W`` are the
@@ -187,4 +190,4 @@ Few examples for such checks include:
 The advanced option: Add custom metrics and properties for the
 predictions and labels provided and run additional checks.
 For more information on how to do so, see the
-:doc:`custom task tutorial </user-guide/vision/auto_tutorials/custom_task_tutorial>`.
+:doc:`custom task tutorial </user-guide/vision/auto_tutorials/plot_custom_task_tutorial>`.

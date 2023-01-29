@@ -80,10 +80,10 @@ Computer Vision
    It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ for feedback and feature requests are welcome!
 
-- :doc:`Simple Image Classification Tutorial (for data without model) </user-guide/vision/auto_quickstarts/plot_simple_classification_tutorial>`
-- :doc:`Classification Tutorial</user-guide/vision/auto_quickstarts/plot_classification_tutorial>`
-- :doc:`Object Detection Tutorial </user-guide/vision/auto_quickstarts/plot_detection_tutorial>`
-- :doc:`Semantic Segmentation Tutorial</user-guide/vision/auto_quickstarts/plot_segmentation_tutorial>`
+- :doc:`Simple Image Classification Tutorial (for data without model) </user-guide/vision/auto_tutorials/plot_simple_classification_tutorial>`
+- :doc:`Classification Tutorial</user-guide/vision/auto_tutorials/plot_classification_tutorial>`
+- :doc:`Object Detection Tutorial </user-guide/vision/auto_tutorials/plot_detection_tutorial>`
+- :doc:`Semantic Segmentation Tutorial</user-guide/vision/auto_tutorials/plot_segmentation_tutorial>`
 
 
 🙋🏼 When Should You Use Deepchecks?

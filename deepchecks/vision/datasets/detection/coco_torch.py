@@ -143,7 +143,7 @@ def load_dataset(
         If ``True``, the data loader will copy Tensors
         into CUDA pinned memory before returning them.
     object_type : Literal['Dataset', 'DataLoader'], default: 'DataLoader'
-        type of the return value. If 'Dataset', :obj:`deepchecks.vision.VisionDataset`
+        type of the return value. If 'Dataset', :obj:`deepchecks.vision.VisionData`
         will be returned, otherwise :obj:`torch.utils.data.DataLoader`
     n_samples : int, optional
         Only relevant for loading a VisionData. Number of samples to load. Return the first n_samples if shuffle

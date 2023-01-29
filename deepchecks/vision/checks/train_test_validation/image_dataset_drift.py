@@ -173,6 +173,7 @@ class ImageDatasetDrift(TrainTestCheck):
         Add condition - require drift score to be less than the threshold.
 
         The drift score used here is the domain_classifier_drift_Score attribute of the check result.
+
         Parameters
         ----------
         threshold: float , default: 0.1
