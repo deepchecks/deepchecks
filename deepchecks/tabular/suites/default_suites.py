@@ -16,20 +16,19 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 from typing import Callable, Dict, List, Union
 
-from deepchecks.tabular.utils.task_type import TaskType
-
 from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, ConflictingLabels, ConfusionMatrixReport,
                                        DataDuplicates, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                        DateTrainTestLeakageOverlap, FeatureFeatureCorrelation, FeatureLabelCorrelation,
                                        FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
                                        IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
-                                       NewCategoryTrainTest, NewLabelTrainTest, OutlierSampleDetection,
-                                       RegressionErrorDistribution, RocReport, SimpleModelComparison, SpecialCharacters,
-                                       StringLengthOutOfBounds, StringMismatch, StringMismatchComparison,
-                                       TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPerformance,
-                                       TrainTestPredictionDrift, TrainTestSamplesMix, UnusedFeatures,
-                                       WeakSegmentsPerformance, SingleDatasetPerformance, PercentOfNulls)
+                                       NewCategoryTrainTest, NewLabelTrainTest, OutlierSampleDetection, PercentOfNulls,
+                                       RegressionErrorDistribution, RocReport, SimpleModelComparison,
+                                       SingleDatasetPerformance, SpecialCharacters, StringLengthOutOfBounds,
+                                       StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
+                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
+                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
+from deepchecks.tabular.utils.task_type import TaskType
 
 __all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'production_suite', 'full_suite']
 
