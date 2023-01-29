@@ -340,9 +340,10 @@ def production_suite(task_type: str,
                      random_state: int = 42,
                      n_to_show: int = 5,
                      **kwargs) -> Suite:
-    """Suite for testing the model in production. The suite contains checks for evaluating the model's performance.
+    """Suite for testing the model in production.
 
-   Checks for detecting drift and checks for data integrity issues that may occur in production.
+    The suite contains checks for evaluating the model's performance. Checks for detecting drift and checks for data
+    integrity issues that may occur in production.
 
     List of Checks (exact checks depend on the task type and the is_comparative flag):
         .. list-table:: List of Checks
