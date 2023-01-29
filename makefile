@@ -253,7 +253,7 @@ test-tabular-only: env
 
 
 coverage: requirements dev-requirements
-	$(COVERAGE) run --source deepchecks/,tests/ --omit */external_*/* -m pytest
+	$(COVERAGE) run --source deepchecks/,tests/ --omit */assets/* -m pytest
 
 coveralls: coverage
 	$(COVERALLS) --service=github
