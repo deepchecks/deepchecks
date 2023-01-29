@@ -41,7 +41,7 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-37-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
+[![All Contributors](https://img.shields.io/badge/all_contributors-38-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 
@@ -373,6 +373,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/chendingyan"><img src="https://avatars.githubusercontent.com/u/16874978?v=4?s=100" width="100px;" alt="陈鼎彦"/><br /><sub><b>陈鼎彦</b></sub></a><br /><a href="#bug-chendingyan" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://www.k-lab.tk/"><img src="https://avatars.githubusercontent.com/u/16821717?v=4?s=100" width="100px;" alt="Andres Vargas"/><br /><sub><b>Andres Vargas</b></sub></a><br /><a href="#doc-vargasa" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/MichaelMarien"><img src="https://avatars.githubusercontent.com/u/13829139?v=4?s=100" width="100px;" alt="Michael Marien"/><br /><sub><b>Michael Marien</b></sub></a><br /><a href="#doc-MichaelMarien" title="Documentation">📖</a> <a href="#bug-MichaelMarien" title="Bug reports">🐛</a></td>
     </tr>
   </tbody>
 </table>
