@@ -37,8 +37,7 @@ from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'CocoDataset']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/38619935'
-LOCAL_MODEL_PATH = COCO_DIR / 'yolov5-6.1'
+LOCAL_MODEL_PATH = COCO_DIR / 'external_yolov5_6.1'
 
 
 def load_model(pretrained: bool = True, device: t.Union[str, torch.device] = 'cpu'):
