@@ -30,4 +30,5 @@ __all__ = [
     'model_evaluation',
     'full_suite',
     'data_integrity',
+    'production_suite'
 ]
