@@ -32,6 +32,10 @@ List of Prebuilt Suites
    performance and overfit.
 -  full_suite - Runs all previously mentioned suites and overview
    checks.
+-  production_suite - Runs a set of checks selected for testing model
+   performance, drift and integrity in production. Exact checks will
+   depend on the task type and on whether the suite should compare
+   the production data to a reference dataset.
 
 Running a Suite
 ----------------

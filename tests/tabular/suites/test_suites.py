@@ -222,3 +222,10 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
     assert_that(res_names, contains_exactly(*expected_train_headers))
     assert_that(res_test.results, has_length(35))
     assert_that(res_full.results, has_length(54))
+
+
+def test_production_suite(iris):
+    suite = suites.production_suite('classification', is_comparative=True)
+    train, test, model = iris
+    result = suite.run(train, test, model)
+    assert_that(result.results, has_length(15))
