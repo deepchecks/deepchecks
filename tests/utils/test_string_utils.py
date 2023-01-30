@@ -79,7 +79,7 @@ def test_round_timestamp():
         matches_regexp(pattern) # type: ignore
     )
 
-def test_format_datetime_with_unsuported_value_type():
+def test_format_datetime_with_unsupported_value_type():
     assert_that(
         calling(format_datetime).with_args('hello'),
         raises(ValueError, r'Unsupported value type - str')
