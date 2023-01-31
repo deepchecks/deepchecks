@@ -43,7 +43,7 @@ value between 0 and sqrt(n_features).
 much the resulting score will affect the model's performance.
 'mean': Mean of all per-feature scores.
 'max': Maximum of all the per-feature scores.
-'none': No averaging. Return a dict with a per-feature score for each feature.
+None: No averaging. Return a dict with a per-feature score for each feature.
 """.strip('\n')
 
 docstrings = Substitution(**_shared_docstrings)
