@@ -53,7 +53,7 @@ def test_image_property_drift_check_without_display(coco_visiondata_train, coco_
 
 def test_image_property_drift_check_without_display_none_aggragation(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift(aggregation_method='none').run(coco_visiondata_train, coco_visiondata_test,
+    result = ImagePropertyDrift(aggregation_method=None).run(coco_visiondata_train, coco_visiondata_test,
                                                                with_display=False)
 
     # Assert

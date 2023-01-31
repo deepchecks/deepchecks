@@ -244,7 +244,7 @@ def test_l2_aggregation_drift_with_model(drifted_data_and_model):
 def test_none_aggregation_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method='none')
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method=None)
 
     # Act
     aggregated_result = check.run(train, test, model).reduce_output()

@@ -59,7 +59,7 @@ def test_reduce_output_method_none():
     # Arrange
     df = pd.DataFrame({'foo': ['a', 'b', np.nan, None], 'bar': [None, 'a', 'b', 'a']})
     # Act
-    result = PercentOfNulls(aggregation_method='none').run(df)
+    result = PercentOfNulls(aggregation_method=None).run(df)
     # Assert
     assert_that(result.value, has_length(2))
     assert_that(result.value.iloc[0, 0], equal_to(0.5))
