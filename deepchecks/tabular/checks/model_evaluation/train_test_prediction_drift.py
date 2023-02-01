@@ -50,6 +50,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     small number of samples (common practice is categories with less than 5 samples).
     However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
 
+    **Note:** In case of highly imbalanced classes, it is recommended to use the PSI method, together with setting
+    the ``relative_change`` parameter to ``True``.
+
 
     Parameters
     ----------
@@ -82,6 +85,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    relative_change: bool, default: False
+        If True, small and large categories will contribute equally to the PSI score, with only the log of the ratio
+        between the expected and actual category size being used. This is useful when we care about the relative
+        difference between the distributions, but not about the absolute difference. Usable only when
+        categorical_drift_method = "psi"
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -107,10 +115,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             drift_mode: str = 'auto',
             margin_quantile_filter: float = 0.025,
             max_num_categories_for_drift: int = None,
-            min_category_size_ratio: float = 0.01,
+            min_category_size_ratio: float = 1e-6,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
+            relative_change: bool = False,
             ignore_na: bool = True,
             aggregation_method: t.Optional[str] = 'max',
             max_classes_to_display: int = 3,
@@ -130,6 +139,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
+        if categorical_drift_method != 'psi' and relative_change:
+            raise DeepchecksValueError(
+                'relative_change can only be used with categorical_drift_method = "psi"'
+            )
+        self.relative_change = relative_change
         self.ignore_na = ignore_na
         self.max_classes_to_display = max_classes_to_display
         self.aggregation_method = aggregation_method
@@ -188,6 +202,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                relative_change=self.relative_change,
                 ignore_na=self.ignore_na,
                 with_display=context.with_display,
             )

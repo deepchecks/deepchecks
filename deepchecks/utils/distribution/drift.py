@@ -30,7 +30,6 @@ from deepchecks.utils.strings import format_number
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
            'drift_condition', 'get_drift_plot_sidenote']
 
-PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
 SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance']
 
@@ -121,7 +120,8 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
 
 
 def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1') -> float:
+        min_category_size_ratio: float = 0.01, max_num_categories: int = None, sort_by: str = 'dist1',
+        relative_change: bool = False) -> float:
     """
     Calculate the PSI (Population Stability Index).
 
@@ -151,6 +151,10 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
         - 'dist2': Sort by the largest dist2 categories.
         - 'difference': Sort by the largest difference between categories.
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+    relative_change: bool, default: False
+        If True, small and large categories will contribute equally to the PSI score, with only the log of the ratio
+        between the expected and actual category size being used. This is useful when we care about the relative
+        difference between the distributions, but not about the absolute difference.
     Returns
     -------
     psi
@@ -162,9 +166,12 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
     psi_value = 0
     for i in range(len(expected_counts)):
         # In order for the value not to diverge, we cap our min percentage value
-        e_perc = max(expected_counts[i] / size_expected, PSI_MIN_PERCENTAGE)
-        a_perc = max(actual_counts[i] / size_actual, PSI_MIN_PERCENTAGE)
-        value = (e_perc - a_perc) * np.log(e_perc / a_perc)
+        e_perc = max(expected_counts[i] / size_expected, min_category_size_ratio)
+        a_perc = max(actual_counts[i] / size_actual, min_category_size_ratio)
+        if relative_change:
+            value = np.abs(np.log(e_perc / a_perc)) / len(expected_counts)
+        else:
+            value = (e_perc - a_perc) * np.log(e_perc / a_perc)
         psi_value += value
 
     return psi_value
@@ -234,6 +241,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: CategoriesSortingKind = 'largest_difference',
                         categorical_drift_method: str = 'cramer_v',
+                        relative_change: bool = False,
                         ignore_na: bool = True,
                         min_samples: int = 10,
                         with_display: bool = True,
@@ -274,6 +282,9 @@ def calc_drift_and_plot(train_column: pd.Series,
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    relative_change: bool, default: False
+        If True, the drift score will be use the relative change between the two distributions, disregarding the
+        absolute values. In this case, the plot will be created with a log scale in the y-axis.
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -328,7 +339,8 @@ def calc_drift_and_plot(train_column: pd.Series,
             score = cramers_v(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by)
         elif categorical_drift_method.lower() == 'psi':
             scorer_name = 'PSI'
-            score = psi(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by)
+            score = psi(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by,
+                        relative_change=relative_change)
         else:
             raise ValueError('Expected categorical_drift_method to be one '
                              f'of [cramer_v, PSI], received: {categorical_drift_method}')
@@ -355,7 +367,10 @@ def calc_drift_and_plot(train_column: pd.Series,
     fig.update_yaxes(bar_y_axis, row=1, col=1)
     fig.add_traces(dist_traces, rows=2, cols=1)
     fig.update_xaxes(dist_x_axis, row=2, col=1)
-    fig.update_yaxes(dist_y_axis, row=2, col=1)
+    if relative_change:
+        fig.update_yaxes(dist_y_axis, row=2, col=1, type="log")
+    else:
+        fig.update_yaxes(dist_y_axis, row=2, col=1)
 
     fig.update_layout(
         legend=dict(

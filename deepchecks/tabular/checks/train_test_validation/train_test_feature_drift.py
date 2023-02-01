@@ -83,6 +83,11 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    relative_change: bool, default: False
+        If True, small and large categories will contribute equally to the PSI score, with only the log of the ratio
+        between the expected and actual category size being used. This is useful when we care about the relative
+        difference between the distributions, but not about the absolute difference. Usable only when
+        categorical_drift_method = "psi"
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -106,6 +111,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
+            relative_change: bool = False,
             ignore_na: bool = True,
             aggregation_method: Optional[str] = 'l2_weighted',
             n_samples: int = 100_000,
@@ -128,6 +134,11 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             )
         self.n_top_columns = n_top_columns
         self.categorical_drift_method = categorical_drift_method
+        if categorical_drift_method != 'psi' and relative_change:
+            raise DeepchecksValueError(
+                'relative_change can only be used with categorical_drift_method = "psi"'
+            )
+        self.relative_change = relative_change
         self.ignore_na = ignore_na
         self.aggregation_method = aggregation_method
         self.n_samples = n_samples
@@ -204,6 +215,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                relative_change=self.relative_change,
                 ignore_na=self.ignore_na,
                 with_display=context.with_display,
                 dataset_names=(train_dataset.name, test_dataset.name)
@@ -232,9 +244,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 sorted_by = 'drift score'
 
             headnote = [f"""<span>
-                The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the features, sorted
-                by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
+                TESTTEST
             </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
                         'If available, the plot titles also show the feature importance (FI) rank']
 
