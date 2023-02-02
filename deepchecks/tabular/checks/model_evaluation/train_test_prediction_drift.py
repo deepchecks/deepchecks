@@ -135,8 +135,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.aggregation_method = aggregation_method
         self.n_samples = n_samples
         self.random_state = random_state
-        if self.aggregation_method not in ('weighted', 'mean', 'none', 'max'):
-            raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "none", "max"')
+        if self.aggregation_method not in ('weighted', 'mean', 'none', None, 'max'):
+            raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "max", None')
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
