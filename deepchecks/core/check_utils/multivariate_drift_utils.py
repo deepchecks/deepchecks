@@ -9,11 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing common MultivariateDrift Check (domain classifier drift) utils."""
+import os
+import time
 import warnings
 from typing import Container, List, Tuple, Dict
 
 import pandas as pd
 import plotly.graph_objects as go
+from PyNomaly import loop
+from tensorboard.plugins import projector
+
+from deepchecks.utils import gower_distance
 
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
@@ -35,6 +41,104 @@ from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 import numpy as np
+import tensorflow as tf
+
+
+def create_outlier_display(text: pd.Series, embeddings: np.ndarray,
+                             path: str, nearest_neighbors_percent: float = 0.01, extent_parameter: int = 3,
+                             sample_size: int = 10000,
+                             indexes_to_highlight: Dict[str, List[int]] = None):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    start_time = time.time()
+    text_dataframe = pd.DataFrame(text)
+    embeddings_df = pd.DataFrame(embeddings, index=text_dataframe.index)
+    num_neighbors = max(int(nearest_neighbors_percent * len(embeddings_df)), 10)
+
+    # Calculate outlier probability score using loop algorithm.
+    m = loop.LocalOutlierProbability(embeddings_df, extent=extent_parameter, n_neighbors=num_neighbors).fit()
+    prob_vector = np.asarray(m.local_outlier_probabilities, dtype=float)
+    # if we couldn't calculate the outlier probability score for a sample we treat it as not an outlier.
+    text_dataframe['outlier probability'] = prob_vector
+
+    text_dataframe['is outlier'] = ['outlier' if x > text_dataframe['outlier probability'].quantile(.95) else
+                                    'non outlier' for x in text_dataframe['outlier probability']]
+
+    text_dataframe['highlight criteria'] = [_can_highlight_value(x, indexes_to_highlight) for x in text_dataframe.index]
+    # make text be the first column
+    text_dataframe = text_dataframe[['text'] + [col for col in text_dataframe.columns if col != 'text']]
+    print('finished calculating outlier probability score after {} seconds'.format(time.time() - start_time))
+
+    # sample and save to file
+    text_dataframe.to_csv(os.path.join(path, "outlier_metadata.tsv"), sep="\t")
+
+    # save_embeddings_to_file
+    if not os.path.exists(os.path.join(path, "embedding.ckpt-1.index")):
+        checkpoint = tf.train.Checkpoint(embedding=tf.Variable(embeddings_df))
+        checkpoint.save(os.path.join(path, "embedding.ckpt"))
+
+def _can_highlight_value(index, indexes_to_highlight: Dict[str, List[int]]):
+    for key, value in indexes_to_highlight.items():
+        if index in value:
+            return key
+    return "other"
+
+def create_embedding_display(train_text: pd.Series, test_text: pd.Series,
+                             train_embeddings: np.ndarray, test_embeddings: np.ndarray,
+                             path: str, sample_size: int = 10000,
+                             indexes_to_highlight: Dict[str, List[int]] = None):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    train_dataframe, test_dataframe = pd.DataFrame(train_text), pd.DataFrame(test_text)
+    train_embeddings = pd.DataFrame(train_embeddings, index = train_dataframe.index)
+    test_embeddings = pd.DataFrame(test_embeddings, index = test_dataframe.index)
+
+    all_embeddings = pd.concat([train_embeddings, test_embeddings], ignore_index=True)
+    all_embeddings_labels = [0] * len(train_embeddings) + [1] * len(test_embeddings)
+    x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(all_embeddings), all_embeddings_labels,
+                                                        stratify=all_embeddings_labels, test_size=0.2)
+
+    # train a model to disguise between train and test samples
+    domain_classifier = GradientBoostingClassifier(max_depth=3, subsample=0.8, min_samples_split=50, n_estimators=30)
+    domain_classifier.fit(x_train, y_train)
+
+    # calculate feature importance of domain_classifier
+    top_fi = pd.Series(domain_classifier.feature_importances_, index=x_train.columns)\
+        .sort_values(ascending=False).head(30)
+
+    domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
+    print('domain_classifier_auc on train is ', roc_auc_score(y_train, domain_classifier.predict_proba(x_train)[:, 1]))
+    print('domain_classifier_auc on test is ', domain_classifier_auc)
+    drift_score = auc_to_drift_score(domain_classifier_auc)
+    print(f'Domain classifier drift score is {drift_score:.2f}')
+    train_dataframe['domain classifier proba'] = domain_classifier.predict_proba(train_embeddings)[:, 1]
+    test_dataframe['domain classifier proba'] = domain_classifier.predict_proba(test_embeddings)[:, 1]
+
+
+    # create metadata file for display
+    train_dataframe['sample origin'] = 'train'
+    test_dataframe['sample origin'] = 'test'
+    all_data = pd.concat([train_dataframe, test_dataframe])
+
+    lower_limit, upper_limit = all_data['domain classifier proba'].quantile(.05), all_data['domain classifier proba'].quantile(.95)
+    all_data['drifted_group'] = ['native to train' if x < lower_limit else 'native to test' if x > upper_limit
+        else 'common to both' for x in all_data['domain classifier proba']]
+
+    all_data['domain classifier proba'] = all_data['domain classifier proba'].round(2)
+    all_data['highlight criteria'] = [_can_highlight_value(x, indexes_to_highlight) for x in all_data.index]
+    # make text be the first column
+    all_data = all_data[['text'] + [col for col in all_data.columns if col != 'text']]
+
+    #sample and save to file
+    all_data.to_csv(os.path.join(path,"drift_metadata.tsv"), sep="\t")
+
+    # save_embeddings_to_file
+    if not os.path.exists(os.path.join(path, "embedding.ckpt-1.index")):
+        checkpoint = tf.train.Checkpoint(embedding=tf.Variable(all_embeddings.iloc[:, top_fi.index.values]))
+        checkpoint.save(os.path.join(path, "embedding.ckpt"))
+
+
 
 
 def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,

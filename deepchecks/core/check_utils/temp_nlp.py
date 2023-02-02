@@ -67,11 +67,7 @@ train_embedding = embedding[train_drifted.index, :]
 test_embedding = embedding[test_drifted.index, :]
 
 
-ds_train = TextData(raw_text=train_drifted['text'].values.tolist(), label=train_drifted['label'].values.tolist(),
-                    task_type='text_classification', index=train_drifted.index)
-ds_test = TextData(raw_text=test_drifted['text'].values.tolist(), label=test_drifted['label'].values.tolist(),
-                   task_type='text_classification', index=test_drifted.index)
+from deepchecks.core.check_utils.multivariate_drift_utils import create_embedding_display
 
-check = TextEmbeddingsDrift(min_meaningful_drift_score=0, min_feature_importance=0.02,
-                            train_indexes_to_highlight=drifted_indexes_train, test_indexes_to_highlight=drifted_indexes_test)
-result = check.run(train_dataset=ds_train, test_dataset=ds_test, train_embeddings=train_embedding, test_embeddings=test_embedding)
+path = '/Users/nadav/Desktop/Experiments/DeepChecks_Package/NLP/logs/tweet-example/'
+create_embedding_display(train_drifted, test_drifted, train_embedding, test_embedding, path=path)
