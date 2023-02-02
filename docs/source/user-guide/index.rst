@@ -19,6 +19,7 @@ General
     general/customizations/examples/index
     general/metrics_guide
     general/drift_guide
+    general/ci_cd
 
 Tabular
 -------

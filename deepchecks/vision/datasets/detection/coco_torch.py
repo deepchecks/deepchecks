@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -37,7 +37,6 @@ from deepchecks.vision.vision_data import BatchOutputFormat, VisionData
 
 __all__ = ['load_dataset', 'load_model', 'CocoDataset']
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/38619935'
 LOCAL_MODEL_PATH = COCO_DIR / 'yolov5-6.1'
 
 

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -244,7 +244,7 @@ def test_l2_aggregation_drift_with_model(drifted_data_and_model):
 def test_none_aggregation_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method='none')
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', aggregation_method=None)
 
     # Act
     aggregated_result = check.run(train, test, model).reduce_output()

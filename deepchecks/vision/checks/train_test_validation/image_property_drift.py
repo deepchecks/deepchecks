@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -77,7 +77,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
 
     min_samples: int, default: 30
         Minimum number of samples needed in each dataset needed to calculate the drift.
-    aggregation_method: str, default: 'max'
+    aggregation_method: t.Optional[str], default: 'max'
         {property_aggregation_method_argument:2*indent}
     {additional_check_init_params:2*indent}
     """
@@ -91,7 +91,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             min_samples: int = 30,
-            aggregation_method: str = 'max',
+            aggregation_method: t.Optional[str] = 'max',
             n_samples: t.Optional[int] = 10000,
             **kwargs
     ):
