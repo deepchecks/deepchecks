@@ -37,7 +37,7 @@ with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
 
 
 project = 'Deepchecks'
-copyright = '2021-2022, Deepchecks'
+copyright = '2021-2023, Deepchecks'
 author = 'Deepchecks'
 os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
