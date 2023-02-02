@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -100,7 +100,7 @@ class ReduceFeatureMixin(ReduceMixin):
     def feature_reduce(aggregation_method: str, value_per_feature: pd.Series, feature_importance: Optional[np.array],
                        score_name: str) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        if aggregation_method == 'none':
+        if aggregation_method is None or aggregation_method == 'none':
             return dict(value_per_feature)
         elif aggregation_method == 'mean':
             return {str('Mean ' + score_name): np.mean(value_per_feature)}
@@ -134,7 +134,7 @@ class ReducePropertyMixin(ReduceMixin):
     @staticmethod
     def property_reduce(aggregation_method: str, value_per_property: pd.Series, score_name: str) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        if aggregation_method == 'none':
+        if aggregation_method is None or aggregation_method == 'none':
             return dict(value_per_property)
         elif aggregation_method == 'mean':
             return {str('Mean ' + score_name): np.mean(value_per_property)}

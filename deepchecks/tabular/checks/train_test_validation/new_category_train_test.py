@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The new category train test check module."""
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -39,7 +39,7 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
         maximum features with new categories to show
     max_new_categories_to_show : int , default: 5
         maximum new categories to show in feature
-    aggregation_method: str, default: 'max'
+    aggregation_method: Optional[str], default: 'max'
         {feature_aggregation_method_argument:2*indent}
     n_samples : int , default: 10_000_000
         number of samples to use for this check.
@@ -53,7 +53,7 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             max_features_to_show: int = 5,
             max_new_categories_to_show: int = 5,
-            aggregation_method='max',
+            aggregation_method: Optional[str] = 'max',
             n_samples: int = 10_000_000,
             random_state: int = 42,
             **kwargs

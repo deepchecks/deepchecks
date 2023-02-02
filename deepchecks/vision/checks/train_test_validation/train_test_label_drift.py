@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -97,7 +97,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
     categorical_drift_method : str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
-    aggregation_method: str, default: 'none'
+    aggregation_method: Optional[str], default: None
         {property_aggregation_method_argument:2*indent}
     {additional_check_init_params:2*indent}
     """
@@ -111,7 +111,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
-            aggregation_method: str = 'none',
+            aggregation_method: Optional[str] = None,
             n_samples: Optional[int] = 10000,
             **kwargs
     ):
