@@ -62,20 +62,31 @@ containing hand chosen checks and
 :doc:`conditions</user-guide/general/customizations/plot_configure_check_conditions>`
 in order to cater to the specific needs of the project.
 
-Integrations
-============
-Deepchecks can be used in any CI/CD platform, in this guide we will show how to integrate with Airflow and GitHub
-Actions.
-
 Airflow Integration
--------------------
+===================
 
 .. image:: /_static/images/cicd/airflow.png
    :alt: Airflow DAG example
    :align: center
 
+Airflow Quickstart
+-------------------
+
 Apache Airflow is an open-source workflow management system which is commonly used to automate data processing
 pipelines.
+
+If you are new to Airflow, you can get it up and running quickly with those simplified steps:
+1. Run `pip install apache-airflow`
+2. Run `airflow standalone`. This will boostrap a local Airflow deployment which is good for testing, but not intended
+for production
+3. Under your home directory, insert your DAG (python file) inside the directory `~/airflow/dags`
+
+For deeper explanations about installing and operating airflow see their
+`docs <https://airflow.apache.org/docs/apache-airflow/stable/start.html>`_
+
+Airflow With Deepchecks
+-----------------------
+
 In the following example we will use S3 to load the training data and to store our suite results. We define the first
 2 tasks as short circuit tasks, which means the rest of the downstream tasks will be skipped if the return value of
 them is false. This is useful in cases where we want to stop the pipeline if the data validation failed.
@@ -93,9 +104,24 @@ We can access the result of the pipeline in our S3 bucket:
 
 
 GitHub Actions Integration
+==========================
+
+GitHub Actions Quickstart
 --------------------------
+
 GitHub Actions is a service that allows you to run automated workflows, which can be triggered by events such as
 pushing to a repository or creating a pull request.
+
+If you are new to GitHub Actions, you can get it up and running quickly with those simplified steps:
+1. Have your project repository in `github.com`
+2. Add the python files with your ci/cd logic to the repository
+3. Add the yaml below in `.github/workflows` directory and push to github
+
+For deeper explanations about working with GitHub Actions see their
+`docs <https://docs.github.com/en/actions/quickstart>`_
+
+GitHub Actions With Deepchecks
+------------------------------
 
 We will use the same functions as defined in airflow above with slight changes, and run them in the GitHub Actions
 steps on every push to the `main` branch. Note that we might want to stop the pipeline when a suite fails.
