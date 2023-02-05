@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Module for html displayable result."""
 import io
 import typing as t
 
@@ -17,6 +28,7 @@ class HtmlDisplayableResult(DisplayableResult):
 
     @property
     def widget_serializer(self) -> WidgetSerializer[t.Any]:
+        """Return widget serializer."""
         class _WidgetSerializer(WidgetSerializer[t.Any]):
             def serialize(self, **kwargs) -> Widget:  # pylint: disable=unused-argument
                 return normalize_widget_style(VBox(children=[HTML(self.value)]))
@@ -25,6 +37,7 @@ class HtmlDisplayableResult(DisplayableResult):
 
     @property
     def ipython_serializer(self) -> IPythonSerializer[t.Any]:
+        """Return IPython serializer."""
         class _IPythonSerializer(IPythonSerializer[t.Any]):
             def serialize(self, **kwargs) -> t.Any:  # pylint: disable=unused-argument
                 return HTML(self.value)
@@ -33,6 +46,7 @@ class HtmlDisplayableResult(DisplayableResult):
 
     @property
     def html_serializer(self) -> HtmlSerializer[t.Any]:
+        """Return HTML serializer."""
         class _HtmlSerializer(HtmlSerializer[t.Any]):
             def serialize(self, **kwargs) -> str:  # pylint: disable=unused-argument
                 return self.value
@@ -40,15 +54,19 @@ class HtmlDisplayableResult(DisplayableResult):
         return _HtmlSerializer(self.html)
 
     def to_widget(self, **kwargs) -> Widget:
+        """Return the widget representation of the result."""
         return self.widget_serializer.serialize(**kwargs)
 
     def to_json(self, **kwargs):
+        """Not implemented."""
         raise NotImplementedError()
 
     def to_wandb(self, **kwargs):
+        """Not implemented."""
         raise NotImplementedError()
 
     def save_as_html(self, file: t.Union[str, io.TextIOWrapper, None] = None, **kwargs) -> t.Optional[str]:
+        """Save the html to a file."""
         if file is None:
             file = 'output.html'
         if isinstance(file, str):
