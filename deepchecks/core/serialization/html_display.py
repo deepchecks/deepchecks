@@ -10,6 +10,7 @@ from deepchecks.utils.strings import create_new_file_name
 
 
 class HtmlDisplayableResult(DisplayableResult):
+    """Class which accepts html string and support displaying it in different environments."""
 
     def __init__(self, html: str):
         self.html = html
@@ -17,7 +18,7 @@ class HtmlDisplayableResult(DisplayableResult):
     @property
     def widget_serializer(self) -> WidgetSerializer[t.Any]:
         class _WidgetSerializer(WidgetSerializer[t.Any]):
-            def serialize(self, **kwargs) -> Widget:
+            def serialize(self, **kwargs) -> Widget:  # pylint: disable=unused-argument
                 return normalize_widget_style(VBox(children=[HTML(self.value)]))
 
         return _WidgetSerializer(self.html)
@@ -25,7 +26,7 @@ class HtmlDisplayableResult(DisplayableResult):
     @property
     def ipython_serializer(self) -> IPythonSerializer[t.Any]:
         class _IPythonSerializer(IPythonSerializer[t.Any]):
-            def serialize(self, **kwargs) -> t.Any:
+            def serialize(self, **kwargs) -> t.Any:  # pylint: disable=unused-argument
                 return HTML(self.value)
 
         return _IPythonSerializer(self.html)
@@ -33,7 +34,7 @@ class HtmlDisplayableResult(DisplayableResult):
     @property
     def html_serializer(self) -> HtmlSerializer[t.Any]:
         class _HtmlSerializer(HtmlSerializer[t.Any]):
-            def serialize(self, **kwargs) -> str:
+            def serialize(self, **kwargs) -> str:  # pylint: disable=unused-argument
                 return self.value
 
         return _HtmlSerializer(self.html)
@@ -41,10 +42,10 @@ class HtmlDisplayableResult(DisplayableResult):
     def to_widget(self, **kwargs) -> Widget:
         return self.widget_serializer.serialize(**kwargs)
 
-    def to_json(self, **kwargs) -> str:
+    def to_json(self, **kwargs):
         raise NotImplementedError()
 
-    def to_wandb(self, **kwargs) -> 'WBValue':
+    def to_wandb(self, **kwargs):
         raise NotImplementedError()
 
     def save_as_html(self, file: t.Union[str, io.TextIOWrapper, None] = None, **kwargs) -> t.Optional[str]:
