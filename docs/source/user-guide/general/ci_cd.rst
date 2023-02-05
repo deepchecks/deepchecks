@@ -78,7 +78,7 @@ pipelines.
 If you are new to Airflow, you can get it up and running quickly with those simplified steps:
 
 1. Run `pip install apache-airflow`
-2. Run `airflow standalone`. This will boostrap a local Airflow deployment which is good for testing, but not intended for production
+2. Run `airflow standalone`. This will bootstrap a local Airflow deployment which is good for testing, but not intended for production
 3. Under your home directory, insert your DAG (python file) inside the directory `~/airflow/dags`
 
 For deeper explanations about installing and operating airflow see their
