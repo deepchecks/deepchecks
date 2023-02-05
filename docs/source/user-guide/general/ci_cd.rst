@@ -16,32 +16,31 @@ CI/CD In Machine Learning
 ==========================
 
 CI/CD is a software engineering concept that is used to streamline the process of building, testing and deploying
-software products. These can be made more trustworthy and efficient, and help improve the r&d processes,
+software products. These can be made more trustworthy and efficient, and help improve the R&D processes,
 by adding automated steps to the development and deployment lifecycle.
 For ML models, CI/CD concepts can be utilized to streamline the process of model training
-(and retraining), data and model validation and model deployment.
-
-For example, CI/CD in machine learning can be used in different steps such as:
+(and retraining), data and model validation and model deployment:
 
 * | **Data integrity validation**: When the data used for training is collected via automatic processes and pipelines,
-  the data may contain errors and problems we haven't encountered before, either due to a bug in the
-  data processing pipeline or due to a change in the data source.
+    the data may contain errors and problems we haven't encountered before, either due to a bug in the
+    data processing pipeline or due to a change in the data source.
   | Examples of such problems include:
-  :doc:`conflicting labels between similar samples</checks_gallery/tabular/data_integrity/plot_conflicting_labels>`,
-  :doc:`high correlation between features</checks_gallery/tabular/data_integrity/plot_feature_feature_correlation>`,
-  :doc:`spelling errors in categorical features</checks_gallery/tabular/data_integrity/plot_string_mismatch>`,
-  and more.
+    :doc:`conflicting labels between similar samples</checks_gallery/tabular/data_integrity/plot_conflicting_labels>`,
+    :doc:`high correlation between features</checks_gallery/tabular/data_integrity/plot_feature_feature_correlation>`,
+    :doc:`spelling errors in categorical features</checks_gallery/tabular/data_integrity/plot_string_mismatch>`,
+    and more.
 * | **Datasets comparison**: In many cases it's useful to make sure that there isn't any leakage or drift between two
-  datasets. For example, when doing a time based split of the data there is a risk that the datasets will have
-  significant differences, or when doing a periodic model retraining we might want to compare the new dataset
-  to the previous one.
+    datasets. For example, when doing a time based split of the data there is a risk that the datasets will have
+    significant differences, or when doing a periodic model retraining we might want to compare the new dataset
+    to the previous one.
   | Examples of checks that can be used are:
-  :doc:`drift between features</checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`,
-  :doc:`change in correlation between features and label</checks_gallery/tabular/train_test_validation/plot_feature_label_correlation_change>`,
-  :doc:`duplicate samples between the datasets</checks_gallery/tabular/train_test_validation/plot_train_test_samples_mix>`,
-  and more.
+    :doc:`drift between features</checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`,
+    :doc:`change in correlation between features and label</checks_gallery/tabular/train_test_validation/plot_feature_label_correlation_change>`,
+    :doc:`duplicate samples between the datasets</checks_gallery/tabular/train_test_validation/plot_train_test_samples_mix>`,
+    and more.
 * **Model training**: To automate the model's training on a new (preferrably validated) training dataset.
-* **Model validation**: The trained model is evaluated on test data, testing for performance, weak segments and more:
+* **Model validation**: The trained model is evaluated on test data, testing for performance, weak segments and more
+  sophisticated checks such as
   :doc:`performance compared to naive model</checks_gallery/tabular/model_evaluation/plot_simple_model_comparison>`,
   :doc:`calibration score for each class</checks_gallery/tabular/model_evaluation/plot_calibration_score>`,
   etc.
@@ -84,7 +83,7 @@ If you are new to Airflow, you can get it up and running quickly with the follow
 2. Run ``airflow standalone``. This will bootstrap a local Airflow deployment which is good for testing, but not intended for production
 3. Under your home directory, insert your DAG (python file) inside the directory ``~/airflow/dags``
 
-For deeper explanations about installing and operating airflow see their
+For a more elaborate explanation about installing and operating airflow see their
 `docs <https://airflow.apache.org/docs/apache-airflow/stable/start.html>`__.
 
 Airflow With Deepchecks
