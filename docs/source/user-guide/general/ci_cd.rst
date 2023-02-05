@@ -76,9 +76,9 @@ Apache Airflow is an open-source workflow management system which is commonly us
 pipelines.
 
 If you are new to Airflow, you can get it up and running quickly with those simplified steps:
+
 1. Run `pip install apache-airflow`
-2. Run `airflow standalone`. This will boostrap a local Airflow deployment which is good for testing, but not intended
-for production
+2. Run `airflow standalone`. This will boostrap a local Airflow deployment which is good for testing, but not intended for production
 3. Under your home directory, insert your DAG (python file) inside the directory `~/airflow/dags`
 
 For deeper explanations about installing and operating airflow see their
@@ -113,6 +113,7 @@ GitHub Actions is a service that allows you to run automated workflows, which ca
 pushing to a repository or creating a pull request.
 
 If you are new to GitHub Actions, you can get it up and running quickly with those simplified steps:
+
 1. Have your project repository in `github.com`
 2. Add the python files with your ci/cd logic to the repository
 3. Add the yaml below in `.github/workflows` directory and push to github
