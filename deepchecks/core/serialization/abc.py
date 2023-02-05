@@ -36,7 +36,8 @@ __all__ = [
     'WidgetSerializer',
     'WandbSerializer',
     'ABCDisplayItemsHandler',
-    'JunitSerializer'
+    'JunitSerializer',
+    'IPythonSerializer'
 ]
 
 

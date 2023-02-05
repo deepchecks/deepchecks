@@ -13,11 +13,10 @@ import typing as t
 from collections import defaultdict
 
 import numpy as np
-from IPython.core.display import display
-from ipywidgets import HTML
 from typing_extensions import Literal
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
+from deepchecks.core.serialization.html_display import HtmlDisplayableResult
 from deepchecks.utils.ipython import is_notebook, is_sphinx
 from deepchecks.vision.utils.detection_formatters import DEFAULT_PREDICTION_FORMAT
 from deepchecks.vision.utils.image_functions import draw_bboxes, draw_masks, prepare_thumbnail, random_color_dict
@@ -355,11 +354,4 @@ class VisionData:
             """
         html += '</div>'
 
-        if is_notebook():
-            display(HTML(html))
-        else:
-            class TempSphinx:
-                def _repr_html_(self):
-                    return html
-
-            return TempSphinx()
+        return HtmlDisplayableResult(html)
