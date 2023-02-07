@@ -8,4 +8,4 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from tests.nlp.nlp_conftest import *
+from tests.nlp.conftest import *

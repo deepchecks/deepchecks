@@ -10,7 +10,7 @@
 #
 """Test for the default suites"""
 from deepchecks.nlp.suites import full_suite
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 
 
 def test_full_suite(movie_reviews_data):
