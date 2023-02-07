@@ -23,13 +23,14 @@ import pandas as pd
 from deepchecks.nlp.text_data import TextData
 
 
-def get_default_embeddings(dataset: TextData, model: str = 'miniLM', file_path: str = 'embeddings.csv') -> pd.DataFrame:
+def get_default_embeddings(text: pd.Series, model: str = 'miniLM', file_path: str = 'embeddings.csv') -> pd.DataFrame:
     """
     Get default embeddings for the dataset.
 
     Parameters
     ----------
-    dataset
+    text : pd.Series
+        The text to get embeddings for.
     model : str, default 'miniLM'
         The type of embeddings to return. Can be either 'miniLM' or 'open_ai'.
         For 'open_ai' option, the model used is 'text-embedding-ada-002' and requires to first set an open ai api key
@@ -52,8 +53,7 @@ def get_default_embeddings(dataset: TextData, model: str = 'miniLM', file_path: 
             ) from e
 
         model = sentence_transformers.SentenceTransformer('all-MiniLM-L6-v2')
-        embeddings = model.encode(dataset.text)
-        embeddings = pd.DataFrame(embeddings, index=dataset.index)
+        embeddings = model.encode(text)
     elif model == 'open_ai':
         try:
             import openai
@@ -71,14 +71,15 @@ def get_default_embeddings(dataset: TextData, model: str = 'miniLM', file_path: 
 
         batch_size = 500
         embeddings = []
-        text = [clean_special_chars(x) for x in dataset.text]
-        for idx, sub_list in enumerate([text[x:x+batch_size] for x in range(0, len(text), batch_size)]):
+        clean_text = [clean_special_chars(x) for x in text]
+        for idx, sub_list in enumerate([clean_text[x:x+batch_size] for x in range(0, len(text), batch_size)]):
             open_ai_response = _get_embedding_with_backoff(sub_list)
             for x in open_ai_response:
                 embeddings.append(x['embedding'])
             print(f'Finished batch {idx+1} out of {len(text)//batch_size + 1}')
-        embeddings = pd.DataFrame(embeddings, index=dataset.index)
-
+    else:
+        raise ValueError(f'Unknown model type: {model}')
+    embeddings = pd.DataFrame(embeddings, index=text.index)
     if file_path:
         embeddings.to_csv(file_path, index=True)
     return embeddings

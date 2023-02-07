@@ -19,6 +19,7 @@ import plotly.graph_objects as go
 from PyNomaly import loop
 from tensorboard.plugins import projector
 
+from deepchecks.nlp.utils.embeddings import clean_special_chars
 from deepchecks.utils import gower_distance
 
 with warnings.catch_warnings():
@@ -46,36 +47,52 @@ import tensorflow as tf
 
 def create_outlier_display(text: pd.Series, embeddings: np.ndarray,
                              path: str, nearest_neighbors_percent: float = 0.01, extent_parameter: int = 3,
-                             sample_size: int = 10000,
+                             sample_size: int = 10000, verbose: bool = False,
                              indexes_to_highlight: Dict[str, List[int]] = None):
     if not os.path.exists(path):
         os.makedirs(path)
     start_time = time.time()
     text_dataframe = pd.DataFrame(text)
+    text_dataframe.columns = ['text']
     embeddings_df = pd.DataFrame(embeddings, index=text_dataframe.index)
     num_neighbors = max(int(nearest_neighbors_percent * len(embeddings_df)), 10)
+
+    # from umap import UMAP
+    # embeddings_df = UMAP(init='random', random_state=42, n_components=3).fit_transform(embeddings_df)
 
     # Calculate outlier probability score using loop algorithm.
     m = loop.LocalOutlierProbability(embeddings_df, extent=extent_parameter, n_neighbors=num_neighbors).fit()
     prob_vector = np.asarray(m.local_outlier_probabilities, dtype=float)
-    # if we couldn't calculate the outlier probability score for a sample we treat it as not an outlier.
     text_dataframe['outlier probability'] = prob_vector
 
-    text_dataframe['is outlier'] = ['outlier' if x > text_dataframe['outlier probability'].quantile(.95) else
-                                    'non outlier' for x in text_dataframe['outlier probability']]
 
-    text_dataframe['highlight criteria'] = [_can_highlight_value(x, indexes_to_highlight) for x in text_dataframe.index]
+    # Calculate outlier probability score using IsoForest algorithm.
+    # from sklearn.ensemble import IsolationForest
+    # clf = IsolationForest()
+    # clf.fit(embeddings_df)
+    # prob_vector = np.asarray(clf.decision_function(embeddings_df), dtype=float)
+    # text_dataframe['outlier probability'] = prob_vector
+
+    if indexes_to_highlight is not None:
+        text_dataframe['highlight criteria'] = [_can_highlight_value(x, indexes_to_highlight) for x in text_dataframe.index]
     # make text be the first column
+    text_dataframe['text'] = text_dataframe['text'].apply(clean_special_chars)
     text_dataframe = text_dataframe[['text'] + [col for col in text_dataframe.columns if col != 'text']]
-    print('finished calculating outlier probability score after {} seconds'.format(time.time() - start_time))
+    if verbose:
+        print('finished calculating outlier probability score after {} seconds'.format(time.time() - start_time))
+        print(f'Avg outlier score is {np.mean(prob_vector)}')
+        if indexes_to_highlight is not None:
+            print(f'Avg outlier score in real outlier samples is {np.mean(prob_vector[text_dataframe.index.isin(indexes_to_highlight["real outlier samples"])])}')
+            # true_outlier_found = text_dataframe[(text_dataframe['highlight criteria'] == 'real outlier samples') & (text_dataframe['is outlier'] == 'outlier')]
+            # print(f'Percent of real outlier in detected outliers is {len(true_outlier_found) / len(text_dataframe[text_dataframe["is outlier"] == "outlier"])}')
 
-    # sample and save to file
+    # save to file
     text_dataframe.to_csv(os.path.join(path, "outlier_metadata.tsv"), sep="\t")
 
     # save_embeddings_to_file
-    if not os.path.exists(os.path.join(path, "embedding.ckpt-1.index")):
-        checkpoint = tf.train.Checkpoint(embedding=tf.Variable(embeddings_df))
-        checkpoint.save(os.path.join(path, "embedding.ckpt"))
+    # if not os.path.exists(os.path.join(path, "embedding.ckpt-1.index")):
+    checkpoint = tf.train.Checkpoint(outlier_embedding=tf.Variable(embeddings_df))
+    checkpoint.save(os.path.join(path, "outlier_embedding.ckpt"))
 
 def _can_highlight_value(index, indexes_to_highlight: Dict[str, List[int]]):
     for key, value in indexes_to_highlight.items():
@@ -85,12 +102,13 @@ def _can_highlight_value(index, indexes_to_highlight: Dict[str, List[int]]):
 
 def create_embedding_display(train_text: pd.Series, test_text: pd.Series,
                              train_embeddings: np.ndarray, test_embeddings: np.ndarray,
-                             path: str, sample_size: int = 10000,
+                             path: str, sample_size: int = 10000, verbose: bool = False,
                              indexes_to_highlight: Dict[str, List[int]] = None):
     if not os.path.exists(path):
         os.makedirs(path)
 
     train_dataframe, test_dataframe = pd.DataFrame(train_text), pd.DataFrame(test_text)
+    train_dataframe.columns, test_dataframe.columns = ['text'], ['text']
     train_embeddings = pd.DataFrame(train_embeddings, index = train_dataframe.index)
     test_embeddings = pd.DataFrame(test_embeddings, index = test_dataframe.index)
 
@@ -105,12 +123,19 @@ def create_embedding_display(train_text: pd.Series, test_text: pd.Series,
 
     # calculate feature importance of domain_classifier
     top_fi = pd.Series(domain_classifier.feature_importances_, index=x_train.columns)\
-        .sort_values(ascending=False).head(30)
+        .sort_values(ascending=False)
+    for index, value in enumerate(top_fi):
+        if value < sum(top_fi.head(index)) * 0.02 or index >= 50:
+            top_fi = top_fi.head(index)
+            break
+
 
     domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
-    print('domain_classifier_auc on train is ', roc_auc_score(y_train, domain_classifier.predict_proba(x_train)[:, 1]))
-    print('domain_classifier_auc on test is ', domain_classifier_auc)
     drift_score = auc_to_drift_score(domain_classifier_auc)
+    if verbose:
+        print(f'Using {len(top_fi)} embeddings features for display')
+        print('domain_classifier_auc on train is ', roc_auc_score(y_train, domain_classifier.predict_proba(x_train)[:, 1]))
+        print('domain_classifier_auc on test is ', domain_classifier_auc)
     print(f'Domain classifier drift score is {drift_score:.2f}')
     train_dataframe['domain classifier proba'] = domain_classifier.predict_proba(train_embeddings)[:, 1]
     test_dataframe['domain classifier proba'] = domain_classifier.predict_proba(test_embeddings)[:, 1]
@@ -126,17 +151,21 @@ def create_embedding_display(train_text: pd.Series, test_text: pd.Series,
         else 'common to both' for x in all_data['domain classifier proba']]
 
     all_data['domain classifier proba'] = all_data['domain classifier proba'].round(2)
-    all_data['highlight criteria'] = [_can_highlight_value(x, indexes_to_highlight) for x in all_data.index]
+    if indexes_to_highlight is not None:
+        all_data['highlight criteria'] = [_can_highlight_value(x, indexes_to_highlight) for x in all_data.index]
     # make text be the first column
+    all_data['text'] = all_data['text'].apply(clean_special_chars)
     all_data = all_data[['text'] + [col for col in all_data.columns if col != 'text']]
 
     #sample and save to file
     all_data.to_csv(os.path.join(path,"drift_metadata.tsv"), sep="\t")
 
     # save_embeddings_to_file
-    if not os.path.exists(os.path.join(path, "embedding.ckpt-1.index")):
-        checkpoint = tf.train.Checkpoint(embedding=tf.Variable(all_embeddings.iloc[:, top_fi.index.values]))
-        checkpoint.save(os.path.join(path, "embedding.ckpt"))
+    # if not os.path.exists(os.path.join(path, "embedding.ckpt-1.index")):
+    checkpoint = tf.train.Checkpoint(drift_embeddings=tf.Variable(all_embeddings.iloc[:, top_fi.index.values]))
+    # checkpoint = tf.train.Checkpoint(drift_embeddings=tf.Variable(all_embeddings))
+    checkpoint.save(os.path.join(path, "drift_embeddings.ckpt"))
+    return all_data, all_embeddings
 
 
 
