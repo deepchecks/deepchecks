@@ -95,7 +95,7 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     Returns
     -------
     float
-        the bias-corrected Cramer's V value of the 2 distributions.
+        Cramer's V value of the 2 distributions.
 
     """
     dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
@@ -114,6 +114,8 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     n = contingency_matrix.sum().sum()
     phi2 = chi2 / n
     r, k = contingency_matrix.shape
+    # return np.sqrt(phi2 / min((k - 1), (r - 1)))
+
     phi2corr = max(0, phi2 - ((k - 1) * (r - 1)) / (n - 1))
     rcorr = r - ((r - 1) ** 2) / (n - 1)
     kcorr = k - ((k - 1) ** 2) / (n - 1)
@@ -170,8 +172,58 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
     return psi_value
 
 
+def ks_2samp(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
+    """
+    Performs the two-sample Kolmogorov-Smirnov test for goodness of fit.
+
+    This test compares the underlying continuous distributions F(x) and G(x)
+    of two independent samples.
+
+    This function is based on the ks_2samp function from scipy.stats, but it only calculates
+    the test statistic. This is useful for large datasets, where the p-value is not needed.
+
+    Also, this function assumes the alternative hypothesis is two-sided (F(x)!= G(x)).
+
+    Parameters
+    ----------
+    dist1, dist2 : array_like, 1-Dimensional
+        Two arrays of sample observations assumed to be drawn from a continuous
+        distribution, sample sizes can be different.
+
+    Returns
+    -------
+    statistic : float
+        KS statistic.
+
+
+    References
+    ----------
+    .. [1] Hodges, J.L. Jr.,  "The Significance Probability of the Smirnov
+           Two-Sample Test," Arkiv fiur Matematik, 3, No. 43 (1958), 469-86.
+    """
+    if np.ma.is_masked(dist1):
+        dist1 = dist1.compressed()
+    if np.ma.is_masked(dist2):
+        dist2 = dist2.compressed()
+    dist1 = np.sort(dist1)
+    dist2 = np.sort(dist2)
+    n1 = dist1.shape[0]
+    n2 = dist2.shape[0]
+    if min(n1, n2) == 0:
+        raise ValueError('Data passed to ks_2samp must not be empty')
+
+    data_all = np.concatenate([dist1, dist2])
+    # using searchsorted solves equal data problem
+    cdf1 = np.searchsorted(dist1, data_all, side='right') / n1
+    cdf2 = np.searchsorted(dist2, data_all, side='right') / n2
+    cddiffs = cdf1 - cdf2
+    # Ensure sign of minS is not negative.
+    minS = np.clip(-np.min(cddiffs), 0, 1)
+    maxS = np.max(cddiffs)
+    return max(minS, maxS)
+
 def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-                          margin_quantile_filter: float):
+                          margin_quantile_filter: float, emd_by_partition: bool = False) -> float:
     """
     Calculate the Earth Movers Distance (Wasserstein distance).
 
@@ -189,6 +241,9 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
+    emd_by_partition: bool, default: False
+        If True, the EMD is calculated by partitioning the data into 10 quantiles and calculating the EMD in each
+        quantile, in order to minimize the effect of extreme values. If False, the EMD is calculated on the entire data. #TODO
     Returns
     -------
     Any
@@ -205,10 +260,27 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
             f'margin_quantile_filter expected a value in range [0, 0.5), instead got {margin_quantile_filter}')
 
     if margin_quantile_filter != 0:
-        dist1_qt_min, dist1_qt_max = np.quantile(dist1, [margin_quantile_filter, 1 - margin_quantile_filter])
-        dist2_qt_min, dist2_qt_max = np.quantile(dist2, [margin_quantile_filter, 1 - margin_quantile_filter])
+        dist1_qt_min, dist1_qt_max = np.quantile(dist1, [0, 1 - margin_quantile_filter])
+        dist2_qt_min, dist2_qt_max = np.quantile(dist2, [0, 1 - margin_quantile_filter])
         dist1 = dist1[(dist1_qt_max >= dist1) & (dist1 >= dist1_qt_min)]
         dist2 = dist2[(dist2_qt_max >= dist2) & (dist2 >= dist2_qt_min)]
+
+    if emd_by_partition is True:
+        print('here in partition')
+        num_partitions = 4
+        dist1_qts = np.quantile(dist1, np.arange(0, 1, 1/num_partitions))
+        dist2_qts = np.quantile(dist2, np.arange(0, 1, 1/num_partitions))
+        emds = []
+        for i in range(len(dist1_qts) - 1):
+            curr_dist_1 = dist1[(dist1_qts[i] <= dist1) & (dist1 < dist1_qts[i + 1])]
+            # curr_dist_2 = dist2[(dist1_qts[i] <= dist2) & (dist2 < dist1_qts[i + 1])]
+            curr_dist_2 = dist2[(dist2_qts[i] <= dist2) & (dist2 < dist2_qts[i + 1])]
+            if len(curr_dist_2) == 0:
+                emds.append(1)
+            else:
+                emds.append(earth_movers_distance(dist1=curr_dist_1, dist2=curr_dist_2, margin_quantile_filter=0,
+                                               emd_by_partition=False))
+        return np.sum(emds) * 1/num_partitions
 
     val_max = np.max([np.max(dist1), np.max(dist2)])
     val_min = np.min([np.min(dist1), np.min(dist2)])
@@ -229,11 +301,13 @@ def calc_drift_and_plot(train_column: pd.Series,
                         column_type: str,
                         plot_title: Optional[str] = None,
                         margin_quantile_filter: float = 0.025,
+                        emd_by_partition: bool = False,
                         max_num_categories_for_drift: int = None,
                         min_category_size_ratio: float = 0.01,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: CategoriesSortingKind = 'largest_difference',
                         categorical_drift_method: str = 'cramer_v',
+                        numerical_drift_method: str = 'emd',
                         ignore_na: bool = True,
                         min_samples: int = 10,
                         with_display: bool = True,
@@ -258,6 +332,9 @@ def calc_drift_and_plot(train_column: pd.Series,
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
+    emd_by_partition: bool, default: False
+        If True, the EMD is calculated by partitioning the data into 10 quantiles and calculating the EMD in each
+        quantile, in order to minimize the effect of extreme values. If False, the EMD is calculated on the entire data. #TODO
     min_category_size_ratio: float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
@@ -274,6 +351,9 @@ def calc_drift_and_plot(train_column: pd.Series,
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    numerical_drift_method: str, default: "EMD"
+        decides which method to use on numerical variables. Possible values are:
+        "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -306,12 +386,19 @@ def calc_drift_and_plot(train_column: pd.Series,
                                     f'got {len(train_dist)} for train and {len(test_dist)} for test')
 
     if column_type == 'numerical':
-        scorer_name = 'Earth Mover\'s Distance'
-
         train_dist = train_dist.astype('float')
         test_dist = test_dist.astype('float')
 
-        score = earth_movers_distance(dist1=train_dist, dist2=test_dist, margin_quantile_filter=margin_quantile_filter)
+        if numerical_drift_method.lower() == 'emd':
+            scorer_name = 'Earth Mover\'s Distance'
+            score = earth_movers_distance(dist1=train_dist, dist2=test_dist, margin_quantile_filter=margin_quantile_filter,
+                                          emd_by_partition=emd_by_partition)
+        elif numerical_drift_method.lower() == 'ks':
+            scorer_name = 'Kolmogorov-Smirnov'
+            score = ks_2samp(dist1=train_dist, dist2=test_dist)
+        else:
+            raise ValueError('Expected numerical_drift_method to be one '
+                             f'of ["EMD", "KS"], received: {numerical_drift_method}')
 
         if not with_display:
             return score, scorer_name, None
@@ -331,17 +418,17 @@ def calc_drift_and_plot(train_column: pd.Series,
             score = psi(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by)
         else:
             raise ValueError('Expected categorical_drift_method to be one '
-                             f'of [cramer_v, PSI], received: {categorical_drift_method}')
+                             f'of ["cramer_v", "PSI"], received: {categorical_drift_method}')
 
         if not with_display:
             return score, scorer_name, None
 
         bar_traces, bar_x_axis, bar_y_axis = drift_score_bar_traces(score, bar_max=1)
         dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
-                                                                train_dist, test_dist, value_name, is_categorical=True,
-                                                                max_num_categories=max_num_categories_for_display,
-                                                                show_categories_by=show_categories_by,
-                                                                dataset_names=dataset_names)
+            train_dist, test_dist, value_name, is_categorical=True,
+            max_num_categories=max_num_categories_for_display,
+            show_categories_by=show_categories_by,
+            dataset_names=dataset_names)
     else:
         # Should never reach here
         raise DeepchecksValueError(f'Unsupported column type for drift: {column_type}')

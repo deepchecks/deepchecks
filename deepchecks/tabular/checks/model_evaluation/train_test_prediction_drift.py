@@ -82,6 +82,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    numerical_drift_method: str, default: "EMD"
+        decides which method to use on numerical variables. Possible values are:
+        "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -111,6 +114,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method: str = 'cramer_v',
+            numerical_drift_method: str = 'EMD',
             ignore_na: bool = True,
             aggregation_method: str = 'max',
             max_classes_to_display: int = 3,
@@ -130,6 +134,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
+        self.numerical_drift_method = numerical_drift_method
         self.ignore_na = ignore_na
         self.max_classes_to_display = max_classes_to_display
         self.aggregation_method = aggregation_method
@@ -188,6 +193,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                numerical_drift_method=self.numerical_drift_method,
                 ignore_na=self.ignore_na,
                 with_display=context.with_display,
             )

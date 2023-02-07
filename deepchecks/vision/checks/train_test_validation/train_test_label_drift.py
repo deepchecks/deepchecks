@@ -78,6 +78,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
+    emd_by_partition: bool, default: False
+        If True, the EMD calculation will be done on the partitions of the distribution, instead of the whole
+        distribution. #TODO
     min_category_size_ratio : float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
@@ -103,6 +106,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             self,
             label_properties: List[Dict[str, Any]] = None,
             margin_quantile_filter: float = 0.025,
+            emd_by_partition: bool = False,
             max_num_categories_for_drift: int = None,
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
@@ -113,6 +117,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
     ):
         super().__init__(**kwargs)
         self.margin_quantile_filter = margin_quantile_filter
+        self.emd_by_partition = emd_by_partition
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
@@ -200,6 +205,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
                 value_name=name,
                 column_type=get_column_type(output_type),
                 margin_quantile_filter=self.margin_quantile_filter,
+                emd_by_partition=self.emd_by_partition,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
@@ -245,7 +251,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
                               check_result.value.items()}
         return self.property_reduce(self.aggregation_method, pd.Series(value_per_property), 'Drift Score')
 
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.075,
                                             max_allowed_numeric_score: float = 0.075) -> 'TrainTestLabelDrift':
         """
         Add condition - require label properties drift score to be less than a certain threshold.

@@ -51,6 +51,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
+    emd_by_partition: bool, default: False
+        If True, the EMD is calculated by partitioning the data into 10 quantiles and calculating the EMD in each
+        quantile, in order to minimize the effect of extreme values. If False, the EMD is calculated on the entire data. #TODO
     min_category_size_ratio: float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
@@ -68,6 +71,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     categorical_drift_method: str, default: "cramer_v"
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    numerical_drift_method: str, default: "EMD"
+        decides which method to use on numerical variables. Possible values are:
+        "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
     ignore_na: bool, default False
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -80,11 +86,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     def __init__(
             self,
             margin_quantile_filter: float = 0.025,
+            emd_by_partition: bool = False,
             max_num_categories_for_drift: int = None,
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             categorical_drift_method='cramer_v',
+            numerical_drift_method='EMD',
             ignore_na: bool = False,
             n_samples: int = 100_000,
             random_state: int = 42,
@@ -92,11 +100,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     ):
         super().__init__(**kwargs)
         self.margin_quantile_filter = margin_quantile_filter
+        self.emd_by_partition = emd_by_partition
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
+        self.numerical_drift_method = numerical_drift_method
         self.ignore_na = ignore_na
         self.n_samples = n_samples
         self.random_state = random_state
@@ -119,11 +129,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             value_name=train_dataset.label_name,
             column_type='categorical' if context.task_type != TaskType.REGRESSION else 'numerical',
             margin_quantile_filter=self.margin_quantile_filter,
+            emd_by_partition=self.emd_by_partition,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             categorical_drift_method=self.categorical_drift_method,
+            numerical_drift_method=self.numerical_drift_method,
             ignore_na=self.ignore_na,
             with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name)
@@ -149,7 +161,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         """Return True if the check reduce_output is better when it is greater."""
         return False
 
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.1,
                                             max_allowed_numeric_score: float = 0.1):
         """
         Add condition - require drift score to be less than the threshold.
