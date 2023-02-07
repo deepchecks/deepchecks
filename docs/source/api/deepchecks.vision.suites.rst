@@ -15,4 +15,3 @@ suites
     train_test_validation
     model_evaluation
     full_suite
-    integrity_validation

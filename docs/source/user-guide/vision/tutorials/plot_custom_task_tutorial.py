@@ -7,7 +7,7 @@ Computer vision is an umbrella term for a wide spectrum of objectives models are
 on the structure of the data and the possible actions on it.
 
 The first step before running any Deepchecks checks is to create an implementation of
-:class:`VisionData <vision_data.VisionData>`. Each implementation represents and standardize a computer vision task
+:class:`deepchecks.vision.vision_data.vision_data.VisionData`. Each implementation represents and standardize a computer vision task
 and allows to run a more complex checks which relates to the given task's characteristics. There are default
 base classes for a few known tasks like classification, object detection, and semantic segmentation however not all
 tasks have a base implementation, meaning you will have to create your own task.
@@ -68,13 +68,7 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
     TRAIN_FRACTION = 0.5
 
-    def __init__(
-            self,
-            root: str,
-            name: str,
-            train: bool = True,
-            transforms: t.Optional[t.Callable] = None,
-    ) -> None:
+    def __init__(self, root: str, name: str, train: bool = True, transforms: t.Optional[t.Callable] = None, ) -> None:
         super().__init__(root, transforms=transforms)
 
         self.train = train
@@ -107,7 +101,6 @@ class CocoInstanceSegmentationDataset(VisionDataset):
         label_file = self.labels[idx]
 
         masks = []
-        classes = []
         if label_file is not None:
             for label_str in label_file.open('r').read().strip().splitlines():
                 label = np.array(label_str.split(), dtype=np.float32)
@@ -119,7 +112,6 @@ class CocoInstanceSegmentationDataset(VisionDataset):
                 ImageDraw.Draw(mask).polygon(coordinates, outline=1, fill=1)
                 # Add to list
                 masks.append(np.array(mask, dtype=bool))
-                classes.append(class_id)
 
         if self.transforms is not None:
             # Albumentations accepts images as numpy
@@ -134,7 +126,7 @@ class CocoInstanceSegmentationDataset(VisionDataset):
             else:
                 masks = torch.empty((0, 3))
 
-        return image, classes, masks
+        return image, masks
 
     def __len__(self):
         return len(self.images)
@@ -149,11 +141,7 @@ class CocoInstanceSegmentationDataset(VisionDataset):
             url = 'https://ultralytics.com/assets/coco128-segments.zip'
 
             with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
-                download_and_extract_archive(
-                    url,
-                    download_root=str(root),
-                    extract_root=str(extract_dir)
-                )
+                download_and_extract_archive(url, download_root=str(root), extract_root=str(extract_dir))
 
             try:
                 # remove coco128's README.txt so that it does not come in docs
@@ -164,142 +152,115 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
 
 # Download and load the datasets
-curr_dir = Path('.')
-train_ds = CocoInstanceSegmentationDataset.load_or_download(curr_dir, train=True)
-test_ds = CocoInstanceSegmentationDataset.load_or_download(curr_dir, train=False)
-
-
-def batch_collate(batch):
-    """Function which gets list of samples from `CocoInstanceSegmentationDataset` and combine them to a batch."""
-    images, classes, masks = zip(*batch)
-    return list(images), list(classes), list(masks)
-
-
-# Create DataLoaders
-train_data_loader = DataLoader(
-    dataset=train_ds,
-    batch_size=32,
-    shuffle=False,
-    collate_fn=batch_collate
-)
-
-test_data_loader = DataLoader(
-    dataset=test_ds,
-    batch_size=32,
-    shuffle=False,
-    collate_fn=batch_collate
-)
+train_ds = CocoInstanceSegmentationDataset.load_or_download(Path('.'), train=True)
+test_ds = CocoInstanceSegmentationDataset.load_or_download(Path('.'), train=False)
 
 # %%
 # Visualizing that we loaded our datasets correctly:
 
-masked_images = [draw_segmentation_masks(train_ds[i][0], masks=train_ds[i][2], alpha=0.7)
-                 for i in range(5)]
+masked_images = [draw_segmentation_masks(train_ds[i][0], masks=train_ds[i][1], alpha=0.7) for i in range(5)]
 
-fix, axs = plt.subplots(ncols=len(masked_images), figsize=(20, 20))
+fig, axs = plt.subplots(ncols=len(masked_images), figsize=(20, 20))
 for i, img in enumerate(masked_images):
     img = img.detach()
     img = F.to_pil_image(img)
     axs[i].imshow(np.asarray(img))
     axs[i].set(xticklabels=[], yticklabels=[], xticks=[], yticks=[])
 
-fix.show()
+fig.show()
 
 # %%
-# Implement Custom Task
-# =====================
-# With our data and model ready we can write the task class.
+# Implementing the VisionData class
+# =================================
+# The checks in the package validate the data by calculating various quantities over the data, labels and
+# predictions (when available). In order to do that, those must be in a pre-defined format, according to the task type.
 #
-# With the built-in base classes, the checks are accessing directly the values which return from the functions
-# `infer_on_batch` and `batch_to_labels` and therefore they require a standard format. But with custom task, these
-# functions' values are not used directly, so we can just return our own data as is. On the other hand the  functions
-# `batch_to_images` and `get_classes` are used so we will need to make sure our data is in the expected format.
+# In the following example we're using pytorch. To see how this can be done using tensorflow or a generic generator,
+# please refer to :doc:`creating VisionData guide </user-guide/vision/VisionData#creating-a-visiondata-object>`.
+#
+# For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
+# the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.vision_data.VisionData` object,
+# that will hold the data loader.
+#
+# For a custom task, only the images have a pre-defined format while the labels and predictions can arrive
+# in any format. To learn more about the expected formats for the different tasks please visit
+# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`.
+#
 
-from typing import List, Sequence
-
-from deepchecks.vision import VisionData
+from deepchecks.vision import VisionData, BatchOutputFormat
 
 
-class MyCustomInstanceSegmentationData(VisionData):
-    """Class for loading the COCO instance segmentation dataset."""
+def deepchecks_collate_fn(batch) -> BatchOutputFormat:
+    """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
+    the following keys: 'images', 'labels' and 'predictions', each value is in the deepchecks format for the task.
+    You can also use the BatchOutputFormat class to create the output.
+    """
+    # batch received as iterable of tuples of (image, label) and transformed to tuple of iterables of images and labels:
+    batch = tuple(zip(*batch))
 
-    def get_classes(self, batch_labels) -> List[List[int]]:
-        """Return per label a list of classes (by id) in it."""
-        # The input `batch_labels` is the result of `batch_to_labels` function.
-        return [x[0] for x in batch_labels]
+    images = [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
+    labels = batch[1]
+    return BatchOutputFormat(images=images, labels=labels)
 
-    def batch_to_labels(self, batch):
-        """Extract from the batch only the labels. Must return an iterable with an element per image."""
-        _, classes, masks = batch
-        return [(classes[idx], masks[idx]) for idx in range(len(classes))]
-
-    def infer_on_batch(self, batch, model, device):
-        """Infer on a batch of images. Must return an iterable with an element per image."""
-        predictions = model.to(device)(batch[0])
-        return predictions
-
-    def batch_to_images(self, batch) -> Sequence[np.ndarray]:
-        """Convert the batch to a list of images as (H, W, C) 3D numpy array per image."""
-        return [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
 # %%
-# Now we are able to run checks that use only the image data, since it's in the standard Deepchecks format.
-# Let's run PropertyLabelCorrelationChange check with our task
+# The label_map is a dictionary that maps the class id to the class name, for display purposes.
+LABEL_MAP = {0: 'background', 1: 'airplane', 2: 'bicycle', 3: 'bird', 4: 'boat', 5: 'bottle', 6: 'bus', 7: 'car',
+             8: 'cat', 9: 'chair', 10: 'cow', 11: 'dining table', 12: 'dog', 13: 'horse', 14: 'motorcycle',
+             15: 'person', 16: 'potted plant', 17: 'sheep', 18: 'couch', 19: 'train', 20: 'tv'}
 
-from deepchecks.vision.checks import PropertyLabelCorrelationChange
+# %%
+# Now that we have our updated collate function, we can create the dataloader in the deepchecks format, and use it
+# to create a VisionData object. For custom tasks, we set the task type to 'other':
 
-# Create our task with the `DataLoader`s we defined before.
-train_task = MyCustomInstanceSegmentationData(train_data_loader)
-test_task = MyCustomInstanceSegmentationData(test_data_loader)
+train_loader = DataLoader(dataset=train_ds, batch_size=16, shuffle=False, collate_fn=deepchecks_collate_fn)
+test_loader = DataLoader(dataset=test_ds, batch_size=16, shuffle=False, collate_fn=deepchecks_collate_fn)
 
-result = PropertyLabelCorrelationChange().run(train_task, test_task)
+train_vision_data = VisionData(batch_loader=train_loader, task_type='other', label_map=LABEL_MAP)
+test_vision_data = VisionData(batch_loader=test_loader, task_type='other', label_map=LABEL_MAP)
+
+# %%
+# Running Checks
+# ==============
+# After the vision data objects were created, we can run checks on them. For custom tasks, since the images are
+# in the standard Deepchecks format, we can run image based checks without additional effort.
+# Let's run the ImagePropertyDrift check with our task:
+
+from deepchecks.vision.checks import ImagePropertyDrift
+
+result = ImagePropertyDrift().run(train_vision_data, test_vision_data)
 result.show()
 
 # %%
-# Now in order to run more check, we'll need to define custom properties or metrics.
+# Now in order to run additional checks, we'll need to define custom properties or metrics.
 #
 # Implement Custom Properties
-# ===========================
+# ---------------------------
 #
 # In order to run checks that are using label or prediction properties we'll have to implement
-# a custom :doc:`properties </user-guide/vision/vision_properties>`. We'll write label properties and run a label drift
+# a custom :doc:`property </user-guide/vision/vision_properties>`. We'll write label properties and run the label drift
 # check.
-
-
-from itertools import chain
 
 from deepchecks.vision.checks import TrainTestLabelDrift
 
-# The labels object is the result of `batch_to_labels` function we defined earlier. The property should return a flat
-# list of values.
 
-
-def number_of_detections(labels) -> List[int]:
+def number_of_detections(labels) -> t.List[int]:
     """Return a list containing the number of detections per sample in batch."""
-    all_masks = [x[1] for x in labels]
-    return [sample_masks.shape[0] for sample_masks in all_masks]
-
-
-def classes_in_labels(labels: List[torch.Tensor]) -> List[int]:
-    """Return a list containing the classes in batch."""
-    classes = [x[0] for x in labels]
-    return classes
+    return [masks_per_image.shape[0] for masks_per_image in labels]
 
 
 # We will pass this object as parameter to checks that are using label properties
-label_properties = [
-    {'name': '# Detections per Label', 'method': number_of_detections, 'output_type': 'categorical'},
-    {'name': 'Classes in Labels', 'method': classes_in_labels, 'output_type': 'class_id'}
-]
-
-result = TrainTestLabelDrift(label_properties=label_properties).run(train_task, test_task)
+label_properties = [{'name': '# Detections per image', 'method': number_of_detections, 'output_type': 'numerical'}]
+check = TrainTestLabelDrift(label_properties=label_properties)
+result = check.run(train_vision_data, test_vision_data)
 result.show()
 
 # %%
 # Implement Custom Metric
-# =======================
+# -----------------------
 #
 # Some checks test the model performance and requires a metric in order to run. When using a custom task you will also
-# have to create a custom metric in order for those checks to work, since the built-in metrics don't know to handle
-# your data structure. The metrics need to conform to the API of
-# `pytorch-ignite <https://pytorch.org/ignite/metrics.html>`_.
+# have to create a custom metric in order for those checks to work, since the Deepchecks' built-in metrics
+# don't know to handle custom data formats. See :ref:`link <metrics_guide__custom_metrics>`
+# for additional information on how to create a custom metric.
+#

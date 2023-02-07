@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -32,7 +32,7 @@ __all__ = ['BoostingOverfit']
 class PartialBoostingModel:
     """Wrapper for boosting models which limits the number of estimators being used in the prediction."""
 
-    _UNSUPORTED_MODEL_ERROR = (
+    _UNSUPPORTED_MODEL_ERROR = (
         'Check is relevant for Boosting models of type '
         '{supported_models}, but received model of type {model_type}'
     )
@@ -88,7 +88,7 @@ class PartialBoostingModel:
         elif self.model_class == 'CatBoostClassifier':
             return self.model.predict_proba(x, ntree_end=self.step)
         else:
-            raise ModelValidationError(self._UNSUPORTED_MODEL_ERROR.format(
+            raise ModelValidationError(self._UNSUPPORTED_MODEL_ERROR.format(
                 supported_models=self._SUPPORTED_CLASSIFICATION_MODELS,
                 model_type=self.model_class
             ))
@@ -104,7 +104,7 @@ class PartialBoostingModel:
         elif self.model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return self.model.predict(x, ntree_end=self.step)
         else:
-            raise ModelValidationError(self._UNSUPORTED_MODEL_ERROR.format(
+            raise ModelValidationError(self._UNSUPPORTED_MODEL_ERROR.format(
                 supported_models=self._SUPPORTED_MODELS,
                 model_type=self.model_class
             ))
@@ -123,7 +123,7 @@ class PartialBoostingModel:
         elif model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return model.tree_count_
         else:
-            raise ModelValidationError(cls._UNSUPORTED_MODEL_ERROR.format(
+            raise ModelValidationError(cls._UNSUPPORTED_MODEL_ERROR.format(
                 supported_models=cls._SUPPORTED_MODELS,
                 model_type=model_class
             ))

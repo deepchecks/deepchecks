@@ -10,7 +10,7 @@ This notebooks provides an overview for using and understanding simple model com
 **Structure:**
 
 * `What Is the Purpose of the Check? <#what-is-the-purpose-of-the-check>`__
-* `Generate data an model <#generate-data-and-model>`__
+* `Generate Dataset <#generate-dataset>`__
 * `Run the check <#run-the-check>`__
 
 What Is the Purpose of the Check?
@@ -45,16 +45,21 @@ This checks applies only to classification datasets.
 """
 
 #%%
-# Generate data and model
-# -----------------------
+# Generate Dataset
+# ----------------
+#
+# .. note::
+#   In this example, we use the pytorch version of the mnist dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.classification import mnist_tensorflow as mnist
 
 from deepchecks.vision.checks import SimpleModelComparison
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
 #%%
 
 
-mnist_model = mnist.load_model()
 train_ds = mnist.load_dataset(train=True, object_type='VisionData')
 test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 
@@ -63,17 +68,15 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 # -------------
 # We will run the check with the prior model type. The check will use the default
 # classification metrics - precision and recall. This can be overridden by
-# providing an alternative scorer using the ``alternative_metrics``` parameter.
+# providing an alternative scorer using the ``scorers``` parameter.
 
 check = SimpleModelComparison(strategy='stratified')
-result = check.run(train_ds, test_ds, mnist_model)
+result = check.run(train_ds, test_ds)
 
 #%%
-result
+result.show()
 
 #%%
-# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
-#
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
@@ -114,8 +117,8 @@ result.value.sort_values(by=['Class', 'Metric']).head(10)
 
 check = SimpleModelComparison(strategy='stratified')
 check.add_condition_gain_greater_than(min_allowed_gain=0.99)
-result = check.run(train_ds, test_ds, mnist_model)
-result
+result = check.run(train_ds, test_ds)
+result.show()
 
 #%%
 # We detected that for several classes our gain did not passed the target gain we

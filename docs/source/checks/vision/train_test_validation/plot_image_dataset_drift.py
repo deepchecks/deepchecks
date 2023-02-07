@@ -66,11 +66,17 @@ Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled
 #%%
 # Imports
 # -------
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection.coco_tensorflow import load_dataset
 
 import numpy as np
 
 from deepchecks.vision.checks import ImageDatasetDrift
-from deepchecks.vision.datasets.detection.coco import load_dataset
+from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
 #%%
 # Loading the data
@@ -100,34 +106,35 @@ result
 #%%
 # Insert drift
 # ^^^^^^^^^^^^
-# Now, we will define a custom data object that will insert a drift to the training set.
-
-from deepchecks.vision.datasets.detection.coco import COCOData
+#
+# Now, we will define a custom collate function that will insert a drift to the training set.
 
 
 def add_brightness(img):
     reverse = 255 - img
-    addition_of_brightness = (reverse * 0.07).astype(int)
+    addition_of_brightness = (reverse * 0.2).astype(int)
     return img + addition_of_brightness
 
 
-class DriftedCOCO(COCOData):
-    
-    def batch_to_images(self, batch):
-        return [add_brightness(np.array(img)) for img in batch[0]]
-
 #%%
-train_dataloader = load_dataset(train=True, object_type='DataLoader')
-test_dataloader = load_dataset(train=False, object_type='DataLoader')
+drifted_train_ds = load_dataset(train=True, object_type='VisionData')
 
-drifted_train_ds = DriftedCOCO(train_dataloader)
-test_ds_coco = COCOData(test_dataloader)
+def created_drifted_collate_function(collate_fn):
+    def drifted_collate_function(batch):
+        data_dict = collate_fn(batch)
+        data_dict['images'] = [add_brightness(np.array(img)) for img in data_dict['images']]
+        return data_dict
+    return drifted_collate_function
+
+
+drifted_train_ds._batch_loader.collate_fn = created_drifted_collate_function(drifted_train_ds._batch_loader.collate_fn)
+
 
 #%%
 # Run the check again
 # ^^^^^^^^^^^^^^^^^^^
 check = ImageDatasetDrift()
-result = check.run(train_dataset=drifted_train_ds, test_dataset=test_ds_coco)
+result = check.run(train_dataset=drifted_train_ds, test_dataset=test_ds)
 result
 
 #%%

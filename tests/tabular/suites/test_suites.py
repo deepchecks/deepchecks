@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -24,7 +24,7 @@ from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier, XGBRegressor
 
 from deepchecks.tabular import Dataset, suites
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 
 
 @pytest.fixture()
@@ -222,3 +222,10 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
     assert_that(res_names, contains_exactly(*expected_train_headers))
     assert_that(res_test.results, has_length(35))
     assert_that(res_full.results, has_length(54))
+
+
+def test_production_suite(iris):
+    suite = suites.production_suite('classification', is_comparative=True)
+    train, test, model = iris
+    result = suite.run(train, test, model)
+    assert_that(result.results, has_length(15))

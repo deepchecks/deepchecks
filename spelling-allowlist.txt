@@ -17,6 +17,8 @@ unsubscriptable
 chi2
 C0103
 2D
+3D
+4D
 Matplotlib
 backends
 params
@@ -131,4 +133,6 @@ img
 cml
 CML
 ints
+softmax
+tf
 NLP

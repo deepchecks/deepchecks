@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -12,11 +12,12 @@ import sys
 
 import numpy as np
 import sklearn
-from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
-from deepchecks.tabular.datasets.regression import avocado, wine_quality
 from deepdiff import DeepDiff
 from hamcrest import assert_that, instance_of
 from sklearn.base import BaseEstimator
+
+from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
+from deepchecks.tabular.datasets.regression import avocado, wine_quality
 
 
 def assert_sklearn_model_params_equals(model1, model2):

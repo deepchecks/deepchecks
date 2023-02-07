@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -11,7 +11,4 @@
 """Module contains all prebuilt vision suites."""
 from .default_suites import data_integrity, full_suite, model_evaluation, train_test_validation
 
-__all__ = ['train_test_validation',
-           'model_evaluation',
-           'full_suite',
-           'data_integrity']
+__all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']

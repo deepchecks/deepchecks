@@ -13,6 +13,7 @@ deepchecks.core
     :caption: Modules
     :toctree: generated
 
+    checks
     errors
 
 .. rubric:: Classes
