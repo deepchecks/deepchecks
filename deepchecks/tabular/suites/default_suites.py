@@ -452,6 +452,7 @@ def production_suite(task_type: str = None,
         checks.append(TrainTestLabelDrift(ignore_na=True, **kwargs).add_condition_drift_score_less_than())
         checks.append(TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than())
         checks.append(TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than())
+        checks.append(NewCategoryTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal())
     else:
         checks.append(StringMismatch(**kwargs).add_condition_no_variants())
         checks.append(FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than())
