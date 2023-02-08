@@ -1,6 +1,6 @@
-=================================
-Using Deepchecks In CI/CD
-=================================
+=====
+CI/CD
+=====
 
 This guide will explain the basics of using CI/CD for machine learning, and how deepchecks can be incorporated into
 the process.

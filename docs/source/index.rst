@@ -36,4 +36,10 @@ Head over to the :doc:`Getting Started </getting-started/index>` section to lear
     :maxdepth: 3
     :hidden:
 
+    user_guide/general/ci_cd
+
+.. toctree::
+    :maxdepth: 3
+    :hidden:
+
     api/index
