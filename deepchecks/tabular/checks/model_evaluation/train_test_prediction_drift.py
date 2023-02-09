@@ -139,7 +139,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
-        if categorical_drift_method != 'psi' and relative_change:
+        if categorical_drift_method != 'psi' and relative_change is True:
             raise DeepchecksValueError(
                 'relative_change can only be used with categorical_drift_method = "psi"'
             )
