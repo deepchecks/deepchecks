@@ -86,7 +86,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         decides which method to use on categorical variables. Possible values are:
         "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     relative_change: bool, default: False
-        If True, small and large categories will contribute equally to the PSI score, with only the log of the ratio
+        If True, all categories will have an equal weight in the PSI score, with only the log of the ratio
         between the expected and actual category size being used. This is useful when we care about the relative
         difference between the distributions, but not about the absolute difference. Usable only when
         categorical_drift_method = "psi"
