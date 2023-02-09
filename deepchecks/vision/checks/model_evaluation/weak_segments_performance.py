@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -14,7 +14,6 @@ from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
 import pandas as pd
-import torch
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_result import DisplayMap
@@ -23,14 +22,18 @@ from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
-from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.metrics_utils.iou_utils import per_sample_mean_iou
 from deepchecks.vision.metrics_utils.semantic_segmentation_metrics import per_sample_dice
-from deepchecks.vision.task_type import TaskType
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 
+@docstrings
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     """Search for segments with low performance scores.
 
@@ -72,24 +75,27 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
-        self,
-        scorer: Optional[Callable] = None,
-        scorer_name: Optional[str] = None,
-        image_properties: List[Dict[str, Any]] = None,
-        number_of_bins: int = 5,
-        number_of_samples_to_infer_bins: int = 1000,
-        n_top_properties: int = 5,
-        n_to_show: int = 3,
-        segment_minimum_size_ratio: float = 0.05,
-        **kwargs
+            self,
+            scorer: Optional[Callable] = None,
+            scorer_name: Optional[str] = None,
+            image_properties: List[Dict[str, Any]] = None,
+            number_of_bins: int = 5,
+            number_of_samples_to_infer_bins: int = 1000,
+            n_top_properties: int = 5,
+            n_to_show: int = 3,
+            segment_minimum_size_ratio: float = 0.05,
+            n_samples: Optional[int] = 10000,
+            **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties if image_properties else default_image_properties
-        if len(self.image_properties) < 2:
+        if image_properties is not None and len(image_properties) < 2:
             raise DeepchecksNotSupportedError('Check requires at least two image properties in order to run.')
+        self.image_properties = image_properties
+        self.n_samples = n_samples
         self.n_top_features = n_top_properties
         self.scorer = scorer
         self.scorer_name = scorer_name
@@ -107,9 +113,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         if self.scorer is None:
             if task_type == TaskType.CLASSIFICATION:
                 def scoring_func(predictions, labels):
-                    labels = np.array(torch.stack(labels).cpu())
-                    predictions = np.array(torch.stack(predictions).cpu())
                     return per_sample_cross_entropy(labels, predictions)
+
                 self.scorer = scoring_func
                 self.scorer_name = 'cross entropy'
             elif task_type == TaskType.OBJECT_DETECTION:
@@ -124,24 +129,22 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self._properties_results = defaultdict(list)
         self._sample_scores = []
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Calculate the image properties and scores per image."""
         properties_results = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
         for prop_name, prop_value in properties_results.items():
             self._properties_results[prop_name].extend(prop_value)
 
-        predictions = [tens.detach() for tens in batch.predictions]
-        labels = [tens.detach() for tens in batch.labels]
-        self._sample_scores.extend(self.scorer(predictions, labels))
+        self._sample_scores.extend(self.scorer(batch.numpy_predictions, batch.numpy_labels))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Find the segments with the worst performance."""
         results_dict = self._properties_results
         results_dict['score'] = self._sample_scores
         results_df = pd.DataFrame(results_dict)
-
-        cat_features = [p['name'] for p in self.image_properties if p['output_type'] == 'categorical']
-        num_features = [p['name'] for p in self.image_properties if p['output_type'] == 'numerical']
+        properties_used = self.image_properties or default_image_properties
+        cat_features = [p['name'] for p in properties_used if p['output_type'] == 'categorical']
+        num_features = [p['name'] for p in properties_used if p['output_type'] == 'numerical']
         all_features = cat_features + num_features
 
         dataset = Dataset(results_df, cat_features=cat_features, features=all_features, label='score')

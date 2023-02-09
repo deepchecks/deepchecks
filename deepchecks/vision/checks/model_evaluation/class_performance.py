@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,12 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing class performance check."""
-import warnings
-from typing import Any, Callable, Dict, List, TypeVar, Union
+from typing import Any, Callable, Dict, List, Optional, TypeVar, Union
 
 import pandas as pd
 import plotly.express as px
-from ignite.metrics import Metric
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_utils.class_performance_utils import (
@@ -23,25 +21,26 @@ from deepchecks.core.check_utils.class_performance_utils import (
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils import plot
 from deepchecks.utils.strings import format_percent
-from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.metrics_utils.scorers import filter_classes_for_display, get_scorers_dict, metric_results_to_df
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['ClassPerformance']
-
 
 PR = TypeVar('PR', bound='ClassPerformance')
 
 
+@docstrings
 class ClassPerformance(TrainTestCheck):
     """Summarize given metrics on a dataset and model.
 
     Parameters
     ----------
-    scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]], default: None
+    scorers: Union[Dict[str, Union[Callable, str]], List[Any]] , default: None
         Scorers to override the default scorers (metrics), find more about the supported formats at
         https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
-    alternative_metrics : Union[Dict[str, Union[Metric,str]], List[str]], default: None
-        Deprecated, please use scorers instead.
     n_to_show : int, default: 20
         Number of classes to show in the report. If None, show all classes.
     show_only : str, default: 'largest'
@@ -57,25 +56,22 @@ class ClassPerformance(TrainTestCheck):
     class_list_to_show: List[int], default: None
         Specify the list of classes to show in the report. If specified, n_to_show, show_only and metric_to_show_by
         are ignored.
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(self,
-                 scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
-                 alternative_metrics: Union[Dict[str, Union[Metric, str]], List[str]] = None,
+                 scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None,
                  n_to_show: int = 20,
                  show_only: str = 'largest',
                  metric_to_show_by: str = None,
                  class_list_to_show: List[int] = None,
+                 n_samples: Optional[int] = 10000,
                  **kwargs):
         super().__init__(**kwargs)
-        if alternative_metrics is not None:
-            warnings.warn(f'{self.__class__.__name__}: alternative_metrics is deprecated. Please use scorers instead.',
-                          DeprecationWarning)
-            self.alternative_metrics = alternative_metrics
-        else:
-            self.alternative_metrics = scorers
+        self.n_samples = n_samples
+        self.scorers = scorers
         self.n_to_show = n_to_show
-        self.class_list_to_show = class_list_to_show
+        self.class_list_to_show = class_list_to_show  # TODO: change to also effect the result not just display
 
         if self.class_list_to_show is None:
             if show_only not in ['largest', 'smallest', 'random', 'best', 'worst']:
@@ -83,8 +79,8 @@ class ClassPerformance(TrainTestCheck):
                                            f'["largest", "smallest", "random", "best", "worst"]')
 
             self.show_only = show_only
-            if alternative_metrics is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
-                raise DeepchecksValueError('When alternative_metrics are provided and show_only is one of: '
+            if self.scorers is not None and show_only in ['best', 'worst'] and metric_to_show_by is None:
+                raise DeepchecksValueError('When scorers are provided and show_only is one of: '
                                            '["best", "worst"], metric_to_show_by must be specified.')
 
         self.metric_to_show_by = metric_to_show_by
@@ -94,22 +90,20 @@ class ClassPerformance(TrainTestCheck):
         """Initialize run by creating the _state member with metrics for train and test."""
         self._data_metrics = {}
         self._data_metrics[DatasetKind.TRAIN] = get_scorers_dict(context.train,
-                                                                 alternative_scorers=self.alternative_metrics)
+                                                                 alternative_scorers=self.scorers)
         self._data_metrics[DatasetKind.TEST] = get_scorers_dict(context.train,
-                                                                alternative_scorers=self.alternative_metrics)
+                                                                alternative_scorers=self.scorers)
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        label = batch.labels
-        prediction = batch.predictions
         for _, metric in self._data_metrics[dataset_kind].items():
-            metric.update((prediction, label))
+            metric.update((batch.numpy_predictions, batch.numpy_labels))
 
     def compute(self, context: Context) -> CheckResult:
-        """Compute the metric result using the ignite metrics compute method and create display."""
+        """Compute the metric result using the metrics compute method and create display."""
         results = []
         for dataset_kind in [DatasetKind.TRAIN, DatasetKind.TEST]:
             dataset = context.get_data_by_kind(dataset_kind)
@@ -117,7 +111,8 @@ class ClassPerformance(TrainTestCheck):
                 {k: m.compute() for k, m in self._data_metrics[dataset_kind].items()}, dataset
             )
             metrics_df['Dataset'] = dataset_kind.value
-            metrics_df['Number of samples'] = metrics_df['Class'].map(dataset.n_of_samples_per_class.get)
+            labels_per_class = dataset.get_cache()['labels']
+            metrics_df['Number of samples'] = metrics_df['Class Name'].map(labels_per_class.get)
             results.append(metrics_df)
 
         results_df = pd.concat(results)
@@ -189,9 +184,9 @@ class ClassPerformance(TrainTestCheck):
                                   condition)
 
     def add_condition_class_performance_imbalance_ratio_less_than(
-        self: PR,
-        threshold: float = 0.3,
-        score: str = None
+            self: PR,
+            threshold: float = 0.3,
+            score: str = None
     ) -> PR:
         """Add condition - relative ratio difference between highest-class and lowest-class is less than threshold.
 

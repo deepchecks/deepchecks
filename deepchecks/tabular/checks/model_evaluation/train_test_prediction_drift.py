@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,7 +10,7 @@
 #
 """Module contains Train Test label Drift check."""
 
-from typing import Dict
+import typing as t
 
 import numpy as np
 import pandas as pd
@@ -88,14 +88,14 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: str, default: "max"
+    aggregation_method: t.Optional[str], default: "max"
         Argument for the reduce_output functionality, decides how to aggregate the drift scores of different classes
         (for classification tasks) into a single score, when drift is computed on the class probabilities. Possible
         values are:
         'max': Maximum of all the class drift scores.
         'weighted': Weighted mean based on the class sizes in the train data set.
         'mean': Mean of all drift scores.
-        'none': No averaging. Return a dict with a drift score for each class.
+        None: No averaging. Return a dict with a drift score for each class.
     max_classes_to_display: int, default: 3
         Max number of classes to show in the display when drift is computed on the class probabilities for
         classification tasks.
@@ -116,7 +116,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             categorical_drift_method: str = 'cramer_v',
             numerical_drift_method: str = 'EMD',
             ignore_na: bool = True,
-            aggregation_method: str = 'max',
+            aggregation_method: t.Optional[str] = 'max',
             max_classes_to_display: int = 3,
             n_samples: int = 100_000,
             random_state: int = 42,
@@ -140,8 +140,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.aggregation_method = aggregation_method
         self.n_samples = n_samples
         self.random_state = random_state
-        if self.aggregation_method not in ('weighted', 'mean', 'none', 'max'):
-            raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "none", "max"')
+        if self.aggregation_method not in ('weighted', 'mean', 'none', None, 'max'):
+            raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "max", None')
 
     def run_logic(self, context: Context) -> CheckResult:
         """Calculate drift for all columns.
@@ -219,13 +219,13 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
 
-    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
+    def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
         """Return prediction drift score."""
         if isinstance(check_result.value['Drift score'], float):
             return {'Prediction Drift Score': check_result.value['Drift score']}
 
         drift_values = list(check_result.value['Drift score'].values())
-        if self.aggregation_method == 'none':
+        if self.aggregation_method is None or self.aggregation_method == 'none':
             return {f'Drift Score class {k}': v for k, v in check_result.value['Drift score'].items()}
         elif self.aggregation_method == 'mean':
             return {'Mean Drift Score': np.mean(drift_values)}
@@ -263,7 +263,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
-        def condition(result: Dict) -> ConditionResult:
+        def condition(result: t.Dict) -> ConditionResult:
             drift_score_dict = result['Drift score']
             # Move to dict for easier looping
             if not isinstance(drift_score_dict, dict):

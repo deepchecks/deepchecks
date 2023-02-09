@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -14,25 +14,20 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-from typing import Any, Dict, List, Tuple
-
-from ignite.metrics import Metric
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
-                                      ImageSegmentPerformance, LabelPropertyOutliers, MeanAveragePrecisionReport,
-                                      MeanAverageRecallReport, ModelErrorAnalysis, NewLabels, PropertyLabelCorrelation,
-                                      PropertyLabelCorrelationChange, SimpleModelComparison, TrainTestLabelDrift,
-                                      TrainTestPredictionDrift)
+                                      LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
+                                      NewLabels, PropertyLabelCorrelation, PropertyLabelCorrelationChange,
+                                      SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift,
+                                      WeakSegmentsPerformance)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']
 
 
-def train_test_validation(n_top_show: int = 5,
-                          label_properties: List[Dict[str, Any]] = None,
-                          image_properties: List[Dict[str, Any]] = None,
-                          random_state: int = None,
+def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_properties: List[Dict[str, Any]] = None,
                           **kwargs) -> Suite:
     """Suite for validating correctness of train-test split, including distribution, \
     integrity and leakage checks.
@@ -46,8 +41,6 @@ def train_test_validation(n_top_show: int = 5,
              - API Reference
            * - :ref:`plot_vision_new_labels`
              - :class:`~deepchecks.vision.checks.train_test_validation.NewLabels`
-           * - :ref:`plot_vision_similar_image_leakage`
-             - :class:`~deepchecks.vision.checks.train_test_validation.SimilarImageLeakage`
            * - :ref:`plot_vision_heatmap_comparison`
              - :class:`~deepchecks.vision.checks.train_test_validation.HeatmapComparison`
            * - :ref:`plot_vision_train_test_label_drift`
@@ -61,8 +54,6 @@ def train_test_validation(n_top_show: int = 5,
 
     Parameters
     ----------
-    n_top_show : int, default: 5
-        Number of images to show for checks that show images.
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -86,8 +77,6 @@ def train_test_validation(n_top_show: int = 5,
           but these numbers do not have inherent value.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    random_state : int, default: None
-        Random seed for all checks.
     **kwargs : dict
         additional arguments to pass to the checks.
 
@@ -100,8 +89,9 @@ def train_test_validation(n_top_show: int = 5,
     Examples
     --------
     >>> from deepchecks.vision.suites import train_test_validation
-    >>> suite = train_test_validation(n_top_show=3)
-    >>> result = suite.run(n_samples=800)
+    >>> suite = train_test_validation()
+    >>> train_data, test_data = ...
+    >>> result = suite.run(train_data, test_data, max_samples=800)
     >>> result.show()
 
     See Also
@@ -114,23 +104,15 @@ def train_test_validation(n_top_show: int = 5,
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
 
-    return Suite(
-        'Train Test Validation Suite',
-        NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
-        # SimilarImageLeakage(**kwargs).add_condition_similar_images_less_or_equal(),
-        HeatmapComparison(**kwargs),
-        TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
-        ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(),
-        ImageDatasetDrift(**kwargs),
-        PropertyLabelCorrelationChange(**kwargs).add_condition_property_pps_difference_less_than(),
-    )
+    return Suite('Train Test Validation Suite', NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
+                 HeatmapComparison(**kwargs), TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
+                 ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(), ImageDatasetDrift(**kwargs),
+                 PropertyLabelCorrelationChange(**kwargs).add_condition_property_pps_difference_less_than(), )
 
 
-def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
-                     area_range: Tuple[float, float] = (32**2, 96**2),
-                     image_properties: List[Dict[str, Any]] = None,
-                     prediction_properties: List[Dict[str, Any]] = None,
-                     random_state: int = 42,
+def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None,
+                     area_range: Tuple[float, float] = (32 ** 2, 96 ** 2),
+                     image_properties: List[Dict[str, Any]] = None, prediction_properties: List[Dict[str, Any]] = None,
                      **kwargs) -> Suite:
     """Suite for evaluating the model's performance over different metrics, segments, error analysis, \
        comparing to baseline, and more.
@@ -152,18 +134,14 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
              - :class:`~deepchecks.vision.checks.model_evaluation.TrainTestPredictionDrift`
            * - :ref:`plot_vision_simple_model_comparison`
              - :class:`~deepchecks.vision.checks.model_evaluation.SimpleModelComparison`
-           * - :ref:`plot_vision_confusion_matrix`
-             - :class:`~deepchecks.vision.checks.model_evaluation.ConfusionMatrixReport`
-           * - :ref:`plot_vision_image_segment_performance`
-             - :class:`~deepchecks.vision.checks.model_evaluation.ImageSegmentPerformance`
-           * - :ref:`plot_vision_model_error_analysis`
-             - :class:`~deepchecks.vision.checks.model_evaluation.ModelErrorAnalysis`
+           * - :ref:`plot_weak_segment_performance`
+             - :class:`~deepchecks.vision.checks.model_evaluation.WeakSegmentPerformance`
 
     Parameters
     ----------
-    alternative_metrics : Dict[str, Metric], default: None
-        A dictionary of metrics, where the key is the metric name and the value is an ignite.Metric object whose score
-        should be used. If None are given, use the default metrics.
+    scorers: Union[Dict[str, Union[Callable, str]], List[Any]], default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets. (For object detection tasks only)
     image_properties : List[Dict[str, Any]], default: None
@@ -188,8 +166,6 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    random_state : int, default: 42
-        random seed for all checks.
     **kwargs : dict
         additional arguments to pass to the checks.
 
@@ -202,7 +178,8 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
     --------
     >>> from deepchecks.vision.suites import model_evaluation
     >>> suite = model_evaluation()
-    >>> result = suite.run()
+    >>> test_vision_data = ...
+    >>> result = suite.run(test_vision_data, max_samples=800)
     >>> result.show()
 
     See Also
@@ -215,22 +192,16 @@ def model_evaluation(alternative_metrics: Dict[str, Metric] = None,
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
 
-    return Suite(
-        'Model Evaluation Suite',
-        ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
-        MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_greater_than(),
-        MeanAverageRecallReport(**kwargs),
-        TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
-        SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
-        ConfusionMatrixReport(**kwargs),
-        ImageSegmentPerformance(**kwargs).add_condition_score_from_mean_ratio_greater_than(),
-        ModelErrorAnalysis(**kwargs)
-    )
+    return Suite('Model Evaluation Suite',
+                 ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
+                 MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_greater_than(),
+                 MeanAverageRecallReport(**kwargs),
+                 TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+                 SimpleModelComparison(**kwargs).add_condition_gain_greater_than(), ConfusionMatrixReport(**kwargs),
+                 WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(), )
 
 
-def data_integrity(image_properties: List[Dict[str, Any]] = None,
-                   n_show_top: int = 5,
-                   label_properties: List[Dict[str, Any]] = None,
+def data_integrity(image_properties: List[Dict[str, Any]] = None, label_properties: List[Dict[str, Any]] = None,
                    **kwargs) -> Suite:
     """
     Create a suite that includes integrity checks.
@@ -259,8 +230,6 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
           but these numbers do not have inherent value.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    n_show_top : int , default: 5
-        number of samples to show from each direction (upper limit and bottom limit)
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -285,7 +254,8 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     --------
     >>> from deepchecks.vision.suites import data_integrity
     >>> suite = data_integrity()
-    >>> result = suite.run()
+    >>> vision_data = ...
+    >>> result = suite.run(vision_data, max_samples=800)
     >>> result.show()
 
     See Also
@@ -298,19 +268,77 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None,
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
 
-    return Suite(
-        'Data Integrity Suite',
-        ImagePropertyOutliers(**kwargs),
-        LabelPropertyOutliers(**kwargs),
-        PropertyLabelCorrelation(**kwargs)
-    )
+    return Suite('Data Integrity Suite', ImagePropertyOutliers(**kwargs), LabelPropertyOutliers(**kwargs),
+                 PropertyLabelCorrelation(**kwargs))
 
 
-def full_suite(**kwargs) -> Suite:
-    """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
-    return Suite(
-        'Full Suite',
-        model_evaluation(**kwargs),
-        train_test_validation(**kwargs),
-        data_integrity(**kwargs)
-    )
+def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str, Any]] = None,
+               label_properties: List[Dict[str, Any]] = None, prediction_properties: List[Dict[str, Any]] = None,
+               scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None,
+               area_range: Tuple[float, float] = (32 ** 2, 96 ** 2), **kwargs) -> Suite:
+    """Create a suite that includes many of the implemented checks, for a quick overview of your model and data.
+
+    Parameters
+    ----------
+    n_samples : Optional[int] , default : 5000
+        Number of samples to use for the checks in the suite. If None, all samples will be used.
+    image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
+        representing attributes of said method. 'output_type' must be one of:
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+    label_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
+        representing attributes of said method. 'output_type' must be one of:
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+        - ``'class_id'`` - for properties that return the class_id. This is used because these
+          properties are later matched with the ``VisionData.label_map``, if one was given.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+
+    scorers: Union[Dict[str, Union[Callable, str]], List[Any]], default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
+    area_range: tuple, default: (32**2, 96**2)
+        Slices for small/medium/large buckets. (For object detection tasks only)
+    image_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
+        representing attributes of said method. 'output_type' must be one of:
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+    prediction_properties : List[Dict[str, Any]], default: None
+        List of properties. Replaces the default deepchecks properties.
+        Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
+        representing attributes of said method. 'output_type' must be one of:
+
+        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
+          but these numbers do not have inherent value.
+        - ``'class_id'`` - for properties that return the class_id. This is used because these
+          properties are later matched with the ``VisionData.label_map``, if one was given.
+
+        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+    Returns
+    -------
+    Suite
+        A suite that includes integrity checks.
+    """
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
+    return Suite('Full Suite', model_evaluation(**kwargs), train_test_validation(**kwargs), data_integrity(**kwargs))

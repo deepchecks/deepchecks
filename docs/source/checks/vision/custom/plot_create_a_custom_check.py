@@ -8,6 +8,6 @@ enables you to have your own logic of metrics or validation, or even just to dis
 suite.
 
 For more information about writing custom vision checks, please refer to the
-:doc:`Vision Custom Check Guide. </user-guide/vision/tutorials/plot_custom_checks>`
+:doc:`Vision Custom Check Guide. </user-guide/vision/auto_tutorials/plot_custom_checks>`
 
 """

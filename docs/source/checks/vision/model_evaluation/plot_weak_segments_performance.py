@@ -9,7 +9,7 @@ This notebook provides an overview for using and understanding the weak segment 
 
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
 * `Automatically detecting weak segments <#automatically-detecting-weak-segments>`__
-* `Generate data & model <#generate-data-model>`__
+* `Generate Dataset <#generate-dataset>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
 
@@ -39,21 +39,28 @@ The check performs several steps:
 """
 
 #%%
-# Run the check
-# =============
+# Generate Dataset
+# =================
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection import coco_tensorflow as coco
 
 from deepchecks.vision.checks import WeakSegmentsPerformance
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.datasets.detection import coco_torch as coco
 
 coco_data = coco.load_dataset(train=False, object_type='VisionData')
-model = coco.load_model()
+
+#%%
+# Run the check
+# =============
 check = WeakSegmentsPerformance()
-result = check.run(coco_data, model)
+result = check.run(coco_data)
 result
 
 #%%
-# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
-#
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
@@ -78,8 +85,8 @@ from deepchecks.vision.utils.image_properties import brightness, texture_level
 properties = [{'name': 'brightness', 'method': brightness, 'output_type': 'numerical'},
               {'name': ' texture', 'method': texture_level, 'output_type': 'numerical'}]
 check = WeakSegmentsPerformance(segment_minimum_size_ratio=0.03, image_properties=properties)
-result = check.run(coco_data, model)
-result.show_in_window()
+result = check.run(coco_data)
+result.show()
 
 
 #%%
@@ -92,5 +99,5 @@ result.show_in_window()
 # Let's add a condition and re-run the check:
 
 check.add_condition_segments_relative_performance_greater_than(0.1)
-result = check.run(coco_data, model)
+result = check.run(coco_data)
 result.show(show_additional_outputs=False)

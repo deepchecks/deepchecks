@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -21,10 +21,12 @@ from deepchecks.core.reduce_classes import ReducePropertyMixin
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['ImagePropertyDrift']
 
@@ -73,13 +75,11 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
 
-    classes_to_display : Optional[List[float]], default: None
-        List of classes to display. The distribution of the properties would include only samples belonging (or
-        containing an annotation belonging) to one of these classes. If None, samples from all classes are displayed.
     min_samples: int, default: 30
         Minimum number of samples needed in each dataset needed to calculate the drift.
-    aggregation_method: str, default: 'max'
+    aggregation_method: t.Optional[str], default: 'max'
         {property_aggregation_method_argument:2*indent}
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -90,37 +90,34 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            classes_to_display: t.Optional[t.List[str]] = None,
             min_samples: int = 30,
-            aggregation_method: str = 'max',
+            aggregation_method: t.Optional[str] = 'max',
+            n_samples: t.Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties if image_properties else default_image_properties
+        self.n_samples = n_samples
+        self.image_properties = image_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        self.classes_to_display = classes_to_display
         self.min_samples = min_samples
         self.aggregation_method = aggregation_method
 
         self._train_properties = None
         self._test_properties = None
-        self._class_to_string = None
 
     def initialize_run(self, context: Context):
         """Initialize self state, and validate the run context."""
-        self._class_to_string = context.train.label_id_to_name
-
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 
     def update(
             self,
             context: Context,
-            batch: Batch,
+            batch: BatchWrapper,
             dataset_kind: DatasetKind
     ):
         """Calculate image properties for train or test batch."""
@@ -129,25 +126,10 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         elif dataset_kind == DatasetKind.TEST:
             properties_results = self._test_properties
         else:
-            raise RuntimeError(
-                f'Internal Error - Should not reach here! unknown dataset_kind: {dataset_kind}'
-            )
+            raise DeepchecksValueError(f'Invalid dataset kind: {dataset_kind}')
 
         all_classes_properties = batch.vision_properties(self.image_properties, PropertiesInputType.IMAGES)
-
-        if self.classes_to_display:
-            # use only images belonging (or containing an annotation belonging) to one of the classes in
-            # classes_to_display
-            classes = context.train.get_classes(batch.labels)
-            filtered_properties = dict.fromkeys(all_classes_properties.keys())
-            for prop_name, prop_values in all_classes_properties.items():
-                filtered_properties[prop_name] = [score for idx, score in enumerate(prop_values)
-                                                  if any(cls in map(self._class_to_string, classes[idx]) for cls
-                                                         in self.classes_to_display)]
-        else:
-            filtered_properties = all_classes_properties
-
-        for prop_name, property_values in filtered_properties.items():
+        for prop_name, property_values in all_classes_properties.items():
             properties_results[prop_name].extend(property_values)
 
     def compute(self, context: Context) -> CheckResult:
@@ -159,18 +141,6 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             value: dictionary containing drift score for each image property.
             display: distribution graph for each image property.
         """
-        if sorted(self._train_properties.keys()) != sorted(self._test_properties.keys()):
-            raise RuntimeError('Internal Error! Vision check was used improperly.')
-
-        # if self.classes_to_display is set, check that it has classes that actually exist
-        if self.classes_to_display is not None:
-            if not set(self.classes_to_display).issubset(
-                    map(self._class_to_string, context.train.classes_indices.keys())
-            ):
-                raise DeepchecksValueError(
-                    f'Provided list of class ids to display {self.classes_to_display} not found in training dataset.'
-                )
-
         properties = sorted(self._train_properties.keys())
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
@@ -187,7 +157,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
 
         dataset_names = (context.train.name, context.test.name)
 
-        for single_property in self.image_properties:
+        for single_property in self.image_properties or default_image_properties:
             property_name = single_property['name']
             if property_name not in df_train.columns or property_name not in df_test.columns:
                 continue

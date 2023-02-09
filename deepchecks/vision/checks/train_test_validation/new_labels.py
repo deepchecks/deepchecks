@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -8,57 +8,30 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Train Test label Drift check."""
+"""Module contains the New Labels check."""
 import string
+from collections import defaultdict
 from secrets import choice
-from typing import Dict
+from typing import Dict, Optional
 
-import torch
+import numpy as np
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.utils.strings import format_number, format_percent
-from deepchecks.vision import Batch, Context, TrainTestCheck, VisionData
-from deepchecks.vision.utils.image_functions import draw_bboxes, prepare_thumbnail
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
+from deepchecks.vision.utils.image_functions import draw_image
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['NewLabels']
 
 
-THUMBNAIL_SIZE = (200, 200)
-
-
-def draw_image(data: VisionData, sample_index: int, class_id: int) -> str:
-    """Return an image to show as output of the display.
-
-    Parameters
-    ----------
-    data : VisionData
-        The vision data object used in the check.
-    sample_index : int
-        The batch index of the sample to draw the image for.
-    class_id : int
-        The class_id of the image or relevant bounding box inside image.
-    """
-    sample = data.data_loader.dataset[sample_index]
-    batch = data.to_batch(sample)
-
-    image = data.batch_to_images(batch)[0]
-    if data.task_type == TaskType.OBJECT_DETECTION:
-        formatted_labels_of_image = data.batch_to_labels(batch)[0].numpy()
-        bboxes_of_class_id = torch.tensor([x for x in formatted_labels_of_image if x[0] == class_id])
-        image = draw_bboxes(image, bboxes_of_class_id, copy_image=False, border_width=5)
-
-    image_thumbnail = prepare_thumbnail(
-        image=image,
-        size=THUMBNAIL_SIZE,
-        copy_image=False
-    )
-    return image_thumbnail
-
-
+@docstrings
 class NewLabels(TrainTestCheck, ReduceLabelMixin):
     """Detects labels that appear only in the test set.
 
@@ -68,12 +41,14 @@ class NewLabels(TrainTestCheck, ReduceLabelMixin):
         maximum number of images to show from each newly found label in the test set.
     max_new_labels_to_display : int , default: 3
         Maximum number of new labels to display in output.
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
             self,
             max_images_to_display_per_label: int = 3,
             max_new_labels_to_display: int = 3,
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -85,10 +60,33 @@ class NewLabels(TrainTestCheck, ReduceLabelMixin):
 
         self.max_images_to_display_per_label = max_images_to_display_per_label
         self.max_new_labels_to_display = max_new_labels_to_display
+        self.n_samples = n_samples
+        self._display_images = defaultdict()
 
-    def update(self, context: Context, batch: Batch, dataset_kind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind):
         """No additional caching required for this check."""
-        pass
+        if dataset_kind == DatasetKind.TRAIN:
+            pass
+
+        data = context.get_data_by_kind(dataset_kind)
+        for image, label, identifier in zip(batch.numpy_images, batch.numpy_labels, batch.numpy_image_identifiers):
+            if data.task_type == TaskType.CLASSIFICATION:
+                self._update_images_dict(label, label, image, image_identifier=identifier)
+            elif data.task_type == TaskType.OBJECT_DETECTION and len(label) > 0:
+                for class_id in np.unique(label[:, 0]):
+                    bboxes_of_label = label[label[:, 0] == class_id]
+                    self._update_images_dict(bboxes_of_label, class_id, image, image_identifier=identifier)
+            elif len(label) > 0:
+                raise DeepchecksValueError(f'Unsupported task type {data.task_type.value} for NewLabels check')
+
+    def _update_images_dict(self, label, class_id, image, image_identifier):
+        if class_id not in self._display_images:
+            self._display_images[class_id] = {'images': [image], 'labels': [label],
+                                              'image_identifiers': [image_identifier]}
+        elif len(self._display_images[class_id]['images']) < self.max_images_to_display_per_label:
+            self._display_images[class_id]['images'].append(image)
+            self._display_images[class_id]['labels'].append(label)
+            self._display_images[class_id]['image_identifiers'].append(image_identifier)
 
     def compute(self, context: Context) -> CheckResult:
         """Calculate which class_id are only available in the test data set and display them.
@@ -100,31 +98,29 @@ class NewLabels(TrainTestCheck, ReduceLabelMixin):
             display: Images containing said class_ids from the test set.
         """
         test_data = context.get_data_by_kind(DatasetKind.TEST)
+        labels_only_in_test = {key: value for key, value in test_data.get_cache()['labels'].items()
+                               if key not in context.get_data_by_kind(DatasetKind.TRAIN).get_cache()['labels']}
 
-        classes_in_train = context.get_data_by_kind(DatasetKind.TRAIN).classes_indices.keys()
-        classes_only_in_test_count = {key: value for key, value in test_data.n_of_samples_per_class.items()
-                                      if key not in classes_in_train}
         # sort by number of appearances in test set in descending order
-        classes_only_in_test_count = dict(sorted(classes_only_in_test_count.items(), key=lambda item: -item[1]))
+        labels_only_in_test = dict(sorted(labels_only_in_test.items(), key=lambda item: -item[1]))
 
-        result_value = {
-            'new_labels': {test_data.label_id_to_name(key): value for key, value in classes_only_in_test_count.items()},
-            'all_labels_count': sum(test_data.n_of_samples_per_class.values())
-        }
+        result_value = {'new_labels': labels_only_in_test,
+                        'all_labels_count': sum(test_data.get_cache()['labels'].values())}
 
         if context.with_display:
             # Create display
             displays = []
-            for class_id, num_occurrences in classes_only_in_test_count.items():
+            images_per_class = {test_data.label_map[key]: value for key, value in self._display_images.items()}
+            for class_name, num_occurrences in labels_only_in_test.items():
                 # Create id of alphabetic characters
                 sid = ''.join([choice(string.ascii_uppercase) for _ in range(3)])
-                images_of_class_id = \
-                    list(set(test_data.classes_indices[class_id]))[:self.max_images_to_display_per_label]
-                images_combine = ''.join([f'<div class="{sid}-item">{draw_image(test_data, x, class_id)}</div>'
-                                          for x in images_of_class_id])
+                thumbnail_images = [draw_image(img, labels, test_data.task_type, test_data.label_map) for img, labels in
+                                    zip(images_per_class[class_name]['images'],
+                                        images_per_class[class_name]['labels'])]
+                images_combine = ''.join([f'<div class="{sid}-item">{img}</div>' for img in thumbnail_images])
 
                 html = HTML_TEMPLATE.format(
-                    label_name=test_data.label_id_to_name(class_id),
+                    label_name=class_name,
                     images=images_combine,
                     count=format_number(num_occurrences),
                     dataset_name=context.test.name,
@@ -160,7 +156,7 @@ class NewLabels(TrainTestCheck, ReduceLabelMixin):
         Parameters
         ----------
         max_allowed_new_labels_ratio: float , default: 0.005
-            the max threshold for percentage of labels that only appear in the test set.
+            the max threshold for percentage of labels that only apper in the test set.
         """
 
         def condition(result: Dict) -> ConditionResult:

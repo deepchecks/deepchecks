@@ -12,7 +12,7 @@ This notebooks provides an overview for using and understanding the class perfor
 * `What is the purpose of the check? <#what-is-the-purpose-of-the-check>`__
 * `Classification <#classification-performance-report>`__
 
-  - `Generate data & model <#generate-data-and-model>`__
+  - `Generate Dataset <#generate-dataset>`__
   - `Run the check <#run-the-check>`__
 
 * `Object Detection <#object-detection-class-performance>`__
@@ -35,29 +35,31 @@ Object Detection   `Average Precision <https://manalelaidouni.github.io/Evaluati
 Object Detection   `Average Recall <https://manalelaidouni.github.io/Evaluating-Object-Detection-Models-Guide-to-Performance-Metrics.html>`__
 =================  ====================
 
-In addition to the default metrics, the check supports custom metrics that
-should be implemented using the `torch.ignite.Metric
-<https://pytorch.org/ignite/metrics.html#how-to-create-a-custom-metric>`__ API.
-These can be passed as a list using the alternative_metrics parameter of the
-check, which will override the default metrics.
-
+In addition to the default metrics, the check supports custom metrics, as detailed in the
+:doc:`Metrics Guide </user-guide/general/metrics_guide>`.
+These can be passed as a list using the scorers parameter of the check, which will override the default metrics.
 """
 
 #%%
 # Imports
 # -------
+#
+# .. note::
+#   In this example, we use the pytorch version of the mnist dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.classification import mnist_tensorflow as mnist
 
 from deepchecks.vision.checks import ClassPerformance
-from deepchecks.vision.datasets.classification import mnist
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
 #%%
 # Classification Performance Report
 # =================================
-# Generate data and model:
-# ------------------------
+# Generate Dataset
+# -----------------
 
 
-mnist_model = mnist.load_model()
 train_ds = mnist.load_dataset(train=True, object_type='VisionData')
 test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 
@@ -66,16 +68,8 @@ test_ds = mnist.load_dataset(train=False, object_type='VisionData')
 # -------------
 
 check = ClassPerformance()
-result = check.run(train_ds, test_ds, mnist_model)
+result = check.run(train_ds, test_ds)
 result
-
-#%%
-# If you have a GPU, you can speed up this check by calling:
-#
-# .. code-block:: python
-#
-#    check.run(train_ds, test_ds, mnist_model, device=<your GPU>)
-#
 
 #%%
 # To display the results in an IDE like PyCharm, you can use the following code:
@@ -83,6 +77,7 @@ result
 # .. code-block:: python
 #
 #    result.show_in_window()
+
 #%%
 # The result will be displayed in a new window.
 
@@ -93,16 +88,20 @@ result
 # Average Precision. The definition of the Average Precision is identical to how
 # the COCO dataset defined it - mean of the average precision per class, over
 # the range [0.5, 0.95, 0.05] of IoU thresholds.
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection import coco_tensorflow as coco
 
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision.datasets.detection import coco_torch as coco
 
 #%%
-# Generate Data and Model
-# -----------------------
+# Generate Dataset
+# ----------------
 # We generate a sample dataset of 128 images from the `COCO dataset <https://cocodataset.org/#home>`__,
 # and using the `YOLOv5 model <https://github.com/ultralytics/yolov5>`__.
-
-yolo = coco.load_model(pretrained=True)
 
 train_ds = coco.load_dataset(train=True, object_type='VisionData')
 test_ds = coco.load_dataset(train=False, object_type='VisionData')
@@ -112,8 +111,8 @@ test_ds = coco.load_dataset(train=False, object_type='VisionData')
 # -------------
 
 check = ClassPerformance(show_only='best')
-result = check.run(train_ds, test_ds, yolo)
-result
+result = check.run(train_ds, test_ds)
+result.show()
 
 #%%
 # If you have a GPU, you can speed up this check by calling:
@@ -136,8 +135,8 @@ result
 
 check = ClassPerformance(show_only='worst')
 check.add_condition_test_performance_greater_than(0.2)
-result = check.run(train_ds, test_ds, yolo)
-result
+result = check.run(train_ds, test_ds)
+result.show()
 
 
 #%%

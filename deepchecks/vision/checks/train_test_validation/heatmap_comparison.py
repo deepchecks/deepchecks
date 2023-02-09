@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -15,18 +15,20 @@ from typing import Iterable, List, Optional, Tuple
 import cv2
 import numpy as np
 import plotly.graph_objs as go
-import torch
 from plotly.subplots import make_subplots
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_functions import apply_heatmap_image_properties, numpy_grayscale_to_heatmap_figure
-from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['HeatmapComparison']
 
 
+@docstrings
 class HeatmapComparison(TrainTestCheck):
     """Check if the average image brightness (or bbox location if applicable) is similar between train and test set.
 
@@ -36,38 +38,16 @@ class HeatmapComparison(TrainTestCheck):
 
     Parameters
     ----------
-    classes_to_display : Optional[List[float]], default: None
-        List of classes to display in bounding box heatmap, using the class names (strings). Applies only for
-        object detection tasks. If None, all classes are displayed.
+    {additional_check_init_params:2*indent}
     """
 
-    def __init__(self,
-                 classes_to_display: Optional[List[str]] = None,
-                 **kwargs):
+    def __init__(self, n_samples: Optional[int] = 10000, **kwargs):  # pylint: disable=useless-super-delegation
         super().__init__(**kwargs)
-        self.classes_to_display = {str(x) for x in classes_to_display} if classes_to_display else None
+        self.n_samples = n_samples
 
     def initialize_run(self, context: Context):
-        """Initialize run.
-
-        Function initializes the following private variables:
-
-        * self._task_type: TaskType
-        * self._train_grayscale_heatmap: variable aggregating the average training grayscale image
-        * self._test_grayscale_heatmap: variable aggregating the average test grayscale image
-        * self._shape: List containing the target image shape (determined by the first image encountered)
-        * self._train_counter: Number of training images aggregated
-        * self._test_counter: Number of test images aggregated
-
-        If task is object detection, we also initialize the following variables:
-
-        * self._train_bbox_heatmap: variable aggregating the average training bounding box heatmap
-        * self._test_bbox_heatmap: variable aggregating the average test bounding box heatmap
-        """
-        train_dataset = context.train
-
-        self._task_type = train_dataset.task_type
-        self._class_to_string = context.train.label_id_to_name
+        """Initialize run."""
+        self._task_type = context.train.task_type
 
         # State members to store the average grayscale image throughout update steps
         self._grayscale_heatmap = defaultdict(lambda: 0)
@@ -80,15 +60,12 @@ class HeatmapComparison(TrainTestCheck):
         if self._task_type == TaskType.OBJECT_DETECTION:
             self._bbox_heatmap = defaultdict(lambda: 0)
 
-    def update(self, context: Context, batch: Batch, dataset_kind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind):
         """Perform update on batch for train or test counters and histograms."""
         # For each dataset kind, update the respective counter and histogram with the average image of the batch
         # The counter accumulates the number of images in the batches
-        # image_batch is a list of images, each of which is a numpy array of shape (H, W, C), produced by running
-        # the image_formatter on the batch.
-        data = context.get_data_by_kind(dataset_kind)
-        valid_labels, valid_images = self._filter_images(data, batch)
-        if len(valid_images) != 0:
+        valid_labels, valid_images = batch.numpy_labels, batch.numpy_images
+        if valid_images is not None and len(valid_images) != 0:
             self._counter[dataset_kind] += len(valid_images)
             summed_image = self._grayscale_sum_image(valid_images)
             self._grayscale_heatmap[dataset_kind] += summed_image
@@ -111,15 +88,6 @@ class HeatmapComparison(TrainTestCheck):
             value: The difference images. One for average image brightness, and one for bbox locations if applicable.
             display: Heatmaps for image brightness (train, test, diff) and heatmap for bbox locations if applicable.
         """
-        # if self.classes_to_display is set, check that it has classes that actually exist
-        if self.classes_to_display is not None:
-            if not self.classes_to_display.issubset(
-                    map(self._class_to_string, context.train.classes_indices.keys())
-            ):
-                raise DeepchecksValueError(
-                    f'Provided list of class ids to display {list(self.classes_to_display)} not found in training '
-                    f'dataset.'
-                )
         # Compute the average grayscale image by dividing the accumulated sum by the number of images
         train_grayscale = (np.expand_dims(self._grayscale_heatmap[DatasetKind.TRAIN], axis=2) /
                            self._counter[DatasetKind.TRAIN]).astype(np.uint8)
@@ -180,51 +148,25 @@ class HeatmapComparison(TrainTestCheck):
         diff = img1.astype(np.int32) - img2.astype(np.int32)
         return np.abs(diff).astype(np.uint8)
 
-    def _filter_images(self, data: VisionData, batch: Batch) -> \
-            Tuple[List[torch.Tensor], List[np.ndarray]]:
-        """Filter the images by the classes to display and return the valid labels and images."""
-        valid_images = []
-        valid_labels = []
-
-        if self.classes_to_display is None:
-            valid_images.extend(batch.images)
-            valid_labels.extend(batch.labels)
-        else:
-            samples = batch.images, batch.labels, data.get_classes(batch.labels)
-            for image, label, classes in zip(*samples):
-                class_names = {self._class_to_string(c) for c in classes}
-                if len(class_names.intersection(self.classes_to_display)) > 0:
-                    valid_labels.append(label)
-                    valid_images.append(image)
-
-        return valid_labels, valid_images
-
     def _label_to_image(self, label: np.ndarray, original_shape: Tuple[int]) -> np.ndarray:
         """Convert label array to an image where pixels inside the bboxes are white and the rest are black."""
         # Create a black image
         image = np.zeros(original_shape, dtype=np.uint8)
         label = label.reshape((-1, 5))
-        class_idx = label[:, 0]
         x_min = (label[:, 1]).astype(np.int32)
         y_min = (label[:, 2]).astype(np.int32)
         x_max = (label[:, 1] + label[:, 3]).astype(np.int32)
         y_max = (label[:, 2] + label[:, 4]).astype(np.int32)
         for i in range(len(label)):
-            # If classes_to_display is set, don't display the bboxes for classes not in the list.
-            if self.classes_to_display is not None and \
-               self._class_to_string(class_idx[i]) not in self.classes_to_display:
-                continue
             # For each bounding box, set the pixels inside the bounding box to white
             image[y_min[i]:y_max[i], x_min[i]:x_max[i]] = 255
         return np.expand_dims(image, axis=2)
 
-    def _label_to_image_batch(self, label_batch: List[torch.Tensor], image_batch: List[np.ndarray]) -> List[np.ndarray]:
+    def _label_to_image_batch(self, label_batch: List[np.ndarray], image_batch: List[np.ndarray]) -> List[np.ndarray]:
         """Convert label batch to batch of images where pixels inside the bboxes are white and the rest are black."""
         return_bbox_image_batch = []
         for image, label in zip(image_batch, label_batch):
-            return_bbox_image_batch.append(
-                self._label_to_image(label.cpu().detach().numpy(), image.shape[:2])
-            )
+            return_bbox_image_batch.append(self._label_to_image(label, image.shape[:2]))
         return return_bbox_image_batch
 
     def _grayscale_sum_image(self, batch: Iterable[np.ndarray]) -> np.ndarray:
@@ -234,8 +176,6 @@ class HeatmapComparison(TrainTestCheck):
         ----------
         batch: np.ndarray
             batch of images.
-        target_shape: List[Tuple[int, int]], default: None
-            list containing shape of image. If empty, the shape is taken from the first image in the batch.
 
         Returns
         -------

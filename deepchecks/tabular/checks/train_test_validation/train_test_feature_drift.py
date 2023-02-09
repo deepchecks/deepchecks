@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -11,7 +11,7 @@
 """Module contains Train Test Drift check."""
 
 from collections import OrderedDict
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -89,7 +89,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: str, default: 'l2_weighted'
+    aggregation_method: Optional[str], default: 'l2_weighted'
         {feature_aggregation_method_argument:2*indent}
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
@@ -111,7 +111,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             categorical_drift_method='cramer_v',
             numerical_drift_method='EMD',
             ignore_na: bool = True,
-            aggregation_method='l2_weighted',
+            aggregation_method: Optional[str] = 'l2_weighted',
             n_samples: int = 100_000,
             random_state: int = 42,
             **kwargs

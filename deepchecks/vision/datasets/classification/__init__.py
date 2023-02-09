@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,6 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module for classification datasets and models."""
-from . import mnist
 
-__all__ = ["mnist"]
+from . import mnist_torch
+
+__all__ = ['mnist_torch']
+
+try:
+    from . import mnist_tensorflow  # noqa: F401
+except ImportError:
+    pass
+else:
+    __all__.append('mnist_tensorflow')

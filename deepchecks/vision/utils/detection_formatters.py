@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -13,11 +13,11 @@ from collections import Counter
 from typing import Iterable, List, Sequence, Tuple, Union
 
 import numpy as np
-import torch
 from PIL.Image import Image
 
-__all__ = ['verify_bbox_format_notation', 'convert_batch_of_bboxes', 'convert_bbox', 'DEFAULT_PREDICTION_FORMAT']
+from deepchecks.vision.vision_data.utils import is_torch_object
 
+__all__ = ['verify_bbox_format_notation', 'convert_batch_of_bboxes', 'convert_bbox', 'DEFAULT_PREDICTION_FORMAT']
 
 DEFAULT_PREDICTION_FORMAT = 'xywhsl'
 
@@ -129,31 +129,28 @@ def verify_bbox_format_notation(notation: str) -> Tuple[bool, List[str]]:
 
 _BatchOfSamples = Iterable[
     Tuple[
-        Union[Image, np.ndarray, torch.Tensor],  # image
+        Union[Image, np.ndarray],  # image
         Sequence[Sequence[Union[int, float]]]  # bboxes
     ]
 ]
 
 
 def convert_batch_of_bboxes(
-    batch: _BatchOfSamples,
-    notation: str,
-    device: Union[str, torch.device, None] = None
-) -> List[torch.Tensor]:
+        batch: _BatchOfSamples,
+        notation: str
+) -> List[np.ndarray]:
     """Convert batch of bboxes to the required format.
 
     Parameters
     ----------
     batch : iterable of tuple like object with two items - image, list of bboxes
-        batch of images and bboxes
+        batch of images and bboxes corresponding to them
     notation : str
         bboxes format notation
-    device : Union[str, torch.device, None], default: None
-        device for use
 
     Returns
     -------
-    List[torch.Tensor]
+    List[np.ndarray]
         list of transformed bboxes
     """
     are_coordinates_normalized, notation_tokens = verify_bbox_format_notation(notation)
@@ -162,7 +159,7 @@ def convert_batch_of_bboxes(
     for image, bboxes in batch:
         if len(bboxes) == 0:
             # image does not have bboxes
-            output.append(torch.tensor([]))
+            output.append(np.asarray([]))
             continue
 
         if are_coordinates_normalized is False:
@@ -170,7 +167,7 @@ def convert_batch_of_bboxes(
             image_width = None
         elif isinstance(image, Image):
             image_height, image_width = image.height, image.width
-        elif isinstance(image, (np.ndarray, torch.Tensor)):
+        elif is_torch_object(image) or isinstance(image, np.ndarray):
             image_height, image_width, *_ = image.shape
         else:
             raise TypeError(
@@ -186,23 +183,21 @@ def convert_batch_of_bboxes(
                 r.append(_convert_bbox(
                     bbox,
                     notation_tokens,
-                    device=device,
                     image_width=image_width,
                     image_height=image_height,
                 ))
-        output.append(torch.stack(r, dim=0))
+        output.append(np.stack(r, axis=0))
 
     return output
 
 
 def convert_bbox(
-    bbox: Sequence[Union[int, float]],
-    notation: str,
-    image_width: Union[int, float, None] = None,
-    image_height: Union[int, float, None] = None,
-    device: Union[str, torch.device, None] = None,
-    _strict: bool = True  # pylint: disable=invalid-name
-) -> torch.Tensor:
+        bbox: Sequence[Union[int, float]],
+        notation: str,
+        image_width: Union[int, float, None] = None,
+        image_height: Union[int, float, None] = None,
+        _strict: bool = True  # pylint: disable=invalid-name
+) -> np.ndarray:
     """Convert bbox to the required format.
 
     Parameters
@@ -215,12 +210,10 @@ def convert_bbox(
         width of the image to denormalize bbox coordinates
     image_height : Union[int, float, None], default: None
         height of the image to denormalize bbox coordinates
-    device : Union[str, torch.device, None], default: None
-        device for use
 
     Returns
     -------
-    torch.Tensor
+    np.ndarray
         bbox transformed to the required by deepchecks format
     """
     if len(bbox) < 5:
@@ -229,8 +222,8 @@ def convert_bbox(
     are_coordinates_normalized, notation_tokens = verify_bbox_format_notation(notation)
 
     if (
-        are_coordinates_normalized is True
-        and (image_height is None or image_width is None)
+            are_coordinates_normalized is True
+            and (image_height is None or image_width is None)
     ):
         raise ValueError(
             'bbox format notation indicates that coordinates of the bbox '
@@ -240,8 +233,8 @@ def convert_bbox(
         )
 
     if (
-        are_coordinates_normalized is False
-        and (image_height is not None or image_width is not None)
+            are_coordinates_normalized is False
+            and (image_height is not None or image_width is not None)
     ):
         if _strict is True:
             raise ValueError(
@@ -260,17 +253,15 @@ def convert_bbox(
         notation_tokens,
         image_width,
         image_height,
-        device,
     )
 
 
 def _convert_bbox(
-    bbox: Sequence[Union[int, float]],
-    notation_tokens: List[str],
-    image_width: Union[int, float, None] = None,
-    image_height: Union[int, float, None] = None,
-    device: Union[str, torch.device, None] = None
-) -> torch.Tensor:
+        bbox: Sequence[Union[int, float]],
+        notation_tokens: List[str],
+        image_width: Union[int, float, None] = None,
+        image_height: Union[int, float, None] = None
+) -> np.ndarray:
     assert \
         (image_width is not None and image_height is not None) \
         or (image_width is None and image_height is None)
@@ -282,26 +273,26 @@ def _convert_bbox(
             xcenter, ycenter = data['xcenter'] * image_width, data['ycenter'] * image_height
         else:
             xcenter, ycenter = data['xcenter'], data['ycenter']
-        return torch.tensor([
+        return np.asarray([
             data['label'],
             xcenter - (data['width'] / 2),
             ycenter - (data['height'] / 2),
             data['width'],
             data['height'],
-        ], device=device)
+        ])
 
     elif 'height' in data and 'width' in data:
         if image_width is not None and image_height is not None:
             xmin, ymin = data['xmin'] * image_width, data['ymin'] * image_height
         else:
             xmin, ymin = data['xmin'], data['ymin']
-        return torch.tensor([
+        return np.asarray([
             data['label'],
             xmin,
             ymin,
             data['width'],
             data['height'],
-        ], device=device)
+        ])
 
     else:
         if image_width is not None and image_height is not None:
@@ -310,10 +301,10 @@ def _convert_bbox(
         else:
             xmin, ymin = data['xmin'], data['ymin']
             xmax, ymax = data['xmax'], data['ymax']
-        return torch.tensor([
+        return np.asarray([
             data['label'],
             xmin,
             ymin,
             xmax - xmin,
             ymax - ymin,
-        ], device=device)
+        ])
