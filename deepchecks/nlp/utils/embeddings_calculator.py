@@ -11,9 +11,10 @@
 """Utils module for calculating embeddings for text."""
 
 import pandas as pd
+from tqdm import tqdm
 
 
-def get_default_embeddings(text: pd.Series, model: str = 'miniLM', file_path: str = 'embeddings.csv') -> pd.DataFrame:
+def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM', file_path: str = 'embeddings.csv') -> pd.DataFrame:
     """
     Get default embeddings for the dataset.
 
@@ -62,11 +63,11 @@ def get_default_embeddings(text: pd.Series, model: str = 'miniLM', file_path: st
         batch_size = 500
         embeddings = []
         clean_text = [clean_special_chars(x) for x in text]
-        for idx, sub_list in enumerate([clean_text[x:x+batch_size] for x in range(0, len(text), batch_size)]):
+        for idx, sub_list in tqdm(enumerate([clean_text[x:x+batch_size] for x in range(0, len(text), batch_size)]),
+                                  desc='Calculating Embeddings '):
             open_ai_response = _get_embedding_with_backoff(sub_list)
             for x in open_ai_response:
                 embeddings.append(x['embedding'])
-            print(f'Finished batch {idx+1} out of {len(text)//batch_size + 1}')
     else:
         raise ValueError(f'Unknown model type: {model}')
     embeddings = pd.DataFrame(embeddings, index=text.index)
