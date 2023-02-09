@@ -118,7 +118,7 @@ In general, it is recommended to use Cramer's V, unless your variable includes c
 However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V, as PSI will not be able to detect change in the smaller categories.
 
 
-Detecting Drift in Unbalanced Classification
+Detecting Drift in Unbalanced Classification Tasks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In classification problems, it is common to have unbalanced data, meaning that the number of samples in each class is
