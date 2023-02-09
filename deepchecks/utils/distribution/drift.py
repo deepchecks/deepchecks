@@ -27,12 +27,17 @@ from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_number
 
-__all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
-           'drift_condition', 'get_drift_plot_sidenote']
+# __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
+#            'drift_condition', 'get_drift_plot_sidenote']
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
 SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance']
+
+
+def filter_margins_by_qunatile(dist: Union[np.ndarray, pd.Series], margin_quantile_filter: float) -> np.ndarray:
+    qt_min, qt_max = np.quantile(dist, [0, 1 - margin_quantile_filter])
+    return dist[(qt_max >= dist) & (dist >= qt_min)]
 
 
 def get_drift_method(result_dict: Dict):
@@ -56,6 +61,64 @@ def get_drift_method(result_dict: Dict):
     num_method = num_mthod_arr.iloc[0] if len(num_mthod_arr) else None
 
     return cat_method, num_method
+
+def orig_cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
+              min_category_size_ratio: float = 0, max_num_categories: int = None,
+              sort_by: str = 'dist1') -> float:
+    """Calculate the Cramer's V statistic.
+
+    For more on Cramer's V, see https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    Uses the Cramer's V bias correction, see http://stats.lse.ac.uk/bergsma/pdf/cramerV3.pdf
+
+    Function is for categorical data only.
+
+    Parameters
+    ----------
+    dist1 : Union[np.ndarray, pd.Series]
+        array of numerical values.
+    dist2 : Union[np.ndarray, pd.Series]
+        array of numerical values to compare dist1 to.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories: int, default: None
+        max number of allowed categories. If there are more categories than this number, categories are ordered by
+        magnitude and all the smaller categories are binned into an "Other" category.
+        If max_num_categories=None, there is no limit.
+        > Note that if this parameter is used, the ordering of categories (and by extension, the decision which
+        categories are kept by name and which are binned to the "Other" category) is done by default according to the
+        values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
+        sort_by parameter.
+    sort_by: str, default: 'dist1'
+        Specify how categories should be sorted, affecting which categories will get into the "Other" category.
+        Possible values:
+        - 'dist1': Sort by the largest dist1 categories.
+        - 'dist2': Sort by the largest dist2 categories.
+        - 'difference': Sort by the largest difference between categories.
+        > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+    Returns
+    -------
+    float
+        Cramer's V value of the 2 distributions.
+
+    """
+    dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                       max_num_categories, sort_by)
+    contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
+
+    # If columns have the same single value in both (causing division by 0), return 0 drift score:
+    if contingency_matrix.shape[1] == 1:
+        return 0
+
+    # This is based on
+    # https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792 # noqa: SC100
+    # and reused in other sources
+    # (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9) # noqa: SC100
+    chi2 = chi2_contingency(contingency_matrix)[0]
+    n = contingency_matrix.sum().sum()
+    phi2 = chi2 / n
+    r, k = contingency_matrix.shape
+    return np.sqrt(phi2 / min((k - 1), (r - 1)))
 
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
@@ -172,6 +235,95 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
     return psi_value
 
 
+from scipy.stats import entropy
+from numpy.linalg import norm
+
+def jsd(dist1, dist2, bins=100):
+    global_min = min(min(dist1), min(dist2))
+    global_max = max(max(dist1), max(dist2))
+
+    P = np.histogram(dist1, density=True, bins=bins, range=(global_min, global_max))[0]
+    Q = np.histogram(dist2, density=True, bins=bins, range=(global_min, global_max))[0]
+    _P = P / norm(P, ord=1)
+    _Q = Q / norm(Q, ord=1)
+    _M = 0.5 * (_P + _Q)
+
+    return 0.5 * (entropy(_P, _M) + entropy(_Q, _M))
+
+import phik
+def phi_k(dist1, dist2):
+    x = np.concatenate([dist1, dist2])
+    y = np.array(['dist1'] * len(dist1) + ['dist2'] * len(dist2))
+    return phik.phik_from_array(x=x, y=y, num_vars=['x']) ** 1.5
+
+import deepchecks.ppscore as pps
+def ppscore(dist1, dist2):
+    x = np.concatenate([dist1, dist2])
+    y = np.array(['dist1'] * len(dist1) + ['dist2'] * len(dist2))
+
+    return pps.score(df=pd.DataFrame({'x': x, 'y': y}), x='x', y='y')['ppscore']
+
+def std_diff(dist1, dist2):
+    # if margin_quantile_filter == 0:
+    #     dist1 = filter_margins_by_qunatile(dist1, margin_quantile_filter)
+    #     dist2 = filter_margins_by_qunatile(dist2, margin_quantile_filter)
+
+    s1 = np.std(dist1)
+    s2 = np.std(dist2)
+
+    numerator = min(s1, s2)
+    denominator = max(s1, s2)
+    if denominator == 0:
+        return 0
+
+    return 1-numerator / denominator
+
+    # return abs(s1 - s2) / max(s1, s2)
+
+    # val_max = np.max([np.max(dist1), np.max(dist2)])
+    # val_min = np.min([np.min(dist1), np.min(dist2)])
+    #
+    # if val_max == val_min:
+    #     return 0
+
+    # return abs((m1 - m2) / (val_max - val_min))
+
+
+def mean_diff(dist1, dist2, margin_quantile_filter):
+    if margin_quantile_filter == 0:
+        dist1 = filter_margins_by_qunatile(dist1, margin_quantile_filter)
+        dist2 = filter_margins_by_qunatile(dist2, margin_quantile_filter)
+
+    m1 = np.mean(dist1)
+    m2 = np.mean(dist2)
+
+    val_max = np.max([np.max(dist1), np.max(dist2)])
+    val_min = np.min([np.min(dist1), np.min(dist2)])
+
+    if val_max == val_min:
+        return 0
+
+    return abs((m1 - m2) / (val_max - val_min))
+
+
+def median_diff(dist1, dist2, margin_quantile_filter):
+
+    if margin_quantile_filter == 0:
+        dist1 = filter_margins_by_qunatile(dist1, margin_quantile_filter)
+        dist2 = filter_margins_by_qunatile(dist2, margin_quantile_filter)
+
+    m1 = np.median(dist1)
+    m2 = np.median(dist2)
+
+    val_max = np.max([np.max(dist1), np.max(dist2)])
+    val_min = np.min([np.min(dist1), np.min(dist2)])
+
+    if val_max == val_min:
+        return 0
+
+    return abs((m1 - m2) / (val_max - val_min))
+
+
 def ks_2samp(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
     """
     Performs the two-sample Kolmogorov-Smirnov test for goodness of fit.
@@ -222,6 +374,44 @@ def ks_2samp(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Se
     maxS = np.max(cddiffs)
     return max(minS, maxS)
 
+def integral_diff(dist1,  dist2) -> float:
+    """
+    Calculate the integral difference between two distributions.
+
+    Parameters
+    ----------
+    dist1: Union[np.ndarray, pd.Series]
+        array of numerical values.
+    dist2: Union[np.ndarray, pd.Series]
+        array of numerical values to compare dist1 to.
+
+    Returns
+    -------
+    integral_diff: float
+        integral difference between the two distributions.
+    """
+    # return np.abs(np.trapz(dist1) - np.trapz(dist2))
+    if np.ma.is_masked(dist1):
+        dist1 = dist1.compressed()
+    if np.ma.is_masked(dist2):
+        dist2 = dist2.compressed()
+    dist1 = np.sort(dist1)
+    dist2 = np.sort(dist2)
+    n1 = dist1.shape[0]
+    n2 = dist2.shape[0]
+    if min(n1, n2) == 0:
+        raise ValueError('Data passed to ks_2samp must not be empty')
+
+    data_all = np.concatenate([dist1, dist2])
+    # using searchsorted solves equal data problem
+    cdf1 = np.searchsorted(dist1, data_all, side='right') / n1
+    cdf2 = np.searchsorted(dist2, data_all, side='right') / n2
+    cddiffs = np.abs(cdf1 - cdf2)
+
+    return np.mean(cddiffs) / max(np.mean(cdf1), np.mean(cdf2))
+
+
+
 def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
                           margin_quantile_filter: float, emd_by_partition: bool = False) -> float:
     """
@@ -260,10 +450,8 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
             f'margin_quantile_filter expected a value in range [0, 0.5), instead got {margin_quantile_filter}')
 
     if margin_quantile_filter != 0:
-        dist1_qt_min, dist1_qt_max = np.quantile(dist1, [0, 1 - margin_quantile_filter])
-        dist2_qt_min, dist2_qt_max = np.quantile(dist2, [0, 1 - margin_quantile_filter])
-        dist1 = dist1[(dist1_qt_max >= dist1) & (dist1 >= dist1_qt_min)]
-        dist2 = dist2[(dist2_qt_max >= dist2) & (dist2 >= dist2_qt_min)]
+        dist1 = filter_margins_by_qunatile(dist1, margin_quantile_filter)
+        dist2 = filter_margins_by_qunatile(dist2, margin_quantile_filter)
 
     if emd_by_partition is True:
         print('here in partition')
