@@ -88,7 +88,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     relative_change: bool, default: False
         If True, all categories will have an equal weight in the PSI score, with only the log of the ratio
         between the expected and actual category size being used. This is useful when we care about the relative
-        difference between the distributions, but not about the absolute difference. Usable only when
+        difference between the distributions, but not about the absolute difference. Must have
         categorical_drift_method = "PSI".
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
