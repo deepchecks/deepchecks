@@ -111,23 +111,7 @@ regression_scorers_higher_is_better_dict = {
     'neg_mean_gamma_deviance': get_scorer('neg_mean_gamma_deviance')
 }
 
-binary_scorers_dict = {
-    'accuracy': get_scorer('accuracy'),
-    'balanced_accuracy': get_scorer('balanced_accuracy'),
-    'average_precision': get_scorer('average_precision'),
-    'neg_brier_score': get_scorer('neg_brier_score'),
-    'precision': make_scorer(precision_score, zero_division=0),
-    'recall': make_scorer(recall_score, zero_division=0),
-    'f1': make_scorer(f1_score, zero_division=0),
-    'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
-    'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
-    'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
-    'jaccard': make_scorer(jaccard_score, zero_division=0),
-    'roc_auc': get_scorer('roc_auc'),
-    'neg_log_loss': make_scorer(log_loss, greater_is_better=False, needs_proba=True, labels=[0, 1])
-}
-
-multiclass_scorers_dict = {
+common_classification_metrics = {
     'accuracy': get_scorer('accuracy'),
     'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
     'precision_micro': make_scorer(precision_score, average='micro', zero_division=0),
@@ -153,15 +137,35 @@ multiclass_scorers_dict = {
     'tnr_macro': make_scorer(true_negative_rate_metric, averaging_method='macro'),
     'tnr_micro': make_scorer(true_negative_rate_metric, averaging_method='micro'),
     'tnr_weighted': make_scorer(true_negative_rate_metric, averaging_method='weighted'),
+    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0),
+    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0),
+    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0),
+    'jaccard_per_class': make_scorer(jaccard_score, average=None, zero_division=0),
+}
+
+binary_scorers_dict = {
+    'balanced_accuracy': get_scorer('balanced_accuracy'),
+    'average_precision': get_scorer('average_precision'),
+    'neg_brier_score': get_scorer('neg_brier_score'),
+    'precision': make_scorer(precision_score, zero_division=0),
+    'recall': make_scorer(recall_score, zero_division=0),
+    'f1': make_scorer(f1_score, zero_division=0),
+    'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
+    'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
+    'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
+    'jaccard': make_scorer(jaccard_score, zero_division=0),
+    'roc_auc': get_scorer('roc_auc'),
+    'neg_log_loss': make_scorer(log_loss, greater_is_better=False, needs_proba=True, labels=[0, 1]),
+    **common_classification_metrics
+}
+
+multiclass_scorers_dict = {
     'roc_auc_per_class': make_scorer(roc_auc_per_class, needs_proba=True),
     'roc_auc_ovr': get_scorer('roc_auc_ovr'),
     'roc_auc_ovo': get_scorer('roc_auc_ovo'),
     'roc_auc_ovr_weighted': get_scorer('roc_auc_ovr_weighted'),
     'roc_auc_ovo_weighted': get_scorer('roc_auc_ovo_weighted'),
-    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0),
-    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0),
-    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0),
-    'jaccard_per_class': make_scorer(jaccard_score, average=None, zero_division=0),
+    **common_classification_metrics
 }
 
 _str_to_scorer_dict = {**regression_scorers_higher_is_better_dict,
