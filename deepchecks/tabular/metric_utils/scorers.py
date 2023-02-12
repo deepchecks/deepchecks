@@ -118,6 +118,7 @@ binary_scorers_dict = {
     'neg_brier_score': get_scorer('neg_brier_score'),
     'precision': make_scorer(precision_score, zero_division=0),
     'recall': make_scorer(recall_score, zero_division=0),
+    'f1': make_scorer(f1_score, zero_division=0),
     'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
     'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
