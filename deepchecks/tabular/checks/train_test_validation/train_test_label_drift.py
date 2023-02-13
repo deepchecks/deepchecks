@@ -44,6 +44,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     small number of samples (common practice is categories with less than 5 samples).
     However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
 
+    **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V, together with setting
+    the ``balance_classes`` parameter to ``True``.
 
     Parameters
     ----------

@@ -61,6 +61,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
+    **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V, together with setting
+    the ``balance_classes`` parameter to ``True``.
 
     Parameters
     ----------
