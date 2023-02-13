@@ -129,3 +129,4 @@ CML
 ints
 softmax
 tf
+searchsorted

@@ -27,8 +27,8 @@ from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_number
 
-# __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
-#            'drift_condition', 'get_drift_plot_sidenote']
+__all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
+           'drift_condition', 'get_drift_plot_sidenote']
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
@@ -63,6 +63,7 @@ def get_drift_method(result_dict: Dict):
 
     return cat_method, num_method
 
+
 def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
     """Rebalance the distributions as if dist1 was a uniform distribution.
 
@@ -79,13 +80,11 @@ def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
         200% in the second category. The new dist2_counts should be [4450, 10000].
         # When re-adjusting to the original total num_samples of dist2, the new dist2_counts should be [3103, 6896]
     """
-
     new_dist1_counts = [int(np.sum(dist1_counts)/len(dist1_counts))] * len(dist1_counts)
     multipliers = [nu / de if de != 0 else 0 for nu, de in zip(new_dist1_counts, dist1_counts)]
     new_dist2_counts = np.array([int(x) for x in dist2_counts * multipliers])
 
     return new_dist1_counts, new_dist2_counts
-
 
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
@@ -142,7 +141,6 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     if contingency_matrix.shape[1] == 1:
         return 0
 
-
     # This is based on
     # https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792 # noqa: SC100
     # and reused in other sources
@@ -151,7 +149,6 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     n = contingency_matrix.sum().sum()
     phi2 = chi2 / n
     r, k = contingency_matrix.shape
-    # return np.sqrt(phi2 / min((k - 1), (r - 1)))
 
     phi2corr = max(0, phi2 - ((k - 1) * (r - 1)) / (n - 1))
     rcorr = r - ((r - 1) ** 2) / (n - 1)
@@ -211,7 +208,7 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
 
 def kolmogorov_smirnov(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
     """
-    Performs the two-sample Kolmogorov-Smirnov test for goodness of fit.
+    Perform the two-sample Kolmogorov-Smirnov test for goodness of fit.
 
     This test compares the underlying continuous distributions F(x) and G(x)
     of two independent samples.
@@ -283,11 +280,9 @@ def kolmogorov_smirnov(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndar
     # using searchsorted solves equal data problem
     cdf1 = np.searchsorted(dist1, data_all, side='right') / n1
     cdf2 = np.searchsorted(dist2, data_all, side='right') / n2
-    cddiffs = cdf1 - cdf2
-    # Ensure sign of minS is not negative.
-    minS = np.clip(-np.min(cddiffs), 0, 1)
-    maxS = np.max(cddiffs)
-    return max(minS, maxS)
+    cddiffs = np.abs(cdf1 - cdf2)
+    return np.max(cddiffs)
+
 
 def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
                           margin_quantile_filter: float) -> float:
@@ -497,7 +492,7 @@ def calc_drift_and_plot(train_column: pd.Series,
     fig.update_xaxes(dist_x_axis, row=2, col=1)
     if balance_classes is True:
         dist_y_axis['title'] += ' (Log Scale)'
-        fig.update_yaxes(dist_y_axis, row=2, col=1, type="log")
+        fig.update_yaxes(dist_y_axis, row=2, col=1, type='log')
     else:
         fig.update_yaxes(dist_y_axis, row=2, col=1)
 
