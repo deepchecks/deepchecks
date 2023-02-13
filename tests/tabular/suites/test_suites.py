@@ -228,4 +228,4 @@ def test_production_suite(iris):
     suite = suites.production_suite('classification', is_comparative=True)
     train, test, model = iris
     result = suite.run(train, test, model)
-    assert_that(result.results, has_length(15))
+    assert_that(result.results, has_length(16))

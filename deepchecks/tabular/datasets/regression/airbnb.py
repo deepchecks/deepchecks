@@ -17,8 +17,7 @@ This dataset contains the details for units listed in NYC during 2019, was adapt
 dataset: https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data. This, in turn was downloaded from
 the Airbnb data repository http://insideairbnb.com/get-the-data.
 
-This dataset is licensed under the Creative Commons Attribution 4.0 International License
-(https://creativecommons.org/licenses/by/4.0/).
+This dataset is licensed under the CC0 1.0 Universal License (https://creativecommons.org/publicdomain/zero/1.0/).
 
 The typical ML task in this dataset is to build a model that predicts the average rental price of a unit.
 
