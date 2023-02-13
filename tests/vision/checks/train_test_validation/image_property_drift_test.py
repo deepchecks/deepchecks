@@ -36,22 +36,22 @@ def test_image_property_drift_check(coco_visiondata_train, coco_visiondata_test)
 
 def test_image_property_drift_check_without_display(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift(aggregation_method='mean', numerical_drift_method='EMD').run(coco_visiondata_train, coco_visiondata_test,
+    result = ImagePropertyDrift(aggregation_method='mean', numerical_drift_method='KS').run(coco_visiondata_train, coco_visiondata_test,
                                                                with_display=False)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result(with_display=False))
 
     assert_that(result.value, has_entries(
-        {'Brightness': has_entries({'Drift score': close_to(0.07, 0.01)})}
+        {'Brightness': has_entries({'Drift score': close_to(0.2, 0.01)})}
     ))
 
     assert_that(result.reduce_output(), has_entries(
-        {'Mean Drift Score': close_to(0.05, 0.01)}
+        {'Mean Drift Score': close_to(0.14, 0.01)}
     ))
 
 
-def test_image_property_drift_check_without_display_none_aggragation(coco_visiondata_train, coco_visiondata_test):
+def test_image_property_drift_check_without_display_none_aggregation(coco_visiondata_train, coco_visiondata_test):
     # Run
     result = ImagePropertyDrift(aggregation_method=None, numerical_drift_method='EMD').run(coco_visiondata_train, coco_visiondata_test,
                                                              with_display=False)

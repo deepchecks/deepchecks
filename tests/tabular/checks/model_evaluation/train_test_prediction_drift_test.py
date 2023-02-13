@@ -16,7 +16,7 @@ from deepchecks.tabular.checks import TrainTestPredictionDrift
 from tests.base.utils import equal_condition_result
 
 
-def test_no_drift_regression_label(diabetes, diabetes_model):
+def test_no_drift_regression_label_emd(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
     check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
@@ -29,6 +29,21 @@ def test_no_drift_regression_label(diabetes, diabetes_model):
         {'Drift score': close_to(0.04, 0.01),
          'Method': equal_to('Earth Mover\'s Distance')}
     ))
+
+def test_no_drift_regression_label_ks(diabetes, diabetes_model):
+    # Arrange
+    train, test = diabetes
+    check = TrainTestPredictionDrift(numerical_drift_method='KS')
+
+    # Act
+    result = check.run(train, test, diabetes_model)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Drift score': close_to(0.11, 0.01),
+         'Method': equal_to('Kolmogorov-Smirnov')}
+    ))
+
 
 
 def test_reduce_no_drift_regression_label(diabetes, diabetes_model):

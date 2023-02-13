@@ -129,8 +129,8 @@ def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visionda
 
 def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
-                                min_category_size_ratio=0)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='KS',
+                                max_num_categories_for_drift=10, min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test)
@@ -141,11 +141,11 @@ def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test
             {'Drift score': close_to(0.37, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding Box Area (in pixels)': has_entries(
-            {'Drift score': close_to(0.013, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
+            {'Drift score': close_to(0.049, 0.001),
+             'Method': equal_to('Kolmogorov-Smirnov')}
         ), 'Number of Bounding Boxes Per Image': has_entries(
-            {'Drift score': close_to(0.051, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
+            {'Drift score': close_to(0.11, 0.001),
+             'Method': equal_to('Kolmogorov-Smirnov')}
         )
         }
     ))

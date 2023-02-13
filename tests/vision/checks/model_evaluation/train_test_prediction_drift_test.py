@@ -99,7 +99,7 @@ def test_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test
 
 def test_with_drift_segmentation(segmentation_coco_visiondata_train, segmentation_coco_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift()
+    check = TrainTestPredictionDrift(numerical_drift_method='KS')
 
     # Act
     result = check.run(segmentation_coco_visiondata_train, segmentation_coco_visiondata_test)
@@ -109,11 +109,11 @@ def test_with_drift_segmentation(segmentation_coco_visiondata_train, segmentatio
             {'Drift score': equal_to(0),
              'Method': equal_to('Cramer\'s V')}
         ), 'Number of Classes Per Image': has_entries(
-            {'Drift score': close_to(0.1, 0.01),
-             'Method': equal_to('Earth Mover\'s Distance')}
+            {'Drift score': close_to(0.2, 0.01),
+             'Method': equal_to('Kolmogorov-Smirnov')}
         ), 'Segment Area (in pixels)': has_entries(
-            {'Drift score': close_to(0.03, 0.01),
-             'Method': equal_to('Earth Mover\'s Distance')}
+            {'Drift score': close_to(0.09, 0.01),
+             'Method': equal_to('Kolmogorov-Smirnov')}
         )
         }
     ))
