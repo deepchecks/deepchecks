@@ -32,7 +32,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
     dataset.
 
-    For numerical columns, we use the Earth Movers Distance.
+    For numerical columns, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     For categorical distributions, we use the Cramer's V.

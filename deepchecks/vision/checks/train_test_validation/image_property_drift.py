@@ -39,8 +39,11 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
     Calculate drift between train dataset and test dataset per image property, using statistical measures.
 
     Check calculates a drift score for each image property in test dataset, by comparing its distribution to the train
-    dataset. For this, we use the Earth Movers Distance.
+    dataset.
 
+    For numerical distributions, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     Parameters

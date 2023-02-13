@@ -53,7 +53,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
     - distribution of bounding box areas
     - distribution of number of bounding boxes per image
 
-    For numerical distributions, we use the Earth Movers Distance.
+    For numerical distributions, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     For categorical distributions, we use the Cramer's V.

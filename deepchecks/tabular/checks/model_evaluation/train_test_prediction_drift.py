@@ -38,7 +38,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     (1) class for binary classification tasks, and on the predicted class itself for multiclass tasks. This behavior can
     be controlled using the `drift_mode` parameter.
 
-    For numerical columns, we use the Earth Movers Distance.
+    For numerical columns, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     For categorical distributions, we use the Cramer's V.
