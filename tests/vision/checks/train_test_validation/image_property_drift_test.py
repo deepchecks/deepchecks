@@ -20,7 +20,7 @@ from tests.base.utils import equal_condition_result
 
 def test_image_property_drift_check(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift().run(coco_visiondata_train, coco_visiondata_test)
+    result = ImagePropertyDrift(numerical_drift_method='EMD').run(coco_visiondata_train, coco_visiondata_test)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result())
@@ -36,7 +36,7 @@ def test_image_property_drift_check(coco_visiondata_train, coco_visiondata_test)
 
 def test_image_property_drift_check_without_display(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift(aggregation_method='mean').run(coco_visiondata_train, coco_visiondata_test,
+    result = ImagePropertyDrift(aggregation_method='mean', numerical_drift_method='EMD').run(coco_visiondata_train, coco_visiondata_test,
                                                                with_display=False)
 
     # Assert
@@ -53,7 +53,7 @@ def test_image_property_drift_check_without_display(coco_visiondata_train, coco_
 
 def test_image_property_drift_check_without_display_none_aggragation(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift(aggregation_method=None).run(coco_visiondata_train, coco_visiondata_test,
+    result = ImagePropertyDrift(aggregation_method=None, numerical_drift_method='EMD').run(coco_visiondata_train, coco_visiondata_test,
                                                              with_display=False)
 
     # Assert
@@ -69,7 +69,7 @@ def test_image_property_drift_check_without_display_none_aggragation(coco_vision
 
 
 def test_image_property_drift_condition(coco_visiondata_train, coco_visiondata_test):
-    result = ImagePropertyDrift().add_condition_drift_score_less_than().run(coco_visiondata_train, coco_visiondata_test)
+    result = ImagePropertyDrift(numerical_drift_method='EMD').add_condition_drift_score_less_than().run(coco_visiondata_train, coco_visiondata_test)
 
     assert_that(result, is_correct_image_property_drift_result())
 
@@ -79,11 +79,11 @@ def test_image_property_drift_condition(coco_visiondata_train, coco_visiondata_t
         is_pass=True,
         details='Passed for 7 properties out of 7 properties.\nFound property "Brightness" has the highest numerical '
                 'drift score: 0.07',
-        name='Earth Mover\'s Distance < 0.1 for image properties drift'))
+        name='drift score < 0.1 for image properties drift'))
 
 def test_image_property_drift_fail_condition(coco_visiondata_train, coco_visiondata_test):
     result = (
-        ImagePropertyDrift()
+        ImagePropertyDrift(numerical_drift_method='EMD')
         .add_condition_drift_score_less_than(0.06)
         .run(coco_visiondata_train, coco_visiondata_test)
     )
@@ -96,7 +96,7 @@ def test_image_property_drift_fail_condition(coco_visiondata_train, coco_visiond
         is_pass=False,
         details="Failed for 3 out of 7 properties.\nFound 3 numeric properties with Earth Mover's Distance above "
                 "threshold: {'Aspect Ratio': '0.07', 'Brightness': '0.07', 'Mean Green Relative Intensity': '0.06'}",
-        name='Earth Mover\'s Distance < 0.06 for image properties drift'))
+        name='drift score < 0.06 for image properties drift'))
 
 
 def is_correct_image_property_drift_result(with_display: bool = True):

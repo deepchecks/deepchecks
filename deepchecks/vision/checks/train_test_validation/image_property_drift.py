@@ -92,7 +92,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            numerical_drift_method: str = 'EMD',
+            numerical_drift_method: str = 'KS',
             min_samples: int = 30,
             aggregation_method: t.Optional[str] = 'max',
             n_samples: t.Optional[int] = 10000,
@@ -190,7 +190,8 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
                 not_enough_samples.append(property_name)
 
         if context.with_display:
-            columns_order = sorted(properties, key=lambda col: values_dict.get(col).get('Drift score', 0), reverse=True)
+            columns_order = sorted(properties, key=lambda col: values_dict.get(col, {}).get('Drift score', 0),
+                                   reverse=True)
             properties_to_display = [p for p in properties if p in values_dict]
 
             headnote = ['<span> The Drift score is a measure for the difference between two distributions. '
@@ -237,28 +238,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         condition = drift_condition(max_allowed_categorical_score=0, max_allowed_numeric_score=max_allowed_drift_score,
                                     subject_single='property', subject_multi='properties')
 
-        # def condition(result: t.Dict[str, float]) -> ConditionResult:
-        #     failed_properties = [
-        #         (property_name, drift_score)
-        #         for property_name, drift_score in result.items()
-        #         if drift_score >= max_allowed_drift_score
-        #     ]
-        #     if len(failed_properties) > 0:
-        #         failed_properties = ';\n'.join(f'{p}={format_number(d)}' for p, d in failed_properties)
-        #         return ConditionResult(
-        #             ConditionCategory.FAIL,
-        #             'Earth Mover\'s Distance is above the threshold '
-        #             f'for the next properties:\n{failed_properties}'
-        #         )
-        #     else:
-        #         if not result:
-        #             details = 'Did not calculate drift score on any property'
-        #         else:
-        #             prop, score = get_dict_entry_by_value(result)
-        #             details = f'Found property {prop} with largest Earth Mover\'s Distance score {format_number(score)}'
-        #         return ConditionResult(ConditionCategory.PASS, details)
-
         return self.add_condition(
-            f'Earth Mover\'s Distance < {max_allowed_drift_score} for image properties drift',
+            f'drift score < {max_allowed_drift_score} for image properties drift',
             condition
         )

@@ -94,7 +94,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            numerical_drift_method: str = 'EMD',
+            numerical_drift_method: str = 'KS',
             categorical_drift_method: str = 'cramers_v',
             balance_classes: bool = False,
             ignore_na: bool = False,
@@ -165,7 +165,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         """Return True if the check reduce_output is better when it is greater."""
         return False
 
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.1,
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
                                             max_allowed_numeric_score: float = 0.1):
         """
         Add condition - require drift score to be less than the threshold.

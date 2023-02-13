@@ -108,7 +108,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            numerical_drift_method: str = 'EMD',
+            numerical_drift_method: str = 'KS',
             categorical_drift_method: str = 'cramers_v',
             ignore_na: bool = True,
             aggregation_method: Optional[str] = 'l2_weighted',

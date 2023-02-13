@@ -85,7 +85,7 @@ def test_drift_classification_label_without_display(drifted_classification_label
 def test_drift_regression_label(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(train, test)
@@ -100,7 +100,7 @@ def test_drift_regression_label(drifted_regression_label):
 def test_reduce_output_drift_regression_label(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(train, test)
@@ -116,7 +116,7 @@ def test_reduce_output_drift_regression_label(drifted_regression_label):
 def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Arrange
     train, test = drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test)
@@ -133,7 +133,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
 def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test)

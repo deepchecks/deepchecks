@@ -19,7 +19,7 @@ from tests.base.utils import equal_condition_result
 def test_no_drift_regression_label(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(train, test, diabetes_model)
@@ -34,7 +34,7 @@ def test_no_drift_regression_label(diabetes, diabetes_model):
 def test_reduce_no_drift_regression_label(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(train, test, diabetes_model)
@@ -143,7 +143,8 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
 def test_multiclass_proba(iris_split_dataset_and_model_rf):
     # Arrange
     train, test, model = iris_split_dataset_and_model_rf
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0,
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                     max_num_categories=10, min_category_size_ratio=0,
                                      drift_mode='proba')
 
     # Act
@@ -161,7 +162,7 @@ def test_multiclass_proba(iris_split_dataset_and_model_rf):
 def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', drift_mode='proba'
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD', drift_mode='proba'
                                      ).add_condition_drift_score_less_than()
 
     # Act
@@ -184,7 +185,8 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
 def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
     # Arrange
     train, test, model = iris_split_dataset_and_model_rf
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories=10, min_category_size_ratio=0,
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                     max_num_categories=10, min_category_size_ratio=0,
                                      drift_mode='proba', aggregation_method='weighted'
                                      ).add_condition_drift_score_less_than(max_allowed_numeric_score=0.05)
 
