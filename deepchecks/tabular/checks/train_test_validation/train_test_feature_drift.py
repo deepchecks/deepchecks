@@ -80,7 +80,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    numerical_drift_method: str, default: "EMD"
+    numerical_drift_method: str, default: "KS"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
     categorical_drift_method: str, default: "cramers_v"
