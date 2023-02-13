@@ -121,7 +121,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             numerical_drift_method: str = 'EMD',
-            categorical_drift_method = 'cramers_v',
+            categorical_drift_method: str = 'cramers_v',
             balance_classes: bool = False,
             aggregation_method: Optional[str] = None,
             n_samples: Optional[int] = 10000,
