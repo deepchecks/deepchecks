@@ -32,10 +32,11 @@ from deepchecks.utils.strings import format_number
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
-SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance']
+SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance', 'KS']
 
 
-def filter_margins_by_qunatile(dist: Union[np.ndarray, pd.Series], margin_quantile_filter: float) -> np.ndarray:
+def filter_margins_by_quantile(dist: Union[np.ndarray, pd.Series], margin_quantile_filter: float) -> np.ndarray:
+    """Filter the margins of the distribution by a quantile."""
     qt_min, qt_max = np.quantile(dist, [0, 1 - margin_quantile_filter])
     return dist[(qt_max >= dist) & (dist >= qt_min)]
 
@@ -62,67 +63,33 @@ def get_drift_method(result_dict: Dict):
 
     return cat_method, num_method
 
-def orig_cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-              min_category_size_ratio: float = 0, max_num_categories: int = None,
-              sort_by: str = 'dist1') -> float:
-    """Calculate the Cramer's V statistic.
+def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
+    """Rebalance the distributions as if dist1 was a uniform distribution.
 
-    For more on Cramer's V, see https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
-    Uses the Cramer's V bias correction, see http://stats.lse.ac.uk/bergsma/pdf/cramerV3.pdf
+    This is a util function for an unbalanced version categorical drift scoring methods. The rebalancing is done
+    so in practice all categories of the distributions are treated with the same weight.
 
-    Function is for categorical data only.
+    The function redefines the dist1_counts to have equal counts for all categories, and then redefines the
+    dist2_counts to have the same "change" it had from dist1_counts, but with relative to the new dist1_counts.
 
-    Parameters
-    ----------
-    dist1 : Union[np.ndarray, pd.Series]
-        array of numerical values.
-    dist2 : Union[np.ndarray, pd.Series]
-        array of numerical values to compare dist1 to.
-    min_category_size_ratio: float, default 0.01
-        minimum size ratio for categories. Categories with size ratio lower than this number are binned
-        into an "Other" category.
-    max_num_categories: int, default: None
-        max number of allowed categories. If there are more categories than this number, categories are ordered by
-        magnitude and all the smaller categories are binned into an "Other" category.
-        If max_num_categories=None, there is no limit.
-        > Note that if this parameter is used, the ordering of categories (and by extension, the decision which
-        categories are kept by name and which are binned to the "Other" category) is done by default according to the
-        values of dist1, which is treated as the "expected" distribution. This behavior can be changed by using the
-        sort_by parameter.
-    sort_by: str, default: 'dist1'
-        Specify how categories should be sorted, affecting which categories will get into the "Other" category.
-        Possible values:
-        - 'dist1': Sort by the largest dist1 categories.
-        - 'dist2': Sort by the largest dist2 categories.
-        - 'difference': Sort by the largest difference between categories.
-        > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
-    Returns
-    -------
-    float
-        Cramer's V value of the 2 distributions.
-
+    Example:
+        if dist1_counts was [9000, 1000] and dist2_counts was [8000, 2000]. This means that if we treat dist1 as a
+        uniform distribution, the new counts should be dist1_counts = [5000, 5000].
+        The relative change of dist2 from dist1 was a decrease of 11% in the first category and an increase of
+        200% in the second category. The new dist2_counts should be [4450, 10000].
+        # When re-adjusting to the original total num_samples of dist2, the new dist2_counts should be [3103, 6896]
     """
-    dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
-                                                                       max_num_categories, sort_by)
-    contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
-    # If columns have the same single value in both (causing division by 0), return 0 drift score:
-    if contingency_matrix.shape[1] == 1:
-        return 0
+    new_dist1_counts = [int(np.sum(dist1_counts)/len(dist1_counts))] * len(dist1_counts)
+    multipliers = [nu / de if de != 0 else 0 for nu, de in zip(new_dist1_counts, dist1_counts)]
+    new_dist2_counts = np.array([int(x) for x in dist2_counts * multipliers])
 
-    # This is based on
-    # https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792 # noqa: SC100
-    # and reused in other sources
-    # (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9) # noqa: SC100
-    chi2 = chi2_contingency(contingency_matrix)[0]
-    n = contingency_matrix.sum().sum()
-    phi2 = chi2 / n
-    r, k = contingency_matrix.shape
-    return np.sqrt(phi2 / min((k - 1), (r - 1)))
+    return new_dist1_counts, new_dist2_counts
+
 
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-              min_category_size_ratio: float = 0, max_num_categories: int = None,
+              balance_classes: bool = False, min_category_size_ratio: float = 0, max_num_categories: int = None,
               sort_by: str = 'dist1') -> float:
     """Calculate the Cramer's V statistic.
 
@@ -137,6 +104,8 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
         array of numerical values.
     dist2 : Union[np.ndarray, pd.Series]
         array of numerical values to compare dist1 to.
+    balance_classes : bool, default False
+        whether to balance the classes of the distributions. Use this in case of extremely unbalanced classes.
     min_category_size_ratio: float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
@@ -163,11 +132,16 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     """
     dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
                                                                        max_num_categories, sort_by)
+
+    if balance_classes is True:
+        dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)
+
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
     # If columns have the same single value in both (causing division by 0), return 0 drift score:
     if contingency_matrix.shape[1] == 1:
         return 0
+
 
     # This is based on
     # https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792 # noqa: SC100
@@ -235,96 +209,7 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
     return psi_value
 
 
-from scipy.stats import entropy
-from numpy.linalg import norm
-
-def jsd(dist1, dist2, bins=100):
-    global_min = min(min(dist1), min(dist2))
-    global_max = max(max(dist1), max(dist2))
-
-    P = np.histogram(dist1, density=True, bins=bins, range=(global_min, global_max))[0]
-    Q = np.histogram(dist2, density=True, bins=bins, range=(global_min, global_max))[0]
-    _P = P / norm(P, ord=1)
-    _Q = Q / norm(Q, ord=1)
-    _M = 0.5 * (_P + _Q)
-
-    return 0.5 * (entropy(_P, _M) + entropy(_Q, _M))
-
-import phik
-def phi_k(dist1, dist2):
-    x = np.concatenate([dist1, dist2])
-    y = np.array(['dist1'] * len(dist1) + ['dist2'] * len(dist2))
-    return phik.phik_from_array(x=x, y=y, num_vars=['x']) ** 1.5
-
-import deepchecks.ppscore as pps
-def ppscore(dist1, dist2):
-    x = np.concatenate([dist1, dist2])
-    y = np.array(['dist1'] * len(dist1) + ['dist2'] * len(dist2))
-
-    return pps.score(df=pd.DataFrame({'x': x, 'y': y}), x='x', y='y')['ppscore']
-
-def std_diff(dist1, dist2):
-    # if margin_quantile_filter == 0:
-    #     dist1 = filter_margins_by_qunatile(dist1, margin_quantile_filter)
-    #     dist2 = filter_margins_by_qunatile(dist2, margin_quantile_filter)
-
-    s1 = np.std(dist1)
-    s2 = np.std(dist2)
-
-    numerator = min(s1, s2)
-    denominator = max(s1, s2)
-    if denominator == 0:
-        return 0
-
-    return 1-numerator / denominator
-
-    # return abs(s1 - s2) / max(s1, s2)
-
-    # val_max = np.max([np.max(dist1), np.max(dist2)])
-    # val_min = np.min([np.min(dist1), np.min(dist2)])
-    #
-    # if val_max == val_min:
-    #     return 0
-
-    # return abs((m1 - m2) / (val_max - val_min))
-
-
-def mean_diff(dist1, dist2, margin_quantile_filter):
-    if margin_quantile_filter == 0:
-        dist1 = filter_margins_by_qunatile(dist1, margin_quantile_filter)
-        dist2 = filter_margins_by_qunatile(dist2, margin_quantile_filter)
-
-    m1 = np.mean(dist1)
-    m2 = np.mean(dist2)
-
-    val_max = np.max([np.max(dist1), np.max(dist2)])
-    val_min = np.min([np.min(dist1), np.min(dist2)])
-
-    if val_max == val_min:
-        return 0
-
-    return abs((m1 - m2) / (val_max - val_min))
-
-
-def median_diff(dist1, dist2, margin_quantile_filter):
-
-    if margin_quantile_filter == 0:
-        dist1 = filter_margins_by_qunatile(dist1, margin_quantile_filter)
-        dist2 = filter_margins_by_qunatile(dist2, margin_quantile_filter)
-
-    m1 = np.median(dist1)
-    m2 = np.median(dist2)
-
-    val_max = np.max([np.max(dist1), np.max(dist2)])
-    val_min = np.min([np.min(dist1), np.min(dist2)])
-
-    if val_max == val_min:
-        return 0
-
-    return abs((m1 - m2) / (val_max - val_min))
-
-
-def ks_2samp(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
+def kolmogorov_smirnov(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]) -> float:
     """
     Performs the two-sample Kolmogorov-Smirnov test for goodness of fit.
 
@@ -348,10 +233,40 @@ def ks_2samp(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Se
         KS statistic.
 
 
-    References
+    License
     ----------
-    .. [1] Hodges, J.L. Jr.,  "The Significance Probability of the Smirnov
-           Two-Sample Test," Arkiv fiur Matematik, 3, No. 43 (1958), 469-86.
+    This is a modified version of the ks_2samp function from scipy.stats. The original license is as follows:
+
+    Copyright (c) 2001-2002 Enthought, Inc. 2003-2023, SciPy Developers.
+    All rights reserved.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions
+    are met:
+
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+
+    2. Redistributions in binary form must reproduce the above
+       copyright notice, this list of conditions and the following
+       disclaimer in the documentation and/or other materials provided
+       with the distribution.
+
+    3. Neither the name of the copyright holder nor the names of its
+       contributors may be used to endorse or promote products derived
+       from this software without specific prior written permission.
+
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     """
     if np.ma.is_masked(dist1):
         dist1 = dist1.compressed()
@@ -362,7 +277,7 @@ def ks_2samp(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Se
     n1 = dist1.shape[0]
     n2 = dist2.shape[0]
     if min(n1, n2) == 0:
-        raise ValueError('Data passed to ks_2samp must not be empty')
+        raise ValueError('Data must not be empty')
 
     data_all = np.concatenate([dist1, dist2])
     # using searchsorted solves equal data problem
@@ -374,46 +289,8 @@ def ks_2samp(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Se
     maxS = np.max(cddiffs)
     return max(minS, maxS)
 
-def integral_diff(dist1,  dist2) -> float:
-    """
-    Calculate the integral difference between two distributions.
-
-    Parameters
-    ----------
-    dist1: Union[np.ndarray, pd.Series]
-        array of numerical values.
-    dist2: Union[np.ndarray, pd.Series]
-        array of numerical values to compare dist1 to.
-
-    Returns
-    -------
-    integral_diff: float
-        integral difference between the two distributions.
-    """
-    # return np.abs(np.trapz(dist1) - np.trapz(dist2))
-    if np.ma.is_masked(dist1):
-        dist1 = dist1.compressed()
-    if np.ma.is_masked(dist2):
-        dist2 = dist2.compressed()
-    dist1 = np.sort(dist1)
-    dist2 = np.sort(dist2)
-    n1 = dist1.shape[0]
-    n2 = dist2.shape[0]
-    if min(n1, n2) == 0:
-        raise ValueError('Data passed to ks_2samp must not be empty')
-
-    data_all = np.concatenate([dist1, dist2])
-    # using searchsorted solves equal data problem
-    cdf1 = np.searchsorted(dist1, data_all, side='right') / n1
-    cdf2 = np.searchsorted(dist2, data_all, side='right') / n2
-    cddiffs = np.abs(cdf1 - cdf2)
-
-    return np.mean(cddiffs) / max(np.mean(cdf1), np.mean(cdf2))
-
-
-
 def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-                          margin_quantile_filter: float, emd_by_partition: bool = False) -> float:
+                          margin_quantile_filter: float) -> float:
     """
     Calculate the Earth Movers Distance (Wasserstein distance).
 
@@ -431,9 +308,6 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    emd_by_partition: bool, default: False
-        If True, the EMD is calculated by partitioning the data into 10 quantiles and calculating the EMD in each
-        quantile, in order to minimize the effect of extreme values. If False, the EMD is calculated on the entire data. #TODO
     Returns
     -------
     Any
@@ -450,25 +324,8 @@ def earth_movers_distance(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.n
             f'margin_quantile_filter expected a value in range [0, 0.5), instead got {margin_quantile_filter}')
 
     if margin_quantile_filter != 0:
-        dist1 = filter_margins_by_qunatile(dist1, margin_quantile_filter)
-        dist2 = filter_margins_by_qunatile(dist2, margin_quantile_filter)
-
-    if emd_by_partition is True:
-        print('here in partition')
-        num_partitions = 4
-        dist1_qts = np.quantile(dist1, np.arange(0, 1, 1/num_partitions))
-        dist2_qts = np.quantile(dist2, np.arange(0, 1, 1/num_partitions))
-        emds = []
-        for i in range(len(dist1_qts) - 1):
-            curr_dist_1 = dist1[(dist1_qts[i] <= dist1) & (dist1 < dist1_qts[i + 1])]
-            # curr_dist_2 = dist2[(dist1_qts[i] <= dist2) & (dist2 < dist1_qts[i + 1])]
-            curr_dist_2 = dist2[(dist2_qts[i] <= dist2) & (dist2 < dist2_qts[i + 1])]
-            if len(curr_dist_2) == 0:
-                emds.append(1)
-            else:
-                emds.append(earth_movers_distance(dist1=curr_dist_1, dist2=curr_dist_2, margin_quantile_filter=0,
-                                               emd_by_partition=False))
-        return np.sum(emds) * 1/num_partitions
+        dist1 = filter_margins_by_quantile(dist1, margin_quantile_filter)
+        dist2 = filter_margins_by_quantile(dist2, margin_quantile_filter)
 
     val_max = np.max([np.max(dist1), np.max(dist2)])
     val_min = np.min([np.min(dist1), np.min(dist2)])
@@ -489,13 +346,13 @@ def calc_drift_and_plot(train_column: pd.Series,
                         column_type: str,
                         plot_title: Optional[str] = None,
                         margin_quantile_filter: float = 0.025,
-                        emd_by_partition: bool = False,
                         max_num_categories_for_drift: int = None,
                         min_category_size_ratio: float = 0.01,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: CategoriesSortingKind = 'largest_difference',
-                        categorical_drift_method: str = 'cramer_v',
+                        categorical_drift_method: str = 'cramers_v',
                         numerical_drift_method: str = 'emd',
+                        balance_classes: bool = False,
                         ignore_na: bool = True,
                         min_samples: int = 10,
                         with_display: bool = True,
@@ -520,9 +377,6 @@ def calc_drift_and_plot(train_column: pd.Series,
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    emd_by_partition: bool, default: False
-        If True, the EMD is calculated by partitioning the data into 10 quantiles and calculating the EMD in each
-        quantile, in order to minimize the effect of extreme values. If False, the EMD is calculated on the entire data. #TODO
     min_category_size_ratio: float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
@@ -536,12 +390,16 @@ def calc_drift_and_plot(train_column: pd.Series,
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramer_v"
+    categorical_drift_method: str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     numerical_drift_method: str, default: "EMD"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    balance_classes: bool, default: False
+        If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
+        variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
+        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -579,11 +437,11 @@ def calc_drift_and_plot(train_column: pd.Series,
 
         if numerical_drift_method.lower() == 'emd':
             scorer_name = 'Earth Mover\'s Distance'
-            score = earth_movers_distance(dist1=train_dist, dist2=test_dist, margin_quantile_filter=margin_quantile_filter,
-                                          emd_by_partition=emd_by_partition)
-        elif numerical_drift_method.lower() == 'ks':
+            score = earth_movers_distance(dist1=train_dist, dist2=test_dist,
+                                          margin_quantile_filter=margin_quantile_filter)
+        elif numerical_drift_method.lower() in ['ks', 'kolmogorov-smirnov']:
             scorer_name = 'Kolmogorov-Smirnov'
-            score = ks_2samp(dist1=train_dist, dist2=test_dist)
+            score = kolmogorov_smirnov(dist1=train_dist, dist2=test_dist)
         else:
             raise ValueError('Expected numerical_drift_method to be one '
                              f'of ["EMD", "KS"], received: {numerical_drift_method}')
@@ -596,17 +454,24 @@ def calc_drift_and_plot(train_column: pd.Series,
                                                                             dataset_names=dataset_names)
 
     elif column_type == 'categorical':
+        if balance_classes is True and categorical_drift_method.lower() not in ['cramer_v', 'cramers_v']:
+            raise ValueError('balance_classes is only supported for Cramer\'s V. please set balance_classes=False '
+                             'or use \'cramers_v\' as categorical_drift_method')
+
         sort_by = 'difference' if show_categories_by == 'largest_difference' else \
             ('dist1' if show_categories_by == 'train_largest' else 'dist2')
         if categorical_drift_method.lower() in ['cramer_v', 'cramers_v']:
             scorer_name = 'Cramer\'s V'
-            score = cramers_v(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by)
+            score = cramers_v(dist1=train_dist, dist2=test_dist, balance_classes=balance_classes,
+                              min_category_size_ratio=min_category_size_ratio,
+                              max_num_categories=max_num_categories_for_drift, sort_by=sort_by)
         elif categorical_drift_method.lower() == 'psi':
             scorer_name = 'PSI'
-            score = psi(train_dist, test_dist, min_category_size_ratio, max_num_categories_for_drift, sort_by)
+            score = psi(dist1=train_dist, dist2=test_dist, min_category_size_ratio=min_category_size_ratio,
+                        max_num_categories=max_num_categories_for_drift, sort_by=sort_by)
         else:
             raise ValueError('Expected categorical_drift_method to be one '
-                             f'of ["cramer_v", "PSI"], received: {categorical_drift_method}')
+                             f'of ["cramers_v", "PSI"], received: {categorical_drift_method}')
 
         if not with_display:
             return score, scorer_name, None
@@ -630,7 +495,11 @@ def calc_drift_and_plot(train_column: pd.Series,
     fig.update_yaxes(bar_y_axis, row=1, col=1)
     fig.add_traces(dist_traces, rows=2, cols=1)
     fig.update_xaxes(dist_x_axis, row=2, col=1)
-    fig.update_yaxes(dist_y_axis, row=2, col=1)
+    if balance_classes is True:
+        dist_y_axis['title'] += ' (Log Scale)'
+        fig.update_yaxes(dist_y_axis, row=2, col=1, type="log")
+    else:
+        fig.update_yaxes(dist_y_axis, row=2, col=1)
 
     fig.update_layout(
         legend=dict(

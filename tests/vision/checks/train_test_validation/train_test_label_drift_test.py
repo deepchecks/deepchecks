@@ -112,7 +112,7 @@ def test_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test
 def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
     train, test = mnist_visiondata_train, mnist_visiondata_test
-    check = TrainTestLabelDrift(categorical_drift_method='cramer_v')
+    check = TrainTestLabelDrift(categorical_drift_method='cramers_v')
 
     # Act
     result = check.run(train, test)
@@ -198,7 +198,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
 
 def test_drift_max_drift_score_condition_fail_cremer_v(mnist_drifted_datasets):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='cramer_v') \
+    check = TrainTestLabelDrift(categorical_drift_method='cramers_v') \
         .add_condition_drift_score_less_than(max_allowed_categorical_score=0.1)
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 

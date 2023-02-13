@@ -51,9 +51,6 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    emd_by_partition: bool, default: False
-        If True, the EMD is calculated by partitioning the data into 10 quantiles and calculating the EMD in each
-        quantile, in order to minimize the effect of extreme values. If False, the EMD is calculated on the entire data. #TODO
     min_category_size_ratio: float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
@@ -68,12 +65,17 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramer_v"
+    categorical_drift_method: str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     numerical_drift_method: str, default: "EMD"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    balance_classes: bool, default: False
+        If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
+        variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
+        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
+        If True, the variable frequency plot will be created with a log scale in the y-axis.
     ignore_na: bool, default False
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -86,13 +88,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     def __init__(
             self,
             margin_quantile_filter: float = 0.025,
-            emd_by_partition: bool = False,
             max_num_categories_for_drift: int = None,
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
+            categorical_drift_method='cramers_v',
             numerical_drift_method='EMD',
+            balance_classes: bool = False,
             ignore_na: bool = False,
             n_samples: int = 100_000,
             random_state: int = 42,
@@ -100,10 +102,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     ):
         super().__init__(**kwargs)
         self.margin_quantile_filter = margin_quantile_filter
-        self.emd_by_partition = emd_by_partition
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
+        self.balance_classes = balance_classes
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
         self.numerical_drift_method = numerical_drift_method
@@ -129,13 +131,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             value_name=train_dataset.label_name,
             column_type='categorical' if context.task_type != TaskType.REGRESSION else 'numerical',
             margin_quantile_filter=self.margin_quantile_filter,
-            emd_by_partition=self.emd_by_partition,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
             categorical_drift_method=self.categorical_drift_method,
             numerical_drift_method=self.numerical_drift_method,
+            balance_classes=self.balance_classes,
             ignore_na=self.ignore_na,
             with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name)

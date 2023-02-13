@@ -80,9 +80,9 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramer_v"
+    categorical_drift_method: str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     numerical_drift_method: str, default: "EMD"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
@@ -108,7 +108,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
+            categorical_drift_method='cramers_v',
             numerical_drift_method='EMD',
             ignore_na: bool = True,
             aggregation_method: Optional[str] = 'l2_weighted',

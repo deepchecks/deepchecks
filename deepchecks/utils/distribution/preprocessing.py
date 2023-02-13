@@ -151,9 +151,9 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
     Returns
     -------
-    dist1_percents
+    dist1_counts
         array of percentages of each value in the first distribution.
-    dist2_percents
+    dist2_counts
         array of percentages of each value in the second distribution.
     categories_list
         list of all categories that the percentages represent.

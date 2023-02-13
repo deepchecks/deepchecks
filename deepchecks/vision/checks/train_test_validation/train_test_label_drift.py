@@ -80,9 +80,6 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    emd_by_partition: bool, default: False
-        If True, the EMD calculation will be done on the partitions of the distribution, instead of the whole
-        distribution. #TODO
     min_category_size_ratio : float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category.
@@ -97,9 +94,14 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method : str, default: "cramer_v"
+    categorical_drift_method : str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    balance_classes: bool, default: False
+        If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
+        variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
+        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
+        If True, the variable frequency plot will be created with a log scale in the y-axis.
     aggregation_method: Optional[str], default: None
         {property_aggregation_method_argument:2*indent}
     {additional_check_init_params:2*indent}
@@ -109,12 +111,12 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             self,
             label_properties: List[Dict[str, Any]] = None,
             margin_quantile_filter: float = 0.025,
-            emd_by_partition: bool = False,
             max_num_categories_for_drift: int = None,
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
+            categorical_drift_method='cramers_v',
+            balance_classes: bool = False,
             aggregation_method: Optional[str] = None,
             n_samples: Optional[int] = 10000,
             **kwargs
@@ -122,12 +124,12 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.margin_quantile_filter = margin_quantile_filter
-        self.emd_by_partition = emd_by_partition
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.categorical_drift_method = categorical_drift_method
+        self.balance_classes = balance_classes
         self.label_properties = label_properties
         self.aggregation_method = aggregation_method
 
@@ -203,12 +205,12 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
                 value_name=name,
                 column_type=get_column_type(output_type),
                 margin_quantile_filter=self.margin_quantile_filter,
-                emd_by_partition=self.emd_by_partition,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
                 categorical_drift_method=self.categorical_drift_method,
+                balance_classes=self.balance_classes,
                 with_display=context.with_display,
                 dataset_names=dataset_names
             )
