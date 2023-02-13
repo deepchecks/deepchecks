@@ -54,7 +54,7 @@ def test_image_property_drift_check_without_display(coco_visiondata_train, coco_
 def test_image_property_drift_check_without_display_none_aggragation(coco_visiondata_train, coco_visiondata_test):
     # Run
     result = ImagePropertyDrift(aggregation_method=None).run(coco_visiondata_train, coco_visiondata_test,
-                                                               with_display=False)
+                                                             with_display=False)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result(with_display=False))
@@ -72,12 +72,14 @@ def test_image_property_drift_condition(coco_visiondata_train, coco_visiondata_t
     result = ImagePropertyDrift().add_condition_drift_score_less_than().run(coco_visiondata_train, coco_visiondata_test)
 
     assert_that(result, is_correct_image_property_drift_result())
-    assert_that(result.conditions_results, has_items(
-        equal_condition_result(is_pass=True,
-                               details='Found property Brightness with largest Earth Mover\'s Distance score 0.07',
-                               name='Earth Mover\'s Distance < 0.1 for image properties drift'))
-                )
 
+    condition_result, *_ = result.conditions_results
+
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        details='Passed for 7 properties out of 7 properties.\nFound property "Brightness" has the highest numerical '
+                'drift score: 0.07',
+        name='Earth Mover\'s Distance < 0.1 for image properties drift'))
 
 def test_image_property_drift_fail_condition(coco_visiondata_train, coco_visiondata_test):
     result = (
@@ -88,35 +90,14 @@ def test_image_property_drift_fail_condition(coco_visiondata_train, coco_visiond
 
     assert_that(result, is_correct_image_property_drift_result())
 
-    from hamcrest import has_property, all_of
-    from deepchecks.core.condition import ConditionCategory
-
     condition_result, *_ = result.conditions_results
 
-    # assert_that(condition_result, has_items(
-    #     # equal_condition_result(is_pass=False,
-    #     #                        # details='Earth Mover\'s Distance is above the threshold for the next properties:\n'
-    #     #                        #         'Aspect Ratio=0.07;\nBrightness=0.07;\nMean Green Relative Intensity=0.06',
-    #     #                        details='Failed for 1 out of 7 properties.\n'
-    #     #                         'Found 1 numeric properties with Earth Mover\'s Distance above threshold: {\'Brightness\': \'0.06\'}',
-    #     #                        name='Earth Mover\'s Distance < 0.06 for image properties drift'))
-    #     #         )
-    #     # all_of(
-    # # has_property('details', 'Failed for 1 out of 7 properties.\n'
-    # #                             'Found 1 numeric properties with Earth Mover\'s Distance above threshold: {\'Brightness\': \'0.06\'}'),
-    # # has_property('name', 'Earth Mover\'s Distance < 0.06 for image properties drift'),
-    # has_property('category', ConditionCategory.FAIL)
-    #     # )
-    # )
-
-
-                # )
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='Earth Mover\'s Distance < 0.06 for image properties drift',
-        details='Failed for 1 out of 7 properties.\n'
-                'Found 1 numeric properties with Earth Mover\'s Distance above threshold: {\'Brightness\': \'0.06\'}'
-    ))
+        details="Failed for 3 out of 7 properties.\nFound 3 numeric properties with Earth Mover's Distance above "
+                "threshold: {'Aspect Ratio': '0.07', 'Brightness': '0.07', 'Mean Green Relative Intensity': '0.06'}",
+        name='Earth Mover\'s Distance < 0.06 for image properties drift'))
+
 
 def is_correct_image_property_drift_result(with_display: bool = True):
     value_assertion = all_of(
