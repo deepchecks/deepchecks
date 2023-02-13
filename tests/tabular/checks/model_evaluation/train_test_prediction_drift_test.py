@@ -91,7 +91,7 @@ def test_drift_regression_label_raise_on_proba(diabetes, diabetes_model):
 def test_drift_regression_label_cramer(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestPredictionDrift(categorical_drift_method='cramer_v', drift_mode='prediction')
+    check = TrainTestPredictionDrift(categorical_drift_method='cramers_v', drift_mode='prediction')
 
     # Act
     result = check.run(train, test, model)

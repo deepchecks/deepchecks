@@ -44,6 +44,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     small number of samples (common practice is categories with less than 5 samples).
     However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
 
+    **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V, together with setting
+    the ``balance_classes`` parameter to ``True``.
 
     Parameters
     ----------
@@ -65,9 +67,17 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramer_v"
+    numerical_drift_method: str, default: "EMD"
+        decides which method to use on numerical variables. Possible values are:
+        "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    categorical_drift_method: str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    balance_classes: bool, default: False
+        If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
+        variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
+        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
+        If True, the variable frequency plot will be created with a log scale in the y-axis.
     ignore_na: bool, default False
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -84,7 +94,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
+            numerical_drift_method: str = 'EMD',
+            categorical_drift_method: str = 'cramers_v',
+            balance_classes: bool = False,
             ignore_na: bool = False,
             n_samples: int = 100_000,
             random_state: int = 42,
@@ -96,7 +108,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
+        self.numerical_drift_method = numerical_drift_method
         self.categorical_drift_method = categorical_drift_method
+        self.balance_classes = balance_classes
         self.ignore_na = ignore_na
         self.n_samples = n_samples
         self.random_state = random_state
@@ -123,7 +137,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             min_category_size_ratio=self.min_category_size_ratio,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
+            numerical_drift_method=self.numerical_drift_method,
             categorical_drift_method=self.categorical_drift_method,
+            balance_classes=self.balance_classes,
             ignore_na=self.ignore_na,
             with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name)

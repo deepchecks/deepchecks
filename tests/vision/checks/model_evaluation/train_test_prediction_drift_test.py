@@ -133,7 +133,7 @@ def test_reduce_with_drift_classification(mnist_visiondata_train, mnist_visionda
 def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
     train, test = mnist_visiondata_train, mnist_visiondata_test
-    check = TrainTestPredictionDrift(categorical_drift_method='cramer_v')
+    check = TrainTestPredictionDrift(categorical_drift_method='cramers_v')
 
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
