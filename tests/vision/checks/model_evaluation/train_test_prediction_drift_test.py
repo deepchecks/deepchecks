@@ -34,7 +34,7 @@ def test_no_drift_classification(mnist_visiondata_train):
 
 def test_no_drift_object_detection(coco_visiondata_train):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_train)
@@ -58,7 +58,7 @@ def test_no_drift_object_detection(coco_visiondata_train):
 
 def test_no_drift_object_detection_without_display(coco_visiondata_train):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_train, with_display=False)
@@ -150,8 +150,8 @@ def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visionda
 
 def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
-                                     min_category_size_ratio=0)
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                     max_num_categories_for_drift=10, min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test)
@@ -174,8 +174,8 @@ def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test
 
 def test_with_drift_object_detection_change_max_cat(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100,
-                                     min_category_size_ratio=0)
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                     max_num_categories_for_drift=100, min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test)
@@ -203,7 +203,8 @@ def test_with_drift_object_detection_alternative_measurements(coco_visiondata_tr
 
     alternative_measurements = [
         {'name': 'test', 'method': prop, 'output_type': 'numerical'}]
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', prediction_properties=alternative_measurements)
+    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                     prediction_properties=alternative_measurements)
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test)

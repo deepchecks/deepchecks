@@ -33,7 +33,7 @@ def test_no_drift_classification(mnist_visiondata_train):
 
 def test_no_drift_object_detection(coco_visiondata_train):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_train)
@@ -56,7 +56,7 @@ def test_no_drift_object_detection(coco_visiondata_train):
 
 def test_no_drift_object_segmentation(segmentation_coco_visiondata_train):
     # Arrange
-    check = TrainTestLabelDrift()
+    check = TrainTestLabelDrift(numerical_drift_method='EMD')
 
     # Act
     result = check.run(segmentation_coco_visiondata_train, segmentation_coco_visiondata_train)
@@ -154,8 +154,8 @@ def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test
 
 def test_with_drift_object_detection_without_display(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
-                                min_category_size_ratio=0)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                max_num_categories_for_drift=10, min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test, with_display=False)
@@ -219,7 +219,8 @@ def test_drift_max_drift_score_condition_fail_cremer_v(mnist_drifted_datasets):
 
 def test_with_drift_object_detection_change_max_cat(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                max_num_categories_for_drift=100)
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test)
@@ -242,8 +243,9 @@ def test_with_drift_object_detection_change_max_cat(coco_visiondata_train, coco_
 
 def test_display_changes_but_values_dont_for_diff_display_params(coco_visiondata_train, coco_visiondata_test):
     # Arrange and assert
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', min_category_size_ratio=0,
-                                max_num_categories_for_display=20, show_categories_by='test_largest')
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                min_category_size_ratio=0, max_num_categories_for_display=20,
+                                show_categories_by='test_largest')
     result = check.run(coco_visiondata_train, coco_visiondata_test)
     assert_that(result.value, has_entries(
         {'Samples Per Class': has_entries(
@@ -266,7 +268,7 @@ def test_with_drift_object_detection_alternative_properties(coco_visiondata_trai
 
     alternative_properties = [
         {'name': 'test', 'method': prop, 'output_type': 'numerical'}]
-    check = TrainTestLabelDrift(label_properties=alternative_properties)
+    check = TrainTestLabelDrift(label_properties=alternative_properties, numerical_drift_method='EMD')
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test)
