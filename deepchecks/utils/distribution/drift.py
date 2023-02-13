@@ -407,9 +407,9 @@ def calc_drift_and_plot(train_column: pd.Series,
     Returns
     -------
     Tuple[float, str, Callable]
-        drift score of the difference between the two columns' distributions (Earth movers distance for
-        numerical, PSI for categorical)
-        graph comparing the two distributions (density for numerical, stack bar for categorical)
+        - drift score of the difference between the two columns' distributions
+        - method name
+        - graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
     if min_category_size_ratio < 0 or min_category_size_ratio > 1:
         raise DeepchecksValueError(
