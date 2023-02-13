@@ -100,7 +100,7 @@ and measuring the difference between newer and older samples of the variable.
 There are many measures that can be used for this, such as the Kolmogorov-Smirnov test, Jensen-Shannon Divergence and more.
 In deepchecks, we found that the best results are given by:
 
-* For continuous numeric distributions - `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
+* For continuous numeric distributions - `Kolmogorov-Smirnov statistic <https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test>`__ or `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
 * For discrete or categorical distributions - `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__ or `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
 
 These methods have the advantage of being simple to use and produce explainable results. However, they are limited by

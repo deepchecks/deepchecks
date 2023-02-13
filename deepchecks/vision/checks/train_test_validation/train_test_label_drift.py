@@ -267,8 +267,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         Add condition - require label properties drift score to be less than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
-        Cramer's V does not have a common industry standard.
-        Earth movers does not have a common industry standard.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
         The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of label drift.
 
         Parameters
@@ -276,7 +276,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         max_allowed_categorical_score: float , default: 0.15
             the max threshold for the PSI score
         max_allowed_numeric_score: float ,  default: 0.075
-            the max threshold for the Earth Mover's Distance score
+            the max threshold for the drift score
         Returns
         -------
         ConditionResult

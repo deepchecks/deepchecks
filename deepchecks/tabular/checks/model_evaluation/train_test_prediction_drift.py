@@ -260,8 +260,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         Add condition - require drift score to be less than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
-        Cramer's V does not have a common industry standard.
-        Earth movers does not have a common industry standard.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
         The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of prediction
         drift.
 

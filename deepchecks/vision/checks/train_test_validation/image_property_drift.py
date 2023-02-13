@@ -231,7 +231,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         Parameters
         ----------
         max_allowed_drift_score: float ,  default: 0.1
-            the max threshold for the Earth Mover's Distance score
+            the max threshold for the drift score
 
         Returns
         -------
