@@ -18,10 +18,10 @@ import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
+from deepchecks.utils.logger import get_logger
+from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = ['TextData', 'TTokenLabel', 'TClassLabel', 'TTextLabel']
-
-from deepchecks.utils.logger import get_logger
 
 TDataset = t.TypeVar('TDataset', bound='TextData')
 TSingleLabel = t.Tuple[int, str]
@@ -75,6 +75,7 @@ class TextData:
     _has_label: bool
     _is_multilabel: bool = False
     name: t.Optional[str] = None
+    _meta_data: t.Optional[pd.DataFrame] = None
 
     def __init__(
             self,
@@ -84,6 +85,7 @@ class TextData:
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
+            meta_data: t.Optional[pd.DataFrame] = None
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -107,26 +109,30 @@ class TextData:
             raise DeepchecksValueError('raw_text and tokenized_text cannot both be None')
         elif raw_text is None:
             self._validate_tokenized_text(tokenized_text)
-            raw_text = [' '.join(tokens) for tokens in tokenized_text]
+            self._tokenized_text = list(tokenized_text)
+            self._text = [' '.join(tokens) for tokens in tokenized_text]
         elif tokenized_text is None:
             self._validate_text(raw_text)
+            self._text = list(raw_text)
             if self._task_type == TaskType.TOKEN_CLASSIFICATION:
-                tokenized_text = [text.split() for text in raw_text]
+                self._tokenized_text = [sample.split() for sample in self._text]
+            else:
+                self._tokenized_text = None
         else:
             self._validate_text(raw_text)
             self._validate_tokenized_text(tokenized_text)
+            self._text, self._tokenized_text = list(raw_text), list(tokenized_text)
             if len(raw_text) != len(tokenized_text):
                 raise DeepchecksValueError('raw_text and tokenized_text must have the same length')
 
         if index is None:
-            index = np.arange(len(raw_text))
+            self.index = list(range(len(raw_text)))
         elif len(index) != len(raw_text):
             raise DeepchecksValueError('index must be the same length as raw_text')
+        else:
+            self.index = list(index)
 
-        self.index = index
-        self._text = raw_text
-        self._tokenized_text = tokenized_text
-        self._validate_and_set_label(label, raw_text, tokenized_text)
+        self._validate_and_set_label(label)
 
         if dataset_name is not None:
             if not isinstance(dataset_name, str):
@@ -134,11 +140,20 @@ class TextData:
                                                   f' str')
         self.name = dataset_name
 
+        if meta_data is not None:
+            if not isinstance(meta_data, pd.DataFrame):
+                raise DeepchecksNotSupportedError(f'meta_data type {type(meta_data)} is not supported, must be a'
+                                                  f' pandas DataFrame')
+            if self.index != list(meta_data.index):
+                raise DeepchecksValueError('meta_data index must be the same as the text data index')
+
+        self._meta_data = meta_data
+
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
         """Validate text format."""
         error_string = 'raw_text must be a Sequence of strings'
-        if not isinstance(raw_text, collections.abc.Sequence):
+        if not is_sequence_not_str(raw_text):
             raise DeepchecksValueError(error_string)
         if not all(isinstance(x, str) for x in raw_text):
             raise DeepchecksValueError(error_string)
@@ -147,26 +162,25 @@ class TextData:
     def _validate_tokenized_text(tokenized_text: t.Sequence[t.Sequence[str]]):
         """Validate tokenized text format."""
         error_string = 'tokenized_text must be a Sequence of sequences of strings'
-        if not isinstance(tokenized_text, collections.abc.Sequence):
+        if not is_sequence_not_str(tokenized_text):
             raise DeepchecksValueError(error_string)
-        if not all(isinstance(x, collections.abc.Sequence) for x in tokenized_text):
+        if not all(is_sequence_not_str(x) for x in tokenized_text):
             raise DeepchecksValueError(error_string)
         if not all(isinstance(x, str) for tokens in tokenized_text for x in tokens):
             raise DeepchecksValueError(error_string)
 
-    def _validate_and_set_label(self, label: t.Optional[TTextLabel], raw_text: t.Sequence[str],
-                                tokenized_text: t.Sequence[t.Sequence[str]]):
+    def _validate_and_set_label(self, label: t.Optional[TTextLabel]):
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
-        self._has_label = True
         if label is None:
-            self._has_label = False
-            label = [None] * len(raw_text)
+            self._has_label, self._label = False, [None] * len(self._text)
+            return
 
-        if not isinstance(label, collections.abc.Sequence) or isinstance(label, str):
+        self._has_label, self._label = True, label
+        if not is_sequence_not_str(label):
             raise DeepchecksValueError('label must be a Sequence')
 
-        if not len(label) == len(raw_text):
+        if not len(label) == len(self._text):
             raise DeepchecksValueError('label must be the same length as raw_text')
 
         if self.task_type == TaskType.TEXT_CLASSIFICATION:
@@ -190,30 +204,28 @@ class TextData:
             for i in range(len(label)):  # TODO: Runs on all labels, very costly
                 if not (all(isinstance(x, str) for x in label[i]) or all(isinstance(x, int) for x in label[i])):
                     raise DeepchecksValueError(token_class_error)
-                if not len(label[i]) == len(tokenized_text[i]):
+                if not len(label[i]) == len(self._tokenized_text[i]):
                     raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
                                                f'However, for sample index {self.index[i]} of length '
-                                               f'{len(tokenized_text[i])} received label of length {len(label[i])}')
+                                               f'{len(self._tokenized_text[i])} received label of length {len(label[i])}')
 
-        self._label = label
 
-    def copy(self: TDataset, raw_text: t.Optional[t.Sequence[str]] = None,
-             tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
-             label: t.Optional[TTextLabel] = None,
-             index: t.Optional[t.Sequence[int]] = None) -> TDataset:
+    def copy(self: TDataset, rows_to_use: t.Optional[t.Sequence[t.Any]] = None) -> TDataset:
         """Create a copy of this Dataset with new data."""
         cls = type(self)
-        if raw_text is None:
-            raw_text = self.text
-        if tokenized_text is None:
-            tokenized_text = self.tokenized_text
-        if label is None:
-            label = self.label
-        if index is None:
-            index = self.index
         get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
-        new_copy = cls(raw_text=raw_text, tokenized_text=tokenized_text, label=label, task_type=self._task_type.value,
-                       dataset_name=self.name, index=index)
+        if rows_to_use is None:
+            new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
+                           task_type=self._task_type.value,
+                           dataset_name=self.name, index=self.index, meta_data=self.meta_data)
+        else:
+            new_copy = cls(raw_text=list(itemgetter(*rows_to_use)(self._text)),
+                           tokenized_text=list(
+                               itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
+                           label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
+                           index=list(itemgetter(*rows_to_use)(self.index)),
+                           meta_data=self._meta_data.iloc[rows_to_use, :] if self._meta_data is not None else None,
+                           task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
         return new_copy
 
@@ -244,29 +256,47 @@ class TextData:
 
         np.random.seed(random_state)
         sample_idx = np.random.choice(range(len(samples)), n_samples, replace=replace)
-        if len(sample_idx) > 1:
-            data_to_sample = {
-                'raw_text': list(itemgetter(*sample_idx)(self._text)),
-                'tokenized_text': list(itemgetter(*sample_idx)(self._tokenized_text)) if self._tokenized_text else None,
-                'label': list(itemgetter(*sample_idx)(self._label)),
-                'index': [self.index[i] for i in sample_idx]}
-        else:
-            data_to_sample = {'raw_text': [self._text[sample_idx[0]]],
-                              'tokenized_text': [self._tokenized_text[sample_idx[0]]] if self._tokenized_text else None,
-                              'label': [self._label[sample_idx[0]]],
-                              'index': self.index[sample_idx]}
-        return self.copy(**data_to_sample)
+        return self.copy(rows_to_use=sample_idx)
+
+    def get_raw_sample(self, index: t.Any) -> str:
+        """Get the raw text of a sample.
+
+        Parameters
+        ----------
+        index : int
+            Index of sample to get.
+        Returns
+        -------
+        str
+            Raw text of sample.
+        """
+        return self._text[self.index.index(index)]
+
+    def get_tokenized_sample(self, index: t.Any) -> t.List[str]:
+        """Get the tokenized text of a sample.
+
+        Parameters
+        ----------
+        index : int
+            Index of sample to get.
+        Returns
+        -------
+        List[str]
+            Tokenized text of sample.
+        """
+        if self._tokenized_text is None:
+            raise DeepchecksValueError('Dataset does not contain tokenized text')
+        return self._tokenized_text[self.index.index(index)]
 
     @property
     def n_samples(self) -> int:
-        """Return number of samples in the dataset.
-
-        Returns
-        -------
-        int
-            Number of samples in dataset
-        """
+        """Return number of samples in the dataset."""
         return len(self._text)
+
+    @property
+    def meta_data(self) -> pd.DataFrame:
+        """Return the metadata of for the dataset."""
+        return self._meta_data
 
     def __len__(self):
         """Return number of samples in the dataset."""
@@ -396,3 +426,8 @@ class TextData:
     def is_sampled(self, n_samples: int):
         """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
         return len(self) > n_samples
+
+    def head(self, n_samples: int = 5) -> pd.DataFrame:
+        """Return a copy of the dataset as a pandas Dataframe with the first n_samples samples."""
+        return pd.DataFrame({'text': self.text[:n_samples], 'label': self.label[:n_samples]},
+                            index=self.index[:n_samples])

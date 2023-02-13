@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -24,7 +24,12 @@ from deepchecks.nlp.metric_utils.token_classification import (get_default_token_
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.data_inference import infer_observed_and_model_labels
+from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
+from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
+from deepchecks.utils.docref import doclink
+from deepchecks.utils.logger import get_logger
+from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'Context',
@@ -32,12 +37,6 @@ __all__ = [
     'TTextProba',
     'TTokenPred'
 ]
-
-from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
-from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
-from deepchecks.utils.docref import doclink
-from deepchecks.utils.logger import get_logger
-from deepchecks.utils.typing import BasicModel
 
 TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Union[str, int]]]]
 TClassProba = t.Sequence[t.Sequence[float]]
@@ -281,8 +280,6 @@ class Context(BaseContext):
         list of classes known to the model
     random_state: int, default 42
         A seed to set for pseudo-random functions , primarily sampling.
-    n_samples: int, default: 10_000
-        The number of samples to use within the checks.
     """
 
     def __init__(
@@ -296,7 +293,6 @@ class Context(BaseContext):
             test_proba: t.Optional[TTextProba] = None,
             model_classes: t.Optional[t.List] = None,
             random_state: int = 42,
-            n_samples: t.Optional[int] = 10_000
     ):
         # Validations
         if train_dataset is None and test_dataset is None:
@@ -342,13 +338,9 @@ class Context(BaseContext):
 
         self._train = train_dataset
         self._test = test_dataset
-        if n_samples is not None and self._train is not None:
-            self._train = self._train.sample(n_samples, random_state=random_state)
-        if n_samples is not None and self._test is not None:
-            self._test = self._test.sample(n_samples, random_state=random_state)
-
         self._validated_model = False
         self._with_display = with_display
+        self.random_state = random_state
 
     @property
     def model(self) -> _DummyModel:
@@ -418,11 +410,7 @@ class Context(BaseContext):
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
                     use_avg_defaults=True) -> t.List[DeepcheckScorer]:
-        """Return initialized & validated scorers in a given priority.
-
-        If receive `scorers` use them,
-        Else if user defined global scorers use them,
-        Else use default scorers.
+        """Return initialized & validated scorers if provided or default scorers otherwise.
 
         Parameters
         ----------
@@ -453,3 +441,26 @@ class Context(BaseContext):
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '
                                        f'{TaskType.TOKEN_CLASSIFICATION} but received {self.task_type}')
         return init_validate_scorers(scorers, self.model_classes, self._observed_classes)
+
+    def get_single_scorer(self,
+                          scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                          use_avg_defaults=True) -> DeepcheckScorer:
+        """Return initialized & validated scorer if provided or a default scorer otherwise.
+
+        Parameters
+        ----------
+        scorer : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+            List of scorers to use. If None, use default scorers.
+            Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+        use_avg_defaults : bool, default True
+            If no scorers were provided, for classification, determines whether to use default scorers that return
+            an averaged metric, or default scorers that return a metric per class.
+        Returns
+        -------
+        List[DeepcheckScorer]
+            An initialized & validated scorer.
+        """
+        if scorer is not None:
+            scorer_name = next(iter(scorer))
+            scorer = {scorer_name: scorer[scorer_name]}
+        return self.get_scorers(scorer, use_avg_defaults)[0]

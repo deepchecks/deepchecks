@@ -54,10 +54,10 @@ def create_performance_files(text: pd.Series, embeddings: np.ndarray, proba: np.
     text_dataframe = text_dataframe[['text'] + [col for col in text_dataframe.columns if col != 'text']]
 
     # save values for display
-    text_dataframe.to_csv(os.path.join(path, "performance_metadata.tsv"), sep="\t")
+    text_dataframe.to_csv(os.path.join(path, 'performance_metadata.tsv'), sep='\t')
     checkpoint = tf.train.Checkpoint(
         performance_embedding=tf.Variable(pd.DataFrame(embeddings, index=text_dataframe.index)))
-    checkpoint.save(os.path.join(path, "performance_embedding.ckpt"))
+    checkpoint.save(os.path.join(path, 'performance_embedding.ckpt'))
 
 
 def create_outlier_files(text: pd.Series, embeddings: np.ndarray, path: str, nearest_neighbors_percent: float = 0.01,
@@ -86,25 +86,25 @@ def create_outlier_files(text: pd.Series, embeddings: np.ndarray, path: str, nea
     text_dataframe['text'] = text_dataframe['text'].apply(clean_special_chars)
     text_dataframe = text_dataframe[['text'] + [col for col in text_dataframe.columns if col != 'text']]
     if verbose:
-        print('finished calculating outlier probability score after {} seconds'.format(time.time() - start_time))
+        print(f'finished calculating outlier probability score after {time.time() - start_time} seconds')
         print(f'Avg outlier score is {np.mean(prob_vector)}')
         if indexes_to_highlight is not None:
-            print(
-                f'Avg outlier score in real outlier samples is {np.mean(prob_vector[text_dataframe.index.isin(indexes_to_highlight["real outlier samples"])])}')
+            print(f'Avg outlier score in real outlier samples is '
+                  f'{np.mean(prob_vector[text_dataframe.index.isin(indexes_to_highlight["real outlier samples"])])}')
 
     # save to file
-    text_dataframe.to_csv(os.path.join(path, "outlier_metadata.tsv"), sep="\t")
+    text_dataframe.to_csv(os.path.join(path, 'outlier_metadata.tsv'), sep='\t')
 
     # save_embeddings_to_file
     checkpoint = tf.train.Checkpoint(outlier_embedding=tf.Variable(embeddings_df))
-    checkpoint.save(os.path.join(path, "outlier_embedding.ckpt"))
+    checkpoint.save(os.path.join(path, 'outlier_embedding.ckpt'))
 
 
 def _select_highlight_value(index, indexes_to_highlight: Dict[str, List[int]]):
     for key, value in indexes_to_highlight.items():
         if index in value:
             return key
-    return "other"
+    return 'other'
 
 
 def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embeddings: np.ndarray,
@@ -157,9 +157,9 @@ def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embedd
     all_data = all_data[['text'] + [col for col in all_data.columns if col != 'text']]
 
     # save data for display
-    all_data.to_csv(os.path.join(path, "drift_metadata.tsv"), sep="\t")
+    all_data.to_csv(os.path.join(path, 'drift_metadata.tsv'), sep='\t')
     checkpoint = tf.train.Checkpoint(drift_embeddings=tf.Variable(all_embeddings))
-    checkpoint.save(os.path.join(path, "drift_embeddings.ckpt"))
+    checkpoint.save(os.path.join(path, 'drift_embeddings.ckpt'))
 
     if verbose:
         return all_data, all_embeddings

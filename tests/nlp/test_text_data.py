@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -67,7 +67,7 @@ def test_wrong_token_label_format():
     label = [['B-PER'],
              ['B-PER', 'B-GEO', 'B-GEO'],
              ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
-    text_data = TextData(raw_text=text, label=label, task_type='token_classification') # pylint: disable=unused-variable
+    _ = TextData(raw_text=text, label=label, task_type='token_classification') # Should pass
 
     # Not a list:
     label = 'PER'

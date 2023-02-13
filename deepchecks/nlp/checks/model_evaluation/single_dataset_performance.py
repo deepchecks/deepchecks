@@ -34,17 +34,22 @@ class SingleDatasetPerformance(SingleDatasetCheck, BaseSingleDatasetPerformance)
     scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
         List of scorers to use. If None, use default scorers.
         Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+    n_samples : int , default: 10_000
+        Maximum number of samples to use for this check.
     """
 
     def __init__(self,
                  scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
+                 n_samples: int = 10_000,
                  **kwargs):
         super().__init__(**kwargs)
         self.scorers = scorers
+        self.n_samples = n_samples
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
+        dataset = dataset.sample(self.n_samples, random_state=context.random_state)
         model = context.model
         scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
 
