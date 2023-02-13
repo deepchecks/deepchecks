@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -31,15 +31,14 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     @docstrings
     def run(
-        self,
-        dataset: TextData,
-        model=None,  # pylint: disable=unused-argument
-        with_display: bool = True,
-        predictions: Optional[TTextPred] = None,
-        probabilities: Optional[TTextProba] = None,
-        model_classes: Optional[List] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = 10_000
+            self,
+            dataset: TextData,
+            model=None,  # pylint: disable=unused-argument
+            with_display: bool = True,
+            predictions: Optional[TTextPred] = None,
+            probabilities: Optional[TTextProba] = None,
+            model_classes: Optional[List] = None,
+            random_state: int = 42,
     ) -> CheckResult:
         """Run check.
 
@@ -59,8 +58,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             For classification: list of classes known to the model
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
-        n_samples: int, default: 10_000
-            The number of samples to use within the check.
 
         {prediction_formats:2*indent}
         """
@@ -71,7 +68,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             train_pred=predictions,
             train_proba=probabilities,
             model_classes=model_classes,
-            n_samples=n_samples,
             random_state=random_state
         )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
@@ -94,17 +90,16 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     @docstrings
     def run(
-        self,
-        train_dataset: TextData,
-        test_dataset: TextData,
-        model=None,  # pylint: disable=unused-argument
-        with_display: bool = True,
-        train_predictions: Optional[TTextPred] = None,
-        test_predictions: Optional[TTextPred] = None,
-        train_probabilities: Optional[TTextProba] = None,
-        test_probabilities: Optional[TTextProba] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = 10_000
+            self,
+            train_dataset: TextData,
+            test_dataset: TextData,
+            model=None,  # pylint: disable=unused-argument
+            with_display: bool = True,
+            train_predictions: Optional[TTextPred] = None,
+            test_predictions: Optional[TTextPred] = None,
+            train_probabilities: Optional[TTextProba] = None,
+            test_probabilities: Optional[TTextProba] = None,
+            random_state: int = 42,
     ) -> CheckResult:
         """Run check.
 
@@ -128,8 +123,6 @@ class TrainTestCheck(TrainTestBaseCheck):
             probabilities on test_dataset dataset
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
-        n_samples: int, default: 10_000
-            The number of samples to use within the check.
 
         {prediction_formats:2*indent}
         """
@@ -141,7 +134,6 @@ class TrainTestCheck(TrainTestBaseCheck):
             test_pred=test_predictions,
             train_proba=train_probabilities,
             test_proba=test_probabilities,
-            n_samples=n_samples,
             random_state=random_state,
             with_display=with_display,
         )

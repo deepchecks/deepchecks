@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -43,7 +43,6 @@ class Suite(BaseSuite):
         train_probabilities: Optional[TTextProba] = None,
         test_probabilities: Optional[TTextProba] = None,
         random_state: int = 42,
-        n_samples: Optional[int] = 10_000
     ) -> SuiteResult:
         """Run all checks.
 
@@ -65,9 +64,6 @@ class Suite(BaseSuite):
             probabilities on test_dataset dataset
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
-        n_samples: int, default: 10_000
-            The number of samples to use within the checks.
-
         {prediction_formats:2*indent}
 
         Returns
@@ -83,7 +79,6 @@ class Suite(BaseSuite):
             train_proba=train_probabilities,
             test_proba=test_probabilities,
             with_display=with_display,
-            n_samples=n_samples,
             random_state=random_state
         )
 

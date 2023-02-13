@@ -170,7 +170,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                     weak_segments[f'{feature} range'][idx] = \
                         self._format_partition_vec_for_display(segment[f'{feature} range'], segment[feature], None)[0]
 
-        display_msg = 'Showcasing intersections of features with weakest detected segments.<br> The full list of ' \
+        display_msg = 'Showcasing intersections of properties with weakest detected segments.<br> The full list of ' \
                       'weak segments can be observed in the check result value. '
         return CheckResult(
             {'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': self.scorer_name},

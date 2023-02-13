@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,7 +10,9 @@
 #
 """Module importing all nlp checks."""
 
-from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance
-from deepchecks.nlp.checks.train_test_validation import KeywordFrequencyDrift
+from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance, WeakSegmentsPerformance
+from deepchecks.nlp.checks.train_test_validation import (KeywordFrequencyDrift, TrainTestLabelDrift,
+                                                         TrainTestPredictionDrift)
 
-__all__ = ['SingleDatasetPerformance', 'KeywordFrequencyDrift']
+__all__ = ['SingleDatasetPerformance', 'WeakSegmentsPerformance',
+           'KeywordFrequencyDrift', 'TrainTestPredictionDrift', 'TrainTestLabelDrift']

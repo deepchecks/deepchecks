@@ -329,11 +329,7 @@ class Context(BaseContext):
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
                     use_avg_defaults=True) -> t.List[DeepcheckScorer]:
-        """Return initialized & validated scorers in a given priority.
-
-        If receive `scorers` use them,
-        Else if user defined global scorers use them,
-        Else use default scorers.
+        """Return initialized & validated scorers if provided or default scorers otherwise.
 
         Parameters
         ----------
@@ -352,18 +348,13 @@ class Context(BaseContext):
         return init_validate_scorers(scorers, self.model, self.train, self.model_classes, self._observed_classes)
 
     def get_single_scorer(self,
-                          scorers: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                          scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
                           use_avg_defaults=True) -> DeepcheckScorer:
-        """Return initialized & validated single scorer in a given priority.
-
-        If receive `scorers` use them,
-        Else if user defined global scorers use them,
-        Else use default scorers.
-        Returns the first scorer from the scorers described above.
+        """Return initialized & validated scorer if provided or a default scorer otherwise.
 
         Parameters
         ----------
-        scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+        scorer : Union[List[str], Dict[str, Union[str, Callable]]], default: None
             List of scorers to use. If None, use default scorers.
             Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
         use_avg_defaults : bool, default True
@@ -374,9 +365,7 @@ class Context(BaseContext):
         List[DeepcheckScorer]
             An initialized & validated scorer.
         """
-        scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
+        scorer = scorer or get_default_scorers(self.task_type, use_avg_defaults)
         # The single scorer is the first one in the dict
-        scorer_name = next(iter(scorers))
-        single_scorer_dict = {scorer_name: scorers[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.model_classes,
-                                     self._observed_classes)[0]
+        scorer_name = next(iter(scorer))
+        return self.get_scorers({scorer_name: scorer[scorer_name]}, use_avg_defaults)[0]

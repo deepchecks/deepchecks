@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -170,16 +170,17 @@ def test_wrong_token_prediction_format(text_token_classification_dataset_mock):
 def test_sampling(text_classification_dataset_mock):
     # Arrange
     check = SingleDatasetPerformance(scorers=['recall_macro'])
+    check_sampled = SingleDatasetPerformance(scorers=['recall_macro'], n_samples=2)
 
     # Act
     result = check.run(text_classification_dataset_mock,
                        predictions=[0, 1, 1])
-    result_sampled = check.run(text_classification_dataset_mock,
-                               predictions=[0, 1, 1], n_samples=2)
+    result_sampled = check_sampled.run(text_classification_dataset_mock,
+                               predictions=[0, 1, 1], random_state=42)
 
     # Assert
-    assert_that(result.value.values[0][-1], close_to(0.75, 0.001))
-    assert_that(result_sampled.value.values[0][-1], close_to(0.25, 0.001))
+    assert_that(result.value['Value'][0], close_to(0.75, 0.001))
+    assert_that(result_sampled.value['Value'][0], close_to(0.25, 0.001))
 
 
 def test_same_dataset(text_classification_dataset_mock):

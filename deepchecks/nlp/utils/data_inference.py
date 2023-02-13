@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,8 +10,6 @@
 #
 """Utils module containing functionalities to infer the metadata from the supplied TextData."""
 
-__all__ = ['infer_observed_and_model_labels']
-
 import warnings
 from typing import List, Tuple
 
@@ -21,6 +19,8 @@ from sklearn.base import BaseEstimator
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
+
+__all__ = ['infer_observed_and_model_labels']
 
 
 def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model: BaseEstimator = None,
@@ -63,14 +63,14 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
 
     if train_dataset:
         if train_dataset.has_label():
-            train_labels += train_dataset.label
+            train_labels += list(train_dataset.label)
         if have_model:
-            train_labels += model.predict(train_dataset)
+            train_labels += list(model.predict(train_dataset))
     if test_dataset:
         if test_dataset.has_label():
-            test_labels += test_dataset.label
+            test_labels += list(test_dataset.label)
         if have_model:
-            test_labels += model.predict(test_dataset)
+            test_labels += list(model.predict(test_dataset))
 
     if task_type == TaskType.TOKEN_CLASSIFICATION:
         # Flatten:

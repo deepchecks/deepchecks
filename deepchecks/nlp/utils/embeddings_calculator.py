@@ -14,7 +14,8 @@ import pandas as pd
 from tqdm import tqdm
 
 
-def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM', file_path: str = 'embeddings.csv') -> pd.DataFrame:
+def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
+                                  file_path: str = 'embeddings.csv') -> pd.DataFrame:
     """
     Get default embeddings for the dataset.
 
@@ -40,8 +41,7 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM', file_p
         except ImportError as e:
             raise ImportError(
                 'get_default_embeddings with model="miniLM" requires the sentence_transformers python package. '
-                'To get it, run "pip install sentence_transformers".'
-            ) from e
+                'To get it, run "pip install sentence_transformers".') from e
 
         model = sentence_transformers.SentenceTransformer('all-MiniLM-L6-v2')
         embeddings = model.encode(text)
@@ -49,21 +49,19 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM', file_p
         try:
             import openai
         except ImportError as e:
-            raise ImportError(
-                'get_default_embeddings with model="open_ai" requires the openai python package. '
-                'To get it, run "pip install openai".'
-            ) from e
+            raise ImportError('get_default_embeddings with model="open_ai" requires the openai python package. '
+                              'To get it, run "pip install openai".') from e
 
         from tenacity import retry, stop_after_attempt, wait_random_exponential
 
         @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
         def _get_embedding_with_backoff(list_of_strings):
-            return openai.Embedding.create(input=list_of_strings, model="text-embedding-ada-002")['data']
+            return openai.Embedding.create(input=list_of_strings, model='text-embedding-ada-002')['data']
 
         batch_size = 500
         embeddings = []
         clean_text = [clean_special_chars(x) for x in text]
-        for idx, sub_list in tqdm(enumerate([clean_text[x:x+batch_size] for x in range(0, len(text), batch_size)]),
+        for sub_list in tqdm([clean_text[x:x + batch_size] for x in range(0, len(text), batch_size)],
                                   desc='Calculating Embeddings '):
             open_ai_response = _get_embedding_with_backoff(sub_list)
             for x in open_ai_response:
@@ -80,6 +78,6 @@ def clean_special_chars(text):
     special_chars = '!@#$%^&*()_+{}|:"<>?~`-=[]\;\',./'
     for char in special_chars:
         text = text.replace(char, '')
-    text = text.replace("\n", " ")
-    text = text.replace("<br />", " ")
+    text = text.replace('\n', ' ')
+    text = text.replace('<br />', ' ')
     return text

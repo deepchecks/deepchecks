@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the TextData object"""
-from hamcrest import assert_that, calling, raises
+import pandas as pd
+from hamcrest import assert_that, calling, raises, equal_to, contains_exactly
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
@@ -67,7 +68,7 @@ def test_wrong_token_label_format():
     label = [['B-PER'],
              ['B-PER', 'B-GEO', 'B-GEO'],
              ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
-    text_data = TextData(raw_text=text, label=label, task_type='token_classification') # pylint: disable=unused-variable
+    _ = TextData(raw_text=text, label=label, task_type='token_classification')  # Should pass
 
     # Not a list:
     label = 'PER'
@@ -101,3 +102,35 @@ def test_wrong_token_label_format():
         raises(DeepchecksValueError, r'label must be the same length as tokenized_text. '
                                      r'However, for sample index 2 of length 4 received label of length 3')
     )
+
+
+def test_additional_data_format():
+    # Arrange
+    text = ['a', 'b b b', 'c c c c']
+    additional_data = {'first': [1, 2, 3], 'second': [4, 5, 6]}
+
+    # Act & Assert
+    _ = TextData(raw_text=text, additional_data=pd.DataFrame(additional_data),
+                 task_type='text_classification')  # Should pass
+    assert_that(
+        calling(TextData).with_args(raw_text=text, additional_data=additional_data, task_type='text_classification'),
+        raises(DeepchecksValueError,
+               r"additional_data type <class 'dict'> is not supported, must be a pandas DataFrame")
+    )
+
+
+def test_head_functionality():
+    # Arrange
+    text = ['a', 'b b b', 'c c c c']
+    additional_data = {'first': [1, 2, 3], 'second': [4, 5, 6]}
+    label = ['PER', 'ORG', 'GEO']
+
+    # Act
+    dataset = TextData(raw_text=text, additional_data=pd.DataFrame(additional_data),
+                       task_type='text_classification', label=label)
+    result = dataset.head(n_samples=2)
+
+    # Assert
+    assert_that(len(result), equal_to(2))
+    assert_that(sorted(result.columns), contains_exactly('first', 'label', 'second', 'text'))
+    assert_that(list(result.index), contains_exactly(0, 1))
