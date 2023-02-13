@@ -102,11 +102,11 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             loss_per_sample = [log_loss([y_true], [y_proba], labels=sorted(context.model_classes)) for y_true, y_proba
                                in zip(list(text_data.label), proba_values)]
 
-        meta_data = select_from_dataframe(text_data.meta_data, self.columns, self.ignore_columns)
-        if meta_data.shape[1] < 2:
+        additional_data = select_from_dataframe(text_data.meta_data, self.columns, self.ignore_columns)
+        if additional_data.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
         # label is not used in the check, just here to avoid errors
-        dataset = Dataset(meta_data, label=pd.Series(text_data.label, index=text_data.index))
+        dataset = Dataset(additional_data, label=pd.Series(text_data.label, index=text_data.index))
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
 
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),

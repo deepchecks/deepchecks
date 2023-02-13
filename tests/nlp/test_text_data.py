@@ -10,7 +10,7 @@
 #
 """Test for the TextData object"""
 import pandas as pd
-from hamcrest import assert_that, calling, raises
+from hamcrest import assert_that, calling, raises, equal_to, contains_exactly
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
@@ -104,14 +104,33 @@ def test_wrong_token_label_format():
     )
 
 
-def test_metadata_format():
+def test_additional_data_format():
     # Arrange
     text = ['a', 'b b b', 'c c c c']
-    meta_data = {'first': [1, 2, 3], 'second': [4, 5, 6]}
+    additional_data = {'first': [1, 2, 3], 'second': [4, 5, 6]}
 
     # Act & Assert
-    _ = TextData(raw_text=text, meta_data=pd.DataFrame(meta_data), task_type='text_classification')  # Should pass
+    _ = TextData(raw_text=text, additional_data=pd.DataFrame(additional_data),
+                 task_type='text_classification')  # Should pass
     assert_that(
-        calling(TextData).with_args(raw_text=text, meta_data=meta_data, task_type='text_classification'),
-        raises(DeepchecksValueError, r"meta_data type <class 'dict'> is not supported, must be a pandas DataFrame")
+        calling(TextData).with_args(raw_text=text, additional_data=additional_data, task_type='text_classification'),
+        raises(DeepchecksValueError,
+               r"additional_data type <class 'dict'> is not supported, must be a pandas DataFrame")
     )
+
+
+def test_head_functionality():
+    # Arrange
+    text = ['a', 'b b b', 'c c c c']
+    additional_data = {'first': [1, 2, 3], 'second': [4, 5, 6]}
+    label = ['PER', 'ORG', 'GEO']
+
+    # Act
+    dataset = TextData(raw_text=text, additional_data=pd.DataFrame(additional_data),
+                       task_type='text_classification', label=label)
+    result = dataset.head(n_samples=2)
+
+    # Assert
+    assert_that(len(result), equal_to(2))
+    assert_that(sorted(result.columns), contains_exactly('first', 'label', 'second', 'text'))
+    assert_that(list(result.index), contains_exactly(0, 1))

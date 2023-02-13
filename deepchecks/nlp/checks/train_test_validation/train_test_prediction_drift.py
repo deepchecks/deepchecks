@@ -134,9 +134,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
         train_dataset = context.train.sample(self.n_samples, random_state=context.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=context.random_state)
         model = context.model
-
         drift_score_dict, drift_display_dict = {}, {}
-        method, classes = None, context.model_classes
 
         # Flag for computing drift on the probabilities rather than the predicted labels
         proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
@@ -155,7 +153,7 @@ class TrainTestPredictionDrift(TrainTestCheck):
         samples_per_class = pd.Series(train_dataset.label).value_counts().to_dict()
 
         for class_idx in range(train_prediction.shape[1]):
-            class_name = classes[class_idx]
+            class_name = context.model_classes[class_idx]
             drift_score_dict[class_name], method, drift_display_dict[class_name] = calc_drift_and_plot(
                 train_column=pd.Series(train_prediction[:, class_idx].flatten()),
                 test_column=pd.Series(test_prediction[:, class_idx].flatten()),

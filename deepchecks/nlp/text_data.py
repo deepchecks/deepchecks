@@ -75,7 +75,7 @@ class TextData:
     _has_label: bool
     _is_multilabel: bool = False
     name: t.Optional[str] = None
-    _meta_data: t.Optional[pd.DataFrame] = None
+    _additional_data: t.Optional[pd.DataFrame] = None
 
     def __init__(
             self,
@@ -85,7 +85,7 @@ class TextData:
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
-            meta_data: t.Optional[pd.DataFrame] = None
+            additional_data: t.Optional[pd.DataFrame] = None
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -140,14 +140,14 @@ class TextData:
                                                   f' str')
         self.name = dataset_name
 
-        if meta_data is not None:
-            if not isinstance(meta_data, pd.DataFrame):
-                raise DeepchecksValueError(f'meta_data type {type(meta_data)} is not supported, must be a'
+        if additional_data is not None:
+            if not isinstance(additional_data, pd.DataFrame):
+                raise DeepchecksValueError(f'additional_data type {type(additional_data)} is not supported, must be a'
                                                   f' pandas DataFrame')
-            if self.index != list(meta_data.index):
-                raise DeepchecksValueError('meta_data index must be the same as the text data index')
+            if self.index != list(additional_data.index):
+                raise DeepchecksValueError('additional_data index must be the same as the text data index')
 
-        self._meta_data = meta_data
+        self._additional_data = additional_data
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -217,14 +217,14 @@ class TextData:
         if rows_to_use is None:
             new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
                            task_type=self._task_type.value,
-                           dataset_name=self.name, index=self.index, meta_data=self.meta_data)
+                           dataset_name=self.name, index=self.index, additional_data=self.additional_data)
         else:
             new_copy = cls(raw_text=list(itemgetter(*rows_to_use)(self._text)),
                            tokenized_text=list(
                                itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
                            label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
                            index=list(itemgetter(*rows_to_use)(self.index)),
-                           meta_data=self._meta_data.iloc[rows_to_use, :] if self._meta_data is not None else None,
+                           additional_data=self._additional_data.iloc[rows_to_use, :] if self._additional_data is not None else None,
                            task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
         return new_copy
@@ -285,7 +285,7 @@ class TextData:
             Tokenized text of sample.
         """
         if self._tokenized_text is None:
-            raise DeepchecksValueError('Dataset does not contain tokenized text')
+            raise DeepchecksValueError('TextData does not contain tokenized text')
         return self._tokenized_text[self.index.index(index)]
 
     @property
@@ -294,9 +294,9 @@ class TextData:
         return len(self._text)
 
     @property
-    def meta_data(self) -> pd.DataFrame:
-        """Return the metadata of for the dataset."""
-        return self._meta_data
+    def additional_data(self) -> pd.DataFrame:
+        """Return the additional data of for the dataset."""
+        return self._additional_data
 
     def __len__(self):
         """Return number of samples in the dataset."""
@@ -429,5 +429,13 @@ class TextData:
 
     def head(self, n_samples: int = 5) -> pd.DataFrame:
         """Return a copy of the dataset as a pandas Dataframe with the first n_samples samples."""
-        return pd.DataFrame({'text': self.text[:n_samples], 'label': self.label[:n_samples]},
-                            index=self.index[:n_samples])
+        if n_samples > len(self):
+            n_samples = len(self) - 1
+        result = pd.DataFrame({'text': self.text[:n_samples]}, index=self.index[:n_samples])
+        if self.has_label():
+            result['label'] = self.label[:n_samples]
+        if self._tokenized_text is not None:
+            result['tokenized_text'] = self.tokenized_text[:n_samples]
+        if self._additional_data is not None:
+            result = result.join(self.additional_data.loc[result.index])
+        return result
