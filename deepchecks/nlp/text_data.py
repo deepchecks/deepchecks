@@ -142,7 +142,7 @@ class TextData:
 
         if meta_data is not None:
             if not isinstance(meta_data, pd.DataFrame):
-                raise DeepchecksNotSupportedError(f'meta_data type {type(meta_data)} is not supported, must be a'
+                raise DeepchecksValueError(f'meta_data type {type(meta_data)} is not supported, must be a'
                                                   f' pandas DataFrame')
             if self.index != list(meta_data.index):
                 raise DeepchecksValueError('meta_data index must be the same as the text data index')

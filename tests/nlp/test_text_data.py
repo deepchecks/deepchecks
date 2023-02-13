@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the TextData object"""
+import pandas as pd
 from hamcrest import assert_that, calling, raises
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -67,7 +68,7 @@ def test_wrong_token_label_format():
     label = [['B-PER'],
              ['B-PER', 'B-GEO', 'B-GEO'],
              ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
-    _ = TextData(raw_text=text, label=label, task_type='token_classification') # Should pass
+    _ = TextData(raw_text=text, label=label, task_type='token_classification')  # Should pass
 
     # Not a list:
     label = 'PER'
@@ -100,4 +101,17 @@ def test_wrong_token_label_format():
         calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, r'label must be the same length as tokenized_text. '
                                      r'However, for sample index 2 of length 4 received label of length 3')
+    )
+
+
+def test_metadata_format():
+    # Arrange
+    text = ['a', 'b b b', 'c c c c']
+    meta_data = {'first': [1, 2, 3], 'second': [4, 5, 6]}
+
+    # Act & Assert
+    _ = TextData(raw_text=text, meta_data=pd.DataFrame(meta_data), task_type='text_classification')  # Should pass
+    assert_that(
+        calling(TextData).with_args(raw_text=text, meta_data=meta_data, task_type='text_classification'),
+        raises(DeepchecksValueError, r"meta_data type <class 'dict'> is not supported, must be a pandas DataFrame")
     )
