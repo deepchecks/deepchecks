@@ -82,10 +82,10 @@ def test_drift_classification_label_without_display(drifted_classification_label
     assert_that(result.display, has_length(0))
 
 
-def test_drift_regression_label(drifted_regression_label):
+def test_drift_regression_label_emd(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = TrainTestLabelDrift(numerical_drift_method='EMD')
 
     # Act
     result = check.run(train, test)
@@ -94,6 +94,20 @@ def test_drift_regression_label(drifted_regression_label):
     assert_that(result.value, has_entries(
         {'Drift score': close_to(0.34, 0.01),
          'Method': equal_to('Earth Mover\'s Distance')}
+    ))
+
+def test_drift_regression_label_ks(drifted_regression_label):
+    # Arrange
+    train, test = drifted_regression_label
+    check = TrainTestLabelDrift(numerical_drift_method='KS')
+
+    # Act
+    result = check.run(train, test)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Drift score': close_to(0.71, 0.01),
+         'Method': equal_to('Kolmogorov-Smirnov')}
     ))
 
 
