@@ -82,12 +82,12 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramers_v"
-        decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     numerical_drift_method: str, default: "EMD"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    categorical_drift_method: str, default: "cramers_v"
+        decides which method to use on categorical variables. Possible values are:
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     balance_classes: bool, default: False
         If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
         variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
@@ -121,8 +121,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method: str = 'cramers_v',
             numerical_drift_method: str = 'EMD',
+            categorical_drift_method: str = 'cramers_v',
             balance_classes: bool = False,
             ignore_na: bool = True,
             aggregation_method: t.Optional[str] = 'max',
@@ -142,8 +142,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        self.categorical_drift_method = categorical_drift_method
         self.numerical_drift_method = numerical_drift_method
+        self.categorical_drift_method = categorical_drift_method
         self.balance_classes = balance_classes
         self.ignore_na = ignore_na
         self.max_classes_to_display = max_classes_to_display
@@ -202,8 +202,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
                 min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
-                categorical_drift_method=self.categorical_drift_method,
                 numerical_drift_method=self.numerical_drift_method,
+                categorical_drift_method=self.categorical_drift_method,
                 balance_classes=self.balance_classes,
                 ignore_na=self.ignore_na,
                 with_display=context.with_display,

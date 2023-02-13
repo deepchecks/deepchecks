@@ -80,12 +80,12 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramers_v"
-        decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     numerical_drift_method: str, default: "EMD"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    categorical_drift_method: str, default: "cramers_v"
+        decides which method to use on categorical variables. Possible values are:
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -108,8 +108,8 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramers_v',
-            numerical_drift_method='EMD',
+            numerical_drift_method = 'EMD',
+            categorical_drift_method = 'cramers_v',
             ignore_na: bool = True,
             aggregation_method: Optional[str] = 'l2_weighted',
             n_samples: int = 100_000,
@@ -131,8 +131,8 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 '"sort_feature_by must be either "feature importance", "drift score" or "drift + importance"'
             )
         self.n_top_columns = n_top_columns
-        self.categorical_drift_method = categorical_drift_method
         self.numerical_drift_method = numerical_drift_method
+        self.categorical_drift_method = categorical_drift_method
         self.ignore_na = ignore_na
         self.aggregation_method = aggregation_method
         self.n_samples = n_samples
@@ -208,8 +208,8 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
-                categorical_drift_method=self.categorical_drift_method,
                 numerical_drift_method=self.numerical_drift_method,
+                categorical_drift_method=self.categorical_drift_method,
                 ignore_na=self.ignore_na,
                 with_display=context.with_display,
                 dataset_names=(train_dataset.name, test_dataset.name)
