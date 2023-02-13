@@ -37,7 +37,7 @@ SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance', 'KS']
 
 def filter_margins_by_quantile(dist: Union[np.ndarray, pd.Series], margin_quantile_filter: float) -> np.ndarray:
     """Filter the margins of the distribution by a quantile."""
-    qt_min, qt_max = np.quantile(dist, [0, 1 - margin_quantile_filter])
+    qt_min, qt_max = np.quantile(dist, [margin_quantile_filter, 1 - margin_quantile_filter])
     return dist[(qt_max >= dist) & (dist >= qt_min)]
 
 
