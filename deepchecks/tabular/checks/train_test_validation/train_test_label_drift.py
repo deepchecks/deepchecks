@@ -94,7 +94,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            numerical_drift_method='EMD',
+            numerical_drift_method = 'EMD',
             categorical_drift_method='cramers_v',
             balance_classes: bool = False,
             ignore_na: bool = False,
