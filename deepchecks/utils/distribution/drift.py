@@ -37,7 +37,7 @@ SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance', 'KS']
 
 def filter_margins_by_quantile(dist: Union[np.ndarray, pd.Series], margin_quantile_filter: float) -> np.ndarray:
     """Filter the margins of the distribution by a quantile."""
-    qt_min, qt_max = np.quantile(dist, [0, 1 - margin_quantile_filter])
+    qt_min, qt_max = np.quantile(dist, [margin_quantile_filter, 1 - margin_quantile_filter])
     return dist[(qt_max >= dist) & (dist >= qt_min)]
 
 
@@ -71,7 +71,7 @@ def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
     so in practice all categories of the distributions are treated with the same weight.
 
     The function redefines the dist1_counts to have equal counts for all categories, and then redefines the
-    dist2_counts to have the same "change" it had from dist1_counts, but with relative to the new dist1_counts.
+    dist2_counts to have the same "change" it had from dist1_counts, but relative to the new dist1_counts.
 
     Example:
         if dist1_counts was [9000, 1000] and dist2_counts was [8000, 2000]. This means that if we treat dist1 as a

@@ -92,7 +92,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            numerical_drift_method = 'EMD',
+            numerical_drift_method: str = 'EMD',
             min_samples: int = 30,
             aggregation_method: t.Optional[str] = 'max',
             n_samples: t.Optional[int] = 10000,

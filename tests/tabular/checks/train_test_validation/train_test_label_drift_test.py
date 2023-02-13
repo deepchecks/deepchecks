@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
 
-from deepchecks import Dataset
+from deepchecks.tabular import Dataset
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular.checks import TrainTestLabelDrift
 from tests.base.utils import equal_condition_result
