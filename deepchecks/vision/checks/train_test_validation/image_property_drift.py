@@ -14,13 +14,10 @@ from collections import defaultdict
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.core.reduce_classes import ReducePropertyMixin
-from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote, drift_condition
-from deepchecks.utils.strings import format_number
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import TrainTestCheck
 from deepchecks.vision.context import Context
