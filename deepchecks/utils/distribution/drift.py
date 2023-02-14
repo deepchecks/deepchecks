@@ -32,7 +32,7 @@ __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_MET
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
-SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance', 'Kolmogorov-Smirnov']
+SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance', 'KS']
 
 
 def filter_margins_by_quantile(dist: Union[np.ndarray, pd.Series], margin_quantile_filter: float) -> np.ndarray:
