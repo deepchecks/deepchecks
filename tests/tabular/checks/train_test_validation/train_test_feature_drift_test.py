@@ -51,7 +51,7 @@ def test_drift_with_model(drifted_data_and_model):
 def test_drift_with_model_n_top(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', columns=[
+    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='KS', columns=[
                                   'categorical_with_drift'], n_top_columns=1, max_num_categories=10, min_category_size_ratio=0)
 
     # Act
@@ -359,7 +359,7 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail_cramer(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='cramer_v').add_condition_drift_score_less_than()
+    check = TrainTestFeatureDrift(categorical_drift_method='cramers_v').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test, model)

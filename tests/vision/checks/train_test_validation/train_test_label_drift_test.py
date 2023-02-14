@@ -112,7 +112,7 @@ def test_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test
 def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
     train, test = mnist_visiondata_train, mnist_visiondata_test
-    check = TrainTestLabelDrift(categorical_drift_method='cramer_v')
+    check = TrainTestLabelDrift(categorical_drift_method='cramers_v')
 
     # Act
     result = check.run(train, test)
@@ -129,8 +129,8 @@ def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visionda
 
 def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
-                                min_category_size_ratio=0)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='KS',
+                                max_num_categories_for_drift=10, min_category_size_ratio=0)
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_test)
@@ -141,11 +141,11 @@ def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test
             {'Drift score': close_to(0.37, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding Box Area (in pixels)': has_entries(
-            {'Drift score': close_to(0.013, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
+            {'Drift score': close_to(0.049, 0.001),
+             'Method': equal_to('Kolmogorov-Smirnov')}
         ), 'Number of Bounding Boxes Per Image': has_entries(
-            {'Drift score': close_to(0.051, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
+            {'Drift score': close_to(0.11, 0.001),
+             'Method': equal_to('Kolmogorov-Smirnov')}
         )
         }
     ))
@@ -198,7 +198,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
 
 def test_drift_max_drift_score_condition_fail_cremer_v(mnist_drifted_datasets):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='cramer_v') \
+    check = TrainTestLabelDrift(categorical_drift_method='cramers_v') \
         .add_condition_drift_score_less_than(max_allowed_categorical_score=0.1)
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
