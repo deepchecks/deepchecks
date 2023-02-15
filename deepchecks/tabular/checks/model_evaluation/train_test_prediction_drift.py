@@ -53,7 +53,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
 
     **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V, together with setting
-    the ``balance_classes`` parameter to ``True``.
+    the ``balance_classes`` parameter to ``True``. This also requires setting the ``drift_mode`` parameter to
+    ``'prediction'``.
 
 
     Parameters
@@ -93,7 +94,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     balance_classes: bool, default: False
         If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
         variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
-        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
+        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v" and
+        drift_mode = "prediction".
         If True, the variable frequency plot will be created with a log scale in the y-axis.
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
@@ -147,6 +149,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.numerical_drift_method = numerical_drift_method
         self.categorical_drift_method = categorical_drift_method
         self.balance_classes = balance_classes
+        if self.balance_classes is True and self.drift_mode != 'prediction':
+            raise DeepchecksValueError('balance_classes=True is only supported for drift_mode=\'prediction\'')
         self.ignore_na = ignore_na
         self.max_classes_to_display = max_classes_to_display
         self.aggregation_method = aggregation_method
