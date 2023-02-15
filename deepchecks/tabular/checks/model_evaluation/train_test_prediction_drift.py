@@ -96,7 +96,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
         variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
         and not only to the entire dataset. Must have categorical_drift_method = "cramers_v" and
-        drift_mode = "prediction".
+        drift_mode = "auto" or "prediction".
         If True, the variable frequency plot will be created with a log scale in the y-axis.
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
@@ -181,9 +181,10 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         method, classes = None, train_dataset.classes_in_label_col
 
         # Flag for computing drift on the probabilities rather than the predicted labels
-        proba_drift = ((context.task_type == TaskType.BINARY and self.drift_mode == 'auto')
-                       or (self.drift_mode == 'proba')) \
-                      and not (self.balance_classes is True and self.drift_mode == 'auto')
+        proba_drift = \
+            ((context.task_type == TaskType.BINARY and self.drift_mode == 'auto')
+             or (self.drift_mode == 'proba')) \
+            and not (self.balance_classes is True and self.drift_mode == 'auto')
 
         if proba_drift:
             train_prediction = np.array(model.predict_proba(train_dataset.features_columns))
