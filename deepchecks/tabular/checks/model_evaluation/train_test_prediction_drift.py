@@ -54,7 +54,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
     **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V, together with setting
     the ``balance_classes`` parameter to ``True``. This also requires setting the ``drift_mode`` parameter to
-    ``'prediction'``.
+    ``auto`` (default) or ``'prediction'``.
 
 
     Parameters
