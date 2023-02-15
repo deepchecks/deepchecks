@@ -32,7 +32,7 @@ __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_MET
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
-SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance', 'KS']
+SUPPORTED_NUMERIC_METHODS = ['Earth Mover\'s Distance', 'Kolmogorov-Smirnov']
 
 
 def filter_margins_by_quantile(dist: Union[np.ndarray, pd.Series], margin_quantile_filter: float) -> np.ndarray:
@@ -385,7 +385,7 @@ def calc_drift_and_plot(train_column: pd.Series,
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    numerical_drift_method: str, default: "EMD"
+    numerical_drift_method: str, default: "KS"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
     categorical_drift_method: str, default: "cramers_v"
@@ -407,9 +407,9 @@ def calc_drift_and_plot(train_column: pd.Series,
     Returns
     -------
     Tuple[float, str, Callable]
-        drift score of the difference between the two columns' distributions (Earth movers distance for
-        numerical, PSI for categorical)
-        graph comparing the two distributions (density for numerical, stack bar for categorical)
+        - drift score of the difference between the two columns' distributions
+        - method name
+        - graph comparing the two distributions (density for numerical, stack bar for categorical)
     """
     if min_category_size_ratio < 0 or min_category_size_ratio > 1:
         raise DeepchecksValueError(

@@ -32,7 +32,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
     dataset.
 
-    For numerical columns, we use the Earth Movers Distance.
+    For numerical columns, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     For categorical distributions, we use the Cramer's V.
@@ -67,7 +69,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    numerical_drift_method: str, default: "EMD"
+    numerical_drift_method: str, default: "KS"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
     categorical_drift_method: str, default: "cramers_v"
@@ -94,7 +96,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            numerical_drift_method: str = 'EMD',
+            numerical_drift_method: str = 'KS',
             categorical_drift_method: str = 'cramers_v',
             balance_classes: bool = False,
             ignore_na: bool = False,
@@ -165,20 +167,20 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         """Return True if the check reduce_output is better when it is greater."""
         return False
 
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
-                                            max_allowed_numeric_score: float = 0.1):
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+                                            max_allowed_numeric_score: float = 0.15):
         """
         Add condition - require drift score to be less than the threshold.
 
         The industry standard for PSI limit is above 0.2.
-        Cramer's V does not have a common industry standard.
-        Earth movers does not have a common industry standard.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
 
         Parameters
         ----------
-        max_allowed_categorical_score: float , default: 0.2
+        max_allowed_categorical_score: float , default: 0.15
             the max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.1
+        max_allowed_numeric_score: float ,  default: 0.15
             the max threshold for the numeric variable drift score
         Returns
         -------

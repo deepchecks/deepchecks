@@ -100,7 +100,7 @@ and measuring the difference between newer and older samples of the variable.
 There are many measures that can be used for this, such as the Kolmogorov-Smirnov test, Jensen-Shannon Divergence and more.
 In deepchecks, we found that the best results are given by:
 
-* For continuous numeric distributions - `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
+* For continuous numeric distributions - `Kolmogorov-Smirnov statistic <https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test>`__ or `Wasserstein metric (Earth Movers Distance) <https://en.wikipedia.org/wiki/Wasserstein_metric>`__
 * For discrete or categorical distributions - `Cramer's V <https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V>`__ or `Population Stability Index (PSI) <https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf>`__
 
 These methods have the advantage of being simple to use and produce explainable results. However, they are limited by
@@ -117,6 +117,23 @@ Cramer's V is always in the range [0,1], and is based on the `Pearson's chi-squa
 In general, it is recommended to use Cramer's V, unless your variable includes categories with a small number of samples (common practice is categories with less than 5 samples).
 However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V, as PSI will not be able to detect change in the smaller categories.
 
+Detecting Drift in Unbalanced Classification Tasks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In classification problems, it is common to have unbalanced data, meaning that the number of samples in each class is
+highly skewed. For example, in a dataset of credit card transactions, the number of fraudulent transactions is usually
+much lower than the number of non-fraudulent transactions, and can be below 1% of the total number of samples.
+
+In such cases, running the :doc:`TrainTestLabelDrift </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`:
+or :doc:`TrainTestPredictionDrift </checks_gallery/tabular/train_test_validation/plot_train_test_prediction_drift>` checks
+with the default parameters will likely lead to a false negative, as for example a change in the percent of fraudulent
+transactions from 0.2% to 0.4% will not be detected, but may in fact be very significant for our business.
+
+To detect this kind of drift, set the ``balance_classes`` parameter of these checks to True. This will cause the check
+to consider all classes equally, regardless of their size.
+
+**Note**: This method currently only works with Cramer's V, so you must keep the default ``categorical_drift_method``
+parameter as ``'cramers_v'``.
 
 .. _drift_detection_by_domain_classifier:
 

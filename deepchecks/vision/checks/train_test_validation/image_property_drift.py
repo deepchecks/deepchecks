@@ -14,13 +14,10 @@ from collections import defaultdict
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionResult, DatasetKind
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.core.reduce_classes import ReducePropertyMixin
-from deepchecks.utils.dict_funcs import get_dict_entry_by_value
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
-from deepchecks.utils.strings import format_number
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import TrainTestCheck
 from deepchecks.vision.context import Context
@@ -39,8 +36,11 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
     Calculate drift between train dataset and test dataset per image property, using statistical measures.
 
     Check calculates a drift score for each image property in test dataset, by comparing its distribution to the train
-    dataset. For this, we use the Earth Movers Distance.
+    dataset.
 
+    For numerical distributions, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     Parameters
@@ -74,7 +74,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    numerical_drift_method: str, default: "EMD"
+    numerical_drift_method: str, default: "KS"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
     min_samples: int, default: 30
@@ -92,7 +92,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            numerical_drift_method: str = 'EMD',
+            numerical_drift_method: str = 'KS',
             min_samples: int = 30,
             aggregation_method: t.Optional[str] = 'max',
             n_samples: t.Optional[int] = 10000,
@@ -155,8 +155,8 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
                 'Use \'min_samples\' parameter to change the requirement.'
             )
 
-        figures = {}
-        drifts = {}
+        displays_dict = {}
+        values_dict = {}
         not_enough_samples = []
 
         dataset_names = (context.train.name, context.test.name)
@@ -166,7 +166,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             if property_name not in df_train.columns or property_name not in df_test.columns:
                 continue
             try:
-                score, _, figure = calc_drift_and_plot(
+                value, method, figure = calc_drift_and_plot(
                     train_column=df_train[property_name],
                     test_column=df_test[property_name],
                     value_name=property_name,
@@ -181,15 +181,18 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
                     with_display=context.with_display,
                     dataset_names=dataset_names
                 )
-
-                figures[property_name] = figure
-                drifts[property_name] = score
+                values_dict[property_name] = {
+                    'Drift score': value,
+                    'Method': method,
+                }
+                displays_dict[property_name] = figure
             except NotEnoughSamplesError:
                 not_enough_samples.append(property_name)
 
         if context.with_display:
-            columns_order = sorted(properties, key=lambda col: drifts.get(col, 0), reverse=True)
-            properties_to_display = [p for p in properties if p in drifts]
+            columns_order = sorted(properties, key=lambda col: values_dict.get(col, {}).get('Drift score', 0),
+                                   reverse=True)
+            properties_to_display = [p for p in properties if p in values_dict]
 
             headnote = ['<span> The Drift score is a measure for the difference between two distributions. '
                         'In this check, drift is measured for the distribution '
@@ -200,60 +203,42 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
                 headnote.append(f'<span>The following image properties do not have enough samples to calculate drift '
                                 f'score: {not_enough_samples}</span>')
 
-            displays = headnote + [figures[col] for col in columns_order if col in figures]
+            displays = headnote + [displays_dict[col] for col in columns_order if col in displays_dict]
         else:
             displays = []
 
         return CheckResult(
-            value=drifts if drifts else {},
+            value=values_dict if values_dict else {},
             display=displays,
             header='Image Property Drift'
         )
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
         """Return prediction drift score per prediction property."""
-        return self.property_reduce(self.aggregation_method, pd.Series(check_result.value), 'Drift Score')
+        values = pd.Series({property: info['Drift score'] for property, info in check_result.value.items()})
+        return self.property_reduce(self.aggregation_method, values, 'Drift Score')
 
     def add_condition_drift_score_less_than(
             self: TImagePropertyDrift,
-            max_allowed_drift_score: float = 0.1
+            max_allowed_drift_score: float = 0.2
     ) -> TImagePropertyDrift:
         """
         Add condition - require drift score to be less than a certain threshold.
 
         Parameters
         ----------
-        max_allowed_drift_score: float ,  default: 0.1
-            the max threshold for the Earth Mover's Distance score
+        max_allowed_drift_score: float ,  default: 0.2
+            the max threshold for the drift score
 
         Returns
         -------
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
-
-        def condition(result: t.Dict[str, float]) -> ConditionResult:
-            failed_properties = [
-                (property_name, drift_score)
-                for property_name, drift_score in result.items()
-                if drift_score >= max_allowed_drift_score
-            ]
-            if len(failed_properties) > 0:
-                failed_properties = ';\n'.join(f'{p}={format_number(d)}' for p, d in failed_properties)
-                return ConditionResult(
-                    ConditionCategory.FAIL,
-                    'Earth Mover\'s Distance is above the threshold '
-                    f'for the next properties:\n{failed_properties}'
-                )
-            else:
-                if not result:
-                    details = 'Did not calculate drift score on any property'
-                else:
-                    prop, score = get_dict_entry_by_value(result)
-                    details = f'Found property {prop} with largest Earth Mover\'s Distance score {format_number(score)}'
-                return ConditionResult(ConditionCategory.PASS, details)
+        condition = drift_condition(max_allowed_categorical_score=0, max_allowed_numeric_score=max_allowed_drift_score,
+                                    subject_single='property', subject_multi='properties')
 
         return self.add_condition(
-            f'Earth Mover\'s Distance < {max_allowed_drift_score} for image properties drift',
+            f'drift score < {max_allowed_drift_score} for image properties drift',
             condition
         )
