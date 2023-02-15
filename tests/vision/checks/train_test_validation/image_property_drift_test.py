@@ -79,7 +79,7 @@ def test_image_property_drift_condition(coco_visiondata_train, coco_visiondata_t
         is_pass=True,
         details='Passed for 7 properties out of 7 properties.\nFound property "Brightness" has the highest numerical '
                 'drift score: 0.07',
-        name='drift score < 0.1 for image properties drift'))
+        name='drift score < 0.2 for image properties drift'))
 
 def test_image_property_drift_fail_condition(coco_visiondata_train, coco_visiondata_test):
     result = (

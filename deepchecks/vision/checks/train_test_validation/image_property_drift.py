@@ -220,14 +220,14 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
 
     def add_condition_drift_score_less_than(
             self: TImagePropertyDrift,
-            max_allowed_drift_score: float = 0.1
+            max_allowed_drift_score: float = 0.2
     ) -> TImagePropertyDrift:
         """
         Add condition - require drift score to be less than a certain threshold.
 
         Parameters
         ----------
-        max_allowed_drift_score: float ,  default: 0.1
+        max_allowed_drift_score: float ,  default: 0.2
             the max threshold for the drift score
 
         Returns

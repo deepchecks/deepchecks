@@ -255,7 +255,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         return False
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
-                                            max_allowed_numeric_score: float = 0.075):
+                                            max_allowed_numeric_score: float = 0.15):
         """
         Add condition - require drift score to be less than a certain threshold.
 
@@ -267,9 +267,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
         Parameters
         ----------
-        max_allowed_categorical_score: float , default: 0.2
+        max_allowed_categorical_score: float , default: 0.15
             the max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.1
+        max_allowed_numeric_score: float ,  default: 0.15
             the max threshold for the numeric variable drift score
         Returns
         -------

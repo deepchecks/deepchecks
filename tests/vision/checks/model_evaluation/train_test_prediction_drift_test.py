@@ -232,7 +232,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.15 and numerical drift score < 0.075 for prediction drift',
+        name='categorical drift score < 0.15 and numerical drift score < 0.15 for prediction drift',
         details='Failed for 1 out of 1 prediction properties.\n'
                 'Found 1 categorical prediction properties with PSI above threshold: {\'Samples Per Class\': \'0.39\'}'
     ))
@@ -248,7 +248,7 @@ def test_condition_pass(mnist_visiondata_train):
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
-        name='categorical drift score < 0.15 and numerical drift score < 0.075 for prediction drift',
+        name='categorical drift score < 0.15 and numerical drift score < 0.15 for prediction drift',
         details='Passed for 1 prediction properties out of 1 prediction properties.\n'
                 'Found prediction property "Samples Per Class" has the highest categorical drift score: 0'
     ))

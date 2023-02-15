@@ -358,7 +358,7 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.2 and numerical drift score < 0.1',
+        name='categorical drift score < 0.2 and numerical drift score < 0.2',
         details='Failed for 2 out of 4 columns.\n'
                 'Found 1 categorical columns with PSI above threshold: {\'categorical_with_drift\': \'0.22\'}\n'
                 'Found 1 numeric columns with Earth Mover\'s Distance above threshold: '
@@ -378,7 +378,7 @@ def test_drift_max_drift_score_condition_fail_cramer_and_ks(drifted_data_and_mod
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.2 and numerical drift score < 0.1',
+        name='categorical drift score < 0.2 and numerical drift score < 0.2',
         details='Failed for 2 out of 4 columns.\n'
                 'Found 1 categorical columns with Cramer\'s V above threshold: {\'categorical_with_drift\': \'0.23\'}\n'
                 'Found 1 numeric columns with Kolmogorov-Smirnov above threshold: '
@@ -424,5 +424,5 @@ def test_drift_max_drift_score_multi_columns_drift_pass(drifted_data_and_model):
         details='Passed for 2 columns out of 4 columns.\n'
                 'Found column "categorical_with_drift" has the highest categorical drift score: 0.22\n'
                 'Found column "numeric_with_drift" has the highest numerical drift score: 0.34',
-        name='categorical drift score < 0.2 and numerical drift score < 0.1'
+        name='categorical drift score < 0.2 and numerical drift score < 0.2'
     ))

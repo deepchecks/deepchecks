@@ -261,7 +261,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         return self.feature_reduce(self.aggregation_method, values, feature_importance, 'Drift Score')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
-                                            max_allowed_numeric_score: float = 0.1,
+                                            max_allowed_numeric_score: float = 0.2,
                                             allowed_num_features_exceeding_threshold: int = 0):
         """
         Add condition - require drift score to be less than the threshold.
@@ -274,7 +274,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         ----------
         max_allowed_categorical_score: float , default: 0.2
             The max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.1
+        max_allowed_numeric_score: float ,  default: 0.2
             The max threshold for the numeric variable drift score
         allowed_num_features_exceeding_threshold: int , default: 0
             Determines the number of features with drift score above threshold needed to fail the condition.

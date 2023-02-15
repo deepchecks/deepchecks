@@ -261,8 +261,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
                               check_result.value.items()}
         return self.property_reduce(self.aggregation_method, pd.Series(value_per_property), 'Drift Score')
 
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.075,
-                                            max_allowed_numeric_score: float = 0.075) -> 'TrainTestLabelDrift':
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+                                            max_allowed_numeric_score: float = 0.15) -> 'TrainTestLabelDrift':
         """
         Add condition - require label properties drift score to be less than a certain threshold.
 
@@ -275,7 +275,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         ----------
         max_allowed_categorical_score: float , default: 0.15
             the max threshold for the PSI score
-        max_allowed_numeric_score: float ,  default: 0.075
+        max_allowed_numeric_score: float ,  default: 0.15
             the max threshold for the drift score
         Returns
         -------
