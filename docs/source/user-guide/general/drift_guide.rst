@@ -132,7 +132,8 @@ transactions from 0.2% to 0.4% will not be detected, but may in fact be very sig
 To detect this kind of drift, set the ``balance_classes`` parameter of these checks to True. This will cause the check
 to consider all classes equally, regardless of their size.
 
-**Note**: You must also set the ``categorical_drift_method`` parameter to ``'cramers_v'`` in order to use this method.
+**Note**: This method currently only works with Cramer's V, so you must keep the default ``categorical_drift_method``
+parameter as ``'cramers_v'``.
 
 .. _drift_detection_by_domain_classifier:
 

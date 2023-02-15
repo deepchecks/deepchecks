@@ -13,7 +13,7 @@ import numpy as np
 from hamcrest import assert_that, calling, close_to, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.distribution.drift import cramers_v, earth_movers_distance
+from deepchecks.utils.distribution.drift import cramers_v, earth_movers_distance, kolmogorov_smirnov
 
 
 def test_emd():
@@ -90,3 +90,35 @@ def test_cramers_v_min_category_ratio():
     assert_that(res, close_to(0.228, 0.01))
     res_min_cat_ratio = cramers_v(dist1=dist1, dist2=dist2, min_category_size_ratio=0.1)
     assert_that(res_min_cat_ratio, close_to(0.208, 0.01))
+
+
+def test_ks_no_drift():
+    dist1 = np.zeros(100)
+    dist2 = np.zeros(100)
+    res = kolmogorov_smirnov(dist1=dist1, dist2=dist2)
+    assert_that(res, equal_to(0))
+
+
+def test_ks_max_drift():
+    dist1 = np.ones(100)
+    dist2 = np.zeros(100)
+    res = kolmogorov_smirnov(dist1=dist1, dist2=dist2)
+    assert_that(res, equal_to(1))
+
+def test_ks_regular_drift():
+    np.random.seed(42)
+    # 2 normal distributions where std is the same but the mean is within 1 std from each other. this means that when
+    # dist1 is at mean+0.5std, its cdf is 0.5+19.1=69.1. At that point, dist2 is at mean-0.5std, which is 0.5-19.1=30.9.
+    # This is the point of max difference, which is 38.2.
+    dist1 = np.random.normal(0, 1, 10000)
+    dist2 = np.random.normal(1, 1, 10000)
+    res = kolmogorov_smirnov(dist1=dist1, dist2=dist2)
+    assert_that(res, close_to(0.382, 0.01))
+
+def test_ks_regular_drift_scaled():
+    # Scaling (changes in actual y values) should not affect KS, only the distribution of the values:
+    dist1 = np.random.normal(0, 1, 10000) * 100
+    dist2 = np.random.normal(1, 1, 10000) * 100
+    res = kolmogorov_smirnov(dist1=dist1, dist2=dist2)
+    assert_that(res, close_to(0.382, 0.01))
+

@@ -182,6 +182,7 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
     res_train = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset='Train')
     expected_train_headers = ['Train Test Performance',
                               'Feature Label Correlation Change',
+                              'Train Test Feature Drift',
                               'Feature Label Correlation - Train Dataset',
                               'Feature-Feature Correlation - Train Dataset',
                               'Weak Segments Performance - Train Dataset',
@@ -195,7 +196,6 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
                               'New Category Train Test',
                               'String Mismatch Comparison',
                               'Train Test Samples Mix',
-                              'Train Test Feature Drift',
                               'Train Test Label Drift',
                               'Multivariate Drift',
                               'Single Value in Column - Train Dataset',
