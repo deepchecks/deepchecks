@@ -126,6 +126,7 @@ class TextData:
                 raise DeepchecksValueError('raw_text and tokenized_text must have the same length')
 
         if index is None:
+
             self.index = list(range(len(raw_text)))
         elif len(index) != len(raw_text):
             raise DeepchecksValueError('index must be the same length as raw_text')
@@ -176,7 +177,7 @@ class TextData:
             self._has_label, self._label = False, [None] * len(self._text)
             return
 
-        self._has_label, self._label = True, label
+        self._has_label = True
         if not is_sequence_not_str(label):
             raise DeepchecksValueError('label must be a Sequence')
 
@@ -208,7 +209,7 @@ class TextData:
                     raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
                                                f'However, for sample index {self.index[i]} of length '
                                                f'{len(self._tokenized_text[i])} received label of length {len(label[i])}')
-
+        self._label = list(label)
 
     def copy(self: TDataset, rows_to_use: t.Optional[t.Sequence[t.Any]] = None) -> TDataset:
         """Create a copy of this Dataset with new data."""
@@ -254,7 +255,7 @@ class TextData:
             samples = samples[pd.notnull(self._label)]
         n_samples = min(n_samples, len(samples))
 
-        np.random.seed(random_state)
+        np.random.seed = random_state
         sample_idx = np.random.choice(range(len(samples)), n_samples, replace=replace)
         return self.copy(rows_to_use=sample_idx)
 

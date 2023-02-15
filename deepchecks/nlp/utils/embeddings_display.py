@@ -131,7 +131,8 @@ def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embedd
                                                         stratify=all_embeddings_labels, test_size=0.2)
 
     # train a model to disguise between train and test samples
-    domain_classifier = GradientBoostingClassifier(max_depth=3, subsample=0.8, min_samples_split=50, n_estimators=30)
+    domain_classifier = GradientBoostingClassifier(max_depth=3, subsample=0.8,
+                                                   min_samples_split=50, n_estimators=30, random_state=42)
     domain_classifier.fit(x_train, y_train)
 
     domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
