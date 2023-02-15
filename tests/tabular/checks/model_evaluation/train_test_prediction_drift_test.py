@@ -11,6 +11,7 @@
 """Test functions of the train test label drift."""
 from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
+import pandas as pd
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import TrainTestPredictionDrift
 from tests.base.utils import equal_condition_result
@@ -149,9 +150,30 @@ def test_balance_classes_without_cramers_v(drifted_data_and_model):
 
 def test_balance_classes_without_correct_drift_mode():
     # Arrange
-    assert_that(calling(TrainTestPredictionDrift).with_args(balance_classes=True),
+    assert_that(calling(TrainTestPredictionDrift).with_args(balance_classes=True, drift_mode='proba'),
                 raises(DeepchecksValueError,
-                       'balance_classes=True is only supported for drift_mode=\'prediction\''))
+                       'balance_classes=True is not supported for drift_mode=\'proba\'. '
+                       'Change drift_mode to \'prediction\' or \'auto\' in order to use this parameter'))
+
+def test_balance_classes_with_drift_mode_auto(drifted_data):
+    # Arrange
+    train, test = drifted_data
+
+    n_train = train.n_samples
+    n_test = test.n_samples
+
+    predictions_train = pd.Series([0] * int(n_train * 0.95) + [1] * int(n_train * 0.05))
+    predictions_test = pd.Series([0] * int(n_test * 0.96) + [1] * int(n_test * 0.04))
+    check = TrainTestPredictionDrift(balance_classes=True)
+
+    # Act
+    result = check.run(train, test, y_pred_train=predictions_train, y_pred_test=predictions_test)
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Drift score': close_to(0.05, 0.01),
+         'Method': equal_to('Cramer\'s V')} # If cramer's V then proves it changed to prediction mode
+    ))
 
 
 def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):

@@ -62,10 +62,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     drift_mode: str, default: 'auto'
         For classification task, controls whether to compute drift on the predicted probabilities or the predicted
         classes. For regression task this parameter may be ignored.
-        If  set to 'auto', compute drift on the predicted class if the task is multiclass, and on
+        If set to 'auto', compute drift on the predicted class if the task is multiclass, and on
         the predicted probability of the positive class if binary. Set to 'proba' to force drift on the predicted
         probabilities, and 'prediction' to force drift on the predicted classes. If set to 'proba', on a multiclass
         task, drift would be calculated on each class independently.
+        If balance_classes=True, then 'auto' will calculate drift on the predicted class even if the label is binary
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -149,8 +150,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         self.numerical_drift_method = numerical_drift_method
         self.categorical_drift_method = categorical_drift_method
         self.balance_classes = balance_classes
-        if self.balance_classes is True and self.drift_mode != 'prediction':
-            raise DeepchecksValueError('balance_classes=True is only supported for drift_mode=\'prediction\'')
+        if self.balance_classes is True and self.drift_mode == 'proba':
+            raise DeepchecksValueError('balance_classes=True is not supported for drift_mode=\'proba\'. '
+                                       'Change drift_mode to \'prediction\' or \'auto\' in order to use this parameter')
         self.ignore_na = ignore_na
         self.max_classes_to_display = max_classes_to_display
         self.aggregation_method = aggregation_method
@@ -179,8 +181,9 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         method, classes = None, train_dataset.classes_in_label_col
 
         # Flag for computing drift on the probabilities rather than the predicted labels
-        proba_drift = ((context.task_type == TaskType.BINARY) and (self.drift_mode == 'auto')) or \
-                      (self.drift_mode == 'proba')
+        proba_drift = ((context.task_type == TaskType.BINARY and self.drift_mode == 'auto')
+                       or (self.drift_mode == 'proba')) \
+                      and not (self.balance_classes is True and self.drift_mode == 'auto')
 
         if proba_drift:
             train_prediction = np.array(model.predict_proba(train_dataset.features_columns))
@@ -280,6 +283,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         ConditionResult
             False if any column has passed the max threshold, True otherwise
         """
+
         def condition(result: t.Dict) -> ConditionResult:
             drift_score_dict = result['Drift score']
             # Move to dict for easier looping
