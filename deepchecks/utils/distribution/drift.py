@@ -80,7 +80,7 @@ def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
         200% in the second category. The new dist2_counts should be [4450, 10000].
         # When re-adjusting to the original total num_samples of dist2, the new dist2_counts should be [3103, 6896]
     """
-    new_dist1_counts = [int(np.sum(dist1_counts)/len(dist1_counts))] * len(dist1_counts)
+    new_dist1_counts = [int(np.sum(dist1_counts) / len(dist1_counts))] * len(dist1_counts)
     multipliers = [nu / de if de != 0 else 0 for nu, de in zip(new_dist1_counts, dist1_counts)]
     new_dist2_counts = np.array([int(x) for x in dist2_counts * multipliers])
 
@@ -450,8 +450,9 @@ def calc_drift_and_plot(train_column: pd.Series,
 
     elif column_type == 'categorical':
         if balance_classes is True and categorical_drift_method.lower() not in ['cramer_v', 'cramers_v']:
-            raise ValueError('balance_classes is only supported for Cramer\'s V. please set balance_classes=False '
-                             'or use \'cramers_v\' as categorical_drift_method')
+            raise DeepchecksValueError(
+                'balance_classes is only supported for Cramer\'s V. please set balance_classes=False '
+                'or use \'cramers_v\' as categorical_drift_method')
 
         sort_by = 'difference' if show_categories_by == 'largest_difference' else \
             ('dist1' if show_categories_by == 'train_largest' else 'dist2')
@@ -465,8 +466,8 @@ def calc_drift_and_plot(train_column: pd.Series,
             score = psi(dist1=train_dist, dist2=test_dist, min_category_size_ratio=min_category_size_ratio,
                         max_num_categories=max_num_categories_for_drift, sort_by=sort_by)
         else:
-            raise ValueError('Expected categorical_drift_method to be one '
-                             f'of ["cramers_v", "PSI"], received: {categorical_drift_method}')
+            raise DeepchecksValueError('Expected categorical_drift_method to be one '
+                                       f'of ["cramers_v", "PSI"], received: {categorical_drift_method}')
 
         if not with_display:
             return score, scorer_name, None
