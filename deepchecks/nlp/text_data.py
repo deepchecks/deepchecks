@@ -256,7 +256,7 @@ class TextData:
             samples = samples[pd.notnull(self._label)]
         n_samples = min(n_samples, len(samples))
 
-        np.random.seed = random_state
+        np.random.seed(random_state)
         sample_idx = np.random.choice(range(len(samples)), n_samples, replace=replace)
         return self.copy(rows_to_use=sample_idx)
 

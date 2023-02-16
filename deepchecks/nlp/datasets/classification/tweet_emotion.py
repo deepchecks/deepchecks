@@ -15,7 +15,8 @@ The data has 4653 tweet records with 5 features and a multiclass target column, 
 This dataset is an extension of Cardiff's tweet_eval dataset,
 For additional details about the dataset, please refer to the original source: https://github.com/cardiffnlp/tweeteval
 """
-
+import os
+import pathlib
 import typing as t
 
 import numpy as np
@@ -28,6 +29,8 @@ __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39265559'
 _EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39264332'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
+
+ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet_emotion'
 _target = 'label'
 
 
@@ -38,9 +41,9 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True) -> \
     Parameters
     ----------
     data_format : str, default: 'TextData'
-        Represent the format of the returned value. Can be 'TextData'|'Dataframe'
+        Represent the format of the returned value. Can be 'TextData'|'DataFrame'
         'TextData' will return the data as a TextData object
-        'Dataframe' will return the data as a pandas Dataframe object
+        'Dataframe' will return the data as a pandas DataFrame object
 
     as_train_test : bool, default: True
         If True, the returned data is splitted into train and test exactly like the toy model
@@ -55,13 +58,19 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True) -> \
     train, test : Tuple[Union[TextData, pd.DataFrame],Union[TextData, pd.DataFrame]
         tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
     """
-    if data_format not in ['TextData', 'Dataframe']:
+    if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')
-    dataset = pd.read_csv(_FULL_DATA_URL, index_col=0)
+
+    os.makedirs(ASSETS_DIR, exist_ok=True)
+    if (ASSETS_DIR / 'tweet_emotion_data.csv').exists():
+        dataset = pd.read_csv(ASSETS_DIR / 'tweet_emotion_data.csv', index_col=0)
+    else:
+        dataset = pd.read_csv(_FULL_DATA_URL, index_col=0)
+        dataset.to_csv(ASSETS_DIR / 'tweet_emotion_data.csv')
 
     if not as_train_test:
         dataset.drop(columns=['train_test_split'], inplace=True)
-        if data_format == 'TextData':
+        if data_format.lower() == 'textdata':
             dataset = TextData(dataset.text, label=dataset[_target], task_type='text_classification',
                                additional_data=dataset.drop(columns=[_target, 'text']))
         return dataset
@@ -70,7 +79,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True) -> \
         train = dataset[dataset['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
         test = dataset[dataset['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
 
-        if data_format == 'TextData':
+        if data_format.lower() == 'textdata':
             train = TextData(train.text, label=train[_target], task_type='text_classification',
                              index=train.index ,additional_data=train.drop(columns=[_target, 'text']))
             test = TextData(test.text, label=test[_target], task_type='text_classification',
