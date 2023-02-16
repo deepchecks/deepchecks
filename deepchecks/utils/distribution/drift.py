@@ -27,8 +27,8 @@ from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_number
 
-__all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
-           'drift_condition', 'get_drift_plot_sidenote']
+# __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
+#            'drift_condition', 'get_drift_plot_sidenote']
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
@@ -129,11 +129,15 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
         the bias-corrected Cramer's V value of the 2 distributions.
 
     """
+    # If balance_classes is True, min_category_size_ratio should not affect results:
+    min_category_size_ratio = min_category_size_ratio if balance_classes is False else 0
+
     dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
                                                                        max_num_categories, sort_by)
 
     if balance_classes is True:
         dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)
+
 
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 

@@ -91,6 +91,18 @@ def test_cramers_v_min_category_ratio():
     res_min_cat_ratio = cramers_v(dist1=dist1, dist2=dist2, min_category_size_ratio=0.1)
     assert_that(res_min_cat_ratio, close_to(0.208, 0.01))
 
+def test_cramers_v_imbalanced():
+    dist1 = np.array([0] * 9900 + [1] * 100)
+    dist2 = np.array([0] * 9950 + [1] * 50)
+    res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True)
+    assert_that(res, close_to(0.17, 0.01))
+
+def test_cramers_v_imbalanced_ignore_min_category_size():
+    dist1 = np.array([0] * 9900 + [1] * 100)
+    dist2 = np.array([0] * 9950 + [1] * 50)
+    res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True, min_category_size_ratio=0.1)
+    assert_that(res, close_to(0.17, 0.01))
+
 
 def test_ks_no_drift():
     dist1 = np.zeros(100)

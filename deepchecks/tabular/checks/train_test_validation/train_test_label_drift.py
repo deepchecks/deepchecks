@@ -57,10 +57,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         disproportionally. This filter is applied to both distributions, in both margins.
     min_category_size_ratio: float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
-        into an "Other" category.
+        into an "Other" category. Ignored if balance_classes=True.
     max_num_categories_for_drift: int, default: None
         Only for classification. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots
+        they are binned into an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
