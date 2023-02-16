@@ -138,7 +138,6 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     if balance_classes is True:
         dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)
 
-
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
 
     # If columns have the same single value in both (causing division by 0), return 0 drift score:
