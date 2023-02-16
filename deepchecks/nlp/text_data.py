@@ -208,7 +208,8 @@ class TextData:
                 if not len(label[i]) == len(self._tokenized_text[i]):
                     raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
                                                f'However, for sample index {self.index[i]} of length '
-                                               f'{len(self._tokenized_text[i])} received label of length {len(label[i])}')
+                                               f'{len(self._tokenized_text[i])} received label of '
+                                               f'length {len(label[i])}')
         self._label = list(label)
 
     def copy(self: TDataset, rows_to_use: t.Optional[t.Sequence[t.Any]] = None) -> TDataset:

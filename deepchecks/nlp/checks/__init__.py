@@ -14,5 +14,5 @@ from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance, Wea
 from deepchecks.nlp.checks.train_test_validation import (KeywordFrequencyDrift, TrainTestLabelDrift,
                                                          TrainTestPredictionDrift)
 
-__all__ = ['SingleDatasetPerformance', 'WeakSegmentsPerformance',
-           'KeywordFrequencyDrift', 'TrainTestPredictionDrift', 'TrainTestLabelDrift']
+__all__ = ['SingleDatasetPerformance', 'WeakSegmentsPerformance', 'KeywordFrequencyDrift',
+           'TrainTestPredictionDrift','TrainTestLabelDrift']

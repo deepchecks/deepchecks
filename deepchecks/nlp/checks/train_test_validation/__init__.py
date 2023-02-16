@@ -12,6 +12,5 @@
 
 from .keyword_frequency_drift import KeywordFrequencyDrift
 from .train_test_label_drift import TrainTestLabelDrift
-from .train_test_prediction_drift import TrainTestPredictionDrift
 
-__all__ = ['KeywordFrequencyDrift', 'TrainTestLabelDrift', 'TrainTestPredictionDrift']
+__all__ = ['KeywordFrequencyDrift', 'TrainTestLabelDrift']
