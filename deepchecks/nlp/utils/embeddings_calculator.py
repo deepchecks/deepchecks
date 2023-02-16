@@ -60,7 +60,7 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
 
         batch_size = 500
         embeddings = []
-        clean_text = [clean_special_chars(x) for x in text]
+        clean_text = [_clean_special_chars(x) for x in text]
         for sub_list in tqdm([clean_text[x:x + batch_size] for x in range(0, len(text), batch_size)],
                                   desc='Calculating Embeddings '):
             open_ai_response = _get_embedding_with_backoff(sub_list)
@@ -74,7 +74,7 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
     return embeddings
 
 
-def clean_special_chars(text):
+def _clean_special_chars(text):
     special_chars = '!@#$%^&*()_+{}|:"<>?~`-=[]\;\',./'
     for char in special_chars:
         text = text.replace(char, '')

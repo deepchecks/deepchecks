@@ -24,7 +24,7 @@ from sklearn.model_selection import train_test_split
 
 from deepchecks.core.check_utils.multivariate_drift_utils import auc_to_drift_score, build_drift_plot
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.embeddings_calculator import clean_special_chars
+from deepchecks.nlp.utils.embeddings_calculator import _clean_special_chars
 from deepchecks.utils.dataframes import floatify_dataframe
 
 
@@ -50,7 +50,7 @@ def create_performance_files(text: pd.Series, embeddings: np.ndarray, proba: np.
     if indexes_to_highlight is not None:
         text_dataframe['highlight criteria'] = [_select_highlight_value(x, indexes_to_highlight) for x in
                                                 text_dataframe.index]
-    text_dataframe['text'] = text_dataframe['text'].apply(clean_special_chars)
+    text_dataframe['text'] = text_dataframe['text'].apply(_clean_special_chars)
     text_dataframe = text_dataframe[['text'] + [col for col in text_dataframe.columns if col != 'text']]
 
     # save values for display
@@ -83,7 +83,7 @@ def create_outlier_files(text: pd.Series, embeddings: np.ndarray, path: str, nea
         text_dataframe['highlight criteria'] = [_select_highlight_value(x, indexes_to_highlight) for x in
                                                 text_dataframe.index]
     # make text be the first column
-    text_dataframe['text'] = text_dataframe['text'].apply(clean_special_chars)
+    text_dataframe['text'] = text_dataframe['text'].apply(_clean_special_chars)
     text_dataframe = text_dataframe[['text'] + [col for col in text_dataframe.columns if col != 'text']]
     if verbose:
         print(f'finished calculating outlier probability score after {time.time() - start_time} seconds')
@@ -131,7 +131,8 @@ def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embedd
                                                         stratify=all_embeddings_labels, test_size=0.2)
 
     # train a model to disguise between train and test samples
-    domain_classifier = GradientBoostingClassifier(max_depth=3, subsample=0.8, min_samples_split=50, n_estimators=30)
+    domain_classifier = GradientBoostingClassifier(max_depth=3, subsample=0.8,
+                                                   min_samples_split=50, n_estimators=30, random_state=42)
     domain_classifier.fit(x_train, y_train)
 
     domain_classifier_auc = roc_auc_score(y_test, domain_classifier.predict_proba(x_test)[:, 1])
@@ -153,7 +154,7 @@ def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embedd
     if indexes_to_highlight is not None:
         all_data['highlight criteria'] = [_select_highlight_value(x, indexes_to_highlight) for x in all_data.index]
     # make text be the first column
-    all_data['text'] = all_data['text'].apply(clean_special_chars)
+    all_data['text'] = all_data['text'].apply(_clean_special_chars)
     all_data = all_data[['text'] + [col for col in all_data.columns if col != 'text']]
 
     # save data for display

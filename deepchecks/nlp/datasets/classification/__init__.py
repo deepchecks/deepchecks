@@ -8,12 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the model evaluation checks in the nlp package."""
+"""Module for working with pre-built classification datasets."""
+from . import tweet_emotion
 
-from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
-from deepchecks.nlp.checks.model_evaluation.train_test_prediction_drift import TrainTestPredictionDrift
-from deepchecks.nlp.checks.model_evaluation.weak_segments_performance import WeakSegmentsPerformance
-
-__all__ = [
-    'SingleDatasetPerformance', 'WeakSegmentsPerformance', 'TrainTestPredictionDrift'
-]
+__all__ = ['tweet_emotion']

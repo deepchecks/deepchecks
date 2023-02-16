@@ -84,9 +84,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         text_data = context.get_data_by_kind(dataset_kind)
-        if text_data.meta_data is None:
+        if text_data.additional_data is None:
             raise DeepchecksNotSupportedError(
-                'Weak segments check requires meta data to be available in the text data.')
+                'Weak segments check requires additional data to be available in the text data.')
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
         predictions = context.model.predict(text_data)
@@ -102,7 +102,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             loss_per_sample = [log_loss([y_true], [y_proba], labels=sorted(context.model_classes)) for y_true, y_proba
                                in zip(list(text_data.label), proba_values)]
 
-        additional_data = select_from_dataframe(text_data.meta_data, self.columns, self.ignore_columns)
+        additional_data = select_from_dataframe(text_data.additional_data, self.columns, self.ignore_columns)
         if additional_data.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
         # label is not used in the check, just here to avoid errors

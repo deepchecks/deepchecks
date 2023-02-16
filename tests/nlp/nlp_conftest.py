@@ -12,11 +12,12 @@
 import random
 
 import pytest
-
-from deepchecks.nlp.text_data import TextData
-from nltk.corpus import movie_reviews
-from nltk import download as nltk_download
 from datasets import load_dataset
+from nltk import download as nltk_download
+from nltk.corpus import movie_reviews
+
+from deepchecks.nlp.datasets.classification import tweet_emotion
+from deepchecks.nlp.text_data import TextData
 
 
 @pytest.fixture(scope='session')
@@ -25,6 +26,13 @@ def text_classification_dataset_mock():
     return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
                     label=[0, 0, 1],
                     task_type='text_classification')
+
+
+@pytest.fixture(scope='session')
+def tweet_emotion_train_test_textdata():
+    """Tweet emotion text classification dataset"""
+    train, test = tweet_emotion.load_data(data_format='TextData', as_train_test=True)
+    return train, test
 
 
 @pytest.fixture(scope='session')
@@ -85,17 +93,18 @@ def movie_reviews_data_negative():
 def text_token_classification_dataset_mock():
     """Mock for a token classification dataset"""
     return TextData(raw_text=['Mary had a little lamb', 'Mary lives in London and Paris',
-                     'How much wood can a wood chuck chuck?'],
+                              'How much wood can a wood chuck chuck?'],
                     label=[['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
-                     ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']],
+                           ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']],
                     task_type='token_classification')
+
 
 @pytest.fixture(scope='session')
 def wikiann():
     """Wikiann dataset for token classification"""
     dataset = load_dataset('wikiann', name='en', split='train')
 
-    data = list([' '.join(l.as_py()) for l in dataset.data['tokens']]) #pylint: disable=consider-using-generator
+    data = list([' '.join(l.as_py()) for l in dataset.data['tokens']])  # pylint: disable=consider-using-generator
     ner_tags = dataset.data['ner_tags']
     ner_to_iob_dict = {0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC', 6: 'I-LOC'}
     ner_tags_translated = [[ner_to_iob_dict[ner_tag] for ner_tag in ner_tag_list.as_py()] for ner_tag_list in ner_tags]
