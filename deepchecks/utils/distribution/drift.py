@@ -129,6 +129,9 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
         the bias-corrected Cramer's V value of the 2 distributions.
 
     """
+    # If balance_classes is True, min_category_size_ratio should not affect results:
+    min_category_size_ratio = min_category_size_ratio if balance_classes is False else 0
+
     dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
                                                                        max_num_categories, sort_by)
 
