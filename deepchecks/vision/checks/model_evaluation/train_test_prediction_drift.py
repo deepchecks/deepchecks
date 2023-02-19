@@ -74,49 +74,51 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
 
     Parameters
     ----------
-    prediction_properties : List[Dict[str, Any]], default: None
+    prediction_properties : List[Dict[str, Any]] , default : None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-
         - ``'numeric'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
-
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    margin_quantile_filter: float, default: 0.025
+    margin_quantile_filter : float , default : 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
-    min_category_size_ratio: float, default 0.01
+    min_category_size_ratio : float , default : 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
         into an "Other" category. Ignored if balance_classes=True.
-    max_num_categories_for_drift: int, default: None
+    max_num_categories_for_drift : int , default : None
         Only for discrete properties. Max number of allowed categories. If there are more,
         they are binned into an "Other" category.
-    max_num_categories_for_display: int, default: 10
+    max_num_categories_for_display : int , default : 10
         Max number of categories to show in plot.
-    show_categories_by: str, default: 'largest_difference'
+    show_categories_by : str , default : 'largest_difference'
         Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    numerical_drift_method: str, default: "KS"
+    numerical_drift_method : str , default : "KS"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
-    categorical_drift_method: str, default: "cramers_v"
+    categorical_drift_method : str , default : "cramers_v"
         decides which method to use on categorical variables. Possible values are:
         "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
-    balance_classes: bool, default: False
+    balance_classes : bool , default : False
         If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
         variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
         and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
         If True, the variable frequency plot will be created with a log scale in the y-axis.
-    aggregation_method: Optional[str], default: None
-        {property_aggregation_method_argument:2*indent}
+    aggregation_method : str, default : None
+    {property_aggregation_method_argument:2*indent}
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
+        train or test, the check will return None for that property. If there are not enough samples for all properties,
+        the check will raise a ``NotEnoughSamplesError`` exception.
     {additional_check_init_params:2*indent}
     """
 
@@ -132,11 +134,11 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
             categorical_drift_method: str = 'cramers_v',
             balance_classes: bool = False,
             aggregation_method: Optional[str] = None,
+            min_samples: Optional[int] = 10,
             n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.n_samples = n_samples
         self.prediction_properties = prediction_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.numerical_drift_method = numerical_drift_method
@@ -147,6 +149,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
         self.aggregation_method = aggregation_method
+        self.min_samples = min_samples
+        self.n_samples = n_samples
 
         self._train_prediction_properties = None
         self._test_prediction_properties = None
@@ -231,6 +235,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
                 numerical_drift_method=self.numerical_drift_method,
                 categorical_drift_method=self.categorical_drift_method,
                 balance_classes=self.balance_classes,
+                min_samples=self.min_samples,
+                raise_min_samples_error=True,
                 with_display=context.with_display,
             )
             values_dict[name] = {

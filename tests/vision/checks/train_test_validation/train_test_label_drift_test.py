@@ -9,8 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, raises, calling
 
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.vision.checks import TrainTestLabelDrift
 from tests.base.utils import equal_condition_result
 
@@ -150,6 +151,14 @@ def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test
         }
     ))
     assert_that(result.display, has_length(greater_than(0)))
+
+def test_with_drift_object_detection_not_enough_samples(coco_visiondata_train, coco_visiondata_test):
+    # Arrange
+    check = TrainTestLabelDrift(min_samples=1000)
+
+    # Assert
+    assert_that(calling(check.run).with_args(coco_visiondata_train, coco_visiondata_test),
+                raises(NotEnoughSamplesError))
 
 
 def test_with_drift_object_detection_without_display(coco_visiondata_train, coco_visiondata_test):

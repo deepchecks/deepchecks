@@ -109,8 +109,12 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
         and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
         If True, the variable frequency plot will be created with a log scale in the y-axis.
-    aggregation_method: Optional[str], default: None
+    aggregation_method: str, default: None
         {property_aggregation_method_argument:2*indent}
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
+        train or test, the check will return None for that property. If there are not enough samples for all properties,
+        the check will raise a ``NotEnoughSamplesError`` exception.
     {additional_check_init_params:2*indent}
     """
 
@@ -126,11 +130,11 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             categorical_drift_method: str = 'cramers_v',
             balance_classes: bool = False,
             aggregation_method: Optional[str] = None,
+            min_samples: Optional[int] = 10,
             n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.n_samples = n_samples
         self.margin_quantile_filter = margin_quantile_filter
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
@@ -141,6 +145,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         self.balance_classes = balance_classes
         self.label_properties = label_properties
         self.aggregation_method = aggregation_method
+        self.min_samples = min_samples
+        self.n_samples = n_samples
 
         self._train_label_properties = None
         self._test_label_properties = None
@@ -221,6 +227,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
                 numerical_drift_method=self.numerical_drift_method,
                 categorical_drift_method=self.categorical_drift_method,
                 balance_classes=self.balance_classes,
+                min_samples=self.min_samples,
+                raise_min_samples_error=True,
                 with_display=context.with_display,
                 dataset_names=dataset_names
             )
