@@ -257,8 +257,6 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 columns_order = feature_columns[:self.n_top_columns]
                 sorted_by = 'the sum of the drift score and the feature importance'
             else:
-                # ordering_dict = {col: values_dict[col] for col in values_dict if
-                #                  values_dict[col]['Drift score'] is not None}
                 columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'] or 0,
                                        reverse=True)[:self.n_top_columns]
                 sorted_by = 'drift score'

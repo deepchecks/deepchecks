@@ -78,7 +78,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         - ``'class_id'`` - for properties that return the class_id. This is used because these
@@ -114,7 +114,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
         If True, the variable frequency plot will be created with a log scale in the y-axis.
     aggregation_method : str, default : None
-    {property_aggregation_method_argument:2*indent}
+        {property_aggregation_method_argument:2*indent}
     min_samples : int , default: 10
         Minimum number of samples required to calculate the drift score. If there are not enough samples for either
         train or test, the check will return None for that property. If there are not enough samples for all properties,

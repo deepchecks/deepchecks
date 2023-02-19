@@ -148,8 +148,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             balance_classes=self.balance_classes,
             ignore_na=self.ignore_na,
             min_samples=self.min_samples,
-            with_display=context.with_display,
             raise_min_samples_error=True,
+            with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name)
         )
 
