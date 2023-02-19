@@ -12,6 +12,7 @@
 
 import os
 import time
+import typing as t
 from typing import Dict, List
 
 import numpy as np
@@ -28,9 +29,8 @@ from deepchecks.nlp.utils.embeddings_calculator import _clean_special_chars
 from deepchecks.utils.dataframes import floatify_dataframe
 
 
-def create_performance_files(text: pd.Series, embeddings: np.ndarray, proba: np.ndarray, y_true: np.ndarray,
-                             labels: List[str], path: str, sample_size: int = 10000, verbose: bool = False,
-                             indexes_to_highlight: Dict[str, List[int]] = None):
+def create_performance_files(text: t.Union[pd.Series, t.Sequence[str]], embeddings: np.ndarray, proba: np.ndarray,
+                             y_true: np.ndarray, labels: List[str], path: str, sample_size: int = 10000):
     if list(sorted(labels)) != list(labels):
         raise DeepchecksValueError('Labels must be sorted in an alphanumeric order')
     if not os.path.exists(path):
@@ -47,9 +47,6 @@ def create_performance_files(text: pd.Series, embeddings: np.ndarray, proba: np.
     text_dataframe['correct prediction'] = [x == y for x, y in
                                             zip(text_dataframe['label'], text_dataframe['prediction'])]
 
-    if indexes_to_highlight is not None:
-        text_dataframe['highlight criteria'] = [_select_highlight_value(x, indexes_to_highlight) for x in
-                                                text_dataframe.index]
     text_dataframe['text'] = text_dataframe['text'].apply(_clean_special_chars)
     text_dataframe = text_dataframe[['text'] + [col for col in text_dataframe.columns if col != 'text']]
 

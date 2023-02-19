@@ -316,15 +316,15 @@ class TextData:
         return self._task_type
 
     @property
-    def text(self) -> pd.Series:
+    def text(self) -> t.Sequence[str]:
         """Return sequence of raw text samples.
 
         Returns
         -------
-        pd.Series
-           Sequence of raw text samples with their appropriate index.
+        t.Sequence[str]
+           Sequence of raw text samples.
         """
-        return pd.Series(self._text, index=self.index)
+        return self._text
 
     @property
     def tokenized_text(self) -> t.Sequence[t.Sequence[str]]:
