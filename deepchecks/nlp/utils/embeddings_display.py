@@ -109,7 +109,7 @@ def _select_highlight_value(index, indexes_to_highlight: Dict[str, List[int]]):
 
 def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embeddings: np.ndarray,
                        test_embeddings: np.ndarray, path: str, sample_size: int = 2500, verbose: bool = False,
-                       indexes_to_highlight: Dict[str, List[int]] = None):
+                       additional_data: pd.DataFrame = None):
     if not os.path.exists(path):
         os.makedirs(path)
 
@@ -118,6 +118,7 @@ def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embedd
     train_embeddings = pd.DataFrame(train_embeddings, index=train_dataframe.index)
     test_embeddings = pd.DataFrame(test_embeddings, index=test_dataframe.index)
 
+    sample_size = min(sample_size, len(train_dataframe), len(test_dataframe))
     if len(train_dataframe) > sample_size:
         train_dataframe = train_dataframe.sample(sample_size)
         train_embeddings = train_embeddings.loc[train_dataframe.index]
@@ -149,11 +150,11 @@ def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embedd
     train_dataframe['sample origin'] = 'train'
     test_dataframe['sample origin'] = 'test'
     all_data = pd.concat([train_dataframe, test_dataframe])
+    if additional_data is not None:
+        additional_data = additional_data.loc[all_data.index]
+        all_data = all_data.join(additional_data)
 
     all_data['domain classifier proba'] = all_data['domain classifier proba'].round(2)
-    if indexes_to_highlight is not None:
-        all_data['highlight criteria'] = [_select_highlight_value(x, indexes_to_highlight) for x in all_data.index]
-    # make text be the first column
     all_data['text'] = all_data['text'].apply(_clean_special_chars)
     all_data = all_data[['text'] + [col for col in all_data.columns if col != 'text']]
 
