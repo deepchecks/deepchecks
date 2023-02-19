@@ -75,6 +75,28 @@ def test_leakage(iris_clean):
     assert_that(result.display, has_length(greater_than(0)))
 
 
+def test_train_test_samples_mix_n_to_show(iris_clean):
+    x = iris_clean.data
+    y = iris_clean.target
+    x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.3, random_state=55)
+    train_dataset = Dataset(pd.concat([x_train, y_train], axis=1),
+                            features=iris_clean.feature_names,
+                            label='target')
+
+    test_df = pd.concat([x_test, y_test], axis=1)
+    bad_test = test_df.append(train_dataset.data.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
+
+    test_dataset = Dataset(bad_test,
+                           features=iris_clean.feature_names,
+                           label='target')
+    # Arrange
+    check = TrainTestSamplesMix(n_to_show=2)
+    # Act X
+    result = check.run(test_dataset=test_dataset, train_dataset=train_dataset)
+    # Assert
+    assert len(result.display[1]) == 2
+
+
 def test_leakage_without_display(iris_clean):
     x = iris_clean.data
     y = iris_clean.target
@@ -175,7 +197,6 @@ def test_train_test_simple_mix_with_categorical_data(iris_clean):
         features=iris_clean.feature_names + ["cat_column"],
         label='target'
     )
-
     # Run
     TrainTestSamplesMix().run(
         test_dataset=test_dataset,
