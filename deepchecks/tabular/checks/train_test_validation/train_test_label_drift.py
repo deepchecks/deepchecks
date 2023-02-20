@@ -16,13 +16,12 @@ from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot, get_drift_plot_sidenote)
+from deepchecks.utils.strings import format_number
 
 __all__ = ['TrainTestLabelDrift']
-
-from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.strings import format_number
 
 
 class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
@@ -83,6 +82,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
     ignore_na: bool, default False
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
+        train or test, the check will raise a ``NotEnoughSamplesError`` exception.
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
@@ -100,6 +102,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             categorical_drift_method: str = 'cramers_v',
             balance_classes: bool = False,
             ignore_na: bool = False,
+            min_samples: int = 10,
             n_samples: int = 100_000,
             random_state: int = 42,
             **kwargs
@@ -114,6 +117,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
         self.categorical_drift_method = categorical_drift_method
         self.balance_classes = balance_classes
         self.ignore_na = ignore_na
+        self.min_samples = min_samples
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -143,6 +147,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReduceLabelMixin):
             categorical_drift_method=self.categorical_drift_method,
             balance_classes=self.balance_classes,
             ignore_na=self.ignore_na,
+            min_samples=self.min_samples,
+            raise_min_samples_error=True,
             with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name)
         )

@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
@@ -93,6 +93,10 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         separate category. For numerical columns we always ignore nones.
     aggregation_method: Optional[str], default: 'l2_weighted'
         {feature_aggregation_method_argument:2*indent}
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
+        train or test, the check will return None for that feature. If there are not enough samples for all features,
+        the check will raise a ``NotEnoughSamplesError`` exception.
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
@@ -114,6 +118,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             categorical_drift_method: str = 'cramers_v',
             ignore_na: bool = True,
             aggregation_method: Optional[str] = 'l2_weighted',
+            min_samples: Optional[int] = 10,
             n_samples: int = 100_000,
             random_state: int = 42,
             **kwargs
@@ -137,6 +142,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         self.categorical_drift_method = categorical_drift_method
         self.ignore_na = ignore_na
         self.aggregation_method = aggregation_method
+        self.min_samples = min_samples
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -175,6 +181,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
+        not_enough_samples = []
 
         features_order = (
             tuple(
@@ -213,15 +220,29 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 numerical_drift_method=self.numerical_drift_method,
                 categorical_drift_method=self.categorical_drift_method,
                 ignore_na=self.ignore_na,
+                min_samples=self.min_samples,
                 with_display=context.with_display,
                 dataset_names=(train_dataset.name, test_dataset.name)
             )
+
+            if value == 'not_enough_samples':
+                not_enough_samples.append(column)
+                value = None
+            else:
+                displays_dict[column] = display
+
             values_dict[column] = {
                 'Drift score': value,
                 'Method': method,
                 'Importance': feature_importance[column] if feature_importance is not None else None
             }
-            displays_dict[column] = display
+
+        if len(not_enough_samples) == len(values_dict.keys()):
+            raise NotEnoughSamplesError(
+                f'Not enough samples to calculate drift score. Minimum {self.min_samples} samples required. '
+                'Note that for numerical columns, None values do not count as samples.'
+                'Use the \'min_samples\' parameter to change this requirement.'
+            )
 
         if context.with_display:
             sorted_by = self.sort_feature_by
@@ -230,12 +251,13 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 columns_order = features_order[:self.n_top_columns]
             elif self.sort_feature_by == 'drift + importance' and feature_importance is not None:
                 feature_columns = [feat for feat in features_order if feat in values_dict]
-                feature_columns.sort(key=lambda col: values_dict[col]['Drift score'] + values_dict[col]['Importance'],
-                                     reverse=True)
+                feature_columns.sort(
+                    key=lambda col: values_dict[col]['Drift score'] or 0 + values_dict[col]['Importance'],
+                    reverse=True)
                 columns_order = feature_columns[:self.n_top_columns]
                 sorted_by = 'the sum of the drift score and the feature importance'
             else:
-                columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
+                columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'] or 0,
                                        reverse=True)[:self.n_top_columns]
                 sorted_by = 'drift score'
 
@@ -246,8 +268,13 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
                         'If available, the plot titles also show the feature importance (FI) rank']
 
+            if not_enough_samples:
+                headnote.append(f'<span>The following columns do not have enough samples to calculate drift '
+                                f'score: {not_enough_samples}</span>')
+
             displays = headnote + [displays_dict[col] for col in columns_order
-                                   if col in train_dataset.cat_features + train_dataset.numerical_features]
+                                   if col in train_dataset.cat_features + train_dataset.numerical_features
+                                   and values_dict[col]['Drift score'] is not None]
         else:
             displays = None
 
