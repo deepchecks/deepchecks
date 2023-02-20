@@ -292,7 +292,8 @@ test_data = VisionData(batch_loader=test_loader, task_type='object_detection', l
 
 #%%
 # Making sure our data is in the correct format:
-# ~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
 # The VisionData object automatically validates your data format and will alert you if there is a problem.
 # However, you can also manually view your images and labels to make sure they are in the correct format by using
 # the ``head`` function to conveniently visualize your data:
