@@ -9,10 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-from hamcrest import (all_of, assert_that, close_to, greater_than, has_entries, has_items, has_key, has_length,
-                      has_properties, instance_of)
+import numpy as np
+from hamcrest import (all_of, assert_that, close_to, greater_than, has_entries, has_key, has_length,
+                      has_properties, instance_of, calling, raises, equal_to)
 
 from deepchecks.core import CheckResult
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.vision.checks import ImagePropertyDrift
 from deepchecks.vision.utils.image_properties import default_image_properties
 from tests.base.utils import equal_condition_result
@@ -32,6 +34,27 @@ def test_image_property_drift_check(coco_visiondata_train, coco_visiondata_test)
     assert_that(result.reduce_output(), has_entries(
         {'Max Drift Score': close_to(0.07, 0.01)}
     ))
+
+def test_image_property_drift_check_not_enough_samples(coco_visiondata_train, coco_visiondata_test):
+    # Arrange
+    properties = [{'name': 'with_non_values', 'method': lambda x: list(np.random.choice([1, None], size=len(x))), 'output_type': 'numerical'}]
+    check = ImagePropertyDrift(numerical_drift_method='EMD', min_samples=60, image_properties=properties)
+
+    # Assert
+    assert_that(calling(check.run).with_args(coco_visiondata_train, coco_visiondata_test),
+                raises(NotEnoughSamplesError))
+
+def test_image_property_drift_check_not_enough_samples_in_one_property(coco_visiondata_train, coco_visiondata_test):
+    # Arrange
+    properties = [{'name': 'ok_values', 'method': lambda x: [1] * len(x), 'output_type': 'numerical'},
+                    {'name': 'with_non_values', 'method': lambda x: list(np.random.choice([1, None], size=len(x))), 'output_type': 'numerical'}]
+
+    # Run
+    result = ImagePropertyDrift(min_samples=60, image_properties=properties).run(coco_visiondata_train, coco_visiondata_test)
+
+    # Assert
+    assert_that(result.value['with_non_values']['Drift score'], equal_to(None))
+    assert_that(result.display[2], equal_to("<span>The following image properties do not have enough samples to calculate drift score: ['with_non_values']</span>"))
 
 
 def test_image_property_drift_check_without_display(coco_visiondata_train, coco_visiondata_test):

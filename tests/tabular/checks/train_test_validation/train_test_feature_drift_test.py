@@ -9,8 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the train test drift."""
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_item, has_length, is_not
+import pandas as pd
+import numpy as np
 
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_item, has_length, is_not, calling, \
+    raises
+
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.tabular.checks import TrainTestFeatureDrift
 from tests.base.utils import equal_condition_result
 
@@ -217,6 +222,55 @@ def test_drift_with_nulls(drifted_data_with_nulls):
         ),
     }))
     assert_that(result.display, has_length(greater_than(0)))
+
+def test_not_enough_samples(drifted_data):
+    # Arrange
+    train, test = drifted_data
+    check = TrainTestFeatureDrift(min_samples=1001)
+
+    # Assert
+    assert_that(calling(check.run).with_args(train, test),
+                raises(NotEnoughSamplesError))
+
+def test_not_enough_samples_in_columns(drifted_data_with_nulls):
+    # Arrange
+    train, test = drifted_data_with_nulls
+    check = TrainTestFeatureDrift(min_samples=999) # Data has 1000 samples but all columns have nulls
+
+    # Assert
+    assert_that(calling(check.run).with_args(train, test),
+                raises(NotEnoughSamplesError))
+
+
+def test_drift_with_nulls_not_enough_samples_in_numerical_columns(drifted_data_with_nulls):
+    # Arrange
+    train, test = drifted_data_with_nulls
+
+    # Cramer's V with ignore_na=True:
+
+    # Act
+    check = TrainTestFeatureDrift(min_samples=999, ignore_na=False)
+    result = check.run(train, test)
+
+    assert_that(result.value['numeric_with_drift']['Drift score'], equal_to(None))
+    assert_that(result.display[3],
+                equal_to("<span>The following columns do not have enough samples to calculate drift score: "
+                         "['numeric_without_drift', 'numeric_with_drift']</span>"))
+
+def test_reduce_output_with_nones(drifted_data_with_nulls, drifted_data_and_model):
+    # Arrange
+
+    _, _, model = drifted_data_and_model
+    train, test = drifted_data_with_nulls
+    check = TrainTestFeatureDrift(min_samples=999, ignore_na=False, aggregation_method='l2_weighted')
+    fi = pd.Series(np.ones(len(train.features)), index=train.features) / len(train.features)
+
+    # Act
+    aggregated_result = check.run(train, test, model, feature_importance=fi).reduce_output()
+
+    # Assert
+    assert_that(aggregated_result.keys(), has_item('L2 Weighted Drift Score'))
+    assert_that(aggregated_result['L2 Weighted Drift Score'], close_to(0.24, 0.01))
 
 
 def test_weighted_aggregation_drift_with_model(drifted_data_and_model):

@@ -69,7 +69,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 

@@ -100,6 +100,10 @@ class ReduceFeatureMixin(ReduceMixin):
     def feature_reduce(aggregation_method: str, value_per_feature: pd.Series, feature_importance: Optional[np.array],
                        score_name: str) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
+        if feature_importance is not None:
+            feature_importance = np.array(feature_importance)[value_per_feature.notna().values]
+        value_per_feature.dropna(inplace=True)
+
         if aggregation_method is None or aggregation_method == 'none':
             return dict(value_per_feature)
         elif aggregation_method == 'mean':

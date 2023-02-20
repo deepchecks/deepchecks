@@ -353,6 +353,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         balance_classes: bool = False,
                         ignore_na: bool = True,
                         min_samples: int = 10,
+                        raise_min_samples_error: bool = False,
                         with_display: bool = True,
                         dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
                         ) -> Tuple[float, str, Optional[Figure]]:
@@ -401,8 +402,13 @@ def calc_drift_and_plot(train_column: pd.Series,
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    min_samples: int, default: 10
-        Minimum number of samples for each column in order to calculate draft
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If any of the distributions have less than
+        min_samples, the function will either raise an error or return an invalid output (depends on
+        ``raise_min_sample_error``)
+    raise_min_samples_error : bool , default: False
+        Determines whether to raise an error if the number of samples is less than min_samples. If False, returns the
+        output 'not_enough_samples', None, None.
     with_display: bool, default: True
         flag that determines if function will calculate display.
     dataset_names: tuple, default: DEFAULT_DATASET_NAMES
@@ -426,8 +432,14 @@ def calc_drift_and_plot(train_column: pd.Series,
         test_dist = np.array(test_column.dropna().values).reshape(-1)
 
     if len(train_dist) < min_samples or len(test_dist) < min_samples:
-        raise NotEnoughSamplesError(f'For drift calculations a minimum of {min_samples} samples are needed but '
-                                    f'got {len(train_dist)} for train and {len(test_dist)} for test')
+        if raise_min_samples_error is True:
+            raise NotEnoughSamplesError(
+                f'Not enough samples to calculate drift score. Minimum {min_samples} samples required. '
+                'Note that for numerical labels, None values do not count as samples.'
+                'Use the \'min_samples\' parameter to change this requirement.'
+            )
+        else:
+            return 'not_enough_samples', None, None
 
     if column_type == 'numerical':
         train_dist = train_dist.astype('float')
@@ -441,8 +453,8 @@ def calc_drift_and_plot(train_column: pd.Series,
             scorer_name = 'Kolmogorov-Smirnov'
             score = kolmogorov_smirnov(dist1=train_dist, dist2=test_dist)
         else:
-            raise ValueError('Expected numerical_drift_method to be one '
-                             f'of ["EMD", "KS"], received: {numerical_drift_method}')
+            raise DeepchecksValueError('Expected numerical_drift_method to be one '
+                                       f'of ["EMD", "KS"], received: {numerical_drift_method}')
 
         if not with_display:
             return score, scorer_name, None

@@ -59,7 +59,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         - ``'class_id'`` - for properties that return the class_id. This is used because these
@@ -72,7 +72,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
@@ -149,7 +149,7 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
@@ -159,7 +159,7 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         - ``'class_id'`` - for properties that return the class_id. This is used because these
@@ -225,7 +225,7 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None, label_properti
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
@@ -235,7 +235,7 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None, label_properti
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         - ``'class_id'`` - for properties that return the class_id. This is used because these
@@ -287,7 +287,7 @@ def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str,
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
@@ -297,7 +297,7 @@ def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str,
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         - ``'class_id'`` - for properties that return the class_id. This is used because these
@@ -315,7 +315,7 @@ def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str,
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
@@ -325,7 +325,7 @@ def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str,
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         - ``'class_id'`` - for properties that return the class_id. This is used because these

@@ -12,7 +12,7 @@
 from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
 import pandas as pd
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.tabular.checks import TrainTestPredictionDrift
 from tests.base.utils import equal_condition_result
 
@@ -75,6 +75,16 @@ def test_drift_classification_label(drifted_data_and_model):
          'Method': equal_to('PSI')}
     ))
     assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_drift_not_enough_samples(drifted_data_and_model):
+    # Arrange
+    train, test, model = drifted_data_and_model
+    check = TrainTestPredictionDrift(min_samples=1000000)
+
+    # Assert
+    assert_that(calling(check.run).with_args(train, test, model),
+                raises(NotEnoughSamplesError))
 
 
 def test_drift_classification_label_without_display(drifted_data_and_model):
