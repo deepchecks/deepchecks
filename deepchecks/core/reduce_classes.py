@@ -100,7 +100,7 @@ class ReduceFeatureMixin(ReduceMixin):
     def feature_reduce(aggregation_method: str, value_per_feature: pd.Series, feature_importance: Optional[np.array],
                        score_name: str) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        if feature_importance:
+        if feature_importance is not None:
             feature_importance = np.array(feature_importance)[value_per_feature.notna().values]
         value_per_feature.dropna(inplace=True)
 
@@ -111,7 +111,7 @@ class ReduceFeatureMixin(ReduceMixin):
         elif aggregation_method == 'max':
             return {str('Max ' + score_name): np.max(value_per_feature)}
 
-        if aggregation_method in ['weighted', 'l2_weighted'] and feature_importance is None:
+        if aggregation_method in ['weighted', 'l2_weighted'] or feature_importance is None:
             get_logger().warning(
                 'Failed to calculate feature importance to all features, using uniform mean instead.')
             return {str(str.title(aggregation_method.replace('_', ' ')) + ' ' + score_name): np.mean(value_per_feature)}
