@@ -11,6 +11,7 @@
 """Module contains Train Test label Drift check."""
 
 import typing as t
+from numbers import Number
 
 import numpy as np
 import pandas as pd
@@ -241,7 +242,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
         """Return prediction drift score."""
-        if isinstance(check_result.value['Drift score'], float):
+        if isinstance(check_result.value['Drift score'], Number):
             return {'Prediction Drift Score': check_result.value['Drift score']}
 
         drift_values = list(check_result.value['Drift score'].values())
