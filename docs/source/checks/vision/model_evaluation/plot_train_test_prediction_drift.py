@@ -74,7 +74,7 @@ from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
 # Load Dataset
-# ----------------
+# ------------
 
 
 train_ds = load_dataset(train=True, batch_size=64, object_type='VisionData')
@@ -83,7 +83,7 @@ test_ds = load_dataset(train=False, batch_size=64, object_type='VisionData')
 
 #%%
 # Running TrainTestPredictionDrift on classification
-# ---------------------------------------------
+# --------------------------------------------------
 
 check = TrainTestPredictionDrift()
 result = check.run(train_ds, test_ds)
@@ -99,6 +99,7 @@ result
 #%%
 # Understanding the results
 # -------------------------
+#
 # We can see there is almost no drift between the train & test predictions. This means the
 # split to train and test was good (as it is balanced and random). Let's check the
 # performance of a simple model trained on MNIST.
@@ -109,7 +110,8 @@ ClassPerformance().run(train_ds, test_ds)
 
 #%%
 # MNIST with prediction drift
-# ======================
+# ===========================
+#
 # Now, let's try to separate the MNIST dataset in a different manner that will result
 # in a prediction drift, and see how it affects the performance. We are going to create a
 # custom `collate_fn`` in the test dataset, that will select a few of the samples with class 0

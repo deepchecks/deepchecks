@@ -118,14 +118,14 @@ In general, it is recommended to use Cramer's V, unless your variable includes c
 However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V, as PSI will not be able to detect change in the smaller categories.
 
 Detecting Drift in Unbalanced Classification Tasks
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 In classification problems, it is common to have unbalanced data, meaning that the number of samples in each class is
 highly skewed. For example, in a dataset of credit card transactions, the number of fraudulent transactions is usually
 much lower than the number of non-fraudulent transactions, and can be below 1% of the total number of samples.
 
 In such cases, running the :doc:`TrainTestLabelDrift </checks_gallery/tabular/train_test_validation/plot_train_test_label_drift>`:
-or :doc:`TrainTestPredictionDrift </checks_gallery/tabular/train_test_validation/plot_train_test_prediction_drift>` checks
+or :doc:`TrainTestPredictionDrift </checks_gallery/tabular/model_evaluation/plot_train_test_prediction_drift>` checks
 with the default parameters will likely lead to a false negative, as for example a change in the percent of fraudulent
 transactions from 0.2% to 0.4% will not be detected, but may in fact be very significant for our business.
 
