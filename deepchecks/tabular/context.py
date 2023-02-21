@@ -21,8 +21,8 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
-from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none, \
-    validate_feature_importance
+from deepchecks.tabular.utils.feature_importance import (calculate_feature_importance_or_none,
+                                                         validate_feature_importance)
 from deepchecks.tabular.utils.task_inference import (get_all_labels, infer_classes_from_model,
                                                      infer_task_type_by_class_number, infer_task_type_by_labels)
 from deepchecks.tabular.utils.task_type import TaskType
@@ -214,7 +214,7 @@ class Context:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
         if feature_importance is not None:
-            feature_importance = validate_feature_importance(feature_importance)
+            feature_importance = validate_feature_importance(feature_importance, train.features)
         if model_classes and len(model_classes) == 0:
             raise DeepchecksValueError('Received empty model_classes')
         if model_classes and sorted(model_classes) != model_classes:
