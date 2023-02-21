@@ -300,18 +300,10 @@ class DeepcheckScorer:
                 f'manually provide predicted probabilities to the check. '
                 f'{SUPPORTED_MODELS_DOCLINK}')
 
+        original_label_col = label_col
         if self.model_classes is not None:
             model = self._wrap_classification_model(model, data)
             if model.is_binary:
-                # In case of single label, there is problem with scorers per class, since scikit-learn scorers will
-                # return score only for the seen label (and not for the unseen label)
-                if len(label_col.unique()) == 1 and len(model.predictions.unique()) == 1 and \
-                        label_col[0] == model.predictions[0]:
-                    seen_class = label_col[0]
-                    unseen_class = self.model_classes[0] if seen_class == self.model_classes[1] \
-                        else self.model_classes[1]
-                    return {seen_class: 1, unseen_class: 0}
-
                 if len(label_col.unique()) > 2:
                     raise errors.DeepchecksValueError('Model is binary but the label column has more than 2 classes: '
                                                       f'{label_col.unique()}')
@@ -330,7 +322,16 @@ class DeepcheckScorer:
                 raise
 
         # The scores returned are for the model classes but we want scores of the observed classes
-        if self.model_classes is not None and isinstance(scores, t.Sized):
+        if self.model_classes is not None and isinstance(scores, np.ndarray):
+            # In case of single label on binary model, there is problem with scorers per class, since scikit-learn
+            # scorers will return score only for the seen label (and not for the unseen label)
+            if model.is_binary and len(original_label_col.unique()) == 1 and len(model.predictions.unique()) == 1 and \
+                        original_label_col[0] == model.predictions[0]:
+                seen_class = original_label_col[0]
+                unseen_class = self.model_classes[0] if seen_class == self.model_classes[1] \
+                    else self.model_classes[1]
+                return {seen_class: scores[0], unseen_class: 0}
+
             if len(scores) != len(self.model_classes):
                 raise errors.DeepchecksValueError(
                     f'Scorer returned {len(scores)} scores, but model contains '
