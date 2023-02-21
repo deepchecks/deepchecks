@@ -127,6 +127,7 @@ class RegressionErrorDistribution(SingleDatasetCheck):
 
         Kurtosis is a measure of the shape of the distribution, helping us understand if the distribution
         is significantly "wider" from a normal distribution. A lower value indicates a "wider" distribution.
+
         Parameters
         ----------
         threshold : float , default: -0.1

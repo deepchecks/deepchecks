@@ -196,7 +196,8 @@ training_data = VisionData(batch_loader=train_loader, task_type='classification'
 test_data = VisionData(batch_loader=test_loader, task_type='classification', label_map=LABEL_MAP)
 #%%
 # Making sure our data is in the correct format:
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
 # The VisionData object automatically validates your data format and will alert you if there is a problem.
 # However, you can also manually view your images and labels to make sure they are in the correct format by using
 # the ``head`` function to conveniently visualize your data:
@@ -207,7 +208,8 @@ training_data.head()
 # And observe the output:
 #
 # Running Deepchecks' suite on our data and model!
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
 # Now that we have defined the task class, we can validate the train and test data with deepchecks' train test validation
 # suite.
 # This can be done with this simple few lines of code:

@@ -59,9 +59,9 @@ Deepchecks can be used in the CI/CD process at 2 main steps of model development
 In this guide we will show end to end examples of validating both the data and the trained model. In most use cases those
 processes will be separated into two separate pipelines, one for data validation and one for model validation.
 We will use the default suites provided by deepchecks, but it's possible to create a
-:doc:`custom suite</user-guide/general/customizations/plot_create_a_custom_suite>`
+:doc:`custom suite</user-guide/general/customizations/examples/plot_create_a_custom_suite>`
 containing hand chosen checks and
-:doc:`conditions</user-guide/general/customizations/plot_configure_check_conditions>`
+:doc:`conditions</user-guide/general/customizations/examples/plot_configure_check_conditions>`
 in order to cater to the specific needs of the project.
 
 Airflow Integration
