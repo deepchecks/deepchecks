@@ -179,7 +179,9 @@ def test_pass_feature_importance_incorrect(iris_split_dataset):
 
     # Act & Assert
     assert_that(calling(check.run).with_args(train, test, feature_importance='wrong type'),
-                raises(DeepchecksValueError, 'feature_importance must be a pandas Series'))
+                raises(DeepchecksValueError,
+                       'feature_importance must be given as a pandas.Series where the index is feature names and the '
+                       'value is the calculated importance'))
 
 
 def test_pass_feature_importance_correct(iris_split_dataset):
