@@ -434,7 +434,7 @@ def column_importance_sorter_df(
     return df
 
 
-def validate_feature_importance(feature_importance: pd.Series, features: list) -> pd.Series:
+def validate_feature_importance(feature_importance: pd.Series, features: list, eps: float=0.001) -> pd.Series:
     """Validate feature importance."""
     if not isinstance(feature_importance, pd.Series):
         raise DeepchecksValueError('feature_importance must be given as a pandas.Series where the index is feature '
@@ -445,7 +445,7 @@ def validate_feature_importance(feature_importance: pd.Series, features: list) -
         raise DeepchecksValueError('feature_importance must not contain negative values')
     if sorted(feature_importance.index) != sorted(features):
         raise DeepchecksValueError('feature_importance index must be the feature names')
-    if feature_importance.sum() != 1:
+    if not 1 - eps < feature_importance.sum() < 1 + eps:
         warnings.warn('feature_importance does not sum to 1. Normalizing to 1.', UserWarning)
         feature_importance = feature_importance / feature_importance.sum()
     return feature_importance
