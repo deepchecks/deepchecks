@@ -74,7 +74,7 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
            * - :ref:`plot_tabular_identifier_label_correlation`
              - :class:`~deepchecks.tabular.checks.data_integrity.IdentifierLabelCorrelation`
            * - :ref:`plot_tabular_feature_feature_correlation`
-                - :class:`~deepchecks.tabular.checks.data_integrity.FeatureFeatureCorrelation`
+             - :class:`~deepchecks.tabular.checks.data_integrity.FeatureFeatureCorrelation`
 
     Parameters
     ----------
@@ -270,7 +270,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
            * - :ref:`plot_tabular_model_inference_time`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ModelInferenceTime`
            * - :ref:`plot_tabular_train_test_prediction_drift`
-                - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
 
     Parameters
     ----------
