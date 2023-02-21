@@ -184,11 +184,10 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         not_enough_samples = []
 
         features_order = (
-            tuple(
-                feature_importance
-                .sort_values(ascending=False)
-                .index
-            )
+            # In order to have consistent order for features with same importance, first sorting by index, and then
+            # using mergesort which preserves the order of equal elements.
+            tuple(feature_importance.sort_index(key=lambda x: x.astype(str))
+                  .sort_values(kind='mergesort', ascending=False).index)
             if feature_importance is not None
             else None
         )
