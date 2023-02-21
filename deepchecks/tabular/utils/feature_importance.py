@@ -10,7 +10,7 @@
 #
 
 """Utils module containing feature importance calculations."""
-
+import warnings
 import time
 import typing as t
 
@@ -25,12 +25,15 @@ from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer, get_default
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
+from deepchecks.core.errors import DeepchecksValueError
+
 
 __all__ = [
     '_calculate_feature_importance',
     'calculate_feature_importance_or_none',
     'column_importance_sorter_dict',
     'column_importance_sorter_df',
+    'validate_feature_importance'
     'N_TOP_MESSAGE'
 ]
 
@@ -430,3 +433,19 @@ def column_importance_sorter_df(
     if n_top:
         return df.head(n_top)
     return df
+
+def validate_feature_importance(feature_importance: pd.Series, features: list) -> pd.Series:
+    """Validate feature importance."""
+    if not isinstance(feature_importance, pd.Series):
+        raise DeepchecksValueError('feature_importance must be given as a pandas.Series where the index is feature names'
+                                   ' and the value is the calculated importance')
+    if feature_importance.isnull().any():
+        raise DeepchecksValueError('feature_importance must not contain null values')
+    if (feature_importance < 0).any():
+        raise DeepchecksValueError('feature_importance must not contain negative values')
+    if sorted(feature_importance.index) != sorted(features):
+        raise DeepchecksValueError('feature_importance index must be the feature names')
+    if feature_importance.sum() != 1:
+        warnings.warn('feature_importance does not sum to 1. Normalizing to 1.', UserWarning)
+        feature_importance = feature_importance / feature_importance.sum()
+    return feature_importance
