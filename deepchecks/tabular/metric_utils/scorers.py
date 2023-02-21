@@ -244,7 +244,7 @@ class DeepcheckScorer:
             return self.scorer._score_func(y_true, pred_to_use, **self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
-    def _wrap_classification_model(self, model, _data):
+    def _wrap_classification_model(self, model, data_):
         """Convert labels to 0/1 if model is a binary classifier, and converts to multi-label if multiclass."""
 
         class MyModelWrapper:
@@ -256,7 +256,6 @@ class DeepcheckScorer:
                 self.is_binary = self.model_classes and len(self.model_classes) == 2
                 self.predictions = pd.Series(self.user_model.predict(data))
                 self.predictions.index = data.index
-
 
             def predict(self, data: pd.DataFrame) -> np.ndarray:
                 """Convert labels to 0/1 if model is a binary classifier."""
@@ -288,7 +287,7 @@ class DeepcheckScorer:
             def classes_(self):
                 return np.asarray([0, 1] if len(self.model_classes) == 2 else self.model_classes)
 
-        return MyModelWrapper(model, self.model_classes, _data)
+        return MyModelWrapper(model, self.model_classes, data_)
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
