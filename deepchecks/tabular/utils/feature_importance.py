@@ -434,7 +434,7 @@ def column_importance_sorter_df(
     return df
 
 
-def validate_feature_importance(feature_importance: pd.Series, features: list, eps: float=0.001) -> pd.Series:
+def validate_feature_importance(feature_importance: pd.Series, features: list, eps: float = 0.001) -> pd.Series:
     """Validate feature importance."""
     if not isinstance(feature_importance, pd.Series):
         raise DeepchecksValueError('feature_importance must be given as a pandas.Series where the index is feature '
