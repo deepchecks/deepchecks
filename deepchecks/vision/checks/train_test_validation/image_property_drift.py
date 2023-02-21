@@ -50,7 +50,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
@@ -77,10 +77,12 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
     numerical_drift_method: str, default: "KS"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
-    min_samples: int, default: 30
-        Minimum number of samples needed in each dataset needed to calculate the drift.
-    aggregation_method: t.Optional[str], default: 'max'
+    aggregation_method: str, default: 'max'
         {property_aggregation_method_argument:2*indent}
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
+        train or test, the check will return None for that property. If there are not enough samples for all properties,
+        the check will raise a ``NotEnoughSamplesError`` exception.
     {additional_check_init_params:2*indent}
     """
 
@@ -93,13 +95,12 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
             numerical_drift_method: str = 'KS',
-            min_samples: int = 30,
             aggregation_method: t.Optional[str] = 'max',
+            min_samples: t.Optional[int] = 10,
             n_samples: t.Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.n_samples = n_samples
         self.image_properties = image_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.max_num_categories_for_drift = max_num_categories_for_drift
@@ -109,6 +110,8 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         self.numerical_drift_method = numerical_drift_method
         self.min_samples = min_samples
         self.aggregation_method = aggregation_method
+        self.min_samples = min_samples
+        self.n_samples = n_samples
 
         self._train_properties = None
         self._test_properties = None
@@ -151,7 +154,7 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
         if len(df_train) < self.min_samples or len(df_test) < self.min_samples:
             raise NotEnoughSamplesError(
                 f'Not enough samples to calculate drift score, minimum {self.min_samples} samples required'
-                f', but got {len(df_train)} and {len(df_test)} samples in the train and test datasets.'
+                f', but got {len(df_train)} and {len(df_test)} samples in the train and test datasets. '
                 'Use \'min_samples\' parameter to change the requirement.'
             )
 
@@ -165,34 +168,45 @@ class ImagePropertyDrift(TrainTestCheck, ReducePropertyMixin):
             property_name = single_property['name']
             if property_name not in df_train.columns or property_name not in df_test.columns:
                 continue
-            try:
-                value, method, figure = calc_drift_and_plot(
-                    train_column=df_train[property_name],
-                    test_column=df_test[property_name],
-                    value_name=property_name,
-                    column_type=single_property['output_type'],
-                    margin_quantile_filter=self.margin_quantile_filter,
-                    max_num_categories_for_drift=self.max_num_categories_for_drift,
-                    min_category_size_ratio=self.min_category_size_ratio,
-                    max_num_categories_for_display=self.max_num_categories_for_display,
-                    show_categories_by=self.show_categories_by,
-                    numerical_drift_method=self.numerical_drift_method,
-                    min_samples=self.min_samples,
-                    with_display=context.with_display,
-                    dataset_names=dataset_names
-                )
-                values_dict[property_name] = {
-                    'Drift score': value,
-                    'Method': method,
-                }
-                displays_dict[property_name] = figure
-            except NotEnoughSamplesError:
+            # try:
+            value, method, figure = calc_drift_and_plot(
+                train_column=df_train[property_name],
+                test_column=df_test[property_name],
+                value_name=property_name,
+                column_type=single_property['output_type'],
+                margin_quantile_filter=self.margin_quantile_filter,
+                max_num_categories_for_drift=self.max_num_categories_for_drift,
+                min_category_size_ratio=self.min_category_size_ratio,
+                max_num_categories_for_display=self.max_num_categories_for_display,
+                show_categories_by=self.show_categories_by,
+                numerical_drift_method=self.numerical_drift_method,
+                min_samples=self.min_samples,
+                with_display=context.with_display,
+                dataset_names=dataset_names
+            )
+            if value == 'not_enough_samples':
                 not_enough_samples.append(property_name)
+                value = None
+            else:
+                displays_dict[property_name] = figure
+
+            values_dict[property_name] = {
+                'Drift score': value,
+                'Method': method,
+            }
+
+        if len(not_enough_samples) == len(values_dict.keys()):
+            raise NotEnoughSamplesError(
+                f'Not enough samples to calculate drift score. Minimum {self.min_samples} samples required. '
+                'Note that for numerical properties, None values do not count as samples.'
+                'Use the \'min_samples\' parameter to change this requirement.'
+            )
 
         if context.with_display:
-            columns_order = sorted(properties, key=lambda col: values_dict.get(col, {}).get('Drift score', 0),
-                                   reverse=True)
-            properties_to_display = [p for p in properties if p in values_dict]
+            values_dict_for_display = {k: v for k, v in values_dict.items() if v['Drift score'] is not None}
+            columns_order = sorted(
+                properties, key=lambda col: values_dict_for_display.get(col, {}).get('Drift score', 0), reverse=True)
+            properties_to_display = [p for p in properties if p in values_dict_for_display]
 
             headnote = ['<span> The Drift score is a measure for the difference between two distributions. '
                         'In this check, drift is measured for the distribution '

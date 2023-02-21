@@ -42,6 +42,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     In order to achieve this, the check trains several simple tree based models which try to predict the error of the
     user provided model on the dataset. The relevant segments are detected by analyzing the different
     leafs of the trained trees.
+
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None

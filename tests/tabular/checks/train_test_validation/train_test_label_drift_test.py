@@ -11,8 +11,9 @@
 """Test functions of the train test label drift."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, raises, calling
 
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.tabular import Dataset
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular.checks import TrainTestLabelDrift
@@ -49,7 +50,7 @@ def test_drift_classification_label(drifted_classification_label):
     ))
     assert_that(result.display, has_length(greater_than(0)))
 
-def test_drift_classification_label_imbalanced(drifted_classification_label):
+def test_drift_classification_label_imbalanced():
     # Arrange
     train = Dataset(pd.DataFrame({'d': np.ones(10000)}), label=np.array([0] * 9900 + [1] * 100))
     test = Dataset(pd.DataFrame({'d': np.ones(10000)}), label=np.array([0] * 9800 + [1] * 200))
@@ -64,6 +65,16 @@ def test_drift_classification_label_imbalanced(drifted_classification_label):
          'Method': equal_to('Cramer\'s V')}
     ))
     assert_that(result.display, has_length(greater_than(0)))
+
+
+def test_drift_not_enough_samples(drifted_classification_label):
+    # Arrange
+    train, test = drifted_classification_label
+    check = TrainTestLabelDrift(min_samples=1000000)
+
+    # Assert
+    assert_that(calling(check.run).with_args(train, test),
+                raises(NotEnoughSamplesError))
 
 
 def test_drift_classification_label_without_display(drifted_classification_label):
