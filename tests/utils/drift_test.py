@@ -54,6 +54,19 @@ def test_emd_raises_exception():
         raises(DeepchecksValueError, r'margin_quantile_filter expected a value in range \[0, 0.5\), instead got -1')
     )
 
+def test_cramers_v_sampling():
+    dist1 = np.array(['a'] * 2000 + ['b'] * 8000)
+    dist2 = np.array(['a'] * 4000 + ['b'] * 6000)
+    res = cramers_v(dist1=dist1, dist2=dist2)
+
+    dist2 = np.array(['a'] * 400 + ['b'] * 600)
+    res_sampled = cramers_v(dist1=dist1, dist2=dist2)
+
+    dist1 = np.array(['a'] * 200 + ['b'] * 800)
+    res_double_sampled = cramers_v(dist1=dist1, dist2=dist2)
+
+    assert_that(res, close_to(res_sampled, 0.01))
+    assert_that(res_sampled, close_to(res_double_sampled, 0.0001))
 
 def test_cramers_v():
     dist1 = np.array(['a'] * 200 + ['b'] * 800)
