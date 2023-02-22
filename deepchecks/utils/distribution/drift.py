@@ -134,7 +134,7 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     dist1_counts, dist2_counts, cat_list = preprocess_2_cat_cols_to_same_bins(dist1, dist2,
                                                                               min_category_size_ratio,
                                                                               max_num_categories, sort_by)
-    if len(cat_list) == 1:  # If dist have the same single value
+    if len(cat_list) == 1:  # If the distributions have the same single value
         return 0
     if balance_classes is True:
         dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)

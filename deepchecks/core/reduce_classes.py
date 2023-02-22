@@ -101,7 +101,7 @@ class ReduceFeatureMixin(ReduceMixin):
                        score_name: str) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
         if feature_importance is not None:
-            feature_importance = np.array(feature_importance)[value_per_feature.notna().values]
+            feature_importance = feature_importance[value_per_feature.notna().values]
         value_per_feature.dropna(inplace=True)
 
         if aggregation_method is None or aggregation_method == 'none':
