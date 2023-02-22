@@ -20,7 +20,7 @@ import pandas as pd
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, log_loss, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
-from sklearn.preprocessing import LabelBinarizer
+from sklearn.preprocessing import OneHotEncoder
 
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
@@ -244,28 +244,29 @@ class DeepcheckScorer:
             return self.scorer._score_func(y_true, pred_to_use, **self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
-    def _wrap_classification_model(self, model):
+    def _wrap_classification_model(self, model, data_):
         """Convert labels to 0/1 if model is a binary classifier, and converts to multi-label if multiclass."""
 
         class MyModelWrapper:
             """Convert labels to 0/1 if model is a binary classifier, and converts to multi-label if multiclass."""
 
-            def __init__(self, user_model, model_classes):
+            def __init__(self, user_model, model_classes, data):
                 self.user_model = user_model
                 self.model_classes = model_classes
                 self.is_binary = self.model_classes and len(self.model_classes) == 2
+                self.predictions = pd.Series(self.user_model.predict(data).squeeze(), index=data.index)
 
             def predict(self, data: pd.DataFrame) -> np.ndarray:
                 """Convert labels to 0/1 if model is a binary classifier."""
-                predicitions: np.ndarray = np.asarray(self.user_model.predict(data))
                 # In case of binary converts into 0 and 1 the labels
+                predictions = self.predictions[data.index].to_numpy()
                 if self.is_binary:
                     transfer_func = np.vectorize(lambda x: 0 if x == self.model_classes[0] else 1)
-                    predicitions = transfer_func(predicitions)
+                    predictions = transfer_func(predictions)
                 # In case of multiclass with single label, convert into multi-label
                 elif self.model_classes:
-                    predicitions = _transform_to_multi_label_format(predicitions, self.model_classes)
-                return predicitions
+                    predictions = _transform_to_multi_label_format(predictions, self.model_classes)
+                return predictions
 
             def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
                 """Validate model have predict_proba, and the proba matches the model classes."""
@@ -285,7 +286,7 @@ class DeepcheckScorer:
             def classes_(self):
                 return np.asarray([0, 1] if len(self.model_classes) == 2 else self.model_classes)
 
-        return MyModelWrapper(model, self.model_classes)
+        return MyModelWrapper(model, self.model_classes, data_)
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
@@ -296,8 +297,10 @@ class DeepcheckScorer:
                 f'not provided. Please use a model with predict_proba method or '
                 f'manually provide predicted probabilities to the check. '
                 f'{SUPPORTED_MODELS_DOCLINK}')
+
+        original_label_col = label_col
         if self.model_classes is not None:
-            model = self._wrap_classification_model(model)
+            model = self._wrap_classification_model(model, data)
             if model.is_binary:
                 if len(label_col.unique()) > 2:
                     raise errors.DeepchecksValueError('Model is binary but the label column has more than 2 classes: '
@@ -317,7 +320,16 @@ class DeepcheckScorer:
                 raise
 
         # The scores returned are for the model classes but we want scores of the observed classes
-        if self.model_classes is not None and isinstance(scores, t.Sized):
+        if self.model_classes is not None and isinstance(scores, np.ndarray):
+            # In case of single label on binary model, there is problem with scorers per class, since scikit-learn
+            # scorers will return score only for the seen label (and not for the unseen label)
+            if model.is_binary and len(original_label_col.unique()) == 1 and len(model.predictions.unique()) == 1 and \
+                        original_label_col[0] == model.predictions[0]:
+                seen_class = original_label_col[0]
+                unseen_class = self.model_classes[0] if seen_class == self.model_classes[1] \
+                    else self.model_classes[1]
+                return {seen_class: scores[0], unseen_class: 0}
+
             if len(scores) != len(self.model_classes):
                 raise errors.DeepchecksValueError(
                     f'Scorer returned {len(scores)} scores, but model contains '
@@ -423,9 +435,9 @@ def _transform_to_multi_label_format(y: np.ndarray, classes):
     # Some classifiers like catboost might return shape like (n_rows, 1), therefore squeezing the array.
     y = np.squeeze(y) if y.ndim > 1 else y
     if y.ndim == 1:
-        binarizer = LabelBinarizer()
-        binarizer.fit(classes)
-        return binarizer.transform(y)
+        ohe = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        ohe.fit(np.array(classes).reshape(-1, 1))
+        return ohe.transform(y.reshape(-1, 1))
     # If after squeeze there are still 2 dimensions, then it must have column for each model class.
     elif y.ndim == 2 and y.shape[1] == len(classes):
         return y
