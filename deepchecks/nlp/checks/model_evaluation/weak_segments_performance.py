@@ -19,7 +19,7 @@ from sklearn.metrics import log_loss
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
-from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.nlp import Context, SingleDatasetCheck, TextData
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -80,13 +80,23 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.loss_per_sample = loss_per_sample
         self.alternative_scorer = alternative_scorer if alternative_scorer else None
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
+        self.segment_by = 'additional_data'
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         text_data = context.get_data_by_kind(dataset_kind)
-        if text_data.additional_data is None:
-            raise DeepchecksNotSupportedError(
-                'Weak segments check requires additional data to be available in the text data.')
+
+        if self.segment_by == 'additional_data':
+            if text_data.additional_data is None:
+                raise DeepchecksNotSupportedError(
+                    'Weak segments check requires additional data to be available in the text data.')
+
+            features = select_from_dataframe(text_data.additional_data, self.columns, self.ignore_columns)
+
+        return self._run_logic(context, text_data, features, self.segment_by.replace('_', ' '))
+
+
+    def _run_logic(self, context: Context, text_data: TextData, features: pd.DataFrame, features_name: str):
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
         predictions = context.model.predict(text_data)
@@ -102,11 +112,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             loss_per_sample = [log_loss([y_true], [y_proba], labels=sorted(context.model_classes)) for y_true, y_proba
                                in zip(list(text_data.label), proba_values)]
 
-        additional_data = select_from_dataframe(text_data.additional_data, self.columns, self.ignore_columns)
-        if additional_data.shape[1] < 2:
+        if features.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
         # label is not used in the check, just here to avoid errors
-        dataset = Dataset(additional_data, label=pd.Series(text_data.label, index=text_data.index))
+        dataset = Dataset(features, label=pd.Series(text_data.label, index=text_data.index))
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
 
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),
