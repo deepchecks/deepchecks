@@ -99,8 +99,7 @@ class _DummyModel:
                     if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
                         y_pred = y_pred[:, 0]
                     ensure_predictions_shape(y_pred, dataset.data)
-                    y_pred_ser = pd.Series(y_pred)
-                    y_pred_ser.index = dataset.data.index
+                    y_pred_ser = pd.Series(y_pred, index=dataset.data.index)
                     predictions.append(y_pred_ser)
                     if y_proba is not None:
                         ensure_predictions_proba(y_proba, y_pred)

@@ -184,7 +184,8 @@ class WeakSegmentAbstract:
             min_score, min_score_leaf_filter = np.inf, None
             for leaf_filter in leaves_filters:
                 leaf_data = leaf_filter.filter(dataset.data)
-                leaf_score = scorer.run_on_data_and_label(dummy_model, leaf_data, leaf_data[dataset.label_name])
+                leaf_score = scorer.run_on_data_and_label(dummy_model, leaf_data.drop(columns=[dataset.label_name]),
+                                                          leaf_data[dataset.label_name])
                 if leaf_score < min_score:
                     min_score, min_score_leaf_filter = leaf_score, leaf_filter
             return min_score, min_score_leaf_filter
