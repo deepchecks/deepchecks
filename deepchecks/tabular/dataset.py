@@ -138,7 +138,6 @@ class Dataset:
                 "Change the duplicate column names or remove them from the data. "
                 f"Duplicate column names: {duplicated_columns}")
 
-
         # Validations
         if label is None:
             self._label_name = None
