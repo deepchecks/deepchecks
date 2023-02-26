@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module for calculating embeddings display checks."""
+"""Utils module for calculating embedding display checks."""
 
 import os
 import time

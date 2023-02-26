@@ -19,5 +19,3 @@ __all__ = [
     'create_drift_files',
     'create_outlier_files',
 ]
-
-
