@@ -52,8 +52,8 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
             raise ImportError('get_default_embeddings with model="open_ai" requires the openai python package. '
                               'To get it, run "pip install openai".') from e
 
-        from tenacity import \
-            retry, stop_after_attempt, wait_random_exponential  # pylint: disable=import-outside-toplevel
+        from tenacity import (retry, stop_after_attempt,  # pylint: disable=import-outside-toplevel
+                              wait_random_exponential)
 
         @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
         def _get_embedding_with_backoff(list_of_strings):
