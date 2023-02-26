@@ -27,8 +27,6 @@ from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular.datasets.classification import lending_club
 from deepchecks.utils.logger import set_verbosity
 
-from .nlp.nlp_conftest import *  # pylint: disable=wildcard-import, unused-wildcard-import
-
 set_verbosity(logging.WARNING)
 
 
