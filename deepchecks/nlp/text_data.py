@@ -221,13 +221,14 @@ class TextData:
                            task_type=self._task_type.value,
                            dataset_name=self.name, index=self.index, additional_data=self.additional_data)
         else:
-            new_copy = cls(raw_text=list(itemgetter(*rows_to_use)(self._text)),
-                           tokenized_text=list(
-                               itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
-                           label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
-                           index=list(itemgetter(*rows_to_use)(self.index)),
-                           additional_data=self._additional_data.iloc[rows_to_use, :] if self._additional_data is not None else None,
-                           task_type=self._task_type.value, dataset_name=self.name)
+            new_copy = cls(
+                raw_text=list(itemgetter(*rows_to_use)(self._text)),
+                tokenized_text=list(
+                    itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
+                label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
+                index=list(itemgetter(*rows_to_use)(self.index)),
+                additional_data=self._additional_data.iloc[rows_to_use, :] if self._additional_data is not None else None,
+                task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
         return new_copy
 

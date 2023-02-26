@@ -37,7 +37,7 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
     """
     if model == 'miniLM':
         try:
-            import sentence_transformers
+            import sentence_transformers  # pylint: disable=import-outside-toplevel
         except ImportError as e:
             raise ImportError(
                 'get_default_embeddings with model="miniLM" requires the sentence_transformers python package. '
@@ -47,12 +47,13 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
         embeddings = model.encode(text)
     elif model == 'open_ai':
         try:
-            import openai
+            import openai  # pylint: disable=import-outside-toplevel
         except ImportError as e:
             raise ImportError('get_default_embeddings with model="open_ai" requires the openai python package. '
                               'To get it, run "pip install openai".') from e
 
-        from tenacity import retry, stop_after_attempt, wait_random_exponential
+        from tenacity import \
+            retry, stop_after_attempt, wait_random_exponential  # pylint: disable=import-outside-toplevel
 
         @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
         def _get_embedding_with_backoff(list_of_strings):
@@ -75,7 +76,7 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
 
 
 def _clean_special_chars(text):
-    special_chars = '!@#$%^&*()_+{}|:"<>?~`-=[]\;\',./'
+    special_chars = r'!@#$%^&*()_+{}|:"<>?~`-=[]\;\',./'
     for char in special_chars:
         text = text.replace(char, '')
     text = text.replace('\n', ' ')

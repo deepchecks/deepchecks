@@ -30,7 +30,7 @@ from deepchecks.utils.dataframes import floatify_dataframe
 
 
 def create_performance_files(text: t.Union[pd.Series, t.Sequence[str]], embeddings: np.ndarray, proba: np.ndarray,
-                             y_true: np.ndarray, labels: List[str], path: str, sample_size: int = 10000):
+                             y_true: np.ndarray, labels: List[str], path: str):
     """Create files for displaying embedding performance analysis."""
     if list(sorted(labels)) != list(labels):
         raise DeepchecksValueError('Labels must be sorted in an alphanumeric order')
@@ -59,7 +59,7 @@ def create_performance_files(text: t.Union[pd.Series, t.Sequence[str]], embeddin
 
 
 def create_outlier_files(text: pd.Series, embeddings: np.ndarray, path: str, nearest_neighbors_percent: float = 0.01,
-                         extent_parameter: int = 3, sample_size: int = 10000, verbose: bool = False,
+                         extent_parameter: int = 3, verbose: bool = False,
                          indexes_to_highlight: Dict[str, List[int]] = None):
     """Create files for displaying embedding outlier analysis."""
     if not os.path.exists(path):
