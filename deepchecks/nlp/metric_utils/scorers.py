@@ -67,4 +67,5 @@ def infer_on_text_data(scorer: DeepcheckScorer, model: ClassificationModel, data
         y_proba = model.predict_proba(data)
     else:
         y_proba = None
-    return scorer.run_on_pred(y_true, y_pred, y_proba)
+    results = scorer.run_on_pred(y_true, y_pred, y_proba)
+    return scorer.validate_scorer_multilabel_output(results)
