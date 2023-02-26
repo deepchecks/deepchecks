@@ -144,7 +144,7 @@ class TextData:
         if additional_data is not None:
             if not isinstance(additional_data, pd.DataFrame):
                 raise DeepchecksValueError(f'additional_data type {type(additional_data)} is not supported, must be a'
-                                                  f' pandas DataFrame')
+                                           f' pandas DataFrame')
             if self.index != list(additional_data.index):
                 raise DeepchecksValueError('additional_data index must be the same as the text data index')
 
@@ -227,7 +227,8 @@ class TextData:
                     itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
                 label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
                 index=list(itemgetter(*rows_to_use)(self.index)),
-                additional_data=self._additional_data.iloc[rows_to_use, :] if self._additional_data is not None else None,
+                additional_data=self._additional_data.iloc[rows_to_use, :]
+                if self._additional_data is not None else None,
                 task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
         return new_copy

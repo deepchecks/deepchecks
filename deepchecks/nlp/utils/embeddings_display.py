@@ -70,9 +70,6 @@ def create_outlier_files(text: pd.Series, embeddings: np.ndarray, path: str, nea
     embeddings_df = pd.DataFrame(embeddings, index=text_dataframe.index)
     num_neighbors = max(int(nearest_neighbors_percent * len(embeddings_df)), 10)
 
-    # from umap import UMAP
-    # embeddings_df = UMAP(init='random', random_state=42, n_components=3).fit_transform(embeddings_df)
-
     # Calculate outlier probability score using loop algorithm.
     m = loop.LocalOutlierProbability(embeddings_df, extent=extent_parameter, n_neighbors=num_neighbors).fit()
     prob_vector = np.asarray(m.local_outlier_probabilities, dtype=float)

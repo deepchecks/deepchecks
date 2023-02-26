@@ -50,6 +50,7 @@ def ensure_hashable_or_mutable_sequence(
         type=type(value).__name__
     ))
 
+
 def is_sequence_not_str(value):
     """Check if value is a non str sequence."""
     return isinstance(value, (t.Sequence, pd.Series, np.ndarray)) and not isinstance(value, str)

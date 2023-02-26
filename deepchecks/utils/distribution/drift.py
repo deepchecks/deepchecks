@@ -137,7 +137,8 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     if from_freqs:
         dist1_counts, dist2_counts = dist1, dist2
     else:
-        dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,                                                   max_num_categories, sort_by)
+        dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                           max_num_categories, sort_by)
 
         if balance_classes is True:
             dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)
