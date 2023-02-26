@@ -31,6 +31,7 @@ from deepchecks.utils.dataframes import floatify_dataframe
 
 def create_performance_files(text: t.Union[pd.Series, t.Sequence[str]], embeddings: np.ndarray, proba: np.ndarray,
                              y_true: np.ndarray, labels: List[str], path: str, sample_size: int = 10000):
+    """Create files for displaying embedding performance analysis."""
     if list(sorted(labels)) != list(labels):
         raise DeepchecksValueError('Labels must be sorted in an alphanumeric order')
     if not os.path.exists(path):
@@ -60,6 +61,7 @@ def create_performance_files(text: t.Union[pd.Series, t.Sequence[str]], embeddin
 def create_outlier_files(text: pd.Series, embeddings: np.ndarray, path: str, nearest_neighbors_percent: float = 0.01,
                          extent_parameter: int = 3, sample_size: int = 10000, verbose: bool = False,
                          indexes_to_highlight: Dict[str, List[int]] = None):
+    """Create files for displaying embedding outlier analysis."""
     if not os.path.exists(path):
         os.makedirs(path)
     start_time = time.time()
@@ -107,6 +109,7 @@ def _select_highlight_value(index, indexes_to_highlight: Dict[str, List[int]]):
 def create_drift_files(train_text: pd.Series, test_text: pd.Series, train_embeddings: np.ndarray,
                        test_embeddings: np.ndarray, path: str, sample_size: int = 2500, verbose: bool = False,
                        additional_data: pd.DataFrame = None):
+    """Create files for displaying embedding drift analysis."""
     if not os.path.exists(path):
         os.makedirs(path)
 
