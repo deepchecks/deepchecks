@@ -85,7 +85,7 @@ def test_can_run_classification_no_proba_force_regression(iris_split_dataset_and
     y_proba_test = None
 
     ds = ds.copy(ds.data)
-    ds._label_type = TaskType.REGRESSION
+    ds._label_type = TaskType.REGRESSION  # pylint: disable=protected-access
     check = SingleDatasetPerformance().add_condition_greater_than(0.9)
     result = check.conditions_decision(check.run(ds,
                                                  y_pred_train=y_pred_train, y_pred_test=y_pred_test,
@@ -103,7 +103,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
     test = Dataset(test.data.copy(), label='target', label_type='regression')
-    test._data[test.label_name] =300
+    test._data[test.label_name] = 300  # pylint: disable=protected-access
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(test, None, clf)
 
     check = RegressionErrorDistribution().add_condition_kurtosis_greater_than()
