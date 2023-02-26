@@ -17,7 +17,7 @@ import numpy as np
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.metric_utils import DeepcheckScorer
-from deepchecks.tabular.metric_utils.scorers import validate_multi_label_format
+from deepchecks.tabular.metric_utils.scorers import _transform_to_multi_label_format
 from deepchecks.utils.typing import ClassificationModel
 
 __all__ = [
@@ -60,12 +60,11 @@ def infer_on_text_data(scorer: DeepcheckScorer, model: ClassificationModel, data
     y_true = data.label
 
     if data.task_type == TaskType.TEXT_CLASSIFICATION:
-        y_pred = validate_multi_label_format(np.array(y_pred), scorer.model_classes)
-        y_true = validate_multi_label_format(np.array(y_true), scorer.model_classes)
+        y_pred = _transform_to_multi_label_format(np.array(y_pred), scorer.model_classes)
+        y_true = _transform_to_multi_label_format(np.array(y_true), scorer.model_classes)
 
     if hasattr(model, 'predict_proba'):
         y_proba = model.predict_proba(data)
     else:
         y_proba = None
-    results = scorer.run_on_pred(y_true, y_pred, y_proba)
-    return scorer.validate_scorer_multilabel_output(results)
+    return scorer.run_on_pred(y_true, y_pred, y_proba)

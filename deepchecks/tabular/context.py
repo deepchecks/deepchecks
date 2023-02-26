@@ -282,8 +282,8 @@ class Context(BaseContext):
         """Return ordered list of possible label classes for classification tasks or None for regression."""
         if self._model_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
             # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
-            self._model_classes = self._observed_classes
             get_logger().warning('Could not find model\'s classes, using the observed classes')
+            return self.observed_classes
         return self._model_classes
 
     @property
