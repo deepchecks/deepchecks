@@ -26,7 +26,7 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['WeakSegmentsPerformance']
+__all__ = ['AdditionalDataSegmentsPerformance', 'PropertySegmentsPerformance']
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
@@ -65,12 +65,13 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """
 
-    def __init__(self, columns: Union[Hashable, List[Hashable], None] = None,
+    def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None] = None,
                  ignore_columns: Union[Hashable, List[Hashable], None] = None, n_top_features: int = 5,
                  segment_minimum_size_ratio: float = 0.05, alternative_scorer: Dict[str, Callable] = None,
                  loss_per_sample: Union[np.ndarray, pd.Series, None] = None, n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05, n_to_show: int = 3, **kwargs):
         super().__init__(**kwargs)
+        self.segment_by = segment_by
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_features = n_top_features
@@ -80,11 +81,11 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.loss_per_sample = loss_per_sample
         self.alternative_scorer = alternative_scorer if alternative_scorer else None
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
-        self.segment_by = 'additional_data'
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         text_data = context.get_data_by_kind(dataset_kind)
+        text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
         if self.segment_by == 'additional_data':
             if text_data.additional_data is None:
@@ -92,12 +93,13 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                     'Weak segments check requires additional data to be available in the text data.')
 
             features = select_from_dataframe(text_data.additional_data, self.columns, self.ignore_columns)
+            features_name = 'additional data'
+            # categorical_features = None
 
-        return self._run_logic(context, text_data, features, self.segment_by.replace('_', ' '))
-
-
-    def _run_logic(self, context: Context, text_data: TextData, features: pd.DataFrame, features_name: str):
-        text_data = text_data.sample(self.n_samples, random_state=context.random_state)
+        elif self.segment_by == 'properties':
+            features = select_from_dataframe(text_data.properties, self.columns, self.ignore_columns)
+            features_name = 'properties'
+            # categorical_features = text_data.property_types[features.columns].isin('categorical')
 
         predictions = context.model.predict(text_data)
         if not hasattr(context.model, 'predict_proba'):
@@ -125,7 +127,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                                                    loss_per_sample, scorer)
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
-                                         'segments. Try increasing n_samples or supply additional properties.')
+                                         f'segments. Try increasing n_samples or supply more {features_name}.')
 
         avg_score = round(scorer(dummy_model, encoded_dataset), 3)
         display = self._create_heatmap_display(dummy_model, encoded_dataset, weak_segments, avg_score,
@@ -141,3 +143,15 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                       'list of weak segments can be observed in the check result value. '
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[display_msg, DisplayMap(display)])
+
+
+class PropertySegmentsPerformance(WeakSegmentsPerformance):
+
+    def __init__(self, **kwargs):
+        super().__init__(segment_by='properties', **kwargs)
+
+class AdditionalDataSegmentsPerformance(WeakSegmentsPerformance):
+
+    def __init__(self, **kwargs):
+        super().__init__(segment_by='additional_data', **kwargs)
+

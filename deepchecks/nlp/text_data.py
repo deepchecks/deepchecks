@@ -18,6 +18,7 @@ import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.utils.text_properties import calculate_default_properties, get_default_property_types
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.validation import is_sequence_not_str
 
@@ -85,7 +86,8 @@ class TextData:
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
-            additional_data: t.Optional[pd.DataFrame] = None
+            additional_data: t.Optional[pd.DataFrame] = None,
+            properties: t.Optional[pd.DataFrame] = None,
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -149,6 +151,8 @@ class TextData:
                 raise DeepchecksValueError('additional_data index must be the same as the text data index')
 
         self._additional_data = additional_data
+        self._properties = properties
+        self._property_types = None
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -299,6 +303,25 @@ class TextData:
     def additional_data(self) -> pd.DataFrame:
         """Return the additional data of for the dataset."""
         return self._additional_data
+
+    def set_properties(self, properties: pd.DataFrame):
+        """Set the properties of the dataset."""
+        self._properties = properties
+
+    @property
+    def properties(self):
+        """Return the properties of the dataset."""
+        if self._properties is  None:
+            self._properties = pd.DataFrame(calculate_default_properties(self.text), index=self.index)
+
+        return self._properties
+
+    @property
+    def property_types(self):
+        """Return the property types of the dataset."""
+        if self._property_types is None:
+            self._property_types = pd.Series(get_default_property_types())
+        return self._property_types
 
     def __len__(self):
         """Return number of samples in the dataset."""
