@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,16 +10,14 @@
 #
 """Module importing all vision checks."""
 from .data_integrity import ImagePropertyOutliers, LabelPropertyOutliers, PropertyLabelCorrelation
-from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, ImageSegmentPerformance,
-                               MeanAveragePrecisionReport, MeanAverageRecallReport, ModelErrorAnalysis,
-                               RobustnessReport, SimpleModelComparison, SingleDatasetPerformance,
+from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, MeanAveragePrecisionReport,
+                               MeanAverageRecallReport, SimpleModelComparison, SingleDatasetPerformance,
                                TrainTestPredictionDrift, WeakSegmentsPerformance)
 from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, NewLabels,
-                                    PropertyLabelCorrelationChange, SimilarImageLeakage, TrainTestLabelDrift)
+                                    PropertyLabelCorrelationChange, TrainTestLabelDrift)
 
 __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
-           'RobustnessReport', 'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
-           'ImagePropertyDrift', 'ModelErrorAnalysis', 'TrainTestPredictionDrift', 'ImageSegmentPerformance',
+           'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
+           'ImagePropertyDrift', 'TrainTestPredictionDrift',
            'PropertyLabelCorrelationChange', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
-           'SimilarImageLeakage', 'NewLabels', 'SingleDatasetPerformance', 'PropertyLabelCorrelation',
-           'WeakSegmentsPerformance']
+           'NewLabels', 'SingleDatasetPerformance', 'PropertyLabelCorrelation', 'WeakSegmentsPerformance']

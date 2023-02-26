@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,6 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module for detection datasets and models."""
-from . import coco, yolo_to_coco
 
-__all__ = ["coco", "yolo_to_coco"]
+from . import coco_torch, mask
+
+__all__ = ['coco_torch', 'mask']
+
+try:
+    from . import coco_tensorflow  # noqa: F401
+except ImportError:
+    pass
+else:
+    __all__.append('coco_tensorflow')

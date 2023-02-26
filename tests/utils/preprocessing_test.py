@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -13,8 +13,8 @@ import numpy as np
 from hamcrest import assert_that, calling, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.distribution.preprocessing import (OTHER_CATEGORY_NAME,
-                                                         preprocess_2_cat_cols_to_same_bins, value_frequency)
+from deepchecks.utils.distribution.preprocessing import (OTHER_CATEGORY_NAME, preprocess_2_cat_cols_to_same_bins,
+                                                         value_frequency)
 
 
 def test_cat_cols_to_bins_no_max_num_categories():

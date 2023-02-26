@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -8,19 +8,19 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-import inspect
 from typing import Callable
 
 import torch
 
 from deepchecks.core.errors import DeepchecksBaseError
-from deepchecks.vision import Context, SingleDatasetCheck, TrainTestCheck, checks
-from deepchecks.vision.datasets.classification import mnist
-from deepchecks.vision.datasets.detection import coco
+from deepchecks.vision import SingleDatasetCheck, TrainTestCheck
+from deepchecks.vision.datasets.classification import mnist_torch as mnist
+from deepchecks.vision.datasets.detection import coco_torch as coco
 from deepchecks.vision.vision_data import VisionData
 
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 
 def create_static_predictions(train: VisionData, test: VisionData, model):
     static_preds = []
@@ -53,7 +53,7 @@ def run_check_fn(check_class) -> Callable:
     return run
 
 
-def setup_mnist() -> Context:
+def setup_mnist():
     mnist_model = mnist.load_model()
     train_ds = mnist.load_dataset(train=True, object_type='VisionData')
     test_ds = mnist.load_dataset(train=False, object_type='VisionData')
@@ -61,7 +61,7 @@ def setup_mnist() -> Context:
     return train_ds, test_ds, train_preds, tests_preds
 
 
-def setup_coco() -> Context:
+def setup_coco():
     coco_model = coco.load_model()
     train_ds = coco.load_dataset(train=True, object_type='VisionData')
     test_ds = coco.load_dataset(train=False, object_type='VisionData')

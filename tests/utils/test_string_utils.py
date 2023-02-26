@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -79,7 +79,7 @@ def test_round_timestamp():
         matches_regexp(pattern) # type: ignore
     )
 
-def test_format_datetime_with_unsuported_value_type():
+def test_format_datetime_with_unsupported_value_type():
     assert_that(
         calling(format_datetime).with_args('hello'),
         raises(ValueError, r'Unsupported value type - str')

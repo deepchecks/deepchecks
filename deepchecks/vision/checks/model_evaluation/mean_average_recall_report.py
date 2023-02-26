@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,7 +10,7 @@
 #
 """Module containing mean average recall report check."""
 import math
-from typing import Tuple, TypeVar
+from typing import Optional, Tuple, TypeVar
 
 import numpy as np
 import pandas as pd
@@ -18,15 +18,19 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.metrics_utils.detection_precision_recall import ObjectDetectionAveragePrecision
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['MeanAverageRecallReport']
 
 MPR = TypeVar('MPR', bound='MeanAverageRecallReport')
 
 
+@docstrings
 class MeanAverageRecallReport(SingleDatasetCheck):
     """Summarize mean average recall metrics on a dataset and model per detections and area range.
 
@@ -34,10 +38,12 @@ class MeanAverageRecallReport(SingleDatasetCheck):
     ----------
     area_range: tuple, default: (32**2, 96**2)
         Slices for small/medium/large buckets.
+    {additional_check_init_params:2*indent}
     """
 
-    def __init__(self, area_range: Tuple = (32 ** 2, 96 ** 2), **kwargs):
+    def __init__(self, area_range: Tuple = (32 ** 2, 96 ** 2), n_samples: Optional[int] = 10000, **kwargs):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self._area_range = area_range
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
@@ -45,11 +51,9 @@ class MeanAverageRecallReport(SingleDatasetCheck):
         context.assert_task_type(TaskType.OBJECT_DETECTION)
         self._ap_metric = ObjectDetectionAveragePrecision(return_option=None, area_range=self._area_range)
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
-        label = batch.labels
-        prediction = batch.predictions
-        self._ap_metric.update((prediction, label))
+        self._ap_metric.update((batch.numpy_predictions, batch.numpy_labels))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and create display."""

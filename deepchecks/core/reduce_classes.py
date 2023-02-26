@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -100,22 +100,22 @@ class ReduceFeatureMixin(ReduceMixin):
     def feature_reduce(aggregation_method: str, value_per_feature: pd.Series, feature_importance: Optional[np.array],
                        score_name: str) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        if aggregation_method == 'none':
+        if feature_importance is not None:
+            feature_importance = np.array(feature_importance)[value_per_feature.notna().values]
+        value_per_feature.dropna(inplace=True)
+
+        if aggregation_method is None or aggregation_method == 'none':
             return dict(value_per_feature)
         elif aggregation_method == 'mean':
             return {str('Mean ' + score_name): np.mean(value_per_feature)}
         elif aggregation_method == 'max':
             return {str('Max ' + score_name): np.max(value_per_feature)}
 
-        if aggregation_method in ['weighted', 'l2_weighted', 'top_5'] and feature_importance is None:
+        if aggregation_method in ['weighted', 'l2_weighted'] and feature_importance is None:
             get_logger().warning(
                 'Failed to calculate feature importance to all features, using uniform mean instead.')
-            return {str('Mean ' + score_name): np.mean(value_per_feature)}
-        elif aggregation_method == 'top_5':
-            if len(value_per_feature) <= 5:
-                return dict(value_per_feature)
-            top_5_important = np.flip(np.argsort(feature_importance)[-5:])
-            return dict(value_per_feature[top_5_important])
+            return {str(str.title(aggregation_method.replace('_', ' ')) + ' ' + score_name): np.mean(value_per_feature)}
+
         elif aggregation_method == 'weighted':
             return {str('Weighted ' + score_name): np.sum(np.array(value_per_feature) * feature_importance)}
         elif aggregation_method == 'l2_weighted':
@@ -138,7 +138,7 @@ class ReducePropertyMixin(ReduceMixin):
     @staticmethod
     def property_reduce(aggregation_method: str, value_per_property: pd.Series, score_name: str) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        if aggregation_method == 'none':
+        if aggregation_method is None or aggregation_method == 'none':
             return dict(value_per_property)
         elif aggregation_method == 'mean':
             return {str('Mean ' + score_name): np.mean(value_per_property)}

@@ -7,3 +7,5 @@ include VERSION
 include README.md
 include DESCRIPTION.rst
 recursive-include deepchecks/core/resources *
+recursive-include deepchecks/vision/fonts *
+recursive-include deepchecks/vision/datasets/assets *

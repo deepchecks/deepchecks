@@ -15,13 +15,10 @@ from hamcrest import assert_that, calling, is_, raises
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.vision.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from deepchecks.vision.datasets.detection import coco
 
 
-def test_run_base_checks():
+def test_run_base_checks(coco_visiondata_train):
     # Arrange
-    coco_dataset = coco.load_dataset(object_type='VisionData')
-    coco_model = coco.load_model()
     executions = defaultdict(int)
 
     class DummyCheck(SingleDatasetCheck):
@@ -46,21 +43,12 @@ def test_run_base_checks():
             executions["compute"] += 1
             return CheckResult(None)
 
-    class DummyModelCheck(ModelOnlyCheck):
-        def initialize_run(self, context):
-            executions["initialize_run"] += 1
-
-        def compute(self, context) -> CheckResult:
-            executions["compute"] += 1
-            return CheckResult(None)
-
     # Act
-    DummyCheck().run(coco_dataset)
-    DummyTrainTestCheck().run(coco_dataset, coco_dataset)
-    DummyModelCheck().run(coco_model)
+    DummyCheck().run(coco_visiondata_train)
+    DummyTrainTestCheck().run(coco_visiondata_train, coco_visiondata_train)
 
     # Assert
-    assert_that(executions, is_({"initialize_run": 3, "compute": 3, "update": 6}))
+    assert_that(executions, is_({"initialize_run": 2, "compute": 2, "update": 6}))
 
 
 def test_base_check_raise_not_implemented():

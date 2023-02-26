@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,17 +10,18 @@
 #
 """Module containing a check for computing a scalar performance metric for a single dataset."""
 from numbers import Number
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Union
-
-from ignite.metrics import Metric
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union
 
 from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMetricClassMixin
 from deepchecks.utils.docref import doclink
-from deepchecks.vision import Batch, Context, SingleDatasetCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import SingleDatasetCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.metrics_utils.scorers import get_scorers_dict, metric_results_to_df
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 if TYPE_CHECKING:
     from deepchecks.core.checks import CheckConfig
@@ -28,31 +29,32 @@ if TYPE_CHECKING:
 __all__ = ['SingleDatasetPerformance']
 
 
+@docstrings
 class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
     """Calculate performance metrics of a given model on a given dataset.
 
     Parameters
     ----------
-    scorers : Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None,
-        An optional dictionary of scorer name to scorer functions.
-        If none given, using default scorers
-
+    scorers: Union[Dict[str, Union[Callable, str]], List[Any]] , default: None
+        Scorers to override the default scorers (metrics), find more about the supported formats at
+        https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html
+    {additional_check_init_params:2*indent}
     """
 
-    def __init__(self, scorers: Union[Dict[str, Union[Metric, Callable, str]], List[Any]] = None, **kwargs):
+    def __init__(self, scorers: Union[Dict[str, Union[Callable, str]], List[Any]] = None,
+                 n_samples: Optional[int] = 10000, **kwargs):
         super().__init__(**kwargs)
+        self.n_samples = n_samples
         self.scorers = scorers
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind.TRAIN):
         """Initialize the metric for the check, and validate task type is relevant."""
         self.scorers = get_scorers_dict(context.get_data_by_kind(dataset_kind), self.scorers)
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind.TRAIN):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind.TRAIN):
         """Update the metrics by passing the batch to ignite metric update method."""
-        label = batch.labels
-        prediction = batch.predictions
         for scorer in self.scorers.values():
-            scorer.update((prediction, label))
+            scorer.update((batch.numpy_predictions, batch.numpy_labels))
 
     def compute(self, context: Context, dataset_kind: DatasetKind.TRAIN) -> CheckResult:
         """Compute the metric result using the ignite metrics compute method and reduce to a scalar."""

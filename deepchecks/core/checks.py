@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -65,6 +65,7 @@ class BaseCheck(abc.ABC):
     def __init__(self, **kwargs):  # pylint: disable=unused-argument
         self._conditions = OrderedDict()
         self._conditions_index = 0
+        self.n_samples = kwargs.get('n_samples')  # None indicates that the check will run on the entire dataset
 
     @abc.abstractmethod
     def run(self, *args, **kwargs) -> 'check_types.CheckResult':
@@ -270,7 +271,7 @@ class SingleDatasetBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, dataset, model=None, **kwargs) -> 'check_types.CheckResult':
+    def run(self, dataset, **kwargs) -> 'check_types.CheckResult':
         """Run check."""
         raise NotImplementedError()
 
@@ -284,7 +285,7 @@ class TrainTestBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, train_dataset, test_dataset, model=None, **kwargs) -> 'check_types.CheckResult':
+    def run(self, train_dataset, test_dataset, **kwargs) -> 'check_types.CheckResult':
         """Run check."""
         raise NotImplementedError()
 

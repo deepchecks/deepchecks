@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,7 +10,7 @@
 #
 """Module contains Train Test label Drift check."""
 from collections import OrderedDict, defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
@@ -19,14 +19,16 @@ from deepchecks.core.checks import CheckConfig
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.reduce_classes import ReduceLabelMixin, ReducePropertyMixin
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
-from deepchecks.vision import Batch, Context, TrainTestCheck
 from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.label_prediction_properties import (DEFAULT_CLASSIFICATION_LABEL_PROPERTIES,
                                                                  DEFAULT_OBJECT_DETECTION_LABEL_PROPERTIES,
                                                                  DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES,
                                                                  get_column_type, properties_flatten)
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['TrainTestLabelDrift']
 
@@ -51,7 +53,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
     - distribution of bounding box areas
     - distribution of number of bounding boxes per image
 
-    For numerical distributions, we use the Earth Movers Distance.
+    For numerical distributions, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     For categorical distributions, we use the Cramer's V.
@@ -59,6 +63,8 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
+    **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V, together with setting
+    the ``balance_classes`` parameter to ``True``.
 
     Parameters
     ----------
@@ -67,7 +73,7 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
         - ``'class_id'`` - for properties that return the class_id. This is used because these
@@ -80,10 +86,10 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         disproportionally. This filter is applied to both distributions, in both margins.
     min_category_size_ratio : float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
-        into an "Other" category.
+        into an "Other" category. Ignored if balance_classes=True.
     max_num_categories_for_drift : int, default: None
         Only for discrete properties. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
+        they are binned into an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by : str, default: 'largest_difference'
@@ -92,11 +98,24 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method : str, default: "cramer_v"
+    numerical_drift_method: str, default: "KS"
+        decides which method to use on numerical variables. Possible values are:
+        "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    categorical_drift_method : str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
-    aggregation_method: str, default: 'none'
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    balance_classes: bool, default: False
+        If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
+        variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
+        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
+        If True, the variable frequency plot will be created with a log scale in the y-axis.
+    aggregation_method: str, default: None
         {property_aggregation_method_argument:2*indent}
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
+        train or test, the check will return None for that property. If there are not enough samples for all properties,
+        the check will raise a ``NotEnoughSamplesError`` exception.
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -107,8 +126,12 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
-            aggregation_method: str = 'none',
+            numerical_drift_method: str = 'KS',
+            categorical_drift_method: str = 'cramers_v',
+            balance_classes: bool = False,
+            aggregation_method: Optional[str] = None,
+            min_samples: Optional[int] = 10,
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -117,9 +140,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
+        self.numerical_drift_method = numerical_drift_method
         self.categorical_drift_method = categorical_drift_method
+        self.balance_classes = balance_classes
         self.label_properties = label_properties
         self.aggregation_method = aggregation_method
+        self.min_samples = min_samples
+        self.n_samples = n_samples
 
         self._train_label_properties = None
         self._test_label_properties = None
@@ -127,20 +154,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
     def initialize_run(self, context: Context):
         """Initialize run.
 
-        Function initializes the following private variables:
-
-        Label properties:
-
-        _label_properties: all label properties to be calculated in run
-
         Label properties caching:
-        _train_label_properties, _test_label_properties: Dicts of lists accumulating the label properties computed for
-        each batch.
+            _train_label_properties, _test_label_properties: Dicts of lists accumulating the label properties computed
+            for each batch.
         """
         train_dataset = context.train
 
         task_type = train_dataset.task_type
-
         if self.label_properties is None:
             if task_type == TaskType.CLASSIFICATION:
                 self.label_properties = DEFAULT_CLASSIFICATION_LABEL_PROPERTIES
@@ -149,13 +169,13 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             elif task_type == TaskType.SEMANTIC_SEGMENTATION:
                 self.label_properties = DEFAULT_SEMANTIC_SEGMENTATION_LABEL_PROPERTIES
             else:
-                raise NotImplementedError('Check must receive either label_properties or run '
-                                          'on Classification or Object Detection class')
+                raise DeepchecksNotSupportedError('Check must either receive label_properties or run '
+                                                  'on a supported task type.')
 
         self._train_label_properties = defaultdict(list)
         self._test_label_properties = defaultdict(list)
 
-    def update(self, context: Context, batch: Batch, dataset_kind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind):
         """Perform update on batch for train or test properties."""
         # For all transformers, calculate histograms by batch:
         if dataset_kind == DatasetKind.TRAIN:
@@ -189,9 +209,9 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
             output_type = label_prop['output_type']
             # If type is class converts to label names
             if output_type == 'class_id':
-                self._train_label_properties[name] = [context.train.label_id_to_name(class_id) for class_id in
+                self._train_label_properties[name] = [context.train.label_map[class_id] for class_id in
                                                       self._train_label_properties[name]]
-                self._test_label_properties[name] = [context.test.label_id_to_name(class_id) for class_id in
+                self._test_label_properties[name] = [context.test.label_map[class_id] for class_id in
                                                      self._test_label_properties[name]]
 
             value, method, display = calc_drift_and_plot(
@@ -204,7 +224,11 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
                 min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
+                numerical_drift_method=self.numerical_drift_method,
                 categorical_drift_method=self.categorical_drift_method,
+                balance_classes=self.balance_classes,
+                min_samples=self.min_samples,
+                raise_min_samples_error=True,
                 with_display=context.with_display,
                 dataset_names=dataset_names
             )
@@ -246,21 +270,21 @@ class TrainTestLabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin)
         return self.property_reduce(self.aggregation_method, pd.Series(value_per_property), 'Drift Score')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
-                                            max_allowed_numeric_score: float = 0.075) -> 'TrainTestLabelDrift':
+                                            max_allowed_numeric_score: float = 0.15) -> 'TrainTestLabelDrift':
         """
         Add condition - require label properties drift score to be less than a certain threshold.
 
         The industry standard for PSI limit is above 0.2.
-        Cramer's V does not have a common industry standard.
-        Earth movers does not have a common industry standard.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
         The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of label drift.
 
         Parameters
         ----------
         max_allowed_categorical_score: float , default: 0.15
             the max threshold for the PSI score
-        max_allowed_numeric_score: float ,  default: 0.075
-            the max threshold for the Earth Mover's Distance score
+        max_allowed_numeric_score: float ,  default: 0.15
+            the max threshold for the drift score
         Returns
         -------
         ConditionResult

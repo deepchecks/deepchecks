@@ -15,23 +15,21 @@ deepchecks.vision
     suites
     datasets
     utils
+    metrics_utils
+    vision_data
+    base_checks
+    context
+    deprecation_warnings
     metrics
+    suite
 
 .. rubric:: Classes
-    
+
 .. autoclass:: VisionData
     :members:
     :inherited-members:
 
-.. autoclass:: ClassificationData
-    :members:
-    :inherited-members:
-
-.. autoclass:: DetectionData
-    :members:
-    :inherited-members:
-
-.. autoclass:: Context
+.. autoclass:: BatchOutputFormat
     :members:
     :inherited-members:
 
@@ -50,3 +48,7 @@ deepchecks.vision
 .. autoclass:: Suite
     :members:
     :inherited-members:
+
+.. rubric:: Functions
+
+.. autofunction:: classification_dataset_from_directory

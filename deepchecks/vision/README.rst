@@ -2,7 +2,7 @@
 
    <!--
      ~ ----------------------------------------------------------------------------
-     ~ Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+     ~ Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
      ~
      ~ This file is part of Deepchecks.
      ~ Deepchecks is distributed under the terms of the GNU Affero General
@@ -93,12 +93,13 @@ Using conda
 
 Check out the following tutorials for a quick start with deepchecks for CV:
 
-- `Image Data Validation in 5 Minutes (for data without model) <https://docs.deepchecks.com/stable/user-guide/vision/auto_quickstarts/plot_simple_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Image Data Validation in 5 Minutes (for data without model) <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_simple_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
+- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_detection_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_quickstarts/plot_detection_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_quickstarts/plot_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Deepchecks for Segmentation Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_segmentation_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
 
 📊 Check Examples
@@ -255,7 +256,7 @@ What Do You Need in Order To Start Validating?
 ================================================
 
 - Images (optional: model, predictions and labels)
-- Pytorch environment
+- Relevant environment for running your model (optional) - such as Pytorch, Tensorflow, etc.
 - Supported use cases
     - All use cases are supported for checks that require only the images (e.g. for checking image properties such as brightness or aspect ratio)
     - Checks that require the predictions, labels, and/or that calculate metrics

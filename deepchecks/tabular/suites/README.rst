@@ -2,7 +2,7 @@
 
    <!--
      ~ ----------------------------------------------------------------------------
-     ~ Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+     ~ Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
      ~
      ~ This file is part of Deepchecks.
      ~ Deepchecks is distributed under the terms of the GNU Affero General
@@ -32,6 +32,10 @@ List of Prebuilt Suites
    performance and overfit.
 -  full_suite - Runs all previously mentioned suites and overview
    checks.
+-  production_suite - Runs a set of checks selected for testing model
+   performance, drift and integrity in production. Exact checks will
+   depend on the task type and on whether the suite should compare
+   the production data to a reference dataset.
 
 Running a Suite
 ----------------

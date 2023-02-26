@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -23,7 +23,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.suites.default_suites import full_suite
 from deepchecks.tabular.utils.task_type import TaskType
 from tests.base.utils import equal_condition_result
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 from tests.tabular.checks.model_evaluation.simple_model_comparison_test import assert_regression
 
 
@@ -55,7 +55,7 @@ def test_roc_condition_ratio_more_than_passed(iris_split_dataset_and_model):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='All classes passed, minimum AUC found is 1 for class 2',
+                               details='All classes passed, minimum AUC found is 1 for class 2.0',
                                name='AUC score for all the classes is greater than 0.7')
     ))
 

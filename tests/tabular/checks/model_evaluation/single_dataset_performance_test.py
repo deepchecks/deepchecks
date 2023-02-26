@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -110,6 +110,18 @@ def test_binary_classification_adult(adult_split_dataset_and_model):
     binary_precision = result_binary[result_binary['Metric'] == 'Precision'].iloc[0, 2]
     assert_that(binary_precision, close_to(0.79, 0.01))
     assert_that(result_per_class.iloc[1, 2], close_to(binary_precision, 0.01))
+
+
+def test_binary_classification_single_class(adult_split_dataset_and_model):
+    # Arrange
+    _, test, model = adult_split_dataset_and_model
+    check_binary = SingleDatasetPerformance(scorers=['f1_per_class'])
+    # Act
+    new_test = test.copy(test.data[test.label_col == ' <=50K'])
+    result_binary = check_binary.run(new_test, model).value
+    # Assert
+    binary_f1 = result_binary[result_binary['Metric'] == 'f1'].iloc[0, 2]
+    assert_that(binary_f1, close_to(0.98, 0.01))
 
 
 def test_classification_reduce(iris_split_dataset_and_model):

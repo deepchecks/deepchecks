@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -19,12 +19,11 @@ import typing as t
 from multiprocessing import get_context, process
 from tempfile import NamedTemporaryFile
 
-import plotly.io as pio
 from IPython.core.display import display, display_html
 from ipywidgets import Widget
 
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
-from deepchecks.utils.ipython import is_colab_env, is_databricks_env, is_kaggle_env, is_sagemaker_env
+from deepchecks.utils.ipython import is_colab_env, is_databricks_env, is_kaggle_env, is_sagemaker_env, is_sphinx
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 
@@ -81,7 +80,7 @@ class DisplayableResult(abc.ABC):
         Optional[HTMLFormatter] :
             when used by sphinx-gallery
         """
-        if 'sphinx_gallery' in pio.renderers.default:
+        if is_sphinx():
             # TODO: why we need this? add comments
             html = widget_to_html_string(  # pylint: disable=redefined-outer-name
                 self.widget_serializer.serialize(output_id=unique_id, **kwargs),

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,21 +10,23 @@
 #
 """Test metrics utils"""
 import pandas as pd
-from hamcrest import assert_that, close_to, calling, raises, has_entries, is_
+from hamcrest import assert_that, calling, close_to, has_entries, is_, raises
 from sklearn.metrics import make_scorer
 
-from tests.common import is_nan
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
+from deepchecks.tabular.utils.task_inference import infer_classes_from_model, get_all_labels
+from tests.common import is_nan
 
 
 def deepchecks_scorer(scorer, clf, dataset):
-    _, observed_classes, model_classes = infer_task_type_and_classes(clf, dataset)
+    model_classes = infer_classes_from_model(clf)
+    labels = get_all_labels(clf, dataset)
+    observed_classes = sorted(labels.unique().tolist())
     return DeepcheckScorer(scorer, model_classes, observed_classes)
 
 

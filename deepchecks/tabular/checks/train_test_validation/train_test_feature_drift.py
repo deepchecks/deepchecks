@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -11,12 +11,12 @@
 """Module contains Train Test Drift check."""
 
 from collections import OrderedDict
-from typing import Dict, List, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
@@ -34,7 +34,9 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
     dataset.
 
-    For numerical columns, we use the Earth Movers Distance.
+    For numerical columns, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
 
     For categorical distributions, we use the Cramer's V.
@@ -80,14 +82,21 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramer_v"
+    numerical_drift_method: str, default: "KS"
+        decides which method to use on numerical variables. Possible values are:
+        "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    categorical_drift_method: str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: str, default: 'l2_weighted'
+    aggregation_method: Optional[str], default: 'l2_weighted'
         {feature_aggregation_method_argument:2*indent}
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
+        train or test, the check will return None for that feature. If there are not enough samples for all features,
+        the check will raise a ``NotEnoughSamplesError`` exception.
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
@@ -105,9 +114,11 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
+            numerical_drift_method: str = 'KS',
+            categorical_drift_method: str = 'cramers_v',
             ignore_na: bool = True,
-            aggregation_method='l2_weighted',
+            aggregation_method: Optional[str] = 'l2_weighted',
+            min_samples: Optional[int] = 10,
             n_samples: int = 100_000,
             random_state: int = 42,
             **kwargs
@@ -127,9 +138,11 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 '"sort_feature_by must be either "feature importance", "drift score" or "drift + importance"'
             )
         self.n_top_columns = n_top_columns
+        self.numerical_drift_method = numerical_drift_method
         self.categorical_drift_method = categorical_drift_method
         self.ignore_na = ignore_na
         self.aggregation_method = aggregation_method
+        self.min_samples = min_samples
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -168,13 +181,13 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
 
         values_dict = OrderedDict()
         displays_dict = OrderedDict()
+        not_enough_samples = []
 
         features_order = (
-            tuple(
-                feature_importance
-                .sort_values(ascending=False)
-                .index
-            )
+            # In order to have consistent order for features with same importance, first sorting by index, and then
+            # using mergesort which preserves the order of equal elements.
+            tuple(feature_importance.sort_index(key=lambda x: x.astype(str))
+                  .sort_values(kind='mergesort', ascending=False).index)
             if feature_importance is not None
             else None
         )
@@ -203,17 +216,32 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 min_category_size_ratio=self.min_category_size_ratio,
                 max_num_categories_for_display=self.max_num_categories_for_display,
                 show_categories_by=self.show_categories_by,
+                numerical_drift_method=self.numerical_drift_method,
                 categorical_drift_method=self.categorical_drift_method,
                 ignore_na=self.ignore_na,
+                min_samples=self.min_samples,
                 with_display=context.with_display,
                 dataset_names=(train_dataset.name, test_dataset.name)
             )
+
+            if value == 'not_enough_samples':
+                not_enough_samples.append(column)
+                value = None
+            else:
+                displays_dict[column] = display
+
             values_dict[column] = {
                 'Drift score': value,
                 'Method': method,
                 'Importance': feature_importance[column] if feature_importance is not None else None
             }
-            displays_dict[column] = display
+
+        if len(not_enough_samples) == len(values_dict.keys()):
+            raise NotEnoughSamplesError(
+                f'Not enough samples to calculate drift score. Minimum {self.min_samples} samples required. '
+                'Note that for numerical columns, None values do not count as samples.'
+                'Use the \'min_samples\' parameter to change this requirement.'
+            )
 
         if context.with_display:
             sorted_by = self.sort_feature_by
@@ -222,12 +250,13 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                 columns_order = features_order[:self.n_top_columns]
             elif self.sort_feature_by == 'drift + importance' and feature_importance is not None:
                 feature_columns = [feat for feat in features_order if feat in values_dict]
-                feature_columns.sort(key=lambda col: values_dict[col]['Drift score'] + values_dict[col]['Importance'],
-                                     reverse=True)
+                feature_columns.sort(
+                    key=lambda col: (values_dict[col]['Drift score'] or 0) + values_dict[col]['Importance'],
+                    reverse=True)
                 columns_order = feature_columns[:self.n_top_columns]
                 sorted_by = 'the sum of the drift score and the feature importance'
             else:
-                columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'],
+                columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'] or 0,
                                        reverse=True)[:self.n_top_columns]
                 sorted_by = 'drift score'
 
@@ -238,8 +267,13 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
                         'If available, the plot titles also show the feature importance (FI) rank']
 
+            if not_enough_samples:
+                headnote.append(f'<span>The following columns do not have enough samples to calculate drift '
+                                f'score: {not_enough_samples}</span>')
+
             displays = headnote + [displays_dict[col] for col in columns_order
-                                   if col in train_dataset.cat_features + train_dataset.numerical_features]
+                                   if col in train_dataset.cat_features + train_dataset.numerical_features
+                                   and values_dict[col]['Drift score'] is not None]
         else:
             displays = None
 
@@ -253,20 +287,20 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         return self.feature_reduce(self.aggregation_method, values, feature_importance, 'Drift Score')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
-                                            max_allowed_numeric_score: float = 0.1,
+                                            max_allowed_numeric_score: float = 0.2,
                                             allowed_num_features_exceeding_threshold: int = 0):
         """
         Add condition - require drift score to be less than the threshold.
 
         The industry standard for PSI limit is above 0.2.
-        Cramer's V does not have a common industry standard.
-        Earth movers does not have a common industry standard.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
 
         Parameters
         ----------
         max_allowed_categorical_score: float , default: 0.2
             The max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.1
+        max_allowed_numeric_score: float ,  default: 0.2
             The max threshold for the numeric variable drift score
         allowed_num_features_exceeding_threshold: int , default: 0
             Determines the number of features with drift score above threshold needed to fail the condition.

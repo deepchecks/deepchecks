@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -21,16 +21,11 @@ def fast_sum_by_row(matrix: np.ndarray) -> np.array:
     return np.matmul(matrix, np.ones(matrix.shape[1]))
 
 
-def convert_into_flat_list(sequence: t.Sequence):
-    """Convert a sequence into a flat list."""
-    if not is_sequence(sequence):
+def sequence_to_numpy(sequence: t.Sequence):
+    """Convert a sequence into a numpy array."""
+    if isinstance(sequence, np.ndarray):
+        return sequence.flatten()
+    elif isinstance(sequence, t.List):
+        return np.asarray(sequence).flatten()
+    else:
         raise DeepchecksValueError('Trying to convert a non sequence into a flat list.')
-    result = []
-    for x in sequence:
-        result += list(x) if is_sequence(x) else [x]
-    return result
-
-
-def is_sequence(x) -> bool:
-    """Check if a variable is a sequence."""
-    return isinstance(x, (t.Sequence, np.ndarray)) and not isinstance(x, str)

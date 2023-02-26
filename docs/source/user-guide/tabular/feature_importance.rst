@@ -57,7 +57,8 @@ You Insert Your Own Feature Importance Data
 This can be done by using the ``features_importance`` parameter in the ``run`` function, available in all
 checks and suites.
 Deepchecks expects this data to be a ``pandas.Series`` where the index is feature names and the value is the calculated
-importance.
+importance. In addition, deepchecks expects the feature importance to be normalized (meaning, the sum of all feature
+importance values is 1), and will normalize it.
 
 >>> check = UnusedFeatures()
 >>> check.run(ds_train, ds_test, model, feature_importance=pd.Series({'feat1': 0.3, 'feat2': 0.7}))

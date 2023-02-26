@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -19,15 +19,14 @@ from deepchecks.core import CheckResult, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.feature_label_correlation_utils import (get_feature_label_correlation,
                                                                          get_feature_label_correlation_per_class)
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.errors import ModelValidationError
-from deepchecks.utils.dataframes import is_float_column
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import Context, TrainTestCheck
-from deepchecks.vision.batch_wrapper import Batch
-from deepchecks.vision.utils.image_properties import default_image_properties
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.property_label_correlation_utils import calc_properties_for_property_label_correlation
 from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['PropertyLabelCorrelationChange']
 
@@ -35,11 +34,10 @@ pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
           'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
-
 PLC = TypeVar('PLC', bound='PropertyLabelCorrelationChange')
 
 
-# FeatureLabelCorrelationChange
+@docstrings
 class PropertyLabelCorrelationChange(TrainTestCheck):
     """
     Return the Predictive Power Score of image properties, in order to estimate their ability to predict the label.
@@ -71,7 +69,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - ``'numeric'`` - for continuous ordinal outputs.
+        - ``'numerical'`` - for continuous ordinal outputs.
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
@@ -87,6 +85,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
             Minimum PPS to show a class in the graph
     ppscore_params: dict, default: None
         dictionary of additional parameters for the ppscore predictor function
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -94,36 +93,35 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
             image_properties: Optional[List[Dict[str, Any]]] = None,
             n_top_properties: int = 3,
             per_class: bool = True,
-            random_state: int = None,
             min_pps_to_show: float = 0.05,
             ppscore_params: dict = None,
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-
-        self.image_properties = image_properties if image_properties else default_image_properties
-
+        self.n_samples = n_samples
+        self.image_properties = image_properties
         self.min_pps_to_show = min_pps_to_show
         self.per_class = per_class
         self.n_top_properties = n_top_properties
-        self.random_state = random_state
         self.ppscore_params = ppscore_params or {}
+        self._train_properties, self._test_properties = defaultdict(list), defaultdict(list)
+        self._train_properties['target'], self._test_properties['target'] = [], []
 
-        self._train_properties = defaultdict(list)
-        self._test_properties = defaultdict(list)
-        self._train_properties['target'] = []
-        self._test_properties['target'] = []
+    def initialize_run(self, context: Context):
+        """Initialize run."""
+        context.assert_task_type(TaskType.CLASSIFICATION, TaskType.OBJECT_DETECTION)
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
             properties_results = self._train_properties
         else:
             properties_results = self._test_properties
 
+        vision_data = context.get_data_by_kind(dataset_kind)
         data_for_properties, target = calc_properties_for_property_label_correlation(
-            context, batch, dataset_kind, self.image_properties)
-
+            vision_data.task_type, batch, self.image_properties)
         properties_results['target'] += target
 
         for prop_name, property_values in data_for_properties.items():
@@ -140,22 +138,11 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         """
         df_train = pd.DataFrame(self._train_properties)
         df_test = pd.DataFrame(self._test_properties)
-
         dataset_names = (context.train.name, context.test.name)
-        # PPS task type is inferred from label dtype. For most computer vision tasks, it's safe to assume that unless
-        # the label is a float, then the task type is not regression and thus the label is cast to object dtype.
-        # For the known task types (object detection, classification), classification is always selected.
-        col_dtype = 'object'
-        if context.train.task_type == TaskType.OTHER:
-            if is_float_column(df_train['target']) or is_float_column(df_test['target']):
-                col_dtype = 'float'
-        elif context.train.task_type not in (TaskType.OBJECT_DETECTION, TaskType.CLASSIFICATION):
-            raise ModelValidationError(
-                f'Check must be explicitly adopted to the new task type {context.train.task_type}, so that the '
-                f'label type used by the PPS predictor would be appropriate.')
-
-        df_train['target'] = df_train['target'].astype(col_dtype)
-        df_test['target'] = df_test['target'].astype(col_dtype)
+        # PPS task type is inferred from label dtype. For supported task types (object detection, classification),
+        # the label should be regarded as categorical thus it is cast to object dtype.
+        df_train['target'] = df_train['target'].apply(context.train.label_map.get).astype('object')
+        df_test['target'] = df_test['target'].apply(context.test.label_map.get).astype('object')
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of an image property (such as brightness)'
@@ -182,9 +169,10 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                                                                          self.ppscore_params,
                                                                          self.n_top_properties,
                                                                          min_pps_to_show=self.min_pps_to_show,
-                                                                         random_state=self.random_state,
+                                                                         random_state=context.random_state,
                                                                          with_display=context.with_display,
                                                                          dataset_names=dataset_names)
+
         else:
             ret_value, display = get_feature_label_correlation(df_train,
                                                                'target',
@@ -193,14 +181,14 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                                                                self.ppscore_params,
                                                                self.n_top_properties,
                                                                min_pps_to_show=self.min_pps_to_show,
-                                                               random_state=self.random_state,
+                                                               random_state=context.random_state,
                                                                with_display=context.with_display,
                                                                dataset_names=dataset_names)
 
         if display:
             display += text
 
-        return CheckResult(value=ret_value, display=display, header='Feature Label Correlation Change')
+        return CheckResult(value=ret_value, display=display, header='Property Label Correlation Change')
 
     def add_condition_property_pps_difference_less_than(self: PLC, threshold: float = 0.2,
                                                         include_negative_diff: bool = False) -> PLC:
@@ -227,6 +215,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         -------
         SFC
         """
+
         def condition(value: Union[Dict[Hashable, Dict[Hashable, float]],
                                    Dict[Hashable, Dict[Hashable, Dict[Hashable, float]]]],
                       ) -> ConditionResult:
@@ -267,7 +256,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
                 else:
                     max_feature, max_pps = get_dict_entry_by_value(value['train-test difference'])
                     message = f'Found highest PPS {format_number(max_pps)} for property {max_feature}' \
-                              if max_pps > 0 else '0 PPS found for all properties'
+                        if max_pps > 0 else '0 PPS found for all properties'
                     return ConditionResult(ConditionCategory.PASS, message)
 
         return self.add_condition(f'Train-Test properties\' Predictive Power Score difference is less than '
@@ -289,6 +278,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         -------
         SFC
         """
+
         def condition(value: Union[Dict[Hashable, Dict[Hashable, float]],
                                    Dict[Hashable, Dict[Hashable, Dict[Hashable, float]]]]) -> ConditionResult:
 

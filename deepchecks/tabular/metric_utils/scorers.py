@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -20,7 +20,7 @@ import pandas as pd
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, log_loss, make_scorer, mean_absolute_error, mean_squared_error
 from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
-from sklearn.preprocessing import LabelBinarizer
+from sklearn.preprocessing import OneHotEncoder
 
 try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
@@ -111,56 +111,61 @@ regression_scorers_higher_is_better_dict = {
     'neg_mean_gamma_deviance': get_scorer('neg_mean_gamma_deviance')
 }
 
-binary_scorers_dict = {
+common_classification_metrics = {
     'accuracy': get_scorer('accuracy'),
+    'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
+    'precision_micro': make_scorer(precision_score, average='micro', zero_division=0),
+    'precision_weighted': make_scorer(precision_score, average='weighted', zero_division=0),
+    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0),
+    'recall_micro': make_scorer(recall_score, average='micro', zero_division=0),
+    'recall_weighted': make_scorer(recall_score, average='weighted', zero_division=0),
+    'f1_macro': make_scorer(f1_score, average='macro', zero_division=0),
+    'f1_micro': make_scorer(f1_score, average='micro', zero_division=0),
+    'f1_weighted': make_scorer(f1_score, average='weighted', zero_division=0),
+    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0),
+    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0),
+    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0),
+}
+
+binary_scorers_dict = {
     'balanced_accuracy': get_scorer('balanced_accuracy'),
     'average_precision': get_scorer('average_precision'),
     'neg_brier_score': get_scorer('neg_brier_score'),
     'precision': make_scorer(precision_score, zero_division=0),
     'recall': make_scorer(recall_score, zero_division=0),
+    'f1': make_scorer(f1_score, zero_division=0),
     'fpr': make_scorer(false_positive_rate_metric, averaging_method='binary'),
     'fnr': make_scorer(false_negative_rate_metric, averaging_method='binary'),
     'tnr': make_scorer(true_negative_rate_metric, averaging_method='binary'),
     'jaccard': make_scorer(jaccard_score, zero_division=0),
     'roc_auc': get_scorer('roc_auc'),
-    'neg_log_loss': make_scorer(log_loss, greater_is_better=False, needs_proba=True, labels=[0, 1])
+    'neg_log_loss': make_scorer(log_loss, greater_is_better=False, needs_proba=True, labels=[0, 1]),
+    **common_classification_metrics
 }
 
 multiclass_scorers_dict = {
-    'accuracy': get_scorer('accuracy'),
-    'precision_macro': make_scorer(precision_score, average='macro', zero_division=0),
-    'precision_micro': make_scorer(precision_score, average='micro', zero_division=0),
-    'precision_weighted': make_scorer(precision_score, average='weighted', zero_division=0),
-    'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
-    'recall_macro': make_scorer(recall_score, average='macro', zero_division=0),
-    'recall_micro': make_scorer(recall_score, average='micro', zero_division=0),
-    'recall_weighted': make_scorer(recall_score, average='weighted', zero_division=0),
-    'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
-    'f1_macro': make_scorer(f1_score, average='macro', zero_division=0),
-    'f1_micro': make_scorer(f1_score, average='micro', zero_division=0),
-    'f1_weighted': make_scorer(f1_score, average='weighted', zero_division=0),
-    'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
-    'fpr_per_class': make_scorer(false_positive_rate_metric, averaging_method='per_class'),
-    'fpr_macro': make_scorer(false_positive_rate_metric, averaging_method='macro'),
-    'fpr_micro': make_scorer(false_positive_rate_metric, averaging_method='micro'),
-    'fpr_weighted': make_scorer(false_positive_rate_metric, averaging_method='weighted'),
-    'fnr_per_class': make_scorer(false_negative_rate_metric, averaging_method='per_class'),
-    'fnr_macro': make_scorer(false_negative_rate_metric, averaging_method='macro'),
-    'fnr_micro': make_scorer(false_negative_rate_metric, averaging_method='micro'),
-    'fnr_weighted': make_scorer(false_negative_rate_metric, averaging_method='weighted'),
-    'tnr_per_class': make_scorer(true_negative_rate_metric, averaging_method='per_class'),
-    'tnr_macro': make_scorer(true_negative_rate_metric, averaging_method='macro'),
-    'tnr_micro': make_scorer(true_negative_rate_metric, averaging_method='micro'),
-    'tnr_weighted': make_scorer(true_negative_rate_metric, averaging_method='weighted'),
     'roc_auc_per_class': make_scorer(roc_auc_per_class, needs_proba=True),
     'roc_auc_ovr': get_scorer('roc_auc_ovr'),
     'roc_auc_ovo': get_scorer('roc_auc_ovo'),
     'roc_auc_ovr_weighted': get_scorer('roc_auc_ovr_weighted'),
     'roc_auc_ovo_weighted': get_scorer('roc_auc_ovo_weighted'),
-    'jaccard_macro': make_scorer(jaccard_score, average='macro', zero_division=0),
-    'jaccard_micro': make_scorer(jaccard_score, average='micro', zero_division=0),
-    'jaccard_weighted': make_scorer(jaccard_score, average='weighted', zero_division=0),
+    'precision_per_class': make_scorer(precision_score, average=None, zero_division=0),
+    'recall_per_class': make_scorer(recall_score, average=None, zero_division=0),
+    'f1_per_class': make_scorer(f1_score, average=None, zero_division=0),
+    'fpr_macro': make_scorer(false_positive_rate_metric, averaging_method='macro'),
+    'fpr_micro': make_scorer(false_positive_rate_metric, averaging_method='micro'),
+    'fpr_weighted': make_scorer(false_positive_rate_metric, averaging_method='weighted'),
+    'fnr_macro': make_scorer(false_negative_rate_metric, averaging_method='macro'),
+    'fnr_micro': make_scorer(false_negative_rate_metric, averaging_method='micro'),
+    'fnr_weighted': make_scorer(false_negative_rate_metric, averaging_method='weighted'),
+    'tnr_macro': make_scorer(true_negative_rate_metric, averaging_method='macro'),
+    'tnr_micro': make_scorer(true_negative_rate_metric, averaging_method='micro'),
+    'tnr_weighted': make_scorer(true_negative_rate_metric, averaging_method='weighted'),
+    'fpr_per_class': make_scorer(false_positive_rate_metric, averaging_method='per_class'),
+    'fnr_per_class': make_scorer(false_negative_rate_metric, averaging_method='per_class'),
+    'tnr_per_class': make_scorer(true_negative_rate_metric, averaging_method='per_class'),
     'jaccard_per_class': make_scorer(jaccard_score, average=None, zero_division=0),
+    **common_classification_metrics
 }
 
 _str_to_scorer_dict = {**regression_scorers_higher_is_better_dict,
@@ -239,27 +244,28 @@ class DeepcheckScorer:
             return self.scorer._score_func(y_true, pred_to_use, **self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
-    def _wrap_classification_model(self, model):
+    def _wrap_classification_model(self, model, data_):
         """Convert labels to 0/1 if model is a binary classifier, and converts to multi-label if multiclass."""
 
         class MyModelWrapper:
             """Convert labels to 0/1 if model is a binary classifier, and converts to multi-label if multiclass."""
 
-            def __init__(self, user_model, model_classes):
+            def __init__(self, user_model, model_classes, data):
                 self.user_model = user_model
                 self.model_classes = model_classes
                 self.is_binary = self.model_classes and len(self.model_classes) == 2
+                self.predictions = pd.Series(self.user_model.predict(data).squeeze(), index=data.index)
 
             def predict(self, data: pd.DataFrame) -> np.ndarray:
                 """Convert labels to 0/1 if model is a binary classifier."""
-                predictions: np.ndarray = np.asarray(self.user_model.predict(data))
                 # In case of binary converts into 0 and 1 the labels
+                predictions = self.predictions[data.index].to_numpy()
                 if self.is_binary:
                     transfer_func = np.vectorize(lambda x: 0 if x == self.model_classes[0] else 1)
                     predictions = transfer_func(predictions)
                 # In case of multiclass with single label, convert into multi-label
                 elif self.model_classes:
-                    predictions = validate_multi_label_format(predictions, self.model_classes)
+                    predictions = _transform_to_multi_label_format(predictions, self.model_classes)
                 return predictions
 
             def predict_proba(self, data: pd.DataFrame) -> np.ndarray:
@@ -280,7 +286,7 @@ class DeepcheckScorer:
             def classes_(self):
                 return np.asarray([0, 1] if len(self.model_classes) == 2 else self.model_classes)
 
-        return MyModelWrapper(model, self.model_classes)
+        return MyModelWrapper(model, self.model_classes, data_)
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
@@ -291,19 +297,20 @@ class DeepcheckScorer:
                 f'not provided. Please use a model with predict_proba method or '
                 f'manually provide predicted probabilities to the check. '
                 f'{SUPPORTED_MODELS_DOCLINK}')
+
+        original_label_col = label_col
         if self.model_classes is not None:
-            model = self._wrap_classification_model(model)
+            model = self._wrap_classification_model(model, data)
             if model.is_binary:
                 if len(label_col.unique()) > 2:
                     raise errors.DeepchecksValueError('Model is binary but the label column has more than 2 classes: '
                                                       f'{label_col.unique()}')
                 label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
             else:
-                label_col = validate_multi_label_format(np.array(label_col), self.model_classes)
+                label_col = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 
         try:
             scores = self.scorer(model, data, np.array(label_col))
-            return self.validate_scorer_multilabel_output(scores)
         except ValueError as e:
             if getattr(self.scorer, '_score_func', '').__name__ == 'roc_auc_score':
                 get_logger().warning('ROC AUC failed with error message - "%s". setting scores as None', e,
@@ -312,21 +319,25 @@ class DeepcheckScorer:
             else:
                 raise
 
-            return self.validate_scorer_multilabel_output(scores)
-        else:
-            return self.scorer(model, data, label_col)
+        # The scores returned are for the model classes but we want scores of the observed classes
+        if self.model_classes is not None and isinstance(scores, np.ndarray):
+            # In case of single label on binary model, there is problem with scorers per class, since scikit-learn
+            # scorers will return score only for the seen label (and not for the unseen label)
+            if model.is_binary and len(original_label_col.unique()) == 1 and len(model.predictions.unique()) == 1 and \
+                        original_label_col[0] == model.predictions[0]:
+                seen_class = original_label_col[0]
+                unseen_class = self.model_classes[0] if seen_class == self.model_classes[1] \
+                    else self.model_classes[1]
+                return {seen_class: scores[0], unseen_class: 0}
 
-    def validate_scorer_multilabel_output(self, scores):
-        """Validate output and return scores for the observed classes as well as for the model classes."""
-        if self.model_classes is not None and isinstance(scores, t.Sized):
             if len(scores) != len(self.model_classes):
                 raise errors.DeepchecksValueError(
                     f'Scorer returned {len(scores)} scores, but model contains '
                     f'{len(self.model_classes)} classes. Can\'t proceed')
-
             scores = dict(zip(self.model_classes, scores))
             # Add classes which been seen in the data but are not known to the model
-            scores.update({class_name: np.nan for class_name in set(self.observed_classes) - set(self.model_classes)})
+            scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
+
         return scores
 
     def __call__(self, model, dataset: 'tabular.Dataset'):
@@ -420,14 +431,13 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
     return scorers
 
 
-def validate_multi_label_format(y: np.ndarray, classes):
-    """Transform multiclass label to multi-label. If given as multi-label to begin with, returns it as is."""
+def _transform_to_multi_label_format(y: np.ndarray, classes):
     # Some classifiers like catboost might return shape like (n_rows, 1), therefore squeezing the array.
     y = np.squeeze(y) if y.ndim > 1 else y
     if y.ndim == 1:
-        binarizer = LabelBinarizer()
-        binarizer.fit(classes)
-        return binarizer.transform(y)
+        ohe = OneHotEncoder(handle_unknown='ignore', sparse=False)
+        ohe.fit(np.array(classes).reshape(-1, 1))
+        return ohe.transform(y.reshape(-1, 1))
     # If after squeeze there are still 2 dimensions, then it must have column for each model class.
     elif y.ndim == 2 and y.shape[1] == len(classes):
         return y
@@ -440,5 +450,5 @@ def validate_proba(probabilities: np.array, model_classes: t.List):
     if probabilities.shape[1] != len(model_classes):
         raise errors.ModelValidationError(
             f'Model probabilities per class has {probabilities.shape[1]} '
-            f'classes while known model classes has {len(model_classes)}. You can set the model\'s '
+            f'classes while known model classes has {len(model_classes)}. You can set the model\'s'
             f'classes manually using the model_classes argument in the run function.')
