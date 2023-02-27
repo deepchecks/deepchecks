@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -11,10 +11,9 @@
 """Module for calculating detection precision and recall."""
 import warnings
 from collections import defaultdict
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
-import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
@@ -55,8 +54,8 @@ class AveragePrecisionRecall(Metric, MetricMixin):
     """
 
     def __init__(self, *args, max_dets: Union[List[int], Tuple[int]] = (1, 10, 100),
-                 area_range: Tuple = (32**2, 96**2),
-                 return_option: str = 'ap',
+                 area_range: Tuple = (32 ** 2, 96 ** 2),
+                 return_option: Optional[str] = 'ap',
                  average: str = 'none',
                  iou_range: Tuple[float, float, float] = (0.5, 0.95, 10),
                  **kwargs):
@@ -88,14 +87,7 @@ class AveragePrecisionRecall(Metric, MetricMixin):
     @reinit__is_reduced
     def update(self, output):
         """Update metric with batch of samples."""
-        y_pred, y = output
-
-        for detected, ground_truth in zip(y_pred, y):
-            if isinstance(detected, torch.Tensor):
-                detected = detected.cpu().detach()
-            if isinstance(ground_truth, torch.Tensor):
-                ground_truth = ground_truth.cpu().detach()
-
+        for detected, ground_truth in zip(output[0], output[1]):
             self._group_detections(detected, ground_truth)
             self.i += 1
 
@@ -160,17 +152,17 @@ class AveragePrecisionRecall(Metric, MetricMixin):
             class_weights = None
 
         if self.return_option == 'ap':
-            return torch.tensor(self.get_classes_scores_at(reses['precision'],
-                                                           max_dets=self.max_detections_per_class[0],
-                                                           area=self.area_ranges_names[0],
-                                                           get_mean_val=self.get_mean_value,
-                                                           class_weights=class_weights))
+            return self.get_classes_scores_at(reses['precision'],
+                                              max_dets=self.max_detections_per_class[0],
+                                              area=self.area_ranges_names[0],
+                                              get_mean_val=self.get_mean_value,
+                                              class_weights=class_weights)
         elif self.return_option == 'ar':
-            return torch.tensor(self.get_classes_scores_at(reses['recall'],
-                                                           max_dets=self.max_detections_per_class[0],
-                                                           area=self.area_ranges_names[0],
-                                                           get_mean_val=self.get_mean_value,
-                                                           class_weights=class_weights))
+            return self.get_classes_scores_at(reses['recall'],
+                                              max_dets=self.max_detections_per_class[0],
+                                              area=self.area_ranges_names[0],
+                                              get_mean_val=self.get_mean_value,
+                                              class_weights=class_weights)
         return [reses]
 
     def _group_detections(self, detected, ground_truth):

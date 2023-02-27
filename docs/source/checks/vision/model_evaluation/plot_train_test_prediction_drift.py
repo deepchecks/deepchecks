@@ -62,34 +62,34 @@ Run the Check on a Classification Task (MNIST)
 #%%
 # Imports
 # -------
+#
+# .. note::
+#   In this example, we use the pytorch version of the mnist dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset
 
 from deepchecks.vision.checks import TrainTestPredictionDrift
-from deepchecks.vision.datasets.classification.mnist import (load_dataset,
-                                                             load_model)
+from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
-# Loading data and model:
-# -----------------------
+# Load Dataset
+# ------------
 
 
 train_ds = load_dataset(train=True, batch_size=64, object_type='VisionData')
 test_ds = load_dataset(train=False, batch_size=64, object_type='VisionData')
 
-#%%
-
-model = load_model()
 
 #%%
-# Running TrainTestLabelDrift on classification
-# ---------------------------------------------
+# Running TrainTestPredictionDrift on classification
+# --------------------------------------------------
 
 check = TrainTestPredictionDrift()
-result = check.run(train_ds, test_ds, model)
+result = check.run(train_ds, test_ds)
 result
 
 #%%
-# If you have a GPU, you can speed up this check by passing it as an argument to .run() as device=<your GPU>
-#
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
@@ -99,87 +99,74 @@ result
 #%%
 # Understanding the results
 # -------------------------
-# We can see there is almost no drift between the train & test labels. This means the
+#
+# We can see there is almost no drift between the train & test predictions. This means the
 # split to train and test was good (as it is balanced and random). Let's check the
 # performance of a simple model trained on MNIST.
 
 from deepchecks.vision.checks import ClassPerformance
 
-ClassPerformance().run(train_ds, test_ds, model)
+ClassPerformance().run(train_ds, test_ds)
 
 #%%
-# MNIST with label drift
-# ======================
+# MNIST with prediction drift
+# ===========================
+#
 # Now, let's try to separate the MNIST dataset in a different manner that will result
-# in a prediction drift, and see how it affects the performance. We are going to create
-# a custom collate_fn in the test dataset, that will select samples with class 0
-# in a 1/10 chances.
-
-import torch
-
-mnist_dataloader_train = load_dataset(train=True, batch_size=64, object_type='DataLoader')
-mnist_dataloader_test = load_dataset(train=False, batch_size=64, object_type='DataLoader')
-full_mnist = torch.utils.data.ConcatDataset([mnist_dataloader_train.dataset, mnist_dataloader_test.dataset])
-
-#%%
-
-train_dataset, test_dataset = torch.utils.data.random_split(full_mnist, [60000,10000], generator=torch.Generator().manual_seed(42))
+# in a prediction drift, and see how it affects the performance. We are going to create a
+# custom `collate_fn`` in the test dataset, that will select a few of the samples with class 0
+# and change their most of their predicted classes to 1.
 
 #%%
 # Inserting drift to the test set
 # -------------------------------
 
 import numpy as np
-from torch.utils.data._utils.collate import default_collate
+import torch
 
 np.random.seed(42)
 
-images, labels = next(iter(mnist_dataloader_test))
+def generate_collate_fn_with_label_drift(collate_fn):
+    def collate_fn_with_label_drift(batch):
+        batch_dict = collate_fn(batch)
+        images = batch_dict['images']
+        labels = batch_dict['labels']
+        for i in range(len(images)):
+            image, label = images[i], labels[i]
+            if label == 0:
+                if np.random.randint(5) != 0:
+                    batch_dict['labels'][i] = 1
+                    # In 9/10 cases, the prediction vector will change to match the label
+                    if np.random.randint(10) != 0:
+                        batch_dict['predictions'][i] = torch.tensor([0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+
+        return batch_dict
+    return collate_fn_with_label_drift
 
 
-def collate_test(batch):
-    modified_batch = []
-    for item in batch:
-        image, label = item
-        if label == 0:
-            if np.random.randint(5) == 0:
-                modified_batch.append(item)
-            else:
-                modified_batch.append((images[0], 1))
-        else:
-            modified_batch.append(item)
-
-    return default_collate(modified_batch)
-
-mod_train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64)
-mod_test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, collate_fn=collate_test)
-
-#%%
-from deepchecks.vision.datasets.classification.mnist import MNISTData
-
-mod_train_ds = MNISTData(mod_train_loader)
-mod_test_ds = MNISTData(mod_test_loader)
+mod_test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
+mod_test_ds._batch_loader.collate_fn = generate_collate_fn_with_label_drift(mod_test_ds._batch_loader.collate_fn)
 
 #%%
 # Run the check
 # -------------
 
 check = TrainTestPredictionDrift()
-result = check.run(mod_train_ds, mod_test_ds, model)
+result = check.run(train_ds, mod_test_ds)
 result
 
 #%%
 # Add a condition
 # ---------------
-# We could also add a condition to the check to alert us to changes in the prediction
+# We could also add a condition to the check to alert us about changes in the prediction
 # distribution, such as the one that occurred here.
 
 check = TrainTestPredictionDrift().add_condition_drift_score_less_than()
-result = check.run(mod_train_ds, mod_test_ds, model)
+result = check.run(train_ds, mod_test_ds)
 result
 
 #%%
-# As we can see, the condition alerts us to the present of drift in the prediction.
+# As we can see, the condition alerts us to the presence of drift in the predictions.
 
 #%%
 # Results
@@ -194,30 +181,34 @@ result
 # But how does this affect the performance of the model?
 # ------------------------------------------------------
 
-result = ClassPerformance().run(mod_train_ds, mod_test_ds, model)
+result = ClassPerformance().run(train_ds, mod_test_ds)
 result
 
 #%%
 # Inferring the results
 # ---------------------
-
 # We can see the drop in the precision of class 0, which was caused by the class
 # imbalance indicated earlier by the label drift check.
 
 #%%
 # Run the Check on an Object Detection Task (COCO)
 # ================================================
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection.coco_tensorflow import load_dataset
 
-from deepchecks.vision.datasets.detection.coco import load_dataset, load_model
+from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
 train_ds = load_dataset(train=True, object_type='VisionData')
 test_ds = load_dataset(train=False, object_type='VisionData')
-model = load_model(pretrained=True)
 
 #%%
 
 check = TrainTestPredictionDrift()
-result = check.run(train_ds, test_ds, model)
+result = check.run(train_ds, test_ds)
 result
 
 #%%

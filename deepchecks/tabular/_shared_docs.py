@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -43,8 +43,7 @@ value between 0 and sqrt(n_features).
 much the resulting score will affect the model's performance.
 'mean': Mean of all per-feature scores.
 'max': Maximum of all the per-feature scores.
-'none': No averaging. Return a dict with a per-feature score for each feature.
-'top_5' No averaging. Return a dict with a per-feature score for top 5 features based on feature importance.
+None: No averaging. Return a dict with a per-feature score for each feature.
 """.strip('\n')
 
 docstrings = Substitution(**_shared_docstrings)

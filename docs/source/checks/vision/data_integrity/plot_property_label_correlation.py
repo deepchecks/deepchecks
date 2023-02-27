@@ -97,8 +97,7 @@ The process of calculating the PPS is the following:
 # The original data was downloaded from https://www.kaggle.com/datasets/harishvutukuri/dogs-vs-wolves, which is licensed under `DbCL v1.0 <https://opendatacommons.org/licenses/dbcl/1-0/>`__.
 
 from deepchecks.vision.checks import PropertyLabelCorrelation
-from deepchecks.vision.simple_classification_data import classification_dataset_from_directory
-from deepchecks.vision.utils import visualize_vision_data
+from deepchecks.vision.vision_data.simple_classification_data import classification_dataset_from_directory
 import albumentations as A
 import urllib.request
 import zipfile
@@ -115,8 +114,7 @@ dataset._label_map = {0: 'dog', 1: 'wolf'}  # Replacing the built-in label map "
 
 #%%
 # You can see an example of the dataset images and their labels below:
-
-visualize_vision_data(dataset)
+dataset.head()
 
 #%%
 # Now lets run the check:

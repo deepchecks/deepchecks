@@ -10,32 +10,29 @@
 #
 from hamcrest import assert_that, calling, close_to, has_length, raises
 
-from deepchecks.core.errors import ModelValidationError
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.vision.checks import MeanAverageRecallReport
 from tests.base.utils import equal_condition_result
 
 
-def test_mnist_error(mnist_dataset_test, mock_trained_mnist, device):
+def test_mnist_error(mnist_visiondata_test):
     # Arrange
     check = MeanAverageRecallReport()
     # Act
     assert_that(
-        calling(check.run
-                ).with_args(mnist_dataset_test, mock_trained_mnist,
-                            device=device),
-            raises(ModelValidationError, r'Check is irrelevant for task of type TaskType.CLASSIFICATION')
+        calling(check.run).with_args(mnist_visiondata_test),
+        raises(DeepchecksNotSupportedError, r'Check is irrelevant for task of type TaskType.CLASSIFICATION')
     )
 
 
-def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
+def test_coco(coco_visiondata_test):
     # Arrange
     check = MeanAverageRecallReport() \
-            .add_condition_test_average_recall_greater_than(0.1) \
-            .add_condition_test_average_recall_greater_than(0.4)
+        .add_condition_test_average_recall_greater_than(0.1) \
+        .add_condition_test_average_recall_greater_than(0.4)
 
     # Act
-    result = check.run(coco_test_visiondata,
-                       mock_trained_yolov5_object_detection, device=device)
+    result = check.run(coco_visiondata_test)
 
     # Assert
     df = result.value
@@ -70,13 +67,12 @@ def test_coco(coco_test_visiondata, mock_trained_yolov5_object_detection, device
     ))
 
 
-def test_coco_area_param(coco_test_visiondata, mock_trained_yolov5_object_detection, device):
+def test_coco_area_param(coco_visiondata_test):
     # Arrange
-    check = MeanAverageRecallReport(area_range=(40**2, 100**2))
+    check = MeanAverageRecallReport(area_range=(40 ** 2, 100 ** 2))
 
     # Act
-    result = check.run(coco_test_visiondata,
-                       mock_trained_yolov5_object_detection, device=device)
+    result = check.run(coco_visiondata_test)
 
     # Assert
     df = result.value

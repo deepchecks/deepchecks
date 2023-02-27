@@ -14,6 +14,9 @@ deepchecks.tabular
     checks
     suites
     datasets
+    integrations
+    metric_utils
+    utils
 
 .. rubric:: Classes
     

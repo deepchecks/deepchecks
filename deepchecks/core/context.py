@@ -63,18 +63,6 @@ class BaseContext(ABC):
         """Return the task type."""
         raise NotImplementedError()
 
-    @property
-    @abstractmethod
-    def model(self):
-        """Return the model of the context."""
-        raise NotImplementedError()
-
-    @property
-    @abstractmethod
-    def model_name(self):
-        """Return the model name of the context."""
-        raise NotImplementedError()
-
     def get_data_by_kind(self, kind: DatasetKind):
         """Return the relevant Dataset by given kind."""
         if kind == DatasetKind.TRAIN:
@@ -84,7 +72,7 @@ class BaseContext(ABC):
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
-    def finalize_check_result(self, check_result, check, kind: DatasetKind = None):
+    def finalize_check_result(self, check_result, check, dataset_kind: DatasetKind = None):
         """Run final processing on a check result which includes validation, conditions processing and sampling\
         footnote."""
         # Validate the check result type
@@ -102,8 +90,8 @@ class BaseContext(ABC):
         if hasattr(check, 'n_samples'):
             n_samples = getattr(check, 'n_samples')
             message = ''
-            if kind:
-                dataset = self.get_data_by_kind(kind)
+            if dataset_kind:
+                dataset = self.get_data_by_kind(dataset_kind)
                 if dataset.is_sampled(n_samples):
                     message = f'Data is sampled from the original dataset, running on ' \
                               f'{dataset.len_when_sampled(n_samples)} samples out of {len(dataset)}.'

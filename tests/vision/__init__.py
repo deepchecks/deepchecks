@@ -8,4 +8,3 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from tests.vision.vision_conftest import *

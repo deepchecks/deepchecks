@@ -2,7 +2,7 @@
 
    <!--
      ~ ----------------------------------------------------------------------------
-     ~ Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+     ~ Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
      ~
      ~ This file is part of Deepchecks.
      ~ Deepchecks is distributed under the terms of the GNU Affero General
@@ -60,9 +60,8 @@ Build the suite with custom checks and desired parameters
 
 .. code:: python
 
-   from ignite.contrib.metrics import ROC_AUC
    MyModelSuite = Suite('Suite with AUC performance',
-       ClassPerformance(alternative_metrics=[ROC_AUC]),
+       ClassPerformance(scorers=['roc_auc']),
        TrainTestLabelDrift()
    )
 

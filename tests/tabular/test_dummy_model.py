@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -23,7 +23,7 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.suites.default_suites import full_suite
 from deepchecks.tabular.utils.task_type import TaskType
 from tests.base.utils import equal_condition_result
-from tests.conftest import get_expected_results_length, validate_suite_result
+from tests.common import get_expected_results_length, validate_suite_result
 from tests.tabular.checks.model_evaluation.simple_model_comparison_test import assert_regression
 
 
@@ -55,7 +55,7 @@ def test_roc_condition_ratio_more_than_passed(iris_split_dataset_and_model):
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
-                               details='All classes passed, minimum AUC found is 1 for class 2',
+                               details='All classes passed, minimum AUC found is 1 for class 2.0',
                                name='AUC score for all the classes is greater than 0.7')
     ))
 
@@ -85,7 +85,7 @@ def test_can_run_classification_no_proba_force_regression(iris_split_dataset_and
     y_proba_test = None
 
     ds = ds.copy(ds.data)
-    ds._label_type = TaskType.REGRESSION
+    ds._label_type = TaskType.REGRESSION  # pylint: disable=protected-access
     check = SingleDatasetPerformance().add_condition_greater_than(0.9)
     result = check.conditions_decision(check.run(ds,
                                                  y_pred_train=y_pred_train, y_pred_test=y_pred_test,
@@ -103,7 +103,7 @@ def test_regression_error_absolute_kurtosis_not_greater_than_not_passed(diabetes
     # Arrange
     _, test, clf = diabetes_split_dataset_and_model
     test = Dataset(test.data.copy(), label='target', label_type='regression')
-    test._data[test.label_name] =300
+    test._data[test.label_name] = 300  # pylint: disable=protected-access
     y_pred_train, y_pred_test, y_proba_train, y_proba_test = _dummify_model(test, None, clf)
 
     check = RegressionErrorDistribution().add_condition_kurtosis_greater_than()

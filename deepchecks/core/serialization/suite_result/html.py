@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -200,17 +200,18 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             '?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link'
         )
         icons = textwrap.dedent("""
-            <span style="color: green;display:inline-block">\U00002713</span> /
-            <span style="color: red;display:inline-block">\U00002716</span> /
-            <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span> /
+            <span style="color: green;display:inline-block">\U00002713</span>
+            <span style="color: red;display:inline-block">\U00002716</span>
+            <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
             <span style="color: firebrick;font-weight:bold;display:inline-block">\U00002048</span>
-        """)
+        """).splitlines()
         return textwrap.dedent(f"""
             {header}
             <p>
                 {prologue}<br>
-                Each check may contain conditions (which will result in pass / fail / warning / error
-                , represented by {icons}) as well as other outputs such as plots or tables.<br>
+                Each check may contain conditions (which will result in pass {icons[1]} /
+                fail {icons[2]} / warning {icons[3]} / error {icons[4]}) as well as
+                other outputs such as plots or tables.<br>
                 Suites, checks and conditions can all be modified. Read more about
                 <a href={suite_creation_example_link} target="_blank">custom suites</a>.
             </p>

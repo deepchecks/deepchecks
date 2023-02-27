@@ -39,7 +39,7 @@ PYTHON := $(BIN)/$(python)
 ANALIZE := $(BIN)/pylint -j 0
 COVERAGE := $(BIN)/coverage
 COVERALLS := $(BIN)/coveralls
-FLAKE8 := $(BIN)/flake8 --whitelist spelling-allowlist.txt
+FLAKE8 := $(BIN)/flake8 --whitelist spelling-allowlist.txt --exclude=deepchecks/vision/datasets/assets,deepchecks/ppscore.py
 FLAKE8_RST := $(BIN)/flake8-rst
 PYTEST := $(BIN)/pytest
 TOX := $(BIN)/tox
@@ -150,23 +150,31 @@ $(ENV):
 	@test -d $(ENV) || $(ext_py) -m venv $(ENV)
 
 
-requirements: $(ENV)
-	@echo "####  installing dependencies, it could take some time, please wait! #### "
+vision-torch-tf-setup: env
+	@echo "####  installing torch and tensorflow packages #### "
 
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
 		$(PIP) install -q\
 		 	"torch==1.10.2+cu111" "torchvision==0.11.3+cu111" \
 		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
+		$(PIP) install -q "tensorflow-gpu==2.11.0"; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
+		$(PIP) install -q "tensorflow==2.11.0"; \
 	else \
 		$(PIP) install -q torch "torchvision==0.11.3"; \
+		$(PIP) install -q "tensorflow==2.11.0"; \
 	fi;
 
+	@$(PIP) install -q "tensorflow-hub==0.12.0";
+
+
+requirements: vision-torch-tf-setup
+	@echo "####  installing dependencies, it could take some time, please wait! #### "
 	@$(PIP) install -U pip
 	@$(PIP) install wheel setuptools setuptools_scm
 	@$(PIP) install -q \
@@ -194,7 +202,8 @@ validate: pylint docstring
 
 
 pylint: dev-requirements
-	$(ANALIZE) $(SOURCES) $(TEST_CODE)
+	$(ANALIZE) $(SOURCES)
+	$(ANALIZE) $(TEST_CODE) --ignore-paths='.*\/checks\/.+$\'
 	$(FLAKE8) $(SOURCES)
 	$(FLAKE8_RST) $(SOURCES)
 
@@ -222,18 +231,30 @@ test-win:
 	$(PIP_WIN) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
+	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
+	@$(PIP_WIN) install -q "tensorflow==2.11.0";
 	@$(PIP_WIN) install -U pip
 	@$(PIP_WIN) install -q \
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)  \
-		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) 
+		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 	@$(PIP_WIN) install -e .
 	python -m pytest -vvv $(WIN_TESTDIR)
 
 
+test-tabular-only: env
+	@$(PIP) install -U pip
+	@$(PIP) install -q \
+		wheel setuptools \
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
+	@$(PIP) install --no-deps -e .
+	$(PYTEST) -vvv $(TESTDIR)/tabular
+
+
 coverage: requirements dev-requirements
-	$(COVERAGE) run --source deepchecks/,tests/ --omit ultralytics_yolov5_master/ -m pytest
+	$(COVERAGE) run --source deepchecks/,tests/ --omit */assets/* -m pytest
 
 coveralls: coverage
 	$(COVERALLS) --service=github

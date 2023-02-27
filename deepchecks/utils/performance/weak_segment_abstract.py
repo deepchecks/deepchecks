@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -192,8 +192,14 @@ class WeakSegmentAbstract:
         def neg_worst_segment_score(clf: DecisionTreeRegressor, x, y) -> float:  # pylint: disable=unused-argument
             return -get_worst_leaf_filter(clf.tree_)[0]
 
-        grid_searcher = GridSearchCV(DecisionTreeRegressor(), scoring=neg_worst_segment_score,
-                                     param_grid=search_space, n_jobs=-1, cv=3)
+        if hasattr(self, 'random_state'):
+            random_state = self.random_state
+        elif hasattr(self, 'context'):
+            random_state = self.context.random_state
+        else:
+            random_state = None
+        grid_searcher = GridSearchCV(DecisionTreeRegressor(random_state=random_state),
+                                     scoring=neg_worst_segment_score, param_grid=search_space, n_jobs=-1, cv=3)
         try:
             grid_searcher.fit(dataset.features_columns[features_for_segment], loss_per_sample)
             segment_score, segment_filter = get_worst_leaf_filter(grid_searcher.best_estimator_.tree_)

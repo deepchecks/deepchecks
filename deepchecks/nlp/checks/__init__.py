@@ -10,8 +10,8 @@
 #
 """Module importing all nlp checks."""
 
-from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance, WeakSegmentsPerformance, \
-    TrainTestPredictionDrift
+from deepchecks.nlp.checks.model_evaluation import (SingleDatasetPerformance, TrainTestPredictionDrift,
+                                                    WeakSegmentsPerformance)
 from deepchecks.nlp.checks.train_test_validation import KeywordFrequencyDrift, TrainTestLabelDrift
 
 __all__ = ['SingleDatasetPerformance', 'WeakSegmentsPerformance', 'KeywordFrequencyDrift',

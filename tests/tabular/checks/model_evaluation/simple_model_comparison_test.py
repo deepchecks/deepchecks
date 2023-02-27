@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -245,7 +245,7 @@ def test_condition_ratio_not_less_than_passed(diabetes_split_dataset_and_model):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
-            details='All metrics passed, metric\'s gain: {\'Neg RMSE\': \'49.7%\'}',
+            details='All metrics passed, metric\'s gain: {\'Neg RMSE\': \'52.17%\'}',
             name='Model performance gain over simple model is greater than 10%'
         )
     ))

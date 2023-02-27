@@ -48,9 +48,15 @@ with custom ones. For the list of the built-in image properties and explanation 
 # Run the Check
 # -------------
 # For the example we will load COCO object detection data, and will run the check with the default properties.
+#
+# .. note::
+#   In this example, we use the pytorch version of the coco dataset and model. In order to run this example using
+#   tensorflow, please change the import statements to::
+#
+#       from deepchecks.vision.datasets.detection.coco_tensorflow import load_dataset
 
 from deepchecks.vision.checks import ImagePropertyOutliers
-from deepchecks.vision.datasets.detection.coco import load_dataset
+from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
 train_data = load_dataset(train=True, object_type='VisionData')
 check = ImagePropertyOutliers()

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -8,22 +8,26 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains the domain classifier drift check."""
+"""Module contains the image dataset drift check."""
 from collections import defaultdict
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift
 from deepchecks.utils.strings import format_number
-from deepchecks.vision import Batch, Context, TrainTestCheck
+from deepchecks.vision._shared_docs import docstrings
+from deepchecks.vision.base_checks import TrainTestCheck
+from deepchecks.vision.context import Context
 from deepchecks.vision.utils.image_properties import default_image_properties
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
+from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['ImageDatasetDrift']
 
 
+@docstrings
 class ImageDatasetDrift(TrainTestCheck):
     """Calculate drift between the entire train and test datasets (based on image properties) using a trained model.
 
@@ -43,7 +47,7 @@ class ImageDatasetDrift(TrainTestCheck):
         Each property is dictionary with keys 'name' (str), 'method' (Callable) and 'output_type' (str),
         representing attributes of said method. 'output_type' must be one of:
 
-        - 'numeric' - for continuous ordinal outputs.
+        - 'numerical' - for continuous ordinal outputs.
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
@@ -71,6 +75,7 @@ class ImageDatasetDrift(TrainTestCheck):
         Fraction of the combined datasets to use for the evaluation of the domain classifier.
     min_meaningful_drift_score : float , default 0.05
         Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
+    {additional_check_init_params:2*indent}
     """
 
     def __init__(
@@ -82,11 +87,12 @@ class ImageDatasetDrift(TrainTestCheck):
             min_meaningful_drift_score: float = 0.05,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
+            n_samples: Optional[int] = 10000,
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.image_properties = image_properties if image_properties else default_image_properties
-
+        self.n_samples = n_samples
+        self.image_properties = image_properties
         self.n_top_properties = n_top_properties
         self.min_feature_importance = min_feature_importance
         self.test_size = test_size
@@ -101,7 +107,7 @@ class ImageDatasetDrift(TrainTestCheck):
         self._train_properties = defaultdict(list)
         self._test_properties = defaultdict(list)
 
-    def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+    def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Calculate image properties for train or test batches."""
         if dataset_kind == DatasetKind.TRAIN:
             properties_results = self._train_properties
@@ -138,7 +144,7 @@ class ImageDatasetDrift(TrainTestCheck):
 
         numeric_features = []
         categorical_features = []
-        for prop in self.image_properties:
+        for prop in self.image_properties or default_image_properties:
             col_type = prop['output_type']
             if col_type == 'numerical':
                 numeric_features.append(prop['name'])
@@ -167,6 +173,7 @@ class ImageDatasetDrift(TrainTestCheck):
         Add condition - require drift score to be less than the threshold.
 
         The drift score used here is the domain_classifier_drift_Score attribute of the check result.
+
         Parameters
         ----------
         threshold: float , default: 0.1

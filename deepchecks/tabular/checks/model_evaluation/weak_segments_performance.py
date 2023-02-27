@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -42,6 +42,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     In order to achieve this, the check trains several simple tree based models which try to predict the error of the
     user provided model on the dataset. The relevant segments are detected by analyzing the different
     leafs of the trained trees.
+
     Parameters
     ----------
     columns : Union[Hashable, List[Hashable]] , default: None

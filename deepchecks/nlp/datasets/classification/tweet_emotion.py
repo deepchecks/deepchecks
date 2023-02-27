@@ -81,7 +81,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True) -> \
 
         if data_format.lower() == 'textdata':
             train = TextData(train.text, label=train[_target], task_type='text_classification',
-                             index=train.index ,additional_data=train.drop(columns=[_target, 'text']))
+                             index=train.index, additional_data=train.drop(columns=[_target, 'text']))
             test = TextData(test.text, label=test[_target], task_type='text_classification',
                             index=test.index, additional_data=test.drop(columns=[_target, 'text']))
         return train, test

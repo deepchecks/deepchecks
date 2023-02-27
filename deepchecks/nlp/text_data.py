@@ -144,7 +144,7 @@ class TextData:
         if additional_data is not None:
             if not isinstance(additional_data, pd.DataFrame):
                 raise DeepchecksValueError(f'additional_data type {type(additional_data)} is not supported, must be a'
-                                                  f' pandas DataFrame')
+                                           f' pandas DataFrame')
             if self.index != list(additional_data.index):
                 raise DeepchecksValueError('additional_data index must be the same as the text data index')
 
@@ -221,13 +221,15 @@ class TextData:
                            task_type=self._task_type.value,
                            dataset_name=self.name, index=self.index, additional_data=self.additional_data)
         else:
-            new_copy = cls(raw_text=list(itemgetter(*rows_to_use)(self._text)),
-                           tokenized_text=list(
-                               itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
-                           label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
-                           index=list(itemgetter(*rows_to_use)(self.index)),
-                           additional_data=self._additional_data.iloc[rows_to_use, :] if self._additional_data is not None else None,
-                           task_type=self._task_type.value, dataset_name=self.name)
+            new_copy = cls(
+                raw_text=list(itemgetter(*rows_to_use)(self._text)),
+                tokenized_text=list(
+                    itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
+                label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
+                index=list(itemgetter(*rows_to_use)(self.index)),
+                additional_data=self._additional_data.iloc[rows_to_use, :]
+                if self._additional_data is not None else None,
+                task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
         return new_copy
 
@@ -421,13 +423,17 @@ class TextData:
 
         return True
 
-    def len_when_sampled(self, n_samples: int):
+    def len_when_sampled(self, n_samples: t.Optional[int]):
         """Return number of samples in the sampled dataframe this dataset is sampled with n_samples samples."""
-        return min(len(self), n_samples)
+        if n_samples is None:
+            return self.n_samples
+        return min(self.n_samples, n_samples)
 
-    def is_sampled(self, n_samples: int):
+    def is_sampled(self, n_samples: t.Optional[int]):
         """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
-        return len(self) > n_samples
+        if n_samples is None:
+            return False
+        return self.n_samples > n_samples
 
     def head(self, n_samples: int = 5) -> pd.DataFrame:
         """Return a copy of the dataset as a pandas Dataframe with the first n_samples samples."""

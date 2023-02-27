@@ -9,116 +9,117 @@
 # ----------------------------------------------------------------------------
 #
 """Image Property Drift check tests"""
-from hamcrest import (all_of, assert_that, calling, close_to, greater_than, has_entries, has_items, has_key, has_length,
-                      has_properties, instance_of, raises)
+import numpy as np
+from hamcrest import (all_of, assert_that, close_to, greater_than, has_entries, has_key, has_length,
+                      has_properties, instance_of, calling, raises, equal_to)
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.vision.checks import ImagePropertyDrift
 from deepchecks.vision.utils.image_properties import default_image_properties
 from tests.base.utils import equal_condition_result
 
 
-def test_image_property_drift_check(coco_train_visiondata, coco_test_visiondata, device):
+def test_image_property_drift_check(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift().run(coco_train_visiondata, coco_test_visiondata, device=device)
+    result = ImagePropertyDrift(numerical_drift_method='EMD').run(coco_visiondata_train, coco_visiondata_test)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result())
 
     assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.07, 0.01)}
+        {'Brightness': has_entries({'Drift score': close_to(0.07, 0.01)})}
     ))
 
     assert_that(result.reduce_output(), has_entries(
         {'Max Drift Score': close_to(0.07, 0.01)}
     ))
 
+def test_image_property_drift_check_not_enough_samples(coco_visiondata_train, coco_visiondata_test):
+    # Arrange
+    properties = [{'name': 'with_non_values', 'method': lambda x: list(np.random.choice([1, None], size=len(x))), 'output_type': 'numerical'}]
+    check = ImagePropertyDrift(numerical_drift_method='EMD', min_samples=60, image_properties=properties)
 
-def test_image_property_drift_check_without_display(coco_train_visiondata, coco_test_visiondata, device):
+    # Assert
+    assert_that(calling(check.run).with_args(coco_visiondata_train, coco_visiondata_test),
+                raises(NotEnoughSamplesError))
+
+def test_image_property_drift_check_not_enough_samples_in_one_property(coco_visiondata_train, coco_visiondata_test):
+    # Arrange
+    properties = [{'name': 'ok_values', 'method': lambda x: [1] * len(x), 'output_type': 'numerical'},
+                    {'name': 'with_non_values', 'method': lambda x: list(np.random.choice([1, None], size=len(x))), 'output_type': 'numerical'}]
+
     # Run
-    result = ImagePropertyDrift(aggregation_method='mean').run(coco_train_visiondata, coco_test_visiondata,
-                                                               device=device, with_display=False)
+    result = ImagePropertyDrift(min_samples=60, image_properties=properties).run(coco_visiondata_train, coco_visiondata_test)
+
+    # Assert
+    assert_that(result.value['with_non_values']['Drift score'], equal_to(None))
+    assert_that(result.display[2], equal_to("<span>The following image properties do not have enough samples to calculate drift score: ['with_non_values']</span>"))
+
+
+def test_image_property_drift_check_without_display(coco_visiondata_train, coco_visiondata_test):
+    # Run
+    result = ImagePropertyDrift(aggregation_method='mean', numerical_drift_method='KS').run(coco_visiondata_train, coco_visiondata_test,
+                                                               with_display=False)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result(with_display=False))
 
     assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.07, 0.01)}
+        {'Brightness': has_entries({'Drift score': close_to(0.2, 0.01)})}
     ))
 
     assert_that(result.reduce_output(), has_entries(
-        {'Mean Drift Score': close_to(0.05, 0.01)}
+        {'Mean Drift Score': close_to(0.14, 0.01)}
     ))
 
 
-def test_image_property_drift_check_without_display_none_aggragation(coco_train_visiondata, coco_test_visiondata, device):
+def test_image_property_drift_check_without_display_none_aggregation(coco_visiondata_train, coco_visiondata_test):
     # Run
-    result = ImagePropertyDrift(aggregation_method='none').run(coco_train_visiondata, coco_test_visiondata,
-                                                               device=device, with_display=False)
+    result = ImagePropertyDrift(aggregation_method=None, numerical_drift_method='EMD').run(coco_visiondata_train, coco_visiondata_test,
+                                                             with_display=False)
 
     # Assert
     assert_that(result, is_correct_image_property_drift_result(with_display=False))
 
     assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.07, 0.01)}
+        {'Brightness': has_entries({'Drift score': close_to(0.07, 0.01)})}
     ))
 
     assert_that(result.reduce_output(), has_entries(
         {'Brightness': close_to(0.07, 0.01)}
     ))
 
-def test_image_property_drift_check_limit_classes(coco_train_visiondata, coco_test_visiondata, device):
-    # Run
-    result = ImagePropertyDrift(classes_to_display=['bicycle', 'bench', 'bus', 'truck'], min_samples=5
-                                ).run(coco_train_visiondata, coco_test_visiondata, device=device)
 
-    # Assert
-    assert_that(result, is_correct_image_property_drift_result())
-
-    assert_that(result.value, has_entries(
-        {'Brightness': close_to(0.13, 0.01)}
-    ))
-
-
-def test_image_property_drift_check_limit_classes_illegal(coco_train_visiondata, coco_test_visiondata, device):
-    check = ImagePropertyDrift(classes_to_display=['phone'])
-    assert_that(
-        calling(check.run).with_args(coco_train_visiondata, coco_test_visiondata, device=device),
-        raises(DeepchecksValueError, r'Provided list of class ids to display \[\'phone\'\] not found in training '
-                                     r'dataset.')
-    )
-
-
-def test_image_property_drift_condition(coco_train_visiondata, coco_test_visiondata, device):
-    result = (
-        ImagePropertyDrift()
-        .add_condition_drift_score_less_than()
-        .run(coco_train_visiondata, coco_test_visiondata, device=device)
-    )
+def test_image_property_drift_condition(coco_visiondata_train, coco_visiondata_test):
+    result = ImagePropertyDrift(numerical_drift_method='EMD').add_condition_drift_score_less_than().run(coco_visiondata_train, coco_visiondata_test)
 
     assert_that(result, is_correct_image_property_drift_result())
-    assert_that(result.conditions_results, has_items(
-        equal_condition_result(is_pass=True,
-                               details='Found property Brightness with largest Earth Mover\'s Distance score 0.07',
-                               name='Earth Mover\'s Distance < 0.1 for image properties drift'))
-                )
 
+    condition_result, *_ = result.conditions_results
 
-def test_image_property_drift_fail_condition(coco_train_visiondata, coco_test_visiondata, device):
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        details='Passed for 7 properties out of 7 properties.\nFound property "Brightness" has the highest numerical '
+                'drift score: 0.07',
+        name='drift score < 0.2 for image properties drift'))
+
+def test_image_property_drift_fail_condition(coco_visiondata_train, coco_visiondata_test):
     result = (
-        ImagePropertyDrift()
+        ImagePropertyDrift(numerical_drift_method='EMD')
         .add_condition_drift_score_less_than(0.06)
-        .run(coco_train_visiondata, coco_test_visiondata, device=device)
+        .run(coco_visiondata_train, coco_visiondata_test)
     )
 
     assert_that(result, is_correct_image_property_drift_result())
-    assert_that(result.conditions_results, has_items(
-        equal_condition_result(is_pass=False,
-                               details='Earth Mover\'s Distance is above the threshold for the next properties:\n'
-                                       'Aspect Ratio=0.07;\nBrightness=0.07;\nMean Green Relative Intensity=0.06',
-                               name='Earth Mover\'s Distance < 0.06 for image properties drift'))
-                )
+
+    condition_result, *_ = result.conditions_results
+
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        details="Failed for 3 out of 7 properties.\nFound 3 numeric properties with Earth Mover's Distance above "
+                "threshold: {'Aspect Ratio': '0.07', 'Brightness': '0.07', 'Mean Green Relative Intensity': '0.06'}",
+        name='drift score < 0.06 for image properties drift'))
 
 
 def is_correct_image_property_drift_result(with_display: bool = True):
@@ -148,6 +149,6 @@ def is_correct_image_property_drift_result(with_display: bool = True):
     )
 
 
-def test_run_on_data_with_only_images(mnist_train_only_images, mnist_test_only_images, device):
+def test_run_on_data_with_only_images(mnist_train_only_images, mnist_test_only_images):
     # Act - Assert check runs without exception
-    ImagePropertyDrift().run(mnist_train_only_images, mnist_test_only_images, device=device)
+    ImagePropertyDrift().run(mnist_train_only_images, mnist_test_only_images)
