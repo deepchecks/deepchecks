@@ -423,13 +423,17 @@ class TextData:
 
         return True
 
-    def len_when_sampled(self, n_samples: int):
+    def len_when_sampled(self, n_samples: t.Optional[int]):
         """Return number of samples in the sampled dataframe this dataset is sampled with n_samples samples."""
-        return min(len(self), n_samples)
+        if n_samples is None:
+            return self.n_samples
+        return min(self.n_samples, n_samples)
 
-    def is_sampled(self, n_samples: int):
+    def is_sampled(self, n_samples: t.Optional[int]):
         """Return True if the dataset number of samples will decrease when sampled with n_samples samples."""
-        return len(self) > n_samples
+        if n_samples is None:
+            return False
+        return self.n_samples > n_samples
 
     def head(self, n_samples: int = 5) -> pd.DataFrame:
         """Return a copy of the dataset as a pandas Dataframe with the first n_samples samples."""
