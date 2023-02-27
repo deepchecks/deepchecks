@@ -78,6 +78,20 @@ def get_sentiment_detection() -> callable:
 
     return sentiment
 
+def get_subjectivity_detection() -> callable:
+    try:
+        import textblob
+    except ImportError as e:
+        raise ImportError(
+            'property sentiment requires the textblob python package. '
+            'To get it, run "pip install textblob".') from e
+
+    def subjectivity(raw_text: Sequence[str]) -> List[float]:
+        """Return list of floats of sentiment."""
+        return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
+
+    return subjectivity
+
 def get_topic_detection() -> callable:
     try:
         from transformers import AutoModelForSequenceClassification
@@ -114,13 +128,14 @@ def get_topic_detection() -> callable:
 
 
 default_text_properties = [
-    {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
+    # {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
     # {'name': 'word_length', 'method': word_length, 'output_type': 'numeric'},
     # {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
     # {'name': 'percentage_special_characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
     # {'name': 'language', 'method': get_language_detection(), 'output_type': 'categorical'},
-    {'name': 'sentiment', 'method': get_sentiment_detection(), 'output_type': 'numeric'},
-    {'name': 'topic', 'method': get_topic_detection(), 'output_type': 'categorical'},
+    # {'name': 'sentiment', 'method': get_sentiment_detection(), 'output_type': 'numeric'},
+    {'name': 'subjectivity', 'method': get_subjectivity_detection(), 'output_type': 'numeric'},
+    # {'name': 'topic', 'method': get_topic_detection(), 'output_type': 'categorical'},
 ]
 
 
