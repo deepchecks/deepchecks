@@ -355,11 +355,7 @@ class Context(BaseContext):
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
                     use_avg_defaults=True) -> t.List[DeepcheckScorer]:
-        """Return initialized & validated scorers in a given priority.
-
-        If receive `scorers` use them,
-        Else if user defined global scorers use them,
-        Else use default scorers.
+        """Return initialized & validated scorers if provided or default scorers otherwise.
 
         Parameters
         ----------
@@ -380,12 +376,7 @@ class Context(BaseContext):
     def get_single_scorer(self,
                           scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
                           use_avg_defaults=True) -> DeepcheckScorer:
-        """Return initialized & validated single scorer in a given priority.
-
-        If receive `scorers` use them,
-        Else if user defined global scorers use them,
-        Else use default scorers.
-        Returns the first scorer from the scorers described above.
+        """Return initialized & validated scorer if provided or a default scorer otherwise.
 
         Parameters
         ----------
