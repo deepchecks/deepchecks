@@ -20,7 +20,7 @@ ext_py := $(shell which python3 || which python)
 # Override by putting in commandline python=XXX when needed.
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
 TESTDIR = $(shell realpath tests)
-ENV = /home/noam/deepchecks/mlchecks
+ENV = $(shell realpath venv)
 repo = pypi
 
 WIN_ENV := venv
