@@ -34,13 +34,14 @@ model_classes: Optional[List] , default: None
 
 _shared_docstrings['feature_aggregation_method_argument'] = """
 Argument for the reduce_output functionality, decides how to aggregate the vector of `per-feature scores` into a
-single aggregate score. The aggregate score value is between 0 and 1 for all methods other than l2_combination.
+single aggregated score. The aggregated score value is between 0 and 1 for all methods.
 Possible values are:
-'l2_weighted': L2 norm over the combination of per-feature scores and feature importance, minus the
-L2 norm of feature importance alone, specifically, ||FI + PER_FEATURE_SCORES|| - ||FI||. This method returns a
-value between 0 and sqrt(n_features).
-'weighted': Weighted mean based on feature importance, provides a robust estimation on how
-much the resulting score will affect the model's performance.
+'l2_weighted': Default. L2 norm over the 'per-feature scores' vector weighted by the feature importance, specifically, 
+sqrt( sum(FI * PER_FEATURE_SCORES^2) ). This method takes into account the feature importance yet puts more weight on
+the per-feature scores. This method is recommended for most cases.
+'l3_weighted': Similar to 'l2_weighted', but with L3 norm. Puts even more emphasis on the per-feature scores and 
+specifically on the largest per-feature scores returning a score closer to maximum among the per-feature scores.
+'weighted': Similar to 'l2_weighted', but with L1 norm. Puts equal weight on feature importance and per-feature scores.
 'mean': Mean of all per-feature scores.
 'max': Maximum of all the per-feature scores.
 None: No averaging. Return a dict with a per-feature score for each feature.
