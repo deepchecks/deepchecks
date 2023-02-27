@@ -47,9 +47,9 @@ class _DummyModel:
         Dataset, representing data an estimator was fitted on.
     test: Dataset
         Dataset, representing data an estimator predicts on.
-    y_pred_train: np.ndarray
+    y_pred_train: t.Optional[np.ndarray]
         Array of the model prediction over the train dataset.
-    y_pred_test: np.ndarray
+    y_pred_test: t.Optional[np.ndarray]
         Array of the model prediction over the test dataset.
     y_proba_train: np.ndarray
         Array of the model prediction probabilities over the train dataset.
@@ -66,10 +66,10 @@ class _DummyModel:
     def __init__(self,
                  test: Dataset,
                  y_proba_test: t.Optional[np.ndarray] = None,
-                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]] = None,
+                 y_pred_test: t.Optional[np.ndarray] = None,
                  train: t.Union[Dataset, None] = None,
-                 y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
-                 y_proba_train: t.Union[np.ndarray, None] = None,
+                 y_pred_train: t.Optional[np.ndarray] = None,
+                 y_proba_train: t.Optional[np.ndarray] = None,
                  validate_data_on_predict: bool = True,
                  model_classes: t.Optional[t.List] = None):
 
@@ -89,6 +89,10 @@ class _DummyModel:
         for dataset, y_pred, y_proba in zip([train, test],
                                             [y_pred_train, y_pred_test],
                                             [y_proba_train, y_proba_test]):
+            if y_pred is not None and not isinstance(y_pred, np.ndarray):
+                y_pred = np.array(y_pred)
+            if y_proba is not None and not isinstance(y_proba, np.ndarray):
+                y_proba = np.array(y_proba)
             if dataset is not None:
                 feature_df_list.append(dataset.features_columns)
                 if y_pred is None and y_proba is not None:

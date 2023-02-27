@@ -13,7 +13,6 @@
 from collections import OrderedDict
 from typing import Dict, List, Optional, Union
 
-import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult
