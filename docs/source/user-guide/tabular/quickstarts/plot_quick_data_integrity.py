@@ -30,7 +30,7 @@ from deepchecks.tabular import datasets
 data = datasets.regression.avocado.load_data(data_format='DataFrame', as_train_test=False)
 
 #%%
-# Insert a few typcial problems to dataset for demonstration.
+# Insert a few typical problems to dataset for demonstration.
 
 import pandas as pd
 
