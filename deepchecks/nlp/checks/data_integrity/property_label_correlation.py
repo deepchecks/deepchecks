@@ -21,9 +21,7 @@ from deepchecks.utils.typing import Hashable
 
 __all__ = ['PropertyLabelCorrelation']
 
-
 PLC = t.TypeVar('PLC', bound='PropertyLabelCorrelation')
-
 
 pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/tabular/' \
           'train_test_validation/plot_feature_label_correlation_change.html'
@@ -52,12 +50,12 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
     """
 
     def __init__(
-        self,
-        ppscore_params: t.Optional[t.Dict[t.Any, t.Any]] = None,
-        n_top_features: int = 5,
-        n_samples: int = 100_000,
-        random_state: t.Optional[int] = None,
-        **kwargs
+            self,
+            ppscore_params: t.Optional[t.Dict[t.Any, t.Any]] = None,
+            n_top_features: int = 5,
+            n_samples: int = 100_000,
+            random_state: t.Optional[int] = None,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
@@ -91,14 +89,15 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         if context.with_display:
             top_to_show = s_ppscore.head(self.n_top_features)
 
-            fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show), xaxis_title='Property')
+            fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show), x_name='property',
+                                 xaxis_title='Property')
             fig.add_trace(pd_series_to_trace(top_to_show, dataset_kind.value, text_data.name))
 
             text = [
-                'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
+                'The Predictive Power Score (PPS) is used to estimate the ability of a property to predict the '
                 f'label by itself (Read more about {pps_html}).'
-                ' A high PPS (close to 1) can mean that this feature\'s success in predicting the label is'
-                ' actually due to data leakage - meaning that the feature holds information that is based on the label '
+                ' A high PPS (close to 1) can mean that this property\'s success in predicting the label is'
+                ' actually due to data leakage - meaning that the property holds information that is based on the label '
                 'to begin with.']
 
             # display only if not all scores are 0
@@ -106,7 +105,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         else:
             display = None
 
-        return CheckResult(value=s_ppscore.to_dict(), display=display, header='Feature Label Correlation')
+        return CheckResult(value=s_ppscore.to_dict(), display=display, header='Property-Label Correlation')
 
     def add_condition_feature_pps_less_than(self: PLC, threshold: float = 0.8) -> PLC:
         """
@@ -120,6 +119,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         -------
         FLC
         """
+
         def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_features = {
                 feature_name: format_number(pps_value)

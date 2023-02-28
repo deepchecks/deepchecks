@@ -100,6 +100,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             features = select_from_dataframe(text_data.properties, self.columns, self.ignore_columns)
             features_name = 'properties'
             # categorical_features = text_data.property_types[features.columns].isin('categorical')
+            #TODO: add categorical features (get rid of warning when running this check)
+
+        else:
+            raise DeepchecksProcessError(f'Unknown segment_by value: {self.segment_by}')
 
         predictions = context.model.predict(text_data)
         if not hasattr(context.model, 'predict_proba'):
