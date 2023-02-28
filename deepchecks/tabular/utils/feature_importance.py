@@ -176,7 +176,7 @@ def _calculate_feature_importance(
     # If there was no force permutation, or if it failed while trying to calculate importance,
     # we don't take built-in importance in pipelines because the pipeline is changing the features
     # (for example one-hot encoding) which leads to the inner model features
-    # being different than the original dataset features
+    # being different from the original dataset features
     if importance is None and not isinstance(model, Pipeline):
         # Get the actual model in case of pipeline
         importance, calc_type = _built_in_importance(model, dataset)

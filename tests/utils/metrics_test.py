@@ -138,6 +138,15 @@ def test_iris_true_negative_rate_scorer_multiclass(iris_split_dataset_and_model)
     assert_that(score_weighted, close_to(0.936, 0.01))
 
 
+def test_regression_metrics(diabetes, diabetes_model):
+    ds, _ = diabetes
+
+    # Act & Assert
+    r_2_deepchecks_scorer = DeepcheckScorer('R2', model_classes=None, observed_classes=None)
+    score_r_2 = r_2_deepchecks_scorer(diabetes_model, ds)
+    assert_that(score_r_2, close_to(0.85, 0.01))
+
+
 def test_auc_on_regression_task_raises_error(diabetes, diabetes_model):
     ds, _ = diabetes
 
