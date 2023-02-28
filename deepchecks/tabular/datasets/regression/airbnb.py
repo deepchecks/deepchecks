@@ -129,7 +129,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     test = pd.read_csv(_TEST_DATA_URL).drop(_predictions, axis=1)
 
     if not as_train_test:
-        dataset = pd.concat([train, test], axis=0)
+        dataset = pd.concat([train, test], axis=0, ignore_index=True)
         if data_format == 'Dataset':
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES,
                               datetime_name=_datetime, features=_FEATURES)
