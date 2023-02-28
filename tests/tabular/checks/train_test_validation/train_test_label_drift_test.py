@@ -34,6 +34,22 @@ def test_no_drift_classification_label(non_drifted_classification_label):
          'Method': equal_to('PSI')}
     ))
 
+def test_drift_classification_label_cramers_v_resize(drifted_classification_label):
+    # Arrange
+    train, test = drifted_classification_label
+    check = TrainTestLabelDrift(categorical_drift_method='cramers_v')
+
+    # Act
+    result = check.run(train, test, with_display=False)
+    result_test_sampled_300 = check.run(train, test.sample(300, random_state=42))
+
+    # Assert
+    assert_that(result.value, has_entries(
+        {'Drift score': close_to(0.24, 0.01),
+         'Method': equal_to("Cramer's V")}
+    ))
+    assert_that(result_test_sampled_300.value['Drift score'], close_to(result.value['Drift score'], 0.01))
+    assert_that(result.display, has_length(0))
 
 def test_drift_classification_label(drifted_classification_label):
     # Arrange

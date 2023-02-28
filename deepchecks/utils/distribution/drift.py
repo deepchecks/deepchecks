@@ -80,7 +80,7 @@ def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
         200% in the second category. The new dist2_counts should be [4450, 10000].
         # When re-adjusting to the original total num_samples of dist2, the new dist2_counts should be [3103, 6896]
     """
-    new_dist1_counts = [int(np.sum(dist1_counts) / len(dist1_counts))] * len(dist1_counts)
+    new_dist1_counts = np.array([int(np.sum(dist1_counts) / len(dist1_counts))] * len(dist1_counts))
     multipliers = [nu / de if de != 0 else 0 for nu, de in zip(new_dist1_counts, dist1_counts)]
     new_dist2_counts = np.array([int(x) for x in dist2_counts * multipliers])
 
@@ -137,22 +137,28 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     if from_freqs:
         dist1_counts, dist2_counts = dist1, dist2
     else:
-        dist1_counts, dist2_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
-                                                                           max_num_categories, sort_by)
-
+        dist1_counts, dist2_counts, cat_list = preprocess_2_cat_cols_to_same_bins(dist1, dist2,
+                                                                                  min_category_size_ratio,
+                                                                                  max_num_categories, sort_by)
+        if len(cat_list) == 1:  # If the distributions have the same single value
+            return 0
         if balance_classes is True:
             dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)
 
-    contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts])
+        # Down sample one of the distributions so that they have the same total number of samples
+        dist1_sum, dist2_sum = sum(dist1_counts), sum(dist2_counts)
+        if dist1_sum > dist2_sum:
+            dist1_counts = np.round(dist1_counts * (dist2_sum / dist1_sum))
+        elif dist1_sum < dist2_sum:
+            dist2_counts = np.round(dist2_counts * (dist1_sum / dist2_sum))
+
+    contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts], dtype=int)
 
     # If columns have the same single value in both (causing division by 0), return 0 drift score:
     if contingency_matrix.shape[1] == 1:
         return 0
 
-    # This is based on
-    # https://stackoverflow.com/questions/46498455/categorical-features-correlation/46498792#46498792 # noqa: SC100
-    # and reused in other sources
-    # (https://towardsdatascience.com/the-search-for-categorical-correlation-a1cf7f1888c9) # noqa: SC100
+    # Based on https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V# bias correction method # noqa: SC100
     chi2 = chi2_contingency(contingency_matrix)[0]
     n = contingency_matrix.sum().sum()
     phi2 = chi2 / n

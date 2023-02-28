@@ -136,8 +136,7 @@ class Dataset:
             raise DeepchecksValueError(
                 f"Data has {len(duplicated_columns)} duplicate columns. "
                 "Change the duplicate column names or remove them from the data. "
-                f"Duplicate column names: {duplicated_columns}"
-            )
+                f"Duplicate column names: {duplicated_columns}")
 
         # Validations
         if label is None:
@@ -228,6 +227,14 @@ class Dataset:
                               {self._label_name,
                                index_name if not set_index_from_dataframe_index else None,
                                datetime_name if not set_datetime_from_dataframe_index else None}]
+
+        if len(set(self._data.index)) != len(self._data.index):
+            if set_index_from_dataframe_index:
+                raise DeepchecksValueError('Selected index column has duplicate values.')
+            else:
+                self._data['original_df_index'] = self._data.index
+                self._data.index = range(len(self._data.index))
+                warnings.warn('Dataframe index has duplicate indexes, setting index to [0,1..,n-1].')
 
         self._index_name = index_name
         self._set_index_from_dataframe_index = set_index_from_dataframe_index
