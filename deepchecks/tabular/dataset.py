@@ -234,7 +234,7 @@ class Dataset:
             else:
                 self._data['original_df_index'] = self._data.index
                 self._data.index = range(len(self._data.index))
-                warnings.warn('Dataframe index has duplicate indexes, using sequenced list instead.')
+                warnings.warn('Dataframe index has duplicate indexes, setting index to [0,1..,n-1].')
 
         self._index_name = index_name
         self._set_index_from_dataframe_index = set_index_from_dataframe_index
