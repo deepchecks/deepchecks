@@ -23,6 +23,7 @@ from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer, get_default_scorers, init_validate_scorers
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
@@ -156,6 +157,10 @@ def _calculate_feature_importance(
     NumberOfFeaturesLimitError
         if the number of features limit were exceeded.
     """
+    if task_type == TaskType.REGRESSION:
+        model_classes = None
+        observed_classes = None
+
     permutation_kwargs = permutation_kwargs or {}
     permutation_kwargs['random_state'] = permutation_kwargs.get('random_state', 42)
     validate_model(dataset, model)
