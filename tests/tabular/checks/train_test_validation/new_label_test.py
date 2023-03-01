@@ -141,6 +141,40 @@ def test_multiple_categories():
     assert_that(result['new_labels'], equal_to([5]))
 
 
+def test_new_label_reduce():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
+                            label='col1', label_type="multiclass")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
+                           label='col1', label_type="multiclass")
+
+    # Arrange
+    check = NewLabelTrainTest()
+    # Act X
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+    reduce_value = check.reduce_output(result)
+    # Assert
+    assert_that(reduce_value['Samples with New Labels'], equal_to(1))
+
+
+def test_new_label_reduce_no_new_labels():
+    train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    test_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']),
+                            label='col1', label_type="multiclass")
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']),
+                           label='col1', label_type="multiclass")
+
+    # Arrange
+    check = NewLabelTrainTest()
+    # Act X
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+    reduce_value = check.reduce_output(result)
+    # Assert
+    assert_that(reduce_value['Samples with New Labels'], equal_to(0))
+
+
 def test_condition_number_of_new_labels_pass():
     train_data = {'col1': [1, 2, 3, 4], 'col2': [1, 2, 3, 4]}
     test_data = {'col1': [1, 2, 3, 5], 'col2': [1, 2, 3, 4]}
