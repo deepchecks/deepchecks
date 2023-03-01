@@ -14,22 +14,26 @@ from typing import List, Sequence, Dict
 
 import numpy as np
 
-__all__ = ['default_text_properties',
+__all__ = ['calculate_default_properties',
            'text_length',
            'average_word_length',
            'percentage_special_characters']
+
 
 def text_length(raw_text: Sequence[str]) -> List[int]:
     """Return list of integers of text lengths."""
     return [len(text) for text in raw_text]
 
+
 def word_length(raw_text: Sequence[str]) -> List[int]: # Not yet used as returns list per sample and not number
     """Return list of integers of word lengths."""
     return [len(word) for text in raw_text for word in text.split()]
 
+
 def average_word_length(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of average word length."""
     return [np.mean([len(word) for word in text.split()]) for text in raw_text]
+
 
 def percentage_special_characters(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of percentage of special characters."""
@@ -100,6 +104,7 @@ def get_subjectivity_detection() -> callable:
         return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
 
     return subjectivity
+
 
 def get_topic_detection(batch_size: int = 128) -> callable:
     """Return a function that returns the language of a text.

@@ -19,7 +19,7 @@ from sklearn.metrics import log_loss
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
-from deepchecks.nlp import Context, SingleDatasetCheck, TextData
+from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.feature_inference import infer_categorical_features

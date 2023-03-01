@@ -10,6 +10,7 @@
 #
 """The feature label correlation check module."""
 import typing as t
+import pandas as pd
 
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
@@ -77,7 +78,6 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        import pandas as pd
         text_data = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
 
         df = text_data.properties.join(pd.Series(text_data.label, name='label', index=text_data.index))
@@ -97,8 +97,8 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
                 'The Predictive Power Score (PPS) is used to estimate the ability of a property to predict the '
                 f'label by itself (Read more about {pps_html}).'
                 ' A high PPS (close to 1) can mean that this property\'s success in predicting the label is'
-                ' actually due to data leakage - meaning that the property holds information that is based on the label '
-                'to begin with.']
+                ' actually due to data leakage - meaning that the property holds information that is based on the label'
+                ' to begin with.']
 
             # display only if not all scores are 0
             display = [fig, *text] if s_ppscore.sum() else None

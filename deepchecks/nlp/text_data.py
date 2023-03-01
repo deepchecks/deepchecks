@@ -232,7 +232,8 @@ class TextData:
                                itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
                            label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
                            index=list(itemgetter(*rows_to_use)(self.index)),
-                           additional_data=self._additional_data.iloc[rows_to_use, :] if self._additional_data is not None else None,
+                           additional_data=self._additional_data.iloc[rows_to_use, :]
+                           if self._additional_data is not None else None,
                            properties=self._properties.iloc[rows_to_use, :] if self._properties is not None else None,
                            task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
@@ -307,7 +308,8 @@ class TextData:
         """Return the additional data of for the dataset."""
         return self._additional_data
 
-    def calculate_defualt_properties(self, include_properties: t.List[str] = None, ignore_properties: t.List[str] = None):
+    def calculate_defualt_properties(self, include_properties: t.List[str] = None,
+                                     ignore_properties: t.List[str] = None):
         """Calculate the default properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
