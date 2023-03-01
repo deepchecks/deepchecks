@@ -11,7 +11,7 @@
 """Contains unit tests for the string_mismatch check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, greater_than, has_entries, has_entry, has_items, has_length
+from hamcrest import assert_that, greater_than, has_entries, has_entry, has_items, has_length, close_to
 
 from deepchecks.core import ConditionCategory
 from deepchecks.tabular.checks.data_integrity import StringMismatch
@@ -79,6 +79,32 @@ def test_mismatch_multi_column_ignore():
     # Assert
     assert_that(result, has_length(1))
     assert_that(result, has_entry('col1', has_entry('deep', has_length(2))))
+
+
+def test_mismatch_multi_column_reduce():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'earth', 'foo', 'bar', 'dog'],
+            'col2': ['SPACE', 'SPACE$$', 'is', 'fun', 'go', 'moon']}
+    df = pd.DataFrame(data=data)
+    # Act
+    check = StringMismatch()
+    result = check.run(df)
+    reduce_result = check.reduce_output(result)
+    # Assert
+    assert_that(reduce_result['Max Percent Mismatched Strings'], close_to(0.33, 0.01))
+
+
+def test_mismatch_multi_column_reduce_no_mismatch():
+    # Arrange
+    data = {'col1': ['Deep', 'earth', 'foo', 'bar', 'dog'],
+            'col2': ['SPACE', 'is', 'fun', 'go', 'moon']}
+    df = pd.DataFrame(data=data)
+    # Act
+    check = StringMismatch()
+    result = check.run(df)
+    reduce_result = check.reduce_output(result)
+    # Assert
+    assert_that(reduce_result['Max Percent Mismatched Strings'], close_to(0, 0.01))
 
 
 def test_condition_no_more_than_fail():
