@@ -11,6 +11,7 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 import collections
 import typing as t
+import warnings
 from operator import itemgetter
 
 import numpy as np
@@ -306,24 +307,22 @@ class TextData:
         """Return the additional data of for the dataset."""
         return self._additional_data
 
-    def set_properties(self, properties: pd.DataFrame):
-        """Set the properties of the dataset."""
-        self._properties = properties
+    def calculate_defualt_properties(self, properties: t.List[str] = None, ignore_properties: t.List[str] = None):
+        """Add the default properties of the dataset."""
+        if self._properties is not None:
+            warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        properties = calculate_default_properties(self.text, properties=properties, ignore_properties=ignore_properties)
+        self._properties = pd.DataFrame(properties, index=self.index)
 
     @property
-    def properties(self):
+    def properties(self) -> pd.DataFrame:
         """Return the properties of the dataset."""
-        if self._properties is  None:
-            self._properties = pd.DataFrame(calculate_default_properties(self.text), index=self.index)
-
+        if self._properties is None:
+            raise DeepchecksValueError('Properties are not set. Either supply your own properties as a pandas.DataFrame'
+                                       ' or use TextData.calculate_defualt_properties to add the default deepchecks '
+                                       'properties.')
         return self._properties
-
-    @property
-    def property_types(self):
-        """Return the property types of the dataset."""
-        if self._property_types is None:
-            self._property_types = pd.Series(get_default_property_types())
-        return self._property_types
 
     def __len__(self):
         """Return number of samples in the dataset."""

@@ -22,6 +22,7 @@ from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProces
 from deepchecks.nlp import Context, SingleDatasetCheck, TextData
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
+from deepchecks.tabular.utils.feature_inference import infer_categorical_features
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.typing import Hashable
@@ -94,16 +95,16 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
             features = select_from_dataframe(text_data.additional_data, self.columns, self.ignore_columns)
             features_name = 'additional data'
-            # categorical_features = None
 
         elif self.segment_by == 'properties':
             features = select_from_dataframe(text_data.properties, self.columns, self.ignore_columns)
             features_name = 'properties'
-            # categorical_features = text_data.property_types[features.columns].isin('categorical')
-            #TODO: add categorical features (get rid of warning when running this check)
-
         else:
             raise DeepchecksProcessError(f'Unknown segment_by value: {self.segment_by}')
+
+        #TODO: Don't use cat_features but enable user to give their own datatype / use properties known types.
+        # This is here because Dataset object writes a warning if categorical features are not given
+        cat_features = infer_categorical_features(features)
 
         predictions = context.model.predict(text_data)
         if not hasattr(context.model, 'predict_proba'):
@@ -121,7 +122,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         if features.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
         # label is not used in the check, just here to avoid errors
-        dataset = Dataset(features, label=pd.Series(text_data.label, index=text_data.index))
+        dataset = Dataset(features, label=pd.Series(text_data.label, index=text_data.index), cat_features=cat_features)
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
 
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),
