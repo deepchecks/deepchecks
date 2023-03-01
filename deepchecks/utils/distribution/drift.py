@@ -65,25 +65,30 @@ def get_drift_method(result_dict: Dict):
 
 
 def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
-    """Rebalance the distributions as if dist1 was a uniform distribution.
+    """Rebalance the distributions as if dist1 was a bernoulli(.5) distribution.
 
     This is a util function for an unbalanced version categorical drift scoring methods. The rebalancing is done
     so in practice all categories of the distributions are treated with the same weight.
 
     The function redefines the dist1_counts to have equal counts for all categories, and then redefines the
-    dist2_counts to have the same "change" it had from dist1_counts, but relative to the new dist1_counts.
+    dist2_counts to have the same "change" it had from dist1_counts, but relative to the new dist1_counts. In
+    addition, we add 1 to all counts. This is inspired from the properties of Beta distribution for a bernoulli
+    distribution parameter estimation see
+    http://www.ece.virginia.edu/~ffh8x/docs/teaching/esl/2020-04/farnoud-slgm-chap03.pdf for additional details.
 
     Example:
         if dist1_counts was [9000, 1000] and dist2_counts was [8000, 2000]. This means that if we treat dist1 as a
-        uniform distribution, the new counts should be dist1_counts = [5000, 5000].
-        The relative change of dist2 from dist1 was a decrease of 11% in the first category and an increase of
-        200% in the second category. The new dist2_counts should be [4450, 10000].
-        # When re-adjusting to the original total num_samples of dist2, the new dist2_counts should be [3103, 6896]
+        bernoulli(.5) distribution, the new counts should be dist1_counts = [5000, 5000].
+        The relative change of dist2 from dist1 was a decrease of ~11% in the first category and an increase of
+        ~200% in the second category. The new dist2_counts should be [4445, 9995].
+        # When re-adjusting to the original total num_samples of dist2, the new dist2_counts should be [3078, 6922]
     """
-    new_dist1_counts = np.array([int(np.sum(dist1_counts) / len(dist1_counts))] * len(dist1_counts))
-    multipliers = [nu / de if de != 0 else 0 for nu, de in zip(new_dist1_counts, dist1_counts)]
-    new_dist2_counts = np.array([int(x) for x in dist2_counts * multipliers])
+    dist1_counts = dist1_counts * (sum(dist2_counts) / sum(dist1_counts))
+    multipliers = [x2 / x1 for x1, x2 in zip(dist1_counts + 1, dist2_counts + 1)]
 
+    new_dist1_counts = np.array([int(np.sum(dist2_counts + 1) / len(dist2_counts))] * len(dist2_counts))
+    new_dist2_counts = np.round(new_dist1_counts * multipliers)
+    new_dist2_counts = np.round(new_dist2_counts * (sum(new_dist1_counts) / sum(new_dist2_counts)))
     return new_dist1_counts, new_dist2_counts
 
 
@@ -136,15 +141,16 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
                                                                               max_num_categories, sort_by)
     if len(cat_list) == 1:  # If the distributions have the same single value
         return 0
+
     if balance_classes is True:
         dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)
-
-    # Down sample one of the distributions so that they have the same total number of samples
-    dist1_sum, dist2_sum = sum(dist1_counts), sum(dist2_counts)
-    if dist1_sum > dist2_sum:
-        dist1_counts = np.round(dist1_counts * (dist2_sum / dist1_sum))
-    elif dist1_sum < dist2_sum:
-        dist2_counts = np.round(dist2_counts * (dist1_sum / dist2_sum))
+    else:
+        # Down sample one of the distributions so that they have the same total number of samples
+        dist1_sum, dist2_sum = sum(dist1_counts), sum(dist2_counts)
+        if dist1_sum > dist2_sum:
+            dist1_counts = np.round(dist1_counts * (dist2_sum / dist1_sum))
+        elif dist1_sum < dist2_sum:
+            dist2_counts = np.round(dist2_counts * (dist1_sum / dist2_sum))
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts], dtype=int)
 
     # Based on https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V# bias correction method # noqa: SC100
