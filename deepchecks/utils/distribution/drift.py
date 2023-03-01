@@ -8,8 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# noqa: SC100
 """Common utilities for distribution checks."""
+
 from numbers import Number
 from typing import Dict, Optional, Tuple, Union
 
