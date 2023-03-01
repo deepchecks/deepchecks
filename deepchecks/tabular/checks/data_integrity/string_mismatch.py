@@ -173,7 +173,7 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
                 details = f'Found {len(not_passing_columns)} out of {len(result["columns"])} relevant columns with ' \
                           f'variants ratio above threshold: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result["columns"]))
+            return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result['columns']))
 
         name = f'Ratio of variants is less or equal to {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
