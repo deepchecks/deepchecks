@@ -147,32 +147,50 @@ def get_topic_detection(batch_size: int = 128) -> callable:
     return topic
 
 
-def _get_default_properties():
+def _get_default_properties(include_properties: List[str] = None, ignore_properties: List[str] = None):
     """Return the default properties.
 
     Default properties are defined here and not outside the function so not to import all the packages
     if they are not needed.
     """
-    default_text_properties = [
+
+    ret = [
         {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
         {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
         {'name': 'percentage_special_characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
-        {'name': 'language', 'method': get_language_detection(), 'output_type': 'categorical'},
-        {'name': 'sentiment', 'method': get_sentiment_detection(), 'output_type': 'numeric'},
-        {'name': 'subjectivity', 'method': get_subjectivity_detection(), 'output_type': 'numeric'},
-        {'name': 'topic', 'method': get_topic_detection(), 'output_type': 'categorical'},
     ]
 
-    return default_text_properties
+    # Filter by properties or ignore_properties:
+    if include_properties is not None and ignore_properties is not None:
+        raise ValueError('Cannot use properties and ignore_properties parameters together.')
+    elif include_properties is not None:
+        ret = [prop for prop in ret if prop['name'] in include_properties]
+    elif ignore_properties is not None:
+        ret = [prop for prop in ret if prop['name'] not in ignore_properties]
+
+    # Add properties that require additional packages:
+    include_properties = include_properties or []
+    ignore_properties = ignore_properties or []
+    if 'language' in include_properties or 'language' not in ignore_properties:
+        ret.append({'name': 'language', 'method': get_language_detection(), 'output_type': 'categorical'})
+    if 'sentiment' in include_properties or 'sentiment' not in ignore_properties:
+        ret.append({'name': 'sentiment', 'method': get_sentiment_detection(), 'output_type': 'numeric'})
+    if 'subjectivity' in include_properties or 'subjectivity' not in ignore_properties:
+        ret.append({'name': 'subjectivity', 'method': get_subjectivity_detection(), 'output_type': 'numeric'})
+    if 'topic' in include_properties or 'topic' not in ignore_properties:
+        ret.append({'name': 'topic', 'method': get_topic_detection(), 'output_type': 'categorical'})
+
+    return ret
 
 
-def calculate_default_properties(raw_text: Sequence[str], properties: List[str] = None, ignore_properties: List[str] = None) -> Dict[str, List[float]]:
+def calculate_default_properties(raw_text: Sequence[str], include_properties: List[str] = None,
+                                 ignore_properties: List[str] = None) -> Dict[str, List[float]]:
     """Return list of dictionaries of text properties.
 
     Params:
         raw_text : Sequence[str]
             The text to calculate the properties for.
-        properties : List[str], default None
+        include_properties : List[str], default None
             The properties to calculate. If None, all default properties will be calculated. Cannot be used together with
             ignore_properties parameter.
         ignore_properties : List[str], default None
@@ -183,18 +201,7 @@ def calculate_default_properties(raw_text: Sequence[str], properties: List[str] 
         Dict[str, List[float]]
             A dictionary with the property name as key and a list of the property values for each text as value.
     """
-    default_text_properties = _get_default_properties()
-
-    if properties is not None and ignore_properties is not None:
-        raise ValueError('Cannot use properties and ignore_properties parameters together.')
-    elif properties is not None:
-        default_text_properties = [prop for prop in default_text_properties if prop['name'] in properties]
-    elif ignore_properties is not None:
-        default_text_properties = [prop for prop in default_text_properties if prop['name'] not in ignore_properties]
+    default_text_properties = _get_default_properties(include_properties=include_properties,
+                                                      ignore_properties=ignore_properties)
 
     return {prop['name']: prop['method'](raw_text) for prop in default_text_properties}
-
-def get_default_property_types() -> Dict[str, str]:
-    """Return dictionary of default property types."""
-    default_text_properties = _get_default_properties()
-    return {prop['name']: prop['output_type'] for prop in default_text_properties}

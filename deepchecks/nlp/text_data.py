@@ -19,7 +19,7 @@ import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
-from deepchecks.nlp.utils.text_properties import calculate_default_properties, get_default_property_types
+from deepchecks.nlp.utils.text_properties import calculate_default_properties
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.validation import is_sequence_not_str
 
@@ -307,12 +307,13 @@ class TextData:
         """Return the additional data of for the dataset."""
         return self._additional_data
 
-    def calculate_defualt_properties(self, properties: t.List[str] = None, ignore_properties: t.List[str] = None):
-        """Add the default properties of the dataset."""
+    def calculate_defualt_properties(self, include_properties: t.List[str] = None, ignore_properties: t.List[str] = None):
+        """Calculate the default properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        properties = calculate_default_properties(self.text, properties=properties, ignore_properties=ignore_properties)
+        properties = calculate_default_properties(self.text, include_properties=include_properties,
+                                                  ignore_properties=ignore_properties)
         self._properties = pd.DataFrame(properties, index=self.index)
 
     @property
