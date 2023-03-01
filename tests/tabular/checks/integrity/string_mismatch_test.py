@@ -26,7 +26,7 @@ def test_double_col_mismatch():
     # Act
     result = StringMismatch().run(df)
     # Assert
-    assert_that(result.value, has_entry('col1', has_entries({
+    assert_that(result.value['columns'], has_entry('col1', has_entries({
         'deep': has_length(4), 'foo': has_length(2)
     })))
     assert_that(result.display, has_length(greater_than(0)))
@@ -39,7 +39,7 @@ def test_double_col_mismatch_without_display():
     # Act
     result = StringMismatch().run(df, with_display=False)
     # Assert
-    assert_that(result.value, has_entry('col1', has_entries({
+    assert_that(result.value['columns'], has_entry('col1', has_entries({
         'deep': has_length(4), 'foo': has_length(2)
     })))
     assert_that(result.display, has_length(0))
@@ -52,7 +52,7 @@ def test_single_mismatch():
     # Act
     result = StringMismatch().run(df).value
     # Assert
-    assert_that(result, has_entry('col1', has_entry('deep', has_length(4))))
+    assert_that(result['columns'], has_entry('col1', has_entry('deep', has_length(4))))
 
 
 def test_mismatch_multi_column():
@@ -63,7 +63,7 @@ def test_mismatch_multi_column():
     # Act
     result = StringMismatch().run(df).value
     # Assert
-    assert_that(result, has_entries({
+    assert_that(result['columns'], has_entries({
         'col1': has_entry('deep', has_length(2)),
         'col2': has_entry('space', has_length(2))
     }))
@@ -77,8 +77,8 @@ def test_mismatch_multi_column_ignore():
     # Act
     result = StringMismatch(ignore_columns=['col2']).run(df).value
     # Assert
-    assert_that(result, has_length(1))
-    assert_that(result, has_entry('col1', has_entry('deep', has_length(2))))
+    assert_that(result['columns'], has_length(1))
+    assert_that(result['columns'], has_entry('col1', has_entry('deep', has_length(2))))
 
 
 def test_mismatch_multi_column_reduce():
@@ -232,7 +232,7 @@ def test_nan():
     # Act
     result = StringMismatch().run(df).value
     # Assert
-    assert_that(result, has_entries({
+    assert_that(result['columns'], has_entries({
         'col1': has_length(1),
         'col2': has_length(1)
     }))
@@ -244,4 +244,4 @@ def test_invalid_column():
     # Act
     result = StringMismatch().run(df).value
     # Assert
-    assert_that(result, has_length(0))
+    assert_that(result['columns'], has_length(0))

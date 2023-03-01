@@ -11,7 +11,7 @@
 """String mismatch functions."""
 import itertools
 from collections import defaultdict
-from typing import List, Union, Dict, Optional
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -162,7 +162,7 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
         """
         def condition(result, max_ratio: float):
             not_passing_columns = {}
-            for col, baseforms in result.items():
+            for col, baseforms in result['columns'].items():
                 variants_percent_sum = 0
                 for variants_list in baseforms.values():
                     variants_percent_sum += sum([v['percent'] for v in variants_list])
@@ -170,10 +170,10 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
                     not_passing_columns[col] = format_percent(variants_percent_sum)
 
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} out of {len(result)} relevant columns with variants ' \
-                          f'ratio above threshold: {not_passing_columns}'
+                details = f'Found {len(not_passing_columns)} out of {len(result["columns"])} relevant columns with ' \
+                          f'variants ratio above threshold: {not_passing_columns}'
                 return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
+            return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result["columns"]))
 
         name = f'Ratio of variants is less or equal to {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
@@ -181,15 +181,15 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
 
 def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
     not_passing_variants = defaultdict(list)
-    for col, baseforms in result.items():
+    for col, baseforms in result['columns'].items():
         for base_form, variants_list in baseforms.items():
             if len(variants_list) > num_max_variants:
                 if len(not_passing_variants[col]) < max_forms_to_show:
                     not_passing_variants[col].append(base_form)
     if not_passing_variants:
         variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
-        details = f'Found {len(not_passing_variants)} out of {len(result)} columns with amount of variants above ' \
-                  f'threshold: {variants_to_show}'
+        details = f'Found {len(not_passing_variants)} out of {len(result["columns"])} columns with amount of ' \
+                  f'variants above threshold: {variants_to_show}'
         return ConditionResult(ConditionCategory.WARN, details)
 
-    return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
+    return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(['columns']))
