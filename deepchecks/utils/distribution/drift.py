@@ -84,7 +84,7 @@ def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
         ~200% in the second category. The new dist2_counts should be [4445, 9995].
         # When re-adjusting to the original total num_samples of dist2, the new dist2_counts should be [3078, 6922]
     """
-    # downsizing dist1 to match dist2 and calculating per class ratio diff # noqa: SC100
+    # downsizing to match dist1 and dist2 and calculating per class ratio diff after adjustment # noqa: SC100
     dist1_counts, dist2_counts = _balance_sizes_downsizing(dist1_counts, dist2_counts, round_to_int=False)
     multipliers = [x2 / x1 for x1, x2 in zip(dist1_counts + 1, dist2_counts + 1)]
 
