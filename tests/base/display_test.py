@@ -76,8 +76,10 @@ def test_check_result_repr(iris_dataset):
     assert_that(
         check_res.__repr__(),
         equal_to(
-            'Mixed Nulls: {\'sepal length (cm)\': {}, \'sepal width (cm)\': {}, '
-            '\'petal length (cm)\': {}, \'petal width (cm)\': {}, \'target\': {}}'
+            "Mixed Nulls: {\'n_samples\': 150, \'columns\': {\'sepal length (cm)\': {}, \'sepal width (cm)\': {},"
+            " \'petal length (cm)\': {}, \'petal width (cm)\': {}, \'target\': {}}, \'feature_importance\': sepal length (cm)"
+            "    NaN\nsepal width (cm)     NaN\npetal length (cm)    NaN\npetal width (cm)     NaN\ntarget            "
+            "   NaN\ndtype: object}"
         )
     )
 

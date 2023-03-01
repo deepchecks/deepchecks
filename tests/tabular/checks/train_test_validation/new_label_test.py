@@ -42,9 +42,12 @@ def test_no_new_label():
     # Arrange
     check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(result, equal_to({}))
+    assert_that(result.value)
+    assert_that(result.value['n_new_labels_samples'], equal_to(0))
+    assert_that(result.value['n_samples'], equal_to(4))
+    assert_that(result.value['new_labels'], equal_to([]))
 
 
 def test_new_label():
@@ -98,9 +101,12 @@ def test_missing_label():
     # Arrange
     check = NewLabelTrainTest()
     # Act X
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset).value
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
     # Assert
-    assert_that(result, equal_to({}))
+    assert_that(result.value)
+    assert_that(result.value['n_new_labels_samples'], equal_to(0))
+    assert_that(result.value['n_samples'], equal_to(3))
+    assert_that(result.value['new_labels'], equal_to([]))
 
 
 def test_missing_new_label():
