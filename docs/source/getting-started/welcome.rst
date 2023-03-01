@@ -80,10 +80,10 @@ Computer Vision
    It is :doc:`available for installation </getting-started/installation>` from PyPi, use at your own discretion.
    `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ for feedback and feature requests are welcome!
 
-- :doc:`Simple Image Classification Tutorial (for data without model) </user-guide/vision/auto_quickstarts/plot_simple_classification_tutorial>`
-- :doc:`Classification Tutorial</user-guide/vision/auto_quickstarts/plot_classification_tutorial>`
-- :doc:`Object Detection Tutorial </user-guide/vision/auto_quickstarts/plot_detection_tutorial>`
-- :doc:`Semantic Segmentation Tutorial</user-guide/vision/auto_quickstarts/plot_segmentation_tutorial>`
+- :doc:`Simple Image Classification Tutorial (for data without model) </user-guide/vision/auto_tutorials/plot_simple_classification_tutorial>`
+- :doc:`Classification Tutorial</user-guide/vision/auto_tutorials/plot_classification_tutorial>`
+- :doc:`Object Detection Tutorial </user-guide/vision/auto_tutorials/plot_detection_tutorial>`
+- :doc:`Semantic Segmentation Tutorial</user-guide/vision/auto_tutorials/plot_segmentation_tutorial>`
 
 
 🙋🏼 When Should You Use Deepchecks?
@@ -133,14 +133,15 @@ subset** of the following:
 -  **Test data** (which the model isn't exposed to) with labels
 -  | A **supported model** that you wish to validate, including: **scikit-learn, XGBoost, PyTorch, and more**.
    | For tabular data models see :doc:`supported models </user-guide/tabular/supported_models>`, for more details about the supported model API.
-   | For **Computer Vision**, we currently support the **PyTorch** framework. See :doc:`/user-guide/vision/data-classes/index` to understand how to integrate your data.
+   | For **Computer Vision** we support any framework, with special integrations for **PyTorch** and
+   | **TensorFlow**. See :doc:`/user-guide/vision/VisionData` to understand how to integrate your data.
 
 
 
 👀 Viewing and Saving the Results
 ====================================
 
-The package's check and suite results can be consumed in various formats. Check out the folloing guides for more info about:
+The package's check and suite results can be consumed in various formats. Check out the following guides for more info about:
 
 - :doc:`Viewing the results when working with Jupyter or with other IDE's </user-guide/general/showing_results>`
 - :doc:`Saving an HTML report of the results </user-guide/general/export_save_results>`
@@ -148,7 +149,7 @@ The package's check and suite results can be consumed in various formats. Check 
 
 
 
-🔢 Suported Data Types
+🔢 Supported Data Types
 =========================
 
 Deepchecks currently supports Tabular Data (:mod:`deepchecks.tabular`) and is in beta release for Computer Vision (:mod:`deepchecks.vision`).

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,7 +9,3 @@
 # ----------------------------------------------------------------------------
 #
 """Package for vision utilities."""
-from .display_utils import visualize_vision_data
-from .vision_properties import static_properties_from_df
-
-__all__ = ['static_properties_from_df', 'visualize_vision_data']

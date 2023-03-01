@@ -37,7 +37,7 @@ with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
 
 
 project = 'Deepchecks'
-copyright = '2021-2022, Deepchecks'
+copyright = '2021-2023, Deepchecks'
 author = 'Deepchecks'
 os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
 is_readthedocs = os.environ.get("READTHEDOCS")
@@ -83,7 +83,23 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     "sphinx.ext.imgmath",
     'sphinx_reredirects',
+    'sphinx.ext.intersphinx',
 ]
+
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'pandas': ('https://pandas.pydata.org/docs/', None),
+    'pd': ('https://pandas.pydata.org/docs/', None),
+    'requests':  ('https://requests.readthedocs.io/en/latest/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'np': ('https://numpy.org/doc/stable/', None),
+    'torch':  ('https://pytorch.org/docs/stable/', None),
+    'datetime':  ('https://docs.python.org/3', None),
+    'tensorflow': ("https://www.tensorflow.org/api_docs/python",
+                   "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv"),
+    'tf': ("https://www.tensorflow.org/api_docs/python",
+           "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv")
+}
 
 redirects = {
     "index": "getting-started/welcome.html",
@@ -111,7 +127,6 @@ sphinx_gallery_conf = {
         "user-guide/tabular/tutorials",
         "user-guide/vision/tutorials",
         "user-guide/tabular/quickstarts",
-        "user-guide/vision/quickstarts",
         "user-guide/general/customizations",
         "user-guide/general/exporting_results",
     ],  # path to your example scripts
@@ -121,7 +136,6 @@ sphinx_gallery_conf = {
         "user-guide/tabular/auto_tutorials",
         "user-guide/vision/auto_tutorials",
         "user-guide/tabular/auto_quickstarts",
-        "user-guide/vision/auto_quickstarts",
         "user-guide/general/customizations/examples",
         "user-guide/general/exporting_results/examples",
     ], # path to where to save gallery generated output

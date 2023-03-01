@@ -9,19 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the VISION train test label drift."""
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length
+from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, raises, calling
 
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.vision.checks import TrainTestLabelDrift
 from tests.base.utils import equal_condition_result
 
 
-def test_no_drift_classification(mnist_dataset_train, device):
+def test_no_drift_classification(mnist_visiondata_train):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_train
     check = TrainTestLabelDrift(categorical_drift_method='PSI')
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(mnist_visiondata_train, mnist_visiondata_train)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -32,12 +32,12 @@ def test_no_drift_classification(mnist_dataset_train, device):
     ))
 
 
-def test_no_drift_object_detection(coco_train_visiondata, device):
+def test_no_drift_object_detection(coco_visiondata_train):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
-    result = check.run(coco_train_visiondata, coco_train_visiondata, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_train)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -55,12 +55,12 @@ def test_no_drift_object_detection(coco_train_visiondata, device):
     ))
 
 
-def test_no_drift_object_segmentation(segmentation_coco_train_visiondata, device):
+def test_no_drift_object_segmentation(segmentation_coco_visiondata_train):
     # Arrange
-    check = TrainTestLabelDrift()
+    check = TrainTestLabelDrift(numerical_drift_method='EMD')
 
     # Act
-    result = check.run(segmentation_coco_train_visiondata, segmentation_coco_train_visiondata, device=device)
+    result = check.run(segmentation_coco_visiondata_train, segmentation_coco_visiondata_train)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -78,12 +78,12 @@ def test_no_drift_object_segmentation(segmentation_coco_train_visiondata, device
     ))
 
 
-def test_reduce_output_no_drift_object_detection(coco_train_visiondata, device):
+def test_reduce_output_no_drift_object_detection(coco_visiondata_train):
     # Arrange
     check = TrainTestLabelDrift(categorical_drift_method='PSI')
 
     # Act
-    result = check.run(coco_train_visiondata, coco_train_visiondata, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_train)
 
     # Assert
     assert_that(result.reduce_output(), has_entries(
@@ -92,31 +92,31 @@ def test_reduce_output_no_drift_object_detection(coco_train_visiondata, device):
     ))
 
 
-def test_with_drift_classification(mnist_dataset_train, mnist_dataset_test, device):
+def test_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_test
+    train, test = mnist_visiondata_train, mnist_visiondata_test
     check = TrainTestLabelDrift(categorical_drift_method='PSI')
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(train, test)
 
     # Assert
     assert_that(result.value, has_entries(
         {'Samples Per Class': has_entries(
-            {'Drift score': close_to(0, 0.001),
+            {'Drift score': close_to(0.054, 0.001),
              'Method': equal_to('PSI')}
         )
         }
     ))
 
 
-def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_test, device):
+def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
-    train, test = mnist_dataset_train, mnist_dataset_test
-    check = TrainTestLabelDrift(categorical_drift_method='cramer_v')
+    train, test = mnist_visiondata_train, mnist_visiondata_test
+    check = TrainTestLabelDrift(categorical_drift_method='cramers_v')
 
     # Act
-    result = check.run(train, test, device=device)
+    result = check.run(train, test)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -128,13 +128,13 @@ def test_with_drift_classification_cramer(mnist_dataset_train, mnist_dataset_tes
     ))
 
 
-def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata, device):
+def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
-                                min_category_size_ratio=0)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='KS',
+                                max_num_categories_for_drift=10, min_category_size_ratio=0)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_test)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -142,25 +142,32 @@ def test_with_drift_object_detection(coco_train_visiondata, coco_test_visiondata
             {'Drift score': close_to(0.37, 0.01),
              'Method': equal_to('PSI')}
         ), 'Bounding Box Area (in pixels)': has_entries(
-            {'Drift score': close_to(0.013, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
+            {'Drift score': close_to(0.049, 0.001),
+             'Method': equal_to('Kolmogorov-Smirnov')}
         ), 'Number of Bounding Boxes Per Image': has_entries(
-            {'Drift score': close_to(0.051, 0.001),
-             'Method': equal_to('Earth Mover\'s Distance')}
+            {'Drift score': close_to(0.11, 0.001),
+             'Method': equal_to('Kolmogorov-Smirnov')}
         )
         }
     ))
     assert_that(result.display, has_length(greater_than(0)))
 
-
-def test_with_drift_object_detection_without_display(coco_train_visiondata, coco_test_visiondata, device):
+def test_with_drift_object_detection_not_enough_samples(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=10,
-                                min_category_size_ratio=0)
+    check = TrainTestLabelDrift(min_samples=1000)
+
+    # Assert
+    assert_that(calling(check.run).with_args(coco_visiondata_train, coco_visiondata_test),
+                raises(NotEnoughSamplesError))
+
+
+def test_with_drift_object_detection_without_display(coco_visiondata_train, coco_visiondata_test):
+    # Arrange
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                max_num_categories_for_drift=10, min_category_size_ratio=0)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata,
-                       device=device, with_display=False)
+    result = check.run(coco_visiondata_train, coco_visiondata_test, with_display=False)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -187,21 +194,20 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
 
     # Act
     result = check.run(mod_train_ds, mod_test_ds)
-
     condition_result, *_ = result.conditions_results
 
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score <= 0.1 and numerical drift score <= 0.075',
-        details='Found categorical label properties with PSI above threshold: {\'Samples Per '
-                'Class\': \'0.15\'}\n'
+        name='categorical drift score < 0.1 and numerical drift score < 0.15',
+        details='Failed for 1 out of 1 label properties.\nFound 1 categorical label properties with PSI above '
+                'threshold: {\'Samples Per Class\': \'0.32\'}'
     ))
 
 
-def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
+def test_drift_max_drift_score_condition_fail_cremer_v(mnist_drifted_datasets):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='cramer_v') \
+    check = TrainTestLabelDrift(categorical_drift_method='cramers_v') \
         .add_condition_drift_score_less_than(max_allowed_categorical_score=0.1)
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
@@ -213,19 +219,20 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.1 and numerical drift score < 0.075',
+        name='categorical drift score < 0.1 and numerical drift score < 0.15',
         details='Failed for 1 out of 1 label properties.\n'
                 'Found 1 categorical label properties with Cramer\'s V above threshold: {\'Samples Per '
-                'Class\': \'0.18\'}'
+                'Class\': \'0.25\'}'
     ))
 
 
-def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_test_visiondata, device):
+def test_with_drift_object_detection_change_max_cat(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', max_num_categories_for_drift=100)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                max_num_categories_for_drift=100)
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_test)
 
     # Assert
     assert_that(result.value, has_entries(
@@ -243,11 +250,12 @@ def test_with_drift_object_detection_change_max_cat(coco_train_visiondata, coco_
     ))
 
 
-def test_display_changes_but_values_dont_for_diff_display_params(coco_train_visiondata, coco_test_visiondata, device):
+def test_display_changes_but_values_dont_for_diff_display_params(coco_visiondata_train, coco_visiondata_test):
     # Arrange and assert
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', min_category_size_ratio=0,
-                                max_num_categories_for_display=20, show_categories_by='test_largest')
-    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+                                min_category_size_ratio=0, max_num_categories_for_display=20,
+                                show_categories_by='test_largest')
+    result = check.run(coco_visiondata_train, coco_visiondata_test)
     assert_that(result.value, has_entries(
         {'Samples Per Class': has_entries(
             {'Drift score': close_to(0.44, 0.01),
@@ -262,17 +270,17 @@ def test_display_changes_but_values_dont_for_diff_display_params(coco_train_visi
         }))
 
 
-def test_with_drift_object_detection_alternative_properties(coco_train_visiondata, coco_test_visiondata, device):
+def test_with_drift_object_detection_alternative_properties(coco_visiondata_train, coco_visiondata_test):
     # Arrange
     def prop(labels):
         return [int(x[0][0]) if len(x) != 0 else 0 for x in labels]
 
     alternative_properties = [
         {'name': 'test', 'method': prop, 'output_type': 'numerical'}]
-    check = TrainTestLabelDrift(label_properties=alternative_properties)
+    check = TrainTestLabelDrift(label_properties=alternative_properties, numerical_drift_method='EMD')
 
     # Act
-    result = check.run(coco_train_visiondata, coco_test_visiondata, device=device)
+    result = check.run(coco_visiondata_train, coco_visiondata_test)
 
     # Assert
     assert_that(result.value, has_entries(

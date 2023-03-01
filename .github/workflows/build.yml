@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -14,7 +14,7 @@ on:
   push:
     branches: [ main ]
   pull_request: 
-    branches: [ main, nlp-base, Vision_renewed ]
+    branches: [ main, nlp-base]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: ["3.6", "3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
+        python-version: ["3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
 
     steps:
     - uses: actions/checkout@v3
@@ -48,6 +48,7 @@ jobs:
 #        limit-access-to-actor: true
     - name: Run Tests
       run: make test
+
   coverage:
     runs-on: ubuntu-latest
     name: coveralls
@@ -63,18 +64,28 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  tests-tabular-python36:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.6
+      - name: Set Up Env
+        run: make env
+      - name: Run Tests
+        run: make test-tabular-only
+
+
   tests-windows:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        python-version: ["3.9"] #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
-
     steps:
     - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python 3.9
       uses: actions/setup-python@v3
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.9 #TODO: add 3.10 when scikit-learn have a wheel https://github.com/scikit-learn/scikit-learn/pull/21232
     - name: Run Tests
       run: make test-win
 
@@ -117,7 +128,7 @@ jobs:
       with:
         requirements: 'requirements-all.txt'
         fail: 'Copyleft,Other,Error'
-        exclude: '(pyzmq.*23\.2\.1|debugpy.*1\.6\.5|certifi.*2022\.12\.7|tqdm.*4\.64\.1|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchvision.*0\.11\.3.*|terminado.*0\.15\.0.*|urllib3.*1\.26\.11.*|imageio.*2\.20\.0.*|jsonschema.*4\.8\.0.*|debugpy.*1\.6\.3|qudida.*0\.0\.4)'
+        exclude: '(pyzmq.*23\.2\.1|debugpy.*1\.6\.6|certifi.*2022\.12\.7|tqdm.*4\.64\.1|webencodings.*0\.5\.1|torch.*1\.10\.2.*|torchvision.*0\.11\.3.*|terminado.*0\.15\.0.*|urllib3.*1\.26\.11.*|imageio.*2\.20\.0.*|jsonschema.*4\.8\.0.*|debugpy.*1\.6\.3|qudida.*0\.0\.4)'
         # pyzmq is Revised BSD https://github.com/zeromq/pyzmq/blob/main/examples/LICENSE
         # debugpy is MIT https://github.com/microsoft/debugpy/blob/main/LICENSE
         # certifi is MPL-2.0 https://github.com/certifi/python-certifi/blob/master/LICENSE
@@ -134,6 +145,7 @@ jobs:
     - name: Print report
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"
+
   gpu-tests:
     runs-on: [self-hosted, gpu]
     steps:
@@ -145,7 +157,7 @@ jobs:
       - name: Set Up Env
         run: make env
       - name: Run Tests
-        run: make test
+        run: make test args=tests/vision/gpu_tests
 
 
 #  documentation-check:

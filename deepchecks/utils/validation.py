@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -49,6 +49,7 @@ def ensure_hashable_or_mutable_sequence(
     raise errors.DeepchecksValueError(message.format(
         type=type(value).__name__
     ))
+
 
 def is_sequence_not_str(value):
     """Check if value is a non str sequence."""

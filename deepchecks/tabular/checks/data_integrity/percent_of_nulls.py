@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -43,7 +43,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         based on columns variable.
     max_features_to_show : int , default: 5
         maximum features with to show, showing top features based on percent of nulls.
-    aggregation_method: str, default: 'max'
+    aggregation_method: t.Optional[str], default: 'max'
         {feature_aggregation_method_argument:2*indent}
     n_samples : int , default: 100_000
         number of samples to use for this check.
@@ -56,7 +56,7 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
             columns: t.Union[Hashable, t.List[Hashable], None] = None,
             ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
             max_features_to_show: int = 5,
-            aggregation_method='max',
+            aggregation_method: t.Optional[str] = 'max',
             n_samples: int = 100_000,
             random_state: int = 42,
             **kwargs
@@ -91,7 +91,8 @@ class PercentOfNulls(SingleDatasetCheck, ReduceFeatureMixin):
         if context.with_display and max(result_data['Percent of nulls in sample']) > 0:
             display = (
                 [px.bar(x=data.columns, y=result_data['Percent of nulls in sample'],
-                        title='Percent Of Nulls', range_y=(0, 1))])
+                        title='Percent Of Nulls', range_y=(0, 1))
+                 .update_layout(yaxis_title=None, xaxis_title=None)])
         else:
             display = None
 

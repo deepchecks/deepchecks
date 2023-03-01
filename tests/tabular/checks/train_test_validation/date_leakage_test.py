@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -206,17 +206,17 @@ def test_no_dates_from_val_before_train():
 def test_no_dates_from_val_before_train_date_in_index():
     train_ds = Dataset(pd.DataFrame(np.ones((7, 1)), columns=['col1'], index=[
         datetime(2021, 10, 3, 0, 0),
-        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 1, 0),
         datetime(2021, 10, 4, 0, 0),
-        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 1, 0),
         datetime(2021, 10, 4, 0, 0),
         datetime(2021, 10, 5, 0, 0),
-        datetime(2021, 10, 5, 0, 0)
+        datetime(2021, 10, 5, 1, 0)
     ]), set_datetime_from_dataframe_index=True)
     val_ds = Dataset(pd.DataFrame(np.ones((3, 1)), columns=['col1'], index=[
         datetime(2021, 10, 6, 0, 0),
-        datetime(2021, 10, 6, 0, 0),
-        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 1, 0),
+        datetime(2021, 10, 6, 2, 0),
     ]), set_datetime_from_dataframe_index=True)
     check_obj = DateTrainTestLeakageOverlap()
     assert_that(check_obj.run(train_ds, val_ds).value, equal_to(0))
@@ -225,17 +225,17 @@ def test_no_dates_from_val_before_train_date_in_index():
 def test_nan():
     train_ds = dataset_from_dict({'col1': [
         datetime(2021, 10, 3, 0, 0),
-        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 1, 0),
         datetime(2021, 10, 4, 0, 0),
-        datetime(2021, 10, 4, 0, 0),
-        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 1, 0),
+        datetime(2021, 10, 4, 2, 0),
         datetime(2021, 10, 5, 0, 0),
         np.nan
     ]}, 'col1')
     val_ds = dataset_from_dict({'col1': [
         datetime(2021, 10, 6, 0, 0),
-        datetime(2021, 10, 6, 0, 0),
-        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 1, 0),
+        datetime(2021, 10, 6, 2, 0),
         np.nan
 
     ]}, 'col1')
@@ -291,19 +291,19 @@ def test_condition_fail_on_overlap_date_in_index():
     # Arrange
     train_ds = Dataset(pd.DataFrame(np.ones((14, 1)), columns=['col1'], index=[
         datetime(2021, 10, 1, 0, 0),
-        datetime(2021, 10, 1, 0, 0),
-        datetime(2021, 10, 1, 0, 0),
+        datetime(2021, 10, 1, 1, 0),
+        datetime(2021, 10, 1, 2, 0),
         datetime(2021, 10, 2, 0, 0),
-        datetime(2021, 10, 2, 0, 0),
-        datetime(2021, 10, 2, 0, 0),
+        datetime(2021, 10, 2, 1, 0),
+        datetime(2021, 10, 2, 2, 0),
         datetime(2021, 10, 3, 0, 0),
-        datetime(2021, 10, 3, 0, 0),
-        datetime(2021, 10, 3, 0, 0),
+        datetime(2021, 10, 3, 1, 0),
+        datetime(2021, 10, 3, 2, 0),
         datetime(2021, 10, 4, 0, 0),
-        datetime(2021, 10, 4, 0, 0),
-        datetime(2021, 10, 4, 0, 0),
+        datetime(2021, 10, 4, 1, 0),
+        datetime(2021, 10, 4, 2, 0),
         datetime(2021, 10, 5, 0, 0),
-        datetime(2021, 10, 5, 0, 0)
+        datetime(2021, 10, 5, 1, 0)
     ]), set_datetime_from_dataframe_index=True)
 
     val_ds = Dataset(pd.DataFrame(np.ones((11, 1)), columns=['col1'], index=[
@@ -311,13 +311,13 @@ def test_condition_fail_on_overlap_date_in_index():
         datetime(2021, 10, 4, 0, 0),
         datetime(2021, 10, 5, 0, 0),
         datetime(2021, 10, 6, 0, 0),
-        datetime(2021, 10, 6, 0, 0),
+        datetime(2021, 10, 6, 1, 0),
         datetime(2021, 10, 7, 0, 0),
-        datetime(2021, 10, 7, 0, 0),
+        datetime(2021, 10, 7, 1, 0),
         datetime(2021, 10, 8, 0, 0),
-        datetime(2021, 10, 8, 0, 0),
+        datetime(2021, 10, 8, 1, 0),
         datetime(2021, 10, 9, 0, 0),
-        datetime(2021, 10, 9, 0, 0)
+        datetime(2021, 10, 9, 1, 0)
     ]), set_datetime_from_dataframe_index=True)
 
     check = DateTrainTestLeakageOverlap().add_condition_leakage_ratio_less_or_equal(0.17)
@@ -328,7 +328,7 @@ def test_condition_fail_on_overlap_date_in_index():
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
                                name='Date leakage ratio is less or equal to 17%',
-                               details='Found 18.18% leaked dates')
+                               details='Found 27.27% leaked dates')
     ))
 
 

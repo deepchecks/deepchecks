@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -21,8 +21,10 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
-from deepchecks.tabular.utils.feature_importance import calculate_feature_importance_or_none
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
+from deepchecks.tabular.utils.feature_importance import (calculate_feature_importance_or_none,
+                                                         validate_feature_importance)
+from deepchecks.tabular.utils.task_inference import (get_all_labels, infer_classes_from_model,
+                                                     infer_task_type_by_class_number, infer_task_type_by_labels)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
                                                  model_type_validation, validate_model)
@@ -45,9 +47,9 @@ class _DummyModel:
         Dataset, representing data an estimator was fitted on.
     test: Dataset
         Dataset, representing data an estimator predicts on.
-    y_pred_train: np.ndarray
+    y_pred_train: t.Optional[np.ndarray]
         Array of the model prediction over the train dataset.
-    y_pred_test: np.ndarray
+    y_pred_test: t.Optional[np.ndarray]
         Array of the model prediction over the test dataset.
     y_proba_train: np.ndarray
         Array of the model prediction probabilities over the train dataset.
@@ -64,10 +66,10 @@ class _DummyModel:
     def __init__(self,
                  test: Dataset,
                  y_proba_test: t.Optional[np.ndarray] = None,
-                 y_pred_test: t.Union[np.ndarray, t.List[t.Hashable]] = None,
+                 y_pred_test: t.Optional[np.ndarray] = None,
                  train: t.Union[Dataset, None] = None,
-                 y_pred_train: t.Union[np.ndarray, t.List[t.Hashable], None] = None,
-                 y_proba_train: t.Union[np.ndarray, None] = None,
+                 y_pred_train: t.Optional[np.ndarray] = None,
+                 y_proba_train: t.Optional[np.ndarray] = None,
                  validate_data_on_predict: bool = True,
                  model_classes: t.Optional[t.List] = None):
 
@@ -87,6 +89,10 @@ class _DummyModel:
         for dataset, y_pred, y_proba in zip([train, test],
                                             [y_pred_train, y_pred_test],
                                             [y_proba_train, y_proba_test]):
+            if y_pred is not None and not isinstance(y_pred, np.ndarray):
+                y_pred = np.array(y_pred)
+            if y_proba is not None and not isinstance(y_proba, np.ndarray):
+                y_proba = np.array(y_proba)
             if dataset is not None:
                 feature_df_list.append(dataset.features_columns)
                 if y_pred is None and y_proba is not None:
@@ -97,8 +103,7 @@ class _DummyModel:
                     if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
                         y_pred = y_pred[:, 0]
                     ensure_predictions_shape(y_pred, dataset.data)
-                    y_pred_ser = pd.Series(y_pred)
-                    y_pred_ser.index = dataset.data.index
+                    y_pred_ser = pd.Series(y_pred, index=dataset.data.index)
                     predictions.append(y_pred_ser)
                     if y_proba is not None:
                         ensure_predictions_proba(y_proba, y_pred)
@@ -174,7 +179,7 @@ class Context(BaseContext):
             y_pred_test: t.Optional[np.ndarray] = None,
             y_proba_train: t.Optional[np.ndarray] = None,
             y_proba_test: t.Optional[np.ndarray] = None,
-            model_classes: t.Optional[t.List] = None
+            model_classes: t.Optional[t.List] = None,
     ):
         # Validations
         if train is None and test is None and model is None:
@@ -211,8 +216,8 @@ class Context(BaseContext):
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
             model_type_validation(model)
-        if feature_importance is not None and not isinstance(feature_importance, pd.Series):
-            raise DeepchecksValueError('feature_importance must be a pandas Series')
+        if feature_importance is not None:
+            feature_importance = validate_feature_importance(feature_importance, train.features)
         if model_classes and len(model_classes) == 0:
             raise DeepchecksValueError('Received empty model_classes')
         if model_classes and sorted(model_classes) != model_classes:
@@ -221,16 +226,36 @@ class Context(BaseContext):
                 template='For more information please refer to the Supported Models guide {link}')
             raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
-        self._task_type, self._observed_classes, self._model_classes = infer_task_type_and_classes(
-            model, train, test, y_pred_train, y_pred_test, model_classes)
+        if model_classes is None:
+            model_classes = infer_classes_from_model(model)
+        labels = None
+        if train and train.label_type:
+            task_type = train.label_type
+        elif model_classes:
+            task_type = infer_task_type_by_class_number(len(model_classes))
+        else:
+            labels = get_all_labels(model, train, test, y_pred_train, y_pred_test)
+            task_type = infer_task_type_by_labels(labels)
 
-        if model is None and \
-                not pd.Series([y_pred_train, y_pred_test, y_proba_train, y_proba_test]).isna().all():
+        observed_classes = None
+
+        if (model is None and
+                (y_pred_train is not None or y_pred_test is not None or y_proba_train is not None
+                 or y_proba_test is not None)):
+            # If there is no pred, we use the observed classes to zip between the proba and the classes
+            if y_pred_train is None and model_classes is None:
+                # Does not calculate labels twice
+                labels = labels if labels is not None else get_all_labels(model, train, test, y_pred_train, y_pred_test)
+                observed_classes = sorted(labels.dropna().unique().tolist())
             model = _DummyModel(train=train, test=test,
                                 y_pred_train=y_pred_train, y_pred_test=y_pred_test,
                                 y_proba_test=y_proba_test, y_proba_train=y_proba_train,
-                                model_classes=self.model_classes)
+                                # Use model classes if exists, else observed classes
+                                model_classes=model_classes or observed_classes)
 
+        self._task_type = task_type
+        self._observed_classes = observed_classes
+        self._model_classes = model_classes
         self._train = train
         self._test = test
         self._model = model
@@ -260,13 +285,17 @@ class Context(BaseContext):
         """Return ordered list of possible label classes for classification tasks or None for regression."""
         if self._model_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
             # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
-            self._model_classes = self._observed_classes
             get_logger().warning('Could not find model\'s classes, using the observed classes')
+            return self.observed_classes
         return self._model_classes
 
     @property
     def observed_classes(self) -> t.List:
         """Return the observed classes in both train and test. None for regression."""
+        # If did not cache yet the observed classes than calculate them
+        if self._observed_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
+            labels = get_all_labels(self._model, self._train, self._test)
+            self._observed_classes = sorted(labels.dropna().unique().tolist())
         return self._observed_classes
 
     @property
@@ -345,7 +374,7 @@ class Context(BaseContext):
             A list of initialized & validated scorers.
         """
         scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
-        return init_validate_scorers(scorers, self.model, self.train, self.model_classes, self._observed_classes)
+        return init_validate_scorers(scorers, self.model, self.train, self.model_classes, self.observed_classes)
 
     def get_single_scorer(self,
                           scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
@@ -368,4 +397,6 @@ class Context(BaseContext):
         scorer = scorer or get_default_scorers(self.task_type, use_avg_defaults)
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorer))
-        return self.get_scorers({scorer_name: scorer[scorer_name]}, use_avg_defaults)[0]
+        single_scorer_dict = {scorer_name: scorer[scorer_name]}
+        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.model_classes,
+                                     self.observed_classes)[0]

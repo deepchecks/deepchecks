@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -26,6 +26,7 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     categorical features it is an indicator whether the values are the same.
     See https://www.jstor.org/stable/2528823 for further details. In addition, it can deal with missing values.
     Note that this method is expensive in memory and requires keeping in memory a matrix of size data*data.
+
     Parameters
     ----------
     data: numpy.ndarray
@@ -66,6 +67,7 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
     See https://www.jstor.org/stable/2528823 for further details.
     This method minimizes memory usage by saving in memory and returning only the closest neighbors of each sample.
     In addition, it can deal with missing values.
+
     Parameters
     ----------
     data: pd.DataFrame
@@ -80,6 +82,7 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
     samples_to_calc_neighbors_for: pd.DataFrame, default None
         Samples for which to calculate nearest neighbors. If None, calculates for all given samples in data.
         These samples do not have to exist in data, but must share all relevant features.
+
     Returns
     -------
     numpy.ndarray

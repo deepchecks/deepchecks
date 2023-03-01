@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,9 +10,9 @@
 #
 
 """Utils module containing feature importance calculations."""
-
 import time
 import typing as t
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -21,6 +21,7 @@ from sklearn.pipeline import Pipeline
 
 from deepchecks import tabular
 from deepchecks.core import errors
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
@@ -31,6 +32,7 @@ __all__ = [
     'calculate_feature_importance_or_none',
     'column_importance_sorter_dict',
     'column_importance_sorter_df',
+    'validate_feature_importance',
     'N_TOP_MESSAGE'
 ]
 
@@ -430,3 +432,20 @@ def column_importance_sorter_df(
     if n_top:
         return df.head(n_top)
     return df
+
+
+def validate_feature_importance(feature_importance: pd.Series, features: list, eps: float = 0.001) -> pd.Series:
+    """Validate feature importance."""
+    if not isinstance(feature_importance, pd.Series):
+        raise DeepchecksValueError('feature_importance must be given as a pandas.Series where the index is feature '
+                                   'names and the value is the calculated importance')
+    if feature_importance.isnull().any():
+        raise DeepchecksValueError('feature_importance must not contain null values')
+    if (feature_importance < 0).any():
+        raise DeepchecksValueError('feature_importance must not contain negative values')
+    if sorted(feature_importance.index) != sorted(features):
+        raise DeepchecksValueError('feature_importance index must be the feature names')
+    if not 1 - eps < feature_importance.sum() < 1 + eps:
+        warnings.warn('feature_importance does not sum to 1. Normalizing to 1.', UserWarning)
+        feature_importance = feature_importance / feature_importance.sum()
+    return feature_importance

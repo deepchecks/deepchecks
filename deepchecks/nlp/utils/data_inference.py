@@ -24,7 +24,8 @@ __all__ = ['infer_observed_and_model_labels']
 
 
 def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model: BaseEstimator = None,
-                                    y_pred_train: np.array = None, y_pred_test: np.array = None,
+                                    y_pred_train: np.array = None,  # pylint: disable=unused-argument
+                                    y_pred_test: np.array = None,  # pylint: disable=unused-argument
                                     model_classes: list = None,
                                     task_type: TaskType = None) -> \
         Tuple[List, List]:

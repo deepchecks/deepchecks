@@ -11,6 +11,8 @@
 """Module for defining functions related to image data."""
 import io
 import typing as t
+from numbers import Number
+from pathlib import Path
 
 import cv2
 import numpy as np
@@ -18,48 +20,63 @@ import PIL.Image as pilimage
 import PIL.ImageDraw as pildraw
 import PIL.ImageOps as pilops
 import plotly.graph_objects as go
-import torch
+from PIL import ImageColor, ImageFont
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.html import imagetag
+from deepchecks.vision.vision_data import TaskType
+from deepchecks.vision.vision_data.utils import LabelMap
 
 from .detection_formatters import convert_bbox
 
-__all__ = ['ImageInfo', 'numpy_grayscale_to_heatmap_figure', 'ensure_image',
+__all__ = ['numpy_grayscale_to_heatmap_figure', 'ensure_image',
            'apply_heatmap_image_properties', 'draw_bboxes', 'prepare_thumbnail',
-           'crop_image']
+           'crop_image', 'draw_image', 'draw_masks', 'random_color_dict']
 
 
-class ImageInfo:
-    """Class with methods defined to extract metadata about image."""
+def draw_image(image: np.ndarray, label, task_type: TaskType, label_map: LabelMap,
+               thumbnail_size: t.Tuple[int, int] = (200, 200), draw_label: bool = True) -> str:
+    """Return an image to show as output of the display.
 
-    def __init__(self, img):
-        if not isinstance(img, np.ndarray):
-            raise DeepchecksValueError('Expect image to be numpy array')
-        self.img = img
-
-    def get_size(self) -> t.Tuple[int, int]:
-        """Get size of image as (width, height) tuple."""
-        return self.img.shape[1], self.img.shape[0]
-
-    def get_dimension(self) -> int:
-        """Return the number of dimensions of the image (grayscale = 1, RGB = 3)."""
-        return self.img.shape[2]
-
-    def is_equals(self, img_b) -> bool:
-        """Compare image to another image for equality."""
-        return np.array_equal(self.img, img_b)
+    Parameters
+    ----------
+    image : np.ndarray
+        The image to draw, must be a [H, W, C] 3D numpy array.
+    label :
+        2-dim labels tensor for the image to draw on top of the image, shape depends on task type.
+    task_type : TaskType
+        The task type associated with the label.
+    label_map: LabelMap
+        Map of class id to label
+    thumbnail_size: t.Tuple[int,int]
+        The required size of the image for display.
+    draw_label : bool, default: True
+        Whether to draw the label on the image or not.
+    Returns
+    -------
+    str
+        The image in the provided thumbnail size with the label drawn on top of it for relevant tasks as html.
+    """
+    if label is not None and image is not None and draw_label:
+        if task_type == TaskType.OBJECT_DETECTION:
+            image = draw_bboxes(image, np.asarray(label), copy_image=False, border_width=5, label_map=label_map)
+        elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+            image = draw_masks(image, label, copy_image=False)
+    if image is not None:
+        return prepare_thumbnail(image=image, size=thumbnail_size, copy_image=False)
+    else:
+        return 'Image unavailable'
 
 
 def ensure_image(
-    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
-    copy: bool = True
+        image: t.Union[pilimage.Image, np.ndarray],
+        copy: bool = True
 ) -> pilimage.Image:
     """Transform to `PIL.Image.Image` if possible.
 
     Parameters
     ----------
-    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+    image : Union[PIL.Image.Image, numpy.ndarray]
     copy : bool, default True
         if `image` is an instance of the `PIL.Image.Image` return
         it as it is or copy it.
@@ -70,8 +87,6 @@ def ensure_image(
     """
     if isinstance(image, pilimage.Image):
         return image.copy() if copy is True else image
-    if isinstance(image, torch.Tensor):
-        image = t.cast(np.ndarray, image.numpy())
     if isinstance(image, np.ndarray):
         image = image.squeeze().astype(np.uint8)
         if image.ndim == 3:
@@ -91,23 +106,25 @@ def ensure_image(
 
 
 def draw_bboxes(
-    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
-    bboxes: t.Union[np.ndarray, torch.Tensor],
-    bbox_notation: t.Optional[str] = None,
-    copy_image: bool = True,
-    border_width: int = 1,
-    color: t.Union[str, t.Dict[np.number, str]] = 'red',
+        image: t.Union[pilimage.Image, np.ndarray],
+        bboxes: np.ndarray,
+        label_map: LabelMap,
+        bbox_notation: t.Optional[str] = None,
+        copy_image: bool = True,
+        border_width: int = 1,
+        color: t.Union[str, t.Dict[np.number, str]] = 'red',
 ) -> pilimage.Image:
     """Draw bboxes on the image.
 
     Parameters
     ----------
-    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+    image : Union[PIL.Image.Image, numpy.ndarray]
         image to draw on
-    bboxes : Union[numpy.ndarray, torch.Tensor]
+    bboxes : numpy.ndarray
         array of bboxes
-    bbox_notation : Optional[str], default None
-        format of the provided bboxes
+    label_map: LabelMap
+        Map of class id to label
+    bbox_notation
     copy_image : bool, default True
         copy image before drawing or not
     border_width : int, default 1
@@ -120,24 +137,18 @@ def draw_bboxes(
     PIL.Image.Image : image instance with drawen bboxes on it
     """
     image = ensure_image(image, copy=copy_image)
-
-    if bbox_notation is not None:
-        bboxes = np.array([
-            convert_bbox(
-                bbox,
-                notation=bbox_notation,
-                image_width=image.width,
-                image_height=image.height,
-                _strict=False
-            ).tolist()
-            for bbox in bboxes
-        ])
-
     draw = pildraw.ImageDraw(image)
 
+    if len(bboxes.shape) == 1:
+        bboxes = [bboxes]
+    if bbox_notation is not None:
+        bboxes = np.array(
+            [convert_bbox(bbox, notation=bbox_notation, image_width=image.width, image_height=image.height,
+                          _strict=False).tolist() for bbox in bboxes])
     for bbox in bboxes:
-        clazz, x0, y0, w, h = bbox.tolist()
+        clazz, x0, y0, w, h = bbox
         x1, y1 = x0 + w, y0 + h
+        text = label_map[clazz]
 
         if isinstance(color, str):
             color_to_use = color
@@ -146,22 +157,91 @@ def draw_bboxes(
         else:
             raise TypeError('color must be of type - Union[str, Dict[int, str]]')
 
+        font = get_font_with_size(text, min(w, image.width // 2))
         draw.rectangle(xy=(x0, y0, x1, y1), width=border_width, outline=color_to_use)
-        draw.text(xy=(x0 + (w * 0.5), y0 + (h * 0.2)), text=str(clazz), fill=color_to_use)
+        draw.text(xy=(x0 + 2, y0), text=text, fill='white', font=font, stroke_width=2, stroke_fill='black')
 
     return image
 
 
+def draw_masks(
+        image: t.Union[pilimage.Image, np.ndarray],
+        mask: np.ndarray,
+        color: t.Dict[Number, str] = None,
+        copy_image: bool = True,
+        alpha: float = 0.5
+) -> pilimage.Image:
+    """Draw mask on the image.
+
+    Parameters
+    ----------
+    image : Union[PIL.Image.Image, numpy.ndarray]
+        image to draw on
+    mask : numpy.ndarray
+        A mask label. Shape of H,W with every value represents the class id at that location.
+    copy_image : bool, default True
+        copy image before drawing or not
+    alpha: float, default 0.5
+        Transparency of the mask over the image. When 1 the mask is solid and the image below is hidden
+    color: Dict[Number, str]
+        color of the masks. A map of class id to the color (either string name or rgb list)
+
+    Returns
+    -------
+    PIL.Image.Image : image instance with masks on it
+    """
+    if mask.ndim != 2:
+        raise ValueError('In order to draw mask it must be in H,W shape')
+    image = np.array(ensure_image(image, copy=copy_image))
+    image_mask = np.zeros(shape=image.shape)
+    classes = set(np.unique(mask))
+
+    if color is None:
+        color = random_color_dict(len(classes))
+
+    for class_id in classes:
+        color_to_use = color.get(class_id, 'gray')
+        if isinstance(color_to_use, str):
+            color_to_use = ImageColor.getrgb(color_to_use)
+        if len(color_to_use) != 3:
+            raise ValueError(f'Got invalid color: {color_to_use}')
+
+        rgb_mask = np.stack((mask == class_id,) * 3, axis=-1) * color_to_use
+        image_mask = image_mask + rgb_mask
+
+    image[image_mask > 0] = image[image_mask > 0] * (1 - alpha) + image_mask[image_mask > 0] * alpha
+    return pilimage.fromarray(image.astype(np.uint8))
+
+
+def get_font_with_size(text, desired_width):
+    font_size = 1
+    here = Path(__file__)
+    font_file = here.parent.parent / 'fonts' / 'quicksand' / 'Quicksand-Bold.otf'
+    font = ImageFont.truetype(str(font_file), font_size)
+    # Don't want to have size too small
+    desired_width = max(100, desired_width)
+    jump_size = 100
+    while jump_size > 1:
+        if font.getsize(text)[0] < desired_width:
+            font_size += jump_size
+        else:
+            jump_size = jump_size // 2
+            font_size -= jump_size
+        font = ImageFont.truetype(str(font_file), font_size)
+
+    return font
+
+
 def prepare_thumbnail(
-    image: t.Union[pilimage.Image, np.ndarray, torch.Tensor],
-    size: t.Optional[t.Tuple[int, int]] = None,
-    copy_image: bool = True,
+        image: t.Union[pilimage.Image, np.ndarray],
+        size: t.Optional[t.Tuple[int, int]] = None,
+        copy_image: bool = True,
 ) -> str:
     """Prepare html image tag with the provided image.
 
     Parameters
     ----------
-    image : Union[PIL.Image.Image, numpy.ndarray, torch.Tensor]
+    image : Union[PIL.Image.Image, numpy.ndarray]
         image to use
     size : Optional[Tuple[int, int]], default None
         size to which image should be rescaled
@@ -222,3 +302,8 @@ def crop_image(img: np.ndarray, x, y, w, h) -> np.ndarray:
     w = min(w, img.shape[1] - x - 1)
 
     return img[y:y + h, x:x + w]
+
+
+def random_color_dict(size):
+    """Create a random color dict to be used for coloring masks."""
+    return {index: tuple(np.random.choice(range(256), size=3)) for index in range(size)}

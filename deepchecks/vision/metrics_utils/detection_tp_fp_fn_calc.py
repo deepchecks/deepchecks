@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -13,13 +13,13 @@ import typing as t
 from collections import defaultdict
 
 import numpy as np
-import torch
 from ignite.metrics import Metric
 from ignite.metrics.metric import reinit__is_reduced, sync_all_reduce
 
 from deepchecks.utils.metrics import averaging_mechanism
 from deepchecks.vision.metrics_utils.confusion_matrix_counts_metrics import AVAILABLE_EVALUATING_FUNCTIONS
 from deepchecks.vision.metrics_utils.metric_mixin import MetricMixin, ObjectDetectionMetricMixin
+from deepchecks.vision.vision_data.utils import is_torch_object
 
 
 class TpFpFn(Metric, MetricMixin):
@@ -69,9 +69,9 @@ class TpFpFn(Metric, MetricMixin):
         y_pred, y = output
 
         for detected, ground_truth in zip(y_pred, y):
-            if isinstance(detected, torch.Tensor):
+            if is_torch_object(detected):
                 detected = detected.cpu().detach()
-            if isinstance(ground_truth, torch.Tensor):
+            if is_torch_object(ground_truth):
                 ground_truth = ground_truth.cpu().detach()
 
             self._group_detections(detected, ground_truth)

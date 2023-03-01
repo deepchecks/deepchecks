@@ -15,5 +15,3 @@ suites
     train_test_validation
     model_evaluation
     full_suite
-    single_dataset_integrity
-    train_test_leakage

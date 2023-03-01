@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -22,14 +22,22 @@ from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError,
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.utils.feature_importance import (calculate_feature_importance_or_none,
                                                          column_importance_sorter_df, column_importance_sorter_dict,
-                                                         _calculate_feature_importance)
-from deepchecks.tabular.utils.task_inference import infer_task_type_and_classes
+                                                         _calculate_feature_importance, validate_feature_importance)
+from deepchecks.tabular.utils.task_inference import infer_task_type_by_labels, get_all_labels, infer_classes_from_model, \
+    infer_task_type_by_class_number
 from deepchecks.tabular.utils.task_type import TaskType
 
 
-def run_fi_calculation(model, dataset,  permutation_kwargs=None, force_permutation=False):
-    task_type, observed_classes, model_classes = infer_task_type_and_classes(model, dataset)
-    model_classes = model_classes if model_classes is not None else observed_classes
+def run_fi_calculation(model, dataset, permutation_kwargs=None, force_permutation=False):
+    labels = get_all_labels(model, dataset)
+    observed_classes = sorted(labels.dropna().unique().tolist())
+    model_classes = infer_classes_from_model(model)
+    if dataset and dataset.label_type:
+        task_type = dataset.label_type
+    elif model_classes:
+        task_type = infer_task_type_by_class_number(len(model_classes))
+    else:
+        task_type = infer_task_type_by_labels(labels)
     return _calculate_feature_importance(model=model, dataset=dataset, model_classes=model_classes,
                                          observed_classes=observed_classes, task_type=task_type,
                                          permutation_kwargs=permutation_kwargs, force_permutation=force_permutation)
@@ -96,7 +104,7 @@ def test_calculate_importance_when_no_builtin(iris_labeled_dataset, caplog):
                                                       permutation_kwargs={'timeout': 120})
     assert_that(caplog.records, has_length(1))
     assert_that(caplog.records[0].message, equal_to('Could not find built-in feature importance on the model, '
-                                            'using permutation feature importance calculation instead'))
+                                                    'using permutation feature importance calculation instead'))
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
@@ -111,10 +119,10 @@ def test_calculate_importance_when_model_is_pipeline(iris_labeled_dataset, caplo
 
     # Act
     feature_importances, fi_type = run_fi_calculation(clf, iris_labeled_dataset,
-                                                       permutation_kwargs={'timeout': 120})
+                                                      permutation_kwargs={'timeout': 120})
     assert_that(caplog.records, has_length(1))
     assert_that(caplog.records[0].message, equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn '
-                                            'Pipeline, using permutation feature importance calculation instead'))
+                                                    'Pipeline, using permutation feature importance calculation instead'))
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
@@ -229,9 +237,38 @@ def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model, ca
     # Act
     feature_importances, fi_type = run_fi_calculation(adaboost, train_ds, force_permutation=True)
     assert_that(caplog.records, has_length(1))
-    assert_that(caplog.records[0].message, contains_string('Calculating permutation feature importance without time limit. '
-                                                           'Expected to finish in '))
+    assert_that(caplog.records[0].message,
+                contains_string('Calculating permutation feature importance without time limit. '
+                                'Expected to finish in '))
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.0001))
     assert_that(fi_type, is_('permutation_importance'))
+
+
+def test_feature_importance_validation():
+    features = ['a', 'b', 'c']
+    feature_importance = pd.Series([0.3, 0.3, 0.4], index=features)
+    feature_importance_with_null = pd.Series([0.3, 0.3, None], index=features)
+
+    assert_that(calling(validate_feature_importance).with_args(feature_importance.values, features),
+                raises(DeepchecksValueError,
+                       'feature_importance must be given as a pandas.Series where the index is feature names and the '
+                       'value is the calculated importance'))
+
+    assert_that(calling(validate_feature_importance).with_args(feature_importance, ['a', 'b', 'd']),
+                raises(DeepchecksValueError,
+                       'feature_importance index must be the feature names'))
+
+    assert_that(calling(validate_feature_importance).with_args(feature_importance_with_null, features),
+                raises(DeepchecksValueError,
+                       'feature_importance must not contain null values'))
+
+    assert_that(calling(validate_feature_importance).with_args(feature_importance * -1, features),
+                raises(DeepchecksValueError,
+                       'feature_importance must not contain negative values'))
+
+    with pytest.warns(UserWarning, match='feature_importance does not sum to 1. Normalizing to 1.'):
+        normalized_feature_importance = validate_feature_importance(feature_importance * 2, features)
+
+    assert_that(normalized_feature_importance.sum(), close_to(1, 0.0001))

@@ -10,11 +10,11 @@
 #
 from unittest.mock import patch
 
-from hamcrest import assert_that, calling, instance_of, is_, raises, equal_to
+from hamcrest import assert_that, calling, equal_to, instance_of, is_, raises
 from torch.utils.data import DataLoader
 
-from deepchecks import vision
-from deepchecks.vision.datasets.detection.mask import (DATA_DIR, MaskDataset, load_dataset)
+from deepchecks.vision import VisionData
+from deepchecks.vision.datasets.detection.mask import MASK_DIR, MaskDataset, load_dataset
 
 
 def patch_side_effect(*args, **kwargs):
@@ -26,10 +26,10 @@ def load_dataset_test(mock_download_and_extract_archive):
         assert_that(loader, instance_of(DataLoader))
         assert_that(loader.dataset, instance_of(MaskDataset))
         assert_that(loader.dataset.train is True)
-        assert_that((DATA_DIR / 'mask' / 'images').exists())
-        assert_that((DATA_DIR / 'mask' / 'annotations').exists())
+        assert_that((MASK_DIR / 'mask' / 'images').exists())
+        assert_that((MASK_DIR / 'mask' / 'annotations').exists())
 
-    if not (DATA_DIR / 'mask').exists():
+    if not (MASK_DIR / 'mask').exists():
         loader = load_dataset(day_index=0, object_type='DataLoader')
         verify(loader)
         mock_download_and_extract_archive.reset_mock()
@@ -44,7 +44,7 @@ def load_dataset_test(mock_download_and_extract_archive):
 
 def test_deepchecks_dataset_load():
     loader = load_dataset(day_index=0, object_type='VisionData')
-    assert_that(loader, instance_of(vision.VisionData))
+    assert_that(loader, instance_of(VisionData))
 
 
 def test__load_dataset__func_with_unknow_object_type_parameter():

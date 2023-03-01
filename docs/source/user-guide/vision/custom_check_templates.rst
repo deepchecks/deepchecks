@@ -41,7 +41,7 @@ if 2 datasets are supplied it will run on both independently.
           self.cache = {}
           # OPTIONAL: add validations on inputs and properties like prop_a and prop_b
 
-      def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+      def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
           # Get the VisionData by its type (train/test)
           dataset: VisionData = context.get_data_by_kind(dataset_kind)
           # Take from the batch the data I need it and save it on the cache
@@ -107,7 +107,7 @@ Check type for cases when running on two datasets and optional model, for exampl
           }
           # OPTIONAL: add validations on inputs and properties like prop_a and prop_b
 
-      def update(self, context: Context, batch: Batch, dataset_kind: DatasetKind):
+      def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
           # Get the VisionData by its type (train/test)
           dataset: VisionData = context.get_data_by_kind(dataset_kind)
           # Take from the batch the data I need it and save it on the cache

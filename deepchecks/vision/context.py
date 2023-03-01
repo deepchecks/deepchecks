@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -9,23 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base vision context."""
-from operator import itemgetter
-from typing import Dict, List, Mapping, Optional, Sequence, Union
+from typing import Optional
 
-import torch
-from ignite.metrics import Metric
-from torch import nn
-
-from deepchecks.core import CheckFailure, CheckResult, DatasetKind, SuiteResult
+from deepchecks.core import CheckFailure, CheckResult, DatasetKind
 from deepchecks.core.context import BaseContext
-from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotImplementedError, DeepchecksNotSupportedError,
-                                    DeepchecksValueError, ModelValidationError, ValidationError)
-from deepchecks.utils.logger import get_logger
+from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.vision._shared_docs import docstrings
-from deepchecks.vision.task_type import TaskType
-from deepchecks.vision.utils.vision_properties import STATIC_PROPERTIES_FORMAT, PropertiesInputType
-from deepchecks.vision.vision_data import VisionData
+from deepchecks.vision.vision_data import TaskType, VisionData
+from deepchecks.vision.vision_data.utils import set_seeds, validate_vision_data_compatibility
 
 __all__ = ['Context']
 
@@ -37,221 +29,67 @@ class Context(BaseContext):
     Parameters
     ----------
     train : Optional[VisionData] , default: None
-        VisionData object, representing data an neural network was fitted on
+        VisionData object, representing data the model was fitted on
     test : Optional[VisionData] , default: None
-        VisionData object, representing data an neural network predicts on
-    model : Optional[nn.Module] , default: None
-        pytorch neural network module instance
-    {additional_context_params:indent}
+        VisionData object, representing data the models predicts on
+    {additional_run_params:indent}
     """
 
     def __init__(
-        self,
-        train: Optional[VisionData] = None,
-        test: Optional[VisionData] = None,
-        model: Optional[nn.Module] = None,
-        model_name: str = '',
-        scorers: Optional[Mapping[str, Metric]] = None,
-        scorers_per_class: Optional[Mapping[str, Metric]] = None,
-        device: Union[str, torch.device, None] = None,
-        random_state: int = 42,
-        n_samples: Optional[int] = None,
-        with_display: bool = True,
-        train_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        test_predictions: Optional[Dict[int, Union[Sequence[torch.Tensor], torch.Tensor]]] = None,
-        train_properties: Optional[STATIC_PROPERTIES_FORMAT] = None,
-        test_properties: Optional[STATIC_PROPERTIES_FORMAT] = None
+            self,
+            train: Optional[VisionData] = None,
+            test: Optional[VisionData] = None,
+            random_state: int = 42,
+            with_display: bool = True,
     ):
         # Validations
-        if train is None and test is None and model is None:
-            raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
-        if test and not train:
+        if train is None and test is None:
+            raise DeepchecksValueError('At least one dataset must be passed to the method!')
+        if test is not None and train is None:
             raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
                                          'initialize it as train')
-        if train and test:
-            train.validate_shared_label(test)
 
-        if device is None:
-            device = 'cpu'
-            if torch.cuda.is_available():
-                get_logger().warning('Checks will run on the cpu by default. To make use of cuda devices, '
-                                     'use the device parameter in the run function.')
-        self._device = torch.device(device) if isinstance(device, str) else (device if device else torch.device('cpu'))
+        train.init_cache()
+        train.name = DEFAULT_DATASET_NAMES[0] if train.name is None else train.name
+        self._task_type = train.task_type
 
-        self._prediction_formatter_error = {}
-        if model is not None:
-            self._static_predictions = None
-            if not isinstance(model, nn.Module):
-                get_logger().warning('Deepchecks can\'t validate that model is in evaluation state.'
-                                     ' Make sure it is to avoid unexpected behavior.')
-            elif model.training:
-                raise DatasetValidationError('Model is not in evaluation state. Please set model training '
-                                             'parameter to False or run model.eval() before passing it.')
-
-            for dataset, dataset_kind in zip([train, test], [DatasetKind.TRAIN, DatasetKind.TEST]):
-                if dataset is not None:
-                    try:
-                        dataset.validate_prediction(next(iter(dataset.data_loader)), model, self._device)
-                        msg = None
-                    except DeepchecksNotImplementedError:
-                        msg = f'infer_on_batch() was not implemented in {dataset_kind} ' \
-                            f'dataset, some checks will not run'
-                    except ValidationError as ex:
-                        msg = f'infer_on_batch() was not implemented correctly in the {dataset_kind} dataset, the ' \
-                            f'validation has failed with the error: {ex}. To test your prediction formatting use the ' \
-                            'function `vision_data.validate_prediction(batch, model, device)`'
-
-                    if msg:
-                        self._prediction_formatter_error[dataset_kind] = msg
-                        get_logger().warning(msg)
-
-        elif train_predictions is not None or test_predictions is not None:
-            self._static_predictions = {}
-            for dataset, dataset_kind, predictions in zip([train, test],
-                                                          [DatasetKind.TRAIN, DatasetKind.TEST],
-                                                          [train_predictions, test_predictions]):
-                if dataset is not None:
-                    try:
-                        preds = itemgetter(*list(dataset.data_loader.batch_sampler)[0])(predictions)
-                        if dataset.task_type == TaskType.CLASSIFICATION:
-                            preds = torch.stack(preds)
-                        dataset.validate_inferred_batch_predictions(preds)
-                        self._static_predictions[dataset_kind] = predictions
-                    except ValidationError as ex:
-                        msg = f'the predictions given were not in a correct format in the {dataset_kind} dataset, ' \
-                            f'the validation has failed with the error: {ex}. To test your prediction formatting' \
-                            ' use the function `vision_data.validate_inferred_batch_predictions(predictions)`'
-                        self._prediction_formatter_error[dataset_kind] = msg
-                        get_logger().warning(msg)
-
-        self._static_properties = None
-
-        if train_properties is not None or test_properties is not None:
-            self._static_properties = {}
-            for dataset, dataset_kind, properties in zip([train, test],
-                                                         [DatasetKind.TRAIN, DatasetKind.TEST],
-                                                         [train_properties, test_properties]):
-                if dataset is not None:
-                    try:
-                        self._static_properties[dataset_kind] = properties
-                        # make sure input types are within allowed input types
-                        for input_type in self.static_properties_input_types(dataset_kind):
-                            PropertiesInputType(input_type)  # will throw value error if not allowed type
-                    except ValueError as ex:
-                        msg = f'the properties given were not in a correct format in the {dataset_kind} dataset, ' \
-                            f'the validation has failed with the error: {ex}.'
-                        get_logger().warning(msg)
-
-        # The copy does 2 things: Sample n_samples if parameter exists, and shuffle the data.
-        # we shuffle because the data in VisionData is set to be sampled in a fixed order (in the init), so if the user
-        # wants to run without random_state we need to forcefully shuffle (to have different results on different runs
-        # from the same VisionData object), and if there is a random_state the shuffle will always have same result
-        if train:
-            train = train.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
-            if train.name is None:
-                train.name = DEFAULT_DATASET_NAMES[0]
-
-        if test:
-            test = test.copy(shuffle=True, n_samples=n_samples, random_state=random_state)
-            if test.name is None:
-                test.name = DEFAULT_DATASET_NAMES[1]
+        if test is not None:
+            validate_vision_data_compatibility(train, test)
+            test.init_cache()
+            test.name = DEFAULT_DATASET_NAMES[1] if test.name is None else test.name
 
         self._train = train
         self._test = test
-        self._model = model
-        self._user_scorers = scorers
-        self._user_scorers_per_class = scorers_per_class
-        self._model_name = model_name
         self._with_display = with_display
         self.random_state = random_state
-
-    # Properties
-    # Validations note: We know train & test fit each other so all validations can be run only on train
+        set_seeds(random_state)
 
     @property
-    def model(self) -> nn.Module:
-        """Return & validate model if model exists, otherwise raise error."""
-        if self._model is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without model')
-        return self._model
-
-    @property
-    def static_predictions(self) -> Dict:
-        """Return the static_predictions."""
-        return self._static_predictions
-
-    @property
-    def static_properties(self) -> STATIC_PROPERTIES_FORMAT:
-        """Return the static_predictions."""
-        return self._static_properties
-
-    def static_properties_input_types(self, dataset_kind: DatasetKind) -> List[PropertiesInputType]:
-        """Return the available static_predictions input types."""
-        if not self.static_properties:
-            return []
-        indices = list(self.static_properties[dataset_kind].keys())
-        return list(self.static_properties[dataset_kind][indices[0]].keys())
-
-    @property
-    def model_name(self):
-        """Return model name."""
-        return self._model_name
-
-    @property
-    def device(self) -> torch.device:
-        """Return device specified by the user."""
-        return self._device
+    def task_type(self) -> TaskType:
+        """Return the common task type of the datasets."""
+        return self._task_type
 
     def have_test(self):
         """Return whether there is test dataset defined."""
         return self._test is not None
 
-    @property
-    def task_type(self):
-        """Return task type."""
-        return self.train.task_type
-
     def assert_task_type(self, *expected_types: TaskType):
         """Assert task_type matching given types."""
-        if self.task_type not in expected_types:
-            raise ModelValidationError(
-                f'Check is irrelevant for task of type {self.task_type}')
+        if self.train.task_type not in expected_types:
+            raise DeepchecksNotSupportedError(
+                f'Check is irrelevant for task of type {self.train.task_type}')
         return True
 
-    def assert_predictions_valid(self, kind: DatasetKind = None):
-        """Assert that for given DatasetKind the model & dataset infer_on_batch return predictions in right format."""
-        error = self._prediction_formatter_error.get(kind)
-        if error:
-            raise DeepchecksValueError(error)
-
-    def add_is_sampled_footnote(self, result: Union[CheckResult, SuiteResult], kind: DatasetKind = None):
-        """Get footnote to display when the datasets are sampled."""
-        message = ''
-        if kind:
-            v_data = self.get_data_by_kind(kind)
-            if v_data.is_sampled():
-                message = f'Data is sampled from the original dataset, running on {v_data.num_samples} samples out of' \
-                          f' {v_data.original_num_samples}.'
+    def get_data_by_kind(self, kind: DatasetKind):
+        """Return the relevant VisionData by given kind."""
+        if kind == DatasetKind.TRAIN:
+            return self.train
+        elif kind == DatasetKind.TEST:
+            return self.test
         else:
-            if self._train is not None and self._train.is_sampled():
-                message += f'Running on {self._train.num_samples} <b>train</b> data samples out of ' \
-                           f'{self._train.original_num_samples}.'
-            if self._test is not None and self._test.is_sampled():
-                if message:
-                    message += ' '
-                message += f'Running on {self._test.num_samples} <b>test</b> data samples out of ' \
-                           f'{self._test.original_num_samples}.'
+            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
-        if message:
-            message = ('<p style="font-size:0.9em;line-height:1;"><i>'
-                       f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" parameter.'
-                       '</i></p>')
-            if isinstance(result, CheckResult):
-                result.display.append(message)
-            elif isinstance(result, SuiteResult):
-                result.extra_info.append(message)
-
-    def finalize_check_result(self, check_result, check):
+    def finalize_check_result(self, check_result, check, dataset_kind: DatasetKind = None):
         """Run final processing on a check result which includes validation and conditions processing."""
         # Validate the check result type
         if isinstance(check_result, CheckFailure):
@@ -264,3 +102,27 @@ class Context(BaseContext):
         check_result.check = check
         # Calculate conditions results
         check_result.process_conditions()
+
+        # Add sampling footnote if needed
+        if not hasattr(check, 'n_samples') or getattr(check, 'n_samples') is None:
+            return
+
+        n_samples = getattr(check, 'n_samples')
+        message = ''
+        if dataset_kind:
+            dataset = self.get_data_by_kind(dataset_kind)
+            if n_samples < dataset.number_of_images_cached:
+                message = f'Sampling procedure took place, check used {n_samples} images from the original dataset.'
+        else:
+            if self._train is not None and n_samples < self._train.number_of_images_cached:
+                message += f'Sampling procedure took place in <b>{self._train.name}</b> dataset, check used ' \
+                           f'{n_samples} images from the original dataset.</br>'
+            if self._test is not None and n_samples < self._test.number_of_images_cached:
+                message += f'Sampling procedure took place in <b>{self._test.name}</b> dataset, check used ' \
+                           f'{n_samples} images from the original dataset.</br>'
+
+        if message:
+            message = ('<p style="font-size:0.9em;line-height:1;"><i>'
+                       f'Note - data sampling: {message} Sample size can be controlled with the "n_samples" '
+                       'parameter.</i></p>')
+            check_result.display.append(message)

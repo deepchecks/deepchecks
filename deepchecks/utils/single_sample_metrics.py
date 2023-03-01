@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -66,7 +66,7 @@ def per_sample_cross_entropy(y_true: np.array, y_pred: np.array, eps=1e-15):
     OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     """
-    y_true = np.array(y_true)
+    y_true, y_pred = np.array(y_true), np.array(y_pred)
 
     # Make y_true into one-hot
     # We assume that the integers in y_true correspond to the columns in y_pred, such that if y_true[i] = k, then

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -17,8 +17,7 @@ This dataset contains the details for units listed in NYC during 2019, was adapt
 dataset: https://www.kaggle.com/datasets/dgomonov/new-york-city-airbnb-open-data. This, in turn was downloaded from
 the Airbnb data repository http://insideairbnb.com/get-the-data.
 
-This dataset is licensed under the Creative Commons Attribution 4.0 International License
-(https://creativecommons.org/licenses/by/4.0/).
+This dataset is licensed under the CC0 1.0 Universal License (https://creativecommons.org/publicdomain/zero/1.0/).
 
 The typical ML task in this dataset is to build a model that predicts the average rental price of a unit.
 
@@ -130,7 +129,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     test = pd.read_csv(_TEST_DATA_URL).drop(_predictions, axis=1)
 
     if not as_train_test:
-        dataset = pd.concat([train, test], axis=0)
+        dataset = pd.concat([train, test], axis=0, ignore_index=True)
         if data_format == 'Dataset':
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES,
                               datetime_name=_datetime, features=_FEATURES)

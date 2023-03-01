@@ -10,7 +10,7 @@ data science, and data engineering pipelines.
 
 This tutorial demonstrates how deepchecks can be used with Apache Airflow. We will run a simple Airflow DAG that will
 evaluate the Adult dataset from the UCI Machine Learning Repository. The DAG will run the
-:func:`~deepchecks.tabular.suites.single_dataset_integrity` and the :func:`~deepchecks.tabular.suites.model_evaluation`
+:func:`~deepchecks.tabular.suites.data_integrity` and the :func:`~deepchecks.tabular.suites.model_evaluation`
 suites on the Adult data and a pre-trained model.
 
 .. image:: /_static/images/integrations/airflow_dag.png
@@ -37,7 +37,7 @@ Defining the Data & Model Loading Tasks
 Defining the Integrity Report Task
 ----------------------------------
 
-The :func:`~deepchecks.tabular.suites.single_dataset_integrity` suite will be used to evaluate the train and production
+The :func:`~deepchecks.tabular.suites.data_integrity` suite will be used to evaluate the train and production
 datasets. It will check for integrity issues and will save the output html reports to the ``suite_results`` directory.
 
 .. literalinclude:: ../../../../examples/integrations/airflow/deepchecks_airflow_tutorial.py

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -10,12 +10,12 @@
 #
 """Contains unit tests for the class_imbalance check."""
 import pandas as pd
-from hamcrest import assert_that, equal_to, has_items, has_length, raises, calling
+from hamcrest import assert_that, calling, equal_to, has_items, has_length, raises
 
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
-from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.checks.data_integrity.class_imbalance import ClassImbalance
+from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
 

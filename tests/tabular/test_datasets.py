@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -12,17 +12,18 @@ import sys
 
 import numpy as np
 import sklearn
-from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
-from deepchecks.tabular.datasets.regression import avocado, wine_quality
 from deepdiff import DeepDiff
 from hamcrest import assert_that, instance_of
 from sklearn.base import BaseEstimator
 
+from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
+from deepchecks.tabular.datasets.regression import avocado, wine_quality
+
 
 def assert_sklearn_model_params_equals(model1, model2):
-    assert type(model1) == type(model2)
+    assert type(model1) == type(model2)  # pylint: disable=unidiomatic-typecheck
     diff = DeepDiff(model1.get_params(), model2.get_params(), ignore_numeric_type_changes=True)
-    assert diff == {}
+    assert not diff
 
 
 def assert_model_predict_on_data(model, train, test):
@@ -39,7 +40,7 @@ def assert_dataset_module(dataset_module):
     python_minor_version = sys.version_info[1]
     if python_minor_version == 8:
         if hasattr(dataset_module, '_MODEL_VERSION'):
-            if sklearn.__version__ != dataset_module._MODEL_VERSION:
+            if sklearn.__version__ != dataset_module._MODEL_VERSION:  # pylint: disable=protected-access
                 raise Exception(f'Can\'t test pretrained model for non matching sklearn version {sklearn.__version__}')
         pretrained_model = dataset_module.load_fitted_model(pretrained=True)
         if isinstance(pretrained_model, BaseEstimator):
