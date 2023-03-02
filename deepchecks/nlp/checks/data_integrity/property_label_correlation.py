@@ -10,6 +10,7 @@
 #
 """The feature label correlation check module."""
 import typing as t
+
 import pandas as pd
 
 import deepchecks.ppscore as pps

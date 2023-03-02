@@ -10,7 +10,7 @@
 #
 """Module containing the text properties for the NLP module."""
 import string
-from typing import List, Sequence, Dict
+from typing import Dict, List, Sequence
 
 import numpy as np
 

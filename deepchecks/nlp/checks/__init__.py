@@ -11,8 +11,8 @@
 """Module importing all nlp checks."""
 
 from deepchecks.nlp.checks.data_integrity import PropertyLabelCorrelation
-from deepchecks.nlp.checks.model_evaluation import SingleDatasetPerformance, AdditionalDataSegmentsPerformance, \
-    PropertySegmentsPerformance, TrainTestPredictionDrift
+from deepchecks.nlp.checks.model_evaluation import (AdditionalDataSegmentsPerformance, PropertySegmentsPerformance,
+                                                    SingleDatasetPerformance, TrainTestPredictionDrift)
 from deepchecks.nlp.checks.train_test_validation import KeywordFrequencyDrift, TrainTestLabelDrift
 
 __all__ = [
