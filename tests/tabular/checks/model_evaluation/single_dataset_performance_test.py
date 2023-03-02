@@ -244,9 +244,7 @@ def test_regression_reduced(diabetes_split_dataset_and_model):
     # Act
     result = check.run(test, model).reduce_output()
     # Assert
-    assert_that(result['Neg RMSE'], close_to(-57.412, 0.001))
-    assert_that(result['Neg MAE'], close_to(-45.5645, 0.001))
-    assert_that(result['R2'], close_to(0.427, 0.001))
+    assert_that(result['RMSE'], close_to(57.412, 0.001))
 
 
 def test_condition_all_score_not_passed(iris_split_dataset_and_model):
