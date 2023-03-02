@@ -14,10 +14,7 @@ from typing import List, Sequence, Dict
 
 import numpy as np
 
-__all__ = ['calculate_default_properties',
-           'text_length',
-           'average_word_length',
-           'percentage_special_characters']
+__all__ = ['calculate_default_properties']
 
 
 def text_length(raw_text: Sequence[str]) -> List[int]:
@@ -108,51 +105,6 @@ def get_subjectivity_detection() -> callable:
     return subjectivity
 
 
-def get_topic_detection(batch_size: int = 128) -> callable:
-    """Return a function that returns the language of a text.
-
-    As identifying the topic of a text requires the transformers package, which is not necessary for the rest of the
-    NLP module, we import it only when needed.
-    Therefore, the topic property is not given directly, but rather through this function, so that the user will only
-    get an ImportError if they try to use the topic property.
-
-    Params:
-        batch_size : int, default 100
-            The number of samples to process in each batch.
-    """
-    try:
-        from transformers import AutoModelForSequenceClassification  # pylint: disable=import-outside-toplevel
-        from transformers import AutoTokenizer  # pylint: disable=import-outside-toplevel
-    except ImportError as e:
-        raise ImportError(
-            'property topic requires the transformers python package. '
-            'To get it, run "pip install transformers".') from e
-
-    topic_model = 'cardiffnlp/tweet-topic-21-multi'
-    tokenizer = AutoTokenizer.from_pretrained(topic_model)
-
-    # PT
-    model = AutoModelForSequenceClassification.from_pretrained(topic_model)
-    model = model.eval()
-    class_mapping = model.config.id2label
-
-    def topic(raw_text: Sequence[str]) -> List[float]:
-        """Return list of strings of topic."""
-        all_topics = []
-
-        for i in range(0, len(raw_text), batch_size):
-            tokens = tokenizer(raw_text[i:i+batch_size], return_tensors='pt', padding=True, truncation=True,
-                               max_length=128)
-            output = model(**tokens)
-            scores = output[0].detach().numpy()
-
-            all_topics += [class_mapping[i] for i in np.argmax(scores, axis=1)]
-
-        return all_topics
-
-    return topic
-
-
 def _get_default_properties(include_properties: List[str] = None, ignore_properties: List[str] = None):
     """Return the default properties.
 
@@ -182,8 +134,6 @@ def _get_default_properties(include_properties: List[str] = None, ignore_propert
         ret.append({'name': 'sentiment', 'method': get_sentiment_detection(), 'output_type': 'numeric'})
     if 'subjectivity' in include_properties or 'subjectivity' not in ignore_properties:
         ret.append({'name': 'subjectivity', 'method': get_subjectivity_detection(), 'output_type': 'numeric'})
-    if 'topic' in include_properties or 'topic' not in ignore_properties:
-        ret.append({'name': 'topic', 'method': get_topic_detection(), 'output_type': 'categorical'})
 
     return ret
 
