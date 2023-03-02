@@ -102,7 +102,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         else:
             raise DeepchecksProcessError(f'Unknown segment_by value: {self.segment_by}')
 
-        #TODO: Don't use cat_features but enable user to give their own datatype / use properties known types.
+        # TODO: Don't use cat_features but enable user to give their own datatype / use properties known types.
         # This is here because Dataset object writes a warning if categorical features are not given
         cat_features = infer_categorical_features(features)
 
@@ -151,12 +151,14 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
 
 class PropertySegmentsPerformance(WeakSegmentsPerformance):
+    """Weak segments performance check for properties."""
 
     def __init__(self, **kwargs):
         super().__init__(segment_by='properties', **kwargs)
 
+
 class AdditionalDataSegmentsPerformance(WeakSegmentsPerformance):
+    """Weak segments performance check for additional data."""
 
     def __init__(self, **kwargs):
         super().__init__(segment_by='additional_data', **kwargs)
-

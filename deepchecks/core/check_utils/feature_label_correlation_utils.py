@@ -21,7 +21,7 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
-def get_pps_figure(per_class: bool, n_of_features: int, x_name: str='feature', xaxis_title: str='Column'):
+def get_pps_figure(per_class: bool, n_of_features: int, x_name: str = 'feature', xaxis_title: str = 'Column'):
     """If per_class is True, then no title is defined on the figure."""
     fig = go.Figure()
     fig.update_layout(

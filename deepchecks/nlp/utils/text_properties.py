@@ -25,7 +25,7 @@ def text_length(raw_text: Sequence[str]) -> List[int]:
     return [len(text) for text in raw_text]
 
 
-def word_length(raw_text: Sequence[str]) -> List[int]: # Not yet used as returns list per sample and not number
+def word_length(raw_text: Sequence[str]) -> List[int]:  # Not yet used as returns list per sample and not number
     """Return list of integers of word lengths."""
     return [len(word) for text in raw_text for word in text.split()]
 
@@ -49,7 +49,7 @@ def get_language_detection() -> callable:
     get an ImportError if they try to use the language property.
     """
     try:
-        import langdetect
+        import langdetect  # pylint: disable=import-outside-toplevel
     except ImportError as e:
         raise ImportError(
             'property language requires the langdetect python package. '
@@ -67,11 +67,11 @@ def get_sentiment_detection() -> callable:
 
     As identifying the sentiment of a text requires the textblob package, which is not necessary for the rest of the
     NLP module, we import it only when needed.
-    Therefore, the sentiment property is not given directly, but rather through this function, so that the user will only
-    get an ImportError if they try to use the sentiment property.
+    Therefore, the sentiment property is not given directly, but rather through this function, so that the user will
+    only get an ImportError if they try to use the sentiment property.
     """
     try:
-        import textblob
+        import textblob  # pylint: disable=import-outside-toplevel
     except ImportError as e:
         raise ImportError(
             'property sentiment requires the textblob python package. '
@@ -83,17 +83,17 @@ def get_sentiment_detection() -> callable:
 
     return sentiment
 
+
 def get_subjectivity_detection() -> callable:
     """Return a function that returns the language of a text.
 
     As identifying the subjectivity of a text requires the textblob package, which is not necessary for the rest of the
     NLP module, we import it only when needed.
-    Therefore, the subjectivity property is not given directly, but rather through this function, so that the user will only
-    get an ImportError if they try to use the subjectivity property.
+    Therefore, the subjectivity property is not given directly, but rather through this function, so that the user will
+    only get an ImportError if they try to use the subjectivity property.
     """
-
     try:
-        import textblob
+        import textblob  # pylint: disable=import-outside-toplevel
     except ImportError as e:
         raise ImportError(
             'property subjectivity requires the textblob python package. '
@@ -117,22 +117,20 @@ def get_topic_detection(batch_size: int = 128) -> callable:
     Params:
         batch_size : int, default 100
             The number of samples to process in each batch.
-
-
     """
     try:
-        from transformers import AutoModelForSequenceClassification
-        from transformers import AutoTokenizer
+        from transformers import AutoModelForSequenceClassification  # pylint: disable=import-outside-toplevel
+        from transformers import AutoTokenizer  # pylint: disable=import-outside-toplevel
     except ImportError as e:
         raise ImportError(
             'property topic requires the transformers python package. '
             'To get it, run "pip install transformers".') from e
 
-    MODEL = f"cardiffnlp/tweet-topic-21-multi"
-    tokenizer = AutoTokenizer.from_pretrained(MODEL)
+    topic_model = 'cardiffnlp/tweet-topic-21-multi'
+    tokenizer = AutoTokenizer.from_pretrained(topic_model)
 
     # PT
-    model = AutoModelForSequenceClassification.from_pretrained(MODEL)
+    model = AutoModelForSequenceClassification.from_pretrained(topic_model)
     model = model.eval()
     class_mapping = model.config.id2label
 
@@ -141,7 +139,8 @@ def get_topic_detection(batch_size: int = 128) -> callable:
         all_topics = []
 
         for i in range(0, len(raw_text), batch_size):
-            tokens = tokenizer(raw_text[i:i+batch_size], return_tensors='pt', padding=True, truncation=True, max_length=128)
+            tokens = tokenizer(raw_text[i:i+batch_size], return_tensors='pt', padding=True, truncation=True,
+                               max_length=128)
             output = model(**tokens)
             scores = output[0].detach().numpy()
 
@@ -158,7 +157,6 @@ def _get_default_properties(include_properties: List[str] = None, ignore_propert
     Default properties are defined here and not outside the function so not to import all the packages
     if they are not needed.
     """
-
     ret = [
         {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
         {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
@@ -196,8 +194,8 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Li
         raw_text : Sequence[str]
             The text to calculate the properties for.
         include_properties : List[str], default None
-            The properties to calculate. If None, all default properties will be calculated. Cannot be used together with
-            ignore_properties parameter.
+            The properties to calculate. If None, all default properties will be calculated. Cannot be used together
+            with ignore_properties parameter.
         ignore_properties : List[str], default None
             The properties to ignore. If None, no properties will be ignored. Cannot be used together with
             properties parameter.
