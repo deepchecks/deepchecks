@@ -66,7 +66,7 @@ def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
 
 
 def load_data(data_format: str = 'TextData', as_train_test: bool = True,
-              include_properties: bool=True) -> \
+              include_properties: bool = True) -> \
         t.Union[t.Tuple, t.Union[TextData, pd.DataFrame]]:
     """Load and returns the Breast Cancer dataset (classification).
 
@@ -141,6 +141,7 @@ def load_embeddings() -> np.ndarray:
         Embeddings for the tweet_emotion dataset.
     """
     return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
+
 
 def load_precalculated_predictions(pred_format: str = 'predictions') -> np.ndarray:
     """Load and return a precalculated predictions for the dataset.
