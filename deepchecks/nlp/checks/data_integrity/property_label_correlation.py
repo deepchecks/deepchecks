@@ -80,13 +80,15 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         """
         text_data = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
 
-        df = text_data.properties.join(pd.Series(text_data.label, name='label', index=text_data.index))
+        df = text_data.properties.join(pd.Series(text_data.label, name='label', index=text_data.index).astype(str))
 
         df_pps = pps.predictors(df=df, y='label', random_seed=self.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
 
         if context.with_display:
+            if text_data.label_map:
+                s_ppscore = s_ppscore.reset_index(text_data.label_map, drop=True)
             top_to_show = s_ppscore.head(self.n_top_features)
 
             fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show), x_name='property',
@@ -109,7 +111,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
     def add_condition_feature_pps_less_than(self: PLC, threshold: float = 0.8) -> PLC:
         """
-        Add condition that will check that pps of the specified feature(s) is less than the threshold.
+        Add condition that will check that pps of the specified properties is less than the threshold.
 
         Parameters
         ----------
@@ -134,5 +136,5 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(value))
 
-        return self.add_condition(f'Features\' Predictive Power Score is less than {format_number(threshold)}',
+        return self.add_condition(f'Properties\' Predictive Power Score is less than {format_number(threshold)}',
                                   condition)

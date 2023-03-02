@@ -61,6 +61,8 @@ class TextData:
         - token_classification label - For token classification the accepted label format is the IOB format or similar
           to it. The Label must be a sequence of sequences of strings or integers, with each sequence corresponding to
           a sample in the tokenized text, and exactly the length of the corresponding tokenized text.
+    label_map : t.Optional[t.Dict[str, int]], default: None
+        A dictionary mapping the label integer representation to their names.
     task_type : str, default: None
         The task type for the text data. Can be either 'text_classification' or 'token_classification'. Must be set if
         label is provided.
@@ -68,6 +70,13 @@ class TextData:
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
     index : t.Optional[t.Sequence[int]] , default: None
         The index of the samples. If None, the index is set to np.arange(len(raw_text)).
+    additional_data : t.Optional[pd.DataFrame] , default: None
+        Additional data for the samples. If None, no additional data is set. If a DataFrame is given, it must contain
+        the same number of samples as the raw_text and identical index.
+    properties : t.Optional[Union[pd.DataFrame, str]] , default: None
+        The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
+        using the default properties. If a DataFrame is given, it must contain the properties for each sample as the raw
+        text and identical index.
     """
 
     _text: t.Sequence[str]
@@ -78,17 +87,19 @@ class TextData:
     _is_multilabel: bool = False
     name: t.Optional[str] = None
     _additional_data: t.Optional[pd.DataFrame] = None
+    _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
 
     def __init__(
             self,
             raw_text: t.Optional[t.Sequence[str]] = None,
             tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
             label: t.Optional[TTextLabel] = None,
+            label_map: t.Optional[t.Dict[str, int]] = None,
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
             additional_data: t.Optional[pd.DataFrame] = None,
-            properties: t.Optional[pd.DataFrame] = None,
+            properties: t.Optional[t.Union[pd.DataFrame, str]] = None,
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -143,6 +154,7 @@ class TextData:
                 raise DeepchecksNotSupportedError(f'dataset_name type {type(dataset_name)} is not supported, must be a'
                                                   f' str')
         self.name = dataset_name
+        self._label_map = label_map
 
         if additional_data is not None:
             if not isinstance(additional_data, pd.DataFrame):
@@ -152,8 +164,17 @@ class TextData:
                 raise DeepchecksValueError('additional_data index must be the same as the text data index')
 
         self._additional_data = additional_data
+
+        if properties is not None:
+            if isinstance(properties, str) and properties == 'auto':
+                self.calculate_default_properties()
+            elif not isinstance(properties, pd.DataFrame):
+                raise DeepchecksValueError(f'additional_data type {type(properties)} is not supported, must be a'
+                                           f' pandas DataFrame')
+            elif self.index != list(properties.index):
+                raise DeepchecksValueError('additional_data index must be the same as the text data index')
+
         self._properties = properties
-        self._property_types = None
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -235,6 +256,7 @@ class TextData:
                 index=list(itemgetter(*rows_to_use)(self.index)),
                 additional_data=self._additional_data.iloc[rows_to_use, :]
                 if self._additional_data is not None else None,
+                properties=self._properties if self._properties is None else self._properties.iloc[rows_to_use, :],
                 task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
         return new_copy
@@ -308,7 +330,7 @@ class TextData:
         """Return the additional data of for the dataset."""
         return self._additional_data
 
-    def calculate_defualt_properties(self, include_properties: t.List[str] = None,
+    def calculate_default_properties(self, include_properties: t.List[str] = None,
                                      ignore_properties: t.List[str] = None):
         """Calculate the default properties of the dataset."""
         if self._properties is not None:
@@ -394,6 +416,17 @@ class TextData:
            True if label was set.
         """
         return self._has_label
+
+    @property
+    def label_map(self) -> t.Dict[t.Any, t.Any]:
+        """Return a dictionary of label mapping.
+
+        Returns
+        -------
+        t.Dict[t.Any, t.Any]
+            Dictionary of label mapping.
+        """
+        return self._label_map
 
     @classmethod
     def cast_to_dataset(cls, obj: t.Any) -> 'TextData':

@@ -28,6 +28,7 @@ __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39265559'
 _EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39264332'
+_PROPERTIES_URL = ''  # TODO: Add properties url
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
 ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet_emotion'
@@ -96,6 +97,17 @@ def load_embeddings() -> np.ndarray:
         Embeddings for the tweet_emotion dataset.
     """
     return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
+
+
+def load_properties() -> pd.DataFrame:
+    """Load and return the properties of the tweet_emotion dataset.
+
+    Returns
+    -------
+    properties : pd.DataFrame
+        Properties for the tweet_emotion dataset.
+    """
+    return pd.read_csv(_PROPERTIES_URL, index_col=0)
 
 
 def load_precalculated_predictions(pred_format: str = 'predictions') -> np.ndarray:
