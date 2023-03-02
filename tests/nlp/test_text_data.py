@@ -140,7 +140,7 @@ def test_properties(text_classification_dataset_mock):
     dataset = text_classification_dataset_mock
 
     # Act & Assert
-    assert_that(dataset._properties, equal_to(None))
+    assert_that(dataset._properties, equal_to(None))  # pylint: disable=protected-access
     dataset.calculate_default_properties(ignore_properties=['topic'])
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))

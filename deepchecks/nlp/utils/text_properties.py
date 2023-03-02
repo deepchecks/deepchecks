@@ -62,7 +62,7 @@ def get_language_detection() -> callable:
 
 
 def get_sentiment_detection() -> callable:
-    """Return a function that returns the language of a text.
+    """Return a function that returns the sentiment of a text.
 
     As identifying the sentiment of a text requires the textblob package, which is not necessary for the rest of the
     NLP module, we import it only when needed.
@@ -84,7 +84,7 @@ def get_sentiment_detection() -> callable:
 
 
 def get_subjectivity_detection() -> callable:
-    """Return a function that returns the language of a text.
+    """Return a function that returns the subjectivity of a text.
 
     As identifying the subjectivity of a text requires the textblob package, which is not necessary for the rest of the
     NLP module, we import it only when needed.

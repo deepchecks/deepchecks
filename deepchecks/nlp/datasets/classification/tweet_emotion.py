@@ -62,7 +62,7 @@ def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
         test = properties[properties['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
         return train, test
     else:
-        return properties.drop(columns=['train_test_split'])
+        return properties.drop(columns=['train_test_split']).sort_index()
 
 
 def load_data(data_format: str = 'TextData', as_train_test: bool = True,

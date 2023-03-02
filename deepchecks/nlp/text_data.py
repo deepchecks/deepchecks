@@ -169,10 +169,10 @@ class TextData:
             if isinstance(properties, str) and properties == 'auto':
                 self.calculate_default_properties()
             elif not isinstance(properties, pd.DataFrame):
-                raise DeepchecksValueError(f'additional_data type {type(properties)} is not supported, must be a'
+                raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
                                            f' pandas DataFrame')
             elif self.index != list(properties.index):
-                raise DeepchecksValueError('additional_data index must be the same as the text data index')
+                raise DeepchecksValueError('properties index must be the same as the text data index')
 
         self._properties = properties
 

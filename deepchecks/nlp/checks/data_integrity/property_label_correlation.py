@@ -83,10 +83,10 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         df_pps = pps.predictors(df=df, y='label', random_seed=context.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
+        if text_data.label_map:
+            s_ppscore = s_ppscore.reset_index(text_data.label_map, drop=True)
 
         if context.with_display:
-            if text_data.label_map:
-                s_ppscore = s_ppscore.reset_index(text_data.label_map, drop=True)
             top_to_show = s_ppscore.head(self.n_top_features)
 
             fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show), x_name='property',
