@@ -78,6 +78,7 @@ class ReduceMetricClassMixin(ReduceLabelMixin):
             raise NotImplementedError('ReduceMetricClassMixin must be used with a check that has a scorers attribute'
                                       ' of type DeepcheckScorer or dict')
 
+        names = [x.lower().replace(' ', '_') for x in names]
         if all((name in lower_is_better_names) for name in names):
             return False
         elif all((name not in lower_is_better_names) for name in names):
