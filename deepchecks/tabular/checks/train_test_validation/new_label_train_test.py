@@ -105,7 +105,7 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
 
         return CheckResult(result, display=display)
 
-    def reduce_output(self, check_result: CheckResult) -> 0:
+    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Reduce check result value.
 
         Returns
