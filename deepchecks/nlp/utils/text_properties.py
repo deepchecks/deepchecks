@@ -50,6 +50,8 @@ def get_language_detection() -> callable:
     """
     try:
         import langdetect  # pylint: disable=import-outside-toplevel
+        from langdetect import DetectorFactory
+        DetectorFactory.seed = 42
     except ImportError as e:
         raise ImportError(
             'property language requires the langdetect python package. '

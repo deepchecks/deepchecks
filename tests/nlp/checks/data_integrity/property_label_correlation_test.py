@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Test for the nlp PropertyLabelCorrelation check"""
+"""Test for the NLP PropertyLabelCorrelation check"""
 
 from hamcrest import assert_that, close_to, equal_to, has_items
 
@@ -27,12 +27,11 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     condition_result = check.conditions_decision(result)
 
     # Assert
-    # assert_that(condition_result, has_items(
-    #     equal_condition_result(is_pass=False,
-    #                            details="Found 1 out of 6 features with PPS above threshold: {'sentiment': '0.12'}",
-    #                            name="Properties' Predictive Power Score is less than 0.1")
-    # ))
-    #
-    # assert_that(result.value['sentiment'], close_to(0.11, 0.01))
-    # assert_that(result.value['text_length'], close_to(0.05, 0.01))
-    # TODO FIND THE RANDMNESS
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=False,
+                               details="Found 1 out of 6 features with PPS above threshold: {'sentiment': '0.11'}",
+                               name="Properties' Predictive Power Score is less than 0.1")
+    ))
+
+    assert_that(result.value['sentiment'], close_to(0.11, 0.01))
+    assert_that(result.value['text_length'], close_to(0.02, 0.01))

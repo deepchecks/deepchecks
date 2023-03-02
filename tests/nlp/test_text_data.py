@@ -18,7 +18,7 @@ from deepchecks.nlp.text_data import TextData
 
 def test_text_data_init():
     """Test the TextData object initialization"""
-    text_data = TextData(['Hello world']) # should pass
+    text_data = TextData(['Hello world'])  # should pass
     assert_that(text_data.text, contains_exactly('Hello world'))
 
 
@@ -133,3 +133,19 @@ def test_head_functionality():
     assert_that(len(result), equal_to(2))
     assert_that(sorted(result.columns), contains_exactly('first', 'label', 'second', 'text'))
     assert_that(list(result.index), contains_exactly(0, 1))
+
+
+def test_properties(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+
+    # Act & Assert
+    assert_that(dataset._properties, equal_to(None))
+    dataset.calculate_default_properties(ignore_properties=['topic'])
+    properties = dataset.properties
+    assert_that(properties.shape[0], equal_to(3))
+    assert_that(properties.shape[1], equal_to(6))
+    assert_that(properties.columns,
+                contains_exactly('text_length', 'average_word_length', 'percentage_special_characters', 'language',
+                                 'sentiment', 'subjectivity'))
+    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 0.0, 'en', 0.0, 0.0))

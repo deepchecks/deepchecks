@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Test for the nlp WeakSegmentsPerformance check"""
+"""Test for the NLP WeakSegmentsPerformance check"""
 
 from hamcrest import assert_that, close_to, equal_to, has_items
 
@@ -55,5 +55,5 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     ))
 
     assert_that(result.value['avg_score'], close_to(0.708, 0.001))
-    # assert_that(len(result.value['weak_segments_list']), equal_to(6)) # TODO: There's some randomness in the check, so it fails sometimes, find it
+    assert_that(len(result.value['weak_segments_list']), equal_to(9))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.58, 0.01))

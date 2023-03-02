@@ -55,14 +55,12 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             ppscore_params: t.Optional[t.Dict[t.Any, t.Any]] = None,
             n_top_features: int = 5,
             n_samples: int = 100_000,
-            random_state: t.Optional[int] = None,
             **kwargs
     ):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
         self.n_top_features = n_top_features
         self.n_samples = n_samples
-        self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -78,11 +76,11 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        text_data = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
+        text_data = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=context.random_state)
 
         df = text_data.properties.join(pd.Series(text_data.label, name='label', index=text_data.index).astype(str))
 
-        df_pps = pps.predictors(df=df, y='label', random_seed=self.random_state,
+        df_pps = pps.predictors(df=df, y='label', random_seed=context.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
 
