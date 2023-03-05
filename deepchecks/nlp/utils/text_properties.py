@@ -10,6 +10,7 @@
 #
 """Module containing the text properties for the NLP module."""
 import string
+import warnings
 from typing import Dict, List, Sequence
 
 import numpy as np
@@ -37,72 +38,53 @@ def percentage_special_characters(raw_text: Sequence[str]) -> List[float]:
     return [len([c for c in text if c in string.punctuation]) / len(text) for text in raw_text]
 
 
-def get_language_detection() -> callable:
-    """Return a function that returns the language of a text.
+def property_import_error(property_name: str, package_name: str) -> ImportError:
+    """Raise an ImportError for a property that requires a package."""
+    return ImportError(
+        f'property {property_name} requires the {package_name} python package. '
+        f'To get it, run "pip install {package_name}".')
 
-    As identifying the language of a text requires the langdetect package, which is not necessary for the rest of the
-    NLP module, we import it only when needed.
-    Therefore, the language property is not given directly, but rather through this function, so that the user will only
-    get an ImportError if they try to use the language property.
-    """
+
+def language(raw_text: Sequence[str]) -> List[str]:
+    """Return list of strings of language."""
     try:
         import langdetect  # pylint: disable=import-outside-toplevel
         from langdetect import DetectorFactory  # pylint: disable=import-outside-toplevel
         DetectorFactory.seed = 42
     except ImportError as e:
-        raise ImportError(
-            'property language requires the langdetect python package. '
-            'To get it, run "pip install langdetect".') from e
+        raise property_import_error('language', 'langdetect') from e
 
-    def language(raw_text: Sequence[str]) -> List[str]:
-        """Return list of strings of language."""
-        return [langdetect.detect(text) for text in raw_text]
-
-    return language
+    return [langdetect.detect(text) for text in raw_text]
 
 
-def get_sentiment_detection() -> callable:
-    """Return a function that returns the sentiment of a text.
-
-    As identifying the sentiment of a text requires the textblob package, which is not necessary for the rest of the
-    NLP module, we import it only when needed.
-    Therefore, the sentiment property is not given directly, but rather through this function, so that the user will
-    only get an ImportError if they try to use the sentiment property.
-    """
+def sentiment(raw_text: Sequence[str]) -> List[str]:
+    """Return list of floats of sentiment."""
     try:
         import textblob  # pylint: disable=import-outside-toplevel
     except ImportError as e:
-        raise ImportError(
-            'property sentiment requires the textblob python package. '
-            'To get it, run "pip install textblob".') from e
+        raise property_import_error('sentiment', 'textblob') from e
 
-    def sentiment(raw_text: Sequence[str]) -> List[float]:
-        """Return list of floats of sentiment."""
-        return [textblob.TextBlob(text).sentiment.polarity for text in raw_text]
-
-    return sentiment
+    return [textblob.TextBlob(text).sentiment.polarity for text in raw_text]
 
 
-def get_subjectivity_detection() -> callable:
-    """Return a function that returns the subjectivity of a text.
-
-    As identifying the subjectivity of a text requires the textblob package, which is not necessary for the rest of the
-    NLP module, we import it only when needed.
-    Therefore, the subjectivity property is not given directly, but rather through this function, so that the user will
-    only get an ImportError if they try to use the subjectivity property.
-    """
+def subjectivity(raw_text: Sequence[str]) -> List[str]:
+    """Return list of floats of subjectivity."""
     try:
         import textblob  # pylint: disable=import-outside-toplevel
     except ImportError as e:
-        raise ImportError(
-            'property subjectivity requires the textblob python package. '
-            'To get it, run "pip install textblob".') from e
+        raise property_import_error('subjectivity', 'textblob') from e
 
-    def subjectivity(raw_text: Sequence[str]) -> List[float]:
-        """Return list of floats of subjectivity."""
-        return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
+    return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
 
-    return subjectivity
+
+DEFAULT_PROPERTIES = [
+    {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
+    {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
+    {'name': 'percentage_special_characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
+    {'name': 'language', 'method': language, 'output_type': 'categorical'},
+    {'name': 'sentiment', 'method': sentiment, 'output_type': 'numeric'},
+    {'name': 'subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
+]
 
 
 def _get_default_properties(include_properties: List[str] = None, ignore_properties: List[str] = None):
@@ -111,31 +93,17 @@ def _get_default_properties(include_properties: List[str] = None, ignore_propert
     Default properties are defined here and not outside the function so not to import all the packages
     if they are not needed.
     """
-    ret = [
-        {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
-        {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
-        {'name': 'percentage_special_characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
-    ]
+    ret_properties = DEFAULT_PROPERTIES
 
     # Filter by properties or ignore_properties:
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
     elif include_properties is not None:
-        ret = [prop for prop in ret if prop['name'] in include_properties]
+        ret_properties = [prop for prop in ret_properties if prop['name'] in include_properties]
     elif ignore_properties is not None:
-        ret = [prop for prop in ret if prop['name'] not in ignore_properties]
+        ret_properties = [prop for prop in ret_properties if prop['name'] not in ignore_properties]
 
-    # Add properties that require additional packages:
-    include_properties = include_properties or []
-    ignore_properties = ignore_properties or []
-    if 'language' in include_properties or 'language' not in ignore_properties:
-        ret.append({'name': 'language', 'method': get_language_detection(), 'output_type': 'categorical'})
-    if 'sentiment' in include_properties or 'sentiment' not in ignore_properties:
-        ret.append({'name': 'sentiment', 'method': get_sentiment_detection(), 'output_type': 'numeric'})
-    if 'subjectivity' in include_properties or 'subjectivity' not in ignore_properties:
-        ret.append({'name': 'subjectivity', 'method': get_subjectivity_detection(), 'output_type': 'numeric'})
-
-    return ret
+    return ret_properties
 
 
 def calculate_default_properties(raw_text: Sequence[str], include_properties: List[str] = None,
@@ -159,4 +127,14 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Li
     default_text_properties = _get_default_properties(include_properties=include_properties,
                                                       ignore_properties=ignore_properties)
 
-    return {prop['name']: prop['method'](raw_text) for prop in default_text_properties}
+    calculated_properties = {}
+    for prop in default_text_properties:
+        try:
+            res = prop['method'](raw_text)
+            calculated_properties[prop['name']] = res
+        except Exception as e:
+            warnings.warn(f'Failed to calculate property {prop["name"]}. Error: {e}')
+    if not calculated_properties:
+        raise RuntimeError('Failed to calculate any of the properties.')
+
+    return calculated_properties

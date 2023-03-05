@@ -31,40 +31,7 @@ __all__ = ['AdditionalDataSegmentsPerformance', 'PropertySegmentsPerformance']
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
-    """Search for segments with low performance scores.
-
-    The check is designed to help you easily identify weak spots of your model and provide a deepdive analysis into
-    its performance on different segments of your data. Specifically, it is designed to help you identify the model
-    weakest segments in the data distribution for further improvement and visibility purposes.
-
-    In order to achieve this, the check trains several simple tree based models which try to predict the error of the
-    user provided model on the dataset. The relevant segments are detected by analyzing the different
-    leafs of the trained trees.
-    Parameters
-    ----------
-    columns : Union[Hashable, List[Hashable]] , default: None
-        Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default: None
-        Columns to ignore, if none given checks based on columns variable
-    n_top_features : int , default: 5
-        Number of features to use for segment search. Top columns are selected based on feature importance.
-    segment_minimum_size_ratio: float , default: 0.05
-        Minimum size ratio for segments. Will only search for segments of
-        size >= segment_minimum_size_ratio * data_size.
-    alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
-        Scorer to use as performance measure, either function or sklearn scorer name.
-        If None, a default scorer (per the model type) will be used.
-    loss_per_sample: Union[np.array, pd.Series, None], default: None
-        Loss per sample used to detect relevant weak segments. If pd.Series the indexes should be similar to those in
-        the dataset object provide, if np.array the order should be based on the index order of the dataset object and
-        if None the check calculates loss per sample by via log loss for classification and MSE for regression.
-    n_samples : int , default: 10_000
-        Maximum number of samples to use for this check.
-    n_to_show : int , default: 3
-        number of segments with the weakest performance to show.
-    categorical_aggregation_threshold : float , default: 0.05
-        In each categorical column, categories with frequency below threshold will be merged into "Other" category.
-    """
+    """Check the performance of the model on different segments of the data."""
 
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None] = None,
                  ignore_columns: Union[Hashable, List[Hashable], None] = None, n_top_features: int = 5,
@@ -121,7 +88,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
         # label is not used in the check, just here to avoid errors
         dataset = Dataset(features, label=pd.Series(text_data.label, index=text_data.index), cat_features=cat_features)
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
+        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, list(np.unique(text_data.label)))
 
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),
                                   y_proba_test=np.asarray(proba_values), validate_data_on_predict=False)
@@ -149,14 +116,88 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
 
 class PropertySegmentsPerformance(WeakSegmentsPerformance):
-    """Weak segments performance check for properties."""
+    """Search for segments with low performance scores.
+
+    The check is designed to help you easily identify weak spots of your model and provide a deepdive analysis into
+    its performance on different segments of your data. Specifically, it is designed to help you identify the model
+    weakest segments in the data distribution for further improvement and visibility purposes.
+
+    The segments are based on the text properties - which are features extracted from the text, such as "language" and
+    "number of words".
+
+    In order to achieve this, the check trains several simple tree based models which try to predict the error of the
+    user provided model on the dataset. The relevant segments are detected by analyzing the different
+    leafs of the trained trees.
+
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns variable
+    n_top_features : int , default: 5
+        Number of features to use for segment search. Top columns are selected based on feature importance.
+    segment_minimum_size_ratio: float , default: 0.05
+        Minimum size ratio for segments. Will only search for segments of
+        size >= segment_minimum_size_ratio * data_size.
+    alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
+        Scorer to use as performance measure, either function or sklearn scorer name.
+        If None, a default scorer (per the model type) will be used.
+    loss_per_sample: Union[np.array, pd.Series, None], default: None
+        Loss per sample used to detect relevant weak segments. If pd.Series the indexes should be similar to those in
+        the dataset object provide, if np.array the order should be based on the index order of the dataset object and
+        if None the check calculates loss per sample by via log loss for classification and MSE for regression.
+    n_samples : int , default: 10_000
+        Maximum number of samples to use for this check.
+    n_to_show : int , default: 3
+        number of segments with the weakest performance to show.
+    categorical_aggregation_threshold : float , default: 0.05
+        In each categorical column, categories with frequency below threshold will be merged into "Other" category.
+    """
 
     def __init__(self, **kwargs):
         super().__init__(segment_by='properties', **kwargs)
 
 
 class AdditionalDataSegmentsPerformance(WeakSegmentsPerformance):
-    """Weak segments performance check for additional data."""
+    """Search for segments with low performance scores.
+
+    The check is designed to help you easily identify weak spots of your model and provide a deepdive analysis into
+    its performance on different segments of your data. Specifically, it is designed to help you identify the model
+    weakest segments in the data distribution for further improvement and visibility purposes.
+
+    The segments are based on the additional data - which is data that is not part of the text, but is related to it,
+    such as "user_id" and "user_age".
+
+    In order to achieve this, the check trains several simple tree based models which try to predict the error of the
+    user provided model on the dataset. The relevant segments are detected by analyzing the different
+    leafs of the trained trees.
+
+    Parameters
+    ----------
+    columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to check, if none are given checks all columns except ignored ones.
+    ignore_columns : Union[Hashable, List[Hashable]] , default: None
+        Columns to ignore, if none given checks based on columns variable
+    n_top_features : int , default: 5
+        Number of features to use for segment search. Top columns are selected based on feature importance.
+    segment_minimum_size_ratio: float , default: 0.05
+        Minimum size ratio for segments. Will only search for segments of
+        size >= segment_minimum_size_ratio * data_size.
+    alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
+        Scorer to use as performance measure, either function or sklearn scorer name.
+        If None, a default scorer (per the model type) will be used.
+    loss_per_sample: Union[np.array, pd.Series, None], default: None
+        Loss per sample used to detect relevant weak segments. If pd.Series the indexes should be similar to those in
+        the dataset object provide, if np.array the order should be based on the index order of the dataset object and
+        if None the check calculates loss per sample by via log loss for classification and MSE for regression.
+    n_samples : int , default: 10_000
+        Maximum number of samples to use for this check.
+    n_to_show : int , default: 3
+        number of segments with the weakest performance to show.
+    categorical_aggregation_threshold : float , default: 0.05
+        In each categorical column, categories with frequency below threshold will be merged into "Other" category.
+    """
 
     def __init__(self, **kwargs):
         super().__init__(segment_by='additional_data', **kwargs)

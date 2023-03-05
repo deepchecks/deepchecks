@@ -17,6 +17,7 @@ import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
 from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
@@ -82,13 +83,17 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         """
         text_data = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=context.random_state)
 
-        df = text_data.properties.join(pd.Series(text_data.label, name='label', index=text_data.index).astype(str))
+        label = pd.Series(text_data.label, name='label', index=text_data.index)
+
+        # Classification labels should be of type object (and not int, for example)
+        if context.task_type in [TaskType.TEXT_CLASSIFICATION, TaskType.TOKEN_CLASSIFICATION]:
+            label = label.astype('object')
+
+        df = text_data.properties.join(label)
 
         df_pps = pps.predictors(df=df, y='label', random_seed=context.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
-        if text_data.label_map:
-            s_ppscore = s_ppscore.reset_index(text_data.label_map, drop=True)
 
         if context.with_display:
             top_to_show = s_ppscore.head(self.n_top_features)

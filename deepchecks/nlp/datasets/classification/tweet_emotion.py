@@ -13,7 +13,9 @@
 The data has 4653 tweet records with 5 features and a multiclass target column, referring to the emotion of the tweet.
 
 This dataset is an extension of Cardiff's tweet_eval dataset,
-For additional details about the dataset, please refer to the original source: https://github.com/cardiffnlp/tweeteval
+For additional details about the dataset, please refer to the original source: https://github.com/cardiffnlp/tweeteval.
+Dataset originally published in "Semeval-2018 task 1: Affect in tweets" by Mohammad et al. (2018):
+https://aclanthology.org/S18-1001/.
 """
 import os
 import pathlib
@@ -26,7 +28,7 @@ from deepchecks.nlp import TextData
 
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
-_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39265559'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/39486889'
 _EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39264332'
 _PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39460924'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
@@ -41,7 +43,7 @@ def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     Parameters
     ----------
     as_train_test : bool, default: True
-        If True, the returned data is splitted into train and test exactly like the toy model
+        If True, the returned data is split into train and test exactly like the toy model
         was trained. The first return value is the train data and the second is the test data.
         In order to get this model, call the load_fitted_model() function.
         Otherwise, returns a single object.
@@ -68,7 +70,7 @@ def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
 def load_data(data_format: str = 'TextData', as_train_test: bool = True,
               include_properties: bool = True) -> \
         t.Union[t.Tuple, t.Union[TextData, pd.DataFrame]]:
-    """Load and returns the Breast Cancer dataset (classification).
+    """Load and returns the Tweet Emotion dataset (classification).
 
     Parameters
     ----------
@@ -77,7 +79,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         'TextData' will return the data as a TextData object
         'Dataframe' will return the data as a pandas DataFrame object
     as_train_test : bool, default: True
-        If True, the returned data is splitted into train and test exactly like the toy model
+        If True, the returned data is split into train and test exactly like the toy model
         was trained. The first return value is the train data and the second is the test data.
         In order to get this model, call the load_fitted_model() function.
         Otherwise, returns a single object.
@@ -89,7 +91,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
     dataset : Union[TextData, pd.DataFrame]
         the data object, corresponding to the data_format attribute.
     train, test : Tuple[Union[TextData, pd.DataFrame],Union[TextData, pd.DataFrame]
-        tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
+        tuple if as_train_test = True. Tuple of two objects represents the dataset split to train and test sets.
     """
     if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')

@@ -61,8 +61,6 @@ class TextData:
         - token_classification label - For token classification the accepted label format is the IOB format or similar
           to it. The Label must be a sequence of sequences of strings or integers, with each sequence corresponding to
           a sample in the tokenized text, and exactly the length of the corresponding tokenized text.
-    label_map : t.Optional[t.Dict[str, int]], default: None
-        A dictionary mapping the label integer representation to their names.
     task_type : str, default: None
         The task type for the text data. Can be either 'text_classification' or 'token_classification'. Must be set if
         label is provided.
@@ -94,7 +92,6 @@ class TextData:
             raw_text: t.Optional[t.Sequence[str]] = None,
             tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
             label: t.Optional[TTextLabel] = None,
-            label_map: t.Optional[t.Dict[str, int]] = None,
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
@@ -154,7 +151,6 @@ class TextData:
                 raise DeepchecksNotSupportedError(f'dataset_name type {type(dataset_name)} is not supported, must be a'
                                                   f' str')
         self.name = dataset_name
-        self._label_map = label_map
 
         if additional_data is not None:
             if not isinstance(additional_data, pd.DataFrame):
@@ -412,17 +408,6 @@ class TextData:
            True if label was set.
         """
         return self._has_label
-
-    @property
-    def label_map(self) -> t.Dict[t.Any, t.Any]:
-        """Return a dictionary of label mapping.
-
-        Returns
-        -------
-        t.Dict[t.Any, t.Any]
-            Dictionary of label mapping.
-        """
-        return self._label_map
 
     @classmethod
     def cast_to_dataset(cls, obj: t.Any) -> 'TextData':
