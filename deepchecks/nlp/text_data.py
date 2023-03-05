@@ -330,6 +330,7 @@ class TextData:
         """Return the additional data of for the dataset."""
         return self._additional_data
 
+
     def calculate_default_properties(self, include_properties: t.List[str] = None,
                                      ignore_properties: t.List[str] = None):
         """Calculate the default properties of the dataset."""
@@ -343,10 +344,6 @@ class TextData:
     @property
     def properties(self) -> pd.DataFrame:
         """Return the properties of the dataset."""
-        if self._properties is None:
-            raise DeepchecksValueError('Properties are not set. Either supply your own properties as a pandas.DataFrame'
-                                       ' or use TextData.calculate_defualt_properties to add the default deepchecks '
-                                       'properties.')
         return self._properties
 
     def __len__(self):

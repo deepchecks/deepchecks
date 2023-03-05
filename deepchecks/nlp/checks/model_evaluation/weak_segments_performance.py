@@ -89,14 +89,12 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
         if self.segment_by == 'additional_data':
-            if text_data.additional_data is None:
-                raise DeepchecksNotSupportedError(
-                    'Weak segments check requires additional data to be available in the text data.')
-
+            context.assert_additional_data(text_data=text_data)
             features = select_from_dataframe(text_data.additional_data, self.columns, self.ignore_columns)
             features_name = 'additional data'
 
         elif self.segment_by == 'properties':
+            context.assert_properties(text_data=text_data)
             features = select_from_dataframe(text_data.properties, self.columns, self.ignore_columns)
             features_name = 'properties'
         else:

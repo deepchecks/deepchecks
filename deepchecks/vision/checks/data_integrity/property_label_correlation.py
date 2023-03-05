@@ -42,7 +42,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     In this check, we specifically use it to assess the ability to predict the label by an image property (e.g.
-    brightness, contrast etc.)
+    brightness, contrast etc.).
     A high PPS (close to 1) can mean that there's a bias in the dataset, as a single property can predict the label
     successfully, using simple classic ML algorithms - meaning that a deep learning algorithm may accidentally learn
     these properties instead of more accurate complex abstractions.

@@ -21,7 +21,7 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[test.index]
-    check = PropertyLabelCorrelation().add_condition_feature_pps_less_than(0.1)
+    check = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.1)
     # Act
     result = check.run(test, probabilities=test_probas)
     condition_result = check.conditions_decision(result)
@@ -29,7 +29,7 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details="Found 1 out of 6 features with PPS above threshold: {'sentiment': '0.11'}",
+                               details="Found 1 out of 6 properties with PPS above threshold: {'sentiment': '0.11'}",
                                name="Properties' Predictive Power Score is less than 0.1")
     ))
 

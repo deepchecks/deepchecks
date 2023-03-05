@@ -407,6 +407,23 @@ class Context(BaseContext):
             )
         return True
 
+    @staticmethod
+    def assert_additional_data(text_data):
+        """Assert that additional_data exists."""
+        if text_data.additional_data is None:
+            raise DeepchecksNotSupportedError(
+                'Check requires additional data, but it was not provided. To use this check, initialize the TextData '
+                'object with the additional_data parameter.')
+
+    @staticmethod
+    def assert_properties(text_data):
+        """Assert that additional_data exists."""
+        if text_data.properties is None:
+            raise DeepchecksNotSupportedError(
+                'Check requires properties, but none were provided. To use this check, either initialize the TextData '
+                'object with your own properties as a pandas.DataFrame or use TextData.calculate_default_properties to '
+                'add the default deepchecks properties.')
+
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
                     use_avg_defaults=True) -> t.List[DeepcheckScorer]:

@@ -31,11 +31,14 @@ pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
 
 class PropertyLabelCorrelation(SingleDatasetCheck):
-    """Return the PPS (Predictive Power Score) of all features in relation to the label.
+    """Return the PPS (Predictive Power Score) of all properties in relation to the label.
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
-    A high PPS (close to 1) can mean that this feature's success in predicting the label is actually due to data
-    leakage - meaning that the feature holds information that is based on the label to begin with.
+    In this check, we specifically use it to assess the ability to predict the label by a text property (e.g.
+    text length, language etc.).
+    A high PPS (close to 1) can mean that there's a bias in the dataset, as a single property can predict the label
+    successfully, using simple classic ML algorithms - meaning that a deep learning algorithm may accidentally learn
+    these properties instead of more accurate complex abstractions.
 
     Uses the ppscore package - for more info, see https://github.com/8080labs/ppscore
 
@@ -69,8 +72,8 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         Returns
         -------
         CheckResult
-            value is a dictionary with PPS per feature column.
-            data is a bar graph of the PPS of each feature.
+            value is a dictionary with PPS per property.
+            data is a bar graph of the PPS of each property.
 
         Raises
         ------
@@ -108,7 +111,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Property-Label Correlation')
 
-    def add_condition_feature_pps_less_than(self: PLC, threshold: float = 0.8) -> PLC:
+    def add_condition_property_pps_less_than(self: PLC, threshold: float = 0.8) -> PLC:
         """
         Add condition that will check that pps of the specified properties is less than the threshold.
 
@@ -122,15 +125,15 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         """
 
         def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
-            failed_features = {
+            failed_properties = {
                 feature_name: format_number(pps_value)
                 for feature_name, pps_value in value.items()
                 if pps_value >= threshold
             }
 
-            if failed_features:
-                message = f'Found {len(failed_features)} out of {len(value)} features with PPS above threshold: ' \
-                          f'{failed_features}'
+            if failed_properties:
+                message = f'Found {len(failed_properties)} out of {len(value)} properties with PPS above threshold: ' \
+                          f'{failed_properties}'
                 return ConditionResult(ConditionCategory.FAIL, message)
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(value))
