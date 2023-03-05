@@ -11,6 +11,8 @@
 """The feature label correlation check module."""
 import typing as t
 
+from deepchecks.tabular.utils.task_type import TaskType
+
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
@@ -82,6 +84,10 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset.assert_features()
         relevant_columns = dataset.features + [dataset.label_name]
+
+        # ppscore infers the task type from the label dtype, so we need to convert it to object
+        if context.task_type != TaskType.REGRESSION:
+            dataset._data[dataset.label_name] = dataset._data[dataset.label_name].astype(object)
 
         df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=self.random_state,
                                 **self.ppscore_params)
