@@ -143,6 +143,51 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         return train, test
 
 
+def load_data_large(data_format: str = 'Dataset', load_train: bool = True
+                    ) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+    """Load and returns the Airbnb NYC 2019 dataset (regression).
+
+    This function is similar to load_data, but returns the full dataset.
+    The full dataset is 10 times larger than the dataset returned by load_data.
+    This dataset also returns
+
+    Parameters
+    ----------
+    data_format : str , default: Dataset
+        Represent the format of the returned value. Can be 'Dataset'|'Dataframe'
+        'Dataset' will return the data as a Dataset object
+        'Dataframe' will return the data as a pandas Dataframe object
+    load_train : bool , default: True
+        If True, the returned data is the train data.
+
+    Returns
+    -------
+    dataset : Union[deepchecks.Dataset, pd.DataFrame]
+        the data object, corresponding to the data_format attribute.
+    predictions : ndarray
+        The predictions of the model on the dataset.
+    """
+    if load_train:
+        dataset = pd.read_csv(_TRAIN_DATA_URL)
+    else:
+        dataset = pd.read_csv(_TEST_DATA_URL)
+
+    # Introduce mess in the predictions in Harlem for the test dataset
+    if not load_train:
+        bad_segment_indices = dataset[(dataset['neighbourhood'] == 'Harlem') & (dataset['room_type'] == 'None')].index
+        dataset.loc[bad_segment_indices, _predictions] = \
+            dataset.loc[bad_segment_indices, _predictions] + 2 + np.random.randn()
+
+    # Duplicate the data 10 times
+    dataset = pd.concat([dataset] * 10, axis=0, ignore_index=True).sort_values(_datetime)
+
+    if data_format == 'Dataset':
+        dataset = Dataset(dataset.drop(_predictions, axis=1), label=_target, cat_features=_CAT_FEATURES,
+                          datetime_name=_datetime, features=_FEATURES)
+
+    return dataset.drop(_predictions, axis=1), np.asarray(dataset[_predictions])
+
+
 def load_pre_calculated_prediction() -> Tuple[ndarray, ndarray]:
     """Load the pre-calculated prediction for the Airbnb NYC 2019 dataset.
 

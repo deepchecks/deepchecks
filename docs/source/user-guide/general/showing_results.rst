@@ -75,6 +75,8 @@ options to resolve them:
 - | Verifying that the ``jupyter-widgets`` extension is installed and enabled.
   | If you're working on jupyterlab, same for ``jupyterlab-plotly`` extension.
   | Restart your jupter server after these changes so that they will have an effect.
+  | For more information and instructions take a look at a plotly `JupeterLab Troubleshooting<https://plotly.com/python/troubleshooting/#jupyterlab-problems>`_ 
+  | documentation section.
 
 - Exporting the results (e.g. :doc:`saving them to html </user-guide/general/export_save_results>`) 
   and viewing the output file.

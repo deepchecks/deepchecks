@@ -54,6 +54,7 @@ def test_emd_raises_exception():
         raises(DeepchecksValueError, r'margin_quantile_filter expected a value in range \[0, 0.5\), instead got -1')
     )
 
+
 def test_cramers_v_sampling():
     dist1 = np.array(['a'] * 2000 + ['b'] * 8000)
     dist2 = np.array(['a'] * 4000 + ['b'] * 6000)
@@ -67,6 +68,7 @@ def test_cramers_v_sampling():
 
     assert_that(res, close_to(res_sampled, 0.01))
     assert_that(res_sampled, close_to(res_double_sampled, 0.0001))
+
 
 def test_cramers_v():
     dist1 = np.array(['a'] * 200 + ['b'] * 800)
@@ -104,11 +106,83 @@ def test_cramers_v_min_category_ratio():
     res_min_cat_ratio = cramers_v(dist1=dist1, dist2=dist2, min_category_size_ratio=0.1)
     assert_that(res_min_cat_ratio, close_to(0.208, 0.01))
 
+
+def test_cramers_v_imbalanced_big_goes_to_0():
+    dist1 = np.array([0] * 9900 + [1] * 100)
+    dist2 = np.array([0] * 10000)
+    dist2_small = np.array([0] * 1000)
+    dist2_very_small = np.array([0] * 100)
+
+    res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True)
+    res_small = cramers_v(dist1=dist1, dist2=dist2_small, balance_classes=True)
+    res_very_small = cramers_v(dist1=dist1, dist2=dist2_very_small, balance_classes=True)
+
+    assert_that(res, close_to(0.56, 0.01))
+    assert_that(res_small, close_to(0.45, 0.01))
+    assert_that(res_very_small, close_to(0.14, 0.01))
+
+
+def test_cramers_v_imbalanced_medium_goes_to_0():
+    dist1 = np.array([0] * 99900 + [1] * 100)
+    dist2 = np.array([0] * 10000)
+    dist2_small = np.array([0] * 1000)
+
+    res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True)
+    res_small = cramers_v(dist1=dist1, dist2=dist2_small, balance_classes=True)
+
+    assert_that(res, close_to(0.45, 0.01))
+    assert_that(res_small, close_to(0.16, 0.01))
+
+
+def test_cramers_v_imbalanced_very_small_goes_to_0():
+    dist1 = np.array([0] * 9999900 + [1] * 100)
+    dist2 = np.array([0] * 10000)
+    dist2_small = np.array([0] * 1000)
+
+    res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True)
+    res_small = cramers_v(dist1=dist1, dist2=dist2_small, balance_classes=True)
+
+    assert_that(res, close_to(0.02, 0.01))
+    assert_that(res_small, close_to(0.0, 0.01))
+
+
+def test_cramers_v_imbalanced_medium_goes_to_big():
+    dist1 = np.array([0] * 99900 + [1] * 100)
+    dist2 = np.array([0] * 99000 + [1] * 1000)
+    dist2_small = np.array([0] * 990 + [1] * 10)
+
+    res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True)
+    res_small = cramers_v(dist1=dist1, dist2=dist2_small, balance_classes=True)
+
+    assert_that(res, close_to(0.45, 0.01))
+    assert_that(res_small, close_to(0.36, 0.01))
+
+
+def test_cramers_v_imbalanced_big_goes_to_medium():
+    dist1 = np.array([0] * 99000 + [1] * 1000)
+    dist2 = np.array([0] * 99900 + [1] * 100)
+    dist2_small = np.array([0] * 999 + [1] * 1)
+
+    res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True)
+    res_small = cramers_v(dist1=dist1, dist2=dist2_small, balance_classes=True)
+
+    assert_that(res, close_to(0.45, 0.01))
+    assert_that(res_small, close_to(0.37, 0.01))
+
+
+def test_cramers_v_imbalanced_three_classes():
+    dist1 = np.array([0] * 4900 + [1] * 100 + [2] * 5000)
+    dist2 = np.array([0] * 4950 + [1] * 50 + [2] * 5000)
+    res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True)
+    assert_that(res, close_to(0.15, 0.01))
+
+
 def test_cramers_v_imbalanced():
     dist1 = np.array([0] * 9900 + [1] * 100)
     dist2 = np.array([0] * 9950 + [1] * 50)
     res = cramers_v(dist1=dist1, dist2=dist2, balance_classes=True)
     assert_that(res, close_to(0.17, 0.01))
+
 
 def test_cramers_v_imbalanced_ignore_min_category_size():
     dist1 = np.array([0] * 9900 + [1] * 100)
@@ -130,6 +204,7 @@ def test_ks_max_drift():
     res = kolmogorov_smirnov(dist1=dist1, dist2=dist2)
     assert_that(res, equal_to(1))
 
+
 def test_ks_regular_drift():
     np.random.seed(42)
     # 2 normal distributions where std is the same but the mean is within 1 std from each other. this means that when
@@ -140,10 +215,10 @@ def test_ks_regular_drift():
     res = kolmogorov_smirnov(dist1=dist1, dist2=dist2)
     assert_that(res, close_to(0.382, 0.01))
 
+
 def test_ks_regular_drift_scaled():
     # Scaling (changes in actual y values) should not affect KS, only the distribution of the values:
     dist1 = np.random.normal(0, 1, 10000) * 100
     dist2 = np.random.normal(1, 1, 10000) * 100
     res = kolmogorov_smirnov(dist1=dist1, dist2=dist2)
     assert_that(res, close_to(0.382, 0.01))
-

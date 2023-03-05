@@ -15,7 +15,7 @@ from hamcrest import (any_of, assert_that, calling, close_to, contains_exactly, 
                       is_, none, not_none, raises)
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.neural_network import MLPClassifier
+from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.pipeline import Pipeline
 
 from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError, ModelValidationError
@@ -101,6 +101,25 @@ def test_calculate_importance_when_no_builtin(iris_labeled_dataset, caplog):
 
     # Act
     feature_importances, fi_type = run_fi_calculation(clf, iris_labeled_dataset,
+                                                      permutation_kwargs={'timeout': 120})
+    assert_that(caplog.records, has_length(1))
+    assert_that(caplog.records[0].message, equal_to('Could not find built-in feature importance on the model, '
+                                                    'using permutation feature importance calculation instead'))
+
+    # Assert
+    assert_that(feature_importances.sum(), close_to(1, 0.000001))
+    assert_that(fi_type, is_('permutation_importance'))
+
+
+def test_calculate_importance_when_no_builtin_regression(diabetes, caplog):
+    # Arrange
+    train_ds, _ = diabetes
+    clf = MLPRegressor(hidden_layer_sizes=(10,), random_state=42)
+    clf.fit(train_ds.data[train_ds.features],
+            train_ds.data[train_ds.label_name])
+
+    # Act
+    feature_importances, fi_type = run_fi_calculation(clf, train_ds,
                                                       permutation_kwargs={'timeout': 120})
     assert_that(caplog.records, has_length(1))
     assert_that(caplog.records[0].message, equal_to('Could not find built-in feature importance on the model, '
