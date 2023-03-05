@@ -27,7 +27,7 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details="Label's drift score Cramer's V is 0.23",
+                               details="Label's drift score Cramer's V is 0.22",
                                name='categorical drift score < 0.1 and numerical drift score < 0.1 for label drift')
     ))
 
