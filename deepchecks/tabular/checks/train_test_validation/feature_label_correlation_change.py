@@ -19,6 +19,7 @@ from deepchecks.core.check_utils.feature_label_correlation_utils import get_feat
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
@@ -92,6 +93,11 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
 
         train_dataset.assert_features()
         relevant_columns = train_dataset.features + [train_dataset.label_name]
+
+        # ppscore infers the task type from the label dtype, so we need to convert it to object
+        if context.task_type != TaskType.REGRESSION:
+            train_dataset._data[train_dataset.label_name] = train_dataset._data[train_dataset.label_name].astype(object)
+            test_dataset._data[test_dataset.label_name] = test_dataset._data[test_dataset.label_name].astype(object)
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '

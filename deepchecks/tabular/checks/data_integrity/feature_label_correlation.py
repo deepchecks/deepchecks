@@ -11,13 +11,12 @@
 """The feature label correlation check module."""
 import typing as t
 
-from deepchecks.tabular.utils.task_type import TaskType
-
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 

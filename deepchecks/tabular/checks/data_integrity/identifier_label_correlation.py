@@ -20,6 +20,7 @@ from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.dataset import _get_dataset_docs_tag
 from deepchecks.tabular.utils.messages import get_condition_passed_message
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 
 __all__ = ['IdentifierLabelCorrelation']
@@ -76,6 +77,10 @@ class IdentifierLabelCorrelation(SingleDatasetCheck):
                 'Dataset does not contain an index or a datetime',
                 html=f'Dataset does not contain an index or a datetime. see {_get_dataset_docs_tag()}'
             )
+
+        # ppscore infers the task type from the label dtype, so we need to convert it to object
+        if context.task_type != TaskType.REGRESSION:
+            relevant_data[dataset.label_name] = relevant_data[dataset.label_name].astype(object)
 
         df_pps = pps.predictors(
             df=relevant_data,
