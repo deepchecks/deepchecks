@@ -23,6 +23,7 @@ Matplotlib
 backends
 params
 PCA
+ppscore
 encodings
 plotly
 Multiclass
