@@ -16,6 +16,7 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
@@ -83,7 +84,12 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         dataset.assert_features()
         relevant_columns = dataset.features + [dataset.label_name]
 
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=self.random_state,
+        # ppscore infers the task type from the label dtype, so we need to convert it to object
+        data_df = dataset.data[relevant_columns]
+        if context.task_type != TaskType.REGRESSION:
+            data_df[dataset.label_name] = data_df[dataset.label_name].astype(object)
+
+        df_pps = pps.predictors(df=data_df, y=dataset.label_name, random_seed=self.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
 
