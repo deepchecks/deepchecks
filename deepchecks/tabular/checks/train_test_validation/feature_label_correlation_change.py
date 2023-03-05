@@ -19,6 +19,7 @@ from deepchecks.core.check_utils.feature_label_correlation_utils import get_feat
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
@@ -93,6 +94,13 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         train_dataset.assert_features()
         relevant_columns = train_dataset.features + [train_dataset.label_name]
 
+        # ppscore infers the task type from the label dtype, so we need to convert it to object
+        train_df = train_dataset.data[relevant_columns]
+        test_df = test_dataset.data[relevant_columns]
+        if context.task_type != TaskType.REGRESSION:
+            train_df[train_dataset.label_name] = train_df[train_dataset.label_name].astype(object)
+            test_df[test_dataset.label_name] = test_df[test_dataset.label_name].astype(object)
+
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
             f'label by itself. (Read more about {pps_html})'
@@ -111,9 +119,9 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             'the target label.'
         ]
 
-        ret_value, display = get_feature_label_correlation(train_dataset.data[relevant_columns],
+        ret_value, display = get_feature_label_correlation(train_df,
                                                            train_dataset.label_name,
-                                                           test_dataset.data[relevant_columns],
+                                                           test_df,
                                                            test_dataset.label_name, self.ppscore_params,
                                                            self.n_top_features,
                                                            min_pps_to_show=self.min_pps_to_show,
