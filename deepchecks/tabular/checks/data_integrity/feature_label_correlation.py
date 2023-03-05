@@ -85,10 +85,11 @@ class FeatureLabelCorrelation(SingleDatasetCheck):
         relevant_columns = dataset.features + [dataset.label_name]
 
         # ppscore infers the task type from the label dtype, so we need to convert it to object
+        data_df = dataset.data[relevant_columns]
         if context.task_type != TaskType.REGRESSION:
-            dataset._data[dataset.label_name] = dataset._data[dataset.label_name].astype(object)
+            data_df[dataset.label_name] = data_df[dataset.label_name].astype(object)
 
-        df_pps = pps.predictors(df=dataset.data[relevant_columns], y=dataset.label_name, random_seed=self.random_state,
+        df_pps = pps.predictors(df=data_df, y=dataset.label_name, random_seed=self.random_state,
                                 **self.ppscore_params)
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
 

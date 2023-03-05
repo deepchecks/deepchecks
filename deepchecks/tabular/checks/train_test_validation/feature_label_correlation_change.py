@@ -95,9 +95,11 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
         relevant_columns = train_dataset.features + [train_dataset.label_name]
 
         # ppscore infers the task type from the label dtype, so we need to convert it to object
+        train_df = train_dataset.data[relevant_columns]
+        test_df = test_dataset.data[relevant_columns]
         if context.task_type != TaskType.REGRESSION:
-            train_dataset._data[train_dataset.label_name] = train_dataset._data[train_dataset.label_name].astype(object)
-            test_dataset._data[test_dataset.label_name] = test_dataset._data[test_dataset.label_name].astype(object)
+            train_df[train_dataset.label_name] = train_df[train_dataset.label_name].astype(object)
+            test_df[test_dataset.label_name] = test_df[test_dataset.label_name].astype(object)
 
         text = [
             'The Predictive Power Score (PPS) is used to estimate the ability of a feature to predict the '
@@ -117,9 +119,9 @@ class FeatureLabelCorrelationChange(TrainTestCheck):
             'the target label.'
         ]
 
-        ret_value, display = get_feature_label_correlation(train_dataset.data[relevant_columns],
+        ret_value, display = get_feature_label_correlation(train_df,
                                                            train_dataset.label_name,
-                                                           test_dataset.data[relevant_columns],
+                                                           test_df,
                                                            test_dataset.label_name, self.ppscore_params,
                                                            self.n_top_features,
                                                            min_pps_to_show=self.min_pps_to_show,
