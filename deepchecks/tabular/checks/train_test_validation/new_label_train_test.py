@@ -96,7 +96,12 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
 
         else:
             display = None
-            result = {}
+            result = {
+                'n_samples': n_test_samples,
+                'n_new_labels_samples': 0,
+                'new_labels': [],
+                'n_samples_per_new_label': {}
+            }
 
         return CheckResult(result, display=display)
 
@@ -108,7 +113,11 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
         Dict[str, float]
             number of samples per each new label
         """
-        return check_result.value['n_samples_per_new_label']
+        if check_result.value['n_samples_per_new_label']:
+            value = sum(check_result.value['n_samples_per_new_label'].values())
+        else:
+            value = 0
+        return {'Samples with New Labels': value}
 
     def greater_is_better(self):
         """Return True if the check reduce_output is better when it is greater."""

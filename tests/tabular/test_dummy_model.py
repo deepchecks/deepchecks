@@ -93,7 +93,7 @@ def test_can_run_classification_no_proba_force_regression(iris_split_dataset_and
 
     assert_that(result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Failed for metrics: [\'Neg RMSE\', \'Neg MAE\']',
+                               details='Failed for metrics: [\'RMSE\']',
                                name='Selected metrics scores are greater than 0.9')
     ))
 
