@@ -330,7 +330,6 @@ class TextData:
         """Return the additional data of for the dataset."""
         return self._additional_data
 
-
     def calculate_default_properties(self, include_properties: t.List[str] = None,
                                      ignore_properties: t.List[str] = None):
         """Calculate the default properties of the dataset."""
