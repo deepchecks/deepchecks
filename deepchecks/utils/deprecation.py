@@ -2,7 +2,21 @@ import warnings
 
 
 class DeprecationHelper(object):
-    def __init__(self, new_target, deprecation_message):
+    """
+    Wrap a class to warn it is deprecated when called or created, and calls the new class instead.
+    This is used to change names to classes and warn users, without breaking backward compatibility.
+
+    Further actions are required to use this class, please see an existing example.
+
+    Parameters
+    ----------
+    new_target: object,
+        the new class to call
+    deprecation_message: str
+        the message to warn the user with
+    """
+
+    def __init__(self, new_target, deprecation_message: str):
         self.new_target = new_target
         self.deprecation_message = deprecation_message
 

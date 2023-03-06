@@ -51,6 +51,7 @@ __all__ = [
     'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
     'TrainTestSamplesMix',
+    'SamplesMix',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
     'IdentifierLabelCorrelation',
@@ -63,13 +64,17 @@ __all__ = [
 
     # distribution checks
     'TrainTestFeatureDrift',
+    'FeatureDrift',
     'TrainTestLabelDrift',
+    'LabelDrift',
     'WholeDatasetDrift',
     'TrainTestPredictionDrift',
+    'PredictionDrift',
     'MultivariateDrift',
 
     # performance checks
     'TrainTestPerformance',
+    'Performance',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',
