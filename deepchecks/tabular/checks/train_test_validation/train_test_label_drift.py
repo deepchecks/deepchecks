@@ -8,8 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""This module contains the code that handles users' use of the deprecated TrainTestLabelDrift, which names
- was changed to LabelDrift (removed the TrainTest prefix)"""
+
+"""This module contains the code that handles users' use of the deprecated TrainTestLabelDrift.
+
+Its name was changed to LabelDrift (removed the TrainTest prefix)
+"""
+
 import warnings
 from deepchecks.tabular.checks.train_test_validation.label_drift import LabelDrift
 from deepchecks.utils.deprecation import DeprecationHelper

@@ -22,7 +22,7 @@ from .weak_segments_performance import WeakSegmentsPerformance
 
 __all__ = [
     "TrainTestPredictionDrift",
-    "PredictionDrift"
+    "PredictionDrift",
     "ClassPerformance",
     "ConfusionMatrixReport",
     "MeanAveragePrecisionReport",

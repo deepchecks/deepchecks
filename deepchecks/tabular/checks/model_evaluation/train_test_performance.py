@@ -8,8 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""This module contains the code that handles users' use of the deprecated TrainTestPerformanceDrift, which names
- was changed to PerformanceDrift (removed the TrainTest prefix)"""
+
+"""This module contains the code that handles users' use of the deprecated TrainTestPerformanceDrift.
+
+Its name was changed to PerformanceDrift (removed the TrainTest prefix)
+"""
+
 import warnings
 from deepchecks.tabular.checks.model_evaluation.performance import Performance
 from deepchecks.utils.deprecation import DeprecationHelper

@@ -8,8 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""This module contains the code that handles users' use of the deprecated TrainTestPredictionDrift, which names
- was changed to PredictionDrift (removed the TrainTest prefix)"""
+
+"""This module contains the code that handles users' use of the deprecated TrainTestPredictionDrift.
+
+Its name was changed to PredictionDrift (removed the TrainTest prefix)
+"""
+
 import warnings
 from deepchecks.tabular.checks.model_evaluation.prediction_drift import PredictionDrift
 from deepchecks.utils.deprecation import DeprecationHelper
