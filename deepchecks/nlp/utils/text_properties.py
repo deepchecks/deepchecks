@@ -132,7 +132,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Li
         try:
             res = prop['method'](raw_text)
             calculated_properties[prop['name']] = res
-        except Exception as e:
+        except ImportError as e:
             warnings.warn(f'Failed to calculate property {prop["name"]}. Error: {e}')
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
