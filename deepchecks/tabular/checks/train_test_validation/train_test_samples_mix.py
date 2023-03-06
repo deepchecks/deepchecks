@@ -15,6 +15,7 @@ Its name was changed to SamplesMix (removed the TrainTest prefix)
 """
 
 import warnings
+
 from deepchecks.tabular.checks.train_test_validation.samples_mix import SamplesMix
 from deepchecks.utils.deprecation import DeprecationHelper
 

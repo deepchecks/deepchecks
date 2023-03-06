@@ -15,7 +15,9 @@ from .confusion_matrix_report import ConfusionMatrixReport
 from .model_inference_time import ModelInferenceTime
 from .model_info import ModelInfo
 from .multi_model_performance_report import MultiModelPerformanceReport
+from .performance import Performance
 from .performance_bias import PerformanceBias
+from .prediction_drift import PredictionDrift
 from .regression_error_distribution import RegressionErrorDistribution
 from .regression_systematic_error import RegressionSystematicError
 from .roc_report import RocReport
@@ -23,9 +25,7 @@ from .segment_performance import SegmentPerformance
 from .simple_model_comparison import SimpleModelComparison
 from .single_dataset_performance import SingleDatasetPerformance
 from .train_test_performance import TrainTestPerformance
-from .performance import Performance
 from .train_test_prediction_drift import TrainTestPredictionDrift
-from .prediction_drift import PredictionDrift
 from .unused_features import UnusedFeatures
 from .weak_segments_performance import WeakSegmentsPerformance
 

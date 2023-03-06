@@ -15,8 +15,9 @@ Its name was changed to LabelDrift (removed the TrainTest prefix).
 """
 
 import warnings
-from deepchecks.vision.checks.train_test_validation.label_drift import LabelDrift
+
 from deepchecks.utils.deprecation import DeprecationHelper
+from deepchecks.vision.checks.train_test_validation.label_drift import LabelDrift
 
 _deprecation_message = 'The TrainTestLabelDrift check is deprecated and will be removed in the 0.14 version.' \
                        ' Please use the LabelDrift check instead.'

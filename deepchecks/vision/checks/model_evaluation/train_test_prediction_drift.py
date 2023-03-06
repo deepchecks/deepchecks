@@ -15,8 +15,9 @@ Its name was changed to PredictionDrift (removed the TrainTest prefix)
 """
 
 import warnings
-from deepchecks.vision.checks.model_evaluation.prediction_drift import PredictionDrift
+
 from deepchecks.utils.deprecation import DeprecationHelper
+from deepchecks.vision.checks.model_evaluation.prediction_drift import PredictionDrift
 
 _deprecation_message = 'The TrainTestPredictionDrift check is deprecated and will be removed in the 0.14 version.' \
                        ' Please use the PredictionDrift check instead.'

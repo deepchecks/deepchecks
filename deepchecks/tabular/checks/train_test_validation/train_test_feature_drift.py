@@ -15,6 +15,7 @@ Its name was changed to FeatureDrift (removed the TrainTest prefix)
 """
 
 import warnings
+
 from deepchecks.tabular.checks.train_test_validation.feature_drift import FeatureDrift
 from deepchecks.utils.deprecation import DeprecationHelper
 

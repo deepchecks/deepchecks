@@ -11,23 +11,22 @@
 """Module contains checks of train test validation checks."""
 
 from deepchecks.tabular.checks.data_integrity.identifier_label_correlation import IdentifierLabelCorrelation
-
 from .category_mismatch_train_test import CategoryMismatchTrainTest
 from .datasets_size_comparison import DatasetsSizeComparison
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
 from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
+from .feature_drift import FeatureDrift
 from .feature_label_correlation_change import FeatureLabelCorrelationChange
 from .index_leakage import IndexTrainTestLeakage
+from .label_drift import LabelDrift
 from .multivariate_drift import MultivariateDrift
 from .new_category_train_test import NewCategoryTrainTest
 from .new_label_train_test import NewLabelTrainTest
+from .samples_mix import SamplesMix
 from .string_mismatch_comparison import StringMismatchComparison
-from .feature_drift import FeatureDrift
 from .train_test_feature_drift import TrainTestFeatureDrift
 from .train_test_label_drift import TrainTestLabelDrift
-from .label_drift import LabelDrift
 from .train_test_samples_mix import TrainTestSamplesMix
-from .samples_mix import SamplesMix
 from .whole_dataset_drift import WholeDatasetDrift
 
 __all__ = [
