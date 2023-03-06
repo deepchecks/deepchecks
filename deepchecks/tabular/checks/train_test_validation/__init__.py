@@ -22,9 +22,12 @@ from .multivariate_drift import MultivariateDrift
 from .new_category_train_test import NewCategoryTrainTest
 from .new_label_train_test import NewLabelTrainTest
 from .string_mismatch_comparison import StringMismatchComparison
+from .feature_drift import FeatureDrift
 from .train_test_feature_drift import TrainTestFeatureDrift
 from .train_test_label_drift import TrainTestLabelDrift
+from .label_drift import LabelDrift
 from .train_test_samples_mix import TrainTestSamplesMix
+from .samples_mix import SamplesMix
 from .whole_dataset_drift import WholeDatasetDrift
 
 __all__ = [
@@ -39,8 +42,11 @@ __all__ = [
     'FeatureLabelCorrelationChange',
     'StringMismatchComparison',
     'TrainTestFeatureDrift',
+    'FeatureDrift',
     'TrainTestLabelDrift',
+    'LabelDrift',
     'TrainTestSamplesMix',
+    'SamplesMix',
     'MultivariateDrift',
     'WholeDatasetDrift'
 ]

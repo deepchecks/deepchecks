@@ -23,7 +23,9 @@ from .segment_performance import SegmentPerformance
 from .simple_model_comparison import SimpleModelComparison
 from .single_dataset_performance import SingleDatasetPerformance
 from .train_test_performance import TrainTestPerformance
+from .performance import Performance
 from .train_test_prediction_drift import TrainTestPredictionDrift
+from .prediction_drift import PredictionDrift
 from .unused_features import UnusedFeatures
 from .weak_segments_performance import WeakSegmentsPerformance
 
@@ -35,12 +37,14 @@ __all__ = [
     'ModelInfo',
     'MultiModelPerformanceReport',
     'TrainTestPerformance',
+    'Performance',
     'RegressionErrorDistribution',
     'RegressionSystematicError',
     'RocReport',
     'SegmentPerformance',
     'SimpleModelComparison',
     'TrainTestPredictionDrift',
+    'PredictionDrift',
     'WeakSegmentsPerformance',
     'UnusedFeatures',
     'SingleDatasetPerformance',

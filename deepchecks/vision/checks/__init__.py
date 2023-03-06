@@ -12,12 +12,12 @@
 from .data_integrity import ImagePropertyOutliers, LabelPropertyOutliers, PropertyLabelCorrelation
 from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, MeanAveragePrecisionReport,
                                MeanAverageRecallReport, SimpleModelComparison, SingleDatasetPerformance,
-                               TrainTestPredictionDrift, WeakSegmentsPerformance)
+                               TrainTestPredictionDrift, PredictionDrift, WeakSegmentsPerformance)
 from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, NewLabels,
-                                    PropertyLabelCorrelationChange, TrainTestLabelDrift)
+                                    PropertyLabelCorrelationChange, TrainTestLabelDrift, LabelDrift)
 
 __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
-           'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
-           'ImagePropertyDrift', 'TrainTestPredictionDrift',
+           'SimpleModelComparison', 'TrainTestLabelDrift', 'LabelDrift', 'ImageDatasetDrift',
+           'ImagePropertyDrift', 'TrainTestPredictionDrift', 'PredictionDrift',
            'PropertyLabelCorrelationChange', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
            'NewLabels', 'SingleDatasetPerformance', 'PropertyLabelCorrelation', 'WeakSegmentsPerformance']

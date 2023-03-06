@@ -17,12 +17,14 @@ from .data_integrity import (ClassImbalance, ColumnsInfo, ConflictingLabels, Dat
 from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelInferenceTime, ModelInfo,
                                MultiModelPerformanceReport, RegressionErrorDistribution, RegressionSystematicError,
                                RocReport, SegmentPerformance, SimpleModelComparison, SingleDatasetPerformance,
-                               TrainTestPerformance, TrainTestPredictionDrift, UnusedFeatures, WeakSegmentsPerformance)
+                               TrainTestPerformance, Performance, TrainTestPredictionDrift, PredictionDrift, UnusedFeatures,
+                               WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, MultivariateDrift,
-                                    NewCategoryTrainTest, NewLabelTrainTest, StringMismatchComparison,
-                                    TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestSamplesMix, WholeDatasetDrift)
+                                    NewCategoryTrainTest, NewLabelTrainTest, StringMismatchComparison, FeatureDrift,
+                                    TrainTestFeatureDrift, LabelDrift, TrainTestLabelDrift, SamplesMix,
+                                    TrainTestSamplesMix, WholeDatasetDrift)
 
 __all__ = [
     # integrity checks
@@ -50,6 +52,7 @@ __all__ = [
     'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
     'TrainTestSamplesMix',
+    'SamplesMix',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
     'IdentifierLabelCorrelation',
@@ -62,13 +65,18 @@ __all__ = [
 
     # distribution checks
     'TrainTestFeatureDrift',
+    'FeatureDrift',
     'TrainTestLabelDrift',
+    'LabelDrift',
     'MultivariateDrift',
     'WholeDatasetDrift',
     'TrainTestPredictionDrift',
+    'PredictionDrift',
+
 
     # performance checks
     'TrainTestPerformance',
+    'Performance',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',

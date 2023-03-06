@@ -15,6 +15,7 @@ from .image_property_drift import ImagePropertyDrift
 from .new_labels import NewLabels
 from .property_label_correlation_change import PropertyLabelCorrelationChange
 from .train_test_label_drift import TrainTestLabelDrift
+from .label_drift import LabelDrift
 
 __all__ = [
     'HeatmapComparison',
@@ -22,5 +23,6 @@ __all__ = [
     'ImagePropertyDrift',
     'NewLabels',
     'PropertyLabelCorrelationChange',
-    'TrainTestLabelDrift'
+    'TrainTestLabelDrift',
+    'LabelDrift'
 ]

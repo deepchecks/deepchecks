@@ -16,10 +16,13 @@ from .mean_average_recall_report import MeanAverageRecallReport
 from .simple_model_comparison import SimpleModelComparison
 from .single_dataset_performance import SingleDatasetPerformance
 from .train_test_prediction_drift import TrainTestPredictionDrift
+from .prediction_drift import PredictionDrift
 from .weak_segments_performance import WeakSegmentsPerformance
+
 
 __all__ = [
     "TrainTestPredictionDrift",
+    "PredictionDrift"
     "ClassPerformance",
     "ConfusionMatrixReport",
     "MeanAveragePrecisionReport",
