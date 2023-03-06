@@ -107,7 +107,7 @@ columns_metadata = {'cat_features' : categorical_features, 'index_name': index_n
 # It runs on two datasets, so you can use it to compare any two batches of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
-# Check out the :doc:`"when should you use deepchecks guide" </getting-started/when_should_you_use>`
+# Check out the :ref:`when you should use <when_should_you_use_deepchecks>`
 # for some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import train_test_validation

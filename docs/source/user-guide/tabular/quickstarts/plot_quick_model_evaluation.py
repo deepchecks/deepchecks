@@ -79,7 +79,7 @@ test_ds = Dataset(X_test, label=y_test, cat_features=[])
 # any two batches of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
-# Check out the :doc:`"when should you use deepchecks guide" </getting-started/when_should_you_use>`
+# Check out the :ref:`when you should use <when_should_you_use_deepchecks>`
 # for some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import model_evaluation

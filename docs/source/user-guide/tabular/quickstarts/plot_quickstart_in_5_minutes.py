@@ -73,7 +73,7 @@ ds_test =  Dataset(df_test,  label=label_col, cat_features=[])
 # ------------------
 # Use the ``full_suite`` that is a collection of (most of) the prebuilt checks.
 #
-# Check out the :doc:`when should you use </getting-started/when_should_you_use>`
+# Check out the :ref:`when you should use <when_should_you_use_deepchecks>`
 # deepchecks guide for some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import full_suite

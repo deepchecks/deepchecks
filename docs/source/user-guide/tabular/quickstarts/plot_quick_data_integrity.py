@@ -75,7 +75,7 @@ ds = Dataset(dirty_df, cat_features= ['type'], datetime_name='Date', label= 'Ave
 # It runs on a single dataset, so you can run it on any batch of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
-# Check out the :doc:`when should you use </getting-started/when_should_you_use>`
+# Check out the :ref:`when you should use <when_should_you_use_deepchecks>`
 # deepchecks guide for some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import data_integrity

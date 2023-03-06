@@ -10,7 +10,7 @@ The following quickstarts exemplify how to run each of these suites with only a 
 
 
 These are great as initial entry points to get familiar with the value you can get from deepchecks.
-For more info about each of the recommended scenarios, check out the :doc:`/getting-started/when_should_you_use` guide.
+For more info about each of the recommended scenarios, check out the :ref:`when_should_you_use_deepchecks` guide.
 For the API reference of each of the built-in Suites, check out :mod:`deepchecks.tabular.suites`.
 
 Of course, every research process has its unique steps and challenges, and therefore all checks and suites can easily customized, 

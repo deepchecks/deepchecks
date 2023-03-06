@@ -10,29 +10,34 @@ dataset from scikit-learn, and check whether certain columns contain drift betwe
 General Structure
 -------------------------
 JUnit comprises of 3 sections:
-1. The test suites sections. This is an optional section, but used with the Deepchecks Junit Serializer since multiple
-suites are used.
-2. The test suite section. This is used to group tests by their domain such as model, data, or evaluation test. A catch
-all 'checks' section is also added for custom checks added.
-3. The test case section. This is the atomic unit of the payload and contains the details about a
-:class:`deepchecks.core.CheckResult`. This can either be a pass, failure, or skip.
 
-It will output the following formatted string by default, but a XML can also be extracted:
+1. The test suites sections. This is an optional section, but used with the Deepchecks Junit Serializer since multiple 
+   suites are used.
+2. The test suite section. This is used to group tests by their domain such as model, data, or evaluation test. 
+   A catch all 'checks' section is also added for custom checks added.
+3. The test case section. This is the atomic unit of the payload and contains the details 
+   about a :class:`deepchecks.core.CheckResult`. This can either be a pass, failure, or skip.
 
-<testsuites errors="0" failures="9" name="Full Suite" tests="54" time="45">
-    <testsuite errors="0" failures="3" name="train_test_validation" tests="12" time="1" timestamp="2022-11-22T05:49:01">
-        <testcase classname="deepchecks.tabular.checks.train_test_validation.feature_label_correlation_change.FeatureLabelCorrelationChange" name="Feature Label Correlation Change" time="0">
-            <system-out>Passed for 4 relevant columns, Found 2 out of 4 features in train dataset with PPS above threshold: {'petal width (cm)': '0.91', 'petal length (cm)': '0.86'}</system-out>
-        </testcase>
-        ...
-    </testsuite>
-<testsuites>
+It will output the following formatted string by default, but an XML can also be extracted:
+
+.. code-block:: xml
+        
+    <testsuites errors="0" failures="9" name="Full Suite" tests="54" time="45">
+        <testsuite errors="0" failures="3" name="train_test_validation" tests="12" time="1" timestamp="2022-11-22T05:49:01">
+            <testcase classname="deepchecks.tabular.checks.train_test_validation.feature_label_correlation_change.FeatureLabelCorrelationChange" name="Feature Label Correlation Change" time="0">
+                <system-out>Passed for 4 relevant columns, Found 2 out of 4 features in train dataset with PPS above threshold: {'petal width (cm)': '0.91', 'petal length (cm)': '0.86'}</system-out>
+            </testcase>
+            ...
+        </testsuite>
+    <testsuites>
 
 Failed test cases will return in the following manner:
 
-<testcase classname="deepchecks.tabular.checks.train_test_validation.date_train_test_leakage_duplicates.DateTrainTestLeakageDuplicates" name="Date Train Test Leakage Duplicates" time="0">
-    <failure message="Dataset does not contain a datetime" type="failure">Check if test dates are present in train data.</failure>
-</testcase>
+.. code-block:: xml
+
+    <testcase classname="deepchecks.tabular.checks.train_test_validation.date_train_test_leakage_duplicates.DateTrainTestLeakageDuplicates" name="Date Train Test Leakage Duplicates" time="0">
+        <failure message="Dataset does not contain a datetime" type="failure">Check if test dates are present in train data.</failure>
+    </testcase>
 
 Failed test cases can also be coerced to skipped to allow the recording of the failed test, but to not put a break into
 a CI/CD system. This is especially helpful when first starting out with deepchecks in CI/CD pipelines.
