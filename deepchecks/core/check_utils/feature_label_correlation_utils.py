@@ -21,7 +21,7 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
-def get_pps_figure(per_class: bool, n_of_features: int):
+def get_pps_figure(per_class: bool, n_of_features: int, x_name: str = 'feature', xaxis_title: str = 'Column'):
     """If per_class is True, then no title is defined on the figure."""
     fig = go.Figure()
     fig.update_layout(
@@ -46,8 +46,8 @@ def get_pps_figure(per_class: bool, n_of_features: int):
         fig.update_layout(xaxis_title='Class')
     else:
         fig.update_layout(
-            title='Predictive Power Score (PPS) - Can a feature predict the label by itself?',
-            xaxis_title='Column',
+            title=f'Predictive Power Score (PPS) - Can a {x_name} predict the label by itself?',
+            xaxis_title=xaxis_title,
         )
     return fig
 

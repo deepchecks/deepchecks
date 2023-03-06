@@ -132,7 +132,7 @@ class PartialBoostingModel:
 class BoostingOverfit(TrainTestCheck):
     """Check for overfit caused by using too many iterations in a gradient boosted model.
 
-    The check runs a pred-defined number of steps, and in each step it limits the boosting model to use up to X
+    The check runs a pre-defined number of steps, and in each step it limits the boosting model to use up to X
     estimators (number of estimators is monotonic increasing). It plots the given score calculated for each step for
     both the train dataset and the test dataset.
 

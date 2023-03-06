@@ -12,8 +12,10 @@
 
 from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
 from deepchecks.nlp.checks.model_evaluation.train_test_prediction_drift import TrainTestPredictionDrift
-from deepchecks.nlp.checks.model_evaluation.weak_segments_performance import WeakSegmentsPerformance
+from deepchecks.nlp.checks.model_evaluation.weak_segments_performance import (AdditionalDataSegmentsPerformance,
+                                                                              PropertySegmentsPerformance)
 
 __all__ = [
-    'SingleDatasetPerformance', 'WeakSegmentsPerformance', 'TrainTestPredictionDrift'
+    'SingleDatasetPerformance', 'AdditionalDataSegmentsPerformance', 'PropertySegmentsPerformance',
+    'TrainTestPredictionDrift'
 ]

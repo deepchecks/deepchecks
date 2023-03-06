@@ -11,6 +11,7 @@
 """The dataset module containing the tabular Dataset class and its functions."""
 import collections
 import typing as t
+import warnings
 from operator import itemgetter
 
 import numpy as np
@@ -18,6 +19,7 @@ import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.utils.text_properties import calculate_default_properties
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.validation import is_sequence_not_str
 
@@ -66,6 +68,13 @@ class TextData:
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
     index : t.Optional[t.Sequence[int]] , default: None
         The index of the samples. If None, the index is set to np.arange(len(raw_text)).
+    additional_data : t.Optional[pd.DataFrame] , default: None
+        Additional data for the samples. If None, no additional data is set. If a DataFrame is given, it must contain
+        the same number of samples as the raw_text and identical index.
+    properties : t.Optional[Union[pd.DataFrame, str]] , default: None
+        The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
+        using the default properties. If a DataFrame is given, it must contain the properties for each sample as the raw
+        text and identical index.
     """
 
     _text: t.Sequence[str]
@@ -76,6 +85,7 @@ class TextData:
     _is_multilabel: bool = False
     name: t.Optional[str] = None
     _additional_data: t.Optional[pd.DataFrame] = None
+    _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
 
     def __init__(
             self,
@@ -85,7 +95,8 @@ class TextData:
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
-            additional_data: t.Optional[pd.DataFrame] = None
+            additional_data: t.Optional[pd.DataFrame] = None,
+            properties: t.Optional[t.Union[pd.DataFrame, str]] = None,
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -149,6 +160,17 @@ class TextData:
                 raise DeepchecksValueError('additional_data index must be the same as the text data index')
 
         self._additional_data = additional_data
+
+        if properties is not None:
+            if isinstance(properties, str) and properties == 'auto':
+                self.calculate_default_properties()
+            elif not isinstance(properties, pd.DataFrame):
+                raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
+                                           f' pandas DataFrame')
+            elif self.index != list(properties.index):
+                raise DeepchecksValueError('properties index must be the same as the text data index')
+
+        self._properties = properties
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -219,7 +241,8 @@ class TextData:
         if rows_to_use is None:
             new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
                            task_type=self._task_type.value,
-                           dataset_name=self.name, index=self.index, additional_data=self.additional_data)
+                           dataset_name=self.name, index=self.index, additional_data=self.additional_data,
+                           properties=self._properties)
         else:
             new_copy = cls(
                 raw_text=list(itemgetter(*rows_to_use)(self._text)),
@@ -229,6 +252,7 @@ class TextData:
                 index=list(itemgetter(*rows_to_use)(self.index)),
                 additional_data=self._additional_data.iloc[rows_to_use, :]
                 if self._additional_data is not None else None,
+                properties=self._properties if self._properties is None else self._properties.iloc[rows_to_use, :],
                 task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
         return new_copy
@@ -301,6 +325,21 @@ class TextData:
     def additional_data(self) -> pd.DataFrame:
         """Return the additional data of for the dataset."""
         return self._additional_data
+
+    def calculate_default_properties(self, include_properties: t.List[str] = None,
+                                     ignore_properties: t.List[str] = None):
+        """Calculate the default properties of the dataset."""
+        if self._properties is not None:
+            warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        properties = calculate_default_properties(self.text, include_properties=include_properties,
+                                                  ignore_properties=ignore_properties)
+        self._properties = pd.DataFrame(properties, index=self.index)
+
+    @property
+    def properties(self) -> pd.DataFrame:
+        """Return the properties of the dataset."""
+        return self._properties
 
     def __len__(self):
         """Return number of samples in the dataset."""

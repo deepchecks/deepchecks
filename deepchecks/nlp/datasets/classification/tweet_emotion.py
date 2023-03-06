@@ -13,7 +13,9 @@
 The data has 4653 tweet records with 5 features and a multiclass target column, referring to the emotion of the tweet.
 
 This dataset is an extension of Cardiff's tweet_eval dataset,
-For additional details about the dataset, please refer to the original source: https://github.com/cardiffnlp/tweeteval
+For additional details about the dataset, please refer to the original source: https://github.com/cardiffnlp/tweeteval.
+Dataset originally published in "Semeval-2018 task 1: Affect in tweets" by Mohammad et al. (2018):
+https://aclanthology.org/S18-1001/.
 """
 import os
 import pathlib
@@ -26,17 +28,49 @@ from deepchecks.nlp import TextData
 
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
-_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39265559'
+_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/39486889'
 _EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39264332'
+_PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39460924'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
 ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet_emotion'
 _target = 'label'
 
 
-def load_data(data_format: str = 'TextData', as_train_test: bool = True) -> \
+def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
+    """Load and return the properties of the tweet_emotion dataset.
+
+    Parameters
+    ----------
+    as_train_test : bool, default: True
+        If True, the returned data is split into train and test exactly like the toy model
+        was trained. The first return value is the train data and the second is the test data.
+        In order to get this model, call the load_fitted_model() function.
+        Otherwise, returns a single object.
+
+    Returns
+    -------
+    properties : pd.DataFrame
+        Properties for the tweet_emotion dataset.
+    """
+    if (ASSETS_DIR / 'tweet_emotion_properties.csv').exists():
+        properties = pd.read_csv(ASSETS_DIR / 'tweet_emotion_properties.csv', index_col=0)
+    else:
+        properties = pd.read_csv(_PROPERTIES_URL, index_col=0)
+        properties.to_csv(ASSETS_DIR / 'tweet_emotion_properties.csv')
+
+    if as_train_test:
+        train = properties[properties['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
+        test = properties[properties['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
+        return train, test
+    else:
+        return properties.drop(columns=['train_test_split']).sort_index()
+
+
+def load_data(data_format: str = 'TextData', as_train_test: bool = True,
+              include_properties: bool = True) -> \
         t.Union[t.Tuple, t.Union[TextData, pd.DataFrame]]:
-    """Load and returns the Breast Cancer dataset (classification).
+    """Load and returns the Tweet Emotion dataset (classification).
 
     Parameters
     ----------
@@ -44,19 +78,20 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True) -> \
         Represent the format of the returned value. Can be 'TextData'|'DataFrame'
         'TextData' will return the data as a TextData object
         'Dataframe' will return the data as a pandas DataFrame object
-
     as_train_test : bool, default: True
-        If True, the returned data is splitted into train and test exactly like the toy model
+        If True, the returned data is split into train and test exactly like the toy model
         was trained. The first return value is the train data and the second is the test data.
         In order to get this model, call the load_fitted_model() function.
         Otherwise, returns a single object.
+    include_properties : bool, default: True
+        If True, the returned data will include the properties of the tweets. Incompatible with data_format='DataFrame'
 
     Returns
     -------
     dataset : Union[TextData, pd.DataFrame]
         the data object, corresponding to the data_format attribute.
     train, test : Tuple[Union[TextData, pd.DataFrame],Union[TextData, pd.DataFrame]
-        tuple if as_train_test = True. Tuple of two objects represents the dataset splitted to train and test sets.
+        tuple if as_train_test = True. Tuple of two objects represents the dataset split to train and test sets.
     """
     if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')
@@ -71,8 +106,13 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True) -> \
     if not as_train_test:
         dataset.drop(columns=['train_test_split'], inplace=True)
         if data_format.lower() == 'textdata':
+            if include_properties:
+                properties = load_properties(as_train_test=False)
+            else:
+                properties = None
             dataset = TextData(dataset.text, label=dataset[_target], task_type='text_classification',
-                               additional_data=dataset.drop(columns=[_target, 'text']))
+                               additional_data=dataset.drop(columns=[_target, 'text']),
+                               properties=properties, index=dataset.index)
         return dataset
     else:
         # train has more sport and Customer Complains but less Terror and Optimism
@@ -80,10 +120,17 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True) -> \
         test = dataset[dataset['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
 
         if data_format.lower() == 'textdata':
+            if include_properties:
+                train_properties, test_properties = load_properties(as_train_test=True)
+            else:
+                train_properties, test_properties = None, None
+
             train = TextData(train.text, label=train[_target], task_type='text_classification',
-                             index=train.index, additional_data=train.drop(columns=[_target, 'text']))
+                             index=train.index, additional_data=train.drop(columns=[_target, 'text']),
+                             properties=train_properties)
             test = TextData(test.text, label=test[_target], task_type='text_classification',
-                            index=test.index, additional_data=test.drop(columns=[_target, 'text']))
+                            index=test.index, additional_data=test.drop(columns=[_target, 'text']),
+                            properties=test_properties)
         return train, test
 
 
