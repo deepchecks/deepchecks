@@ -2,7 +2,7 @@
 """
 .. _quick_data_integrity:
 
-Quickstart - Data Integrity Suite
+Data Integrity Suite Quickstart
 *********************************
 
 The deepchecks integrity suite is relevant any time you have data that you wish to validate:

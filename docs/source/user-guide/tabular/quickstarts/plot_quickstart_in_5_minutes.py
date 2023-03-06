@@ -2,7 +2,7 @@
 """
 .. _quick_full_suite:
 
-Quickstart - Full Suite in 5 Minutes
+Full Suite Quickstart
 ************************************
 
 In order to run your first Deepchecks Suite all you need to have is the data
@@ -145,7 +145,7 @@ suite[5]
 # If we now re-run the suite, all of the existing conditions will pass.
 #
 # *Note: the check we manipulated will still run as part of the Suite, however
-# it won't appear in the Conditions Summary since it no longer has any
+# it won't appear in the Conditsions Summary since it no longer has any
 # conditions defined on it. You can still see its display results in the 
 # Additional Outputs section*
 #

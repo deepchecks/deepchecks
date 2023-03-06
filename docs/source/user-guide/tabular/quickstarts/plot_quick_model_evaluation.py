@@ -2,7 +2,7 @@
 """
 .. _quick_model_evaluation:
 
-Quickstart - Model Evaluation Suite
+Model Evaluation Suite Quickstart
 ***********************************
 
 The deepchecks model evaluation suite is relevant any time you wish to

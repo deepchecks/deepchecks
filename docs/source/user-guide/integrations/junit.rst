@@ -11,11 +11,11 @@ General Structure
 -------------------------
 JUnit comprises of 3 sections:
 
-1. The test suites sections. This is an optional section, but used with the Deepchecks Junit Serializer since multiple 
+1. The **test suites** sections: This is an optional section, but used with the Deepchecks Junit Serializer since multiple 
    suites are used.
-2. The test suite section. This is used to group tests by their domain such as model, data, or evaluation test. 
+2. The **test suite** section: This is used to group tests by their domain such as model, data, or evaluation test. 
    A catch all 'checks' section is also added for custom checks added.
-3. The test case section. This is the atomic unit of the payload and contains the details 
+3. The **test case** section: This is the atomic unit of the payload and contains the details 
    about a :class:`deepchecks.core.CheckResult`. This can either be a pass, failure, or skip.
 
 It will output the following formatted string by default, but an XML can also be extracted:

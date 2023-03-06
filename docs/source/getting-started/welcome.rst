@@ -55,7 +55,7 @@ Start Working with Deepchecks Testing
 
         Full installation guide (quick one can be found in quickstarts)
 
-    .. grid-item-card:: 🚀 Interactive Checks Demo 🚀
+    .. grid-item-card:: 🚀 Interactive Demo of the Tabular Checks 🚀
         :link-type: url
         :link: https://checks-demo.deepchecks.com/?check=No+check+selected
              &utm_source=docs.deepchecks.com&utm_medium=referral&

@@ -2,7 +2,7 @@
 """
 .. _quick_train_test_validation:
 
-Quickstart - Train-Test Validation Suite
+Train-Test Validation Suite Quickstart
 ****************************************
 
 The deepchecks train-test validation suite is relevant any time you wish to 

@@ -14,4 +14,7 @@ For more info about each of the recommended scenarios, check out the :ref:`when_
 For the API reference of each of the built-in Suites, check out :mod:`deepchecks.tabular.suites`.
 
 Of course, every research process has its unique steps and challenges, and therefore all checks and suites can easily customized, 
-more info about customizations of suites, conditions, checks, etc. can be found in the :doc:`</user-guide/index>`.
+more info about customizations of suites, conditions, checks, etc. can be found in the :doc:`/user-guide/index`.
+
+Quickstarts:
+-----------------

@@ -109,7 +109,7 @@ redirects = {
     "examples/guides/quickstart_in_5_minutes": "../../user-guide/tabular/auto_tutorials/plot_quickstart_in_5_minutes.html",
     "user-guide/key_concepts": "../user-guide/general/deepchecks_hierarchy.html",
     "user-guide/when_should_you_use": "../user-gude/general/when_should_you_use.html",
-    "getting-started/when_should_you_use.html": "../user-guide/general/when_should_you_use.html"
+    "getting-started/when_should_you_use.html": "../user-guide/general/when_should_you_use.html",
     "examples/checks/distribution/index": "../../../checks_gallery/tabular/index.html",
     "examples/checks/distribution/train_test_feature_drift": "../../../checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift.html",
     "examples/checks/integrity/index": "../../../checks_gallery/tabular/index.html",
