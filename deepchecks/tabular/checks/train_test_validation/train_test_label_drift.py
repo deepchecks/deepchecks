@@ -13,7 +13,6 @@
 
 Its name was changed to LabelDrift (removed the TrainTest prefix)
 """
-
 import warnings
 from deepchecks.tabular.checks.train_test_validation.label_drift import LabelDrift
 from deepchecks.utils.deprecation import DeprecationHelper
