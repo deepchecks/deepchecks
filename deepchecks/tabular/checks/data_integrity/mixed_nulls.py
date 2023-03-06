@@ -156,9 +156,13 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
         feature_importance = check_result.value['feature_importance']
 
         if check_result.value['columns']:
-            total_mixed_nulls = {column: sum([check_result.value['columns'][column][null_value]['count']
-                                              for null_value in check_result.value['columns'][column]])
+            total_mixed_nulls = {column: [check_result.value['columns'][column][null_value]['count']
+                                          for null_value in check_result.value['columns'][column]]
                                  for column in check_result.value['columns']}
+            # If there is only one kind of null value in the column, then the total_mixed_nulls will be 0 for that
+            # column
+            total_mixed_nulls = {column: sum(total_mixed_nulls[column]) if len(total_mixed_nulls[column]) > 1
+                                 else 0 for column in total_mixed_nulls}
         else:
             total_mixed_nulls = {column: 0 for column in check_result.value['columns']}
 
