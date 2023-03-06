@@ -11,6 +11,7 @@
 """Module contains checks of train test validation checks."""
 
 from deepchecks.tabular.checks.data_integrity.identifier_label_correlation import IdentifierLabelCorrelation
+
 from .category_mismatch_train_test import CategoryMismatchTrainTest
 from .datasets_size_comparison import DatasetsSizeComparison
 from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates

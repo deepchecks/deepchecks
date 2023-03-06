@@ -11,10 +11,10 @@
 """Module importing all vision checks."""
 from .data_integrity import ImagePropertyOutliers, LabelPropertyOutliers, PropertyLabelCorrelation
 from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, MeanAveragePrecisionReport,
-                               MeanAverageRecallReport, SimpleModelComparison, SingleDatasetPerformance,
-                               TrainTestPredictionDrift, PredictionDrift, WeakSegmentsPerformance)
-from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, NewLabels,
-                                    PropertyLabelCorrelationChange, TrainTestLabelDrift, LabelDrift)
+                               MeanAverageRecallReport, PredictionDrift, SimpleModelComparison,
+                               SingleDatasetPerformance, TrainTestPredictionDrift, WeakSegmentsPerformance)
+from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, LabelDrift, NewLabels,
+                                    PropertyLabelCorrelationChange, TrainTestLabelDrift)
 
 __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
            'SimpleModelComparison', 'TrainTestLabelDrift', 'LabelDrift', 'ImageDatasetDrift',
