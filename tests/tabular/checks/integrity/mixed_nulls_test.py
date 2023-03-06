@@ -213,19 +213,19 @@ def test_dataset_2_columns_single_nulls():
 
 def test_dataset_2_columns_multi_nulls_reduce():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 'NA']}
+    data = {'col1': ['foo', 'na', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': ['', 2, 'NA']}
     dataframe = pd.DataFrame(data=data)
     # Act
     check = MixedNulls()
     result = check.run(dataframe)
     reduce_result = check.reduce_output(result)
     # Assert
-    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.33, 0.01))
+    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.66, 0.01))
 
 
 def test_dataset_2_columns_multi_nulls_additional_data_reduce():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 'NA']}
+    data = {'col1': ['foo', 'na', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': ['', 2, 'NA']}
     dataframe = pd.DataFrame(data=data)
     dataset = Dataset(dataframe, features=['col1', 'col2'])
 
@@ -233,17 +233,17 @@ def test_dataset_2_columns_multi_nulls_additional_data_reduce():
     check = MixedNulls()
     result = check.run(dataset, feature_importance=pd.Series({'col1': 0.5, 'col2': 0.5}))
     reduce_result = check.reduce_output(result)
-    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.33, 0.01))
+    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.66, 0.01))
 
     check = MixedNulls(aggregation_method='l2_weighted')
     result = check.run(dataset, feature_importance=pd.Series({'col1': 0.5, 'col2': 0.5}))
     reduce_result = check.reduce_output(result)
-    assert_that(reduce_result['L2 Weighted Percent Mixed Nulls'], close_to(0.33, 0.01))
+    assert_that(reduce_result['L2 Weighted Percent Mixed Nulls'], close_to(0.47, 0.01))
 
 
-def test_dataset_2_columns_no_nulls_reduce():
+def test_dataset_2_columns_no_mixed_nulls_reduce():
     # Arrange
-    data = {'col1': ['foo', 'bar', '2'], 'col2': ['3', 'bar', 1], 'col3': [1, 2, 3]}
+    data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 'NA']}
     dataframe = pd.DataFrame(data=data)
     # Act
     check = MixedNulls()
