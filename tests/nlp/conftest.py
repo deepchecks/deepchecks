@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Fixtures for testing the nlp package"""
+# pylint: skip-file
 import random
 
 import pytest

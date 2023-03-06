@@ -32,7 +32,8 @@ def test_tweet_emotion():
 
     assert_that(len(full_ds.text), equal_to(len(full)))
     assert_that(len(full.text), equal_to(len(preds)))
-    assert_that([tweet_emotion._LABEL_MAP[x] for x in np.argmax(probas, axis=1)], contains_exactly(*preds))
+    assert_that([tweet_emotion._LABEL_MAP[x] for x in np.argmax(probas, axis=1)],  # pylint: disable=protected-access
+                contains_exactly(*preds))
 
     assert_that(len(properties), equal_to(len(full)))
     assert_that(len(train_props) + len(test_props), equal_to(len(full)))
