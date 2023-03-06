@@ -85,7 +85,7 @@ def test_data_duplicates_empty():
 def test_data_duplicates_ignore_index_column():
     duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
-                                   'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
+                                   'col3': list(range(10))})
     duplicate_data = duplicate_data.set_index('col3')
     check_obj = DataDuplicates()
     assert_that(check_obj.run(duplicate_data).value, close_to(0.80, 0.01))

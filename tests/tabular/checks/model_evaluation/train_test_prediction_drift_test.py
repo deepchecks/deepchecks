@@ -172,8 +172,8 @@ def test_balance_classes_with_drift_mode_auto(drifted_data):
     n_train = train.n_samples
     n_test = test.n_samples
 
-    predictions_train = pd.Series([0] * int(n_train * 0.95) + [1] * int(n_train * 0.05))
-    predictions_test = pd.Series([0] * int(n_test * 0.96) + [1] * int(n_test * 0.04))
+    predictions_train = [0] * int(n_train * 0.95) + [1] * int(n_train * 0.05)
+    predictions_test = [0] * int(n_test * 0.96) + [1] * int(n_test * 0.04)
     check = TrainTestPredictionDrift(balance_classes=True)
 
     # Act

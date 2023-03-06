@@ -27,7 +27,7 @@ def test_single_column_no_nulls():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, equal_to({'col1': {}}))
+    assert_that(result.value['columns'], equal_to({'col1': {}}))
 
 
 def test_single_column_one_null_type():
@@ -36,7 +36,7 @@ def test_single_column_one_null_type():
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
-    assert_that(result.value, equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.value['columns'], equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
     assert_that(result.display, has_length(greater_than(0)))
 
 
@@ -46,7 +46,7 @@ def test_single_column_one_null_type_without_display():
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe, with_display=False)
-    assert_that(result.value, equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.value['columns'], equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
     assert_that(result.display, has_length(0))
 
 
@@ -66,7 +66,7 @@ def test_different_null_types():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(3)))
 
 
 def test_null_list_param():
@@ -76,7 +76,7 @@ def test_null_list_param():
     # Act
     result = MixedNulls(null_string_list=['earth', 'cat']).run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(5)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(5)))
 
 
 def test_check_nan_false_param():
@@ -86,7 +86,7 @@ def test_check_nan_false_param():
     # Act
     result = MixedNulls(null_string_list=['earth'], check_nan=False).run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(4)))
 
 
 def test_single_column_two_null_types():
@@ -96,7 +96,7 @@ def test_single_column_two_null_types():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(2)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(2)))
 
 
 def test_single_column_different_case_is_count_separately():
@@ -106,7 +106,7 @@ def test_single_column_different_case_is_count_separately():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(3)))
 
 
 def test_numeric_column_nulls():
@@ -116,7 +116,7 @@ def test_numeric_column_nulls():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(3)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(3)))
 
 
 def test_numeric_column_nulls_with_none():
@@ -126,7 +126,7 @@ def test_numeric_column_nulls_with_none():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(4)))
 
 
 def test_mix_value_columns():
@@ -136,8 +136,8 @@ def test_mix_value_columns():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(3)))
-    assert_that(result.value, has_entry('col2', has_length(4)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(3)))
+    assert_that(result.value['columns'], has_entry('col2', has_length(4)))
 
 
 def test_single_column_nulls_with_special_characters():
@@ -147,7 +147,7 @@ def test_single_column_nulls_with_special_characters():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(4)))
 
 
 def test_single_column_nulls_only_special_characters():
@@ -157,7 +157,7 @@ def test_single_column_nulls_only_special_characters():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entry('col1', has_length(4)))
+    assert_that(result.value['columns'], has_entry('col1', has_length(4)))
 
 
 def test_ignore_columns_single():
@@ -167,7 +167,7 @@ def test_ignore_columns_single():
     # Act
     result = MixedNulls(ignore_columns='col3').run(dataframe)
     # Assert - Only col 2 should have results
-    assert_that(result.value, has_entries(col1=has_length(0), col2=has_length(3)))
+    assert_that(result.value['columns'], has_entries(col1=has_length(0), col2=has_length(3)))
 
 
 def test_ignore_columns_multi():
@@ -177,7 +177,7 @@ def test_ignore_columns_multi():
     # Act
     result = MixedNulls(ignore_columns=['col3', 'col2']).run(dataframe)
     # Assert
-    assert_that(result.value, equal_to({'col1': {}}))
+    assert_that(result.value['columns'], equal_to({'col1': {}}))
 
 
 def test_dataset_no_nulls():
@@ -187,7 +187,7 @@ def test_dataset_no_nulls():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entries(col1=equal_to({}), col2=equal_to({}), col3=equal_to({})))
+    assert_that(result.value['columns'], has_entries(col1=equal_to({}), col2=equal_to({}), col3=equal_to({})))
 
 
 def test_dataset_1_column_nulls():
@@ -197,7 +197,7 @@ def test_dataset_1_column_nulls():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entries(col1=has_length(1),
+    assert_that(result.value['columns'], has_entries(col1=has_length(1),
                                           col2=equal_to({}), col3=equal_to({})))
 
 
@@ -208,7 +208,49 @@ def test_dataset_2_columns_single_nulls():
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value, has_entries(col1=has_length(1), col2=has_length(1), col3=equal_to({})))
+    assert_that(result.value['columns'], has_entries(col1=has_length(1), col2=has_length(1), col3=equal_to({})))
+
+
+def test_dataset_2_columns_multi_nulls_reduce():
+    # Arrange
+    data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 'NA']}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    check = MixedNulls()
+    result = check.run(dataframe)
+    reduce_result = check.reduce_output(result)
+    # Assert
+    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.33, 0.01))
+
+
+def test_dataset_2_columns_multi_nulls_additional_data_reduce():
+    # Arrange
+    data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 'NA']}
+    dataframe = pd.DataFrame(data=data)
+    dataset = Dataset(dataframe, features=['col1', 'col2'])
+
+    # Act & Assert
+    check = MixedNulls()
+    result = check.run(dataset, feature_importance=pd.Series({'col1': 0.5, 'col2': 0.5}))
+    reduce_result = check.reduce_output(result)
+    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.33, 0.01))
+
+    check = MixedNulls(aggregation_method='l2_weighted')
+    result = check.run(dataset, feature_importance=pd.Series({'col1': 0.5, 'col2': 0.5}))
+    reduce_result = check.reduce_output(result)
+    assert_that(reduce_result['L2 Weighted Percent Mixed Nulls'], close_to(0.33, 0.01))
+
+
+def test_dataset_2_columns_no_nulls_reduce():
+    # Arrange
+    data = {'col1': ['foo', 'bar', '2'], 'col2': ['3', 'bar', 1], 'col3': [1, 2, 3]}
+    dataframe = pd.DataFrame(data=data)
+    # Act
+    check = MixedNulls()
+    result = check.run(dataframe)
+    reduce_result = check.reduce_output(result)
+    # Assert
+    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0, 0.01))
 
 
 def test_condition_max_nulls_not_passed():
@@ -249,7 +291,7 @@ def test_mixed_nulls_with_categorical_dtype():
         'bar': [1,2,3,4]
     }))
     assert_that(
-        MixedNulls().run(ds).value,
+        MixedNulls().run(ds).value['columns'],
         has_entries({
             'bar': has_length(equal_to(0)),
             'foo': has_entries({

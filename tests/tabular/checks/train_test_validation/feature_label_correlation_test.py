@@ -42,6 +42,24 @@ def util_generate_second_similar_dataframe_and_expected():
                      'x4': close_to(0, 0.1), 'x5': close_to(0, 0.1)}
 
 
+def test_categorical_int_target():
+    df = pd.DataFrame({'x': list(range(1000)), 'y': list(range(1000))})
+
+    # Test for regression
+    dataset = Dataset(df, label='y', label_type='regression')
+    check = FeatureLabelCorrelation(random_state=42)
+
+    result = check.run(dataset)
+    assert_that(result.value, has_entries({'x': close_to(0.99, 0.01)}))
+
+    # Test for classification
+    dataset = Dataset(df, label='y', label_type='multiclass')
+    check = FeatureLabelCorrelation(random_state=42)
+
+    result = check.run(dataset)
+    assert_that(result.value, has_entries({'x': close_to(0.0, 0.01)}))
+
+
 def test_assert_feature_label_correlation():
     df, expected = util_generate_dataframe_and_expected()
     result = FeatureLabelCorrelation(n_samples=None, random_state=42).run(dataset=Dataset(df, label='label'))

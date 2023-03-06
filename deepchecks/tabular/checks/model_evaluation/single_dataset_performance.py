@@ -10,7 +10,7 @@
 #
 """Module containing the single dataset performance check."""
 from numbers import Number
-from typing import TYPE_CHECKING, Callable, Dict, List, Mapping, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Callable, Dict, List, Mapping, Optional, TypeVar, Union, cast
 
 import pandas as pd
 
@@ -47,7 +47,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
     """
 
     def __init__(self,
-                 scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
+                 scorers: Optional[Union[Mapping[str, Union[str, Callable]], List[str]]] = None,
                  n_samples: int = 1_000_000,
                  random_state: int = 42,
                  **kwargs):
@@ -60,6 +60,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         model = context.model
+        if context.task_type == TaskType.REGRESSION and self.scorers is None:
+            self.scorers = {'RMSE': 'RMSE'}
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []

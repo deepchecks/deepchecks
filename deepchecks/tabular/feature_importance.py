@@ -32,14 +32,15 @@ def calculate_feature_importance(
         mask_high_variance_features: bool = False,
         n_samples: int = 10_000,
         alternative_scorer: t.Optional[DeepcheckScorer] = None,
+        force_permutation: bool = False,
         random_state: int = 42
 ) -> pd.Series:
     """
-    Calculate feature importance outside of check and suite.
+    Get or calculate feature importance outside of check and suite.
 
     Many checks and suites in deepchecks use feature importance as part of its calculation or output. If your model
     does not have built-in feature importance, the check or suite will calculate it for you. This calculation is done
-    in every call to the check or suite ``run`` function. Therefore, when running different checks outside of a suite,
+    in every call to the check or suite ``run`` function. Therefore, when running different checks outside a suite,
     or running the same suite several times, this calculation will be done every time.
 
     The recalculation can be avoided by calculating the feature importance in advance. Use this function to calculate
@@ -52,6 +53,11 @@ def calculate_feature_importance(
     >>> iris_model = load_fitted_model()
     >>> fi = calculate_feature_importance(model=iris_model, dataset=iris_test_dataset)
     >>> result = UnusedFeatures().run(iris_test_dataset, model=iris_model, feature_importance=fi)
+
+    By defualt this function will attempt to get the feature importance from the model. If the model does not have
+    built-in feature importance, it will calculate it using permutation importance. If you want to force the
+    calculation of the feature importance, even if the model has built-in feature importance, use the
+    ``force_permutation`` parameter.
 
     Parameters
     ----------
@@ -70,6 +76,8 @@ def calculate_feature_importance(
     alternative_scorer: t.Optional[DeepcheckScorer], default: None
         Scorer to use for evaluation of the model performance in the permutation_importance function. If not defined,
         the default deepchecks scorers are used.
+    force_permutation : bool, default: False
+        Force permutation importance calculation.
     random_state: int, default: 42
         Random seed for permutation importance calculation.
 
@@ -109,6 +117,6 @@ def calculate_feature_importance(
                                           model_classes=model_classes or observed_classes,
                                           observed_classes=observed_classes,
                                           task_type=task_type,
-                                          force_permutation=True,
+                                          force_permutation=force_permutation,
                                           permutation_kwargs=permutation_kwargs)
     return fi

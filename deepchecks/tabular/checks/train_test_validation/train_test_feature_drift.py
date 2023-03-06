@@ -281,7 +281,7 @@ class TrainTestFeatureDrift(TrainTestCheck, ReduceFeatureMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        feature_importance = [column_info['Importance'] for column_info in check_result.value.values()]
+        feature_importance = pd.Series({column: info['Importance'] for column, info in check_result.value.items()})
         feature_importance = None if None in feature_importance else feature_importance
         values = pd.Series({column: info['Drift score'] for column, info in check_result.value.items()})
         return self.feature_reduce(self.aggregation_method, values, feature_importance, 'Drift Score')

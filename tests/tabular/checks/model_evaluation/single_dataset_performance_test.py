@@ -200,16 +200,16 @@ def test_classification_nan_labels(iris_labeled_dataset, iris_adaboost):
     assert_multiclass_classification_result(result)
 
 
-def test_regression(diabetes_split_dataset_and_model):
+def test_regression_default(diabetes_split_dataset_and_model):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model
     check = SingleDatasetPerformance()
     # Act
     result = check.run(test, model).value
     # Assert
-    for metric in DEFAULT_REGRESSION_SCORERS.keys():
-        metric_col = result.loc[result['Metric'] == metric]
-        assert_that(metric_col['Value'].iloc[0], instance_of(float))
+    assert_that(result['Metric'].iloc[0], equal_to('RMSE'))
+    assert_that(result['Value'].iloc[0], close_to(57, 1))
+    assert_that(check.greater_is_better(), equal_to(False))
 
 
 def test_regression_positive_scorers(diabetes_split_dataset_and_model):
@@ -244,9 +244,7 @@ def test_regression_reduced(diabetes_split_dataset_and_model):
     # Act
     result = check.run(test, model).reduce_output()
     # Assert
-    assert_that(result['Neg RMSE'], close_to(-57.412, 0.001))
-    assert_that(result['Neg MAE'], close_to(-45.5645, 0.001))
-    assert_that(result['R2'], close_to(0.427, 0.001))
+    assert_that(result['RMSE'], close_to(57.412, 0.001))
 
 
 def test_condition_all_score_not_passed(iris_split_dataset_and_model):
