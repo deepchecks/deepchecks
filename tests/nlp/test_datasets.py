@@ -22,6 +22,8 @@ def test_tweet_emotion():
     full_ds = tweet_emotion.load_data(data_format='TextData', as_train_test=False)
     preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions')
     probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')
+    properties = tweet_emotion.load_properties(as_train_test=False)
+    train_props, test_props = tweet_emotion.load_properties(as_train_test=True)
 
     # Act & Assert
     assert_that(len(train) + len(test), equal_to(len(full)))
@@ -30,4 +32,8 @@ def test_tweet_emotion():
 
     assert_that(len(full_ds.text), equal_to(len(full)))
     assert_that(len(full.text), equal_to(len(preds)))
-    assert_that(np.argmax(probas, axis=1), contains_exactly(*preds))
+    assert_that([tweet_emotion._LABEL_MAP[x] for x in np.argmax(probas, axis=1)], contains_exactly(*preds))
+
+    assert_that(len(properties), equal_to(len(full)))
+    assert_that(len(train_props) + len(test_props), equal_to(len(full)))
+    assert_that(len(train_props), equal_to(len(train)))

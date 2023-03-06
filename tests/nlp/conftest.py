@@ -36,6 +36,25 @@ def tweet_emotion_train_test_textdata():
 
 
 @pytest.fixture(scope='session')
+def tweet_emotion_train_test_predictions(tweet_emotion_train_test_textdata):
+    """Tweet emotion text classification dataset predictions"""
+    train_data, test_data = tweet_emotion_train_test_textdata
+    train_preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions')[train_data.index]
+    test_preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions')[test_data.index]
+
+    return train_preds, test_preds
+
+
+@pytest.fixture(scope='session')
+def tweet_emotion_train_test_probabilities(tweet_emotion_train_test_textdata):
+    """Tweet emotion text classification dataset probabilities"""
+    train_data, test_data = tweet_emotion_train_test_textdata
+    train_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[train_data.index]
+    test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[test_data.index]
+    return train_probas, test_probas
+
+
+@pytest.fixture(scope='session')
 def text_classification_string_class_dataset_mock():
     """Mock for a text classification dataset with string labels"""
     return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],

@@ -16,10 +16,53 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import KeywordFrequencyDrift, SingleDatasetPerformance
+from deepchecks.nlp.checks import (AdditionalDataSegmentsPerformance, PropertyLabelCorrelation,
+                                   PropertySegmentsPerformance, SingleDatasetPerformance, TrainTestLabelDrift,
+                                   TrainTestPredictionDrift)
 
 __all__ = ['train_test_validation',
            'model_evaluation', 'full_suite']
+
+
+def data_integrity(n_samples: int = None,
+                   random_state: int = 42,
+                   **kwargs) -> Suite:
+    """Suite for detecting integrity issues within a single dataset.
+
+    Parameters
+    ----------
+    n_samples : int , default: None
+        number of samples to use for checks that sample data. If none, using the default n_samples per check.
+    random_state : int, default: 42
+        random seed for all checkss.
+    **kwargs : dict
+        additional arguments to pass to the checks.
+
+    Returns
+    -------
+    Suite
+        A suite for validating correctness of train-test split, including distribution, \
+        leakage and integrity checks.
+
+    Examples
+    --------
+    >>> from deepchecks.nlp.suites import data_integrity
+    >>> suite = data_integrity(n_samples=1_000_000)
+    >>> result = suite.run()
+    >>> result.show()
+
+    See Also
+    --------
+    :ref:`quick_train_test_validation`
+    """
+    args = locals()
+    args.pop('kwargs')
+    non_none_args = {k: v for k, v in args.items() if v is not None}
+    kwargs = {**non_none_args, **kwargs}
+    return Suite(
+        'Train Test Validation Suite',
+        PropertyLabelCorrelation().add_condition_property_pps_less_than(),
+    )
 
 
 def train_test_validation(n_samples: int = None,
@@ -49,10 +92,6 @@ def train_test_validation(n_samples: int = None,
     >>> suite = train_test_validation(n_samples=1_000_000)
     >>> result = suite.run()
     >>> result.show()
-
-    See Also
-    --------
-    :ref:`quick_train_test_validation`
     """
     args = locals()
     args.pop('kwargs')
@@ -60,7 +99,7 @@ def train_test_validation(n_samples: int = None,
     kwargs = {**non_none_args, **kwargs}
     return Suite(
         'Train Test Validation Suite',
-        KeywordFrequencyDrift().add_condition_drift_score_less_than(),
+        TrainTestLabelDrift().add_condition_drift_score_less_than(),
     )
 
 
@@ -90,10 +129,6 @@ def model_evaluation(n_samples: int = None,
     >>> suite = model_evaluation(n_samples=1_000_000)
     >>> result = suite.run()
     >>> result.show()
-
-    See Also
-    --------
-    :ref:`quick_full_suite`
     """
     args = locals()
     args.pop('kwargs')
@@ -103,6 +138,9 @@ def model_evaluation(n_samples: int = None,
     return Suite(
         'Model Evaluation Suite',
         SingleDatasetPerformance(),
+        TrainTestPredictionDrift().add_condition_drift_score_less_than(),
+        PropertySegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
+        AdditionalDataSegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
     )
 
 
@@ -110,6 +148,7 @@ def full_suite(**kwargs) -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
     return Suite(
         'Full Suite',
+        data_integrity(**kwargs),
         model_evaluation(**kwargs),
         train_test_validation(**kwargs),
     )
