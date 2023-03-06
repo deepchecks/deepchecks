@@ -151,3 +151,5 @@ suite[5]
 #
 # **For more info about working with conditions, see the detailed configuring 
 # conditions guide.**
+
+# sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/tabular_quickstarts/full_suite.png'

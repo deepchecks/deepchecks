@@ -220,3 +220,5 @@ TrainTestPredictionDrift()
 
 result = drift_suite.run(train_ds, test_ds)
 result.show()
+
+# sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/tabular_quickstarts/data_distribution.png'

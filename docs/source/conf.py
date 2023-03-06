@@ -84,10 +84,12 @@ extensions = [
     "sphinx.ext.imgmath",
     'sphinx_reredirects',
     'sphinx.ext.intersphinx',
+    'sphinx_design',
 ]
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
+    'deepchecks-mon': ('https://docs.deepchecks.com/monitoring/stable', None),
     'pandas': ('https://pandas.pydata.org/docs/', None),
     'pd': ('https://pandas.pydata.org/docs/', None),
     'requests':  ('https://requests.readthedocs.io/en/latest/', None),
@@ -151,7 +153,7 @@ sphinx_gallery_conf = {
     "reference_url": {'deepchecks': None},
     # avoid generating too many cross links
     "inspect_global_variables": True,
-    "remove_config_comments": True,
+    "remove_config_comments": True, # for enabling to overide the default thumb_file aesthetically 
 }
 
 html_title = "Deepchecks Documentation"

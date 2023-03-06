@@ -162,3 +162,5 @@ result.passed(fail_if_warning=False)
 #
 # For more info about working with conditions, see the detailed
 # :doc:`/user-guide/general/customizations/examples/plot_configure_check_conditions` guide.
+
+# sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/tabular_quickstarts/model_evaluation.png'
