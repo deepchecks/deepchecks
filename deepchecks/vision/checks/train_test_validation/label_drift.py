@@ -270,7 +270,7 @@ class LabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin):
         return self.property_reduce(self.aggregation_method, pd.Series(value_per_property), 'Drift Score')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
-                                            max_allowed_numeric_score: float = 0.15) -> 'TrainTestLabelDrift':
+                                            max_allowed_numeric_score: float = 0.15) -> 'LabelDrift':
         """
         Add condition - require label properties drift score to be less than a certain threshold.
 

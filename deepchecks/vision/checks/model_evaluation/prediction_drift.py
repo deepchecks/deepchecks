@@ -278,7 +278,7 @@ class PredictionDrift(TrainTestCheck, ReducePropertyMixin):
         return self.property_reduce(self.aggregation_method, pd.Series(value_per_property), 'Drift Score')
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
-                                            max_allowed_numeric_score: float = 0.15) -> 'TrainTestPredictionDrift':
+                                            max_allowed_numeric_score: float = 0.15) -> 'PredictionDrift':
         """
         Add condition - require prediction properties drift score to be less than the threshold.
 
