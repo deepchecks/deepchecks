@@ -85,7 +85,6 @@ Start Working with Deepchecks Testing
         to come! Currently supports text classification and token classification.
 
 
-
 .. _welcome__get_help:
 
 Get Help & Give Us Feedback

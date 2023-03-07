@@ -173,14 +173,14 @@ test.calculate_default_properties()
 # Run the check
 from deepchecks.nlp.checks import PropertySegmentsPerformance
 
-check = PropertySegmentsPerformance()
+check = PropertySegmentsPerformance(segment_minimum_size_ratio=0.07)
 result = check.run(test, predictions=list(test_preds), probabilities=test_probas)
 result.show()
 
 #%%
-# As we can see, the check found a segment that has significantly lower performance than the rest of the data on our
-# computed properties. For example, in the second tab of the display we can see that the model has significantly lower
-# performance on tweets with positive sentiment.
+# As we can see, the check found some segments that have lower performance compared to the rest of the dataset. It seems
+# that the model has a harder time predicting the emotions in the "neutral-positive" sentiment range (in our case,
+# between around 0 and 0.45).
 #
 # Data Integrity Checks
 # ---------------------
