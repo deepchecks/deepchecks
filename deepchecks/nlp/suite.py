@@ -48,6 +48,7 @@ class Suite(BaseSuite):
 
         Parameters
         ----------
+
         train_dataset: Union[TextData, None] , default: None
             TextData object, representing data an estimator was fitted on
         test_dataset: Union[TextData, None] , default: None
@@ -68,6 +69,7 @@ class Suite(BaseSuite):
 
         Returns
         -------
+
         SuiteResult
             All results by all initialized checks
         """
