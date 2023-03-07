@@ -26,7 +26,7 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Confli
                                        RegressionErrorDistribution, RocReport, SimpleModelComparison,
                                        SingleDatasetPerformance, SpecialCharacters, StringLengthOutOfBounds,
                                        StringMismatch, StringMismatchComparison, FeatureDrift,
-                                       LabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
+                                       LabelDrift, TrainTestPerformance, PredictionDrift,
                                        TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
 from deepchecks.tabular.utils.task_type import TaskType
 
@@ -253,8 +253,8 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
              - :class:`~deepchecks.tabular.checks.model_evaluation.ConfusionMatrixReport`
            * - :ref:`plot_tabular_weak_segment_performance`
              - :class:`~deepchecks.tabular.checks.model_evaluation.WeakSegmentPerformance`
-           * - :ref:`plot_tabular_train_test_prediction_drift`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
+           * - :ref:`plot_tabular_prediction_drift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
            * - :ref:`plot_tabular_simple_model_comparison`
              - :class:`~deepchecks.tabular.checks.model_evaluation.SimpleModelComparison`
            * - :ref:`plot_tabular_calibration_score`
@@ -269,8 +269,8 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
              - :class:`~deepchecks.tabular.checks.model_evaluation.BoostingOverfit`
            * - :ref:`plot_tabular_model_inference_time`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ModelInferenceTime`
-           * - :ref:`plot_tabular_train_test_prediction_drift`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
+           * - :ref:`plot_tabular_prediction_drift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
 
     Parameters
     ----------
@@ -318,7 +318,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
         TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
-        TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+        PredictionDrift(**kwargs).add_condition_drift_score_less_than(),
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
         WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         CalibrationScore(**kwargs),
@@ -370,10 +370,10 @@ def production_suite(task_type: str = None,
              - :class:`~deepchecks.tabular.checks.train_test_validation.LabelDrift`
            * - :ref:`plot_tabular_multivariate_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.MultivariateDrift`
-           * - :ref:`plot_tabular_train_test_prediction_drift`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
-           * - :ref:`plot_tabular_train_test_prediction_drift`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
+           * - :ref:`plot_tabular_prediction_drift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
+           * - :ref:`plot_tabular_prediction_drift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
            * - :ref:`plot_tabular_string_mismatch`
              - :class:`~deepchecks.tabular.checks.data_integrity.StringMismatch`
            * - :ref:`plot_tabular_feature_label_correlation`
@@ -450,7 +450,7 @@ def production_suite(task_type: str = None,
         checks.append(FeatureDrift(**kwargs).add_condition_drift_score_less_than())
         checks.append(MultivariateDrift(**kwargs).add_condition_overall_drift_value_less_than())
         checks.append(LabelDrift(ignore_na=True, **kwargs).add_condition_drift_score_less_than())
-        checks.append(TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than())
+        checks.append(PredictionDrift(**kwargs).add_condition_drift_score_less_than())
         checks.append(TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than())
         checks.append(NewCategoryTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal())
     else:

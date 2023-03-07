@@ -98,6 +98,7 @@ qs
 urlobj
 labextension
 TrainTestPredictionDrift
+PredictionDrift
 nbclassic
 REPL
 ipywidgets

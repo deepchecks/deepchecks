@@ -21,7 +21,7 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
                                       LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
                                       NewLabels, PropertyLabelCorrelation, PropertyLabelCorrelationChange,
-                                      SimpleModelComparison, LabelDrift, TrainTestPredictionDrift,
+                                      SimpleModelComparison, LabelDrift, PredictionDrift,
                                       WeakSegmentsPerformance)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']
@@ -130,8 +130,8 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
              - :class:`~deepchecks.vision.checks.model_evaluation.MeanAveragePrecisionReport`
            * - :ref:`plot_vision_mean_average_recall_report`
              - :class:`~deepchecks.vision.checks.model_evaluation.MeanAverageRecallReport`
-           * - :ref:`plot_vision_train_test_prediction_drift`
-             - :class:`~deepchecks.vision.checks.model_evaluation.TrainTestPredictionDrift`
+           * - :ref:`plot_vision_prediction_drift`
+             - :class:`~deepchecks.vision.checks.model_evaluation.PredictionDrift`
            * - :ref:`plot_vision_simple_model_comparison`
              - :class:`~deepchecks.vision.checks.model_evaluation.SimpleModelComparison`
            * - :ref:`plot_weak_segment_performance`
@@ -196,7 +196,7 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
                  ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
                  MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_greater_than(),
                  MeanAverageRecallReport(**kwargs),
-                 TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+                 PredictionDrift(**kwargs).add_condition_drift_score_less_than(),
                  SimpleModelComparison(**kwargs).add_condition_gain_greater_than(), ConfusionMatrixReport(**kwargs),
                  WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(), )
 

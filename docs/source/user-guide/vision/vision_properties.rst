@@ -196,7 +196,7 @@ implement properties which apply to the Detection task type.
 
 .. code-block:: python
 
-  from deepchecks.vision.checks.distribution import TrainTestPredictionDrift
+  from deepchecks.vision.checks.distribution import PredictionDrift
 
   def classes_of_predictions(predictions: List[np.ndarray]) -> List[List[int]]:
     """Return a list containing the classes in batch."""
@@ -213,6 +213,6 @@ implement properties which apply to the Detection task type.
     {'name': 'Bounding Box Area', 'method': bbox_area, 'output_type': 'continuous'}
   ]
 
-  check = TrainTestPredictionDrift(prediction_properties=properties)
+  check = PredictionDrift(prediction_properties=properties)
 
 

@@ -125,7 +125,7 @@ highly skewed. For example, in a dataset of credit card transactions, the number
 much lower than the number of non-fraudulent transactions, and can be below 1% of the total number of samples.
 
 In such cases, running the :doc:`LabelDrift </checks_gallery/tabular/train_test_validation/plot_label_drift>`:
-or :doc:`TrainTestPredictionDrift </checks_gallery/tabular/model_evaluation/plot_train_test_prediction_drift>` checks
+or :doc:`PredictionDrift </checks_gallery/tabular/model_evaluation/plot_prediction_drift>` checks
 with the default parameters will likely lead to a false negative, as for example a change in the percent of fraudulent
 transactions from 0.2% to 0.4% will not be detected, but may in fact be very significant for our business.
 
@@ -173,7 +173,7 @@ which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to
 For drift in your label's distribution, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_label_drift>`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/tabular/model_evaluation/plot_train_test_prediction_drift>`,
+In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/tabular/model_evaluation/plot_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#tabular-checks>`__
@@ -198,7 +198,7 @@ which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to
 For drift in your label's distribution, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_label_drift>`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/model_evaluation/plot_train_test_prediction_drift>`,
+In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/model_evaluation/plot_prediction_drift>`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#computer-vision-checks>`__
@@ -285,12 +285,12 @@ Tabular Checks
     check = LabelDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`TrainTestPredictionDrift </checks_gallery/tabular/model_evaluation/plot_train_test_prediction_drift>`:
+:doc:`PredictionDrift </checks_gallery/tabular/model_evaluation/plot_prediction_drift>`:
 
 .. code-block:: python
 
-    from deepchecks.tabular.checks import TrainTestPredictionDrift
-    check = TrainTestPredictionDrift()
+    from deepchecks.tabular.checks import PredictionDrift
+    check = PredictionDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
 
@@ -321,10 +321,10 @@ Computer Vision Checks
     check = LabelDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`TrainTestPredictionDrift </checks_gallery/vision/model_evaluation/plot_train_test_prediction_drift>`:
+:doc:`PredictionDrift </checks_gallery/vision/model_evaluation/plot_prediction_drift>`:
 
 .. code-block:: python
 
-    from deepchecks.vision.checks import TrainTestPredictionDrift
-    check = TrainTestPredictionDrift()
+    from deepchecks.vision.checks import PredictionDrift
+    check = PredictionDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
