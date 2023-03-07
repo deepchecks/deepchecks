@@ -6,15 +6,14 @@ Quickstart - Getting Started
 In order to run deepchecks for NLP all you need to have are the following for both your train and test data:
 
 1. Your text data - a list of strings, each string is a single sample (can be a sentence, paragraph, document etc.).
-2. Your labels - either a Text Classification label or a Token Classification label
-   (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for more info).
+2. Your labels - either a :ref:`Text Classification <nlp_supported_text_classification> label or a
+   :ref:`Token Classification <nlp_supported_token_classification>` label.
 3. Your models predictions (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for info on supported formats).
 
 If you don't have deepchecks installed yet:
 
 .. code:: python
 
-    # If you don't have deepchecks installed yet:
     import sys
     !{sys.executable} -m pip install deepchecks[nlp] -U --quiet #--user
 
@@ -74,13 +73,14 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 # Building a Model
 # ================
 #
-# In this example we'll train a very simple model using the CatBoostClassifier, trained over the embeddings of the
-# tweets. These embeddings were created using the OpenAI GPT-3 model. You can calculate your own embeddings using
+# In this example we'll train a very basic model for simplicity, using a CatBoostClassifier trained over the
+# embeddings of the tweets. In this case these embeddings were created using the OpenAI GPT-3 model.
+# If you want to reproduce this kind of basic model for your own task, you can calculate your own embeddings, or use
 # our :func:`calculate_embeddings_for_text <deepchecks.nlp.utils.calculate_embeddings_for_text>`
-# function. Note that in order to run it you need either an OpenAI API key or have HuggingFace's transformers installed.
+# function to generate generic embeddings. Note that in order to run it you need either an OpenAI API key or have
+# HuggingFace's transformers installed.
 
 from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import train_test_split
 from catboost import CatBoostClassifier
 
 # Load Embeddings and Split to Train and Test
@@ -165,13 +165,10 @@ result.show()
 #    DataFrame of properties to the TextData `properties` argument, or by calling the
 #    :meth:`set_properties <deepchecks.nlp.TextData.set_properties>` method anytime later with such a DataFrame. You
 #
-# In this example we'll use already calculated properties, which we'll load from a file to save time, but we recommend
-# that for your own ``TextData`` objects you calculate the properties automatically using the first method.
 
-# Set the properties
-train_properties, test_properties = tweet_emotion.load_properties(as_train_test=True)
-train.set_properties(train_properties)
-test.set_properties(test_properties)
+# Calculate properties
+train.calculate_default_properties()
+test.calculate_default_properties()
 
 # Run the check
 from deepchecks.nlp.checks import PropertySegmentsPerformance

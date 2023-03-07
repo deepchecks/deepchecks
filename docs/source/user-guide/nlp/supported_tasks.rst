@@ -34,6 +34,8 @@ While labels are passed when constructing the :class:`TextData <deepchecks.nlp.T
 separately to the ``run`` method of the check / suite. Labels and predictions must be in the format detailed in this
 section, according to the task type.
 
+.. _nlp_supported_text_classification:
+
 Text Classification
 -------------------
 
@@ -93,6 +95,8 @@ Multilabel Predictions
 
 >>> predictions = [[0, 0, 1], [0, 1, 1]]
 >>> probabilities = [[0.2, 0.3, 0.8], [0.4, 0.9, 0.6]]
+
+.. _nlp_supported_token_classification:
 
 Token Classification
 --------------------
