@@ -19,10 +19,9 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
-                                      LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
-                                      NewLabels, PropertyLabelCorrelation, PropertyLabelCorrelationChange,
-                                      SimpleModelComparison, LabelDrift, PredictionDrift,
-                                      WeakSegmentsPerformance)
+                                      LabelDrift, LabelPropertyOutliers, MeanAveragePrecisionReport,
+                                      MeanAverageRecallReport, NewLabels, PredictionDrift, PropertyLabelCorrelation,
+                                      PropertyLabelCorrelationChange, SimpleModelComparison, WeakSegmentsPerformance)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']
 

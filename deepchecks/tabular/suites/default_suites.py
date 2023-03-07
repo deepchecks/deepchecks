@@ -19,14 +19,14 @@ from typing import Callable, Dict, List, Union
 from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, ConflictingLabels, ConfusionMatrixReport,
                                        DataDuplicates, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
-                                       DateTrainTestLeakageOverlap, FeatureFeatureCorrelation, FeatureLabelCorrelation,
-                                       FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
-                                       IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
+                                       DateTrainTestLeakageOverlap, FeatureDrift, FeatureFeatureCorrelation,
+                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange,
+                                       IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, LabelDrift,
+                                       MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
                                        NewCategoryTrainTest, NewLabelTrainTest, OutlierSampleDetection, PercentOfNulls,
-                                       RegressionErrorDistribution, RocReport, SimpleModelComparison,
+                                       PredictionDrift, RegressionErrorDistribution, RocReport, SimpleModelComparison,
                                        SingleDatasetPerformance, SpecialCharacters, StringLengthOutOfBounds,
-                                       StringMismatch, StringMismatchComparison, FeatureDrift,
-                                       LabelDrift, TrainTestPerformance, PredictionDrift,
+                                       StringMismatch, StringMismatchComparison, TrainTestPerformance,
                                        TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
 from deepchecks.tabular.utils.task_type import TaskType
 
