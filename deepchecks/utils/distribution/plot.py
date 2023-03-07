@@ -369,29 +369,3 @@ def _create_distribution_bar_graphs(
     )
 
     return traces, yaxis_layout
-
-
-def word_counts_bar_traces(
-        train_column: Union[np.ndarray, pd.Series],
-        test_column: Union[np.ndarray, pd.Series],
-        keyword_list: List,
-        dataset_names: Tuple[str, str]
-):
-
-    traces = [
-        go.Bar(
-            x=keyword_list,
-            y=train_column,
-            marker=dict(color=colors[DEFAULT_DATASET_NAMES[0]]),
-            name=dataset_names[0] + ' Dataset',
-            hovertext=keyword_list
-        ),
-        go.Bar(
-            x=keyword_list,
-            y=test_column,
-            marker=dict(color=colors[DEFAULT_DATASET_NAMES[1]]),
-            name=dataset_names[1] + ' Dataset',
-            hovertext=keyword_list
-        )
-    ]
-    return traces

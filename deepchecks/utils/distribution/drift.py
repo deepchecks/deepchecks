@@ -29,7 +29,7 @@ from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_number
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
-           'drift_condition', 'get_drift_plot_sidenote', 'word_counts_drift_plot', 'cramers_v', 'psi']
+           'drift_condition', 'get_drift_plot_sidenote', 'cramers_v', 'psi']
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
@@ -636,15 +636,3 @@ def drift_condition(max_allowed_categorical_score: float,
             return ConditionResult(ConditionCategory.PASS, details)
 
     return condition
-
-
-def word_counts_drift_plot(
-        train_column: Union[np.ndarray, pd.Series],
-        test_column: Union[np.ndarray, pd.Series],
-        keyword_list: List,
-        dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
-):
-    """Plot the difference between word counts or word frequencies."""
-    fig = Figure()
-    fig.add_traces(word_counts_bar_traces(train_column, test_column, keyword_list, dataset_names))
-    return fig
