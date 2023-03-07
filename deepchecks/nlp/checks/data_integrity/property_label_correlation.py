@@ -106,7 +106,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
                 'The Predictive Power Score (PPS) is used to estimate the ability of a property to predict the '
                 f'label by itself (Read more about {pps_html}).'
                 'A high PPS (close to 1) can mean there\'s a bias in the dataset, as a single property can predict '
-                'the label successfully, meaning that a deep learning algorithm may accidentally learn '
+                'the label successfully, meaning that the model may accidentally learn '
                 'these properties instead of more accurate complex abstractions.']
 
             # display only if not all scores are 0
