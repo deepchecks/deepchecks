@@ -11,7 +11,7 @@
 """Alternative way to import tabular checks.
 
 This module exists only for backward compatibility and will be
-removed in the nexts versions.
+removed in the next versions.
 """
 # flake8: noqa
 import warnings
@@ -51,7 +51,6 @@ __all__ = [
     'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
     'TrainTestSamplesMix',
-    'SamplesMix',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
     'IdentifierLabelCorrelation',
@@ -74,7 +73,6 @@ __all__ = [
 
     # performance checks
     'TrainTestPerformance',
-    'Performance',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',

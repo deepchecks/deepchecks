@@ -166,7 +166,7 @@ Tabular Data
 ------------
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
-:doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>` which uses
+:doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_feature_drift>` which uses
 `univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Multivariate Drift check</checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
@@ -261,12 +261,12 @@ Code Examples
 Tabular Checks
 --------------
 
-:doc:`TrainTestFeatureDrift </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`:
+:doc:`FeatureDrift </checks_gallery/tabular/train_test_validation/plot_feature_drift>`:
 
 .. code-block:: python
 
-    from deepchecks.tabular.checks import TrainTestFeatureDrift
-    check = TrainTestFeatureDrift()
+    from deepchecks.tabular.checks import FeatureDrift
+    check = FeatureDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
 :doc:`MultivariateDrift </checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`:

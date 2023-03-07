@@ -15,7 +15,6 @@ from .confusion_matrix_report import ConfusionMatrixReport
 from .model_inference_time import ModelInferenceTime
 from .model_info import ModelInfo
 from .multi_model_performance_report import MultiModelPerformanceReport
-from .performance import Performance
 from .performance_bias import PerformanceBias
 from .prediction_drift import PredictionDrift
 from .regression_error_distribution import RegressionErrorDistribution
@@ -37,7 +36,6 @@ __all__ = [
     'ModelInfo',
     'MultiModelPerformanceReport',
     'TrainTestPerformance',
-    'Performance',
     'RegressionErrorDistribution',
     'RegressionSystematicError',
     'RocReport',

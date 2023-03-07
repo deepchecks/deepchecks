@@ -203,15 +203,15 @@ dataset_drift_result.passed_conditions()
 # To create our own suite, we can simply write all of the checks, and add optional conditions.
 
 from deepchecks.tabular import Suite
-from deepchecks.tabular.checks import TrainTestFeatureDrift, MultivariateDrift, \
- TrainTestPredictionDrift, TrainTestLabelDrift
+from deepchecks.tabular.checks import FeatureDrift, MultivariateDrift, \
+ PredictionDrift, LabelDrift
 
 drift_suite = Suite('drift suite',
-TrainTestFeatureDrift().add_condition_drift_score_less_than(
+FeatureDrift().add_condition_drift_score_less_than(
   max_allowed_categorical_score=0.2, max_allowed_numeric_score=0.1),
 MultivariateDrift().add_condition_overall_drift_value_less_than(0.4),
-TrainTestLabelDrift(),
-TrainTestPredictionDrift()
+LabelDrift(),
+PredictionDrift()
 )
 
 #%%

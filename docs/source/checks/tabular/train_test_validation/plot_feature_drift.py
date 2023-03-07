@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_train_test_feature_drift:
+.. _plot_tabular_feature_drift:
 
 Train Test Feature Drift
 ************************

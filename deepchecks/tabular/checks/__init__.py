@@ -15,14 +15,14 @@ from .data_integrity import (ClassImbalance, ColumnsInfo, ConflictingLabels, Dat
                              FeatureLabelCorrelation, IsSingleValue, MixedDataTypes, MixedNulls, OutlierSampleDetection,
                              SpecialCharacters, StringLengthOutOfBounds, StringMismatch)
 from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelInferenceTime, ModelInfo,
-                               MultiModelPerformanceReport, Performance, PredictionDrift, RegressionErrorDistribution,
+                               MultiModelPerformanceReport, PredictionDrift, RegressionErrorDistribution,
                                RegressionSystematicError, RocReport, SegmentPerformance, SimpleModelComparison,
                                SingleDatasetPerformance, TrainTestPerformance, TrainTestPredictionDrift, UnusedFeatures,
                                WeakSegmentsPerformance)
 from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, FeatureDrift, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, LabelDrift, MultivariateDrift,
-                                    NewCategoryTrainTest, NewLabelTrainTest, SamplesMix, StringMismatchComparison,
+                                    NewCategoryTrainTest, NewLabelTrainTest, StringMismatchComparison,
                                     TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestSamplesMix, WholeDatasetDrift)
 
 __all__ = [
@@ -51,7 +51,6 @@ __all__ = [
     'FeatureLabelCorrelationChange',
     'IndexTrainTestLeakage',
     'TrainTestSamplesMix',
-    'SamplesMix',
     'DateTrainTestLeakageDuplicates',
     'DateTrainTestLeakageOverlap',
     'IdentifierLabelCorrelation',
@@ -75,7 +74,6 @@ __all__ = [
 
     # performance checks
     'TrainTestPerformance',
-    'Performance',
     'ConfusionMatrixReport',
     'RocReport',
     'SimpleModelComparison',

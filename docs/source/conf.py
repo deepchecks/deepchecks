@@ -108,7 +108,7 @@ redirects = {
     "user-guide/key_concepts": "../user-guide/general/deepchecks_hierarchy.html",
     "user-guide/when_should_you_use": "../getting-started/when_should_you_use.html",
     "examples/checks/distribution/index": "../../../checks_gallery/tabular/index.html",
-    "examples/checks/distribution/train_test_feature_drift": "../../../checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift.html",
+    "examples/checks/distribution/feature_drift": "../../../checks_gallery/tabular/train_test_validation/plot_feature_drift.html",
     "examples/checks/integrity/index": "../../../checks_gallery/tabular/index.html",
     "examples/checks/methodology/index": "../../../checks_gallery/tabular/index.html",
     "examples/checks/overview/index": "../../../checks_gallery/tabular/index.html",
