@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """The dataset module containing the tabular Dataset class and its functions."""
-import collections
 import typing as t
 import warnings
 from operator import itemgetter
