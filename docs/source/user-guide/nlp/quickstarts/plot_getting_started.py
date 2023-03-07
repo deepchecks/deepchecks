@@ -210,4 +210,4 @@ result.show()
 #
 # You can find the full list of available NLP checks in the :mod:`api documentation <deepchecks.nlp.checks>`.
 
-# sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/tabular_quickstarts/full_suite.png'
+# sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/nlp_quickstarts/getting_started.png'
