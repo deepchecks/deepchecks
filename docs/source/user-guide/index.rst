@@ -6,13 +6,18 @@ User Guide
 
 Here you can find the key concepts, structure, recommended flow, and dive in to many of the deepchecks functionalities.
 
+
 General
 -------
+
+This section section gives an overview about how to work with deepchecks: when to use it, our concepts and hierarchy, different ways
+to save the check and suite results, how to customize checks, suites, metrics, etc.
 
 .. toctree::
     :maxdepth: 2
     :caption: General
 
+    general/when_should_you_use
     general/deepchecks_hierarchy
     general/showing_results
     general/export_save_results
@@ -23,6 +28,9 @@ General
 
 Tabular
 -------
+
+Here you can see quickstarts of how to start working with deepchecks on tabular data, and much additional information 
+related to the tabular supported use cases and customizations.
 
 .. toctree::
     :maxdepth: 2
@@ -37,6 +45,9 @@ Tabular
 
 Vision
 -------
+
+Here you can see of how to start working with deepchecks on vision data, and much additional information 
+related to the vision supported use cases and customizations.
 
 .. toctree::
     :maxdepth: 2
@@ -62,6 +73,10 @@ NLP
 
 Integrations
 ------------
+
+Here you can see code examples for how to use deepchecks with various existing tools.
+Of course, deepchecks can easily be integrated with many additional tools, here you can find 
+examples and code snippets for inspiration. Contributions to this docs section are very welcome!
 
 .. toctree::
     :maxdepth: 2
