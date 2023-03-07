@@ -234,6 +234,18 @@ class TextData:
                                                f'length {len(label[i])}')
         self._label = list(label)
 
+    def reindex(self, index: t.Sequence[t.Any]):
+        """Reindex the TextData with a new index."""
+        if not is_sequence_not_str(index):
+            raise DeepchecksValueError('index must be a Sequence')
+        if not len(index) == len(self.index):
+            raise DeepchecksValueError('new index must be the same length as original index')
+        self.index = list(index)
+        if self._metadata is not None:
+            self._metadata = self._metadata.reindex(index)
+        if self._properties is not None:
+            self._properties = self._properties.reindex(index)
+
     def copy(self: TDataset, rows_to_use: t.Optional[t.Sequence[t.Any]] = None) -> TDataset:
         """Create a copy of this Dataset with new data."""
         cls = type(self)
@@ -250,9 +262,8 @@ class TextData:
                     itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
                 label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
                 index=list(itemgetter(*rows_to_use)(self.index)),
-                metadata=self._metadata.iloc[rows_to_use, :]
-                if self._metadata is not None else None,
-                properties=self._properties if self._properties is None else self._properties.iloc[rows_to_use, :],
+                metadata=self._metadata.iloc[rows_to_use, :] if self._metadata is not None else None,
+                properties=self._properties.iloc[rows_to_use, :] if self._properties is not None else None,
                 task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
         return new_copy

@@ -10,21 +10,21 @@
 #
 """Test for the nlp PredictionDrift check"""
 
-from hamcrest import assert_that, close_to, has_items
+from hamcrest import assert_that, close_to, has_items, equal_to
 
 from deepchecks.nlp.checks import TrainTestPredictionDrift
 from deepchecks.nlp.datasets.classification import tweet_emotion
 from tests.base.utils import equal_condition_result
 
 
-def test_tweet_emotion(tweet_emotion_train_test_textdata):
+def test_tweet_emotion(tweet_emotion_train_test_textdata, tweet_emotion_train_test_predictions):
     # Arrange
     train, test = tweet_emotion_train_test_textdata
-    preds = tweet_emotion.load_precalculated_predictions()
+    train_preds, test_preds = tweet_emotion_train_test_predictions
     check = TrainTestPredictionDrift().add_condition_drift_score_less_than(0.01)
     # Act
-    result = check.run(train, test, train_predictions=list(preds[train.index]),
-                       test_predictions=list(preds[test.index]))
+    result = check.run(train, test, train_predictions=train_preds,
+                       test_predictions=test_preds)
     condition_result = check.conditions_decision(result)
 
     # Assert
@@ -36,21 +36,21 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata):
 
     assert_that(result.value['Drift score'], close_to(0.04, 0.01))
 
-# TODO: Bug in combination of sampling mechanism and dummy model
-# def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata):
-#     # Arrange
-#     train, _ = tweet_emotion_train_test_textdata
-#     preds = list(tweet_emotion.load_precalculated_predictions()[train.index])
-#     check = TrainTestPredictionDrift().add_condition_drift_score_less_than(0.1)
-#     # Act
-#     result = check.run(train, train, train_predictions=preds, test_predictions=preds)
-#     condition_result = check.conditions_decision(result)
-#
-#     # Assert
-#     assert_that(condition_result, has_items(
-#         equal_condition_result(is_pass=True,
-#                                details="Found model prediction Cramer's V drift score of 0.04",
-#                                name='categorical drift score < 0.1 and numerical drift score < 0.075')
-#     ))
-#
-#     assert_that(result.value['Drift score'], close_to(0.04, 0.01))
+
+def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata, tweet_emotion_train_test_predictions):
+    # Arrange
+    train, _ = tweet_emotion_train_test_textdata
+    train_preds, _ = tweet_emotion_train_test_predictions
+    check = TrainTestPredictionDrift().add_condition_drift_score_less_than()
+    # Act
+    result = check.run(train, train, train_predictions=train_preds, test_predictions=train_preds)
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=True,
+                               details="Found model prediction Cramer's V drift score of 0",
+                               name='categorical drift score < 0.15 and numerical drift score < 0.15')
+    ))
+
+    assert_that(result.value['Drift score'], equal_to(0))
