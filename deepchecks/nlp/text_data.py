@@ -154,24 +154,13 @@ class TextData:
         self.name = dataset_name
 
         if metadata is not None:
-            if not isinstance(metadata, pd.DataFrame):
-                raise DeepchecksValueError(f'metadata type {type(metadata)} is not supported, must be a'
-                                           f' pandas DataFrame')
-            if self.index != list(metadata.index):
-                raise DeepchecksValueError('metadata index must be the same as the text data index')
-
-        self._metadata = metadata
+            self.set_metadata(metadata)
 
         if properties is not None:
             if isinstance(properties, str) and properties == 'auto':
                 self.calculate_default_properties()
-            elif not isinstance(properties, pd.DataFrame):
-                raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
-                                           f' pandas DataFrame')
-            elif self.index != list(properties.index):
-                raise DeepchecksValueError('properties index must be the same as the text data index')
-
-        self._properties = properties
+            else:
+                self.set_properties(properties)
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -338,6 +327,18 @@ class TextData:
         """Return the metadata of for the dataset."""
         return self._metadata
 
+    def set_metadata(self, metadata: pd.DataFrame):
+        """Set the metadata of the dataset."""
+        if self._metadata is not None:
+            warnings.warn('Metadata already exist, overwriting it', UserWarning)
+
+        if not isinstance(metadata, pd.DataFrame):
+            raise DeepchecksValueError(f'metadata type {type(metadata)} is not supported, must be a'
+                                       f' pandas DataFrame')
+        if self.index != list(metadata.index):
+            raise DeepchecksValueError('metadata index must be the same as the text data index')
+        self._metadata = metadata
+
     def calculate_default_properties(self, include_properties: t.List[str] = None,
                                      ignore_properties: t.List[str] = None):
         """Calculate the default properties of the dataset."""
@@ -354,9 +355,10 @@ class TextData:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
         if not isinstance(properties, pd.DataFrame):
-            raise DeepchecksValueError('properties must be a pandas DataFrame')
+            raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
+                                       f' pandas DataFrame')
         if list(properties.index) != self.index:
-            raise DeepchecksValueError('properties index must be the same as the dataset index')
+            raise DeepchecksValueError('properties index must be the same as the text data index')
         self._properties = properties
 
     @property

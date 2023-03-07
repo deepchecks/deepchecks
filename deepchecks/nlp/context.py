@@ -412,17 +412,17 @@ class Context(BaseContext):
         """Assert that metadata exists."""
         if text_data.metadata is None:
             raise DeepchecksNotSupportedError(
-                'Check requires metadata, but it was not provided. To use this check, initialize the TextData '
-                'object with the metadata parameter.')
+                'Check requires metadata, but the the TextData object had none. To use this check, use the '
+                'set_metadata method to set your own metadata with a pandas.DataFrame.')
 
     @staticmethod
     def assert_properties(text_data):
         """Assert that properties exists."""
         if text_data.properties is None:
             raise DeepchecksNotSupportedError(
-                'Check requires properties, but none were provided. To use this check, either initialize the TextData '
-                'object with your own properties as a pandas.DataFrame or use TextData.calculate_default_properties to '
-                'add the default deepchecks properties.')
+                'Check requires properties, but the the TextData object had none. To use this check, use the'
+                'set_properties method to set your own properties with a pandas.DataFrame or use '
+                'TextData.calculate_default_properties to add the default deepchecks properties.')
 
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
