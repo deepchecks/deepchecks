@@ -19,7 +19,7 @@ from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import (MetadataSegmentsPerformance, PropertyLabelCorrelation, PropertySegmentsPerformance,
                                    SingleDatasetPerformance, TrainTestLabelDrift, TrainTestPredictionDrift)
 
-__all__ = ['train_test_validation',
+__all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
 
 

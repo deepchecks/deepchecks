@@ -30,7 +30,7 @@ Deepchecks currently supports two NLP task types:
 Supported Labels and Predictions Format
 =======================================
 
-While labels are passed when constructing the :class:`TextData <text_data.TextData>` object, predictions are passed
+While labels are passed when constructing the :class:`TextData <deepchecks.nlp.TextData>` object, predictions are passed
 separately to the ``run`` method of the check / suite. Labels and predictions must be in the format detailed in this
 section, according to the task type.
 
@@ -40,11 +40,11 @@ Text Classification
 Label Format
 ~~~~~~~~~~~~
 
-* For text classification the accepted label format differs between multilabel and
-  single label cases. For single label data, the label should be passed as a sequence of labels, with one entry
-  per sample that can be either a string or an integer. For multilabel data, the label should be passed as a
-  sequence of sequences, with the sequence for each sample being a binary vector, representing the presence of
-  the i-th label in that sample.
+For text classification the accepted label format differs between multilabel and
+single label cases. For single label data, the label should be passed as a |sequence| of labels, with one entry
+per sample that can be either a string or an integer. For multilabel data, the label should be passed as a
+|sequence| of sequences, with the |sequence| for each sample being a binary vector, representing the presence of
+the i-th label in that sample.
 
 >>> text_classification_label_multiclass = ['class_0', 'class_0', 'class_1', 'class_2']
 >>> text_classification_label_multilabel = [[0, 0, 1], [0, 1, 1], [1, 0, 1], [0, 0, 0]]
@@ -53,8 +53,8 @@ Label Format
 
     For multilabel tasks, in order for deepchecks to use string names for the different classes (rather than just noting
     the classes id in the label matrix) you may pass a list of the class names to the ``classes`` argument
-    of the :class:`TextData <text_data.TextData>` constructor method. This list of names, having the same length as the
-    number of rows in the label matrix, will be used to name the multilabel classes throughout deepchecks.
+    of the :class:`TextData <deepchecks.nlp.TextData>` constructor method. This list of names, having the same length as
+    the number of rows in the label matrix, will be used to name the multilabel classes throughout deepchecks.
 
 Prediction Format
 ~~~~~~~~~~~~~~~~~
@@ -71,9 +71,9 @@ Prediction Format
 Single Class Predictions
 """"""""""""""""""""""""
 
-* **predictions** - A sequence of class names or indices with one entry per sample, matching the set of classes
+* **predictions** - A |sequence| of class names or indices with one entry per sample, matching the set of classes
   present in the labels.
-* **probabilities** - A sequence of sequences with each element containing the vector of class probabilities for
+* **probabilities** - A |sequence| of sequences with each element containing the vector of class probabilities for
   each sample. Each such vector should have one probability per class according to the class (sorted) order, and
   the probabilities should sum to 1 for each sample.
 
@@ -84,10 +84,10 @@ Single Class Predictions
 Multilabel Predictions
 """"""""""""""""""""""
 
-* **predictions** - A sequence of sequences with each element containing a binary vector denoting the presence of
+* **predictions** - A |sequence| of sequences with each element containing a binary vector denoting the presence of
   the i-th class for the given sample. Each such vector should have one binary indicator per class according to
   the class (sorted) order. More than one class can be present for each sample.
-* **probabilities** - A sequence of sequences with each element containing the vector of class probabilities for
+* **probabilities** - A |sequence| of sequences with each element containing the vector of class probabilities for
   each sample. Each such vector should have one probability per class according to the class (sorted) order, and
   the probabilities should range from 0 to 1 for each sample, but are not required to sum to 1.
 
@@ -100,7 +100,7 @@ Token Classification
 For token classification tasks labels and predictions are given in any
 `IOB format <https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging)>`__
 supported by the `seqeval <https://github.com/chakki-works/seqeval>`__ library. The label should be passed as a
-sequence of sequences, with the inner sequence containing the appropriate IOB annotation for each token in the sample.
+|sequence| of sequences, with the inner |sequence| containing the appropriate IOB annotation for each token in the sample.
 
 To let deepchecks know what are the individual tokens in the text sample, it's **highly recommended** that you pass a
 list of the tokens to the ``tokenized_text`` argument of the :class:`TextData <deepchecks.nlp.TextData>`

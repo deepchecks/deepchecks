@@ -53,6 +53,7 @@ class TextData:
     label : t.Optional[TTextLabel], default: None
         The label for the text data. Can be either a text_classification label or a token_classification label.
         If None, the label is not set.
+
         - text_classification label - For text classification the accepted label format differs between multilabel and
           single label cases. For single label data, the label should be passed as a sequence of labels, with one entry
           per sample that can be either a string or an integer. For multilabel data, the label should be passed as a

@@ -7,8 +7,8 @@ In order to run deepchecks for nlp all you need to have are the following for bo
 
 1. Your text data - a list of strings, each string is a single sample (can be a sentence, paragraph, document etc.)
 2. Your labels - either a Text Classification label or a Token Classification label
-   (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>' for more info)
-3. Your models predictions (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>' for info on supported formats
+   (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for more info)
+3. Your models predictions (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for info on supported formats
 
 If you don't have deepchecks installed yet:
 
@@ -29,7 +29,7 @@ install them by running:
 Finally, we'll be using the CatBoost model in this guide, so we'll also need to install it:
 
 .. code:: python
-     import sys
+    import sys
     !{sys.executable} -m pip install catboost -U --quiet #--user
 
 """
@@ -76,7 +76,7 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 #
 # In this example we'll train a very simple model using the CatBoostClassifier, trained over the embeddings of the
 # tweets. These embeddings where created using the OpenAI GPT-3 model. You can calculate your own embeddings using
-# our :func:`calculate_embeddings_for_text <deepchecks.nlp.utils.embeddings_calculator.calculate_embeddings_for_text>`
+# our :func:`calculate_embeddings_for_text <deepchecks.nlp.utils.calculate_embeddings_for_text>`
 # function. Note that in order to run it you need either an OpenAI API key or have HuggingFace's transformers installed.
 
 from sklearn.metrics import roc_auc_score
