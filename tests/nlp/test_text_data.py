@@ -103,29 +103,29 @@ def test_wrong_token_label_format():
     )
 
 
-def test_additional_data_format():
+def test_metadata_format():
     # Arrange
     text = ['a', 'b b b', 'c c c c']
-    additional_data = {'first': [1, 2, 3], 'second': [4, 5, 6]}
+    metadata = {'first': [1, 2, 3], 'second': [4, 5, 6]}
 
     # Act & Assert
-    _ = TextData(raw_text=text, additional_data=pd.DataFrame(additional_data),
+    _ = TextData(raw_text=text, metadata=pd.DataFrame(metadata),
                  task_type='text_classification')  # Should pass
     assert_that(
-        calling(TextData).with_args(raw_text=text, additional_data=additional_data, task_type='text_classification'),
+        calling(TextData).with_args(raw_text=text, metadata=metadata, task_type='text_classification'),
         raises(DeepchecksValueError,
-               r"additional_data type <class 'dict'> is not supported, must be a pandas DataFrame")
+               r"metadata type <class 'dict'> is not supported, must be a pandas DataFrame")
     )
 
 
 def test_head_functionality():
     # Arrange
     text = ['a', 'b b b', 'c c c c']
-    additional_data = {'first': [1, 2, 3], 'second': [4, 5, 6]}
+    metadata = {'first': [1, 2, 3], 'second': [4, 5, 6]}
     label = ['PER', 'ORG', 'GEO']
 
     # Act
-    dataset = TextData(raw_text=text, additional_data=pd.DataFrame(additional_data),
+    dataset = TextData(raw_text=text, metadata=pd.DataFrame(metadata),
                        task_type='text_classification', label=label)
     result = dataset.head(n_samples=2)
 

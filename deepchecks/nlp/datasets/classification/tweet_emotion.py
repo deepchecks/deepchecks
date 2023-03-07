@@ -113,7 +113,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
             else:
                 properties = None
             dataset = TextData(dataset.text, label=dataset[_target], task_type='text_classification',
-                               additional_data=dataset.drop(columns=[_target, 'text']),
+                               metadata=dataset.drop(columns=[_target, 'text']),
                                properties=properties, index=dataset.index)
         return dataset
     else:
@@ -128,10 +128,10 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
                 train_properties, test_properties = None, None
 
             train = TextData(train.text, label=train[_target], task_type='text_classification',
-                             index=train.index, additional_data=train.drop(columns=[_target, 'text']),
+                             index=train.index, metadata=train.drop(columns=[_target, 'text']),
                              properties=train_properties)
             test = TextData(test.text, label=test[_target], task_type='text_classification',
-                            index=test.index, additional_data=test.drop(columns=[_target, 'text']),
+                            index=test.index, metadata=test.drop(columns=[_target, 'text']),
                             properties=test_properties)
         return train, test
 

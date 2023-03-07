@@ -12,7 +12,7 @@
 
 from hamcrest import assert_that, close_to, equal_to, has_items
 
-from deepchecks.nlp.checks import AdditionalDataSegmentsPerformance, PropertySegmentsPerformance
+from deepchecks.nlp.checks import MetadataSegmentsPerformance, PropertySegmentsPerformance
 from tests.base.utils import equal_condition_result
 
 
@@ -20,7 +20,7 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata, tweet_emotion_train_te
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     _, test_probas = tweet_emotion_train_test_probabilities
-    check = AdditionalDataSegmentsPerformance().add_condition_segments_relative_performance_greater_than()
+    check = MetadataSegmentsPerformance().add_condition_segments_relative_performance_greater_than()
     # Act
     result = check.run(test, probabilities=test_probas)
     condition_result = check.conditions_decision(result)

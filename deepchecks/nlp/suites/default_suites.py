@@ -16,9 +16,8 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import (AdditionalDataSegmentsPerformance, PropertyLabelCorrelation,
-                                   PropertySegmentsPerformance, SingleDatasetPerformance, TrainTestLabelDrift,
-                                   TrainTestPredictionDrift)
+from deepchecks.nlp.checks import (MetadataSegmentsPerformance, PropertyLabelCorrelation, PropertySegmentsPerformance,
+                                   SingleDatasetPerformance, TrainTestLabelDrift, TrainTestPredictionDrift)
 
 __all__ = ['train_test_validation',
            'model_evaluation', 'full_suite']
@@ -140,7 +139,7 @@ def model_evaluation(n_samples: int = None,
         SingleDatasetPerformance(),
         TrainTestPredictionDrift().add_condition_drift_score_less_than(),
         PropertySegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
-        AdditionalDataSegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
+        MetadataSegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
     )
 
 
