@@ -104,11 +104,11 @@ integ_suite.run(ds_train)
 # the examples or the :doc:`API Reference </api/index>` for more info about the
 # existing checks and their parameters.
 
-from deepchecks.tabular.checks import TrainTestLabelDrift
+from deepchecks.tabular.checks import LabelDrift
 
 #%%
 
-check = TrainTestLabelDrift()
+check = LabelDrift()
 result = check.run(ds_train, ds_test)
 result
 

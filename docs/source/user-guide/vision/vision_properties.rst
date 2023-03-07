@@ -169,7 +169,7 @@ properties which apply to the Detection task type.
 
 .. code-block:: python
 
-  from deepchecks.vision.checks.distribution import TrainTestLabelDrift
+  from deepchecks.vision.checks.distribution import LabelDrift
 
   def number_of_labels(labels: List[np.ndarray]) -> List[int]:
     """Return a list containing the number of detections per sample in batch."""
@@ -185,7 +185,7 @@ properties which apply to the Detection task type.
     {'name': 'Classes Appearance', 'method': classes_in_labels, 'output_type': 'class_id'}
   ]
 
-  check = TrainTestLabelDrift(label_properties=properties)
+  check = LabelDrift(label_properties=properties)
 
 
 Prediction Property

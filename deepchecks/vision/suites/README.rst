@@ -62,7 +62,7 @@ Build the suite with custom checks and desired parameters
 
    MyModelSuite = Suite('Suite with AUC performance',
        ClassPerformance(scorers=['roc_auc']),
-       TrainTestLabelDrift()
+       LabelDrift()
    )
 
 Then run with required input parameters (datasets and models)

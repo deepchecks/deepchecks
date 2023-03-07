@@ -21,7 +21,7 @@ from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
                                       LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
                                       NewLabels, PropertyLabelCorrelation, PropertyLabelCorrelationChange,
-                                      SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift,
+                                      SimpleModelComparison, LabelDrift, TrainTestPredictionDrift,
                                       WeakSegmentsPerformance)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']
@@ -43,8 +43,8 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
              - :class:`~deepchecks.vision.checks.train_test_validation.NewLabels`
            * - :ref:`plot_vision_heatmap_comparison`
              - :class:`~deepchecks.vision.checks.train_test_validation.HeatmapComparison`
-           * - :ref:`plot_vision_train_test_label_drift`
-             - :class:`~deepchecks.vision.checks.train_test_validation.TrainTestLabelDrift`
+           * - :ref:`plot_vision_label_drift`
+             - :class:`~deepchecks.vision.checks.train_test_validation.LabelDrift`
            * - :ref:`plot_vision_image_property_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.ImagePropertyDrift`
            * - :ref:`plot_vision_image_dataset_drift`
@@ -105,7 +105,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
     kwargs = {**non_none_args, **kwargs}
 
     return Suite('Train Test Validation Suite', NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
-                 HeatmapComparison(**kwargs), TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
+                 HeatmapComparison(**kwargs), LabelDrift(**kwargs).add_condition_drift_score_less_than(),
                  ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(), ImageDatasetDrift(**kwargs),
                  PropertyLabelCorrelationChange(**kwargs).add_condition_property_pps_difference_less_than(), )
 
