@@ -137,7 +137,6 @@ class TextData:
                 raise DeepchecksValueError('raw_text and tokenized_text must have the same length')
 
         if index is None:
-
             self.index = list(range(len(raw_text)))
         elif len(index) != len(raw_text):
             raise DeepchecksValueError('index must be the same length as raw_text')
@@ -207,7 +206,7 @@ class TextData:
             raise DeepchecksValueError('label must be the same length as raw_text')
 
         if self.task_type == TaskType.TEXT_CLASSIFICATION:
-            if all((isinstance(x, collections.abc.Sequence) and not isinstance(x, str)) for x in label):
+            if all((isinstance(x, t.Sequence) and not isinstance(x, str)) for x in label):
                 self._is_multilabel = True
                 multilabel_error = 'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.'
                 if not all(all(y in (0, 1) for y in x) for x in label):
@@ -221,7 +220,7 @@ class TextData:
 
         if self.task_type == TaskType.TOKEN_CLASSIFICATION:
             token_class_error = 'label must be a Sequence of Sequences of either strings or integers'
-            if not all(isinstance(x, collections.abc.Sequence) for x in label):
+            if not all(isinstance(x, t.Sequence) for x in label):
                 raise DeepchecksValueError(token_class_error)
 
             for i in range(len(label)):  # TODO: Runs on all labels, very costly
@@ -249,6 +248,7 @@ class TextData:
     def copy(self: TDataset, rows_to_use: t.Optional[t.Sequence[t.Any]] = None) -> TDataset:
         """Create a copy of this Dataset with new data."""
         cls = type(self)
+        logger_state = get_logger().disabled
         get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
         if rows_to_use is None:
             new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
@@ -265,7 +265,7 @@ class TextData:
                 metadata=self._metadata.iloc[rows_to_use, :] if self._metadata is not None else None,
                 properties=self._properties.iloc[rows_to_use, :] if self._properties is not None else None,
                 task_type=self._task_type.value, dataset_name=self.name)
-        get_logger().disabled = False
+        get_logger().disabled = logger_state
         return new_copy
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,

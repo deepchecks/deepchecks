@@ -79,6 +79,6 @@ def _clean_special_chars(text):
     special_chars = r'!@#$%^&*()_+{}|:"<>?~`-=[]\;\',./'
     for char in special_chars:
         text = text.replace(char, '')
-    text = text.replace('\n', ' ')
+    text = text.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
     text = text.replace('<br />', ' ')
     return text
