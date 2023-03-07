@@ -13,15 +13,20 @@ from deepchecks.nlp.suites import full_suite
 from tests.common import get_expected_results_length, validate_suite_result
 
 
-def test_full_suite(movie_reviews_data):
+def test_full_suite(tweet_emotion_train_test_textdata, tweet_emotion_train_test_predictions,
+                    tweet_emotion_train_test_probabilities):
     # Arrange
-    train_data, test_data = movie_reviews_data
-    args = dict(train_dataset=train_data, test_dataset=test_data)
+    train_data, test_data = tweet_emotion_train_test_textdata
+    train_preds, test_preds = tweet_emotion_train_test_predictions
+    train_probas, test_probas = tweet_emotion_train_test_probabilities
+
+    kwargs = dict(train_dataset=train_data, test_dataset=test_data, train_predictions=train_preds,
+                  test_predictions=test_preds, train_probabilities=train_probas, test_probabilities=test_probas)
 
     # Act
     suite = full_suite(imaginary_kwarg='just to make sure all checks have kwargs in the init')
-    result = suite.run(**args)
+    result = suite.run(**kwargs)
 
     # Assert
-    length = get_expected_results_length(suite, args)
+    length = get_expected_results_length(suite, kwargs)
     validate_suite_result(result, length)

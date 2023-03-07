@@ -10,7 +10,6 @@
 #
 """Module containing the train test validation check in the nlp package."""
 
-from .keyword_frequency_drift import KeywordFrequencyDrift
 from .train_test_label_drift import TrainTestLabelDrift
 
-__all__ = ['KeywordFrequencyDrift', 'TrainTestLabelDrift']
+__all__ = ['TrainTestLabelDrift']

@@ -17,10 +17,10 @@ from deepchecks.nlp.datasets.classification import tweet_emotion
 from tests.base.utils import equal_condition_result
 
 
-def test_tweet_emotion(tweet_emotion_train_test_textdata):
+def test_tweet_emotion(tweet_emotion_train_test_textdata, tweet_emotion_train_test_probabilities):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
-    test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[test.index]
+    _, test_probas = tweet_emotion_train_test_probabilities
     check = AdditionalDataSegmentsPerformance().add_condition_segments_relative_performance_greater_than()
     # Act
     result = check.run(test, probabilities=test_probas)
@@ -38,10 +38,10 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata):
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.305, 0.01))
 
 
-def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
+def test_tweet_emotion_properties(tweet_emotion_train_test_textdata, tweet_emotion_train_test_probabilities):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
-    test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[test.index]
+    _, test_probas = tweet_emotion_train_test_probabilities
     check = PropertySegmentsPerformance().add_condition_segments_relative_performance_greater_than()
     # Act
     result = check.run(test, probabilities=test_probas)

@@ -11,11 +11,7 @@
 """Utils package for nlp functionality."""
 
 from deepchecks.nlp.utils.embeddings_calculator import calculate_embeddings_for_text
-from deepchecks.nlp.utils.embeddings_display import create_drift_files, create_outlier_files, create_performance_files
 
 __all__ = [
     'calculate_embeddings_for_text',
-    'create_performance_files',
-    'create_drift_files',
-    'create_outlier_files',
 ]

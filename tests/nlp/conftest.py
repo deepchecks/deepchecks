@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Fixtures for testing the nlp package"""
+# pylint: skip-file
 import random
 
 import pytest
@@ -33,6 +34,25 @@ def tweet_emotion_train_test_textdata():
     """Tweet emotion text classification dataset"""
     train, test = tweet_emotion.load_data(data_format='TextData', as_train_test=True, include_properties=True)
     return train, test
+
+
+@pytest.fixture(scope='session')
+def tweet_emotion_train_test_predictions(tweet_emotion_train_test_textdata):
+    """Tweet emotion text classification dataset predictions"""
+    train_data, test_data = tweet_emotion_train_test_textdata
+    train_preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions')[train_data.index]
+    test_preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions')[test_data.index]
+
+    return train_preds, test_preds
+
+
+@pytest.fixture(scope='session')
+def tweet_emotion_train_test_probabilities(tweet_emotion_train_test_textdata):
+    """Tweet emotion text classification dataset probabilities"""
+    train_data, test_data = tweet_emotion_train_test_textdata
+    train_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[train_data.index]
+    test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[test_data.index]
+    return train_probas, test_probas
 
 
 @pytest.fixture(scope='session')

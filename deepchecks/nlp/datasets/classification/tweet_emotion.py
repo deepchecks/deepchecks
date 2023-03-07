@@ -36,6 +36,8 @@ _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet_emotion'
 _target = 'label'
 
+_LABEL_MAP = {0: 'anger', 1: 'happiness', 2: 'optimism', 3: 'sadness'}
+
 
 def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
     """Load and return the properties of the tweet_emotion dataset.
@@ -145,7 +147,7 @@ def load_embeddings() -> np.ndarray:
     return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
 
 
-def load_precalculated_predictions(pred_format: str = 'predictions') -> np.ndarray:
+def load_precalculated_predictions(pred_format: str = 'predictions') -> np.array:
     """Load and return a precalculated predictions for the dataset.
 
     Parameters
@@ -161,9 +163,17 @@ def load_precalculated_predictions(pred_format: str = 'predictions') -> np.ndarr
         The prediction of the data elements in the dataset.
 
     """
-    preds = pd.read_csv(_PREDICTIONS_URL, index_col=0).to_numpy()
+    os.makedirs(ASSETS_DIR, exist_ok=True)
+    if (ASSETS_DIR / 'tweet_emotion_probabilities.csv').exists():
+        preds = pd.read_csv(ASSETS_DIR / 'tweet_emotion_probabilities.csv', index_col=0)
+    else:
+        preds = pd.read_csv(_PREDICTIONS_URL, index_col=0)
+        preds.to_csv(ASSETS_DIR / 'tweet_emotion_probabilities.csv')
+
+    preds = preds.to_numpy()
+
     if pred_format == 'predictions':
-        return np.argmax(preds, axis=1)
+        return np.array([_LABEL_MAP[x] for x in np.argmax(preds, axis=1)])
     elif pred_format == 'probabilities':
         return preds
     else:

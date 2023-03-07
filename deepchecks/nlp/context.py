@@ -171,7 +171,9 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_prediction(dataset: TextData, prediction: TTextPred, n_classes: int):
         """Validate prediction for given dataset."""
-        if not isinstance(prediction, collections.abc.Sequence) or isinstance(prediction, str):
+        if not (isinstance(prediction, collections.abc.Sequence)
+                or (isinstance(prediction, np.ndarray) and prediction.ndim == 1)) \
+                or isinstance(prediction, str):
             raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence')
         if len(prediction) != dataset.n_samples:
             raise ValidationError(f'Check requires predictions for {dataset.name} to have '
