@@ -410,16 +410,16 @@ class Context(BaseContext):
         return True
 
     @staticmethod
-    def assert_additional_data(text_data):
-        """Assert that additional_data exists."""
-        if text_data.additional_data is None:
+    def assert_metadata(text_data):
+        """Assert that metadata exists."""
+        if text_data.metadata is None:
             raise DeepchecksNotSupportedError(
-                'Check requires additional data, but it was not provided. To use this check, initialize the TextData '
-                'object with the additional_data parameter.')
+                'Check requires metadata, but it was not provided. To use this check, initialize the TextData '
+                'object with the metadata parameter.')
 
     @staticmethod
     def assert_properties(text_data):
-        """Assert that additional_data exists."""
+        """Assert that properties exists."""
         if text_data.properties is None:
             raise DeepchecksNotSupportedError(
                 'Check requires properties, but none were provided. To use this check, either initialize the TextData '

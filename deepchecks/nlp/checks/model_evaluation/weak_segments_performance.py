@@ -27,7 +27,7 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['AdditionalDataSegmentsPerformance', 'PropertySegmentsPerformance']
+__all__ = ['MetadataSegmentsPerformance', 'PropertySegmentsPerformance']
 
 
 class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
@@ -55,10 +55,10 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         text_data = context.get_data_by_kind(dataset_kind)
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
-        if self.segment_by == 'additional_data':
-            context.assert_additional_data(text_data=text_data)
-            features = select_from_dataframe(text_data.additional_data, self.columns, self.ignore_columns)
-            features_name = 'additional data'
+        if self.segment_by == 'metadata':
+            context.assert_metadata(text_data=text_data)
+            features = select_from_dataframe(text_data.metadata, self.columns, self.ignore_columns)
+            features_name = 'metadata'
 
         elif self.segment_by == 'properties':
             context.assert_properties(text_data=text_data)
@@ -159,14 +159,14 @@ class PropertySegmentsPerformance(WeakSegmentsPerformance):
         super().__init__(segment_by='properties', **kwargs)
 
 
-class AdditionalDataSegmentsPerformance(WeakSegmentsPerformance):
+class MetadataSegmentsPerformance(WeakSegmentsPerformance):
     """Search for segments with low performance scores.
 
     The check is designed to help you easily identify weak spots of your model and provide a deepdive analysis into
     its performance on different segments of your data. Specifically, it is designed to help you identify the model
     weakest segments in the data distribution for further improvement and visibility purposes.
 
-    The segments are based on the additional data - which is data that is not part of the text, but is related to it,
+    The segments are based on the metadata - which is data that is not part of the text, but is related to it,
     such as "user_id" and "user_age".
 
     In order to achieve this, the check trains several simple tree based models which try to predict the error of the
@@ -200,4 +200,4 @@ class AdditionalDataSegmentsPerformance(WeakSegmentsPerformance):
     """
 
     def __init__(self, **kwargs):
-        super().__init__(segment_by='additional_data', **kwargs)
+        super().__init__(segment_by='metadata', **kwargs)
