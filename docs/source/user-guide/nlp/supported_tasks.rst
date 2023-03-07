@@ -22,7 +22,8 @@ Deepchecks currently supports two NLP task types:
   sample. Examples for such tasks are: Sentiment Analysis, Topic Extraction, harmful content detection and more.
 * **Token Classification**: Token Classification is any NLP task in which each word (or to be more accurate, token) in
   the text sample is assigned a class of its own. In many cases most tokens will belong to a "background" class,
-  allowing the model to focus on the interesting tokens. Examples for such tasks are: Named Entity Recognition, Part-of-speech annotation (in which all tokens have a non-background class).
+  allowing the model to focus on the interesting tokens. Examples for such tasks are: Named Entity Recognition,
+  Part-of-speech annotation (in which all tokens have a non-background class).
 
 .. _nlp_supported_labels__predictions_format:
 
@@ -96,27 +97,38 @@ Multilabel Predictions
 Token Classification
 --------------------
 
+For token classification tasks labels and predictions are given in any
+`IOB format <https://en.wikipedia.org/wiki/Inside%E2%80%93outside%E2%80%93beginning_(tagging)>`__
+supported by the `seqeval <https://github.com/chakki-works/seqeval>`__ library. The label should be passed as a
+sequence of sequences, with the inner sequence containing the appropriate IOB annotation for each token in the sample.
+
+To let deepchecks know what are the individual tokens in the text sample, it's **highly recommended** that you pass a
+list of the tokens to the ``tokenized_text`` argument of the :class:`TextData <deepchecks.nlp.TextData>`
+constructor method. Otherwise, deepchecks will attempt to tokenize the text samples (given to the ``text`` argument)
+by splitting them on spaces.
+
+The following label and prediction examples are given for the following text sample:
+
+>>> tokenized_text = [['Mary', 'had', 'a', 'little', 'lamb'],
+>>>                  ['Mary', 'lives', 'in', 'London', 'and', 'Paris']]
+
 Label Format
 ~~~~~~~~~~~~
 
-* For token classification the accepted label format is a sequence of sequences,
-  with the inner sequence containing tuples in the following format: (class_name, span_start, span_end).
-  span_start and span_end are the start and end character indices of the token within the text, as it was
-  passed to the raw_text argument. Each outer sequence contains the sequence of tokens for each sample.
+Here is an example of IOB annotation for the above text sample:
 
->>> token_classification_label = [[('class_1', 0, 2), ('class_2', 7, 10)], [('class_2', 42, 54)], []]
+>>> token_classification_label = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO']]
 
 Prediction Format
 ~~~~~~~~~~~~~~~~~
 
-* **predictions** - A sequence of sequences, with the inner sequence containing tuples in the following
-  format: (class_name, span_start, span_end, class_probability). span_start and span_end are the start and end
-  character indices  of the token within the text, as it was passed to the raw_text argument. Each upper level
-  sequence contains a sequence of tokens for each sample.
+* **predictions** - Predictions for token classification should be given in the exact same format as the labels.
 * **probabilities** - No probabilities should be passed for Token Classification tasks. Passing probabilities will
   result in an error.
 
->>> predictions = [[('class_1', 0, 2, 0.8), ('class_2', 7, 10, 0.9)], [('class_2', 42, 54, 0.4)], []]
+Example for predictions (confusing the lamb with a person):
+
+>>> predictions = [['B-PER', 'O', 'O', 'O', 'B-PER'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO']]
 
 ..
     external links to open in new window

@@ -84,10 +84,7 @@ class _DummyModel(BasicModel):
 
         if ((y_proba_train is not None) or (y_proba_test is not None)) and \
                 (train.task_type == TaskType.TOKEN_CLASSIFICATION):
-            raise DeepchecksNotSupportedError('For token classification probabilities should be provided as the 4th'
-                                              'element in the token annotation tuples within the predictions argument '
-                                              'of the rum method, while the probabilities argument of the run method'
-                                              ' should be left empty.')
+            raise DeepchecksNotSupportedError('For token classification probabilities are not supported')
 
         if train is not None and test is not None:
             # check if datasets have same indexes
