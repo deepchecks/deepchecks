@@ -16,8 +16,8 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import (MetadataSegmentsPerformance, PropertyLabelCorrelation, PropertySegmentsPerformance,
-                                   SingleDatasetPerformance, LabelDrift, PredictionDrift)
+from deepchecks.nlp.checks import (LabelDrift, MetadataSegmentsPerformance, PredictionDrift, PropertyLabelCorrelation,
+                                   PropertySegmentsPerformance, SingleDatasetPerformance)
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
