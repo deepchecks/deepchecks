@@ -36,7 +36,7 @@ class TextData:
     """
     TextData wraps together the raw text data and the labels for the nlp task.
 
-    The TextData class contains additional data and methods intended for easily accessing
+    The TextData class contains metadata and methods intended for easily accessing
     metadata relevant for the training or validating of ML models.
 
     Parameters
@@ -68,8 +68,8 @@ class TextData:
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
     index : t.Optional[t.Sequence[int]] , default: None
         The index of the samples. If None, the index is set to np.arange(len(raw_text)).
-    additional_data : t.Optional[pd.DataFrame] , default: None
-        Additional data for the samples. If None, no additional data is set. If a DataFrame is given, it must contain
+    metadata : t.Optional[pd.DataFrame] , default: None
+        Metadata for the samples. If None, no metadata is set. If a DataFrame is given, it must contain
         the same number of samples as the raw_text and identical index.
     properties : t.Optional[Union[pd.DataFrame, str]] , default: None
         The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
@@ -84,7 +84,7 @@ class TextData:
     _has_label: bool
     _is_multilabel: bool = False
     name: t.Optional[str] = None
-    _additional_data: t.Optional[pd.DataFrame] = None
+    _metadata: t.Optional[pd.DataFrame] = None
     _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
 
     def __init__(
@@ -95,7 +95,7 @@ class TextData:
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
-            additional_data: t.Optional[pd.DataFrame] = None,
+            metadata: t.Optional[pd.DataFrame] = None,
             properties: t.Optional[t.Union[pd.DataFrame, str]] = None,
     ):
         # Require explicitly setting task type if label is provided
@@ -152,14 +152,14 @@ class TextData:
                                                   f' str')
         self.name = dataset_name
 
-        if additional_data is not None:
-            if not isinstance(additional_data, pd.DataFrame):
-                raise DeepchecksValueError(f'additional_data type {type(additional_data)} is not supported, must be a'
+        if metadata is not None:
+            if not isinstance(metadata, pd.DataFrame):
+                raise DeepchecksValueError(f'metadata type {type(metadata)} is not supported, must be a'
                                            f' pandas DataFrame')
-            if self.index != list(additional_data.index):
-                raise DeepchecksValueError('additional_data index must be the same as the text data index')
+            if self.index != list(metadata.index):
+                raise DeepchecksValueError('metadata index must be the same as the text data index')
 
-        self._additional_data = additional_data
+        self._metadata = metadata
 
         if properties is not None:
             if isinstance(properties, str) and properties == 'auto':
@@ -241,7 +241,7 @@ class TextData:
         if rows_to_use is None:
             new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
                            task_type=self._task_type.value,
-                           dataset_name=self.name, index=self.index, additional_data=self.additional_data,
+                           dataset_name=self.name, index=self.index, metadata=self.metadata,
                            properties=self._properties)
         else:
             new_copy = cls(
@@ -250,8 +250,8 @@ class TextData:
                     itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
                 label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
                 index=list(itemgetter(*rows_to_use)(self.index)),
-                additional_data=self._additional_data.iloc[rows_to_use, :]
-                if self._additional_data is not None else None,
+                metadata=self._metadata.iloc[rows_to_use, :]
+                if self._metadata is not None else None,
                 properties=self._properties if self._properties is None else self._properties.iloc[rows_to_use, :],
                 task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = False
@@ -322,9 +322,9 @@ class TextData:
         return len(self._text)
 
     @property
-    def additional_data(self) -> pd.DataFrame:
-        """Return the additional data of for the dataset."""
-        return self._additional_data
+    def metadata(self) -> pd.DataFrame:
+        """Return the metadata of for the dataset."""
+        return self._metadata
 
     def calculate_default_properties(self, include_properties: t.List[str] = None,
                                      ignore_properties: t.List[str] = None):
@@ -483,6 +483,6 @@ class TextData:
             result['label'] = self.label[:n_samples]
         if self._tokenized_text is not None:
             result['tokenized_text'] = self.tokenized_text[:n_samples]
-        if self._additional_data is not None:
-            result = result.join(self.additional_data.loc[result.index])
+        if self._metadata is not None:
+            result = result.join(self.metadata.loc[result.index])
         return result
