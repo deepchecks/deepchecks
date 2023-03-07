@@ -68,7 +68,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         Maximum number of bins to segment a single property into.
     number_of_samples_to_infer_bins : int, default : 1000
         Minimum number of samples to use to infer the bounds of the segments' bins
-    n_top_properties: int , default: 5
+    n_top_properties: int , default: 10
         Number of features to use for segment search. Top columns are selected based on feature importance.
     n_to_show: int , default: 3
         number of segments with the weakest performance to show.
@@ -85,7 +85,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             image_properties: List[Dict[str, Any]] = None,
             number_of_bins: int = 5,
             number_of_samples_to_infer_bins: int = 1000,
-            n_top_properties: int = 5,
+            n_top_properties: int = 10,
             n_to_show: int = 3,
             segment_minimum_size_ratio: float = 0.05,
             n_samples: Optional[int] = 10000,

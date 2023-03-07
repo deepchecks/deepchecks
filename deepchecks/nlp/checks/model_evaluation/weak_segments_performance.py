@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of weak segments performance check."""
-
+import warnings
 from typing import Callable, Dict, List, Union
 
 import numpy as np
@@ -30,14 +30,14 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['MetadataSegmentsPerformance', 'PropertySegmentsPerformance']
 
 
-class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
+class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
     """Check the performance of the model on different segments of the data."""
 
-    def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None] = None,
-                 ignore_columns: Union[Hashable, List[Hashable], None] = None, n_top_features: int = 5,
-                 segment_minimum_size_ratio: float = 0.05, alternative_scorer: Dict[str, Callable] = None,
-                 loss_per_sample: Union[np.ndarray, pd.Series, None] = None, n_samples: int = 10_000,
-                 categorical_aggregation_threshold: float = 0.05, n_to_show: int = 3, **kwargs):
+    def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
+                 ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: int,
+                 segment_minimum_size_ratio: float, alternative_scorer: Dict[str, Callable],
+                 loss_per_sample: Union[np.ndarray, pd.Series, None], n_samples: int,
+                 categorical_aggregation_threshold: float, n_to_show: int, **kwargs):
         super().__init__(**kwargs)
         self.segment_by = segment_by
         self.columns = columns
@@ -66,6 +66,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             features_name = 'properties'
         else:
             raise DeepchecksProcessError(f'Unknown segment_by value: {self.segment_by}')
+
+        self._warn_n_top_columns(features.shape[1])
 
         # TODO: Don't use cat_features but enable user to give their own datatype / use properties known types.
         # This is here because Dataset object writes a warning if categorical features are not given
@@ -114,8 +116,26 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[display_msg, DisplayMap(display)])
 
+    def _warn_n_top_columns(self, n_columns: int):
+        """Warn if n_top_columns is smaller than the number of segmenting features (metadata or properties)."""
+        if self.n_top_features is not None and self.n_top_features < n_columns:
+            if self.segment_by == 'metadata':
+                features_name = 'metadata columns'
+                n_top_columns_parameter = 'n_top_columns'
+                columns_parameter = 'columns'
+            else:
+                features_name = 'properties'
+                n_top_columns_parameter = 'n_top_properties'
+                columns_parameter = 'properties'
 
-class PropertySegmentsPerformance(WeakSegmentsPerformance):
+            warnings.warn(
+                f'Parameter {n_top_columns_parameter} is set to {self.n_top_features}, so check will run on the first '
+                f'{self.n_top_features} {features_name}. If you want to run on all {features_name}, set '
+                f'{n_top_columns_parameter} to None. Alternatively, you can set parameter {columns_parameter} to a '
+                f'list of the specific {features_name} you want to run on.', UserWarning)
+
+
+class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     """Search for segments with low performance scores.
 
     The check is designed to help you easily identify weak spots of your model and provide a deepdive analysis into
@@ -135,7 +155,7 @@ class PropertySegmentsPerformance(WeakSegmentsPerformance):
         Properties to check, if none are given checks all properties except ignored ones.
     ignore_properties : Union[Hashable, List[Hashable]] , default: None
         Properties to ignore, if none given checks based on properties variable
-    n_top_properties : int , default: 5
+    n_top_properties : int , default: 10
         Number of properties to use for segment search. Top properties are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
@@ -155,11 +175,31 @@ class PropertySegmentsPerformance(WeakSegmentsPerformance):
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(segment_by='properties', **kwargs)
+    def __init__(self,
+                 properties: Union[Hashable, List[Hashable], None] = None,
+                 ignore_properties: Union[Hashable, List[Hashable], None] = None,
+                 n_top_properties: int = 10,
+                 segment_minimum_size_ratio: float = 0.05,
+                 alternative_scorer: Dict[str, Callable] = None,
+                 loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
+                 n_samples: int = 10_000,
+                 categorical_aggregation_threshold: float = 0.05,
+                 n_to_show: int = 3,
+                 **kwargs):
+        super().__init__(segment_by='properties',
+                         columns=properties,
+                         ignore_columns=ignore_properties,
+                         n_top_features=n_top_properties,
+                         segment_minimum_size_ratio=segment_minimum_size_ratio,
+                         n_samples=n_samples,
+                         n_to_show=n_to_show,
+                         loss_per_sample=loss_per_sample,
+                         alternative_scorer=alternative_scorer,
+                         categorical_aggregation_threshold=categorical_aggregation_threshold,
+                         **kwargs)
 
 
-class MetadataSegmentsPerformance(WeakSegmentsPerformance):
+class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
     """Search for segments with low performance scores.
 
     The check is designed to help you easily identify weak spots of your model and provide a deepdive analysis into
@@ -179,7 +219,7 @@ class MetadataSegmentsPerformance(WeakSegmentsPerformance):
         Columns to check, if none are given checks all columns except ignored ones.
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
-    n_top_features : int , default: 5
+    n_top_columns : int , default: 10
         Number of features to use for segment search. Top columns are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
@@ -199,5 +239,25 @@ class MetadataSegmentsPerformance(WeakSegmentsPerformance):
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """
 
-    def __init__(self, **kwargs):
-        super().__init__(segment_by='metadata', **kwargs)
+    def __init__(self,
+                 columns: Union[Hashable, List[Hashable], None] = None,
+                 ignore_columns: Union[Hashable, List[Hashable], None] = None,
+                 n_top_columns: int = 10,
+                 segment_minimum_size_ratio: float = 0.05,
+                 alternative_scorer: Dict[str, Callable] = None,
+                 loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
+                 n_samples: int = 10_000,
+                 categorical_aggregation_threshold: float = 0.05,
+                 n_to_show: int = 3,
+                 **kwargs):
+        super().__init__(segment_by='metadata',
+                         columns=columns,
+                         ignore_columns=ignore_columns,
+                         n_top_features=n_top_columns,
+                         segment_minimum_size_ratio=segment_minimum_size_ratio,
+                         n_samples=n_samples,
+                         n_to_show=n_to_show,
+                         loss_per_sample=loss_per_sample,
+                         alternative_scorer=alternative_scorer,
+                         categorical_aggregation_threshold=categorical_aggregation_threshold,
+                         **kwargs)
