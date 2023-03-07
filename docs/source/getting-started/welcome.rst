@@ -72,7 +72,7 @@ Start Working with Deepchecks Testing
 
     .. grid-item-card:: 🏃‍♀️ Vision Quickstarts (Note: CV is in Beta Release) 🏃‍♀️
         :link-type: doc
-        :link: /user-guide/vision/auto_quickstarts/plot_quickstart
+        :link: /user-guide/vision/auto_quickstarts/index
          
         End-to-end guides demonstrating how to start working with various CV use cases 
         (object detection, classification and more)
