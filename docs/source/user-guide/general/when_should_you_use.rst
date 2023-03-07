@@ -1,3 +1,5 @@
+.. _when_should_you_use_deepchecks:
+
 =============================================
 When Should You Validate & Built-In Suites
 =============================================
@@ -19,7 +21,8 @@ with the purpose of efficiently giving value and initiating a quick start for ea
 Built-In Suites - API Reference
 ================================
 
-Check the :mod:`deepchecks.tabular.suites` in the API reference for a list of all of the built-in suites for tabular data.
+Check the :mod:`deepchecks.tabular.suites` in the API reference for a list of all of the built-in suites for tabular data,
+or :mod:`deepchecks.vision.suites` for vision data (in beta release).
 
 
 Typical Validation Scenarios
@@ -49,7 +52,7 @@ As part of your EDA you want to ensure your data's integrity, and have it ready 
 For example, you want to know if there are many duplicate samples, problems with string or categorical features,
 significant outliers, inconsistent labels, etc.
 
-For these purposes you can use the :func:`deepchecks.tabular.suites.data_integrity` suite.
+For these purposes you can use the :func:`deepchecks.tabular.suites.data_integrity` or the :func:`deepchecks.vision.suites.data_integrity` suite.
 
 .. _when_should_you_use__split_data:
 
@@ -61,7 +64,7 @@ Just before you continue working with your data you want to ensure that the spli
 For example, you want to verify that the classes are balanced similarly, that there is no significant change in distributions between the features or labels in each of the classes,
 that there is no potential data leakage that may contaminate your model or perceived results, etc.
 
-For these purposes you can use the :func:`deepchecks.tabular.suites.train_test_validation` suite.
+For these purposes you can use the :func:`deepchecks.tabular.suites.train_test_validation` or the :func:`deepchecks.vision.suites.train_test_validation` suite.
 
 
 .. _when_should_you_use__evaluate_model:
@@ -73,7 +76,7 @@ At this phase you have a trained model which you want to evaluate.
 Thus, you probably want to examine several performance metrics, compare it to various benchmarks and be able to construct a clear picture about the model's performance.
 You may also want to find where it under-performs, and investigate to see if you discover any insights that could be used to improve model performance.
 
-For these purposes you can use the :func:`deepchecks.tabular.suites.model_evaluation` suite.
+For these purposes you can use the :func:`deepchecks.tabular.suites.model_evaluation` or the :func:`deepchecks.vision.suites.model_evaluation` suite.
 
 
 .. _when_should_you_use__general_overview:
@@ -83,4 +86,4 @@ For these purposes you can use the :func:`deepchecks.tabular.suites.model_evalua
 
 Here you want to have a quick overview of the project, and receive all of the insights that you can get, given a specific state of the model and the data.
 
-For this purpose you can use the :func:`deepchecks.tabular.suites.full_suite`.
+For this purpose you can use the :func:`deepchecks.tabular.suites.full_suite` or the :func:`deepchecks.vision.suites.full_suite`.
