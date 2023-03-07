@@ -131,12 +131,12 @@ class PropertySegmentsPerformance(WeakSegmentsPerformance):
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default: None
-        Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default: None
-        Columns to ignore, if none given checks based on columns variable
-    n_top_features : int , default: 5
-        Number of features to use for segment search. Top columns are selected based on feature importance.
+    properties : Union[Hashable, List[Hashable]] , default: None
+        Properties to check, if none are given checks all properties except ignored ones.
+    ignore_properties : Union[Hashable, List[Hashable]] , default: None
+        Properties to ignore, if none given checks based on properties variable
+    n_top_properties : int , default: 5
+        Number of properties to use for segment search. Top properties are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.

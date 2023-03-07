@@ -13,7 +13,6 @@
 from hamcrest import assert_that, close_to, equal_to, has_items
 
 from deepchecks.nlp.checks import MetadataSegmentsPerformance, PropertySegmentsPerformance
-from deepchecks.nlp.datasets.classification import tweet_emotion
 from tests.base.utils import equal_condition_result
 
 

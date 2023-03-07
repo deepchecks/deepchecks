@@ -97,7 +97,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
     max_num_categories_for_display : int , default : 10
         Max number of categories to show in plot.
     show_categories_by : str , default : 'largest_difference'
-        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        Specify which categories to show for categorical predictions graph, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
@@ -292,13 +292,13 @@ class TrainTestPredictionDrift(TrainTestCheck, ReducePropertyMixin):
         ----------
         max_allowed_categorical_score: float , default: 0.15
             the max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.15
+        max_allowed_numeric_score: float , default: 0.15
             the max threshold for the numeric variable drift score
 
         Returns
         -------
         ConditionResult
-            False if any property has passed the max threshold, True otherwise
+            False if any distribution has passed the max threshold, True otherwise
         """
         condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score,
                                     'prediction property', 'prediction properties')

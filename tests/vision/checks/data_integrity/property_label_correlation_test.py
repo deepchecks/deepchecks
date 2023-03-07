@@ -32,7 +32,7 @@ def test_classification_without_bias(mnist_visiondata_train):
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
         details='Passed for all of the properties',
-        name='Properties\' Predictive Power Score is less than 0.8'))
+        name='Properties\' Predictive Power Score is less than 0.3'))
 
 
 def test_classification_with_bias(mnist_train_brightness_bias):

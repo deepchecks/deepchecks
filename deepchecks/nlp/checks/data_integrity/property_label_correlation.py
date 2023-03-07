@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The feature label correlation check module."""
+"""The property label correlation check module."""
 import typing as t
 
 import pandas as pd
@@ -47,8 +47,8 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
     ----------
     ppscore_params : dict , default: None
         dictionary of additional parameters for the ppscore.predictors function
-    n_top_features : int , default: 5
-        Number of features to show, sorted by the magnitude of difference in PPS
+    n_top_properties : int , default: 5
+        Number of properties to show, sorted by the magnitude of difference in PPS
     n_samples : int , default: 100_000
         number of samples to use for this check.
     random_state : int , default: None
@@ -58,13 +58,13 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
     def __init__(
             self,
             ppscore_params: t.Optional[t.Dict[t.Any, t.Any]] = None,
-            n_top_features: int = 5,
+            n_top_properties: int = 5,
             n_samples: int = 100_000,
             **kwargs
     ):
         super().__init__(**kwargs)
         self.ppscore_params = ppscore_params or {}
-        self.n_top_features = n_top_features
+        self.n_top_properties = n_top_properties
         self.n_samples = n_samples
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
@@ -96,7 +96,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         s_ppscore = df_pps.set_index('x', drop=True)['ppscore']
 
         if context.with_display:
-            top_to_show = s_ppscore.head(self.n_top_features)
+            top_to_show = s_ppscore.head(self.n_top_properties)
 
             fig = get_pps_figure(per_class=False, n_of_features=len(top_to_show), x_name='property',
                                  xaxis_title='Property')
@@ -105,9 +105,9 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
             text = [
                 'The Predictive Power Score (PPS) is used to estimate the ability of a property to predict the '
                 f'label by itself (Read more about {pps_html}).'
-                ' A high PPS (close to 1) can mean that this property\'s success in predicting the label is'
-                ' actually due to data leakage - meaning that the property holds information that is based on the label'
-                ' to begin with.']
+                'A high PPS (close to 1) can mean there\'s a bias in the dataset, as a single property can predict '
+                'the label successfully, meaning that the model may accidentally learn '
+                'these properties instead of more accurate complex abstractions.']
 
             # display only if not all scores are 0
             display = [fig, *text] if s_ppscore.sum() else None
@@ -116,13 +116,13 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Property-Label Correlation')
 
-    def add_condition_property_pps_less_than(self: PLC, threshold: float = 0.8) -> PLC:
+    def add_condition_property_pps_less_than(self: PLC, threshold: float = 0.3) -> PLC:
         """
         Add condition that will check that pps of the specified properties is less than the threshold.
 
         Parameters
         ----------
-        threshold : float , default: 0.8
+        threshold : float , default: 0.3
             pps upper bound
         Returns
         -------
@@ -131,8 +131,8 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
         def condition(value: t.Dict[Hashable, float]) -> ConditionResult:
             failed_properties = {
-                feature_name: format_number(pps_value)
-                for feature_name, pps_value in value.items()
+                property_name: format_number(pps_value)
+                for property_name, pps_value in value.items()
                 if pps_value >= threshold
             }
 
