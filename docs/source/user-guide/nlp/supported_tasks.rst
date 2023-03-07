@@ -105,7 +105,7 @@ supported by the `seqeval <https://github.com/chakki-works/seqeval>`__ library. 
 To let deepchecks know what are the individual tokens in the text sample, it's **highly recommended** that you pass a
 list of the tokens to the ``tokenized_text`` argument of the :class:`TextData <deepchecks.nlp.TextData>`
 constructor method. Otherwise, deepchecks will attempt to tokenize the text samples (given to the ``text`` argument)
-by splitting them on spaces.
+by splitting them by spaces.
 
 The following label and prediction examples are given for the following text sample:
 
