@@ -38,6 +38,8 @@ __all__ = [
     'TTokenPred'
 ]
 
+from deepchecks.utils.validation import is_sequence_not_str
+
 TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Union[str, int]]]]
 TClassProba = t.Sequence[t.Sequence[float]]
 TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
@@ -89,8 +91,8 @@ class _DummyModel(BasicModel):
         if train is not None and test is not None:
             # check if datasets have same indexes
             if set(train.index) & set(test.index):
-                train.index = list(map(lambda x: f'train-{x}', list(train.index)))
-                test.index = list(map(lambda x: f'test-{x}', list(test.index)))
+                train.reindex(list(map(lambda x: f'train-{x}', list(train.index))))
+                test.reindex(list(map(lambda x: f'test-{x}', list(test.index))))
                 get_logger().warning('train and test datasets have common index - adding "train"/"test"'
                                      ' prefixes. To avoid that provide datasets with no common indexes '
                                      'or pass the model object instead of the predictions.')
@@ -168,9 +170,8 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_prediction(dataset: TextData, prediction: TTextPred, n_classes: int):
         """Validate prediction for given dataset."""
-        if not (isinstance(prediction, collections.abc.Sequence)
-                or (isinstance(prediction, np.ndarray) and prediction.ndim == 1)) \
-                or isinstance(prediction, str):
+        if not (is_sequence_not_str(prediction)
+                or (isinstance(prediction, np.ndarray) and prediction.ndim == 1)):
             raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence')
         if len(prediction) != dataset.n_samples:
             raise ValidationError(f'Check requires predictions for {dataset.name} to have '
