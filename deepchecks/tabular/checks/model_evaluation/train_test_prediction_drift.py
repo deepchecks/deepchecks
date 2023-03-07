@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Train Test label Drift check."""
+"""Module contains Train Test Prediction Drift check."""
 
 import typing as t
 from numbers import Number
@@ -38,7 +38,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     (1) class for binary classification tasks, and on the predicted class itself for multiclass tasks. This behavior can
     be controlled using the `drift_mode` parameter.
 
-    For numerical columns, we use the Kolmogorov-Smirnov statistic.
+    For numerical distributions, we use the Kolmogorov-Smirnov statistic.
     See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
     We also support Earth Mover's Distance (EMD).
     See https://en.wikipedia.org/wiki/Wasserstein_metric
@@ -80,7 +80,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
-        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        Specify which categories to show for categorical predictions graph, as the number of shown categories is limited
         by max_num_categories_for_display. Possible values:
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
@@ -98,8 +98,8 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         drift_mode = "auto" or "prediction".
         If True, the variable frequency plot will be created with a log scale in the y-axis.
     ignore_na: bool, default True
-        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
-        separate category. For numerical columns we always ignore nones.
+        For categorical predictions only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical predictions we always ignore nones.
     aggregation_method: t.Optional[str], default: "max"
         Argument for the reduce_output functionality, decides how to aggregate the drift scores of different classes
         (for classification tasks) into a single score, when drift is computed on the class probabilities. Possible
@@ -166,7 +166,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
             raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "max", None')
 
     def run_logic(self, context: Context) -> CheckResult:
-        """Calculate drift for all columns.
+        """Calculate drift for predictions.
 
         Returns
         -------
@@ -288,7 +288,7 @@ class TrainTestPredictionDrift(TrainTestCheck, ReduceMixin):
         Returns
         -------
         ConditionResult
-            False if any column has passed the max threshold, True otherwise
+            False if any distribution has passed the max threshold, True otherwise
         """
 
         def condition(result: t.Dict) -> ConditionResult:

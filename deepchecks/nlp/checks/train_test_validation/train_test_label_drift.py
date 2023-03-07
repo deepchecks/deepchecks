@@ -32,9 +32,6 @@ class TrainTestLabelDrift(TrainTestCheck):
     Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
     dataset.
 
-    For numerical columns, we use the Earth Movers Distance.
-    See https://en.wikipedia.org/wiki/Wasserstein_metric
-
     For categorical distributions, we use the Cramer's V.
     See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
     We also support Population Stability Index (PSI).
@@ -61,9 +58,18 @@ class TrainTestLabelDrift(TrainTestCheck):
         - 'train_largest': Show the largest train categories.
         - 'test_largest': Show the largest test categories.
         - 'largest_difference': Show the largest difference between categories.
-    categorical_drift_method: str, default: "cramer_v"
+    numerical_drift_method: str, default: "KS"
+        decides which method to use on numerical variables. Possible values are:
+        "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    categorical_drift_method: str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
-        "cramer_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    balance_classes: bool, default: False
+        If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
+        variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
+        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v" and
+        drift_mode = "auto" or "prediction".
+        If True, the variable frequency plot will be created with a log scale in the y-axis.
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
@@ -77,7 +83,9 @@ class TrainTestLabelDrift(TrainTestCheck):
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
-            categorical_drift_method='cramer_v',
+            numerical_drift_method: str = 'KS',
+            categorical_drift_method: str = 'cramers_v',
+            balance_classes: bool = False,
             ignore_na: bool = True,
             n_samples: int = 100_000,
             **kwargs
@@ -90,12 +98,14 @@ class TrainTestLabelDrift(TrainTestCheck):
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
+        self.numerical_drift_method = numerical_drift_method
         self.categorical_drift_method = categorical_drift_method
+        self.balance_classes = balance_classes
         self.ignore_na = ignore_na
         self.n_samples = n_samples
 
     def run_logic(self, context: Context) -> CheckResult:
-        """Calculate drift for all columns.
+        """Calculate drift for the label.
 
         Returns
         -------
@@ -115,7 +125,9 @@ class TrainTestLabelDrift(TrainTestCheck):
             min_category_size_ratio=self.min_category_size_ratio,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
+            numerical_drift_method=self.numerical_drift_method,
             categorical_drift_method=self.categorical_drift_method,
+            balance_classes=self.balance_classes,
             ignore_na=self.ignore_na,
             with_display=context.with_display,
             dataset_names=(train_dataset.name, test_dataset.name)
@@ -133,20 +145,22 @@ class TrainTestLabelDrift(TrainTestCheck):
 
         return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
 
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
-                                            max_allowed_numeric_score: float = 0.1):
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+                                            max_allowed_numeric_score: float = 0.15):
         """
         Add condition - require drift score to be less than the threshold.
 
         The industry standard for PSI limit is above 0.2.
-        Cramer's V does not have a common industry standard.
-        Earth movers does not have a common industry standard.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
+        The threshold was lowered by 25% compared to property drift defaults due to the higher importance of prediction
+        drift.
 
         Parameters
         ----------
         max_allowed_categorical_score: float , default: 0.2
             the max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.1
+        max_allowed_numeric_score: float , default: 0.15
             the max threshold for the numeric variable drift score
         Returns
         -------

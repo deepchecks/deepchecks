@@ -28,7 +28,7 @@ xgboost
 jupyter
 jupyterlab
 notebook
-kaleido  # optional denendency, used by plotly to transform figures into images
+kaleido  # optional dependency, used by plotly to transform figures into images
 
 # YoloV5
 matplotlib>=3.2.2
@@ -47,3 +47,5 @@ beautifulsoup4>=4.11.1
 # NLP
 nltk<=3.6.7
 datasets
+langdetect
+textblob
