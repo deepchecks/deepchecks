@@ -31,7 +31,7 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata):
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
                                details="Found model prediction Cramer's V drift score of 0.04",
-                               name='categorical drift score < 0.01 and numerical drift score < 0.075')
+                               name='categorical drift score < 0.01 and numerical drift score < 0.15')
     ))
 
     assert_that(result.value['Drift score'], close_to(0.04, 0.01))

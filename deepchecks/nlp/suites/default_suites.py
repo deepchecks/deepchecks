@@ -49,17 +49,13 @@ def data_integrity(n_samples: int = None,
     >>> suite = data_integrity(n_samples=1_000_000)
     >>> result = suite.run()
     >>> result.show()
-
-    See Also
-    --------
-    :ref:`quick_train_test_validation`
     """
     args = locals()
     args.pop('kwargs')
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
     return Suite(
-        'Train Test Validation Suite',
+        'Data Integrity Suite',
         PropertyLabelCorrelation().add_condition_property_pps_less_than(),
     )
 
