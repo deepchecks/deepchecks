@@ -13,7 +13,7 @@ from hamcrest import assert_that, calling, raises, close_to
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import SingleDatasetPerformance, TrainTestLabelDrift
+from deepchecks.nlp.checks import SingleDatasetPerformance, LabelDrift
 
 CLASSIFICATION_ERROR_FORMAT = r'Check requires classification for Train to be ' \
                               r'either a sequence that can be cast to a 1D numpy array of shape' \
@@ -186,7 +186,7 @@ def test_sampling(text_classification_dataset_mock):
 def test_same_dataset(tweet_emotion_train_test_textdata):
     # Arrange
     train, _ = tweet_emotion_train_test_textdata
-    check = TrainTestLabelDrift()
+    check = LabelDrift()
 
     # Act
     result = check.run(train, train)

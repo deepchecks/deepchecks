@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Train Test label Drift check."""
+"""Module contains Label Drift check."""
 
 from typing import Dict
 
@@ -22,10 +22,10 @@ from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, 
                                                  calc_drift_and_plot, get_drift_plot_sidenote)
 from deepchecks.utils.strings import format_number
 
-__all__ = ['TrainTestLabelDrift']
+__all__ = ['LabelDrift']
 
 
-class TrainTestLabelDrift(TrainTestCheck):
+class LabelDrift(TrainTestCheck):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 

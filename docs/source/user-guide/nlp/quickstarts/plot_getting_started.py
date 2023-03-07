@@ -115,9 +115,9 @@ train_preds, train_probas = model.predict(embeddings[train.index, :]), model.pre
 test_preds, test_probas = model.predict(embeddings[test.index, :]), model.predict_proba(embeddings[test.index, :])
 
 # Run the check
-from deepchecks.nlp.checks import TrainTestPredictionDrift
+from deepchecks.nlp.checks import PredictionDrift
 
-check = TrainTestPredictionDrift().add_condition_drift_score_less_than(0.1)
+check = PredictionDrift().add_condition_drift_score_less_than(0.1)
 result = check.run(train, test, train_predictions=list(train_preds), test_predictions=list(test_preds))
 
 # Note: the result can be saved as html using suite_result.save_as_html()

@@ -12,8 +12,8 @@
 
 from deepchecks.nlp.checks.data_integrity import PropertyLabelCorrelation
 from deepchecks.nlp.checks.model_evaluation import (MetadataSegmentsPerformance, PropertySegmentsPerformance,
-                                                    SingleDatasetPerformance, TrainTestPredictionDrift)
-from deepchecks.nlp.checks.train_test_validation import TrainTestLabelDrift
+                                                    SingleDatasetPerformance, PredictionDrift)
+from deepchecks.nlp.checks.train_test_validation import LabelDrift
 
 __all__ = [
     # Data Integrity
@@ -25,6 +25,6 @@ __all__ = [
     'PropertySegmentsPerformance',
 
     # Train Test Validation
-    'TrainTestPredictionDrift',
-    'TrainTestLabelDrift'
+    'PredictionDrift',
+    'LabelDrift'
 ]
