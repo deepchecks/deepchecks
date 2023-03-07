@@ -64,13 +64,15 @@ def test_warning_of_n_top_columns(tweet_emotion_train_test_textdata, tweet_emoti
     property_check = PropertySegmentsPerformance(n_top_properties=3)
     metadata_check = MetadataSegmentsPerformance(n_top_columns=2)
 
-    property_warning = 'Parameter n_top_properties is set to 3, so check will run on the first 3 properties. If you ' \
-                       'want to run on all properties, set n_top_properties to None. Alternatively, you can set ' \
-                       'parameter properties to a list of the specific properties you want to run on.'
+    property_warning = 'Parameter n_top_properties is set to 3 to avoid long computation time. This means that the ' \
+                       'check will run on the first 3 properties. If you want to run on all properties, set ' \
+                       'n_top_properties to None. Alternatively, you can set parameter properties to a list of the ' \
+                       'specific properties you want to run on.'
 
-    metadata_warning = 'Parameter n_top_columns is set to 2, so check will run on the first 2 metadata columns. If you ' \
-                       'want to run on all metadata columns, set n_top_columns to None. Alternatively, you can set ' \
-                       'parameter columns to a list of the specific metadata columns you want to run on.'
+    metadata_warning = 'Parameter n_top_columns is set to 2 to avoid long computation time. This means that the check ' \
+                       'will run on the first 2 metadata columns. If you want to run on all metadata columns, set ' \
+                       'n_top_columns to None. Alternatively, you can set parameter columns to a list of the specific ' \
+                       'metadata columns you want to run on.'
 
     # Assert
     with pytest.warns(UserWarning, match=property_warning):

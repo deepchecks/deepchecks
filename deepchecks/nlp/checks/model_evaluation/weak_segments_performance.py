@@ -129,10 +129,11 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
                 columns_parameter = 'properties'
 
             warnings.warn(
-                f'Parameter {n_top_columns_parameter} is set to {self.n_top_features}, so check will run on the first '
-                f'{self.n_top_features} {features_name}. If you want to run on all {features_name}, set '
-                f'{n_top_columns_parameter} to None. Alternatively, you can set parameter {columns_parameter} to a '
-                f'list of the specific {features_name} you want to run on.', UserWarning)
+                f'Parameter {n_top_columns_parameter} is set to {self.n_top_features} to avoid long computation time. '
+                f'This means that the check will run on the first {self.n_top_features} {features_name}. '
+                f'If you want to run on all {features_name}, set {n_top_columns_parameter} to None. '
+                f'Alternatively, you can set parameter {columns_parameter} to a list of the specific {features_name} '
+                f'you want to run on.', UserWarning)
 
 
 class PropertySegmentsPerformance(WeakSegmentsAbstractText):
