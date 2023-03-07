@@ -36,7 +36,7 @@ class TextData:
     """
     TextData wraps together the raw text data and the labels for the nlp task.
 
-    The TextData class contains additional data and methods intended for easily accessing
+    The TextData class contains metadata and methods intended for easily accessing
     metadata relevant for the training or validating of ML models.
 
     Parameters
@@ -69,7 +69,7 @@ class TextData:
     index : t.Optional[t.Sequence[int]] , default: None
         The index of the samples. If None, the index is set to np.arange(len(raw_text)).
     metadata : t.Optional[pd.DataFrame] , default: None
-        Additional data for the samples. If None, no additional data is set. If a DataFrame is given, it must contain
+        Metadata for the samples. If None, no metadata is set. If a DataFrame is given, it must contain
         the same number of samples as the raw_text and identical index.
     properties : t.Optional[Union[pd.DataFrame, str]] , default: None
         The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
@@ -323,7 +323,7 @@ class TextData:
 
     @property
     def metadata(self) -> pd.DataFrame:
-        """Return the additional data of for the dataset."""
+        """Return the metadata of for the dataset."""
         return self._metadata
 
     def calculate_default_properties(self, include_properties: t.List[str] = None,
