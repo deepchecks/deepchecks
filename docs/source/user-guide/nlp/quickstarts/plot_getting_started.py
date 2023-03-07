@@ -128,7 +128,7 @@ result.show()
 # We can see that the check passed, and that the drift score is quite low.
 #
 # Next, we'll run the
-# :class:`MetadataSegmentsPerformance <deepchecks.nlp.checks.model_evaluation.weak_segment_performance.MetadataSegmentsPerformance>`
+# :class:`MetadataSegmentsPerformance <deepchecks.nlp.checks.model_evaluation.weak_segments_performance.MetadataSegmentsPerformance>`
 # check, which will check the performance of the model on different segments of the metadata that we provided
 # earlier when creating the ``TextData`` objects, and report back on any segments that have significantly lower
 # performance than the rest of the data.
@@ -153,7 +153,7 @@ result.show()
 # segment the data, similar to the metadata segments that we saw in the previous check.
 #
 # Before we can run the
-# :class:`PropertySegmentsPerformance <deepchecks.nlp.checks.model_evaluation.weak_segment_performance.PropertySegmentsPerformance>`
+# :class:`PropertySegmentsPerformance <deepchecks.nlp.checks.model_evaluation.weak_segments_performance.PropertySegmentsPerformance>`
 # check, we need to make sure that our TextData objects have the properties that we want to use. Properties can be added
 # to the TextData objects in one of the following ways:
 #
