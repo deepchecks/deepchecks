@@ -3,12 +3,12 @@
 Quickstart - Getting Started
 ****************************
 
-In order to run deepchecks for nlp all you need to have are the following for both your train and test data:
+In order to run deepchecks for NLP all you need to have are the following for both your train and test data:
 
-1. Your text data - a list of strings, each string is a single sample (can be a sentence, paragraph, document etc.)
+1. Your text data - a list of strings, each string is a single sample (can be a sentence, paragraph, document etc.).
 2. Your labels - either a Text Classification label or a Token Classification label
-   (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for more info)
-3. Your models predictions (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for info on supported formats
+   (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for more info).
+3. Your models predictions (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for info on supported formats).
 
 If you don't have deepchecks installed yet:
 
@@ -52,13 +52,13 @@ train.head()
 #
 # We can see that we have the tweet text itself, the label (the emotion) and then some additional metadata columns.
 #
-# We can now create a :class:`TextData <deepchecks.nlp.TextData>` object for each of the train and test dataframes.
+# We can now create a :class:`TextData <deepchecks.nlp.TextData>` object for the train and test dataframes.
 # This object is used to pass your data to the deepchecks checks.
 #
-# To create a TextData object, the minimum required arguments is the text itself, but passing only the text
+# To create a TextData object, the only required argument is the text itself, but passing only the text
 # will prevent multiple checks from running. In this example we'll pass the label as well and also provide
-# Metadata (the other columns in the dataframe) which we'll use later on in the guide. Finally, we'll also
-# explicitly set the index, as in our case it's not the default index.
+# metadata (the other columns in the dataframe) which we'll use later on in the guide. Finally, we'll also
+# explicitly set the index.
 #
 # .. note::
 #    The label column is optional, but if provided you must also pass the task_type argument, so that deepchecks
@@ -75,7 +75,7 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 # ================
 #
 # In this example we'll train a very simple model using the CatBoostClassifier, trained over the embeddings of the
-# tweets. These embeddings where created using the OpenAI GPT-3 model. You can calculate your own embeddings using
+# tweets. These embeddings were created using the OpenAI GPT-3 model. You can calculate your own embeddings using
 # our :func:`calculate_embeddings_for_text <deepchecks.nlp.utils.calculate_embeddings_for_text>`
 # function. Note that in order to run it you need either an OpenAI API key or have HuggingFace's transformers installed.
 
@@ -105,7 +105,7 @@ print(roc_auc_score(test.label,
 # We'll start by running the
 # :class:`TrainTestPredictionDrift <deepchecks.nlp.checks.model_evaluation.train_test_prediction_drift.TrainTestPredictionDrift>`
 # check, which will let us know if there has been a significant change in the model's predictions between the train
-# and test data. Such a change imply that something has changed in the data distribution between the train and
+# and test data. Such a change can imply that something has changed in the data distribution between the train and
 # test data in a way that affects the model's predictions.
 #
 # We'll also add a condition to the check, which will make it fail if the drift score is higher than 0.1.
@@ -149,7 +149,7 @@ result.show()
 # Properties
 # ^^^^^^^^^^
 #
-# Properties are one-dimension values that are extracted from the text. Among their uses they can be used to
+# Properties are one-dimension values that are extracted from the text. Among their uses, they can be used to
 # segment the data, similar to the metadata segments that we saw in the previous check.
 #
 # Before we can run the
@@ -188,8 +188,8 @@ result.show()
 # Data Integrity Checks
 # ---------------------
 #
-# These previous checks were all about the model's performance. Now we'll run a check that attmepts to find instances
-# of shortcut learning - cases in which the label can be predicted by too-simple aspects of the data, which
+# These previous checks were all about the model's performance. Now we'll run a check that attempts to find instances
+# of shortcut learning - cases in which the label can be predicted by simple aspects of the data, which
 # in many cases can be an indication that the model has used some information that won't generalize to the real world.
 #
 # This check is the
