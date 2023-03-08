@@ -173,7 +173,7 @@ result.show()
 # However, as this dataset has very few samples, this would require further investigation.
 #
 # We can also see that there are significant changes between the train and test set, regarding the model's predictions
-# on them. in the "Train Test Prediction Drift" check, which checks drift in 3 properties of the predictions, we can
+# on them. in the "Prediction Drift" check, which checks drift in 3 properties of the predictions, we can
 # see there's a change in the distribution of the predicted classes.
 # This can tell us that the train set is not representing the test set well, even without knowing the actual test set
 # labels.

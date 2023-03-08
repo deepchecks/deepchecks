@@ -217,7 +217,7 @@ models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
 - Weak Segments Performance
-- Train Test Feature Drift
+- Feature Drift
 - Date Train Test Leakage Overlap
 - Conflicting Labels 
 

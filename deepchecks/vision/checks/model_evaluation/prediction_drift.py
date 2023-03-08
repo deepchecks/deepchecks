@@ -259,7 +259,7 @@ class PredictionDrift(TrainTestCheck, ReducePropertyMixin):
         else:
             displays = None
 
-        return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
+        return CheckResult(value=values_dict, display=displays, header='Prediction Drift')
 
     def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
         """Return check configuration."""

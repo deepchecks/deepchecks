@@ -244,7 +244,7 @@ class PredictionDrift(TrainTestCheck, ReduceMixin):
             'Drift score': drift_score_dict if len(drift_score_dict) > 1 else list(drift_score_dict.values())[0],
             'Method': method, 'Samples per class': samples_per_class}
 
-        return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
+        return CheckResult(value=values_dict, display=displays, header='Prediction Drift')
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
         """Return prediction drift score."""

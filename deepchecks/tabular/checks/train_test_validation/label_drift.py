@@ -164,7 +164,7 @@ class LabelDrift(TrainTestCheck, ReduceLabelMixin):
         else:
             displays = None
 
-        return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
+        return CheckResult(value=values_dict, display=displays, header='Label Drift')
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return label drift score."""

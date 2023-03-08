@@ -251,7 +251,7 @@ class LabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin):
         else:
             displays = None
 
-        return CheckResult(value=values_dict, display=displays, header='Train Test Label Drift')
+        return CheckResult(value=values_dict, display=displays, header='Label Drift')
 
     def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
         """Return check configuration."""

@@ -2,7 +2,7 @@
 """
 .. _plot_vision_train_test_prediction_drift:
 
-Train Test Prediction Drift
+Prediction Drift
 ***************************
 
 This notebooks provides an overview for using and understanding the vision prediction drift check.

@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Test functions of the train test label drift."""
+"""Test functions of the label drift."""
 from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
 import pandas as pd

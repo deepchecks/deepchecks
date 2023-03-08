@@ -2,7 +2,7 @@
 """
 .. _plot_vision_label_drift:
 
-Train Test Label Drift
+Label Drift
 **********************
 
 This notebooks provides an overview for using and understanding label drift check.

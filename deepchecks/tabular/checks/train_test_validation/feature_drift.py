@@ -277,7 +277,7 @@ class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         else:
             displays = None
 
-        return CheckResult(value=values_dict, display=displays, header='Train Test Feature Drift')
+        return CheckResult(value=values_dict, display=displays, header='Feature Drift')
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""

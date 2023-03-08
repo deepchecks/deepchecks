@@ -2,7 +2,7 @@
 """
 .. _plot_tabular_feature_drift:
 
-Train Test Feature Drift
+Feature Drift
 ************************
 
 This notebooks provides an overview for using and understanding feature drift check.

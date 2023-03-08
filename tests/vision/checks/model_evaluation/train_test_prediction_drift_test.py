@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Test functions of the VISION train test prediction drift."""
+"""Test functions of the VISION prediction drift."""
 
 from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, calling, raises
 

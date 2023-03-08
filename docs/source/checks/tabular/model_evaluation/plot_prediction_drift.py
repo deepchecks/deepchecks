@@ -2,7 +2,7 @@
 """
 .. _plot_tabular_prediction_drift:
 
-Train Test Prediction Drift
+Prediction Drift
 ***************************
 
 This notebook provides an overview for using and understanding the tabular prediction drift check.
