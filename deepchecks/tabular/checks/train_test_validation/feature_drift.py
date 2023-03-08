@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Train Test Drift check."""
+"""Module contains the Drift check."""
 
 from collections import OrderedDict
 from typing import Dict, List, Optional, Union

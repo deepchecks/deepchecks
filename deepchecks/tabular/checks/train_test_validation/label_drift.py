@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 
-"""Module contains Train Test label Drift check."""
+"""Module contains the label Drift check."""
 
 from typing import Dict
 
