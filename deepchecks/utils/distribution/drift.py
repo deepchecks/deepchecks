@@ -11,7 +11,7 @@
 """Common utilities for distribution checks."""
 
 from numbers import Number
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -23,7 +23,7 @@ from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.utils.dict_funcs import get_dict_entry_by_value
 from deepchecks.utils.distribution.plot import (CategoriesSortingKind, drift_score_bar_traces,
-                                                feature_distribution_traces, word_counts_bar_traces)
+                                                feature_distribution_traces)
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_number
