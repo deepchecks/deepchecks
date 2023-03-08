@@ -319,7 +319,7 @@ class DeepcheckScorer:
             else:
                 raise
 
-        # The scores returned are for the model classes but we want scores of the observed classes
+        # The scores returned are for the model classes, but we want scores of the observed classes
         if self.model_classes is not None and isinstance(scores, np.ndarray):
             # In case of single label on binary model, there is problem with scorers per class, since scikit-learn
             # scorers will return score only for the seen label (and not for the unseen label)
@@ -330,14 +330,21 @@ class DeepcheckScorer:
                     else self.model_classes[1]
                 return {seen_class: scores[0], unseen_class: 0}
 
+            scores = self.validate_scorer_multilabel_output(scores)
+
+        return scores
+
+    def validate_scorer_multilabel_output(self, scores):
+        """Validate output and return scores for the observed classes as well as for the model classes."""
+        if self.model_classes is not None and isinstance(scores, t.Sized):
             if len(scores) != len(self.model_classes):
                 raise errors.DeepchecksValueError(
                     f'Scorer returned {len(scores)} scores, but model contains '
                     f'{len(self.model_classes)} classes. Can\'t proceed')
+
             scores = dict(zip(self.model_classes, scores))
             # Add classes which been seen in the data but are not known to the model
-            scores.update({cls: np.nan for cls in set(self.observed_classes) - set(self.model_classes)})
-
+            scores.update({class_name: np.nan for class_name in set(self.observed_classes) - set(self.model_classes)})
         return scores
 
     def __call__(self, model, dataset: 'tabular.Dataset'):

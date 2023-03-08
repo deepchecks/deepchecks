@@ -18,7 +18,6 @@ import pandas as pd
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
-from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
@@ -152,7 +151,3 @@ class Suite(BaseSuite):
             results[-1].run_time = int(round(time.time() - start, 0))
 
         return SuiteResult(self.name, results)
-
-    @classmethod
-    def _get_unsupported_failure(cls, check, msg):
-        return CheckFailure(check, DeepchecksNotSupportedError(msg))

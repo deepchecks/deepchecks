@@ -19,7 +19,8 @@ __all__ = ['doclink']
 links = {
     'default': {
         'supported-metrics-by-string': 'https://docs.deepchecks.com/en/stable/user-guide/general/metrics_guide.html#list-of-supported-strings', # pylint: disable=line-too-long  # noqa
-        'supported-prediction-format': 'https://docs.deepchecks.com/en/stable/user-guide/tabular/supported_models.html#supported-tasks-and-predictions-format' # pylint: disable=line-too-long  # noqa
+        'supported-prediction-format': 'https://docs.deepchecks.com/en/stable/user-guide/tabular/supported_models.html#supported-tasks-and-predictions-format', # pylint: disable=line-too-long  # noqa
+        'supported-predictions-format-nlp': 'https://docs.deepchecks.com/en/stable/user-guide/nlp/supported_tasks.html#supported-labels-and-predictions-format', # pylint: disable=line-too-long  # noqa
     },
     # '0.0.1': {},  # noqa
     # '0.0.2': {},  # noqa

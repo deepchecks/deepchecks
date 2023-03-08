@@ -59,6 +59,15 @@ related to the vision supported use cases and customizations.
     vision/vision_properties
     vision/custom_check_templates
 
+NLP
+-------
+
+.. toctree::
+    :maxdepth: 2
+    :caption: NLP
+
+    nlp/coming_soon
+
 
 .. _user_guide__integrations:
 

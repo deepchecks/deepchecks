@@ -117,6 +117,12 @@ deserialization
 coco128
 callables
 rstrip
+multilabel
+Multilabel
+punkt
+TTokenPred
+seqeval
+searchsorted
 VOC
 jaccard
 catboost
@@ -133,3 +139,5 @@ tf
 searchsorted
 mergesort
 scikit
+NLP
+embeddings

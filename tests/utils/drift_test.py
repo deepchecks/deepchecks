@@ -77,6 +77,13 @@ def test_cramers_v():
     assert_that(res, close_to(0.21, 0.01))
 
 
+def test_cramers_v_from_freqs():
+    dist1 = np.array([200, 800])
+    dist2 = np.array([400, 600])
+    res = cramers_v(dist1=dist1, dist2=dist2, from_freqs=True)
+    assert_that(res, close_to(0.21, 0.01))
+
+
 def test_cramers_v_completely_diff_columns():
     dist1 = np.array(['a'] * 1000)
     dist2 = np.array(['b'] * 1000)
