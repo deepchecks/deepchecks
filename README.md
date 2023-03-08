@@ -65,11 +65,12 @@ checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
 
 
-## 🖼️ Computer Vision & 🔢 Tabular Support
+## 🔢 Tabular Support, 🖼️ Computer Vision & 🔤 NLP Support 
 
 **This README refers to the Tabular version** of deepchecks.
 
-Check out the [Deepchecks for Computer Vision & Images subpackage](deepchecks/vision) for more details about deepchecks for CV, currently in *beta release*.
+- Check out the [Deepchecks for Computer Vision & Images subpackage](deepchecks/vision) for more details about deepchecks for CV, currently in *beta release*.
+- Check out the [Deepchecks for NLP subpackage](deepchecks/nlp) for more details about deepchecks for NLP, currently in *alpha release*.
 
 
 ## 💻 Installation
@@ -82,13 +83,20 @@ pip install deepchecks -U --user
 ```
 
 
-> Note: Computer Vision Install
+> Note: Vision & NLP Install
 >
 > To install deepchecks together with the **Computer Vision Submodule** that 
 > is currently in *beta release*, replace 
 > ``deepchecks`` with ``"deepchecks[vision]"`` as follows:   
 > ```bash
 > pip install "deepchecks[vision]" -U --user
+> ```
+>  
+> To install deepchecks together with the **NLP Submodule** that 
+> is currently in *alpha release*, replace 
+> ``deepchecks`` with ``"deepchecks[nlp]"`` as follows:   
+> ```bash
+> pip install "deepchecks[nlp]" -U --user
 > ```
 >  
    
@@ -293,8 +301,9 @@ subset of the following:
 
 ### Supported Data Types
 
-The package currently supports tabular data and is in *beta release* for
-the [Computer Vision subpackage](deepchecks/vision).
+The package currently supports tabular data and is in:
+- *beta release* for the [Computer Vision subpackage](deepchecks/vision).
+- *alpha release* for the [NLP subpackage](deepchecks/nlp).
 
 
 ## 📖 Documentation
