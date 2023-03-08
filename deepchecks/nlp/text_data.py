@@ -19,6 +19,7 @@ import pandas as pd
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
+from deepchecks.tabular.utils.feature_inference import infer_categorical_features
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.validation import is_sequence_not_str
 
@@ -151,24 +152,19 @@ class TextData:
         self.name = dataset_name
 
         if metadata is not None:
-            if not isinstance(metadata, pd.DataFrame):
-                raise DeepchecksValueError(f'metadata type {type(metadata)} is not supported, must be a'
-                                           f' pandas DataFrame')
-            if self.index != list(metadata.index):
-                raise DeepchecksValueError('metadata index must be the same as the text data index')
-
-        self._metadata = metadata
+            self.set_metadata(metadata)
+        else:
+            self._metadata = None
+            self._metadata_types = None
 
         if properties is not None:
             if isinstance(properties, str) and properties == 'auto':
                 self.calculate_default_properties()
-            elif not isinstance(properties, pd.DataFrame):
-                raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
-                                           f' pandas DataFrame')
-            elif self.index != list(properties.index):
-                raise DeepchecksValueError('properties index must be the same as the text data index')
-
-        self._properties = properties
+            else:
+                self.set_properties(properties)
+        else:
+            self._properties = None
+            self._properties_types = None
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -336,20 +332,69 @@ class TextData:
         """Return the metadata of for the dataset."""
         return self._metadata
 
+    @property
+    def metadata_types(self) -> t.Dict[str, str]:
+        """Return the metadata types of for the dataset."""
+        return self._metadata_types
+
+    def set_metadata(self, metadata: pd.DataFrame, metadata_types: t.Optional[t.Dict[str, str]] = None):
+        """Set the metadata of the dataset."""
+        if self._metadata is not None:
+            warnings.warn('Metadata already exist, overwriting it', UserWarning)
+
+        if not isinstance(metadata, pd.DataFrame):
+            raise DeepchecksValueError(f'metadata type {type(metadata)} is not supported, must be a'
+                                       f' pandas DataFrame')
+        if self.index != list(metadata.index):
+            raise DeepchecksValueError('metadata index must be the same as the text data index')
+        self._metadata = metadata
+
+        if metadata_types is None:  # TODO: Add tests
+            cat_features = infer_categorical_features(metadata)
+            metadata_types = {metadata.columns[i]: 'categorical' if metadata.columns[i] in cat_features else 'numeric'
+                              for i in range(len(metadata.columns))}
+        self._metadata_types = metadata_types
+
     def calculate_default_properties(self, include_properties: t.List[str] = None,
                                      ignore_properties: t.List[str] = None):
         """Calculate the default properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        properties = calculate_default_properties(self.text, include_properties=include_properties,
-                                                  ignore_properties=ignore_properties)
+        properties, properties_types = calculate_default_properties(self.text, include_properties=include_properties,
+                                                                  ignore_properties=ignore_properties)
         self._properties = pd.DataFrame(properties, index=self.index)
+        self._properties_types = properties_types
+
+    def set_properties(self, properties: pd.DataFrame, properties_types: t.Optional[t.Dict[str, str]] = None):
+        """Set the properties of the dataset."""
+        if self._properties is not None:
+            warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        if not isinstance(properties, pd.DataFrame):
+            raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
+                                       f' pandas DataFrame')
+        if list(properties.index) != self.index:
+            raise DeepchecksValueError('properties index must be the same as the text data index')
+        self._properties = properties
+
+        if properties_types is None:  # TODO: Add tests
+            # TODO: move infer_categorical_features to core
+            cat_features = infer_categorical_features(properties)
+            properties_types = {
+                properties.columns[i]: 'categorical' if properties.columns[i] in cat_features else 'numeric'
+                for i in range(len(properties.columns))}
+        self._properties_types = properties_types
 
     @property
     def properties(self) -> pd.DataFrame:
         """Return the properties of the dataset."""
         return self._properties
+
+    @property
+    def properties_types(self) -> t.Dict[str, str]:
+        """Return the property types of the dataset."""
+        return self._properties_types
 
     def __len__(self):
         """Return number of samples in the dataset."""

@@ -23,11 +23,10 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
+from deepchecks.nlp import Context, SingleDatasetCheck, TextData
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
-from deepchecks.nlp import Context, SingleDatasetCheck, TextData
 from deepchecks.vision.utils.vision_properties import PropertiesInputType
-
 
 __all__ = ['AbstractPropertyOutliers']
 
@@ -55,8 +54,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    property_input_type: PropertiesInputType, default: PropertiesInputType.IMAGES
-        The type of input to the properties, required for caching the results after first calculation.
     n_show_top : int , default: 5
         number of outliers to show from each direction (upper limit and bottom limit)
     iqr_percentiles: Tuple[int, int], default: (25, 75)
@@ -67,18 +64,15 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
     def __init__(self,
                  properties_list: t.List[t.Dict[str, t.Any]] = None,
-                 property_input_type: PropertiesInputType = PropertiesInputType.IMAGES,
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  **kwargs):
         super().__init__(**kwargs)
         self.properties_list = properties_list
-        self.property_input_type = property_input_type
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
-
         self._properties_results = None
 
 
@@ -99,8 +93,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         for property in self.properties_list:
             self._properties_results[property['name']] = property['method'](dataset.text)
-
-
 
         # The values are in the same order as the batch order, so always keeps the same order in order to access
         # the original sample at this index location

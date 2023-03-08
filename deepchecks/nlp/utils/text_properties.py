@@ -11,7 +11,7 @@
 """Module containing the text properties for the NLP module."""
 import string
 import warnings
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 
@@ -107,7 +107,7 @@ def _get_default_properties(include_properties: List[str] = None, ignore_propert
 
 
 def calculate_default_properties(raw_text: Sequence[str], include_properties: List[str] = None,
-                                 ignore_properties: List[str] = None) -> Dict[str, List[float]]:
+                                 ignore_properties: List[str] = None) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Return list of dictionaries of text properties.
 
     Params:
@@ -137,4 +137,6 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Li
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 
-    return calculated_properties
+    properties_types = {prop['name']: prop['output_type'] for prop in default_text_properties}  # TODO: Add tests
+
+    return calculated_properties, properties_types

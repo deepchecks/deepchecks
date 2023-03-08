@@ -23,14 +23,14 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     check = TextPropertyOutliers()
     # Act
     result = check.run(test)
-    condition_result = check.conditions_decision(result)
+    # condition_result = check.conditions_decision(result)
 
     # Assert
-    assert_that(condition_result, has_items(
-        equal_condition_result(is_pass=False,
-                               details="Found 1 out of 6 properties with PPS above threshold: {'sentiment': '0.11'}",
-                               name="Properties' Predictive Power Score is less than 0.1")
-    ))
+    # assert_that(condition_result, has_items(
+    #     equal_condition_result(is_pass=False,
+    #                            details="Found 1 out of 6 properties with PPS above threshold: {'sentiment': '0.11'}",
+    #                            name="Properties' Predictive Power Score is less than 0.1")
+    # ))
 
-    assert_that(result.value['sentiment'], close_to(0.11, 0.01))
-    assert_that(result.value['text_length'], close_to(0.02, 0.01))
+    assert_that(result.value['sentiment']['lower_limit'], close_to(-0.72, 0.01))
+    assert_that(result.value['text_length']['lower_limit'], equal_to(6))
