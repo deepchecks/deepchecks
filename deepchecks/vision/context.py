@@ -12,6 +12,7 @@
 from typing import Optional
 
 from deepchecks.core import CheckFailure, CheckResult, DatasetKind
+from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.vision._shared_docs import docstrings
@@ -22,7 +23,7 @@ __all__ = ['Context']
 
 
 @docstrings
-class Context:
+class Context(BaseContext):
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
 
     Parameters
@@ -67,25 +68,6 @@ class Context:
     def task_type(self) -> TaskType:
         """Return the common task type of the datasets."""
         return self._task_type
-
-    @property
-    def with_display(self) -> bool:
-        """Return the with_display flag."""
-        return self._with_display
-
-    @property
-    def train(self) -> VisionData:
-        """Return train if exists, otherwise raise error."""
-        if self._train is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without train dataset')
-        return self._train
-
-    @property
-    def test(self) -> VisionData:
-        """Return test if exists, otherwise raise error."""
-        if self._test is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without test dataset')
-        return self._test
 
     def have_test(self):
         """Return whether there is test dataset defined."""

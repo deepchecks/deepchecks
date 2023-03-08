@@ -94,9 +94,12 @@ __MACOSX
 
 # Automatically downloaded files
 *coco128*
+*euroSAT*
 *MNIST*
 *yolov5-6.1*
 *wolves_vs_dogs_mini*
+*hymenoptera_data*
+*tomato-detection*
 
 # docs build files
 docs/source/_build
@@ -111,9 +114,11 @@ docs/source/user-guide/tabular/auto_tutorials
 docs/source/user-guide/vision/auto_tutorials
 
 docs/source/user-guide/tabular/auto_quickstarts
+docs/source/user-guide/vision/auto_quickstarts
 
 # build artifacts from running docs (vision and wandb export)
-docs/source/tutorials/vision/*.html
+docs/source/user-guide/vision/quickstarts/*.html
+docs/source/user-guide/vision/tutorials/*.html
 docs/source/tutorials/vision/deepchecks_formatted_image*.jpg
 docs/source/user-guide/general/exporting_results/wandb
 deepchecks/vision/datasets/classification/models/

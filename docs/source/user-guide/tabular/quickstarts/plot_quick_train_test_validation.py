@@ -2,7 +2,7 @@
 """
 .. _quick_train_test_validation:
 
-Quickstart - Train-Test Validation Suite
+Train-Test Validation Suite Quickstart
 ****************************************
 
 The deepchecks train-test validation suite is relevant any time you wish to 
@@ -107,7 +107,7 @@ columns_metadata = {'cat_features' : categorical_features, 'index_name': index_n
 # It runs on two datasets, so you can use it to compare any two batches of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
-# Check out the :doc:`"when should you use deepchecks guide" </getting-started/when_should_you_use>`
+# Check out the :ref:`when you should use <when_should_you_use_deepchecks>`
 # for some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import train_test_validation
@@ -220,3 +220,5 @@ PredictionDrift()
 
 result = drift_suite.run(train_ds, test_ds)
 result.show()
+
+# sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/tabular_quickstarts/data_distribution.png'

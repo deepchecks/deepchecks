@@ -37,7 +37,7 @@ def test_detection_condition(coco_visiondata_train):
         equal_condition_result(
             is_pass=True,
             name='The relative performance of weakest segment is greater than 50% of average model performance.',
-            details='Found a segment with mean IoU score of 0.511 in comparison to an average score of 0.691 in '
+            details='Found a segment with mean IoU score of 0.494 in comparison to an average score of 0.691 in '
                     'sampled data.')
     ))
 
