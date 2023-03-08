@@ -47,13 +47,10 @@ def test_run_with_scorer_proba_too_many_classes(text_classification_string_class
     # Arrange
     check = SingleDatasetPerformance(scorers=['f1_macro'])
 
-    # result = check.run(text_classification_string_class_dataset_mock, probabilities=[[0.1, 0.4, 0.5], [0.9, 0.05, 0.05], [0.9, 0.01, 0.09]])
-
     # Act & Assert
     assert_that(
         calling(check.run).with_args(text_classification_string_class_dataset_mock,
                                      probabilities=[[0.1, 0.4, 0.5], [0.9, 0.05, 0.05], [0.9, 0.01, 0.09]],
-                                     # model_classes=['meh', 'wise']
                                      ),
         raises(ValidationError, 'Check requires classification probabilities for Train dataset to have 2 columns, '
                                 'same as the number of classes')
