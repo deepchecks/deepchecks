@@ -15,9 +15,7 @@ import typing as t
 import numpy as np
 
 from deepchecks.nlp import TextData
-from deepchecks.nlp.utils.text_properties import default_text_properties
 from deepchecks.nlp.checks.data_integrity.abstract_property_outliers import AbstractPropertyOutliers
-from deepchecks.nlp.utils.nlp_properties import PropertiesInputType
 
 __all__ = ['TextPropertyOutliers']
 
