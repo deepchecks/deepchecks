@@ -118,7 +118,7 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
                                             'Ratio of New Categories',
                                             'New categories',
                                             'Feature importance']).set_index(['Feature Name'])
-        result_data.sort_values(by='Ratio of New Categories')
+        result_data.sort_values(by='Ratio of New Categories', ascending=False, inplace=True)
         if all(feature_importance.isna()):
             result_data.drop('Feature importance', axis=1, inplace=True)
 
