@@ -16,10 +16,14 @@ Its name was changed to LabelDrift (removed the TrainTest prefix)
 import warnings
 
 from deepchecks.tabular.checks.train_test_validation.label_drift import LabelDrift
-from deepchecks.utils.deprecation import DeprecationHelper
 
-_deprecation_message = 'The TrainTestLabelDrift check is deprecated and will be removed in the 0.14 version.' \
-                       ' Please use the LabelDrift check instead.'
-warnings.warn(_deprecation_message)
 
-TrainTestLabelDrift = DeprecationHelper(LabelDrift, _deprecation_message)
+class TrainTestLabelDrift(LabelDrift):
+    """The TrainTestLabelDrift check is deprecated and will be removed in the 0.14 version.
+    Please use the LabelDrift check instead.
+    """
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("The TrainTestLabelDrift check is deprecated and will be removed in the 0.14 version."
+                      "Please use the LabelDrift check instead.")
+        LabelDrift.__init__(self, *args, **kwargs)

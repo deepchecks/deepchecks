@@ -17,10 +17,14 @@ Its name was changed to FeatureDrift (removed the TrainTest prefix)
 import warnings
 
 from deepchecks.tabular.checks.train_test_validation.feature_drift import FeatureDrift
-from deepchecks.utils.deprecation import DeprecationHelper
 
-_deprecation_message = 'The TrainTestFeatureDrift check is deprecated and will be removed in the 0.14 version.' \
-                       ' Please use the FeatureDrift check instead.'
-warnings.warn(_deprecation_message)
 
-TrainTestFeatureDrift = DeprecationHelper(FeatureDrift, _deprecation_message)
+class TrainTestFeatureDrift(FeatureDrift):
+    """The TrainTestFeatureDrift check is deprecated and will be removed in the 0.14 version.
+    Please use the FeatureDrift check instead
+    """
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("The TrainTestFeatureDrift check is deprecated and will be removed in the 0.14 version."
+                      " Please use the FeatureDrift check instead")
+        FeatureDrift.__init__(self, *args, **kwargs)

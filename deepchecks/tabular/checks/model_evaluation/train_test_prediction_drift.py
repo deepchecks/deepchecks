@@ -17,10 +17,16 @@ Its name was changed to PredictionDrift (removed the TrainTest prefix)
 import warnings
 
 from deepchecks.tabular.checks.model_evaluation.prediction_drift import PredictionDrift
-from deepchecks.utils.deprecation import DeprecationHelper
 
-_deprecation_message = 'The TrainTestPredictionDrift check is deprecated and will be removed in the 0.14 version.' \
-                       ' Please use the PredictionDrift check instead.'
-warnings.warn(_deprecation_message)
 
-TrainTestPredictionDrift = DeprecationHelper(PredictionDrift, _deprecation_message)
+class TrainTestPredictionDrift(PredictionDrift):
+    """The TrainTestPredictionDrift check is deprecated and will be removed in the 0.14 version.
+     Please use the PredictionDrift check instead.
+     """
+
+    def __init__(self, *args, **kwargs):
+        warnings.warn("The TrainTestPredictionDrift check is deprecated and will be removed in the 0.14 version. "
+                      "Please use the PredictionDrift check instead.",
+                      DeprecationWarning, stacklevel=2)
+
+        PredictionDrift.__init__(self, *args, **kwargs)
