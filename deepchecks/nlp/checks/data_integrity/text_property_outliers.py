@@ -11,8 +11,6 @@
 """Module of TextPropertyOutliers check."""
 import string
 import typing as t
-import warnings
-from abc import abstractmethod
 from collections import defaultdict
 from numbers import Number
 from secrets import choice
@@ -97,7 +95,6 @@ class TextPropertyOutliers(SingleDatasetCheck):
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
-        self._properties_results = None
 
 
     def run_logic(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
@@ -106,26 +103,12 @@ class TextPropertyOutliers(SingleDatasetCheck):
         corpus = defaultdict(list)
         result = {}
 
-        self._properties_results = defaultdict(list)
-
-        # # Take either alternative properties if defined or default properties defined by the child class
-        # self.properties_list = self.properties_list if self.properties_list else self.get_default_properties(dataset)
-        #
-        # if any(p['output_type'] == 'class_id' for p in self.properties_list):
-        #     warnings.warn('Properties that have class_id as output_type will be skipped.')
-        # self.properties_list = [p for p in self.properties_list if p['output_type'] != 'class_id']
-        #
-        # for property in self.properties_list:
-        #     self._properties_results[property['name']] = property['method'](dataset.text)
-
-        properties = dataset.properties
         property_types = dataset.properties_types
-
-        self._properties_results = {col: properties[col] for col in properties.columns if property_types[col] == 'numeric'}
+        properties = dataset.properties[[col for col in dataset.properties.columns if property_types[col] == 'numeric']]
 
         # The values are in the same order as the batch order, so always keeps the same order in order to access
         # the original sample at this index location
-        for name, values in self._properties_results.items():
+        for name, values in properties.items():
             # If the property is single value per sample, then wrap the values in list in order to work on fixed
             # structure
             if not isinstance(values[0], list):
