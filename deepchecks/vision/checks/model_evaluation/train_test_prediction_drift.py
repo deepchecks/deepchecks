@@ -21,6 +21,7 @@ from deepchecks.vision.checks.model_evaluation.prediction_drift import Predictio
 
 class TrainTestPredictionDrift(PredictionDrift):
     """The TrainTestPredictionDrift check is deprecated and will be removed in the 0.14 version.
+
     Please use the PredictionDrift check instead.
     """
 

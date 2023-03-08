@@ -21,6 +21,7 @@ from deepchecks.tabular.checks.train_test_validation.feature_drift import Featur
 
 class TrainTestFeatureDrift(FeatureDrift):
     """The TrainTestFeatureDrift check is deprecated and will be removed in the 0.14 version.
+
     Please use the FeatureDrift check instead
     """
 

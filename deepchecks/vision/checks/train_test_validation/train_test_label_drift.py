@@ -21,6 +21,7 @@ from deepchecks.vision.checks.train_test_validation.label_drift import LabelDrif
 
 class TrainTestLabelDrift(LabelDrift):
     """The TrainTestLabelDrift check is deprecated and will be removed in the 0.14 version.
+
     Please use the LabelDrift check instead.
     """
 
