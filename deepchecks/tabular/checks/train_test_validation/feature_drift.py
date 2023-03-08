@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains the Drift check."""
+"""Module contains Feature Drift check."""
 
 from collections import OrderedDict
 from typing import Dict, List, Optional, Union

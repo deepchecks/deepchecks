@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains the label Drift check."""
+"""Module contains Prediction Drift check."""
 
 import typing as t
 from numbers import Number
