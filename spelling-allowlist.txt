@@ -97,7 +97,7 @@ urlobj
 qs
 urlobj
 labextension
-TrainTestPredictionDrift
+PredictionDrift
 PredictionDrift
 nbclassic
 REPL

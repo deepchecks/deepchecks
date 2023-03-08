@@ -16,14 +16,14 @@ from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries,
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.tabular import Dataset
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.tabular.checks import TrainTestLabelDrift
+from deepchecks.tabular.checks import LabelDrift
 from tests.base.utils import equal_condition_result
 
 
 def test_no_drift_classification_label(non_drifted_classification_label):
     # Arrange
     train, test = non_drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = LabelDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test)
@@ -37,7 +37,7 @@ def test_no_drift_classification_label(non_drifted_classification_label):
 def test_drift_classification_label_cramers_v_resize(drifted_classification_label):
     # Arrange
     train, test = drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='cramers_v')
+    check = LabelDrift(categorical_drift_method='cramers_v')
 
     # Act
     result = check.run(train, test, with_display=False)
@@ -54,7 +54,7 @@ def test_drift_classification_label_cramers_v_resize(drifted_classification_labe
 def test_drift_classification_label(drifted_classification_label):
     # Arrange
     train, test = drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = LabelDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test)
@@ -70,7 +70,7 @@ def test_drift_classification_label_imbalanced():
     # Arrange
     train = Dataset(pd.DataFrame({'d': np.ones(10000)}), label=np.array([0] * 9900 + [1] * 100))
     test = Dataset(pd.DataFrame({'d': np.ones(10000)}), label=np.array([0] * 9800 + [1] * 200))
-    check = TrainTestLabelDrift(categorical_drift_method='cramers_v', balance_classes=True)
+    check = LabelDrift(categorical_drift_method='cramers_v', balance_classes=True)
 
     # Act
     result = check.run(train, test)
@@ -86,7 +86,7 @@ def test_drift_classification_label_imbalanced():
 def test_drift_not_enough_samples(drifted_classification_label):
     # Arrange
     train, test = drifted_classification_label
-    check = TrainTestLabelDrift(min_samples=1000000)
+    check = LabelDrift(min_samples=1000000)
 
     # Assert
     assert_that(calling(check.run).with_args(train, test),
@@ -96,7 +96,7 @@ def test_drift_not_enough_samples(drifted_classification_label):
 def test_drift_classification_label_without_display(drifted_classification_label):
     # Arrange
     train, test = drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI')
+    check = LabelDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(train, test, with_display=False)
@@ -112,7 +112,7 @@ def test_drift_classification_label_without_display(drifted_classification_label
 def test_drift_regression_label_emd(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(numerical_drift_method='EMD')
+    check = LabelDrift(numerical_drift_method='EMD')
 
     # Act
     result = check.run(train, test)
@@ -126,7 +126,7 @@ def test_drift_regression_label_emd(drifted_regression_label):
 def test_drift_regression_label_ks(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(numerical_drift_method='KS')
+    check = LabelDrift(numerical_drift_method='KS')
 
     # Act
     result = check.run(train, test)
@@ -141,7 +141,7 @@ def test_drift_regression_label_ks(drifted_regression_label):
 def test_reduce_output_drift_regression_label(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
+    check = LabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(train, test)
@@ -157,7 +157,7 @@ def test_reduce_output_drift_regression_label(drifted_regression_label):
 def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Arrange
     train, test = drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD').add_condition_drift_score_less_than()
+    check = LabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test)
@@ -174,7 +174,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
 def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     # Arrange
     train, test = drifted_regression_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD').add_condition_drift_score_less_than()
+    check = LabelDrift(categorical_drift_method='PSI', numerical_drift_method='EMD').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test)
@@ -192,7 +192,7 @@ def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
 def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classification_label):
     # Arrange
     train, test = non_drifted_classification_label
-    check = TrainTestLabelDrift(categorical_drift_method='PSI') \
+    check = LabelDrift(categorical_drift_method='PSI') \
         .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
                                              max_allowed_numeric_score=1)
 

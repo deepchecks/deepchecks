@@ -42,7 +42,7 @@ on the prediction output.
 
 from sklearn.preprocessing import LabelEncoder
 
-from deepchecks.tabular.checks import TrainTestPredictionDrift
+from deepchecks.tabular.checks import PredictionDrift
 from deepchecks.tabular.datasets.classification import adult
 
 #%%
@@ -93,7 +93,7 @@ model = model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label
 # Run check
 # =========
 
-check = TrainTestPredictionDrift()
+check = PredictionDrift()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
 result
 
@@ -102,6 +102,6 @@ result
 # the default behavior for multiclass tasks. To force this behavior for binary tasks, set the ``drift_mode`` parameter
 # to ``prediction``.
 
-check = TrainTestPredictionDrift(drift_mode='prediction')
+check = PredictionDrift(drift_mode='prediction')
 result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
 result

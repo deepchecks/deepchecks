@@ -69,7 +69,7 @@ Run the Check on a Classification Task (MNIST)
 #
 #       from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset
 
-from deepchecks.vision.checks import TrainTestPredictionDrift
+from deepchecks.vision.checks import PredictionDrift
 from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
@@ -82,10 +82,10 @@ test_ds = load_dataset(train=False, batch_size=64, object_type='VisionData')
 
 
 #%%
-# Running TrainTestPredictionDrift on classification
+# Running PredictionDrift on classification
 # --------------------------------------------------
 
-check = TrainTestPredictionDrift()
+check = PredictionDrift()
 result = check.run(train_ds, test_ds)
 result
 
@@ -151,7 +151,7 @@ mod_test_ds._batch_loader.collate_fn = generate_collate_fn_with_label_drift(mod_
 # Run the check
 # -------------
 
-check = TrainTestPredictionDrift()
+check = PredictionDrift()
 result = check.run(train_ds, mod_test_ds)
 result
 
@@ -161,7 +161,7 @@ result
 # We could also add a condition to the check to alert us about changes in the prediction
 # distribution, such as the one that occurred here.
 
-check = TrainTestPredictionDrift().add_condition_drift_score_less_than()
+check = PredictionDrift().add_condition_drift_score_less_than()
 result = check.run(train_ds, mod_test_ds)
 result
 
@@ -207,7 +207,7 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 
 #%%
 
-check = TrainTestPredictionDrift()
+check = PredictionDrift()
 result = check.run(train_ds, test_ds)
 result
 

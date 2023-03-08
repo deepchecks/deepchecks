@@ -115,9 +115,9 @@ test_dataset = Dataset(df_test, label='target', cat_features=cat_features)
 # =============
 # Let's run deepchecks' feature drift check and see the results
 
-from deepchecks.tabular.checks import TrainTestFeatureDrift
+from deepchecks.tabular.checks import FeatureDrift
 
-check = TrainTestFeatureDrift()
+check = FeatureDrift()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 result.show()
 
@@ -161,7 +161,7 @@ result.show(show_additional_outputs=False)
 # Get an aggregated value
 # =======================
 #
-# Using the :func:`reduce_output <deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift.reduce_output>`
+# Using the :func:`reduce_output <deepchecks.tabular.checks.train_test_validation.FeatureDrift.reduce_output>`
 # function we can combine the drift values per feature and get a collective score
 # that reflects the effect of the drift on the model, taking into account all the features.
 # In scenarios where labels are unavailable (either temporarily of permanently)
@@ -185,7 +185,7 @@ result.show(show_additional_outputs=False)
 # ``max``: Maximum value of all the individual feature's drift scores.
 #
 
-check = TrainTestFeatureDrift(aggregation_method='weighted')
+check = FeatureDrift(aggregation_method='weighted')
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 result.reduce_output()
 #%%

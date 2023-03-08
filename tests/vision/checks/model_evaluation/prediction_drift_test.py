@@ -13,13 +13,13 @@
 from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, calling, raises
 
 from deepchecks.core.errors import NotEnoughSamplesError
-from deepchecks.vision.checks import TrainTestPredictionDrift
+from deepchecks.vision.checks import PredictionDrift
 from tests.base.utils import equal_condition_result
 
 
 def test_no_drift_classification(mnist_visiondata_train):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = PredictionDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_train)
@@ -35,7 +35,7 @@ def test_no_drift_classification(mnist_visiondata_train):
 
 def test_no_drift_object_detection(coco_visiondata_train):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
+    check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_train)
@@ -59,7 +59,7 @@ def test_no_drift_object_detection(coco_visiondata_train):
 
 def test_no_drift_object_detection_without_display(coco_visiondata_train):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
+    check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
     result = check.run(coco_visiondata_train, coco_visiondata_train, with_display=False)
@@ -83,7 +83,7 @@ def test_no_drift_object_detection_without_display(coco_visiondata_train):
 
 def test_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = PredictionDrift(categorical_drift_method='PSI')
 
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
@@ -100,7 +100,7 @@ def test_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test
 
 def test_with_drift_segmentation(segmentation_coco_visiondata_train, segmentation_coco_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift(numerical_drift_method='KS')
+    check = PredictionDrift(numerical_drift_method='KS')
 
     # Act
     result = check.run(segmentation_coco_visiondata_train, segmentation_coco_visiondata_test)
@@ -122,7 +122,7 @@ def test_with_drift_segmentation(segmentation_coco_visiondata_train, segmentatio
 
 def test_reduce_with_drift_classification(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI')
+    check = PredictionDrift(categorical_drift_method='PSI')
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
     # Assert
@@ -134,7 +134,7 @@ def test_reduce_with_drift_classification(mnist_visiondata_train, mnist_visionda
 def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
     train, test = mnist_visiondata_train, mnist_visiondata_test
-    check = TrainTestPredictionDrift(categorical_drift_method='cramers_v')
+    check = PredictionDrift(categorical_drift_method='cramers_v')
 
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
@@ -151,7 +151,7 @@ def test_with_drift_classification_cramer(mnist_visiondata_train, mnist_visionda
 
 def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                      max_num_categories_for_drift=10, min_category_size_ratio=0)
 
     # Act
@@ -174,7 +174,7 @@ def test_with_drift_object_detection(coco_visiondata_train, coco_visiondata_test
 
 def test_with_drift_object_detection_not_enough_samples(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift(min_samples=1000)
+    check = PredictionDrift(min_samples=1000)
 
     # Assert
     assert_that(calling(check.run).with_args(coco_visiondata_train, coco_visiondata_test),
@@ -184,7 +184,7 @@ def test_with_drift_object_detection_not_enough_samples(coco_visiondata_train, c
 
 def test_with_drift_object_detection_change_max_cat(coco_visiondata_train, coco_visiondata_test):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                      max_num_categories_for_drift=100, min_category_size_ratio=0)
 
     # Act
@@ -213,7 +213,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_visiondata_tr
 
     alternative_measurements = [
         {'name': 'test', 'method': prop, 'output_type': 'numerical'}]
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                      prediction_properties=alternative_measurements)
 
     # Act
@@ -231,7 +231,7 @@ def test_with_drift_object_detection_alternative_measurements(coco_visiondata_tr
 
 def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
+    check = PredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
     mod_train_ds, mod_test_ds = mnist_drifted_datasets
 
     # Act
@@ -250,7 +250,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
 
 def test_condition_pass(mnist_visiondata_train):
     # Arrange
-    check = TrainTestPredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
+    check = PredictionDrift(categorical_drift_method='PSI').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_train)
