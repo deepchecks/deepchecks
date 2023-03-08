@@ -8,4 +8,4 @@ Getting Started
 
     welcome
     installation
-    when_should_you_use
+    

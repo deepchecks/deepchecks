@@ -172,17 +172,19 @@ vision-torch-tf-setup: env
 
 	@$(PIP) install -q "tensorflow-hub==0.12.0";
 
+nlp-tests-setup: env
+	@echo "####  installing nlp properties packages #### "
+	$(PIP) install -q "langdetect>=1.0.9" "textblob>=0.17.1";
 
-requirements: vision-torch-tf-setup
+requirements: vision-torch-tf-setup nlp-tests-setup
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
 	@$(PIP) install -U pip
+	@$(PIP) install wheel setuptools setuptools_scm
 	@$(PIP) install -q \
-		wheel setuptools \
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
-
 
 doc-requirements: $(ENV)
 	@echo "####  installing documentation dependencies, it could take some time, please wait! #### "
@@ -202,7 +204,8 @@ validate: pylint docstring
 
 
 pylint: dev-requirements
-	$(ANALIZE) $(SOURCES) $(TEST_CODE)
+	$(ANALIZE) $(SOURCES)
+	$(ANALIZE) $(TEST_CODE) --ignore-paths='.*\/checks\/.+$\'
 	$(FLAKE8) $(SOURCES)
 	$(FLAKE8_RST) $(SOURCES)
 
@@ -230,6 +233,7 @@ test-win:
 	$(PIP_WIN) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
+	@$(PIP_WIN) install -q "langdetect>=1.0.9" "textblob>=0.17.1";
 	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
 	@$(PIP_WIN) install -q "tensorflow==2.11.0";
 	@$(PIP_WIN) install -U pip

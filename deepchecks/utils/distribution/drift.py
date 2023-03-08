@@ -29,7 +29,7 @@ from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.strings import format_number
 
 __all__ = ['calc_drift_and_plot', 'get_drift_method', 'SUPPORTED_CATEGORICAL_METHODS', 'SUPPORTED_NUMERIC_METHODS',
-           'drift_condition', 'get_drift_plot_sidenote']
+           'drift_condition', 'get_drift_plot_sidenote', 'cramers_v', 'psi']
 
 PSI_MIN_PERCENTAGE = 0.01
 SUPPORTED_CATEGORICAL_METHODS = ['Cramer\'s V', 'PSI']
@@ -97,7 +97,7 @@ def rebalance_distributions(dist1_counts: np.array, dist2_counts: np.array):
 
 def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
               balance_classes: bool = False, min_category_size_ratio: float = 0, max_num_categories: int = None,
-              sort_by: str = 'dist1') -> float:
+              sort_by: str = 'dist1', from_freqs: bool = False) -> float:
     """Calculate the Cramer's V statistic.
 
     For more on Cramer's V, see https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
@@ -131,6 +131,8 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
         - 'dist2': Sort by the largest dist2 categories.
         - 'difference': Sort by the largest difference between categories.
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+    from_freqs: bool, default: False
+        Whether the data is already in the form of frequencies.
     Returns
     -------
     float
@@ -139,16 +141,20 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
     """
     # If balance_classes is True, min_category_size_ratio should not affect results:
     min_category_size_ratio = min_category_size_ratio if balance_classes is False else 0
-    dist1_counts, dist2_counts, cat_list = preprocess_2_cat_cols_to_same_bins(dist1, dist2,
-                                                                              min_category_size_ratio,
-                                                                              max_num_categories, sort_by)
-    if len(cat_list) == 1:  # If the distributions have the same single value
-        return 0
 
-    if balance_classes is True:
-        dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)
+    if from_freqs:
+        dist1_counts, dist2_counts = dist1, dist2
     else:
-        dist1_counts, dist2_counts = _balance_sizes_downsizing(dist1_counts, dist2_counts)
+        dist1_counts, dist2_counts, cat_list = preprocess_2_cat_cols_to_same_bins(dist1, dist2,
+                                                                                  min_category_size_ratio,
+                                                                                  max_num_categories, sort_by)
+        if len(cat_list) == 1:  # If the distributions have the same single value
+            return 0
+
+        if balance_classes is True:
+            dist1_counts, dist2_counts = rebalance_distributions(dist1_counts, dist2_counts)
+        else:
+            dist1_counts, dist2_counts = _balance_sizes_downsizing(dist1_counts, dist2_counts)
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts], dtype=int)
 
     # Based on https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V# bias correction method # noqa: SC100
@@ -177,7 +183,8 @@ def _balance_sizes_downsizing(dist1_counts, dist2_counts, round_to_int: bool = T
 
 
 def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1') -> float:
+        min_category_size_ratio: float = 0, max_num_categories: int = None, sort_by: str = 'dist1',
+        from_freqs: bool = False) -> float:
     """
     Calculate the PSI (Population Stability Index).
 
@@ -207,13 +214,18 @@ def psi(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series]
         - 'dist2': Sort by the largest dist2 categories.
         - 'difference': Sort by the largest difference between categories.
         > Note that this parameter has no effect if max_num_categories = None or there are not enough unique categories.
+    from_freqs: bool, default: False
+        Whether the data is already in the form of frequencies.
     Returns
     -------
     psi
         The PSI score
     """
-    expected_counts, actual_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
-                                                                           max_num_categories, sort_by)
+    if from_freqs:
+        expected_counts, actual_counts = dist1, dist2
+    else:
+        expected_counts, actual_counts, _ = preprocess_2_cat_cols_to_same_bins(dist1, dist2, min_category_size_ratio,
+                                                                               max_num_categories, sort_by)
     size_expected, size_actual = sum(expected_counts), sum(actual_counts)
     psi_value = 0
     for i in range(len(expected_counts)):

@@ -42,7 +42,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
     The PPS represents the ability of a feature to single-handedly predict another feature or label.
     In this check, we specifically use it to assess the ability to predict the label by an image property (e.g.
-    brightness, contrast etc.)
+    brightness, contrast etc.).
     A high PPS (close to 1) can mean that there's a bias in the dataset, as a single property can predict the label
     successfully, using simple classic ML algorithms - meaning that a deep learning algorithm may accidentally learn
     these properties instead of more accurate complex abstractions.
@@ -152,13 +152,13 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
         return CheckResult(value=s_ppscore.to_dict(), display=display, header='Property Label Correlation')
 
-    def add_condition_property_pps_less_than(self: PLC, threshold: float = 0.8) -> PLC:
+    def add_condition_property_pps_less_than(self: PLC, threshold: float = 0.3) -> PLC:
         """
         Add condition that will check that pps of the specified properties is less than the threshold.
 
         Parameters
         ----------
-        threshold : float , default: 0.8
+        threshold : float , default: 0.3
             pps upper bound
         Returns
         -------

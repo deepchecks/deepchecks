@@ -2,7 +2,7 @@
 """
 .. _quick_model_evaluation:
 
-Quickstart - Model Evaluation Suite
+Model Evaluation Suite Quickstart
 ***********************************
 
 The deepchecks model evaluation suite is relevant any time you wish to
@@ -79,7 +79,7 @@ test_ds = Dataset(X_test, label=y_test, cat_features=[])
 # any two batches of data (e.g. train data, test data, a new batch of data
 # that recently arrived)
 #
-# Check out the :doc:`"when should you use deepchecks guide" </getting-started/when_should_you_use>`
+# Check out the :ref:`when you should use <when_should_you_use_deepchecks>`
 # for some more info about the existing suites and when to use them.
 
 from deepchecks.tabular.suites import model_evaluation
@@ -162,3 +162,5 @@ result.passed(fail_if_warning=False)
 #
 # For more info about working with conditions, see the detailed
 # :doc:`/user-guide/general/customizations/examples/plot_configure_check_conditions` guide.
+
+# sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/tabular_quickstarts/model_evaluation.png'

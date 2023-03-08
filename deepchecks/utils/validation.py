@@ -14,11 +14,15 @@
 
 import typing as t
 
+import numpy as np
+import pandas as pd
+
 from deepchecks.core import errors
 from deepchecks.utils.typing import Hashable
 
 __all__ = [
     'ensure_hashable_or_mutable_sequence',
+    'is_sequence_not_str'
 ]
 
 
@@ -45,3 +49,8 @@ def ensure_hashable_or_mutable_sequence(
     raise errors.DeepchecksValueError(message.format(
         type=type(value).__name__
     ))
+
+
+def is_sequence_not_str(value):
+    """Check if value is a non str sequence."""
+    return isinstance(value, (t.Sequence, pd.Series, np.ndarray)) and not isinstance(value, str)
