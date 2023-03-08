@@ -26,7 +26,6 @@ class TrainTestPredictionDrift(PredictionDrift):
 
     def __init__(self, *args, **kwargs):
         warnings.warn("The TrainTestPredictionDrift check is deprecated and will be removed in the 0.14 version. "
-                      "Please use the PredictionDrift check instead.",
-                      DeprecationWarning, stacklevel=2)
+                      "Please use the PredictionDrift check instead.", DeprecationWarning, stacklevel=2)
 
         PredictionDrift.__init__(self, *args, **kwargs)

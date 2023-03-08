@@ -26,5 +26,5 @@ class TrainTestFeatureDrift(FeatureDrift):
 
     def __init__(self, *args, **kwargs):
         warnings.warn("The TrainTestFeatureDrift check is deprecated and will be removed in the 0.14 version."
-                      " Please use the FeatureDrift check instead")
+                      " Please use the FeatureDrift check instead", DeprecationWarning, stacklevel=2)
         FeatureDrift.__init__(self, *args, **kwargs)
