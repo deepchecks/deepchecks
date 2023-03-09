@@ -130,6 +130,7 @@ sphinx_gallery_conf = {
         "user-guide/tabular/tutorials",
         "user-guide/vision/tutorials",
         "user-guide/tabular/quickstarts",
+        "user-guide/nlp/quickstarts",
         "user-guide/general/customizations",
         "user-guide/general/exporting_results",
     ],  # path to your example scripts
@@ -139,6 +140,7 @@ sphinx_gallery_conf = {
         "user-guide/tabular/auto_tutorials",
         "user-guide/vision/auto_tutorials",
         "user-guide/tabular/auto_quickstarts",
+        "user-guide/nlp/auto_quickstarts",
         "user-guide/general/customizations/examples",
         "user-guide/general/exporting_results/examples",
     ], # path to where to save gallery generated output

@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -16,11 +16,10 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import (MetadataSegmentsPerformance, PropertyLabelCorrelation, PropertySegmentsPerformance,
-                                   SingleDatasetPerformance, TextPropertyOutliers, TrainTestLabelDrift,
-                                   TrainTestPredictionDrift)
+from deepchecks.nlp.checks import (LabelDrift, MetadataSegmentsPerformance, PredictionDrift, PropertyLabelCorrelation,
+                                   PropertySegmentsPerformance, SingleDatasetPerformance, TextPropertyOutliers)
 
-__all__ = ['train_test_validation',
+__all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
 
 
@@ -96,7 +95,7 @@ def train_test_validation(n_samples: int = None,
     kwargs = {**non_none_args, **kwargs}
     return Suite(
         'Train Test Validation Suite',
-        TrainTestLabelDrift().add_condition_drift_score_less_than(),
+        LabelDrift().add_condition_drift_score_less_than(),
     )
 
 
@@ -135,7 +134,7 @@ def model_evaluation(n_samples: int = None,
     return Suite(
         'Model Evaluation Suite',
         SingleDatasetPerformance(),
-        TrainTestPredictionDrift().add_condition_drift_score_less_than(),
+        PredictionDrift().add_condition_drift_score_less_than(),
         PropertySegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
         MetadataSegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
     )

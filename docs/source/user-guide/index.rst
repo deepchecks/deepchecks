@@ -66,7 +66,8 @@ NLP
     :maxdepth: 2
     :caption: NLP
 
-    nlp/coming_soon
+    nlp/auto_quickstarts/index
+    nlp/supported_tasks
 
 
 .. _user_guide__integrations:

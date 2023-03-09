@@ -77,6 +77,12 @@ Start Working with Deepchecks Testing
         End-to-end guides demonstrating how to start working with various CV use cases 
         (object detection, classification and more)
 
+    .. grid-item-card:: 🔤️ NLP Quickstarts (Note: NLP is in Alpha Release) 🔤️
+        :link-type: doc
+        :link: /user-guide/nlp/auto_quickstarts/index
+
+        Initial release demonstrating how to test NLP models and data. Future releases
+        to come! Currently supports text classification and token classification.
 
 
 .. _welcome__get_help:

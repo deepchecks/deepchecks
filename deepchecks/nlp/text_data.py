@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (C) 2021-2022 Deepchecks (https://www.deepchecks.com)
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
@@ -53,6 +53,7 @@ class TextData:
     label : t.Optional[TTextLabel], default: None
         The label for the text data. Can be either a text_classification label or a token_classification label.
         If None, the label is not set.
+
         - text_classification label - For text classification the accepted label format differs between multilabel and
           single label cases. For single label data, the label should be passed as a sequence of labels, with one entry
           per sample that can be either a string or an integer. For multilabel data, the label should be passed as a
@@ -385,6 +386,18 @@ class TextData:
                 properties.columns[i]: 'categorical' if properties.columns[i] in cat_features else 'numeric'
                 for i in range(len(properties.columns))}
         self._properties_types = properties_types
+
+    def set_properties(self, properties: pd.DataFrame):
+        """Set the properties of the dataset."""
+        if self._properties is not None:
+            warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        if not isinstance(properties, pd.DataFrame):
+            raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
+                                       f' pandas DataFrame')
+        if list(properties.index) != self.index:
+            raise DeepchecksValueError('properties index must be the same as the text data index')
+        self._properties = properties
 
     @property
     def properties(self) -> pd.DataFrame:

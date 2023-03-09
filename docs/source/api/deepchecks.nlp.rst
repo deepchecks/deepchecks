@@ -13,7 +13,14 @@ deepchecks.nlp
     
     checks
     suites
+    datasets
     metric_utils
+    utils
+    text_data
+    base_checks
+    context
+    metrics
+    suite
 
 .. rubric:: Classes
     
