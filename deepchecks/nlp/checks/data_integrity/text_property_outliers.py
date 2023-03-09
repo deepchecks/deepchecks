@@ -22,6 +22,7 @@ from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
 from deepchecks.nlp import Context, SingleDatasetCheck, TextData
 from deepchecks.nlp.utils.text_utils import trim
+from deepchecks.utils.distribution.plot import feature_distribution_traces
 from deepchecks.utils.outliers import iqr_outliers_range
 from deepchecks.utils.strings import format_number
 
@@ -103,8 +104,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
         result = {}
 
         property_types = dataset.properties_types
-        properties = dataset.properties[[col for col in dataset.properties.columns if property_types[col] == 'numeric']]
-        properties = properties.to_dict(orient='list')
+        df_properties = dataset.properties[[col for col in dataset.properties.columns if property_types[col] == 'numeric']]
+        properties = df_properties.to_dict(orient='list')
 
         # The values are in the same order as the batch order, so always keeps the same order in order to access
         # the original sample at this index location
@@ -168,6 +169,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
         if context.with_display:
             display = []
             no_outliers = pd.Series([], dtype='object')
+
             for property_name, info in result.items():
                 # If info is string it means there was error
                 if isinstance(info, str):
@@ -175,26 +177,76 @@ class TextPropertyOutliers(SingleDatasetCheck):
                 elif len(info['indices']) == 0:
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
                 else:
-                    # Create id of alphabetic characters
-                    sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
-                    values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
-                                              for x in corpus[property_name]])
-                    images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
-                                              for x in corpus[property_name]])
+                    dist = df_properties[property_name].loc[info['indices']]
+                    dist_traces, dist_x_axis, dist_y_axis = feature_distribution_traces(
+                        dist, dist, property_name, is_categorical=False,
+                        # max_num_categories=max_num_categories_for_display,
+                        # show_categories_by=show_categories_by,
+                        dataset_names=['property', '_'])
 
-                    html = HTML_TEMPLATE.format(
-                        prop_name=property_name,
-                        values=values_combine,
-                        text=images_combine,
-                        count=len(info['indices']),
-                        n_of_images=len(corpus[property_name]),
-                        lower_limit=format_number(info['lower_limit']),
-                        upper_limit=format_number(info['upper_limit']),
-                        id=sid
-                    )
+                    # xs = sorted(np.concatenate((
+                    #     np.linspace(x_range[0], x_range[1], 50),
+                    #     np.quantile(train_column, q=np.arange(0.02, 1, 0.02)),
+                    #     np.quantile(test_column, q=np.arange(0.02, 1, 0.02)),
+                    #     [mean_train_column, mean_test_column, median_train_column, median_test_column]
+                    # )))
+                    #
+                    # train_density = get_density(train_column, xs)
+                    # test_density = get_density(test_column, xs)
+                    #
+                    # dist_traces_create_distribution_scatter_plot(xs, train_density, mean_train_column, median_train_column,
+                    #                                   is_train=True, dataset_names=dataset_names)
+                    #
+                    # xaxis_layout = dict(fixedrange=False,
+                    #                     range=x_range_to_show,
+                    #                     title=column_name)
+                    # yaxis_layout = dict(title='Probability Density', fixedrange=True)
 
-                    display.append(html)
-            display = [''.join(display)]
+                    import plotly.graph_objects as go
+
+                    fig = go.Figure(data=dist_traces)
+                    fig.update_xaxes(dist_x_axis)
+                    fig.update_yaxes(dist_y_axis)
+
+                    fig.update_layout(
+                        legend=dict(
+                            title='Legend',
+                            yanchor='top',
+                            y=0.6),
+                        height=400,
+                        title=dict(text=property_name, x=0.5, xanchor='center'),
+                        bargroupgap=0)
+
+                    display.append(fig)
+
+            # str_displays = []
+            # for property_name, info in result.items():
+            #     # If info is string it means there was error
+            #     if isinstance(info, str):
+            #         no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
+            #     elif len(info['indices']) == 0:
+            #         no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
+            #     else:
+            #         # Create id of alphabetic characters
+            #         sid = ''.join([choice(string.ascii_uppercase) for _ in range(6)])
+            #         values_combine = ''.join([f'<div class="{sid}-item">{format_number(x[0])}</div>'
+            #                                   for x in corpus[property_name]])
+            #         images_combine = ''.join([f'<div class="{sid}-item">{x[1]}</div>'
+            #                                   for x in corpus[property_name]])
+            #
+            #         html = HTML_TEMPLATE.format(
+            #             prop_name=property_name,
+            #             values=values_combine,
+            #             text=images_combine,
+            #             count=len(info['indices']),
+            #             n_of_images=len(corpus[property_name]),
+            #             lower_limit=format_number(info['lower_limit']),
+            #             upper_limit=format_number(info['upper_limit']),
+            #             id=sid
+            #         )
+            #
+            #         str_displays.append(html)
+            # display += [''.join(str_displays)]
 
             if not no_outliers.empty:
                 grouped = no_outliers.groupby(level=0).unique().str.join(', ')
