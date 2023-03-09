@@ -31,7 +31,7 @@ Supported Labels and Predictions Format
 =======================================
 
 While labels are passed when constructing the :class:`TextData <deepchecks.nlp.TextData>` object, predictions are passed
-separately to the ``run`` method of the check / suite. Labels and predictions must be in the format detailed in this
+separately to the ``run()`` method of the check / suite. Labels and predictions must be in the format detailed in this
 section, according to the task type.
 
 .. _nlp_supported_text_classification:
@@ -111,20 +111,23 @@ list of the tokens to the ``tokenized_text`` argument of the :class:`TextData <d
 constructor method. Otherwise, deepchecks will attempt to tokenize the text samples (given to the ``text`` argument)
 by splitting them by spaces.
 
+Formats - Example
+~~~~~~~~~~~~~~~~
+
 The following label and prediction examples are given for the following text sample:
 
 >>> tokenized_text = [['Mary', 'had', 'a', 'little', 'lamb'],
 >>>                  ['Mary', 'lives', 'in', 'London', 'and', 'Paris']]
 
 Label Format
-~~~~~~~~~~~~
+""""""""""""""""""""
 
 Here is an example of IOB annotation for the above text sample:
 
 >>> token_classification_label = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO']]
 
 Prediction Format
-~~~~~~~~~~~~~~~~~
+""""""""""""""""""""""""
 
 * **predictions** - Predictions for token classification should be given in the exact same format as the labels.
 * **probabilities** - No probabilities should be passed for Token Classification tasks. Passing probabilities will
