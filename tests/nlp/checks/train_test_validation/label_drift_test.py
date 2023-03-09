@@ -8,18 +8,18 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Test for the nlp LabelDrift check"""
+"""Test for the NLP LabelDrift check"""
 
 from hamcrest import assert_that, close_to, has_items
 
-from deepchecks.nlp.checks import TrainTestLabelDrift
+from deepchecks.nlp.checks import LabelDrift
 from tests.base.utils import equal_condition_result
 
 
 def test_tweet_emotion(tweet_emotion_train_test_textdata):
     # Arrange
     train, test = tweet_emotion_train_test_textdata
-    check = TrainTestLabelDrift().add_condition_drift_score_less_than(0.1)
+    check = LabelDrift().add_condition_drift_score_less_than(0.1)
     # Act
     result = check.run(train, test)
     condition_result = check.conditions_decision(result)
@@ -37,7 +37,7 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata):
 def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata):
     # Arrange
     train, _ = tweet_emotion_train_test_textdata
-    check = TrainTestLabelDrift().add_condition_drift_score_less_than()
+    check = LabelDrift().add_condition_drift_score_less_than()
     # Act
     result = check.run(train, train)
     condition_result = check.conditions_decision(result)
