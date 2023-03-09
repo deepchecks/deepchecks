@@ -65,7 +65,7 @@ checks related to various types of issues, such as model performance,
 data integrity, distribution mismatches, and more.
 
 
-## 🔢 Tabular Support, 🖼️ Computer Vision & 🔤 NLP Support 
+## 🔢 Tabular, 🖼️ Computer Vision & 🔤 NLP Support 
 
 **This README refers to the Tabular version** of deepchecks.
 
