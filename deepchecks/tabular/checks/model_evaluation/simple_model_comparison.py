@@ -321,7 +321,7 @@ class SimpleModelComparison(TrainTestCheck):
             elif task_type == TaskType.REGRESSION:
                 simple_model = RegressionUniformModel()
         elif self.strategy == 'stratified':
-            simple_model = RandomModel()
+            simple_model = RandomModel(random_state=self.random_state)
         elif self.strategy == 'most_frequent':
             if task_type == TaskType.REGRESSION:
                 simple_model = DummyRegressor(strategy='mean')
