@@ -96,7 +96,6 @@ class TextPropertyOutliers(SingleDatasetCheck):
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
 
-
     def run_logic(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Compute final result."""
         dataset = context.get_data_by_kind(dataset_kind)
@@ -105,6 +104,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
 
         property_types = dataset.properties_types
         properties = dataset.properties[[col for col in dataset.properties.columns if property_types[col] == 'numeric']]
+        properties = properties.to_dict(orient='list')
 
         # The values are in the same order as the batch order, so always keeps the same order in order to access
         # the original sample at this index location
