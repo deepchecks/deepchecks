@@ -387,18 +387,6 @@ class TextData:
                 for i in range(len(properties.columns))}
         self._properties_types = properties_types
 
-    def set_properties(self, properties: pd.DataFrame):
-        """Set the properties of the dataset."""
-        if self._properties is not None:
-            warnings.warn('Properties already exist, overwriting them', UserWarning)
-
-        if not isinstance(properties, pd.DataFrame):
-            raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
-                                       f' pandas DataFrame')
-        if list(properties.index) != self.index:
-            raise DeepchecksValueError('properties index must be the same as the text data index')
-        self._properties = properties
-
     @property
     def properties(self) -> pd.DataFrame:
         """Return the properties of the dataset."""

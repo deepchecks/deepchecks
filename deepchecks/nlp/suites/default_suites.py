@@ -57,7 +57,7 @@ def data_integrity(n_samples: int = None,
     return Suite(
         'Data Integrity Suite',
         PropertyLabelCorrelation().add_condition_property_pps_less_than(),
-        TextPropertyOutliers().add_condition_property_outliers_ratio_less_than(),
+        TextPropertyOutliers()
     )
 
 
