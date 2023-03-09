@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_train_test_label_drift:
+.. _plot_tabular_label_drift:
 
-Train Test Label Drift
+Label Drift
 **********************
 
 This notebooks provides an overview for using and understanding label drift check.
@@ -40,7 +40,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import TrainTestLabelDrift
+from deepchecks.tabular.checks import LabelDrift
 
 #%%
 # Run Check on a Classification Label
@@ -69,7 +69,7 @@ df_train.head()
 # Run Check
 # ===============================
 
-check = TrainTestLabelDrift()
+check = LabelDrift()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 result
 
@@ -95,7 +95,7 @@ test_dataset = Dataset(df_test, label='target')
 # Run check
 # ---------
 
-check = TrainTestLabelDrift()
+check = LabelDrift()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 result
 
@@ -103,5 +103,5 @@ result
 # Add a Condition
 # ===============
 
-check_cond = TrainTestLabelDrift().add_condition_drift_score_less_than()
+check_cond = LabelDrift().add_condition_drift_score_less_than()
 check_cond.run(train_dataset=train_dataset, test_dataset=test_dataset)

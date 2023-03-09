@@ -9,3 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """This file changes default 'ignore' action of DeprecationWarnings for specific deprecation messages."""
+import warnings
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.*check is deprecated and will be removed in the 0.14 version.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

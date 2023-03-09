@@ -9,16 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the tabular package deprecation warnings."""
+import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
 from sklearn.metrics import accuracy_score
-import warnings
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import (MultiModelPerformanceReport, SegmentPerformance, SimpleModelComparison,
                                        WeakSegmentsPerformance, WholeDatasetDrift, RegressionSystematicError,
-                                       CategoryMismatchTrainTest)
+                                       CategoryMismatchTrainTest, TrainTestPredictionDrift, TrainTestFeatureDrift,
+                                       TrainTestLabelDrift)
 
 
 def test_deprecation_segment_performance_warning():
@@ -99,3 +101,21 @@ def test_deprecation_category_mismatch_train_test():
     with pytest.warns(DeprecationWarning, match='CategoryMismatchTrainTest is deprecated, use NewCategoryTrainTest '
                                                 'instead'):
         _ = CategoryMismatchTrainTest()
+
+
+def test_deprecation_warning_train_test_prediction_drift():
+    with pytest.warns(DeprecationWarning, match="The TrainTestPredictionDrift check is deprecated and will be removed"
+                                                " in the 0.14 version. Please use the PredictionDrift check instead."):
+        _ = TrainTestPredictionDrift()
+
+
+def test_deprecation_warning_train_test_feature_drift():
+    with pytest.warns(DeprecationWarning, match="The TrainTestFeatureDrift check is deprecated and will be removed in"
+                                                " the 0.14 version. Please use the FeatureDrift check instead"):
+        _ = TrainTestFeatureDrift()
+
+
+def test_deprecation_warning_train_test_label_drift():
+    with pytest.warns(DeprecationWarning, match="The TrainTestLabelDrift check is deprecated and will be removed in "
+                                                "the 0.14 version.Please use the LabelDrift check instead."):
+        _ = TrainTestLabelDrift()

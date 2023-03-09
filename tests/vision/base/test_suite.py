@@ -270,7 +270,7 @@ def test_single_dataset(coco_visiondata_train, coco_visiondata_test):
                               'Heatmap Comparison', 'Image Dataset Drift', 'Image Property Drift',
                               'Image Property Outliers', 'Label Property Outliers', 'Mean Average Precision Report',
                               'Mean Average Recall Report', 'New Labels', 'Property Label Correlation',
-                              'Simple Model Comparison', 'Train Test Label Drift', 'Train Test Prediction Drift',
+                              'Simple Model Comparison', 'Label Drift', 'Prediction Drift',
                               'Weak Segments Performance']
 
     res_test = suite.run(coco_visiondata_train, coco_visiondata_test,

@@ -241,7 +241,7 @@ result.show()
 # a custom :doc:`property </user-guide/vision/vision_properties>`. We'll write label properties and run the label drift
 # check.
 
-from deepchecks.vision.checks import TrainTestLabelDrift
+from deepchecks.vision.checks import LabelDrift
 
 
 def number_of_detections(labels) -> t.List[int]:
@@ -251,7 +251,7 @@ def number_of_detections(labels) -> t.List[int]:
 
 # We will pass this object as parameter to checks that are using label properties
 label_properties = [{'name': '# Detections per image', 'method': number_of_detections, 'output_type': 'numerical'}]
-check = TrainTestLabelDrift(label_properties=label_properties)
+check = LabelDrift(label_properties=label_properties)
 result = check.run(train_vision_data, test_vision_data)
 result.show()
 

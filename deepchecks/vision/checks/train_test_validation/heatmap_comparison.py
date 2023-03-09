@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains Train Test label Drift check."""
+"""Module contains label Drift check."""
 from collections import defaultdict
 from typing import Iterable, List, Optional, Tuple
 

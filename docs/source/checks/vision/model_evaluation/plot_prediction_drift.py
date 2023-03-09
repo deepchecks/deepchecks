@@ -2,7 +2,7 @@
 """
 .. _plot_vision_train_test_prediction_drift:
 
-Train Test Prediction Drift
+Prediction Drift
 ***************************
 
 This notebooks provides an overview for using and understanding the vision prediction drift check.
@@ -25,7 +25,7 @@ Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
 is a direct indication that a change that happened in the data has affected the model's
 predictions. If labels are available, it's also recommended to run the
-:doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_train_test_label_drift>`.
+:doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_label_drift>`.
 
 For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`
 
@@ -69,7 +69,7 @@ Run the Check on a Classification Task (MNIST)
 #
 #       from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset
 
-from deepchecks.vision.checks import TrainTestPredictionDrift
+from deepchecks.vision.checks import PredictionDrift
 from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
@@ -82,10 +82,10 @@ test_ds = load_dataset(train=False, batch_size=64, object_type='VisionData')
 
 
 #%%
-# Running TrainTestPredictionDrift on classification
+# Running PredictionDrift on classification
 # --------------------------------------------------
 
-check = TrainTestPredictionDrift()
+check = PredictionDrift()
 result = check.run(train_ds, test_ds)
 result
 
@@ -151,7 +151,7 @@ mod_test_ds._batch_loader.collate_fn = generate_collate_fn_with_label_drift(mod_
 # Run the check
 # -------------
 
-check = TrainTestPredictionDrift()
+check = PredictionDrift()
 result = check.run(train_ds, mod_test_ds)
 result
 
@@ -161,7 +161,7 @@ result
 # We could also add a condition to the check to alert us about changes in the prediction
 # distribution, such as the one that occurred here.
 
-check = TrainTestPredictionDrift().add_condition_drift_score_less_than()
+check = PredictionDrift().add_condition_drift_score_less_than()
 result = check.run(train_ds, mod_test_ds)
 result
 
@@ -207,7 +207,7 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 
 #%%
 
-check = TrainTestPredictionDrift()
+check = PredictionDrift()
 result = check.run(train_ds, test_ds)
 result
 

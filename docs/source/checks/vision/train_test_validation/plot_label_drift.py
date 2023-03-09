@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_train_test_label_drift:
+.. _plot_vision_label_drift:
 
-Train Test Label Drift
+Label Drift
 **********************
 
 This notebooks provides an overview for using and understanding label drift check.
@@ -62,7 +62,7 @@ Imports
 #
 #       from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset
 
-from deepchecks.vision.checks import TrainTestLabelDrift
+from deepchecks.vision.checks import LabelDrift
 from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
 #%%
@@ -74,10 +74,10 @@ train_ds = load_dataset(train=True, batch_size=64, object_type='VisionData')
 test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
 
 #%%
-# Running TrainTestLabelDrift on classification
+# Running LabelDrift on classification
 # ---------------------------------------------
 
-check = TrainTestLabelDrift()
+check = LabelDrift()
 result = check.run(train_ds, test_ds)
 result.show()
 
@@ -138,7 +138,7 @@ mod_test_ds._batch_loader.collate_fn = generate_collate_fn_with_label_drift(mod_
 # Run the check
 # =============
 
-check = TrainTestLabelDrift()
+check = LabelDrift()
 check.run(train_ds, mod_test_ds)
 
 #%%
@@ -147,7 +147,7 @@ check.run(train_ds, mod_test_ds)
 # We could also add a condition to the check to alert us to changes in the label
 # distribution, such as the one that occurred here.
 
-check = TrainTestLabelDrift().add_condition_drift_score_less_than()
+check = LabelDrift().add_condition_drift_score_less_than()
 check.run(train_ds, mod_test_ds)
 
 # As we can see, the condition alerts us to the presence of drift in the label.
@@ -186,7 +186,7 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 
 #%%
 
-check = TrainTestLabelDrift()
+check = LabelDrift()
 check.run(train_ds, test_ds)
 
 #%%

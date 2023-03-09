@@ -74,3 +74,10 @@ warnings.filterwarnings(
     category=DeprecationWarning,
     module=r'deepchecks.*'
 )
+
+warnings.filterwarnings(
+    action='once',
+    message=r'.*check is deprecated and will be removed in the 0.14 version.*',
+    category=DeprecationWarning,
+    module=r'deepchecks.*'
+)

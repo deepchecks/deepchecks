@@ -19,14 +19,14 @@ from typing import Callable, Dict, List, Union
 from deepchecks.tabular import Suite
 from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, ConflictingLabels, ConfusionMatrixReport,
                                        DataDuplicates, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
-                                       DateTrainTestLeakageOverlap, FeatureFeatureCorrelation, FeatureLabelCorrelation,
-                                       FeatureLabelCorrelationChange, IdentifierLabelCorrelation, IndexTrainTestLeakage,
-                                       IsSingleValue, MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
+                                       DateTrainTestLeakageOverlap, FeatureDrift, FeatureFeatureCorrelation,
+                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange,
+                                       IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, LabelDrift,
+                                       MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
                                        NewCategoryTrainTest, NewLabelTrainTest, OutlierSampleDetection, PercentOfNulls,
-                                       RegressionErrorDistribution, RocReport, SimpleModelComparison,
+                                       PredictionDrift, RegressionErrorDistribution, RocReport, SimpleModelComparison,
                                        SingleDatasetPerformance, SpecialCharacters, StringLengthOutOfBounds,
-                                       StringMismatch, StringMismatchComparison, TrainTestFeatureDrift,
-                                       TrainTestLabelDrift, TrainTestPerformance, TrainTestPredictionDrift,
+                                       StringMismatch, StringMismatchComparison, TrainTestPerformance,
                                        TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
 from deepchecks.tabular.utils.task_type import TaskType
 
@@ -166,10 +166,10 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
              - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestSamplesMix`
            * - :ref:`plot_tabular_feature_label_correlation_change`
              - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureLabelCorrelationChange`
-           * - :ref:`plot_tabular_train_test_feature_drift`
-             - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift`
-           * - :ref:`plot_tabular_train_test_label_drift`
-             - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestLabelDrift`
+           * - :ref:`plot_tabular_feature_drift`
+             - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureDrift`
+           * - :ref:`plot_tabular_label_drift`
+             - :class:`~deepchecks.tabular.checks.train_test_validation.LabelDrift`
            * - :ref:`plot_tabular_multivariate_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.MultivariateDrift`
 
@@ -223,8 +223,8 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
         TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
         FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than()
         .add_condition_feature_pps_in_train_less_than(),
-        TrainTestFeatureDrift(**kwargs).add_condition_drift_score_less_than(),
-        TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
+        FeatureDrift(**kwargs).add_condition_drift_score_less_than(),
+        LabelDrift(**kwargs).add_condition_drift_score_less_than(),
         MultivariateDrift(**kwargs).add_condition_overall_drift_value_less_than(),
     )
 
@@ -253,8 +253,8 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
              - :class:`~deepchecks.tabular.checks.model_evaluation.ConfusionMatrixReport`
            * - :ref:`plot_tabular_weak_segment_performance`
              - :class:`~deepchecks.tabular.checks.model_evaluation.WeakSegmentPerformance`
-           * - :ref:`plot_tabular_train_test_prediction_drift`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
+           * - :ref:`plot_tabular_prediction_drift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
            * - :ref:`plot_tabular_simple_model_comparison`
              - :class:`~deepchecks.tabular.checks.model_evaluation.SimpleModelComparison`
            * - :ref:`plot_tabular_calibration_score`
@@ -269,8 +269,8 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
              - :class:`~deepchecks.tabular.checks.model_evaluation.BoostingOverfit`
            * - :ref:`plot_tabular_model_inference_time`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ModelInferenceTime`
-           * - :ref:`plot_tabular_train_test_prediction_drift`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
+           * - :ref:`plot_tabular_prediction_drift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
 
     Parameters
     ----------
@@ -318,7 +318,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
         TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
-        TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+        PredictionDrift(**kwargs).add_condition_drift_score_less_than(),
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
         WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         CalibrationScore(**kwargs),
@@ -364,16 +364,16 @@ def production_suite(task_type: str = None,
              - :class:`~deepchecks.tabular.checks.train_test_validation.StringMismatchComparison`
            * - :ref:`plot_tabular_feature_label_correlation_change`
              - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureLabelCorrelationChange`
-           * - :ref:`plot_tabular_train_test_feature_drift`
-             - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestFeatureDrift`
-           * - :ref:`plot_tabular_train_test_label_drift`
-             - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestLabelDrift`
+           * - :ref:`plot_tabular_feature_drift`
+             - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureDrift`
+           * - :ref:`plot_tabular_label_drift`
+             - :class:`~deepchecks.tabular.checks.train_test_validation.LabelDrift`
            * - :ref:`plot_tabular_multivariate_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.MultivariateDrift`
-           * - :ref:`plot_tabular_train_test_prediction_drift`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
-           * - :ref:`plot_tabular_train_test_prediction_drift`
-             - :class:`~deepchecks.tabular.checks.model_evaluation.TrainTestPredictionDrift`
+           * - :ref:`plot_tabular_prediction_drift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
+           * - :ref:`plot_tabular_prediction_drift`
+             - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
            * - :ref:`plot_tabular_string_mismatch`
              - :class:`~deepchecks.tabular.checks.data_integrity.StringMismatch`
            * - :ref:`plot_tabular_feature_label_correlation`
@@ -447,10 +447,10 @@ def production_suite(task_type: str = None,
     if is_comparative:
         checks.append(StringMismatchComparison(**kwargs).add_condition_no_new_variants())
         checks.append(FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than())
-        checks.append(TrainTestFeatureDrift(**kwargs).add_condition_drift_score_less_than())
+        checks.append(FeatureDrift(**kwargs).add_condition_drift_score_less_than())
         checks.append(MultivariateDrift(**kwargs).add_condition_overall_drift_value_less_than())
-        checks.append(TrainTestLabelDrift(ignore_na=True, **kwargs).add_condition_drift_score_less_than())
-        checks.append(TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than())
+        checks.append(LabelDrift(ignore_na=True, **kwargs).add_condition_drift_score_less_than())
+        checks.append(PredictionDrift(**kwargs).add_condition_drift_score_less_than())
         checks.append(TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than())
         checks.append(NewCategoryTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal())
     else:
