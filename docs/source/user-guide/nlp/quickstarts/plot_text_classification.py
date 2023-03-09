@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Quickstart - Getting Started
-****************************
+Test NLP Classification Tasks - Quickstart
+******************************************
 
 In order to run deepchecks for NLP all you need to have are the following for both your train and test data:
 
@@ -99,10 +99,15 @@ print(roc_auc_score(test.label,
 # Running Deepchecks
 # ==================
 #
-# Now that we have our data and model, we can run our first checks!
+# Now that we have our data and model, we can run our first checks! We'll run two types of checks:
 #
-# Performance Checks
-# ------------------
+# 1. `Model Evaluation Checks`_ - checks to run once we have trained our model.
+# 2. `Data Integrity Checks`_ - checks to run on our dataset, before we train our model.
+#
+# You can read more about when should you use deepchecks :ref:`here <when_should_you_use_deepchecks>`.
+#
+# Model Evaluation Checks
+# -----------------------
 #
 # We'll start by running the
 # :class:`TrainTestPredictionDrift <deepchecks.nlp.checks.model_evaluation.train_test_prediction_drift.TrainTestPredictionDrift>`
@@ -146,7 +151,8 @@ result.show()
 #%%
 # As we can see, the check found a segment that has significantly lower performance than the rest of the data. In the
 # first tab of the display we can see that there is a large segment of young Europeans that have significantly lower
-# performance than the rest of the data. Perhaps there is some language gap here?
+# performance than the rest of the data. Perhaps there is some language gap here? We should probably collect and
+# annotate more data from this segment.
 #
 # Properties
 # ^^^^^^^^^^
@@ -156,8 +162,8 @@ result.show()
 #
 # Before we can run the
 # :class:`PropertySegmentsPerformance <deepchecks.nlp.checks.model_evaluation.weak_segments_performance.PropertySegmentsPerformance>`
-# check, we need to make sure that our TextData objects have the properties that we want to use. Properties can be added
-# to the TextData objects in one of the following ways:
+# check, we need to make sure that our :class:`TextData <deepchecks.nlp.TextData>` objects have the properties that we
+# want to use. Properties can be added to the TextData objects in one of the following ways:
 #
 # 1. Calculated automatically by deepchecks. Deepchecks has a set of predefined properties that can be calculated
 #    automatically. They can be added to the TextData object either by passing ``properties='auto'`` to the TextData
