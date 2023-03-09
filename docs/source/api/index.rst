@@ -10,6 +10,7 @@ Here you can see the api reference.
     deepchecks.core
     deepchecks.tabular
     deepchecks.vision
+    deepchecks.nlp
     deepchecks.utils
 
 .. currentmodule:: deepchecks
@@ -19,4 +20,5 @@ Here you can see the api reference.
     core
     tabular
     vision
+    nlp
     utils

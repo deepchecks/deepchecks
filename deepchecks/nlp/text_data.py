@@ -52,6 +52,7 @@ class TextData:
     label : t.Optional[TTextLabel], default: None
         The label for the text data. Can be either a text_classification label or a token_classification label.
         If None, the label is not set.
+
         - text_classification label - For text classification the accepted label format differs between multilabel and
           single label cases. For single label data, the label should be passed as a sequence of labels, with one entry
           per sample that can be either a string or an integer. For multilabel data, the label should be passed as a
@@ -151,24 +152,13 @@ class TextData:
         self.name = dataset_name
 
         if metadata is not None:
-            if not isinstance(metadata, pd.DataFrame):
-                raise DeepchecksValueError(f'metadata type {type(metadata)} is not supported, must be a'
-                                           f' pandas DataFrame')
-            if self.index != list(metadata.index):
-                raise DeepchecksValueError('metadata index must be the same as the text data index')
-
-        self._metadata = metadata
+            self.set_metadata(metadata)
 
         if properties is not None:
             if isinstance(properties, str) and properties == 'auto':
                 self.calculate_default_properties()
-            elif not isinstance(properties, pd.DataFrame):
-                raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
-                                           f' pandas DataFrame')
-            elif self.index != list(properties.index):
-                raise DeepchecksValueError('properties index must be the same as the text data index')
-
-        self._properties = properties
+            else:
+                self.set_properties(properties)
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -336,6 +326,18 @@ class TextData:
         """Return the metadata of for the dataset."""
         return self._metadata
 
+    def set_metadata(self, metadata: pd.DataFrame):
+        """Set the metadata of the dataset."""
+        if self._metadata is not None:
+            warnings.warn('Metadata already exist, overwriting it', UserWarning)
+
+        if not isinstance(metadata, pd.DataFrame):
+            raise DeepchecksValueError(f'metadata type {type(metadata)} is not supported, must be a'
+                                       f' pandas DataFrame')
+        if self.index != list(metadata.index):
+            raise DeepchecksValueError('metadata index must be the same as the text data index')
+        self._metadata = metadata
+
     def calculate_default_properties(self, include_properties: t.List[str] = None,
                                      ignore_properties: t.List[str] = None):
         """Calculate the default properties of the dataset."""
@@ -345,6 +347,18 @@ class TextData:
         properties = calculate_default_properties(self.text, include_properties=include_properties,
                                                   ignore_properties=ignore_properties)
         self._properties = pd.DataFrame(properties, index=self.index)
+
+    def set_properties(self, properties: pd.DataFrame):
+        """Set the properties of the dataset."""
+        if self._properties is not None:
+            warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        if not isinstance(properties, pd.DataFrame):
+            raise DeepchecksValueError(f'properties type {type(properties)} is not supported, must be a'
+                                       f' pandas DataFrame')
+        if list(properties.index) != self.index:
+            raise DeepchecksValueError('properties index must be the same as the text data index')
+        self._properties = properties
 
     @property
     def properties(self) -> pd.DataFrame:

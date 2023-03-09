@@ -36,4 +36,10 @@ Head over to the :doc:`Getting Started </getting-started/index>` section to lear
     :maxdepth: 3
     :hidden:
 
+    checks_gallery/nlp
+
+.. toctree::
+    :maxdepth: 3
+    :hidden:
+
     api/index

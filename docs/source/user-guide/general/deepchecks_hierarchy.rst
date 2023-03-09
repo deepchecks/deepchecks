@@ -56,6 +56,8 @@ See Also
 - :doc:`Check Base Classes API Reference </api/deepchecks.core>` - where all of the check and condition related base objects can be found.
 
 
+.. _deepchecks_hierarchy_suite:
+
 Suite
 ^^^^^
 
