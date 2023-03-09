@@ -17,7 +17,7 @@ If you don't have deepchecks installed yet:
     import sys
     !{sys.executable} -m pip install deepchecks[nlp] -U --quiet #--user
 
-Some properties calculated by deepchecks.nlp require additional packages to be installed. You can
+Some properties calculated by ``deepchecks.nlp`` require additional packages to be installed. You can
 install them by running:
 
 .. code:: python
@@ -28,6 +28,7 @@ install them by running:
 Finally, we'll be using the CatBoost model in this guide, so we'll also need to install it:
 
 .. code:: python
+
     import sys
     !{sys.executable} -m pip install catboost -U --quiet #--user
 
@@ -60,7 +61,8 @@ train.head()
 # explicitly set the index.
 #
 # .. note::
-#    The label column is optional, but if provided you must also pass the task_type argument, so that deepchecks
+
+#    The label column is optional, but if provided you must also pass the ``task_type`` argument, so that deepchecks
 #    will know how to interpret the label column.
 #
 
@@ -77,7 +79,7 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 # embeddings of the tweets. In this case these embeddings were created using the OpenAI GPT-3 model.
 # If you want to reproduce this kind of basic model for your own task, you can calculate your own embeddings, or use
 # our :func:`calculate_embeddings_for_text <deepchecks.nlp.utils.calculate_embeddings_for_text>`
-# function to generate generic embeddings. Note that in order to run it you need either an OpenAI API key or have
+# function to create embeddings from a generic model. Note that in order to run it you need either an OpenAI API key or have
 # HuggingFace's transformers installed.
 
 from sklearn.metrics import roc_auc_score
@@ -105,7 +107,7 @@ print(roc_auc_score(test.label,
 # We'll start by running the
 # :class:`TrainTestPredictionDrift <deepchecks.nlp.checks.model_evaluation.train_test_prediction_drift.TrainTestPredictionDrift>`
 # check, which will let us know if there has been a significant change in the model's predictions between the train
-# and test data. Such a change can imply that something has changed in the data distribution between the train and
+# and test data. Such a change may imply that something has changed in the data distribution between the train and
 # test data in a way that affects the model's predictions.
 #
 # We'll also add a condition to the check, which will make it fail if the drift score is higher than 0.1.
@@ -130,7 +132,7 @@ result.show()
 # Next, we'll run the
 # :class:`MetadataSegmentsPerformance <deepchecks.nlp.checks.model_evaluation.weak_segments_performance.MetadataSegmentsPerformance>`
 # check, which will check the performance of the model on different segments of the metadata that we provided
-# earlier when creating the ``TextData`` objects, and report back on any segments that have significantly lower
+# earlier when creating the :class:`TextData <deepchecks.nlp.TextData>` objects, and report back on any segments that have significantly lower
 # performance than the rest of the data.
 #
 
@@ -158,7 +160,7 @@ result.show()
 # to the TextData objects in one of the following ways:
 #
 # 1. Calculated automatically by deepchecks. Deepchecks has a set of predefined properties that can be calculated
-#    automatically. They can be added to the TextData object either by passing `properties='auto'` to the TextData
+#    automatically. They can be added to the TextData object either by passing ``properties='auto'`` to the TextData
 #    constructor, or by calling the
 #    :meth:`calculate_default_properties <deepchecks.nlp.TextData.calculate_default_properties>` method anytime later.
 # 2. You can calculate your own properties and then add them to the TextData object. This can be done by passing a
@@ -205,6 +207,6 @@ result.show()
 # sentiment property, which is expected to have high relevance to the emotion of the tweet, the other properties
 # have very low correlation to the label.
 #
-# You can find the full list of available NLP checks in the :mod:`api documentation <deepchecks.nlp.checks>`.
+# You can find the full list of available NLP checks in the :mod:`nlp.checks api documentation <deepchecks.nlp.checks>`.
 
 # sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/nlp_quickstarts/getting_started.png'
