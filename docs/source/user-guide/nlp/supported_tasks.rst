@@ -1,8 +1,8 @@
 .. _nlp_supported_tasks:
 
-===================================
-Working with Labels and Predictions
-===================================
+===========================
+Supported Tasks and Formats
+===========================
 
 Some checks, mainly the ones related to model evaluation, require labels and model predictions in order to run.
 In the deepchecks nlp package, predictions are passed into the suite / check ``run`` method as pre-computed
@@ -16,14 +16,22 @@ Supported Task Types
 
 Deepchecks currently supports two NLP task types:
 
-* **Text Classification**: Text classification is any NLP task in which a whole body of text (ranging from a sentence
-  to a document) is assigned a class (in the binary/multiclass case) or a certain set of classes (in the multilabel
-  case). In both the binary, the multiclass and the multilabel case the class "belongs" / "classifies" the whole text
-  sample. Examples for such tasks are: Sentiment Analysis, Topic Extraction, harmful content detection and more.
-* **Token Classification**: Token Classification is any NLP task in which each word (or to be more accurate, token) in
-  the text sample is assigned a class of its own. In many cases most tokens will belong to a "background" class,
-  allowing the model to focus on the interesting tokens. Examples for such tasks are: Named Entity Recognition,
-  Part-of-speech annotation (in which all tokens have a non-background class).
+* :ref:`Text Classification <nlp_supported_text_classification>`: Text classification is any NLP task in which a
+  whole body of text (ranging from a sentence to a document) is assigned a class (in the binary/multiclass case) or a
+  certain set of classes (in the multilabel case). In both the binary, the multiclass and the multilabel case the
+  class "belongs" / "classifies" the whole text sample.
+  Examples for such tasks are:
+
+    - Sentiment Analysis
+    - Topic Extraction
+    - Harmful content detection
+* :ref:`Token Classification <nlp_supported_token_classification>`: Token Classification is any NLP task in which
+  each word (or to be more accurate, token) in the text sample is assigned a class of its own. In many cases most tokens
+  will belong to a "background" class, allowing the model to focus on the interesting tokens.
+  Examples for such tasks are:
+
+    - Named Entity Recognition,
+    - Part-of-speech annotation (in which all tokens have a non-background class).
 
 .. _nlp_supported_labels__predictions_format:
 
@@ -112,7 +120,7 @@ constructor method. Otherwise, deepchecks will attempt to tokenize the text samp
 by splitting them by spaces.
 
 Formats - Example
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
 
 The following label and prediction examples are given for the following text sample:
 
@@ -120,14 +128,14 @@ The following label and prediction examples are given for the following text sam
 >>>                  ['Mary', 'lives', 'in', 'London', 'and', 'Paris']]
 
 Label Format
-""""""""""""""""""""
+""""""""""""
 
 Here is an example of IOB annotation for the above text sample:
 
 >>> token_classification_label = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO']]
 
 Prediction Format
-""""""""""""""""""""""""
+"""""""""""""""""
 
 * **predictions** - Predictions for token classification should be given in the exact same format as the labels.
 * **probabilities** - No probabilities should be passed for Token Classification tasks. Passing probabilities will
