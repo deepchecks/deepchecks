@@ -104,13 +104,15 @@ print(roc_auc_score(test.label,
 # 1. `Model Evaluation Checks`_ - checks to run once we have trained our model.
 # 2. `Data Integrity Checks`_ - checks to run on our dataset, before we train our model.
 #
-# You can read more about when should you use deepchecks :ref:`here <when_should_you_use_deepchecks>`.
+# Additionally ``deepchecks.nlp`` currently has one `Train-Test Validation` Check - the
+# :class:`Label Drift <deepchecks.nlp.checks.train_test_validation.label_drift.LabelDrift>` Check. You can
+# read more about when should you use deepchecks :ref:`here <when_should_you_use_deepchecks>`.
 #
 # Model Evaluation Checks
 # -----------------------
 #
 # We'll start by running the
-# :class:`TrainTestPredictionDrift <deepchecks.nlp.checks.model_evaluation.train_test_prediction_drift.TrainTestPredictionDrift>`
+# :class:`PredictionDrift <deepchecks.nlp.checks.model_evaluation.prediction_drift.PredictionDrift>`
 # check, which will let us know if there has been a significant change in the model's predictions between the train
 # and test data. Such a change may imply that something has changed in the data distribution between the train and
 # test data in a way that affects the model's predictions.
