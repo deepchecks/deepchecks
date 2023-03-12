@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Test functions of the train test drift."""
+"""Test functions of drift."""
 import pandas as pd
 import numpy as np
 
@@ -16,14 +16,14 @@ from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries,
     raises
 
 from deepchecks.core.errors import NotEnoughSamplesError
-from deepchecks.tabular.checks import TrainTestFeatureDrift
+from deepchecks.tabular.checks import FeatureDrift
 from tests.base.utils import equal_condition_result
 
 
 def test_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0)
 
     # Act
@@ -57,7 +57,7 @@ def test_drift_with_model(drifted_data_and_model):
 def test_drift_with_model_n_top(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='KS', columns=[
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='KS', columns=[
                                   'categorical_with_drift'], n_top_columns=1, max_num_categories=10, min_category_size_ratio=0)
 
     # Act
@@ -78,15 +78,15 @@ def test_drift_with_different_sort(drifted_data_and_model):
     train, test, model = drifted_data_and_model
 
     # Act
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', sort_feature_by='feature importance')
+    check = FeatureDrift(categorical_drift_method='PSI', sort_feature_by='feature importance')
     result = check.run(train, test, model)
     fi_display = result.display
 
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', sort_feature_by='drift + importance')
+    check = FeatureDrift(categorical_drift_method='PSI', sort_feature_by='drift + importance')
     result = check.run(train, test, model)
     sum_display = result.display
 
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', sort_feature_by='drift + importance')
+    check = FeatureDrift(categorical_drift_method='PSI', sort_feature_by='drift + importance')
     result = check.run(train, test)
     no_model_drift_display = result.display
 
@@ -103,7 +103,7 @@ def test_drift_with_nulls(drifted_data_with_nulls):
     # Cramer's V with ignore_na=True:
 
     # Act
-    check = TrainTestFeatureDrift(numerical_drift_method='EMD')
+    check = FeatureDrift(numerical_drift_method='EMD')
     result = check.run(train, test)
     # Assert
     assert_that(result.value, has_entries({
@@ -133,7 +133,7 @@ def test_drift_with_nulls(drifted_data_with_nulls):
     # PSI with ignore_na=True:
 
     # Act
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0)
     result = check.run(train, test)
     # Assert
@@ -164,7 +164,7 @@ def test_drift_with_nulls(drifted_data_with_nulls):
     # Cramer's V with ignore_na=False:
 
     # Act
-    check = TrainTestFeatureDrift(ignore_na=False, numerical_drift_method='EMD')
+    check = FeatureDrift(ignore_na=False, numerical_drift_method='EMD')
     result = check.run(train, test)
     # Assert
     assert_that(result.value, has_entries({
@@ -194,7 +194,7 @@ def test_drift_with_nulls(drifted_data_with_nulls):
     # PSI with ignore_na=False:
 
     # Act
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0,
                                   ignore_na=False)
     result = check.run(train, test)
@@ -226,7 +226,7 @@ def test_drift_with_nulls(drifted_data_with_nulls):
 def test_not_enough_samples(drifted_data):
     # Arrange
     train, test = drifted_data
-    check = TrainTestFeatureDrift(min_samples=1001)
+    check = FeatureDrift(min_samples=1001)
 
     # Assert
     assert_that(calling(check.run).with_args(train, test),
@@ -235,7 +235,7 @@ def test_not_enough_samples(drifted_data):
 def test_not_enough_samples_in_columns(drifted_data_with_nulls):
     # Arrange
     train, test = drifted_data_with_nulls
-    check = TrainTestFeatureDrift(min_samples=999) # Data has 1000 samples but all columns have nulls
+    check = FeatureDrift(min_samples=999) # Data has 1000 samples but all columns have nulls
 
     # Assert
     assert_that(calling(check.run).with_args(train, test),
@@ -249,7 +249,7 @@ def test_drift_with_nulls_not_enough_samples_in_numerical_columns(drifted_data_w
     # Cramer's V with ignore_na=True:
 
     # Act
-    check = TrainTestFeatureDrift(min_samples=999, ignore_na=False)
+    check = FeatureDrift(min_samples=999, ignore_na=False)
     result = check.run(train, test)
 
     assert_that(result.value['numeric_with_drift']['Drift score'], equal_to(None))
@@ -262,7 +262,7 @@ def test_reduce_output_with_nones(drifted_data_with_nulls, drifted_data_and_mode
 
     _, _, model = drifted_data_and_model
     train, test = drifted_data_with_nulls
-    check = TrainTestFeatureDrift(min_samples=999, ignore_na=False, aggregation_method='l2_weighted')
+    check = FeatureDrift(min_samples=999, ignore_na=False, aggregation_method='l2_weighted')
     fi = pd.Series(np.ones(len(train.features)), index=train.features) / len(train.features)
 
     # Act
@@ -276,7 +276,7 @@ def test_reduce_output_with_nones(drifted_data_with_nulls, drifted_data_and_mode
 def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   aggregation_method='weighted')
 
     # Act
@@ -289,13 +289,13 @@ def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
 def test_aggregation_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check_l1 = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check_l1 = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                      max_num_categories=10, min_category_size_ratio=0,
                                      aggregation_method='weighted')
-    check_l2 = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check_l2 = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0,
                                   aggregation_method='l2_weighted')
-    check_l3 = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check_l3 = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0,
                                   aggregation_method='l3_weighted')
     # Act
@@ -314,7 +314,7 @@ def test_aggregation_drift_with_model(drifted_data_and_model):
 def test_none_aggregation_drift_with_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   aggregation_method=None)
 
     # Act
@@ -328,7 +328,7 @@ def test_none_aggregation_drift_with_model(drifted_data_and_model):
 def test_weighted_aggregation_drift_no_model(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI',
+    check = FeatureDrift(categorical_drift_method='PSI',
                                   numerical_drift_method='EMD',
                                   aggregation_method='mean',
                                   max_num_categories=10,
@@ -344,7 +344,7 @@ def test_weighted_aggregation_drift_no_model(drifted_data_and_model):
 def test_drift_with_model_without_display(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0)
 
     # Act
@@ -378,7 +378,7 @@ def test_drift_with_model_without_display(drifted_data_and_model):
 def test_drift_no_model(drifted_data_and_model):
     # Arrange
     train, test, _ = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0)
 
     # Act
@@ -412,7 +412,7 @@ def test_drift_no_model(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0) \
         .add_condition_drift_score_less_than()
 
@@ -434,7 +434,7 @@ def test_drift_max_drift_score_condition_fail(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail_cramer_and_ks(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='cramers_v', numerical_drift_method='KS').add_condition_drift_score_less_than()
+    check = FeatureDrift(categorical_drift_method='cramers_v', numerical_drift_method='KS').add_condition_drift_score_less_than()
 
     # Act
     result = check.run(train, test, model)
@@ -454,7 +454,7 @@ def test_drift_max_drift_score_condition_fail_cramer_and_ks(drifted_data_and_mod
 def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0) \
         .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
                                              max_allowed_numeric_score=1)
@@ -476,7 +476,7 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
 def test_drift_max_drift_score_multi_columns_drift_pass(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    check = TrainTestFeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
+    check = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0) \
         .add_condition_drift_score_less_than(allowed_num_features_exceeding_threshold=2)
     # Act

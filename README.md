@@ -179,13 +179,13 @@ can be found in our [API
 Reference](https://docs.deepchecks.com/stable/api/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_check).
 
 ```python
-from deepchecks.tabular.checks import TrainTestFeatureDrift
+from deepchecks.tabular.checks import FeatureDrift
 import pandas as pd
 
 train_df = pd.read_csv('train_data.csv')
 test_df = pd.read_csv('test_data.csv')
 # Initialize and run desired check
-TrainTestFeatureDrift().run(train_df, test_df)
+FeatureDrift().run(train_df, test_df)
 ```
 
 Will produce output of the type:
@@ -225,7 +225,7 @@ models. They are the basic building block of the deepchecks package,
 covering all kinds of common issues, such as:
 
 - Weak Segments Performance
-- Train Test Feature Drift
+- Feature Drift
 - Date Train Test Leakage Overlap
 - Conflicting Labels 
 

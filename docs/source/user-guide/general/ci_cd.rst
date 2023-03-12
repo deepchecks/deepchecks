@@ -34,7 +34,7 @@ For ML models, CI/CD concepts can be utilized to streamline the process of model
     significant differences, or when doing a periodic model retraining we might want to compare the new dataset
     to the previous one.
   | Examples of checks that can be used are:
-    :doc:`drift between features</checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`,
+    :doc:`drift between features</checks_gallery/tabular/train_test_validation/plot_feature_drift>`,
     :doc:`change in correlation between features and label</checks_gallery/tabular/train_test_validation/plot_feature_label_correlation_change>`,
     :doc:`duplicate samples between the datasets</checks_gallery/tabular/train_test_validation/plot_train_test_samples_mix>`,
     and more.

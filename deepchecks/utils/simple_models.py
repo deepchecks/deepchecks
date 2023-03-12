@@ -48,8 +48,10 @@ class PerfectModel:
 class RandomModel:
     """Model used to randomly predict from given series of labels."""
 
-    def __init__(self):
+    def __init__(self, random_state: int = 42):
         self.labels = None
+        self.random_state = random_state
+        np.random.seed(self.random_state)
 
     def fit(self, X, y):  # pylint: disable=unused-argument,invalid-name
         """Fit model."""

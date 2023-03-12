@@ -11,13 +11,13 @@
 """Module importing all vision checks."""
 from .data_integrity import ImagePropertyOutliers, LabelPropertyOutliers, PropertyLabelCorrelation
 from .model_evaluation import (ClassPerformance, ConfusionMatrixReport, MeanAveragePrecisionReport,
-                               MeanAverageRecallReport, SimpleModelComparison, SingleDatasetPerformance,
-                               TrainTestPredictionDrift, WeakSegmentsPerformance)
-from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, NewLabels,
+                               MeanAverageRecallReport, PredictionDrift, SimpleModelComparison,
+                               SingleDatasetPerformance, TrainTestPredictionDrift, WeakSegmentsPerformance)
+from .train_test_validation import (HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, LabelDrift, NewLabels,
                                     PropertyLabelCorrelationChange, TrainTestLabelDrift)
 
 __all__ = ['ClassPerformance', 'ConfusionMatrixReport', 'MeanAveragePrecisionReport', 'MeanAverageRecallReport',
-           'SimpleModelComparison', 'TrainTestLabelDrift', 'ImageDatasetDrift',
-           'ImagePropertyDrift', 'TrainTestPredictionDrift',
+           'SimpleModelComparison', 'TrainTestLabelDrift', 'LabelDrift', 'ImageDatasetDrift',
+           'ImagePropertyDrift', 'TrainTestPredictionDrift', 'PredictionDrift',
            'PropertyLabelCorrelationChange', 'ImagePropertyOutliers', 'LabelPropertyOutliers', 'HeatmapComparison',
            'NewLabels', 'SingleDatasetPerformance', 'PropertyLabelCorrelation', 'WeakSegmentsPerformance']

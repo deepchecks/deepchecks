@@ -16,6 +16,7 @@ from .model_inference_time import ModelInferenceTime
 from .model_info import ModelInfo
 from .multi_model_performance_report import MultiModelPerformanceReport
 from .performance_bias import PerformanceBias
+from .prediction_drift import PredictionDrift
 from .regression_error_distribution import RegressionErrorDistribution
 from .regression_systematic_error import RegressionSystematicError
 from .roc_report import RocReport
@@ -41,6 +42,7 @@ __all__ = [
     'SegmentPerformance',
     'SimpleModelComparison',
     'TrainTestPredictionDrift',
+    'PredictionDrift',
     'WeakSegmentsPerformance',
     'UnusedFeatures',
     'SingleDatasetPerformance',

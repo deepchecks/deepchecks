@@ -19,10 +19,9 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from deepchecks.vision import Suite
 from deepchecks.vision.checks import (ClassPerformance, ConfusionMatrixReport,  # SimilarImageLeakage,
                                       HeatmapComparison, ImageDatasetDrift, ImagePropertyDrift, ImagePropertyOutliers,
-                                      LabelPropertyOutliers, MeanAveragePrecisionReport, MeanAverageRecallReport,
-                                      NewLabels, PropertyLabelCorrelation, PropertyLabelCorrelationChange,
-                                      SimpleModelComparison, TrainTestLabelDrift, TrainTestPredictionDrift,
-                                      WeakSegmentsPerformance)
+                                      LabelDrift, LabelPropertyOutliers, MeanAveragePrecisionReport,
+                                      MeanAverageRecallReport, NewLabels, PredictionDrift, PropertyLabelCorrelation,
+                                      PropertyLabelCorrelationChange, SimpleModelComparison, WeakSegmentsPerformance)
 
 __all__ = ['train_test_validation', 'model_evaluation', 'full_suite', 'data_integrity']
 
@@ -43,8 +42,8 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
              - :class:`~deepchecks.vision.checks.train_test_validation.NewLabels`
            * - :ref:`plot_vision_heatmap_comparison`
              - :class:`~deepchecks.vision.checks.train_test_validation.HeatmapComparison`
-           * - :ref:`plot_vision_train_test_label_drift`
-             - :class:`~deepchecks.vision.checks.train_test_validation.TrainTestLabelDrift`
+           * - :ref:`plot_vision_label_drift`
+             - :class:`~deepchecks.vision.checks.train_test_validation.LabelDrift`
            * - :ref:`plot_vision_image_property_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.ImagePropertyDrift`
            * - :ref:`plot_vision_image_dataset_drift`
@@ -105,7 +104,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
     kwargs = {**non_none_args, **kwargs}
 
     return Suite('Train Test Validation Suite', NewLabels(**kwargs).add_condition_new_label_ratio_less_or_equal(),
-                 HeatmapComparison(**kwargs), TrainTestLabelDrift(**kwargs).add_condition_drift_score_less_than(),
+                 HeatmapComparison(**kwargs), LabelDrift(**kwargs).add_condition_drift_score_less_than(),
                  ImagePropertyDrift(**kwargs).add_condition_drift_score_less_than(), ImageDatasetDrift(**kwargs),
                  PropertyLabelCorrelationChange(**kwargs).add_condition_property_pps_difference_less_than(), )
 
@@ -130,8 +129,8 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
              - :class:`~deepchecks.vision.checks.model_evaluation.MeanAveragePrecisionReport`
            * - :ref:`plot_vision_mean_average_recall_report`
              - :class:`~deepchecks.vision.checks.model_evaluation.MeanAverageRecallReport`
-           * - :ref:`plot_vision_train_test_prediction_drift`
-             - :class:`~deepchecks.vision.checks.model_evaluation.TrainTestPredictionDrift`
+           * - :ref:`plot_vision_prediction_drift`
+             - :class:`~deepchecks.vision.checks.model_evaluation.PredictionDrift`
            * - :ref:`plot_vision_simple_model_comparison`
              - :class:`~deepchecks.vision.checks.model_evaluation.SimpleModelComparison`
            * - :ref:`plot_weak_segment_performance`
@@ -196,7 +195,7 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
                  ClassPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
                  MeanAveragePrecisionReport(**kwargs).add_condition_average_mean_average_precision_greater_than(),
                  MeanAverageRecallReport(**kwargs),
-                 TrainTestPredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+                 PredictionDrift(**kwargs).add_condition_drift_score_less_than(),
                  SimpleModelComparison(**kwargs).add_condition_gain_greater_than(), ConfusionMatrixReport(**kwargs),
                  WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(), )
 

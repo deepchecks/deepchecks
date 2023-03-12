@@ -11,7 +11,7 @@
 """Alternative way to import tabular checks.
 
 This module exists only for backward compatibility and will be
-removed in the nexts versions.
+removed in the next versions.
 """
 # flake8: noqa
 import warnings
@@ -63,9 +63,12 @@ __all__ = [
 
     # distribution checks
     'TrainTestFeatureDrift',
+    'FeatureDrift',
     'TrainTestLabelDrift',
+    'LabelDrift',
     'WholeDatasetDrift',
     'TrainTestPredictionDrift',
+    'PredictionDrift',
     'MultivariateDrift',
 
     # performance checks

@@ -34,7 +34,7 @@ How Deepchecks Detects Dataset Drift
 
 This check detects multivariate drift by using :ref:`a domain classifier <drift_detection_by_domain_classifier>`.
 Other methods to detect drift include :ref:`univariate measures <drift_detection_by_univariate_measure>`
-which is used in other checks, such as :doc:`Train Test Feature Drift check </checks_gallery/tabular/train_test_validation/plot_train_test_feature_drift>`.
+which is used in other checks, such as :doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_feature_drift>`.
 """
 
 #%%

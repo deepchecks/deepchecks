@@ -14,7 +14,7 @@ between the training and the test sets.
     from sklearn.model_selection import train_test_split
 
     from deepchecks import Dataset
-    from deepchecks.tabular.checks import TrainTestFeatureDrift
+    from deepchecks.tabular.checks import FeatureDrift
     from deepchecks.tabular.suites import data_integrity
 
 Defining Pytest Fixtures
@@ -44,7 +44,7 @@ the test sets.
         train = Dataset(train_df, label='target', cat_features=['sex'])
         test = Dataset(test_df, label='target', cat_features=['sex'])
 
-        check = TrainTestFeatureDrift(columns=['age', 'sex', 'bmi'])
+        check = FeatureDrift(columns=['age', 'sex', 'bmi'])
         check.add_condition_drift_score_not_greater_than(max_allowed_psi_score=0.2,
                                                          max_allowed_earth_movers_score=0.1)
 
