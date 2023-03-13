@@ -229,6 +229,8 @@ autosummary_imported_members = False
 #
 autosummary_ignore_module_all = False
 
+autodoc_typehints = "none"
+
 # A dictionary of values to pass into the template engine’s context
 # for autosummary stubs files.
 
@@ -253,6 +255,8 @@ autosummary_filename_map = {
     "deepchecks.vision.checks": "../deepchecks.vision.checks",
     "deepchecks.tabular.suites": "../deepchecks.tabular.suites",
     "deepchecks.vision.suites": "../deepchecks.vision.suites",
+    "deepchecks.nlp.checks": "../deepchecks.nlp.checks",
+    "deepchecks.nlp.suites": "../deepchecks.nlp.suites"
 }
 
 # -- autodoc settings --------------------------------------------------
@@ -418,7 +422,8 @@ html_copy_source = True
 #
 html_theme_options = {
     "collapse_navigation": False,
-    "navigation_depth": 6,
+    "navigation_depth": 3,
+    "show_nav_level": 3,
     "navbar_end": ["version-switcher", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
@@ -470,6 +475,7 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if not (
         filepath.startswith("checks_gallery/tabular/")
         or filepath.startswith("checks_gallery/vision/")
+        or filepath.startswith("checks_gallery/nlp/")
     ):
         return ''
 
@@ -483,9 +489,12 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if filepath.startswith("checks_gallery/tabular/"):
         import deepchecks.tabular.checks
         check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
-    else:
+    elif filepath.startswith("checks_gallery/vision/"):
         import deepchecks.vision.checks
         check_clazz = getattr(deepchecks.vision.checks, notebook_name, None)
+    else:
+        import deepchecks.nlp.checks
+        check_clazz = getattr(deepchecks.nlp.checks, notebook_name, None)
 
     if check_clazz is None or not hasattr(check_clazz, "__module__"):
         return
