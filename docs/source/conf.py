@@ -409,7 +409,8 @@ html_copy_source = True
 #
 html_theme_options = {
     "collapse_navigation": False,
-    "navigation_depth": 6,
+    "navigation_depth": 3,
+    "show_nav_level": 3,
     "navbar_end": ["version-switcher", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
