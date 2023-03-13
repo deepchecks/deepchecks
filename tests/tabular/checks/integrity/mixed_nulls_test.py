@@ -235,10 +235,10 @@ def test_dataset_2_columns_multi_nulls_additional_data_reduce():
     reduce_result = check.reduce_output(result)
     assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.66, 0.01))
 
-    check = MixedNulls(aggregation_method='l2_weighted')
+    check = MixedNulls(aggregation_method='l3_weighted')
     result = check.run(dataset, feature_importance=pd.Series({'col1': 0.5, 'col2': 0.5}))
     reduce_result = check.reduce_output(result)
-    assert_that(reduce_result['L2 Weighted Percent Mixed Nulls'], close_to(0.47, 0.01))
+    assert_that(reduce_result['L3 Weighted Percent Mixed Nulls'], close_to(0.53, 0.01))
 
 
 def test_dataset_2_columns_no_mixed_nulls_reduce():
