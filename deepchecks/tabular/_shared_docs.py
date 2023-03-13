@@ -36,11 +36,11 @@ _shared_docstrings['feature_aggregation_method_argument'] = """
 Argument for the reduce_output functionality, decides how to aggregate the vector of `per-feature scores` into a
 single aggregated score. The aggregated score value is between 0 and 1 for all methods.
 Possible values are:
-'l2_weighted': Default. L2 norm over the 'per-feature scores' vector weighted by the feature importance, specifically,
-sqrt( sum(FI * PER_FEATURE_SCORES^2) ). This method takes into account the feature importance yet puts more weight on
+'l3_weighted': Default. L3 norm over the 'per-feature scores' vector weighted by the feature importance, specifically,
+sum(FI * PER_FEATURE_SCORES^3)^(1/3). This method takes into account the feature importance yet puts more weight on
 the per-feature scores. This method is recommended for most cases.
-'l3_weighted': Similar to 'l2_weighted', but with L3 norm. Puts even more emphasis on the per-feature scores and
-specifically on the largest per-feature scores returning a score closer to maximum among the per-feature scores.
+'l5_weighted': Similar to 'l3_weighted', but with L5 norm. Puts even more emphasis on the per-feature scores and
+specifically on the largest per-feature scores returning a score closer to the maximum among the per-feature scores.
 'weighted': Weighted mean of per-feature scores based on feature importance.
 'max': Maximum of all the per-feature scores.
 None: No averaging. Return a dict with a per-feature score for each feature.
