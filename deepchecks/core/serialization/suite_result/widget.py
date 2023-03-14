@@ -13,7 +13,7 @@
 import typing as t
 import warnings
 
-from ipywidgets import HTML, Accordion, VBox, Widget
+from ipywidgets import HTML, Accordion, VBox, Widget, Tab, Text, IntSlider, Label, HBox, Checkbox, Dropdown, Box, Button
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
@@ -106,10 +106,28 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 **kwargs
             )
         ]
+        # TODO: OFIR TESTING CODE DELETE THIS
+        dropdown = Dropdown(
+            options=['Drop First', 'Drop Last'],
+            value='Drop First',
+            description='Drop By',
+            disabled=False,
+        )
+        button = Button(
+            description='Fix!',
+            disabled=False,
+            button_style='success',  # 'success', 'info', 'warning', 'danger' or ''
+            tooltip='Fix!',
+            icon='wrench'  # (FontAwesome names without the `fa-` prefix)
+        )
+
+        ht = list([Checkbox(value=True, description=check_result.check.name(), disabled=False, indent=False) for check_result in self.value.get_not_passed_checks()])# where check_result is fixmixin]
+        vbox = VBox(children=ht)
+        accordion = Accordion(children=[vbox])
 
         content = VBox(children=[
             self.prepare_summary(output_id=output_id, **kwargs),
-            *accordions
+            *accordions, accordion
         ])
         return Accordion(
             children=[content],
