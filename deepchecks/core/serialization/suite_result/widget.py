@@ -121,9 +121,24 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             icon='wrench'  # (FontAwesome names without the `fa-` prefix)
         )
 
-        ht = list([Checkbox(value=True, description=check_result.check.name(), disabled=False, indent=False) for check_result in self.value.get_not_passed_checks()])# where check_result is fixmixin]
-        vbox = VBox(children=ht)
-        accordion = Accordion(children=[vbox])
+        #box = Box(children=[checkbox, dropdown])
+        data_duplicates_check_result = [check_result for check_result in self.value.get_not_passed_checks() if check_result.check.name() == "Data Duplicates"][0]
+        data_duplicates_check = data_duplicates_check_result.check
+        dropdowns = []
+        for param_name, param_dict in data_duplicates_check.fix_params.items():
+            list_name = param_dict['display']
+            options = list(zip(param_dict['params_display'], param_dict['params']))
+            dropdown = Dropdown(
+                options=options,
+                value=options[0][1],
+                description=list_name,
+            )
+            dropdowns.append(dropdown)
+        vbox = VBox(children=dropdowns)
+        check_box = Checkbox(value=True, description=data_duplicates_check.name(), disabled=False, indent=False)
+        box = Box(children=[check_box, vbox])
+
+        accordion = Accordion(children=[box])
 
         content = VBox(children=[
             self.prepare_summary(output_id=output_id, **kwargs),
