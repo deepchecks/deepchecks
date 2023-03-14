@@ -14,12 +14,16 @@ import typing as t
 import numpy as np
 import pandas as pd
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.recommender.dataset import RecDataset
 
 from deepchecks.tabular.context import Context as TabularContext
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
 from deepchecks.tabular.utils.validation import ensure_predictions_shape
 from deepchecks.utils.logger import get_logger
+
+from . import ranking
 
 __all__ = [
     'Context'
@@ -112,6 +116,28 @@ class _DummyModel:
         return self.predictions.loc[data.index].to_numpy()
 
 
+class Scorer(DeepcheckScorer):
+    def __init__(self, metric, name, to_avg=True):
+        if isinstance(metric, t.Callable):
+            self.per_sample_metric = metric
+        elif isinstance(metric, str):
+            self.per_sample_metric = getattr(ranking, metric)
+        else:
+            raise DeepchecksValueError('Wrong scorer type')
+
+        super().__init__(self.per_sample_metric, name=name)
+        self.to_avg = to_avg
+
+    def __call__(self, model, dataset: RecDataset):
+        dataset_without_nulls = self.filter_nulls(dataset)
+        y_true = dataset_without_nulls.label_col
+        y_pred = model.predict(dataset_without_nulls.features_columns)
+        scores = [self.per_sample_metric(label, pred) for label, pred in zip(y_true, y_pred)]
+        if self.to_avg:
+            return np.mean(scores)
+        return scores
+
+
 @docstrings
 class Context(TabularContext):
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
@@ -146,3 +172,11 @@ class Context(TabularContext):
                          feature_importance_timeout=feature_importance_timeout,
                          with_display=with_display)
         self._model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
+
+    def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
+                                           t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
+        if isinstance(scorers, t.Mapping):
+            scorers = [DeepcheckScorer(scorer, name, to_avg=use_avg_defaults) for name, scorer in scorers.items()]
+        else:
+            scorers = [DeepcheckScorer(scorer, to_avg=use_avg_defaults) for scorer in scorers]
+        return scorers

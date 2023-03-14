@@ -16,15 +16,12 @@
 """Used for rec metrics."""
 import itertools
 from math import log2
-import sys
 from typing import List, Sequence, TypeVar
 
 import numpy as np
 from scipy import stats
 from sklearn.metrics import dcg_score, ndcg_score
 from sklearn.metrics.pairwise import cosine_similarity
-
-from deepchecks.recommender.dataset import RecDataset
 
 X = TypeVar("X")
 
@@ -468,20 +465,3 @@ def normalized_discounted_cumulative_gain(y_true: np.array, y_score: np.array):
         NDCG (float) : Normalized Discounted Cumulative Gain
     """
     return ndcg_score(y_true, y_score)
-
-
-class Scorer:
-    def __init__(self, metric_name, to_avg=True):
-        this_mod = sys.modules[__name__]
-        self.per_sample_metric = getattr(this_mod, metric_name)
-        self.to_avg = to_avg
-
-    def __call__(self, model, dataset: RecDataset):
-        valid_idx = dataset.label_col.notna()
-        dataset_without_nulls = dataset.copy(dataset.data[valid_idx])
-        y_true = dataset_without_nulls.label_col
-        y_pred = model.predict(dataset_without_nulls.features_columns)
-        scores = [self.per_sample_metric(label, pred) for label, pred in zip(y_true, y_pred)]
-        if self.to_avg:
-            return np.mean(scores)
-        return scores
