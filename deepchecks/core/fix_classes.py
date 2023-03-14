@@ -11,7 +11,7 @@
 # pylint: disable=import-outside-toplevel
 """Module containing the fix classes and methods."""
 import abc
-from typing import List, Optional, Union, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd

@@ -221,8 +221,9 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFix
             train = train.drop(columns=cols_to_fix)
             test = test.drop(columns=cols_to_fix)
         elif fix_method == 'replace_with_none':
+            new_categories = check_result.value['New categories']
             for col in cols_to_fix:
-                new_categories = check_result.value['New categories'][col]
+                new_categories = new_categories[col]
                 train[col] = train[col].apply(lambda x: None if x in new_categories else x)
                 test[col] = test[col].apply(lambda x: None if x in new_categories else x)
         elif fix_method == 'move_to_train':
@@ -261,7 +262,7 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFix
     @property
     def problem_description(self):
         """Return problem description."""
-        return """New categories are present in test data but not in train data. This can lead to wrong predictions in 
+        return """New categories are present in test data but not in train data. This can lead to wrong predictions in
                   test data, as these new categories were unknown to the model during training."""
 
     @property
@@ -274,11 +275,11 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFix
         """Return automatic solution description."""
         return """There are 4 possible automatic solutions:
                   1. Drop features with new categories from the dataset, so the model won't train on them
-                  3. Replace new categories with None values, so the model will treat them as missing values. 
+                  3. Replace new categories with None values, so the model will treat them as missing values.
                      This is not recommended, as it doesn't solve the underlying issue.
-                  4. Move samples with new categories from test to train. 
-                     This is the recommended solution, as it allows the model to be trained on the correct data. 
-                     However, this solution can cause data leakage, and should only be used if it's possible for train 
-                     dataset to have samples from test. 
-                     For example, if train and test datasets are from 2 different time periods, it would probably be 
+                  4. Move samples with new categories from test to train.
+                     This is the recommended solution, as it allows the model to be trained on the correct data.
+                     However, this solution can cause data leakage, and should only be used if it's possible for train
+                     dataset to have samples from test.
+                     For example, if train and test datasets are from 2 different time periods, it would probably be
                      considered leakage if test samples (from the later time period) were moved to train."""
