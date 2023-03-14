@@ -173,6 +173,7 @@ def test_fix_with_columns():
     assert_that(check_obj.run(dataset).value, equal_to(0))
     assert_that(dataset.n_samples, equal_to(2))
 
+
 def test_fix_keep_last():
     dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                     'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],

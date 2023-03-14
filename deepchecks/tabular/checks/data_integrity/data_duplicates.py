@@ -136,7 +136,7 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
         return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)
 
-    def fix_logic(self, context: Context, dataset_kind, keep: str = 'first') -> Context:
+    def fix_logic(self, context: Context, check_result, dataset_kind, keep: str = 'first') -> Context:
         """Run fix."""
         dataset = context.get_data_by_kind(dataset_kind)
         data = dataset.data.copy()
@@ -150,19 +150,22 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
         """Return fix params for display."""
         return {'keep': {'display': 'Drop By',
                          'params': ['first', 'last'],
-                         'params_display': ['By First', 'By Last']}}
+                         'params_display': ['By First', 'By Last'],
+                         'params_descriptions': ['Drop duplicates by first occurrence',
+                                                 'Drop duplicates by last occurrence']}}
 
     @property
     def problem_description(self):
         """Return problem description."""
-        return 'Dataset contains duplicate samples.'
+        return """Duplicate data samples are present in the dataset. This can lead to overfitting and
+                  decrease the performance of the model."""
 
     @property
     def manual_solution_description(self):
         """Return manual solution description."""
-        return 'Remove duplicate samples.'
+        return """Remove duplicate samples."""
 
     @property
-    def fix_method_description(self):
-        """Return fix method description."""
-        return 'Remove duplicate samples.'
+    def automatic_solution_description(self):
+        """Return automatic solution description."""
+        return """Remove duplicate samples."""

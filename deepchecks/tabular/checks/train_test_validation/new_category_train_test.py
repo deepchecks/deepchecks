@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
@@ -26,7 +27,7 @@ __all__ = ['NewCategoryTrainTest']
 
 
 @docstrings
-class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
+class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFixMixin):
     """Find new categories in the test set.
 
     Parameters
@@ -194,3 +195,36 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
 
         return self.add_condition(
             f'Ratio of samples with a new category is less or equal to {format_percent(max_ratio)}', condition)
+
+    def fix_logic(self, context: Context, check_result: CheckResult) -> Context:
+        """Run fix."""
+        dataset = context.get_data_by_kind(dataset_kind)
+        data = dataset.data.copy()
+        data = select_from_dataframe(data, self.columns, self.ignore_columns)
+        data.drop_duplicates(inplace=True, keep=keep)
+        context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
+        return context
+
+    @property
+    def fix_params(self):
+        """Return fix params for display."""
+        return {'keep': {'display': 'Drop By',
+                         'params': ['first', 'last'],
+                         'params_display': ['By First', 'By Last']}}
+
+    @property
+    def problem_description(self):
+        """Return problem description."""
+        return """Duplicate data samples are present in the dataset. This can lead to overfitting and
+                  decrease the performance of the model."""
+
+    @property
+    def manual_solution_description(self):
+        """Return manual solution description."""
+        return """Remove duplicate samples."""
+
+    @property
+    def automatic_solution_description(self):
+        """Return automatic solution description."""
+        return """Remove duplicate samples."""
+
