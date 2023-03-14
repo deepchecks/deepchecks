@@ -27,7 +27,6 @@ from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 
 __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density', 'CategoriesSortingKind']
 
-
 # For numerical plots, below this number of unique values we draw bar plots, else KDE
 MAX_NUMERICAL_UNIQUE_FOR_BARS = 20
 # For numerical plots, where the total unique is above MAX_NUMERICAL_UNIQUE_FOR_BARS, if any of the single
@@ -128,14 +127,14 @@ CategoriesSortingKind = L['train_largest', 'test_largest', 'largest_difference']
 
 
 def feature_distribution_traces(
-    train_column: Union[np.ndarray, pd.Series],
-    test_column: Union[np.ndarray, pd.Series],
-    column_name: str,
-    is_categorical: bool = False,
-    max_num_categories: int = 10,
-    show_categories_by: CategoriesSortingKind = 'largest_difference',
-    quantile_cut: float = 0.02,
-    dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+        train_column: Union[np.ndarray, pd.Series],
+        test_column: Union[np.ndarray, pd.Series],
+        column_name: str,
+        is_categorical: bool = False,
+        max_num_categories: int = 10,
+        show_categories_by: CategoriesSortingKind = 'largest_difference',
+        quantile_cut: float = 0.02,
+        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
 ) -> Tuple[List[BaseTraceType], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -269,19 +268,21 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     return counts * normalize_factor
 
 
-def _create_distribution_scatter_plot(xs, ys, mean, median, is_train,
+def _create_distribution_scatter_plot(xs, ys, mean=None, median=None, is_train=True,
                                       dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES) -> List[go.Scatter]:
     traces = []
     name = dataset_names[0] if is_train else dataset_names[1]
     train_or_test = DEFAULT_DATASET_NAMES[0] if is_train else DEFAULT_DATASET_NAMES[1]
-    traces.append(go.Scatter(x=xs, y=ys, fill='tozeroy', name=f'{name} Dataset',
-                             line=dict(color=colors[train_or_test], shape='spline')))
-    y_mean_index = np.argmax(xs == mean)
-    traces.append(go.Scatter(x=[mean, mean], y=[0, ys[y_mean_index]], name=f'{name} Mean',
-                             line=dict(color=colors[train_or_test], dash='dash'), mode='lines+markers'))
-    y_median_index = np.argmax(xs == median)
-    traces.append(go.Scatter(x=[median, median], y=[0, ys[y_median_index]], name=f'{name} Median',
-                             line=dict(color=colors[train_or_test]), mode='lines'))
+    traces.append(go.Scatter(x=xs, y=ys, name=f'{name} Dataset', fill='tozeroy',
+                             line=dict(color=colors[train_or_test], shape='linear')))
+    if mean:
+        y_mean_index = np.argmax(xs == mean)
+        traces.append(go.Scatter(x=[mean, mean], y=[0, ys[y_mean_index]], name=f'{name} Mean',
+                                 line=dict(color=colors[train_or_test], dash='dash'), mode='lines+markers'))
+    if median:
+        y_median_index = np.argmax(xs == median)
+        traces.append(go.Scatter(x=[median, median], y=[0, ys[y_median_index]], name=f'{name} Median',
+                                 line=dict(color=colors[train_or_test]), mode='lines'))
     return traces
 
 
@@ -369,3 +370,185 @@ def _create_distribution_bar_graphs(
     )
 
     return traces, yaxis_layout
+
+
+def get_property_outlier_graph(dist, data, lower_limit, upper_limit, property_name: str, is_categorical=False):
+    import plotly.graph_objects as go
+
+    max_num_categories = 10
+    dataset_names = [property_name, property_name]
+    show_categories_by = 'train_largest'
+    quantile_cut = 0.0
+
+    if is_categorical:
+        traces, yaxis_layout = _create_distribution_bar_graphs(dist, dist,
+                                                               max_num_categories=max_num_categories,
+                                                               show_categories_by=show_categories_by,
+                                                               dataset_names=dataset_names)
+
+        # NOTE:
+        # the range, in this case, is needed to fix a problem with
+        # too wide bars when there are only one or two of them`s on
+        # the plot, plus it also centralizes them`s on the plot
+        # The min value of the range (range(min. max)) is bigger because
+        # otherwise bars will not be centralized on the plot, they will
+        # appear on the left part of the plot (that is probably because of zero)
+        range_max = max_num_categories if len(set(dist).union(dist)) > max_num_categories \
+            else len(set(dist).union(dist))
+        xaxis_layout = dict(type='category', range=(-3, range_max + 2))
+    else:
+        train_uniques, train_uniques_counts = np.unique(dist, return_counts=True)
+        test_uniques, test_uniques_counts = np.unique(dist, return_counts=True)
+
+        x_range = (
+            min(dist.min(), dist.min()),
+            max(dist.max(), dist.max())
+        )
+        x_width = x_range[1] - x_range[0]
+
+        # If there are less than 20 total unique values, draw bar graph
+        train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
+        if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
+            traces, yaxis_layout = _create_distribution_bar_graphs(dist, dist, 20, show_categories_by,
+                                                                   dataset_names=dataset_names)
+            x_range = (x_range[0] - x_width * 0.2, x_range[1] + x_width * 0.2)
+            xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
+        else:
+
+            x_range_to_show = (
+                min(np.quantile(dist, quantile_cut), np.quantile(dist, quantile_cut)),
+                max(np.quantile(dist, 1 - quantile_cut), np.quantile(dist, 1 - quantile_cut))
+            )
+            # Heuristically take points on x-axis to show on the plot
+            # The intuition is the graph will look "smooth" wherever we will zoom it
+            # Also takes mean and median values in order to plot it later accurately
+            mean_train_column = np.mean(dist)
+            mean_test_column = np.mean(dist)
+            median_train_column = np.median(dist)
+            median_test_column = np.median(dist)
+            xs = sorted(np.concatenate((
+                np.linspace(x_range[0], x_range[1], 50),
+                np.quantile(dist, q=np.arange(0.02, 1, 0.02)),
+                [mean_train_column, mean_test_column, median_train_column, median_test_column]
+            )))
+
+            train_density = get_density(dist, xs)
+            bars_width = (x_range_to_show[1] - x_range_to_show[0]) / 100
+
+            traces: List[go.BaseTraceType] = []
+            common_dist_indices = np.argwhere((xs > lower_limit) & (xs < upper_limit))
+            outlier_dist_indices = np.argwhere((xs < lower_limit) | (xs > upper_limit))
+
+            all_arr = np.array([1 if x > lower_limit and x < upper_limit else 0 for x in xs])
+
+            density_common = np.array(train_density * all_arr).tolist()
+
+            all_arr = list(all_arr)
+            common_beginning = all_arr.index(1)
+            common_ending = len(all_arr) - all_arr[::-1].index(1) - 1
+
+            train_density = list(train_density)
+
+            if common_beginning != 0:
+                xs.insert(common_beginning, xs[common_beginning])
+                train_density.insert(common_beginning, train_density[common_beginning])
+                common_ending += 1
+            if common_ending != len(xs) - 1:
+                xs.insert(common_ending + 1, xs[common_ending])
+                train_density.insert(common_ending + 1, train_density[common_ending])
+
+            total_len = len(xs)
+
+            mask_common = np.zeros(total_len, dtype=bool)
+            mask_common[common_beginning + 1:common_ending + 1] = True
+            mask_outliers = np.zeros(total_len, dtype=bool)
+            mask_outliers[:common_beginning + 1] = True
+            mask_outliers[common_ending + 1:] = True
+
+            mask_outliers_lower = np.zeros(total_len, dtype=bool)
+            mask_outliers_lower[:common_beginning + 1] = True
+            mask_outliers_upper = np.zeros(total_len, dtype=bool)
+            mask_outliers_upper[common_ending + 1:] = True
+
+            density_common = np.array(train_density) * mask_common
+            density_outliers_lower = np.array(train_density) * mask_outliers_lower
+            density_outliers_upper = np.array(train_density) * mask_outliers_upper
+
+            density_outliers = np.array(train_density) * mask_outliers
+            density_outliers = [x if x != 0 else None for x in density_outliers]
+
+            density_common = [x if x != 0 else None for x in density_common]
+            density_outliers_lower = [x if x != 0 else None for x in density_outliers_lower]
+            density_outliers_upper = [x if x != 0 else None for x in density_outliers_upper]
+
+            green = 'rgba(105, 179, 162, 1)'
+            red = 'rgba(179, 106, 106, 1)'
+
+            green_fill = 'rgba(105, 179, 162, 0.7)'
+
+            red_fill = 'rgba(179, 106, 106, 0.7)'
+
+            # green = '#77E49B'
+            # red = '#E47777'
+
+            # hover_data:
+
+
+            def trim_for_label(s):
+                if len(s) > 100:
+                    s = s[:500] + '...'
+                s = s.split()
+                for i in range(10, len(s), 10):
+                    s.insert(i, '<br>')
+                return ' '.join(s)
+
+            n = len(dist)
+
+            tuples = list(zip(dist, data))
+            tuples.sort(key=lambda x: x[0])
+            samples_indices = np.searchsorted([x[0] for x in tuples], xs,side="left")
+            samples = [tuples[i][1] for i in samples_indices]
+            samples = [trim_for_label(s) for s in samples]
+            quantiles = [100 * i / n for i in samples_indices]
+            quantiles_reversed = [100-x for x in quantiles]
+            hover_data = np.array([samples, xs, quantiles, quantiles_reversed]).T
+            hover_template = f'<b>{property_name}</b>: ' \
+                             '%{customdata[1]:.2f}<br>' \
+                             'Larger than %{customdata[2]:.2f}% of the samples<br>' \
+                             'Smaller than %{customdata[3]:.2f}% of the samples<br>' \
+                             '<b>Sample</b>:<br>"%{customdata[0]}"<br>'
+
+            traces.append(go.Scatter(x=xs, y=density_common, name='Common', fill='tozeroy', fillcolor=green_fill,
+                                     line=dict(color=green, shape='linear', width=5), customdata=hover_data,
+                                     hovertemplate=hover_template
+                                     ))
+            traces.append(
+                go.Scatter(x=xs, y=density_outliers_lower, name='Lower Outliers', fill='tozeroy', fillcolor=red_fill,
+                           line=dict(color=red, shape='linear', width=5), customdata=hover_data,
+                                     hovertemplate=hover_template))
+
+            traces.append(
+                go.Scatter(x=xs, y=density_outliers_upper, name='Upper Outliers', fill='tozeroy', fillcolor=red_fill,
+                           line=dict(color=red, shape='linear', width=5), customdata=hover_data,
+                                     hovertemplate=hover_template))
+
+            xaxis_layout = dict(fixedrange=False,
+                                range=x_range_to_show,
+                                title=property_name)
+            yaxis_layout = dict(title='Probability Density', fixedrange=True)
+
+    fig = go.Figure(data=traces)
+    fig.update_xaxes(xaxis_layout)
+    fig.update_yaxes(yaxis_layout)
+
+    fig.update_layout(
+        legend=dict(
+            title='Legend',
+            yanchor='top',
+            y=0.6),
+        height=400,
+        title=dict(text=property_name, x=0.5, xanchor='center'),
+        bargroupgap=0,
+        hovermode='closest')
+
+    return fig
