@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, TrainTestCheck
@@ -196,35 +196,89 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFix
         return self.add_condition(
             f'Ratio of samples with a new category is less or equal to {format_percent(max_ratio)}', condition)
 
-    def fix_logic(self, context: Context, check_result: CheckResult) -> Context:
-        """Run fix."""
-        dataset = context.get_data_by_kind(dataset_kind)
-        data = dataset.data.copy()
-        data = select_from_dataframe(data, self.columns, self.ignore_columns)
-        data.drop_duplicates(inplace=True, keep=keep)
-        context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
+    def fix_logic(self, context: Context, check_result: CheckResult, fix_method='move_to_train',
+                  max_ratio: float = 0, percentage_to_move: float = 0.5) -> Context:
+        """Run fix.
+
+        Parameters
+        ----------
+        context : Context
+            Context object.
+        check_result : CheckResult
+            CheckResult object.
+        fix_method : str, default: 'move_to_train'
+            Method to fix the problem. Possible values: 'drop_features', 'replace_with_none', 'move_to_train'.
+        max_ratio : float, default: 0
+            Maximum ratio of samples with new categories.
+        percentage_to_move : float, default: 0.5
+            Percentage of samples with new categories to move to train.
+        """
+        train, test = context.train.data, context.test.data
+
+        cols_to_fix = check_result.value[check_result.value['Ratio of New Categories'] > max_ratio].index
+
+        if fix_method == 'drop_features':
+            train = train.drop(columns=cols_to_fix)
+            test = test.drop(columns=cols_to_fix)
+        elif fix_method == 'replace_with_none':
+            for col in cols_to_fix:
+                new_categories = check_result.value['New categories'][col]
+                train[col] = train[col].apply(lambda x: None if x in new_categories else x)
+                test[col] = test[col].apply(lambda x: None if x in new_categories else x)
+        elif fix_method == 'move_to_train':
+            # The following code takes the samples with new categories and moves 0.5 of them from test to train:
+            for col in cols_to_fix:
+                new_categories = check_result.value['New categories'][col]
+                new_categories_train = test[test[col].isin(new_categories)].sample(frac=percentage_to_move)
+                train = train.append(new_categories_train)
+                test = test.drop(new_categories_train.index)
+        else:
+            raise ValueError(f'Fix method {fix_method} is not supported')
+
+        context.set_dataset_by_kind(DatasetKind.TRAIN, context.train.copy(train))
+        context.set_dataset_by_kind(DatasetKind.TEST, context.test.copy(test))
+
         return context
 
     @property
     def fix_params(self):
         """Return fix params for display."""
-        return {'keep': {'display': 'Drop By',
-                         'params': ['first', 'last'],
-                         'params_display': ['By First', 'By Last']}}
+        return {'fix_method': {'display': 'Fix By',
+                               'params': ['drop_features', 'replace_with_nones', 'move_to_train'],
+                               'params_display': ['Dropping Features', 'Replacing With Nones',
+                                                  'Moving Samples To Train'],
+                               'params_description': ['Drop features with new categories from the dataset',
+                                                      'Replace new categories with None values',
+                                                      'Move samples with new categories from test to train']},
+                'max_ratio': {'display': 'Max Ratio Of New Categories',
+                              'params': float,
+                              'params_description': 'Maximum ratio of samples with new categories'},
+                'percentage_to_move': {'display': 'Percentage Of Samples To Move',
+                                       'params': float,
+                                       'params_description': 'Percentage of samples with new categories to move to '
+                                                             'train. Relevant only for move_to_train fix method.'}}
 
     @property
     def problem_description(self):
         """Return problem description."""
-        return """Duplicate data samples are present in the dataset. This can lead to overfitting and
-                  decrease the performance of the model."""
+        return """New categories are present in test data but not in train data. This can lead to wrong predictions in 
+                  test data, as these new categories were unknown to the model during training."""
 
     @property
     def manual_solution_description(self):
         """Return manual solution description."""
-        return """Remove duplicate samples."""
+        return """Resample train data to include samples with these new categories."""
 
     @property
     def automatic_solution_description(self):
         """Return automatic solution description."""
-        return """Remove duplicate samples."""
-
+        return """There are 4 possible automatic solutions:
+                  1. Drop features with new categories from the dataset, so the model won't train on them
+                  3. Replace new categories with None values, so the model will treat them as missing values. 
+                     This is not recommended, as it doesn't solve the underlying issue.
+                  4. Move samples with new categories from test to train. 
+                     This is the recommended solution, as it allows the model to be trained on the correct data. 
+                     However, this solution can cause data leakage, and should only be used if it's possible for train 
+                     dataset to have samples from test. 
+                     For example, if train and test datasets are from 2 different time periods, it would probably be 
+                     considered leakage if test samples (from the later time period) were moved to train."""
