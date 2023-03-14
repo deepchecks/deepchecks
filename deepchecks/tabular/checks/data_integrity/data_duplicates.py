@@ -15,6 +15,7 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_list, format_percent
@@ -23,7 +24,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['DataDuplicates']
 
 
-class DataDuplicates(SingleDatasetCheck):
+class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     """Checks for duplicate samples in the dataset.
 
     Parameters
@@ -133,3 +134,7 @@ class DataDuplicates(SingleDatasetCheck):
 
         return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)
+
+    # def fix(self, dataset):
+
+
