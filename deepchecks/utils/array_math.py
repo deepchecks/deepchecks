@@ -28,6 +28,6 @@ def sequence_to_numpy(sequence: t.Sequence):
     elif isinstance(sequence, t.List):
         return np.asarray(sequence).flatten()
     elif isinstance(sequence, pd.Series):
-       return sequence.to_numpy().flatten()
+        return sequence.to_numpy().flatten()
     else:
         raise DeepchecksValueError('Trying to convert a non sequence into a flat list.')
