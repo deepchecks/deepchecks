@@ -27,12 +27,10 @@ from deepchecks.core.serialization.common import (aggregate_conditions, create_f
                                                   normalize_widget_style)
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 from deepchecks.utils.strings import get_random_string
-
 from . import html
 
 __all__ = ['SuiteResultSerializer']
 
-from ...fix_classes import FixMixin
 
 
 class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
@@ -119,8 +117,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             icon='wrench'  # (FontAwesome names without the `fa-` prefix)
         )
 
+        # TODO: Change the if from getattr to isinstance, we left it like this because we had circular imports from
+        # FixMixin import
         fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
-                                 if isinstance(check_result.check, FixMixin)]
+                                 if getattr(check_result.check, 'fix', None) is not None]
+
         if len(fixable_check_results) == 0:
             print('No fixable check found')
             return
