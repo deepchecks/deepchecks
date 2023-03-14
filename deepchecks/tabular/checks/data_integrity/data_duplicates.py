@@ -147,9 +147,9 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
 
     @property
     def fix_params(self):
-        return {'keep': {'name': 'Drop By',
+        return {'keep': {'display': 'Drop By',
                          'params': ['first', 'last'],
-                         'params_names': ['By First', 'By Last']}}
+                         'params_display': ['By First', 'By Last']}}
 
     @property
     def problem_description(self):
