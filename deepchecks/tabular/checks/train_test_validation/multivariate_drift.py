@@ -171,7 +171,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             Method to fix the problem. Possible values: 'drop_features', 'replace_with_none', 'move_to_train'.
         """
         significant_threshold_test = 0.75
-        significant_threshold_train = 0.4
+        significant_threshold_train = 0.25
 
         train, test = context.train, context.test
         cat_features, numerical_features = train.cat_features, train.numerical_features
