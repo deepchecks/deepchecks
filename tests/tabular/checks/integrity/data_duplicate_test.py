@@ -184,7 +184,6 @@ def test_fix_keep_last():
     assert_that(dataset.n_samples, equal_to(6))
     assert_that(dataset.data.index.values, has_items(0, 1, 2, 3, 7, 8))
 
-
     dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                     'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                     'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
