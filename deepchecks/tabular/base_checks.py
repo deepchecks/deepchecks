@@ -108,46 +108,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         """Run check."""
         raise NotImplementedError()
 
-    @docstrings
-    def fix(
-        self,
-        dataset: Union[Dataset, pd.DataFrame],
-        model: Optional[BasicModel] = None,
-        y_pred: Optional[np.ndarray] = None,
-        y_proba: Optional[np.ndarray] = None,
-        model_classes: Optional[List] = None,
-        with_display: bool = True,
-        **kwargs
-    ) -> Dataset:
-        """Run check.
-
-        Parameters
-        ----------
-        dataset: Union[Dataset, pd.DataFrame]
-            Dataset or DataFrame object, representing data an estimator was fitted on
-        model: Optional[BasicModel], default: None
-            A scikit-learn-compatible fitted estimator instance
-        {additional_context_params:2*indent}
-        """
-        assert self.context_type is not None
-
-        context = self.context_type(  # pylint: disable=not-callable
-            train=dataset,
-            model=model,
-            with_display=with_display,
-            y_pred_train=y_pred,
-            y_proba_train=y_proba,
-            model_classes=model_classes
-        )
-        updated_context = self.fix_logic(context, dataset_kind=DatasetKind.TRAIN, **kwargs)
-        return updated_context.train
-
-    @abc.abstractmethod
-    def fix_logic(self, context, dataset_kind, **kwargs) -> Context:
-        """Run check."""
-        raise NotImplementedError()
-
-
 
 class TrainTestCheck(TrainTestBaseCheck):
     """Parent class for checks that compare two datasets.

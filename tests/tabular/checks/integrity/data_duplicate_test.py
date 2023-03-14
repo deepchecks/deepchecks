@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, calling, close_to, equal_to, has_items, has_length, raises
 
-from deepchecks import Dataset
+from deepchecks.tabular import Dataset
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.data_duplicates import DataDuplicates

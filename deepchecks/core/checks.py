@@ -275,10 +275,6 @@ class SingleDatasetBaseCheck(BaseCheck):
         """Run check."""
         raise NotImplementedError()
 
-    def fix(self, dataset, **kwargs) -> 'BaseCheck':
-        """Fix check."""
-        raise NotImplementedError()
-
 
 class TrainTestBaseCheck(BaseCheck):
     """Parent class for checks that compare two datasets.

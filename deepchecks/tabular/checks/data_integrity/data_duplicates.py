@@ -136,7 +136,7 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
         return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)
 
-    def fix_logic(self, context: Context, dataset_kind, keep='first') -> Context:
+    def fix_logic(self, context: Context, dataset_kind, keep: str = 'first') -> Context:
         """Run fix."""
         dataset = context.get_data_by_kind(dataset_kind)
         data = dataset.data.copy()
