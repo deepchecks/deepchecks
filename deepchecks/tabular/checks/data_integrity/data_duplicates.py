@@ -155,14 +155,15 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     @property
     def problem_description(self):
         """Return problem description."""
-        return 'Dataset contains duplicate samples.'
+        return """Duplicate data samples are present in the dataset. This can lead to overfitting and
+                  decrease the performance of the model."""
 
     @property
     def manual_solution_description(self):
         """Return manual solution description."""
-        return 'Remove duplicate samples.'
+        return """Remove duplicate samples."""
 
     @property
-    def fix_method_description(self):
-        """Return fix method description."""
-        return 'Remove duplicate samples.'
+    def automatic_solution_description(self):
+        """Return automatic solution description."""
+        return """Remove duplicate samples."""
