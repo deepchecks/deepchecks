@@ -371,12 +371,13 @@ def df_with_fully_nan():
 @pytest.fixture(scope='session')
 def drifted_data() -> Tuple[Dataset, Dataset]:
     np.random.seed(42)
+    size = 1000
 
-    train_data = np.concatenate([np.random.randn(1000, 2),
-                                 np.random.choice(a=['apple', 'orange', 'banana'], p=[0.5, 0.3, 0.2], size=(1000, 2))],
+    train_data = np.concatenate([np.random.randn(size, 2),
+                                 np.random.choice(a=['apple', 'orange', 'banana'], p=[0.5, 0.3, 0.2], size=(size, 2))],
                                 axis=1)
-    test_data = np.concatenate([np.random.randn(1000, 2),
-                                np.random.choice(a=['apple', 'orange', 'banana'], p=[0.5, 0.3, 0.2], size=(1000, 2))],
+    test_data = np.concatenate([np.random.randn(size, 2),
+                                np.random.choice(a=['apple', 'orange', 'banana'], p=[0.5, 0.3, 0.2], size=(size, 2))],
                                axis=1)
 
     df_train = pd.DataFrame(train_data,
@@ -388,9 +389,9 @@ def drifted_data() -> Tuple[Dataset, Dataset]:
     df_test = df_test.astype({'numeric_without_drift': 'float', 'numeric_with_drift': 'float'})
 
     df_test['numeric_with_drift'] = df_test['numeric_with_drift'].astype('float') + abs(
-        np.random.randn(1000)) + np.arange(0, 1, 0.001) * 4
+        np.random.randn(size)) + np.arange(0, 1, 1/size) * 4
     df_test['categorical_with_drift'] = np.random.choice(a=['apple', 'orange', 'banana', 'lemon'],
-                                                         p=[0.5, 0.25, 0.15, 0.1], size=(1000, 1))
+                                                         p=[0.5, 0.25, 0.15, 0.1], size=(size, 1))
 
     label = np.random.randint(0, 2, size=(df_train.shape[0],))
     df_train['target'] = label

@@ -25,7 +25,8 @@ from deepchecks.utils.typing import BasicModel
 
 __all__ = [
     'FixMixin',
-    'SingleDatasetCheckFixMixin'
+    'SingleDatasetCheckFixMixin',
+    'TrainTestCheckFixMixin'
 ]
 
 

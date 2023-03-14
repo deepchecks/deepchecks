@@ -14,7 +14,7 @@ import string
 
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, greater_than, has_entries, has_length
+from hamcrest import assert_that, close_to, greater_than, has_entries, has_length, equal_to
 
 from deepchecks.tabular.checks import MultivariateDrift
 from deepchecks.tabular.dataset import Dataset
@@ -204,3 +204,23 @@ def test_runs_with_Nonetimeout(drifted_data):
             }
         ),
     )
+
+def test_drift_fix(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+    check = MultivariateDrift()
+
+    # Act & Assert
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.86, 0.01))
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds)
+
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.36, 0.01))
+    assert_that(train_ds.n_samples, equal_to(956))
+    assert_that(test_ds.n_samples, equal_to(640))
+
+
+

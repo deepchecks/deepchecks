@@ -9,16 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
+import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
+from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift, get_domain_classifier_hq, \
+    preprocess_for_domain_classifier
+from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
 
 __all__ = ['MultivariateDrift']
 
 
-class MultivariateDrift(TrainTestCheck):
+class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
     """
     Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 
@@ -153,3 +156,132 @@ class MultivariateDrift(TrainTestCheck):
 
         return self.add_condition(f'Drift value is less than {format_number(max_drift_value)}',
                                   condition)
+
+    def fix_logic(self, context: Context, check_result: CheckResult, fix_method='move_to_train') -> Context:
+        """Run fix.
+
+        Parameters
+        ----------
+        context : Context
+            Context object.
+        check_result : CheckResult
+            CheckResult object.
+        fix_method : str, default: 'move_to_train'
+            Method to fix the problem. Possible values: 'drop_features', 'replace_with_none', 'move_to_train'.
+        """
+        significant_threshold_test = 0.75
+        significant_threshold_train = 0.4
+
+        train, test = context.train, context.test
+        cat_features, numerical_features = train.cat_features, train.numerical_features
+
+        # sample size of train and test so that 2 domain classifiers can be trained on the data,
+        # as we want to have viable predictions for all data samples (and can't use the domain classifier's predictions
+        # on the data it was trained on)
+        sample_size = min(self.n_samples, int(train.n_samples / 2), int(test.n_samples / 2))
+
+        train_data = train.data[numerical_features + cat_features]
+        test_data = test.data[numerical_features + cat_features]
+
+        # create new dataset, with label denoting whether sample belongs to test dataset
+        x, y = preprocess_for_domain_classifier(train_data, test_data, cat_features)
+
+        train_processed = x[(y == 0).values]
+        test_processed = x[(y == 1).values]
+
+        # train a model to disguise between train and test samples
+        domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
+                                                  cat_features=[col in cat_features for col in x.columns],
+                                                  random_state=self.random_state)
+
+        print(f'Before starting: {domain_classifier.score(x, y)}')
+
+        test_predictions = domain_classifier.predict_proba(test_processed)[:, 1]
+        test_samples_to_move = test_processed[test_predictions > significant_threshold_test].sample(frac=0.5, random_state=self.random_state).index
+        train_data = pd.concat([train_data, test_data.loc[test_samples_to_move]])
+        test_data = test_data.drop(test_samples_to_move)
+
+        # Again train a model to differentiate between train and test samples, now in order to decide which train
+        # samples to drop:
+        # create new dataset, with label denoting whether sample belongs to test dataset
+        train_data_to_train = train_data.sample(sample_size, random_state=self.random_state)
+        test_data_to_train = test_data.sample(sample_size, random_state=self.random_state)
+
+        x, y = preprocess_for_domain_classifier(train_data_to_train, test_data_to_train, cat_features)
+
+        # train a model to disguise between train and test samples
+        domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
+                                                  cat_features=[col in cat_features for col in x.columns],
+                                                  random_state=self.random_state)
+
+        print(f'After cleaning test samples: {domain_classifier.score(x, y)}')
+
+        train_processed = x[(y == 0).values]
+        test_processed = x[(y == 1).values]
+
+        train_predictions = domain_classifier.predict_proba(train_processed)[:, 1]
+        train_samples_to_drop = train_processed[train_predictions < significant_threshold_train].index
+        train_data = train_data.drop(train_samples_to_drop)
+
+        train_data_to_train = train_data.sample(sample_size, random_state=self.random_state)
+        test_data_to_train = test_data.sample(sample_size, random_state=self.random_state)
+
+        x, y = preprocess_for_domain_classifier(train_data_to_train, test_data_to_train, cat_features)
+
+        # train a model to disguise between train and test samples
+        domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
+                                                  cat_features=[col in cat_features for col in x.columns],
+                                                  random_state=self.random_state)
+
+        print(f'After cleaning train samples: {domain_classifier.score(x, y)}')
+
+
+        # create new datasets
+        context.set_dataset_by_kind(DatasetKind.TRAIN, context.train.copy(train_data))
+        context.set_dataset_by_kind(DatasetKind.TEST, context.test.copy(test_data))
+
+        return context
+
+    @property
+    def fix_params(self):
+        """Return fix params for display."""
+        return {'fix_method': {'display': 'Fix By',
+                               'params': ['drop_features', 'replace_with_nones', 'move_to_train'],
+                               'params_display': ['Dropping Features', 'Replacing With Nones',
+                                                  'Moving Samples To Train'],
+                               'params_description': ['Drop features with new categories from the dataset',
+                                                      'Replace new categories with None values',
+                                                      'Move samples with new categories from test to train']},
+                'max_ratio': {'display': 'Max Ratio Of New Categories',
+                              'params': float,
+                              'params_description': 'Maximum ratio of samples with new categories'},
+                'percentage_to_move': {'display': 'Percentage Of Samples To Move',
+                                       'params': float,
+                                       'params_description': 'Percentage of samples with new categories to move to '
+                                                             'train. Relevant only for move_to_train fix method.'}}
+
+    @property
+    def problem_description(self):
+        """Return problem description."""
+        return """New categories are present in test data but not in train data. This can lead to wrong predictions in 
+                  test data, as these new categories were unknown to the model during training."""
+
+    @property
+    def manual_solution_description(self):
+        """Return manual solution description."""
+        return """Resample train data to include samples with these new categories."""
+
+    @property
+    def automatic_solution_description(self):
+        """Return automatic solution description."""
+        return """There are 4 possible automatic solutions:
+                  1. Drop features with new categories from the dataset, so the model won't train on them
+                  3. Replace new categories with None values, so the model will treat them as missing values. 
+                     This is not recommended, as it doesn't solve the underlying issue.
+                  4. Move samples with new categories from test to train. 
+                     This is the recommended solution, as it allows the model to be trained on the correct data. 
+                     However, this solution can cause data leakage, and should only be used if it's possible for train 
+                     dataset to have samples from test. 
+                     For example, if train and test datasets are from 2 different time periods, it would probably be 
+                     considered leakage if test samples (from the later time period) were moved to train."""
+
