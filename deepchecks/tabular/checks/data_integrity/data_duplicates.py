@@ -135,6 +135,31 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
         return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)
 
-    # def fix(self, dataset):
+    def fix(self, dataset, *args, **kwargs):
+        """Fix the dataset by removing the duplicates.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Dataset with duplicates removed.
+        """
+        data = dataset.data.copy()
+        data.drop_duplicates(inplace=True)
+        return dataset.copy(data)
+
+    @property
+    def problem_description(self):
+        """Return problem description."""
+        return 'Dataset contains duplicate samples.'
+
+    @property
+    def manual_solution_description(self):
+        """Return manual solution description."""
+        return 'Remove duplicate samples.'
+
+    @property
+    def fix_method_description(self):
+        """Return fix method description."""
+        return 'Remove duplicate samples.'
 
 
