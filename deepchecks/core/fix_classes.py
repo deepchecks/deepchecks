@@ -11,7 +11,7 @@
 # pylint: disable=import-outside-toplevel
 """Module containing the fix classes and methods."""
 import abc
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import numpy as np
 import pandas as pd
@@ -107,7 +107,8 @@ class TrainTestCheckFixMixin(FixMixin):
     @docstrings
     def fix(
         self,
-        dataset: Union[Dataset, pd.DataFrame],
+        train_dataset: Union[Dataset, pd.DataFrame],
+        test_dataset: Union[Dataset, pd.DataFrame],
         model: Optional[BasicModel] = None,
         y_pred_train: Optional[np.ndarray] = None,
         y_pred_test: Optional[np.ndarray] = None,
@@ -116,7 +117,7 @@ class TrainTestCheckFixMixin(FixMixin):
         model_classes: Optional[List] = None,
         with_display: bool = True,
         **kwargs
-    ) -> Dataset:
+    ) -> Tuple[Dataset, Dataset]:
         """Fix check.
 
         Parameters
@@ -130,7 +131,8 @@ class TrainTestCheckFixMixin(FixMixin):
         assert self.context_type is not None
 
         context = self.context_type(  # pylint: disable=not-callable
-            train=dataset,
+            train=train_dataset,
+            test=test_dataset,
             model=model,
             y_pred_train=y_pred_train,
             y_pred_test=y_pred_test,
@@ -139,9 +141,9 @@ class TrainTestCheckFixMixin(FixMixin):
             model_classes=model_classes,
             with_display=with_display
         )
-        check_result = self.run_logic(context, **kwargs)
+        check_result = self.run_logic(context)
         updated_context = self.fix_logic(context, check_result, **kwargs)
-        return updated_context.train
+        return updated_context.train, updated_context.test
 
     @abc.abstractmethod
     def fix_logic(self, context, check_result, **kwargs) -> Context:

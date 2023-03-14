@@ -265,3 +265,52 @@ def test_condition_count_pass():
                                        '\n{\'col1\': \'25%\'}',
                                name='Ratio of samples with a new category is less or equal to 30%')
     ))
+
+
+def test_new_category_fix():
+    train_data = {'col1': ['a'] * 20 + ['b'] * 20 + ['c'] * 20,
+                  'col2': ['a'] * 20 + ['b'] * 20 + ['c'] * 20}
+    test_data = {'col1': ['a'] * 20 + ['b'] * 20 + ['c'] * 20 + ['d'] * 20,
+                 'col2': ['a'] * 20 + ['b'] * 20 + ['c'] * 40}
+    train_dataset = Dataset(pd.DataFrame(data=train_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
+    test_dataset = Dataset(pd.DataFrame(data=test_data, columns=['col1', 'col2']), cat_features=['col1', 'col2'])
+
+    # Arrange
+    check = NewCategoryTrainTest()
+
+    # Act & Assert
+    result = check.run(train_dataset, test_dataset)
+    assert_that(max(result.value['# New Categories']), equal_to(1))
+    assert_that(max(result.value['Ratio of New Categories']), equal_to(0.25))
+
+    # Drop features with new categories:
+    new_train_dataset, new_test_dataset = check.fix(train_dataset=train_dataset, test_dataset=test_dataset,
+                                                    fix_method='drop_features')
+    assert_that(new_train_dataset.data.columns, has_items('col2'))
+    assert_that(new_test_dataset.data.columns, has_items('col2'))
+
+    result = check.run(new_train_dataset, new_test_dataset)
+    assert_that(max(result.value['# New Categories']), equal_to(0))
+
+    # Replace new categories with None value:
+    new_train_dataset, new_test_dataset = check.fix(train_dataset=train_dataset, test_dataset=test_dataset,
+                                                    fix_method='replace_with_none')
+    assert_that(new_train_dataset.data['col1'].unique(), has_items('a', 'b', 'c'))
+    assert_that(new_test_dataset.data['col1'].unique(), has_items('a', 'b', 'c', None))
+
+    # result = check.run(new_train_dataset, new_test_dataset)
+    # assert_that(max(result.value['# New Categories']), equal_to(0))
+
+    # Move new categories samples to train dataset:
+
+    new_train_dataset, new_test_dataset = check.fix(train_dataset=train_dataset, test_dataset=test_dataset,
+                                                    fix_method='move_to_train')
+    assert_that(new_train_dataset.data['col1'].unique(), has_items('a', 'b', 'c', 'd'))
+    assert_that(new_train_dataset.data['col1'].value_counts()['d'], equal_to(10))
+    assert_that(new_test_dataset.data['col1'].value_counts()['d'], equal_to(10))
+
+    result = check.run(new_train_dataset, new_test_dataset)
+    assert_that(max(result.value['# New Categories']), equal_to(0))
+
+
+
