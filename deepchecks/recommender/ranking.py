@@ -39,7 +39,7 @@ def reciprocal_rank(relevant_item: X, recommendation: Sequence[X]) -> float:
     for i, item in enumerate(recommendation):
         if item == relevant_item:
             return 1.0 / (i + 1.0)
-    raise ValueError("relevant item did not appear in recommendation")
+    return 100
 
 
 def mean_reciprocal_rank(relevant_items: List, recommendation: List):

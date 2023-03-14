@@ -43,17 +43,12 @@ class _DummyModel:
         Array of the model prediction over the train dataset.
     y_pred_test: t.Optional[np.ndarray]
         Array of the model prediction over the test dataset.
-    y_proba_train: np.ndarray
-        Array of the model prediction probabilities over the train dataset.
-    y_proba_test: np.ndarray
-        Array of the model prediction probabilities over the test dataset.
     validate_data_on_predict: bool, default = True
         If true, before predicting validates that the received data samples have the same index as in original data.
     """
 
     feature_df_list: t.List[pd.DataFrame]
     predictions: pd.DataFrame
-    proba: pd.DataFrame
 
     def __init__(self,
                  train: t.Union[Dataset, None] = None,
@@ -73,23 +68,16 @@ class _DummyModel:
 
         feature_df_list = []
         predictions = []
-        probas = []
 
         for dataset, y_pred in zip([train, test],
                                    [y_pred_train, y_pred_test]):
-            if y_pred is not None and not isinstance(y_pred, np.ndarray):
-                y_pred = np.array(y_pred)
-            if y_proba is not None and not isinstance(y_proba, np.ndarray):
-                y_proba = np.array(y_proba)
             if dataset is not None:
                 feature_df_list.append(dataset.features_columns)
                 if y_pred is not None:
-                    ensure_predictions_shape(y_pred, dataset.data)
                     y_pred_ser = pd.Series(y_pred, index=dataset.data.index)
                     predictions.append(y_pred_ser)
 
         self.predictions = pd.concat(predictions, axis=0) if predictions else None
-        self.probas = pd.concat(probas, axis=0) if probas else None
         self.feature_df_list = feature_df_list
         self.validate_data_on_predict = validate_data_on_predict
 
@@ -125,7 +113,7 @@ class Scorer(DeepcheckScorer):
         else:
             raise DeepchecksValueError('Wrong scorer type')
 
-        super().__init__(self.per_sample_metric, name=name)
+        super().__init__(self.per_sample_metric, name=name, model_classes=None, observed_classes=None)
         self.to_avg = to_avg
 
     def __call__(self, model, dataset: RecDataset):
@@ -163,6 +151,7 @@ class Context(TabularContext):
         with_display: bool = True,
         y_pred_train: t.Optional[t.Sequence[t.Hashable]] = None,
         y_pred_test: t.Optional[t.Sequence[t.Hashable]] = None,
+        **kwargs
     ):
 
         super().__init__(train=train,
@@ -176,7 +165,7 @@ class Context(TabularContext):
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
         if isinstance(scorers, t.Mapping):
-            scorers = [DeepcheckScorer(scorer, name, to_avg=use_avg_defaults) for name, scorer in scorers.items()]
+            scorers = [Scorer(scorer, name, to_avg=use_avg_defaults) for name, scorer in scorers.items()]
         else:
-            scorers = [DeepcheckScorer(scorer, to_avg=use_avg_defaults) for scorer in scorers]
+            scorers = [Scorer(scorer, to_avg=use_avg_defaults, name=None) for scorer in scorers]
         return scorers
