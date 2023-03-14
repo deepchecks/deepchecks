@@ -94,17 +94,19 @@ def test_data_duplicates_ignore_index_column():
 
 def test_anonymous_series():
     np.random.seed(42)
-    df = pd.DataFrame(np.random.randint(0,10,(100,3))).reset_index()
+    df = pd.DataFrame(np.random.randint(0, 10, (100, 3))).reset_index()
     res = DataDuplicates(ignore_columns=['index']).run(df)
     assert_that(res.value, close_to(0.05, 0.001))
     assert_that(res.display, has_length(3))
 
+
 def test_anonymous_series_without_display():
     np.random.seed(42)
-    df = pd.DataFrame(np.random.randint(0,10,(100,3))).reset_index()
+    df = pd.DataFrame(np.random.randint(0, 10, (100, 3))).reset_index()
     res = DataDuplicates(ignore_columns=['index']).run(df, with_display=False)
     assert_that(res.value, close_to(0.05, 0.001))
     assert_that(res.display, has_length(0))
+
 
 def test_nan(df_with_nan_row, df_with_single_nan_in_col):
     df = df_with_nan_row.set_index('col2')
@@ -150,14 +152,45 @@ def test_condition():
 
 
 def test_fix():
-    duplicate_data = pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
-                                   'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
-                                   'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]})
+    dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
     check_obj = DataDuplicates()
-    assert_that(check_obj.run(duplicate_data).value, close_to(0.40, 0.01))
-
-    dataset = Dataset(duplicate_data)
+    assert_that(check_obj.run(dataset).value, close_to(0.40, 0.01))
 
     dataset = check_obj.fix(dataset)
     assert_that(check_obj.run(dataset).value, equal_to(0))
     assert_that(dataset.n_samples, equal_to(6))
+
+
+def test_fix_with_columns():
+    dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
+
+    check_obj = DataDuplicates(columns=['col1'])
+    dataset = check_obj.fix(dataset)
+    assert_that(check_obj.run(dataset).value, equal_to(0))
+    assert_that(dataset.n_samples, equal_to(2))
+
+def test_fix_keep_last():
+    dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
+    check_obj = DataDuplicates()
+    assert_that(check_obj.run(dataset).value, close_to(0.40, 0.01))
+
+    dataset = check_obj.fix(dataset, keep='first')
+    assert_that(dataset.n_samples, equal_to(6))
+    assert_that(dataset.data.index.values, has_items(0, 1, 2, 3, 7, 8))
+
+
+    dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
+
+    dataset = check_obj.fix(dataset, keep='last')
+    assert_that(dataset.n_samples, equal_to(6))
+    assert_that(dataset.data.index.values, has_items(0, 5, 6, 7, 8, 9))
+
+

@@ -44,13 +44,13 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     """
 
     def __init__(
-        self,
-        columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_to_show: int = 5,
-        n_samples: int = 10_000_000,
-        random_state: int = 42,
-        **kwargs
+            self,
+            columns: Union[Hashable, List[Hashable], None] = None,
+            ignore_columns: Union[Hashable, List[Hashable], None] = None,
+            n_to_show: int = 5,
+            n_samples: int = 10_000_000,
+            random_state: int = 42,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -127,6 +127,7 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
         max_ratio : float , default: 0
             Maximum ratio of duplicates.
         """
+
         def max_ratio_condition(result: float) -> ConditionResult:
             details = f'Found {format_percent(result)} duplicate data'
             category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.WARN
@@ -135,13 +136,20 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
         return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)
 
-    def fix_logic(self, context: Context, dataset_kind) -> 'Dataset':
+    def fix_logic(self, context: Context, dataset_kind, keep='first') -> Context:
         """Run fix."""
         dataset = context.get_data_by_kind(dataset_kind)
         data = dataset.data.copy()
-        data.drop_duplicates(inplace=True)
+        data = select_from_dataframe(data, self.columns, self.ignore_columns)
+        data.drop_duplicates(inplace=True, keep=keep)
         context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
         return context
+
+    @property
+    def fix_params(self):
+        return {'keep': {'name': 'Drop By',
+                         'params': ['first', 'last'],
+                         'params_names': ['By First', 'By Last']}}
 
     @property
     def problem_description(self):
@@ -157,5 +165,3 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     def fix_method_description(self):
         """Return fix method description."""
         return 'Remove duplicate samples.'
-
-

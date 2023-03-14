@@ -117,7 +117,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         y_proba: Optional[np.ndarray] = None,
         model_classes: Optional[List] = None,
         with_display: bool = True,
-    ) -> CheckResult:
+        **kwargs
+    ) -> Dataset:
         """Run check.
 
         Parameters
@@ -138,11 +139,11 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             y_proba_train=y_proba,
             model_classes=model_classes
         )
-        updated_context = self.fix_logic(context, dataset_kind=DatasetKind.TRAIN)
+        updated_context = self.fix_logic(context, dataset_kind=DatasetKind.TRAIN, **kwargs)
         return updated_context.train
 
     @abc.abstractmethod
-    def fix_logic(self, context, dataset_kind) -> Context:
+    def fix_logic(self, context, dataset_kind, **kwargs) -> Context:
         """Run check."""
         raise NotImplementedError()
 

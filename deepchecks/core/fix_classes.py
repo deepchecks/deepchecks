@@ -33,6 +33,11 @@ class FixMixin(abc.ABC):
         raise NotImplementedError()
 
     @property
+    def fix_params(self):
+        """Return the fix params."""
+        raise NotImplementedError()
+
+    @property
     def problem_description(self):
         """Return a problem description."""
         raise NotImplementedError()
