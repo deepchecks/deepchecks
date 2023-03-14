@@ -20,8 +20,6 @@ from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck,
                                     TrainTestBaseCheck)
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.recommender.dataset import RecDataset
-from deepchecks.recommender.context import Context as RecContext
 from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.context import Context
@@ -70,6 +68,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         {additional_context_params:2*indent}
         """
         if self.context_type is None:
+            from deepchecks.recommender.dataset import RecDataset
+            from deepchecks.recommender.context import Context as RecContext
             self.context_type = RecContext if isinstance(dataset, RecDataset) else Context
 
         if y_pred_train is not None:
@@ -150,6 +150,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         {additional_context_params:2*indent}
         """
         if self.context_type is None:
+            from deepchecks.recommender.dataset import RecDataset
+            from deepchecks.recommender.context import Context as RecContext
             self.context_type = RecContext if isinstance(train_dataset, RecDataset) else Context
 
         context = self.context_type(  # pylint: disable=not-callable
