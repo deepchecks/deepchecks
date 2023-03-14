@@ -74,7 +74,7 @@ def rank(relevant_item: X, recommendation: Sequence[X]) -> float:
     for i, item in enumerate(recommendation):
         if item == relevant_item:
             return i + 1.0
-    raise ValueError("relevant item did not appear in recommendation")
+    return None
 
 
 def mean_rank(relevant_items: Sequence[X], recommendation: Sequence[X]) -> float:

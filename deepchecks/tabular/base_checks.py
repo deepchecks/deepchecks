@@ -20,6 +20,8 @@ from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck,
                                     TrainTestBaseCheck)
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.recommender.dataset import RecDataset
+from deepchecks.recommender.context import Context as RecContext
 from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.context import Context
@@ -38,7 +40,7 @@ __all__ = [
 class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
 
-    context_type = Context
+    context_type = None
 
     @docstrings
     def run(
@@ -67,7 +69,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             A scikit-learn-compatible fitted estimator instance
         {additional_context_params:2*indent}
         """
-        assert self.context_type is not None
+        if self.context_type is None:
+            self.context_type = RecContext if isinstance(dataset, RecDataset) else Context
+
         if y_pred_train is not None:
             warnings.warn('y_pred_train is deprecated, please use y_pred instead.', DeprecationWarning, stacklevel=2)
         if (y_pred_train is not None) and (y_pred is not None):
@@ -115,7 +119,7 @@ class TrainTestCheck(TrainTestBaseCheck):
     The class checks train dataset and test dataset for model training and test.
     """
 
-    context_type = Context
+    context_type = None
 
     @docstrings
     def run(
@@ -145,7 +149,9 @@ class TrainTestCheck(TrainTestBaseCheck):
             A scikit-learn-compatible fitted estimator instance
         {additional_context_params:2*indent}
         """
-        assert self.context_type is not None
+        if self.context_type is None:
+            self.context_type = RecContext if isinstance(train_dataset, RecDataset) else Context
+
         context = self.context_type(  # pylint: disable=not-callable
             train=train_dataset,
             test=test_dataset,

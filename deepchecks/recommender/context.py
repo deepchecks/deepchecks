@@ -122,7 +122,7 @@ class Scorer(DeepcheckScorer):
         y_pred = model.predict(dataset_without_nulls.features_columns)
         scores = [self.per_sample_metric(label, pred) for label, pred in zip(y_true, y_pred)]
         if self.to_avg:
-            return np.mean(scores)
+            return np.nanmean(scores)
         return scores
 
 

@@ -18,11 +18,15 @@ from sklearn.preprocessing import LabelBinarizer
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.utils.task_type import TaskType
-
+from deepchecks.recommender import RecDataset, ranking
 
 def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,
                               classes_index_order: Union[np.array, pd.Series]) -> pd.Series:
     """Calculate error per sample for a given model and a dataset."""
+    if isinstance(dataset, RecDataset):
+      # TODO might need to add another case for list label
+      return pd.Series([ranking.reciprocal_rank(y, y_pred) for y, y_pred in
+                          zip(model.predict(dataset.features_columns), dataset.label_col)], index=dataset.data.index)
     if task_type == TaskType.REGRESSION:
         return pd.Series([metrics.mean_squared_error([y], [y_pred]) for y, y_pred in
                           zip(model.predict(dataset.features_columns), dataset.label_col)], index=dataset.data.index)
