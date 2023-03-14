@@ -17,6 +17,11 @@ import numpy as np
 
 __all__ = ['calculate_default_properties']
 
+def property_import_error(property_name: str, package_name: str) -> ImportError:
+    """Raise an ImportError for a property that requires a package."""
+    return ImportError(
+        f'property {property_name} requires the {package_name} python package. '
+        f'To get it, run "pip install {package_name}".')
 
 def text_length(raw_text: Sequence[str]) -> List[int]:
     """Return list of integers of text lengths."""
@@ -38,12 +43,9 @@ def percentage_special_characters(raw_text: Sequence[str]) -> List[float]:
     return [len([c for c in text if c in string.punctuation]) / len(text) for text in raw_text]
 
 
-def property_import_error(property_name: str, package_name: str) -> ImportError:
-    """Raise an ImportError for a property that requires a package."""
-    return ImportError(
-        f'property {property_name} requires the {package_name} python package. '
-        f'To get it, run "pip install {package_name}".')
-
+def max_word_length(raw_text: Sequence[str]) -> List[int]:
+    """Return list of integers of max word length."""
+    return [max([len(word) for word in text.split()]) for text in raw_text]
 
 def language(raw_text: Sequence[str]) -> List[str]:
     """Return list of strings of language."""
@@ -55,6 +57,7 @@ def language(raw_text: Sequence[str]) -> List[str]:
         raise property_import_error('language', 'langdetect') from e
 
     return [langdetect.detect(text) for text in raw_text]
+
 
 
 def sentiment(raw_text: Sequence[str]) -> List[str]:
@@ -81,6 +84,7 @@ DEFAULT_PROPERTIES = [
     {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
     {'name': 'percentage_special_characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
+    {'name': 'max_word_length', 'method': max_word_length, 'output_type': 'numeric'},
     {'name': 'language', 'method': language, 'output_type': 'categorical'},
     {'name': 'sentiment', 'method': sentiment, 'output_type': 'numeric'},
     {'name': 'subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
