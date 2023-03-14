@@ -15,7 +15,7 @@ import warnings
 
 from ipywidgets import HTML, Accordion, VBox, Widget, Tab, Text, IntSlider, Label, HBox, Checkbox, Dropdown, Box, Button
 
-from deepchecks.core import check_result as check_types
+from deepchecks.core import check_result as check_types, DatasetKind
 from deepchecks.core import suite
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer
@@ -107,12 +107,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             )
         ]
         # TODO: OFIR TESTING CODE DELETE THIS
-        dropdown = Dropdown(
-            options=['Drop First', 'Drop Last'],
-            value='Drop First',
-            description='Drop By',
-            disabled=False,
-        )
+
         button = Button(
             description='Fix!',
             disabled=False,
@@ -121,29 +116,43 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             icon='wrench'  # (FontAwesome names without the `fa-` prefix)
         )
 
-        #box = Box(children=[checkbox, dropdown])
+
         data_duplicates_check_result = [check_result for check_result in self.value.get_not_passed_checks() if check_result.check.name() == "Data Duplicates"][0]
         data_duplicates_check = data_duplicates_check_result.check
-        dropdowns = []
+
+        dropdowns = dict(dict())
+
+        # TODO: This sould be wrapped with a for loop over self.value.get_not_passed_checks()
+        # Wherever it says data_duplicates_check, it should be replaced with the current check
         for param_name, param_dict in data_duplicates_check.fix_params.items():
-            list_name = param_dict['display']
+            user_display = param_dict['display']
             options = list(zip(param_dict['params_display'], param_dict['params']))
             dropdown = Dropdown(
                 options=options,
                 value=options[0][1],
-                description=list_name,
+                description=user_display,
             )
-            dropdowns.append(dropdown)
-        vbox = VBox(children=dropdowns)
+            # next code creates a dictionary at dropdowns[data_duplicates_check.name()][param_name] if not exists, otherwise it adds the dropdown to the existing dictionary
+            if data_duplicates_check.name() not in dropdowns:
+                dropdowns[data_duplicates_check.name()] = dict()
+            dropdowns[data_duplicates_check.name()][param_name] = dropdown
+        vbox = VBox(children=list(dropdowns[data_duplicates_check.name()].values()))
         check_box = Checkbox(value=True, description=data_duplicates_check.name(), disabled=False, indent=False)
         box = Box(children=[check_box, vbox])
+        # For loop ends here
 
         accordion = Accordion(children=[box])
 
+        def print_all_checked(b):
+            print("Fixing!")
+            data_duplicates_check.fix_logic(context=self.value.context, check_result=data_duplicates_check_result, dataset_kind=DatasetKind.TRAIN, keep=dropdowns[data_duplicates_check.name()]['keep'].value)
+
+        button.on_click(print_all_checked)
         content = VBox(children=[
             self.prepare_summary(output_id=output_id, **kwargs),
-            *accordions, accordion
+            *accordions, accordion, button
         ])
+
         return Accordion(
             children=[content],
             _titles={'0': self.value.name},
