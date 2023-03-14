@@ -11,8 +11,6 @@
 """The dataset module containing the recsys RecDataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
-import warnings
-from collections import Counter
 
 import numpy as np
 import pandas as pd
@@ -67,4 +65,4 @@ class RecDataset(Dataset):
             dataset_name=dataset_name,
             label_classes=label_classes
         )
-        self._user_index_name = user_index_name
+        self.user_index_name = user_index_name
