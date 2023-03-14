@@ -13,7 +13,7 @@
 import typing as t
 import warnings
 
-from ipywidgets import HTML, Accordion, VBox, Widget, Tab, Text, IntSlider, Label, HBox, Checkbox, Dropdown, Box, Button
+from ipywidgets import HTML, Accordion, VBox, Widget, Checkbox, Dropdown, Box, Button
 
 from deepchecks.core import check_result as check_types, DatasetKind
 from deepchecks.core import suite
@@ -30,6 +30,8 @@ from deepchecks.utils.strings import get_random_string
 from . import html
 
 __all__ = ['SuiteResultSerializer']
+
+from ...fix_classes import FixMixin
 
 
 class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
@@ -116,35 +118,31 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             icon='wrench'  # (FontAwesome names without the `fa-` prefix)
         )
 
-        data_duplicate_check_results = [check_result for check_result in self.value.get_not_passed_checks() if check_result.check.name() == "Data Duplicates"]
-        if len(data_duplicate_check_results) == 0:
-            print("No data duplicates check found")
+        fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
+                                 if isinstance(check_result.check, FixMixin)]
+        if len(fixable_check_results) == 0:
+            print('No fixable check found')
             return
-        data_duplicates_check_result = [check_result for check_result in self.value.get_not_passed_checks() if check_result.check.name() == "Data Duplicates"][0]
-        data_duplicates_check = data_duplicates_check_result.check
 
+        checks_vbox_children = []
         dropdowns = dict(dict())
-
-        # TODO: This sould be wrapped with a for loop over self.value.get_not_passed_checks()
-        # Wherever it says data_duplicates_check, it should be replaced with the current check
-        for param_name, param_dict in data_duplicates_check.fix_params.items():
-            user_display = param_dict['display']
-            options = list(zip(param_dict['params_display'], param_dict['params']))
-            dropdown = Dropdown(
-                options=options,
-                value=options[0][1],
-                description=user_display,
-            )
-            # next code creates a dictionary at dropdowns[data_duplicates_check.name()][param_name] if not exists, otherwise it adds the dropdown to the existing dictionary
-            if data_duplicates_check.name() not in dropdowns:
-                dropdowns[data_duplicates_check.name()] = dict()
-            dropdowns[data_duplicates_check.name()][param_name] = dropdown
-        vbox = VBox(children=list(dropdowns[data_duplicates_check.name()].values()))
-        check_box = Checkbox(value=True, description=data_duplicates_check.name(), disabled=False, indent=False)
-        # For loop ends here
-
-
-
+        for fixable_result in fixable_check_results:
+            check, check_name = fixable_result.check, fixable_result.check.name()
+            for param_name, param_dict in check.fix_params.items():
+                user_display = param_dict['display']
+                options = list(zip(param_dict['params_display'], param_dict['params']))
+                dropdown = Dropdown(
+                    options=options,
+                    value=options[0][1],
+                    description=user_display,
+                )
+                if check_name not in dropdowns:
+                    dropdowns[check_name] = dict()
+                dropdowns[check_name][param_name] = dropdown
+            vbox = VBox(children=list(dropdowns[check_name].values()))
+            check_box = Checkbox(value=True, description=check_name, disabled=False, indent=False)
+            checks_vbox_children.append(Box([check_box, vbox]))
+        checks_vbox = VBox(children=checks_vbox_children)
         save_button = Button(
             description='Save datasets',
             disabled=True,
@@ -152,20 +150,22 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             tooltip='Fix!',
             icon='download'  # (FontAwesome names without the `fa-` prefix)
         )
+
         def on_fix_button_click(b):
-            print("Fixing!")
-            data_duplicates_check.fix_logic(context=self.value.context, check_result=data_duplicates_check_result, dataset_kind=DatasetKind.TRAIN, keep=dropdowns[data_duplicates_check.name()]['keep'].value)
+            print('Fixing!')
+            #data_duplicates_check.fix_logic(context=self.value.context, check_result=data_duplicates_check_result,
+            # dataset_kind=DatasetKind.TRAIN, keep=dropdowns[data_duplicates_check.name()]['keep'].value)
             save_button.disabled = False
-            print("were back")
+            print('were back')
 
         def on_save_button_click(b):
-            print("Saving!")
-            self.value.context.train.data.to_csv("train.csv")
-            self.value.context.test.data.to_csv("test.csv")
-            print("saved!")
+            print('Saving!')
+            self.value.context.train.data.to_csv('train.csv')
+            self.value.context.test.data.to_csv('test.csv')
+            print('saved!')
         button.on_click(on_fix_button_click)
         save_button.on_click(on_save_button_click)
-        box = Box(children=[check_box, vbox])
+        box = Box(children=[checks_vbox])
         another_vbox = VBox(children=[box, button, save_button])
         accordion = Accordion(children=[another_vbox], _titles={'0': 'Fixes'}, selected_index='0')
 
