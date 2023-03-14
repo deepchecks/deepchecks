@@ -125,6 +125,12 @@ class Scorer(DeepcheckScorer):
             return np.nanmean(scores)
         return scores
 
+    def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
+        y_pred = model.predict(data)
+        scores = [self.per_sample_metric(label, pred) for label, pred in zip(label_col, y_pred)]
+        if self.to_avg:
+            return np.nanmean(scores)
+        return scores
 
 @docstrings
 class Context(TabularContext):
@@ -164,8 +170,16 @@ class Context(TabularContext):
 
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
+        if scorers is None:
+            return [Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None)]
         if isinstance(scorers, t.Mapping):
             scorers = [Scorer(scorer, name, to_avg=use_avg_defaults) for name, scorer in scorers.items()]
         else:
             scorers = [Scorer(scorer, to_avg=use_avg_defaults, name=None) for scorer in scorers]
         return scorers
+
+    def get_single_scorer(self, scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                          use_avg_defaults=True) -> DeepcheckScorer:
+        if scorer is None:
+            return Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None)
+        return Scorer(scorer, to_avg=use_avg_defaults, name=None)
