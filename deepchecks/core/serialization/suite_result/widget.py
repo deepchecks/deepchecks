@@ -111,12 +111,15 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         button = Button(
             description='Fix!',
             disabled=False,
-            button_style='success',  # 'success', 'info', 'warning', 'danger' or ''
+            button_style='info',  # 'success', 'info', 'warning', 'danger' or ''
             tooltip='Fix!',
             icon='wrench'  # (FontAwesome names without the `fa-` prefix)
         )
 
-
+        data_duplicate_check_results = [check_result for check_result in self.value.get_not_passed_checks() if check_result.check.name() == "Data Duplicates"]
+        if len(data_duplicate_check_results) == 0:
+            print("No data duplicates check found")
+            return
         data_duplicates_check_result = [check_result for check_result in self.value.get_not_passed_checks() if check_result.check.name() == "Data Duplicates"][0]
         data_duplicates_check = data_duplicates_check_result.check
 
@@ -138,19 +141,37 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             dropdowns[data_duplicates_check.name()][param_name] = dropdown
         vbox = VBox(children=list(dropdowns[data_duplicates_check.name()].values()))
         check_box = Checkbox(value=True, description=data_duplicates_check.name(), disabled=False, indent=False)
-        box = Box(children=[check_box, vbox])
         # For loop ends here
 
-        accordion = Accordion(children=[box])
 
-        def print_all_checked(b):
+
+        save_button = Button(
+            description='Save datasets',
+            disabled=True,
+            button_style='success',  # 'success', 'info', 'warning', 'danger' or ''
+            tooltip='Fix!',
+            icon='download'  # (FontAwesome names without the `fa-` prefix)
+        )
+        def on_fix_button_click(b):
             print("Fixing!")
             data_duplicates_check.fix_logic(context=self.value.context, check_result=data_duplicates_check_result, dataset_kind=DatasetKind.TRAIN, keep=dropdowns[data_duplicates_check.name()]['keep'].value)
+            save_button.disabled = False
+            print("were back")
 
-        button.on_click(print_all_checked)
+        def on_save_button_click(b):
+            print("Saving!")
+            self.value.context.train.data.to_csv("train.csv")
+            self.value.context.test.data.to_csv("test.csv")
+            print("saved!")
+        button.on_click(on_fix_button_click)
+        save_button.on_click(on_save_button_click)
+        box = Box(children=[check_box, vbox])
+        another_vbox = VBox(children=[box, button, save_button])
+        accordion = Accordion(children=[another_vbox], _titles={'0': 'Fixes'}, selected_index='0')
+
         content = VBox(children=[
             self.prepare_summary(output_id=output_id, **kwargs),
-            *accordions, accordion, button
+            *accordions, accordion
         ])
 
         return Accordion(
