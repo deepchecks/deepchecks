@@ -68,6 +68,6 @@ class Context(TabularContext):
             model_classes: t.Optional[t.List] = None,
     ):
 
-    super().__init__(train, test, model, feature_importance, feature_importance_force_permutation,
+        super().__init__(train, test, model, feature_importance, feature_importance_force_permutation,
                      feature_importance_timeout, with_display, y_pred_train, y_pred_test,
                      y_proba_train, y_proba_test, model_classes)

@@ -17,7 +17,7 @@ from collections import Counter
 import numpy as np
 import pandas as pd
 
-from deepcheck.tabular import Dataset
+from deepchecks.tabular import Dataset
 
 
 __all__ = ['RecDataset']
@@ -28,18 +28,18 @@ TDataset = t.TypeVar('TDataset', bound='RecDataset')
 
 class RecDataset(Dataset):
 
-    _user_index_name: t.Optional[Hashable]
+    _user_index_name: t.Optional[t.Hashable]
 
     def __init__(
             self,
             df: t.Any,
-            label: t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
-            user_index_name: t.Optional[Hashable] = None,
-            features: t.Optional[t.Sequence[Hashable]] = None,
-            cat_features: t.Optional[t.Sequence[Hashable]] = None,
-            index_name: t.Optional[Hashable] = None,
+            label: t.Union[t.Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
+            user_index_name: t.Optional[t.Hashable] = None,
+            features: t.Optional[t.Sequence[t.Hashable]] = None,
+            cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
+            index_name: t.Optional[t.Hashable] = None,
             set_index_from_dataframe_index: bool = False,
-            datetime_name: t.Optional[Hashable] = None,
+            datetime_name: t.Optional[t.Hashable] = None,
             set_datetime_from_dataframe_index: bool = False,
             convert_datetime: bool = True,
             datetime_args: t.Optional[t.Dict] = None,
@@ -50,7 +50,7 @@ class RecDataset(Dataset):
             label_classes=None
     ):
 
-    super().__init__(
+        super().__init__(
             df=df,
             label=label,
             features=features,
@@ -67,4 +67,4 @@ class RecDataset(Dataset):
             dataset_name=dataset_name,
             label_classes=label_classes
         )
-    self._user_index_name = user_index_name
+        self._user_index_name = user_index_name
