@@ -75,12 +75,12 @@ class OperationsAmountSegmentPerformance(SingleDatasetCheck):
         """
         dataset: RecDataset = context.get_data_by_kind(dataset_kind)
         model = context.model
-        scorer = context.get_single_scorer(self.scorer)
+        scorer = context.get_single_scorer(self.scorer, use_avg_defaults=False)
         per_user_scores = pd.Series(scorer(model, dataset), index=dataset.data[dataset.user_index_name].dropna())
         user_mean_scores = per_user_scores.groupby(level=0).agg(np.mean)
         user_op_amount = per_user_scores.groupby(level=0).agg('count')
         user_mean_scores.index = user_op_amount
-        op_amount_score = pd.Series(user_mean_scores.reindex(), index=user_op_amount).groupby(level=0).agg(np.mean)
+        op_amount_score = user_mean_scores.groupby(level=0).agg(np.mean)
 
         if context.with_display:
             fig = px.histogram(
@@ -93,14 +93,12 @@ class OperationsAmountSegmentPerformance(SingleDatasetCheck):
                 height=500
             )
 
-            fig.add_vline(x=np.median(op_amount_score), line_dash='dash', line_color='purple', annotation_text='median',
-                          annotation_position=(
-                'top left' if np.median(op_amount_score) < np.mean(op_amount_score) else 'top right'
-            ))
-            fig.add_vline(x=np.mean(op_amount_score), line_dash='dot', line_color='purple', annotation_text='mean',
-                          annotation_position=(
-                'top right' if np.median(op_amount_score) < np.mean(op_amount_score) else 'top left'
-            ))
+            median = np.median(op_amount_score)
+            mean = np.mean(op_amount_score)
+            fig.add_hline(y=median, line_dash='dash', line_color='purple', annotation_text='median',
+                          annotation_position=('top right' if median < mean else 'bottom right'))
+            fig.add_hline(y=mean, line_dash='dot', line_color='purple', annotation_text='mean',
+                          annotation_position=('bottom right' if median < mean else 'top right'))
 
             display = fig
         else:
