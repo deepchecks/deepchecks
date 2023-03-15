@@ -13,7 +13,7 @@
 import typing as t
 import warnings
 
-from ipywidgets import HTML, Accordion, VBox, Widget, Checkbox, Dropdown, Box, Button
+from ipywidgets import HTML, Accordion, VBox, Widget, Checkbox, Dropdown, Box, Button, FloatText, Layout
 
 from deepchecks.core import check_result as check_types, DatasetKind
 from deepchecks.core import suite
@@ -29,7 +29,6 @@ from deepchecks.utils.strings import get_random_string
 from . import html
 
 __all__ = ['SuiteResultSerializer']
-
 
 
 class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
@@ -50,9 +49,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         self._html_serializer = html.SuiteResultSerializer(self.value)
 
     def serialize(
-        self,
-        output_id: t.Optional[str] = None,
-        **kwargs
+            self,
+            output_id: t.Optional[str] = None,
+            **kwargs
     ) -> Widget:
         """Serialize a SuiteResult instance into ipywidgets.Widget instance.
 
@@ -120,28 +119,40 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         # FixMixin import
         fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
                                  if getattr(check_result.check, 'fix', None) is not None]
+        print("Found checks are: ", list([check_result.check.name() for check_result in fixable_check_results]))
 
         if len(fixable_check_results) == 0:
             print('No fixable check found')
             return
 
         checks_vbox_children = []
-        dropdowns = dict(dict())
+        input_widgets = dict(dict())
+        check_to_checkbox = dict()
+        layout = Layout(width='auto', height='40px')
         for fixable_result in fixable_check_results:
             check, check_name = fixable_result.check, fixable_result.check.name()
+            print("Handling check: ", check_name)
+            if check_name not in input_widgets:
+                input_widgets[check_name] = dict()
             for param_name, param_dict in check.fix_params.items():
                 user_display = param_dict['display']
-                options = list(zip(param_dict['params_display'], param_dict['params']))
-                dropdown = Dropdown(
-                    options=options,
-                    value=options[0][1],
-                    description=user_display,
-                )
-                if check_name not in dropdowns:
-                    dropdowns[check_name] = dict()
-                dropdowns[check_name][param_name] = dropdown
-            vbox = VBox(children=list(dropdowns[check_name].values()))
+                if type(param_dict['params']) == list:
+                    options = list(zip(param_dict['params_display'], param_dict['params']))
+                    dropdown = Dropdown(
+                        options=options,
+                        value=options[0][1],
+                        description=user_display,
+                    )
+                    input_widgets[check_name][param_name] = dropdown
+                elif param_dict['params'] == float:
+                    input_widgets[check_name][param_name] = FloatText(
+                        value=param_dict['params_display'],
+                        description=user_display,
+                        disabled=False
+                    )
+            vbox = VBox(children=list(input_widgets[check_name].values()))
             check_box = Checkbox(value=True, description=check_name, disabled=False, indent=False)
+            check_to_checkbox[check] = check_box
             checks_vbox_children.append(Box([check_box, vbox]))
         checks_vbox = VBox(children=checks_vbox_children)
         save_button = Button(
@@ -154,16 +165,19 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         def on_fix_button_click(b):
             print('Fixing!')
-            #data_duplicates_check.fix_logic(context=self.value.context, check_result=data_duplicates_check_result,
+            for check, checkbox in check_to_checkbox.items():
+                if checkbox.value:
+                    print(f'Fixing {check.name()}')
+            # data_duplicates_check.fix_logic(context=self.value.context, check_result=data_duplicates_check_result,
             # dataset_kind=DatasetKind.TRAIN, keep=dropdowns[data_duplicates_check.name()]['keep'].value)
             save_button.disabled = False
-            print('were back')
 
         def on_save_button_click(b):
             print('Saving!')
             self.value.context.train.data.to_csv('train.csv')
             self.value.context.test.data.to_csv('test.csv')
             print('saved!')
+
         button.on_click(on_fix_button_click)
         save_button.on_click(on_save_button_click)
         box = Box(children=[checks_vbox])
@@ -182,9 +196,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )
 
     def prepare_summary(
-        self,
-        output_id: t.Optional[str] = None,
-        **kwargs
+            self,
+            output_id: t.Optional[str] = None,
+            **kwargs
     ) -> HTML:
         """Prepare summary widget."""
         return HTML(value=self._html_serializer.prepare_summary(
@@ -193,10 +207,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ))
 
     def prepare_failures(
-        self,
-        failures: t.Sequence['check_types.CheckFailure'],
-        title: str,
-        **kwargs
+            self,
+            failures: t.Sequence['check_types.CheckFailure'],
+            title: str,
+            **kwargs
     ) -> VBox:
         """Prepare failures section.
 
@@ -234,12 +248,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ))
 
     def prepare_results(
-        self,
-        results: t.Sequence['check_types.CheckResult'],
-        title: str,
-        output_id: t.Optional[str] = None,
-        summary_creation_method: t.Optional[t.Callable[..., Widget]] = None,
-        **kwargs
+            self,
+            results: t.Sequence['check_types.CheckResult'],
+            title: str,
+            output_id: t.Optional[str] = None,
+            summary_creation_method: t.Optional[t.Callable[..., Widget]] = None,
+            **kwargs
     ) -> VBox:
         """Prepare results section.
 
@@ -301,12 +315,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ))
 
     def prepare_conditions_summary(
-        self,
-        results: t.Sequence['check_types.CheckResult'],
-        output_id: t.Optional[str] = None,
-        include_check_name: bool = True,
-        is_for_iframe_with_srcdoc: bool = False,
-        **kwargs
+            self,
+            results: t.Sequence['check_types.CheckResult'],
+            output_id: t.Optional[str] = None,
+            include_check_name: bool = True,
+            is_for_iframe_with_srcdoc: bool = False,
+            **kwargs
     ) -> Widget:
         """Prepare conditions summary table.
 
@@ -336,11 +350,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )).serialize()
 
     def prepare_unconditioned_results_summary(
-        self,
-        results: t.Sequence['check_types.CheckResult'],
-        output_id: t.Optional[str] = None,
-        is_for_iframe_with_srcdoc: bool = False,
-        **kwargs
+            self,
+            results: t.Sequence['check_types.CheckResult'],
+            output_id: t.Optional[str] = None,
+            is_for_iframe_with_srcdoc: bool = False,
+            **kwargs
     ) -> Widget:
         """Prepare results summary table.
 
