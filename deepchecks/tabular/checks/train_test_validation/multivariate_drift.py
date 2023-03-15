@@ -18,9 +18,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-from deepchecks.core.check_utils.multivariate_drift_utils import (get_domain_classifier_hq,
-                                                                  basic_preprocessing_for_model,
-                                                                  run_multivariable_drift, get_domain_classifier)
+from deepchecks.core.check_utils.multivariate_drift_utils import (basic_preprocessing_for_model,
+                                                                  get_domain_classifier_hq, run_multivariable_drift)
 from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
@@ -247,7 +246,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             if train_label is not None and context.task_type != TaskType.REGRESSION:
                 cat_features_for_oversampling.append(train_label.name)
 
-            # Oversample data with the label:
+            # Over-sample data with the label:
             if train_label is not None:
                 train_data = pd.concat([train_data, train_label], axis=1)
                 if test_label is not None:
@@ -261,7 +260,8 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                 all_data = pd.concat([train_data, test_data])
                 all_data[cat_features_for_oversampling] = all_data[cat_features_for_oversampling].astype(str)
                 non_cat_cols = [col for col in all_data.columns if col not in cat_features_for_oversampling]
-                all_data[non_cat_cols] = all_data[non_cat_cols].fillna({col: all_data[col].mean() for col in non_cat_cols})
+                all_data[non_cat_cols] = all_data[non_cat_cols].fillna(
+                    {col: all_data[col].mean() for col in non_cat_cols})
                 # cat features need to be given as indices:
                 cat_indexes_for_smote = [all_data.columns.get_loc(cat_feature) for cat_feature in
                                          cat_features_for_oversampling]
@@ -381,7 +381,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
     @property
     def problem_description(self):
         """Return problem description."""
-        return """New categories are present in test data but not in train data. This can lead to wrong predictions in 
+        return """New categories are present in test data but not in train data. This can lead to wrong predictions in
                   test data, as these new categories were unknown to the model during training."""
 
     @property
@@ -440,8 +440,6 @@ def calc_domain_preds(df_a, df_b, cat_features, random_state, max_samples_for_tr
 
     df_a_2_predictions = domain_classifier_2.predict_proba(df_a_2_processed)[:, 1]
     df_b_2_predictions = domain_classifier_2.predict_proba(df_b_2_processed)[:, 1]
-
-    import numpy as np
 
     df_a_predictions = pd.Series(np.concatenate([df_a_1_predictions, df_a_2_predictions]),
                                  index=list(df_a_1_processed.index) + list(df_a_2_processed.index))
