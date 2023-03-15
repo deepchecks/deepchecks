@@ -304,7 +304,7 @@ def intra_list_similarity(recommendations: List[list], items_feature_matrix: np.
 def personalization(recommendations: List[list]):
     """
     Calculates personalization, a measure of similarity between recommendations.
-    A high value indicates that the recommendations are disimillar, or "personalized".
+    A high value indicates that the recommendations are dissimilar, or "personalized".
 
     Args:
         recommendations (List[list]): A M x N array of predicted items, where M is the number
@@ -344,15 +344,15 @@ def personalization(recommendations: List[list]):
     return 1 - personalization
 
 
-def novelty(recommendations: List[list], item_popularities: dict, num_users: int, k: int = 10):
+def novelty(recommendations: List[list], item_popularity: dict, num_users: int, k: int = 10):
     """
-    Calculates the capacity of the recommender system to to generate novel
+    Calculates the capacity of the recommender system to generate novel
     and unexpected results.
 
     Args:
         recommendations (List[list]): A M x N array of items, where M is the number
                                of predicted lists and N the number of recommended items
-        item_popularities (dict): A dict mapping each item in the recommendations to a popularity value.
+        item_popularity (dict): A dict mapping each item in the recommendations to a popularity value.
                                   Popular items have higher values.
         num_users (int): The number of users
         k (int): The number of items considered in each recommendation.
@@ -367,6 +367,8 @@ def novelty(recommendations: List[list], item_popularities: dict, num_users: int
 
     `Original <https://github.com/statisticianinstilettos/recmetrics/blob/master/recmetrics/metrics.py#L14>`_
     """
+    if item_popularity is None:
+        raise ValueError("item_popularity must be provided.")
 
     epsilon = 1e-10
     all_self_information = []
@@ -374,7 +376,7 @@ def novelty(recommendations: List[list], item_popularities: dict, num_users: int
         self_information_sum = 0.0
         for i in range(k):
             item = recommendations[i]
-            item_pop = item_popularities[item]
+            item_pop = item_popularity[item]
             self_information_sum += -log2((item_pop + epsilon) / num_users)
 
         avg_self_information = self_information_sum / k

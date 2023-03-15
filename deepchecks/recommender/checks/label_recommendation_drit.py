@@ -17,7 +17,6 @@ from deepchecks.core import CheckResult
 
 from deepchecks.core.errors import DeepchecksValueError
 
-from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.recommender import Context
 from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot

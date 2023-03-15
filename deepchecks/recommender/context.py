@@ -13,6 +13,8 @@ import typing as t
 
 import numpy as np
 import pandas as pd
+from deepchecks.utils.function import run_available_kwargs
+
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.recommender.dataset import RecDataset
 
@@ -20,7 +22,6 @@ from deepchecks.tabular.context import Context as TabularContext
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
-from deepchecks.tabular.utils.validation import ensure_predictions_shape
 from deepchecks.utils.logger import get_logger
 
 from . import ranking
@@ -105,7 +106,7 @@ class _DummyModel:
 
 
 class Scorer(DeepcheckScorer):
-    def __init__(self, metric, name, to_avg=True):
+    def __init__(self, metric, name, to_avg=True, item_item_similarity=None, item_popularity=None):
         if isinstance(metric, t.Callable):
             self.per_sample_metric = metric
         elif isinstance(metric, str):
@@ -115,19 +116,32 @@ class Scorer(DeepcheckScorer):
 
         super().__init__(self.per_sample_metric, name=name, model_classes=None, observed_classes=None)
         self.to_avg = to_avg
+        self.item_item_similarity = item_item_similarity
+        self.item_popularity = item_popularity
+
+    def run_rec_metric(self, y_true, y_pred):
+        additional_wkargs = {}
+        if self.item_popularity is not None:
+            additional_wkargs['item_popularity'] = self.item_popularity
+        if self.item_item_similarity is not None:
+            additional_wkargs['item_item_similarity'] = self.item_item_similarity
+        scores = [run_available_kwargs(self.per_sample_metric, relevant_items=label, relevant_item=label,
+                                       recommendation=pred, **additional_wkargs)
+                  for label, pred in zip(y_true, y_pred)]
+        return scores
 
     def __call__(self, model, dataset: RecDataset):
         dataset_without_nulls = self.filter_nulls(dataset)
         y_true = dataset_without_nulls.label_col
         y_pred = model.predict(dataset_without_nulls.features_columns)
-        scores = [self.per_sample_metric(label, pred) for label, pred in zip(y_true, y_pred)]
+        scores = self.run_rec_metric(y_true, y_pred)
         if self.to_avg:
             return np.nanmean(scores)
         return scores
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         y_pred = model.predict(data)
-        scores = [self.per_sample_metric(label, pred) for label, pred in zip(label_col, y_pred)]
+        scores = self.run_rec_metric(label_col, y_pred)
         if self.to_avg:
             return np.nanmean(scores)
         return scores
@@ -147,6 +161,8 @@ class Context(TabularContext):
     {additional_context_params:indent}
     """
 
+    _item_item_similarity: t.Optional[np.array]
+
     def __init__(
         self,
         train: t.Union[Dataset, pd.DataFrame, None] = None,
@@ -154,6 +170,7 @@ class Context(TabularContext):
         feature_importance: t.Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
+        item_item_similarity: t.Optional[np.array] = None,
         with_display: bool = True,
         y_pred_train: t.Optional[t.Sequence[t.Hashable]] = None,
         y_pred_test: t.Optional[t.Sequence[t.Hashable]] = None,
@@ -167,6 +184,7 @@ class Context(TabularContext):
                          feature_importance_timeout=feature_importance_timeout,
                          with_display=with_display)
         self._model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
+        self._item_item_similarity = item_item_similarity
 
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
