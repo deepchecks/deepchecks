@@ -183,6 +183,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )
 
         def on_fix_button_click(b):
+            button.disabled = True
             print('Fixing test checks')
             for result, checkbox in test_result_to_checkbox.items():
                 if checkbox.value:
