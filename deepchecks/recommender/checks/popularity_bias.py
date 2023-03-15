@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the label recommendation drift check."""
+"""Module containing the popularity bias check."""
 import typing as t
 
 import pandas as pd
@@ -23,7 +23,7 @@ from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 
-class LabelRecommendationDrift(SingleDatasetCheck):
+class PopularityBias(SingleDatasetCheck):
 
     def __init__(
             self,
@@ -80,6 +80,7 @@ class LabelRecommendationDrift(SingleDatasetCheck):
             test_column=pd.Series(flattened_predictions),
             value_name='Item Popularity',
             column_type='numerical',
+            plot_title='Popularity Bias',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,
@@ -97,7 +98,7 @@ class LabelRecommendationDrift(SingleDatasetCheck):
 
         return CheckResult(
             value=drift_score,
-            header=f'Label Recommendation Drift',
+            header='Popularity Bias',
             display=drift_display,
         )
 
