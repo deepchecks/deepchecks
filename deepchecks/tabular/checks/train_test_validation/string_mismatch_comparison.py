@@ -207,7 +207,7 @@ class StringMismatchComparison(TrainTestCheck, TrainTestCheckFixMixin):
     @property
     def automatic_solution_description(self):
         """Return automatic solution description."""
-        return """In each column, change each variant to the most common one."""
+        return """In each column, change each variant to the most common one (in train)."""
 
 
 
