@@ -23,16 +23,17 @@ __all__ = ['RecDataset']
 TDataset = t.TypeVar('TDataset', bound='RecDataset')
 
 
-
 class RecDataset(Dataset):
 
     _user_index_name: t.Optional[t.Hashable]
+    _item_to_index: t.Optional[t.Mapping[t.Hashable, int]]
 
     def __init__(
             self,
             df: t.Any,
             label: t.Union[t.Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
             user_index_name: t.Optional[t.Hashable] = None,
+            item_to_index: t.Optional[t.Mapping[t.Hashable, int]] = None,
             features: t.Optional[t.Sequence[t.Hashable]] = None,
             cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
             index_name: t.Optional[t.Hashable] = None,
@@ -65,7 +66,8 @@ class RecDataset(Dataset):
             dataset_name=dataset_name,
             label_classes=label_classes
         )
-        self.user_index_name = user_index_name
+        self._user_index_name = user_index_name
+        self._item_to_index = item_to_index
 
     def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
         """Create a copy of this Dataset with new data.
@@ -82,3 +84,13 @@ class RecDataset(Dataset):
         dataset = super().copy(new_data)
         dataset.user_index_name = self.user_index_name
         return dataset
+
+    @property
+    def user_index_name(self) -> t.Optional[t.Hashable]:
+        """Get the user index name."""
+        return self._user_index_name
+
+    @property
+    def item_to_index(self) -> t.Optional[t.Mapping[t.Hashable, int]]:
+        """Get the item to index mapping."""
+        return self._item_to_index
