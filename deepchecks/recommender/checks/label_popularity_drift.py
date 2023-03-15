@@ -22,6 +22,7 @@ from deepchecks.recommender import Context
 from deepchecks.tabular import TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
+__all__ = ['LabelPopularityDrift']
 
 class LabelPopularityDrift(TrainTestCheck):
 

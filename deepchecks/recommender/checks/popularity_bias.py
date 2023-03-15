@@ -22,6 +22,7 @@ from deepchecks.recommender import Context
 from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
+__all__ = ['PopularityBias']
 
 class PopularityBias(SingleDatasetCheck):
 

@@ -8,3 +8,16 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+
+from .label_popularity_drift import LabelPopularityDrift
+from .operations_amount_segment_performance import OperationsAmountSegmentPerformance
+from .popularity_bias import PopularityBias
+from .prediction_popularity_drift import PredictionPopularityDrift
+from .scatter_performance import ScatterPerformance
+
+__all__ = ['LabelPopularityDrift',
+           'OperationsAmountSegmentPerformance',
+           'PopularityBias',
+           'PredictionPopularityDrift',
+           'ScatterPerformance',
+           ]
