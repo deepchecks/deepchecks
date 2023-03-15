@@ -23,7 +23,7 @@ from deepchecks.tabular import TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 
-class LabelPopularityDrift(TrainTestCheck):
+class PredictionPopularityDrift(TrainTestCheck):
 
     def __init__(
             self,
@@ -70,22 +70,26 @@ class LabelPopularityDrift(TrainTestCheck):
         """
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
+        model = context.model
 
-        train_labels = pd.Series(train_dataset.label_col)
-        test_labels = pd.Series(test_dataset.label_col)
+        train_predictions = model.predict(train_dataset.features_columns)
+        test_predictions = model.predict(test_dataset.features_columns)
+        # flatten sequence of sequences to a single sequence
+        train_predictions = [item for sublist in train_predictions for item in sublist]
+        test_predictions = [item for sublist in test_predictions for item in sublist]
 
-        value_counts = train_labels.value_counts(ascending=False)
+        value_counts = pd.Series(train_predictions).value_counts(ascending=False)
         value_counts.iloc[:] = list(range(len(value_counts)))
         translation_dict = value_counts.to_dict()
-        train_labels = [translation_dict[label] for label in train_labels]
-        test_labels = [translation_dict[label] for label in test_labels]
+        train_predictions = [translation_dict[prediction] for prediction in train_predictions]
+        test_predictions = [translation_dict[prediction] for prediction in test_predictions]
 
         drift_score, method, drift_display = calc_drift_and_plot(
-            train_column=pd.Series(train_labels),
-            test_column=pd.Series(test_labels),
-            value_name='Label Popularity',
+            train_column=pd.Series(train_predictions),
+            test_column=pd.Series(test_predictions),
+            value_name='Prediction Popularity',
             column_type='numerical',
-            plot_title='Label Popularity Drift',
+            plot_title='Prediction Popularity Drift',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,
