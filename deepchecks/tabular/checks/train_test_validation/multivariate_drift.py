@@ -10,11 +10,12 @@
 #
 """Module contains the domain classifier drift check."""
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.multivariate_drift_utils import (get_domain_classifier_hq,
                                                                   preprocess_for_domain_classifier,
-                                                                  run_multivariable_drift)
+                                                                  run_multivariable_drift, get_domain_classifier)
 from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
@@ -158,7 +159,9 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
         return self.add_condition(f'Drift value is less than {format_number(max_drift_value)}',
                                   condition)
 
-    def fix_logic(self, context: Context, check_result: CheckResult, fix_method='move_to_train') -> Context:
+    def fix_logic(self, context: Context, check_result: CheckResult, drop_train: bool = True,
+                  move_from_test: bool = True, max_move_from_test_to_train: float = 0.2,
+                  max_drop_train_size: float = 0.4) -> Context:
         """Run fix.
 
         Parameters
@@ -167,8 +170,14 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             Context object.
         check_result : CheckResult
             CheckResult object.
-        fix_method : str, default: 'move_to_train'
-            Method to fix the problem. Possible values: 'drop_features', 'replace_with_none', 'move_to_train'.
+        drop_train : bool, default: True
+            Whether to drop samples from the train dataset.
+        move_from_test : bool, default: True
+            Whether to move samples from the test dataset to the train dataset.
+        max_move_from_test_to_train : float, default: 0.2
+            The maximum percentage of samples to move from the test dataset to the train dataset.
+        max_drop_train_size : float, default: 0.4
+            The maximum percentage of samples to drop from the train dataset.
         """
         significant_threshold_test = 0.75
         significant_threshold_train = 0.25
@@ -176,66 +185,38 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
         train, test = context.train, context.test
         cat_features, numerical_features = train.cat_features, train.numerical_features
 
-        # sample size of train and test so that 2 domain classifiers can be trained on the data,
-        # as we want to have viable predictions for all data samples (and can't use the domain classifier's predictions
-        # on the data it was trained on)
-        sample_size = min(self.n_samples, int(train.n_samples / 2), int(test.n_samples / 2))
+        max_n_samples_to_move = int(max_move_from_test_to_train * test.n_samples)
+        max_n_samples_to_keep = int((1 - max_drop_train_size) * train.n_samples)
 
         train_data = train.data[numerical_features + cat_features]
         test_data = test.data[numerical_features + cat_features]
 
-        # create new dataset, with label denoting whether sample belongs to test dataset
-        x, y = preprocess_for_domain_classifier(train_data, test_data, cat_features)
+        if drop_train is True:
+            train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
+                                                        cat_features=cat_features, random_state=self.random_state,
+                                                        max_samples_for_training=self.n_samples)
 
-        train_processed = x[(y == 0).values]
-        test_processed = x[(y == 1).values]
+            train_significant_samples = train_preds.sort_values(ascending=True)[
+                train_preds < significant_threshold_train]
+            train_samples_to_drop = train_significant_samples.sample(
+                min(len(train_significant_samples), train_data.shape[0] - max_n_samples_to_keep)).index
+            train_data = train_data.drop(train_samples_to_drop)
 
-        # train a model to disguise between train and test samples
-        domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
-                                                     cat_features=[col in cat_features for col in x.columns],
-                                                     random_state=self.random_state)
+        if move_from_test is True:
+            # # TODO: Problem with duplicate indexes that needs to be fixed:
+            # train_data.reset_index(drop=True, inplace=True)
+            # test_data.reset_index(drop=True, inplace=True)
 
-        print(f'Before starting: {domain_classifier.score(x, y)}')
+            train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
+                                                        cat_features=cat_features, random_state=self.random_state,
+                                                        max_samples_for_training=self.n_samples)
+            test_significant_samples = test_preds.sort_values(ascending=False)[
+                test_preds > significant_threshold_test].sample(frac=0.5)
+            test_samples_to_move = test_significant_samples.sample(
+                min(len(test_significant_samples), max_n_samples_to_move)).index
 
-        test_predictions = domain_classifier.predict_proba(test_processed)[:, 1]
-        test_samples_to_move = test_processed[test_predictions > significant_threshold_test] \
-            .sample(frac=0.5, random_state=self.random_state).index
-        train_data = pd.concat([train_data, test_data.loc[test_samples_to_move]])
-        test_data = test_data.drop(test_samples_to_move)
-
-        # Again train a model to differentiate between train and test samples, now in order to decide which train
-        # samples to drop:
-        # create new dataset, with label denoting whether sample belongs to test dataset
-        train_data_to_train = train_data.sample(sample_size, random_state=self.random_state)
-        test_data_to_train = test_data.sample(sample_size, random_state=self.random_state)
-
-        x, y = preprocess_for_domain_classifier(train_data_to_train, test_data_to_train, cat_features)
-
-        # train a model to disguise between train and test samples
-        domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
-                                                     cat_features=[col in cat_features for col in x.columns],
-                                                     random_state=self.random_state)
-
-        print(f'After cleaning test samples: {domain_classifier.score(x, y)}')
-
-        train_processed = x[(y == 0).values]
-        test_processed = x[(y == 1).values]
-
-        train_predictions = domain_classifier.predict_proba(train_processed)[:, 1]
-        train_samples_to_drop = train_processed[train_predictions < significant_threshold_train].index
-        train_data = train_data.drop(train_samples_to_drop)
-
-        train_data_to_train = train_data.sample(sample_size, random_state=self.random_state)
-        test_data_to_train = test_data.sample(sample_size, random_state=self.random_state)
-
-        x, y = preprocess_for_domain_classifier(train_data_to_train, test_data_to_train, cat_features)
-
-        # train a model to disguise between train and test samples
-        domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
-                                                     cat_features=[col in cat_features for col in x.columns],
-                                                     random_state=self.random_state)
-
-        print(f'After cleaning train samples: {domain_classifier.score(x, y)}')
+            train_data = pd.concat([train_data, test_data.loc[test_samples_to_move]])
+            test_data = test_data.drop(test_samples_to_move)
 
         # create new datasets
         context.set_dataset_by_kind(DatasetKind.TRAIN, context.train.copy(train_data))
@@ -246,20 +227,26 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
     @property
     def fix_params(self):
         """Return fix params for display."""
-        return {'fix_method': {'display': 'Fix By',
-                               'params': ['drop_features', 'replace_with_nones', 'move_to_train'],
-                               'params_display': ['Dropping Features', 'Replacing With Nones',
-                                                  'Moving Samples To Train'],
-                               'params_description': ['Drop features with new categories from the dataset',
-                                                      'Replace new categories with None values',
-                                                      'Move samples with new categories from test to train']},
-                'max_ratio': {'display': 'Max Ratio Of New Categories',
-                              'params': float,
-                              'params_description': 'Maximum ratio of samples with new categories'},
-                'percentage_to_move': {'display': 'Percentage Of Samples To Move',
-                                       'params': float,
-                                       'params_description': 'Percentage of samples with new categories to move to '
-                                                             'train. Relevant only for move_to_train fix method.'}}
+        return {'drop_train': {'display': 'Drop Train',
+                               'params': bool,
+                               'params_display': True,
+                               'params_description': 'Whether to drop samples from the train dataset'},
+                'move_from_test': {'display': 'Move From Test',
+                                   'params': bool,
+                                   'params_display': True,
+                                   'params_description': 'Whether to move samples from the test dataset to the '
+                                                         'train dataset'},
+                'max_move_from_test_to_train': {'display': 'Max Move From Test To Train',
+                                                'params': float,
+                                                'params_display': 0.2,
+                                                'params_description': 'The maximum percentage of samples to move from '
+                                                                      'the test dataset to the train dataset'},
+                'max_drop_train_size': {'display': 'Max Drop Train Size',
+                                        'params': float,
+                                        'params_display': 0.4,
+                                        'params_description': 'The maximum percentage of samples to drop from the '
+                                                              'train dataset'}
+                }
 
     @property
     def problem_description(self):
@@ -285,3 +272,53 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                      dataset to have samples from test.
                      For example, if train and test datasets are from 2 different time periods, it would probably be
                      considered leakage if test samples (from the later time period) were moved to train."""
+
+
+def calc_domain_preds(df_a, df_b, cat_features, random_state, max_samples_for_training):
+    # sample size of train and test so that 2 domain classifiers can be trained on the data,
+    # as we want to have viable predictions for all data samples (and can't use the domain classifier's predictions
+    # on the data it was trained on)
+    sample_size = min(max_samples_for_training, int(df_a.shape[0] / 2), int(df_b.shape[0] / 2))
+
+    # train_data_to_train = train_data.sample(sample_size, random_state=random_state)
+    # test_data_to_train = test_data.sample(sample_size, random_state=random_state)
+
+    # create new dataset, with label denoting whether sample belongs to test dataset
+    x, y = preprocess_for_domain_classifier(df_a, df_b, cat_features)
+    x_train_1, x_train_2, y_train_1, y_train_2 = train_test_split(x, y, train_size=2 * sample_size / x.shape[0],
+                                                                  random_state=random_state, stratify=y)
+
+    df_a_2_processed = x_train_2[(y_train_2 == 0).values]
+    df_b_2_processed = x_train_2[(y_train_2 == 1).values]
+
+    df_a_1_processed = x_train_1[(y_train_1 == 0).values]
+    df_b_1_processed = x_train_1[(y_train_1 == 1).values]
+
+    # train a model to disguise between train and test samples
+    domain_classifier_1 = get_domain_classifier_hq(x_train=x_train_1, y_train=y_train_1,
+                                                   cat_features=[col in cat_features for col in x.columns],
+                                                   random_state=random_state)
+
+    if x_train_2.shape[0] > 2 * sample_size:
+        x_train_2, _, y_train_2, _ = train_test_split(x_train_2, y_train_2,
+                                                      train_size=2 * sample_size / x_train_2.shape[0],
+                                                      random_state=random_state, stratify=y_train_2)
+
+    domain_classifier_2 = get_domain_classifier_hq(x_train=x_train_2, y_train=y_train_2,
+                                                   cat_features=[col in cat_features for col in x.columns],
+                                                   random_state=random_state)
+
+    df_a_1_predictions = domain_classifier_1.predict_proba(df_a_1_processed)[:, 1]
+    df_b_1_predictions = domain_classifier_1.predict_proba(df_b_1_processed)[:, 1]
+
+    df_a_2_predictions = domain_classifier_2.predict_proba(df_a_2_processed)[:, 1]
+    df_b_2_predictions = domain_classifier_2.predict_proba(df_b_2_processed)[:, 1]
+
+    import numpy as np
+
+    df_a_predictions = pd.Series(np.concatenate([df_a_1_predictions, df_a_2_predictions]),
+                                 index=list(df_a_1_processed.index) + list(df_a_2_processed.index))
+    df_b_predictions = pd.Series(np.concatenate([df_b_1_predictions, df_b_2_predictions]),
+                                 index=list(df_b_1_processed.index) + list(df_b_2_processed.index))
+
+    return df_a_predictions, df_b_predictions
