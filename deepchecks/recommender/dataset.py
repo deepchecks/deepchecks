@@ -66,3 +66,19 @@ class RecDataset(Dataset):
             label_classes=label_classes
         )
         self.user_index_name = user_index_name
+
+    def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
+        """Create a copy of this Dataset with new data.
+
+        Parameters
+        ----------
+        new_data (DataFrame): new data from which new dataset will be created
+
+        Returns
+        -------
+        Dataset
+            new dataset instance
+        """
+        dataset = super().copy(new_data)
+        dataset.user_index_name = self.user_index_name
+        return dataset
