@@ -160,7 +160,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         if self.context_type is None:
             from deepchecks.recommender.dataset import RecDataset
             from deepchecks.recommender.context import Context as RecContext
-            if isinstance(dataset, RecDataset):
+            if isinstance(train_dataset, RecDataset):
                 self.context_type = RecContext
             else:
                 self.context_type = Context

@@ -171,6 +171,7 @@ class Context(BaseContext):
             train: t.Union[Dataset, pd.DataFrame, None] = None,
             test: t.Union[Dataset, pd.DataFrame, None] = None,
             model: t.Optional[BasicModel] = None,
+            item_dataset=None,  # pylint disable=unused-argument
             feature_importance: t.Optional[pd.Series] = None,
             feature_importance_force_permutation: bool = False,
             feature_importance_timeout: int = 120,
