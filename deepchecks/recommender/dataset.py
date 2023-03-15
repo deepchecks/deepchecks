@@ -83,6 +83,7 @@ class RecDataset(Dataset):
         """
         dataset = super().copy(new_data)
         dataset._user_index_name = self.user_index_name
+        dataset._item_to_index = self._item_to_index
         return dataset
 
     @property
