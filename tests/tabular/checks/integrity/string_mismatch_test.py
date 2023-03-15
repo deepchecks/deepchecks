@@ -11,7 +11,7 @@
 """Contains unit tests for the string_mismatch check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, greater_than, has_entries, has_entry, has_items, has_length, close_to
+from hamcrest import assert_that, greater_than, has_entries, has_entry, has_items, has_length, close_to, equal_to
 
 from deepchecks.core import ConditionCategory
 from deepchecks.tabular.checks.data_integrity import StringMismatch
@@ -245,3 +245,28 @@ def test_invalid_column():
     result = StringMismatch().run(df).value
     # Assert
     assert_that(result['columns'], has_length(0))
+
+
+def test_string_mismatch_fix():
+    # Arrange
+    data = {'col1': ['Deep', 'deep', 'deep!!!', 'deep', 'deep', 'earth', 'foo', 'bar', 'dog'],
+            'col2': ['SPACE', 'SPACE', 'SPACE', 'SPACE', 'SPACE$$', 'is', 'fun', 'go', 'moon']}
+    df = pd.DataFrame(data=data)
+    # Act & Assert
+    check = StringMismatch()
+    result = check.run(df).value
+
+    assert_that(result['columns'], has_entries({
+        'col1': has_entry('deep', has_length(3)),
+        'col2': has_entry('space', has_length(2))
+    }))
+    assert_that(df['col1'].iloc[0], equal_to('Deep'))
+
+    # Fix:
+    df = check.fix(df)
+    result = check.run(df).value
+    assert_that(len(result['columns']['col1']), equal_to(0))
+    assert_that(len(result['columns']['col2']), equal_to(0))
+    assert_that(df.data['col1'].iloc[0], equal_to('deep'))
+
+

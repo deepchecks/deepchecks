@@ -13,7 +13,8 @@ from typing import List, Union
 
 import pandas as pd
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
+from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.tabular.utils.messages import get_condition_passed_message
@@ -24,7 +25,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['StringMismatchComparison']
 
 
-class StringMismatchComparison(TrainTestCheck):
+class StringMismatchComparison(TrainTestCheck, TrainTestCheckFixMixin):
     """Detect different variants of string categories between the same categorical column in two datasets.
 
     This check compares the same categorical column within a dataset and baseline and checks whether there are
@@ -162,6 +163,52 @@ class StringMismatchComparison(TrainTestCheck):
         """
         name = f'Ratio of new variants in test data is less or equal to {format_percent(ratio)}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
+
+    def fix_logic(self, context: Context, check_result) -> Context:
+        """Run fix."""
+        train, test = context.train, context.test
+        train_data, test_data = train.data, test.data
+
+        for col, variants in check_result.value.items():
+            # We take the most common form from train data:
+            value_counts = train_data[col].value_counts()
+            for baseform, details in variants.items():
+                all_variants = set(details['variants_only_in_train'] + details['commons'] + details['variants_only_in_test'])
+
+                train_variants = sorted([variant for variant in all_variants if variant in value_counts.index])
+                most_common_variant = value_counts[train_variants].sort_values(ascending=False).index[0]
+
+                # most_common_variant = sorted([(var['variant'], var['percent']) for var in details],
+                #                              key=lambda x: x[1], reverse=True)[0][0]
+                train_data[col] = train_data[col].apply(lambda x: most_common_variant if x in all_variants else x)
+                test_data[col] = test_data[col].apply(lambda x: most_common_variant if x in all_variants else x)
+
+        context.set_dataset_by_kind(DatasetKind.TRAIN, context.train.copy(train_data))
+        context.set_dataset_by_kind(DatasetKind.TEST, context.test.copy(test_data))
+
+        return context
+
+    @property
+    def fix_params(self):
+        """Return fix params for display."""
+        return {}
+
+    @property
+    def problem_description(self):
+        """Return problem description."""
+        return """String variants are found in data. This can be caused by typos, different ways of writing the same
+                  thing, etc. This can decrease model performance as the model cannot connect the different variants."""
+
+    @property
+    def manual_solution_description(self):
+        """Return manual solution description."""
+        return """Change variants to the preferred form of original string."""
+
+    @property
+    def automatic_solution_description(self):
+        """Return automatic solution description."""
+        return """In each column, change each variant to the most common one."""
+
 
 
 def _condition_percent_limit(result, ratio: float):
