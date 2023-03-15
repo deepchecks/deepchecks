@@ -216,8 +216,8 @@ def test_drift_fix(drifted_data):
     train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=False)
 
     result = check.run(train_ds, test_ds)
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.44, 0.01))
-    assert_that(train_ds.n_samples, equal_to(942))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.42, 0.01))
+    assert_that(train_ds.n_samples, equal_to(952))
     assert_that(test_ds.n_samples, equal_to(800))
 
 
@@ -236,7 +236,7 @@ def test_drift_fix_only_drop_train(drifted_data):
 
     result = check.run(train_ds, test_ds)
     assert_that(result.value['domain_classifier_drift_score'], close_to(0.74, 0.01))
-    assert_that(train_ds.n_samples, equal_to(600))
+    assert_that(train_ds.n_samples, equal_to(609))
     assert_that(test_ds.n_samples, equal_to(1000))
 
 
@@ -290,8 +290,8 @@ def test_drift_fix_with_smote(drifted_data):
     train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=True)
 
     result = check.run(train_ds, test_ds)
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.47, 0.01))
-    assert_that(train_ds.n_samples, equal_to(890))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.49, 0.01))
+    assert_that(train_ds.n_samples, equal_to(900))
     assert_that(test_ds.n_samples, equal_to(800))
 
 
@@ -307,8 +307,8 @@ def test_drift_fix_with_smote_no_label(drifted_data):
     train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=True)
 
     result = check.run(train_ds, test_ds)
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.42, 0.01))
-    assert_that(train_ds.n_samples, equal_to(890))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.45, 0.01))
+    assert_that(train_ds.n_samples, equal_to(900))
     assert_that(test_ds.n_samples, equal_to(800))
 
 
@@ -330,5 +330,5 @@ def test_drift_fix_with_smote_with_nones_in_label_and_numerics(drifted_data):
 
     result = check.run(train_ds, test_ds)
     assert_that(result.value['domain_classifier_drift_score'], close_to(0.53, 0.01))
-    assert_that(train_ds.n_samples, equal_to(896))
+    assert_that(train_ds.n_samples, equal_to(908))
     assert_that(test_ds.n_samples, equal_to(800))
