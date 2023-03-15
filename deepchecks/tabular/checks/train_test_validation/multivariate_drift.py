@@ -204,8 +204,8 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
         train_data = train.features_columns
         test_data = test.features_columns
 
-        train_label = train.label_col
-        test_label = test.label_col
+        train_label = train.label_col if train.has_label() else None
+        test_label = test.label_col if test.has_label() else None
 
         # If datasets have intersecting indexes:
         if set(train_data.index).intersection(set(test_data.index)):
@@ -242,15 +242,31 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             x_apply = model.apply(x)
             duplicate_indices_to_add = []
             next_generated_i = 0
-            # Oversample data with the label:
-            if train_label is not None:
-                train_data = pd.concat([train_data, train_label], axis=1)
-                if test_label is not None:
-                    test_data = pd.concat([test_data, test_label], axis=1)
-                else:
-                    test_data = pd.concat([test_data, pd.Series([np.nan] * test_data.shape[0], index=test_data.index)],
-                                          axis=1)
+
+            if use_smote is True:
+                cat_features_for_smote = copy(cat_features)
+                if train_label is not None and context.task_type != TaskType.REGRESSION:
+                    cat_features_for_smote.append(train_label.name)
+
+                # Oversample data with the label:
+                if train_label is not None:
+                    train_data = pd.concat([train_data, train_label], axis=1)
+                    if test_label is not None:
+                        test_data = pd.concat([test_data, test_label], axis=1)
+                    else:
+                        test_data = pd.concat(
+                            [test_data, pd.Series([np.nan] * test_data.shape[0], index=test_data.index)],
+                            axis=1)
+
                 all_data = pd.concat([train_data, test_data])
+                all_data[cat_features_for_smote] = all_data[cat_features_for_smote].fillna('deepchecks_none')
+                non_cat_cols = [col for col in all_data.columns if col not in cat_features_for_smote]
+                all_data[non_cat_cols] = all_data[non_cat_cols].fillna(
+                    {col: all_data[col].mean() for col in non_cat_cols})
+
+                # cat features need to be given as indices:
+                cat_indexes_for_smote = [all_data.columns.get_loc(cat_feature) for cat_feature in
+                                         cat_features_for_smote]
 
             for node_i in range(max(x_apply)):
                 samples_in_node = x_apply == node_i
@@ -276,15 +292,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                             # labels are not None, then don't generate labels for SMOTE. However, if 90% of labels are
                             # not None, then generate labels for SMOTE.
 
-
-                            cat_features_for_smote = copy(cat_features)
-                            if train_label is not None and context.task_type != TaskType.REGRESSION:
-                                cat_features_for_smote.append(train_label.name)
-
-                            # cat features need to be given as indices:
-                            cat_features_for_smote = [train_data.columns.get_loc(cat_feature) for cat_feature in
-                                                      cat_features_for_smote]
-                            sm = SMOTENC(categorical_features=cat_features_for_smote,
+                            sm = SMOTENC(categorical_features=cat_indexes_for_smote,
                                          sampling_strategy={0: n_samples_to_add + len(train_samples_in_node)},
                                          k_neighbors=k_neighbors, random_state=self.random_state)
                             x_sm, y_sm = sm.fit_resample(all_data.iloc[indexes_in_node], y.loc[indexes_in_node])
@@ -294,6 +302,12 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                             data_to_add = x_sm[y_sm == 0][-n_samples_to_add:]
                             data_to_add.index = new_index
                             train_data = train_data.append(data_to_add)
+
+            # For SMOTE, return categorical features with 'deepchecks_none' to None:
+            if use_smote is True:
+                train_data[cat_features_for_smote] = train_data[cat_features_for_smote].replace('deepchecks_none',
+                                                                                                np.nan)
+                test_data[cat_features_for_smote] = test_data[cat_features_for_smote].replace('deepchecks_none', np.nan)
 
             # Separate the label:
             if train_label is not None:
