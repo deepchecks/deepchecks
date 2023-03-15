@@ -12,8 +12,9 @@
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift, get_domain_classifier_hq, \
-    preprocess_for_domain_classifier
+from deepchecks.core.check_utils.multivariate_drift_utils import (get_domain_classifier_hq,
+                                                                  preprocess_for_domain_classifier,
+                                                                  run_multivariable_drift)
 from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
@@ -170,7 +171,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             Method to fix the problem. Possible values: 'drop_features', 'replace_with_none', 'move_to_train'.
         """
         significant_threshold_test = 0.75
-        significant_threshold_train = 0.4
+        significant_threshold_train = 0.25
 
         train, test = context.train, context.test
         cat_features, numerical_features = train.cat_features, train.numerical_features
@@ -191,13 +192,14 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
 
         # train a model to disguise between train and test samples
         domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
-                                                  cat_features=[col in cat_features for col in x.columns],
-                                                  random_state=self.random_state)
+                                                     cat_features=[col in cat_features for col in x.columns],
+                                                     random_state=self.random_state)
 
         print(f'Before starting: {domain_classifier.score(x, y)}')
 
         test_predictions = domain_classifier.predict_proba(test_processed)[:, 1]
-        test_samples_to_move = test_processed[test_predictions > significant_threshold_test].sample(frac=0.5, random_state=self.random_state).index
+        test_samples_to_move = test_processed[test_predictions > significant_threshold_test] \
+            .sample(frac=0.5, random_state=self.random_state).index
         train_data = pd.concat([train_data, test_data.loc[test_samples_to_move]])
         test_data = test_data.drop(test_samples_to_move)
 
@@ -211,8 +213,8 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
 
         # train a model to disguise between train and test samples
         domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
-                                                  cat_features=[col in cat_features for col in x.columns],
-                                                  random_state=self.random_state)
+                                                     cat_features=[col in cat_features for col in x.columns],
+                                                     random_state=self.random_state)
 
         print(f'After cleaning test samples: {domain_classifier.score(x, y)}')
 
@@ -230,11 +232,10 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
 
         # train a model to disguise between train and test samples
         domain_classifier = get_domain_classifier_hq(x_train=x, y_train=y,
-                                                  cat_features=[col in cat_features for col in x.columns],
-                                                  random_state=self.random_state)
+                                                     cat_features=[col in cat_features for col in x.columns],
+                                                     random_state=self.random_state)
 
         print(f'After cleaning train samples: {domain_classifier.score(x, y)}')
-
 
         # create new datasets
         context.set_dataset_by_kind(DatasetKind.TRAIN, context.train.copy(train_data))
@@ -278,12 +279,11 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
         """Return automatic solution description."""
         return """There are 4 possible automatic solutions:
                   1. Drop features with new categories from the dataset, so the model won't train on them
-                  3. Replace new categories with None values, so the model will treat them as missing values. 
+                  3. Replace new categories with None values, so the model will treat them as missing values.
                      This is not recommended, as it doesn't solve the underlying issue.
-                  4. Move samples with new categories from test to train. 
-                     This is the recommended solution, as it allows the model to be trained on the correct data. 
-                     However, this solution can cause data leakage, and should only be used if it's possible for train 
-                     dataset to have samples from test. 
-                     For example, if train and test datasets are from 2 different time periods, it would probably be 
+                  4. Move samples with new categories from test to train.
+                     This is the recommended solution, as it allows the model to be trained on the correct data.
+                     However, this solution can cause data leakage, and should only be used if it's possible for train
+                     dataset to have samples from test.
+                     For example, if train and test datasets are from 2 different time periods, it would probably be
                      considered leakage if test samples (from the later time period) were moved to train."""
-

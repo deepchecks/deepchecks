@@ -15,7 +15,8 @@ import warnings
 
 from ipywidgets import HTML, Accordion, VBox, Widget, Checkbox, Dropdown, Box, Button, FloatText, Layout
 
-from deepchecks.core import check_result as check_types, DatasetKind
+from deepchecks.core import DatasetKind
+from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
 from deepchecks.core.serialization.abc import WidgetSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer

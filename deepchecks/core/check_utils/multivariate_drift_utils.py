@@ -14,7 +14,6 @@ from typing import Container, List, Tuple
 
 import pandas as pd
 import plotly.graph_objects as go
-from catboost import CatBoostClassifier
 
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
