@@ -242,8 +242,13 @@ class Context(TabularContext):
     def observed_classes(self) -> t.List:
         """Return the observed classes in both train and test. None for regression."""
         # If did not cache yet the observed classes than calculate them
+        if self._observed_classes is None:
+            if is_sequence_not_str(self.train.label_col.iloc[0]):
+                self._observed_classes = \
+                    list(pd.Series([item for sublist in self.train.label_col for item in sublist]).unique())
+            else:
+                self._observed_classes = list(self.train.label_col.unique())
         return self._observed_classes
-    
 
     @property
     def item_popularity(self) -> t.List:
@@ -255,5 +260,3 @@ class Context(TabularContext):
             else:
                 self._item_popularity = self.train.label_col.value_counts(ascending=False).to_dict()
         return self._item_popularity
-
-
