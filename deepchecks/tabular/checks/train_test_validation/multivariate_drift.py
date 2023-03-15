@@ -9,8 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.multivariate_drift_utils import (get_domain_classifier_hq,
@@ -160,8 +162,8 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                   condition)
 
     def fix_logic(self, context: Context, check_result: CheckResult, drop_train: bool = True,
-                  move_from_test: bool = True, max_move_from_test_to_train: float = 0.2,
-                  max_drop_train_size: float = 0.4) -> Context:
+                  oversample_train: bool = True, move_from_test: bool = False, max_move_from_test_to_train: float = 0.2,
+                  max_oversample_train: float = 0.25, max_drop_train: float = 0.4) -> Context:
         """Run fix.
 
         Parameters
@@ -174,49 +176,107 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             Whether to drop samples from the train dataset.
         move_from_test : bool, default: True
             Whether to move samples from the test dataset to the train dataset.
+        oversample_train : bool, default: True
+            Whether to oversample the train dataset.
         max_move_from_test_to_train : float, default: 0.2
             The maximum percentage of samples to move from the test dataset to the train dataset.
-        max_drop_train_size : float, default: 0.4
+        max_oversample_train : float, default: 0.4
+            The maximum percentage of samples to oversample the train dataset.
+        max_drop_train : float, default: 0.4
             The maximum percentage of samples to drop from the train dataset.
         """
+        revert_index = False
         significant_threshold_test = 0.75
         significant_threshold_train = 0.25
 
         train, test = context.train, context.test
-        cat_features, numerical_features = train.cat_features, train.numerical_features
+        cat_features = train.cat_features
 
         max_n_samples_to_move = int(max_move_from_test_to_train * test.n_samples)
-        max_n_samples_to_keep = int((1 - max_drop_train_size) * train.n_samples)
+        max_n_samples_to_keep = int((1 - max_drop_train) * train.n_samples)
 
-        train_data = train.data[numerical_features + cat_features]
-        test_data = test.data[numerical_features + cat_features]
+        train_data = train.features_columns
+        test_data = test.features_columns
+
+        train_label = train.label_col
+        test_label = test.label_col
+
+        # If datasets have intersecting indexes:
+        if set(train_data.index).intersection(set(test_data.index)):
+            revert_index = True
+            new_train_index = [f'train_{i}' for i in range(train_data.shape[0])]
+            new_test_index = [f'test_{i}' for i in range(test_data.shape[0])]
+            new_to_org_index_dict = dict(zip(new_train_index + new_test_index,
+                                             list(train_data.index) + list(test_data.index)))
+            train_data.index = new_train_index
+            test_data.index = new_test_index
+            if train_label is not None:
+                train_label.index = new_train_index
+            if test_label is not None:
+                test_label.index = new_test_index
 
         if drop_train is True:
             train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
                                                         cat_features=cat_features, random_state=self.random_state,
                                                         max_samples_for_training=self.n_samples)
 
-            train_significant_samples = train_preds.sort_values(ascending=True)[
-                train_preds < significant_threshold_train]
-            train_samples_to_drop = train_significant_samples.sample(
-                min(len(train_significant_samples), train_data.shape[0] - max_n_samples_to_keep)).index
+            train_significant_samples = train_preds[train_preds < significant_threshold_train]
+            n_samples_to_drop = min(len(train_significant_samples), train_data.shape[0] - max_n_samples_to_keep)
+            train_samples_to_drop = train_significant_samples.sample(n_samples_to_drop, random_state=self.random_state).index
             train_data = train_data.drop(train_samples_to_drop)
+            if train_label is not None:
+                train_label = train_label.drop(train_samples_to_drop)
+
+        if oversample_train is True:
+            model = DecisionTreeClassifier(max_depth=30, min_samples_leaf=50, random_state=self.random_state)
+            x, y = preprocess_for_domain_classifier(train_data, test_data, cat_features)
+            model.fit(x, y)
+            x_apply = model.apply(x)
+            duplicate_indices_to_add = []
+            for node_i in range(max(x_apply)):
+                samples_in_node = x_apply == node_i
+                if samples_in_node.sum():
+                    indexes_in_node = list(np.where(samples_in_node)[0])
+                    train_samples_in_node = y[samples_in_node][y[samples_in_node] == 0].index
+                    node_ratio = len(train_samples_in_node) / len(indexes_in_node)
+
+                    # print(f'Node {node_i} ratio: {node_ratio}')
+                    if 0 < node_ratio < 0.5:
+                        n_dups_to_add = int((0.5 - node_ratio) * len(indexes_in_node))
+                        duplicate_indices_to_add.extend(
+                            list(np.random.choice(train_samples_in_node, n_dups_to_add, replace=True)))
+
+            duplicate_indices_to_add = x.iloc[duplicate_indices_to_add].index  # Fit to original index
+            train_data = train_data.append(train_data.loc[duplicate_indices_to_add])
+            if train_label is not None:
+                train_label = train_label.append(train_label.loc[duplicate_indices_to_add])
 
         if move_from_test is True:
-            # # TODO: Problem with duplicate indexes that needs to be fixed:
-            # train_data.reset_index(drop=True, inplace=True)
-            # test_data.reset_index(drop=True, inplace=True)
-
             train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
                                                         cat_features=cat_features, random_state=self.random_state,
                                                         max_samples_for_training=self.n_samples)
             test_significant_samples = test_preds.sort_values(ascending=False)[
-                test_preds > significant_threshold_test].sample(frac=0.5)
-            test_samples_to_move = test_significant_samples.sample(
-                min(len(test_significant_samples), max_n_samples_to_move)).index
+                test_preds > significant_threshold_test].sample(frac=0.5, random_state=self.random_state)
+            n_samples_to_move = min(len(test_significant_samples), max_n_samples_to_move)
+            test_samples_to_move = test_significant_samples.sample(n_samples_to_move, random_state=self.random_state).index
 
             train_data = pd.concat([train_data, test_data.loc[test_samples_to_move]])
             test_data = test_data.drop(test_samples_to_move)
+
+            if train_label is not None:
+                train_label = pd.concat([train_label, test_label.loc[test_samples_to_move]])
+            if test_label is not None:
+                test_label = test_label.drop(test_samples_to_move)
+
+        # Rejoin label to data:
+        if train_label is not None:
+            train_data = pd.concat([train_data, train_label], axis=1)
+        if test_label is not None:
+            test_data = pd.concat([test_data, test_label], axis=1)
+
+        if revert_index:
+            train_data.index = [new_to_org_index_dict[x] for x in train_data.index]
+            test_data.index = [new_to_org_index_dict[x] for x in test_data.index]
 
         # create new datasets
         context.set_dataset_by_kind(DatasetKind.TRAIN, context.train.copy(train_data))
@@ -231,9 +291,13 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                'params': bool,
                                'params_display': True,
                                'params_description': 'Whether to drop samples from the train dataset'},
-                'move_from_test': {'display': 'Move From Test',
+                'oversample_train': {'display': 'Oversample Train',
+                                     'params': bool,
+                                     'params_display': True,
+                                     'params_description': 'Whether to oversample samples from the train dataset'},
+                'move_from_test': {'display': 'Move From Test',  # TODO ADD WARNING
                                    'params': bool,
-                                   'params_display': True,
+                                   'params_display': False,
                                    'params_description': 'Whether to move samples from the test dataset to the '
                                                          'train dataset'},
                 'max_move_from_test_to_train': {'display': 'Max Move From Test To Train',
