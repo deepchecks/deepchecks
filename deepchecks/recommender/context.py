@@ -244,10 +244,10 @@ class Context(TabularContext):
         # If did not cache yet the observed classes than calculate them
         if self._observed_classes is None:
             if is_sequence_not_str(self.train.label_col.iloc[0]):
-                self._observed_classes = \
-                    list(pd.Series([item for sublist in self.train.label_col for item in sublist]).unique())
+                labels = [item for sublist in self.train.label_col for item in sublist]
             else:
-                self._observed_classes = list(self.train.label_col.unique())
+                labels = self.train.label_col
+            self._observed_classes = sorted(labels.dropna().unique().tolist())
         return self._observed_classes
 
     @property
