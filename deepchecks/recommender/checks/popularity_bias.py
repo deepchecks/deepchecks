@@ -19,6 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.recommender import Context
 from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = ['PopularityBias']
 
@@ -66,6 +67,9 @@ class PopularityBias(SingleDatasetCheck):
         predictions = model.predict(dataset.features_columns)
         # flatten sequence of sequences to a single sequence
         flattened_predictions = [item for sublist in predictions for item in sublist]
+
+        if is_sequence_not_str(labels[0]):
+            labels = pd.Series([item for sublist in labels for item in sublist])
 
         all_values = pd.Series(labels + flattened_predictions)
         value_counts = all_values.value_counts(ascending=False)

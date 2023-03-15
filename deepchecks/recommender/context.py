@@ -184,6 +184,7 @@ class Context(TabularContext):
     ):
         model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
         self._item_dataset = item_dataset
+        self._item_popularity = None
         super().__init__(train=train,
                          test=test,
                          feature_importance=feature_importance,
@@ -199,12 +200,6 @@ class Context(TabularContext):
         else:
             item_to_index = None
             item_item_similarity = None
-        # Compute item popularity based on appearance in the train set
-        if is_sequence_not_str(self.train.label_col[0]):
-            item_popularity = pd.Series([item for sublist in self.train.label_col for item in sublist])\
-                .value_counts(ascending=False).to_dict()
-        else:
-            item_popularity = self.train.label_col.value_counts(ascending=False).to_dict()
 
         if self.train.user_index_name is not None:
             num_users = self.train.data[self.train.user_index_name].nunique()
@@ -212,7 +207,7 @@ class Context(TabularContext):
             num_users = None
 
         return {'item_item_similarity': item_item_similarity, 'item_to_index': item_to_index,
-                'item_popularity': item_popularity, 'num_users': num_users,
+                'item_popularity': self.item_popularity, 'num_users': num_users,
                 'item_features':  pd.DataFrame(self._item_dataset.features_columns.values,
                                                index=self._item_dataset.data[self._item_dataset.item_index_name])
                 if self._item_dataset is not None else None}
@@ -248,3 +243,17 @@ class Context(TabularContext):
         """Return the observed classes in both train and test. None for regression."""
         # If did not cache yet the observed classes than calculate them
         return self._observed_classes
+    
+
+    @property
+    def item_popularity(self) -> t.List:
+        # Compute item popularity based on appearance in the train set
+        if self._item_popularity is None:
+            if is_sequence_not_str(self.train.label_col[0]):
+                self._item_popularity = pd.Series([item for sublist in self.train.label_col for item in sublist])\
+                    .value_counts(ascending=False).to_dict()
+            else:
+                self._item_popularity = self.train.label_col.value_counts(ascending=False).to_dict()
+        return self._item_popularity
+
+

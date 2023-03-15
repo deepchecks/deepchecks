@@ -19,6 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.recommender import Context
 from deepchecks.tabular import TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = ['LabelPopularityDrift']
 
@@ -73,9 +74,15 @@ class LabelPopularityDrift(TrainTestCheck):
         train_labels = pd.Series(train_dataset.label_col)
         test_labels = pd.Series(test_dataset.label_col)
 
-        value_counts = train_labels.value_counts(ascending=False)
+        value_counts = context.item_popularity
         value_counts.iloc[:] = list(range(len(value_counts)))
         translation_dict = value_counts.to_dict()
+
+        if is_sequence_not_str(train_labels[0]):
+            train_labels = pd.Series([item for sublist in train_labels for item in sublist])
+        if is_sequence_not_str(test_labels[0]):
+            test_labels = pd.Series([item for sublist in test_labels for item in sublist])
+    
         train_labels = [translation_dict[label] for label in train_labels]
         test_labels = [translation_dict[label] for label in test_labels]
 
