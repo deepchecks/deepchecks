@@ -475,6 +475,8 @@ def hits_at_k(relevant_items: np.array, recommendation: np.array, k=10):
         if item in relevant_items and item not in recommendation[:i]:
             hits += 1.0
 
+    if len(recommendation) == 0:
+        return 0.0
     return hits / len(recommendation)
 
 
