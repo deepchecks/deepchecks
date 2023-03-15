@@ -70,7 +70,6 @@ class SamplePerformance(SingleDatasetCheck):
             results.append([scorer.name, scorer_value])
         results_df = pd.DataFrame(results, columns=['Metric', 'Value'])
         if context.with_display:
-            display = []
             fig = go.Figure()
             for _, row in results_df.iterrows():
                 box_fig = go.Box(y=row['Value'], name=row['Metric'])
