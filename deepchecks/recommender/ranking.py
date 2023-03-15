@@ -8,11 +8,6 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-# This code was copied from https://github.com/AstraZeneca/rexmex
-# Under the Apache License Version 2.0, January 2004 http://www.apache.org/licenses/.
-# Citation: Rozemberczki, B., Nilsson, S., Hoyt, C. T., & Edwards, G. RexMex (Version 0.1.0) [Computer software].
-# https://github.com/AstraZeneca/rexmex
-#
 """Used for rec metrics."""
 import itertools
 from math import log2
@@ -24,6 +19,33 @@ from sklearn.metrics import dcg_score, ndcg_score
 from sklearn.metrics.pairwise import cosine_similarity
 
 X = TypeVar("X")
+
+# Metrics implemented internally
+# =================================================================================================
+
+
+def diversity(recommendation: List, item_item_similarity, item_to_index) -> float:
+    """
+    Calculate the diversity of a recommendation list based on an externally provided similarity matrix
+
+    Args:
+        recommendation (array-like): An N x 1 array of ordered items.
+        item_item_similarity (array-like): An M x M array of item-item similarity scores.
+        item_to_index (dict): A dictionary mapping item names to their index in the similarity matrix.
+    Returns:
+        diversity (array-like): An N x 1 array of diversity scores.
+    """
+    indices_of_recommended_items = [item_to_index[item] for item in recommendation]
+    similarity_of_recommended_items = item_item_similarity[
+        indices_of_recommended_items, indices_of_recommended_items]
+    return 1 - similarity_of_recommended_items.mean()
+
+
+# The following metrics where copied from https://github.com/AstraZeneca/rexmex
+# Under the Apache License Version 2.0, January 2004 http://www.apache.org/licenses/.
+# Citation: Rozemberczki, B., Nilsson, S., Hoyt, C. T., & Edwards, G. RexMex (Version 0.1.0) [Computer software].
+# https://github.com/AstraZeneca/rexmex
+## =================================================================================================
 
 
 def reciprocal_rank(relevant_item: X, recommendation: Sequence[X]) -> float:

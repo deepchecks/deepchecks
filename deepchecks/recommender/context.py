@@ -106,7 +106,8 @@ class _DummyModel:
 
 
 class Scorer(DeepcheckScorer):
-    def __init__(self, metric, name, to_avg=True, item_item_similarity=None, item_popularity=None):
+    def __init__(self, metric, name, to_avg=True, item_item_similarity=None, item_popularity=None,
+                 item_to_index=None):
         if isinstance(metric, t.Callable):
             self.per_sample_metric = metric
         elif isinstance(metric, str):
@@ -118,6 +119,7 @@ class Scorer(DeepcheckScorer):
         self.to_avg = to_avg
         self.item_item_similarity = item_item_similarity
         self.item_popularity = item_popularity
+        self.item_to_index = item_to_index
 
     def run_rec_metric(self, y_true, y_pred):
         additional_wkargs = {}
@@ -186,18 +188,28 @@ class Context(TabularContext):
         self._model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
         self._item_item_similarity = item_item_similarity
 
+    @property
+    def item_to_index(self) -> t.Mapping[t.Hashable, int]:
+        if self.train.item_to_index is not None:
+            return self.train.item_to_index
+
+    def get_scorer_kwargs(self) -> t.Dict:
+        return {'item_item_similarity': self._item_item_similarity, 'item_to_index': self.item_to_index}
+
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
         if scorers is None:
-            return [Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None)]
+            return [Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())]
         if isinstance(scorers, t.Mapping):
-            scorers = [Scorer(scorer, name, to_avg=use_avg_defaults) for name, scorer in scorers.items()]
+            scorers = [Scorer(scorer, name, to_avg=use_avg_defaults, **self.get_scorer_kwargs())
+                       for name, scorer in scorers.items()]
         else:
-            scorers = [Scorer(scorer, to_avg=use_avg_defaults, name=None) for scorer in scorers]
+            scorers = [Scorer(scorer, to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
+                       for scorer in scorers]
         return scorers
 
     def get_single_scorer(self, scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
                           use_avg_defaults=True) -> DeepcheckScorer:
         if scorer is None:
-            return Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None)
-        return Scorer(scorer, to_avg=use_avg_defaults, name=None)
+            return Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
+        return Scorer(scorer, to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
