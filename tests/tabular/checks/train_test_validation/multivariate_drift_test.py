@@ -209,26 +209,20 @@ def test_drift_fix(drifted_data):
     # Arrange
     train_ds, test_ds = drifted_data
 
-    train_data = train_ds.data
-    test_data = test_ds.data
-
-    train_ds = train_ds.copy(train_data)
-    test_ds = test_ds.copy(test_data)
-
     check = MultivariateDrift()
 
     # Act & Assert
     result = check.run(train_ds, test_ds)
-    # assert_that(result.value['domain_classifier_drift_score'], close_to(0.86, 0.01))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.86, 0.01))
 
     # Fix the drift
     train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True)
 
     result = check.run(train_ds, test_ds)
     print(result.value['domain_classifier_drift_score'], train_ds.n_samples, test_ds.n_samples)
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.45, 0.01))
-    # assert_that(train_ds.n_samples, equal_to(3471))  # TODO: Problem
-    # assert_that(test_ds.n_samples, equal_to(6387))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.5, 0.01))
+    assert_that(train_ds.n_samples, equal_to(942))
+    assert_that(test_ds.n_samples, equal_to(800))
 
 
 

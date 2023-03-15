@@ -190,15 +190,18 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
         significant_threshold_train = 0.25
 
         train, test = context.train, context.test
-        cat_features, numerical_features = train.cat_features, train.numerical_features
+        cat_features = train.cat_features
 
         max_n_samples_to_move = int(max_move_from_test_to_train * test.n_samples)
         max_n_samples_to_keep = int((1 - max_drop_train) * train.n_samples)
 
-        train_data = train.data[numerical_features + cat_features]
-        test_data = test.data[numerical_features + cat_features]
+        train_data = train.features_columns
+        test_data = test.features_columns
 
-        # Datasets have intersecting indexes:
+        train_label = train.label_col
+        test_label = test.label_col
+
+        # If datasets have intersecting indexes:
         if set(train_data.index).intersection(set(test_data.index)):
             revert_index = True
             new_train_index = [f'train_{i}' for i in range(train_data.shape[0])]
@@ -207,17 +210,22 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                              list(train_data.index) + list(test_data.index)))
             train_data.index = new_train_index
             test_data.index = new_test_index
+            if train_label is not None:
+                train_label.index = new_train_index
+            if test_label is not None:
+                test_label.index = new_test_index
 
         if drop_train is True:
             train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
                                                         cat_features=cat_features, random_state=self.random_state,
                                                         max_samples_for_training=self.n_samples)
 
-            train_significant_samples = train_preds.sort_values(ascending=True)[
-                train_preds < significant_threshold_train]
-            train_samples_to_drop = train_significant_samples.sample(
-                min(len(train_significant_samples), train_data.shape[0] - max_n_samples_to_keep)).index
+            train_significant_samples = train_preds[train_preds < significant_threshold_train]
+            n_samples_to_drop = min(len(train_significant_samples), train_data.shape[0] - max_n_samples_to_keep)
+            train_samples_to_drop = train_significant_samples.sample(n_samples_to_drop, random_state=self.random_state).index
             train_data = train_data.drop(train_samples_to_drop)
+            if train_label is not None:
+                train_label = train_label.drop(train_samples_to_drop)
 
         if oversample_train is True:
             model = DecisionTreeClassifier(max_depth=30, min_samples_leaf=50, random_state=self.random_state)
@@ -238,23 +246,33 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                         duplicate_indices_to_add.extend(
                             list(np.random.choice(train_samples_in_node, n_dups_to_add, replace=True)))
 
-            train_data = train_data.append(train_data.loc[x.iloc[duplicate_indices_to_add].index])
+            duplicate_indices_to_add = x.iloc[duplicate_indices_to_add].index  # Fit to original index
+            train_data = train_data.append(train_data.loc[duplicate_indices_to_add])
+            if train_label is not None:
+                train_label = train_label.append(train_label.loc[duplicate_indices_to_add])
 
         if move_from_test is True:
-            # # TODO: Problem with duplicate indexes that needs to be fixed:
-            # train_data.reset_index(drop=True, inplace=True)
-            # test_data.reset_index(drop=True, inplace=True)
-
             train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
                                                         cat_features=cat_features, random_state=self.random_state,
                                                         max_samples_for_training=self.n_samples)
             test_significant_samples = test_preds.sort_values(ascending=False)[
-                test_preds > significant_threshold_test].sample(frac=0.5)
-            test_samples_to_move = test_significant_samples.sample(
-                min(len(test_significant_samples), max_n_samples_to_move)).index
+                test_preds > significant_threshold_test].sample(frac=0.5, random_state=self.random_state)
+            n_samples_to_move = min(len(test_significant_samples), max_n_samples_to_move)
+            test_samples_to_move = test_significant_samples.sample(n_samples_to_move, random_state=self.random_state).index
 
             train_data = pd.concat([train_data, test_data.loc[test_samples_to_move]])
             test_data = test_data.drop(test_samples_to_move)
+
+            if train_label is not None:
+                train_label = pd.concat([train_label, test_label.loc[test_samples_to_move]])
+            if test_label is not None:
+                test_label = test_label.drop(test_samples_to_move)
+
+        # Rejoin label to data:
+        if train_label is not None:
+            train_data = pd.concat([train_data, train_label], axis=1)
+        if test_label is not None:
+            test_data = pd.concat([test_data, test_label], axis=1)
 
         if revert_index:
             train_data.index = [new_to_org_index_dict[x] for x in train_data.index]
