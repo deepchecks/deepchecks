@@ -78,9 +78,9 @@ class LabelPopularityDrift(TrainTestCheck):
         value_counts.iloc[:] = list(range(len(value_counts)))
         translation_dict = value_counts.to_dict()
 
-        if is_sequence_not_str(train_labels[0]):
+        if is_sequence_not_str(train_labels.iloc[0]):
             train_labels = pd.Series([item for sublist in train_labels for item in sublist])
-        if is_sequence_not_str(test_labels[0]):
+        if is_sequence_not_str(test_labels.iloc[0]):
             test_labels = pd.Series([item for sublist in test_labels for item in sublist])
     
         train_labels = [translation_dict[label] for label in train_labels]

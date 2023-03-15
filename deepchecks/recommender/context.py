@@ -249,7 +249,7 @@ class Context(TabularContext):
     def item_popularity(self) -> t.List:
         # Compute item popularity based on appearance in the train set
         if self._item_popularity is None:
-            if is_sequence_not_str(self.train.label_col[0]):
+            if is_sequence_not_str(self.train.label_col.iloc[0]):
                 self._item_popularity = pd.Series([item for sublist in self.train.label_col for item in sublist])\
                     .value_counts(ascending=False).to_dict()
             else:
