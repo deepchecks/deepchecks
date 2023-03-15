@@ -151,7 +151,7 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
         return {'keep': {'display': 'Drop By',
                          'params': ['first', 'last'],
                          'params_display': ['By First', 'By Last'],
-                         'params_descriptions': ['Drop duplicates by first occurrence',
+                         'params_description': ['Drop duplicates by first occurrence',
                                                  'Drop duplicates by last occurrence']}}
 
     @property
