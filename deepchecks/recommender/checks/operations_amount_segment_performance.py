@@ -49,12 +49,14 @@ class OperationsAmountSegmentPerformance(SingleDatasetCheck):
 
     def __init__(self,
                  n_top_samples: int = 3,
+                 n_samples: int = 1_000_000,
                  scorer=None,
                  n_bins: int = 40,
                  random_state: int = 42,
                  **kwargs):
         super().__init__(**kwargs)
         self.scorer = scorer
+        self.n_samples = n_samples
         self.n_top_samples = n_top_samples
         self.n_bins = n_bins
         self.random_state = random_state
@@ -73,7 +75,8 @@ class OperationsAmountSegmentPerformance(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label
         """
-        dataset: RecDataset = context.get_data_by_kind(dataset_kind)
+        dataset: RecDataset = \
+            context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         model = context.model
         scorer = context.get_single_scorer(self.scorer, use_avg_defaults=False)
         per_user_scores = pd.Series(scorer(model, dataset), index=dataset.data[dataset.user_index_name].dropna())
