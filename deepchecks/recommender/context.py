@@ -148,6 +148,7 @@ class Scorer(DeepcheckScorer):
             return np.nanmean(scores)
         return scores
 
+
 @docstrings
 class Context(TabularContext):
     """Contains all the data + properties the user has passed to a check/suite, and validates it seamlessly.
@@ -199,7 +200,8 @@ class Context(TabularContext):
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
         if scorers is None:
-            return [Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())]
+            return [Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs()),
+                    Scorer('rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())]
         if isinstance(scorers, t.Mapping):
             scorers = [Scorer(scorer, name, to_avg=use_avg_defaults, **self.get_scorer_kwargs())
                        for name, scorer in scorers.items()]
