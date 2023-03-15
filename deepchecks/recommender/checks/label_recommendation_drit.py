@@ -14,6 +14,7 @@ import typing as t
 import pandas as pd
 
 from deepchecks.core import CheckResult
+from deepchecks.core.condition import ConditionCategory, ConditionResult
 
 from deepchecks.core.errors import DeepchecksValueError
 
@@ -99,3 +100,31 @@ class LabelRecommendationDrift(SingleDatasetCheck):
             header=f'Label Recommendation Drift',
             display=drift_display,
         )
+
+    def add_condition_drift_score_less_than(self, max_allowed_score: float = 0.15):
+        """
+        Add condition - require drift score to be less than a certain threshold.
+
+        The industry standard for PSI limit is above 0.2.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
+        The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of prediction
+        drift.
+
+        Parameters
+        ----------
+        max_allowed_categorical_score: float , default: 0.15
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.15
+            the max threshold for the numeric variable drift score
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
+        """
+
+        def condition(result: float) -> ConditionResult:
+            category = ConditionCategory.FAIL if result > max_allowed_score else ConditionCategory.PASS
+            return ConditionResult(category, f'The drift score was {result}')
+
+        return self.add_condition(f'drift score less than {max_allowe_score}', condition)
