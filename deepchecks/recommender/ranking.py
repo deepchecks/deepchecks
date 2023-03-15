@@ -366,13 +366,13 @@ def personalization(recommendations: List[list]):
     return 1 - personalization
 
 
-def novelty(recommendations: List[list], item_popularity: dict, num_users: int, k: int = 10):
+def novelty(recommendation: List, item_popularity: dict, num_users: int, k: int = 10):
     """
     Calculates the capacity of the recommender system to generate novel
     and unexpected results.
 
     Args:
-        recommendations (List[list]): A M x N array of items, where M is the number
+        recommendation (List): A 1 x N array of items, where M is the number
                                of predicted lists and N the number of recommended items
         item_popularity (dict): A dict mapping each item in the recommendations to a popularity value.
                                   Popular items have higher values.
@@ -394,17 +394,15 @@ def novelty(recommendations: List[list], item_popularity: dict, num_users: int, 
 
     epsilon = 1e-10
     all_self_information = []
-    for recommendations in recommendations:
-        self_information_sum = 0.0
-        for i in range(k):
-            item = recommendations[i]
-            item_pop = item_popularity[item]
-            self_information_sum += -log2((item_pop + epsilon) / num_users)
+    self_information_sum = 0.0
+    for i in range(k):
+        item = recommendation[i]
+        item_pop = item_popularity[item]
+        self_information_sum += -log2((item_pop + epsilon) / num_users)
 
-        avg_self_information = self_information_sum / k
-        all_self_information.append(avg_self_information)
+    avg_self_information = self_information_sum / k
 
-    return np.mean(all_self_information)
+    return avg_self_information
 
 
 def normalized_distance_based_performance_measure(relevant_items: List, recommendation: List):

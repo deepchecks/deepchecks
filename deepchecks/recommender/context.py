@@ -107,8 +107,7 @@ class _DummyModel:
 
 
 class Scorer(DeepcheckScorer):
-    def __init__(self, metric, name, to_avg=True, item_item_similarity=None, item_popularity=None,
-                 item_to_index=None):
+    def __init__(self, metric, name, to_avg=True, **kwargs):
         if isinstance(metric, t.Callable):
             self.per_sample_metric = metric
         elif isinstance(metric, str):
@@ -118,21 +117,15 @@ class Scorer(DeepcheckScorer):
 
         super().__init__(self.per_sample_metric, name=name, model_classes=None, observed_classes=None)
         self.to_avg = to_avg
-        self.item_item_similarity = item_item_similarity
-        self.item_popularity = item_popularity
-        self.item_to_index = item_to_index
+        self.metric_kwargs = kwargs
 
     def run_rec_metric(self, y_true, y_pred):
-        additional_wkargs = {}
-        if self.item_popularity is not None:
-            additional_wkargs['item_popularity'] = self.item_popularity
-        if self.item_item_similarity is not None:
-            additional_wkargs['item_item_similarity'] = self.item_item_similarity
+
         scores = [run_available_kwargs(self.per_sample_metric,
                                        relevant_items=label if is_sequence_not_str(label) else [label],
                                        relevant_item=label,
                                        recommendation=pred,
-                                       **additional_wkargs)
+                                       **self.metric_kwargs)
                   for label, pred in zip(y_true, y_pred)]
         return scores
 
@@ -200,8 +193,14 @@ class Context(TabularContext):
             item_item_similarity = None
         # Compute item popularity based on appearance in the train set
         item_popularity = self.train.label_col.value_counts(ascending=False).to_dict()
+
+        if self.train.user_index_name is not None:
+            num_users = self.train.data[self.train.user_index_name].nunique()
+        else:
+            num_users = None
+
         return {'item_item_similarity': item_item_similarity, 'item_to_index': item_to_index,
-                'item_popularity': item_popularity}
+                'item_popularity': item_popularity, 'num_users': num_users}
 
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
