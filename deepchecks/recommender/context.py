@@ -127,8 +127,11 @@ class Scorer(DeepcheckScorer):
             additional_wkargs['item_popularity'] = self.item_popularity
         if self.item_item_similarity is not None:
             additional_wkargs['item_item_similarity'] = self.item_item_similarity
-        scores = [run_available_kwargs(self.per_sample_metric, relevant_items=label, relevant_item=label,
-                                       recommendation=pred, **additional_wkargs)
+        scores = [run_available_kwargs(self.per_sample_metric,
+                                       relevant_items=label if isinstance(label, t.Sequence) else [label],
+                                       relevant_item=label,
+                                       recommendation=pred,
+                                       **additional_wkargs)
                   for label, pred in zip(y_true, y_pred)]
         return scores
 
