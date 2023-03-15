@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
+from collections import OrderedDict
 from copy import copy
 
 import numpy as np
@@ -18,7 +19,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-from deepchecks.core.check_utils.multivariate_drift_utils import (basic_preprocessing_for_model,
+from deepchecks.core.check_utils.multivariate_drift_utils import (basic_preprocessing_for_domain_classification,
                                                                   get_domain_classifier_hq, run_multivariable_drift)
 from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
@@ -188,17 +189,20 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
         max_drop_train : float, default: 0.4
             The maximum percentage of samples to drop from the train dataset.
         """
+        np.random.seed(self.random_state)
         revert_index = False
         significant_threshold_test = 0.75
         significant_threshold_train = 0.25
         k_neighbors = 5  # For SMOTENC
         new_to_org_index_dict_train = {}
+        new_to_org_index_dict_test = {}
 
         train, test = context.train, context.test
         cat_features = train.cat_features
 
         max_n_samples_to_move = int(max_move_from_test_to_train * test.n_samples)
         max_n_samples_to_keep = int((1 - max_drop_train) * train.n_samples)
+        max_n_samples_to_drop = int(max_drop_train * train.n_samples)
 
         train_data = train.features_columns
         test_data = test.features_columns
@@ -222,24 +226,56 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                 test_label.index = new_test_index
 
         if drop_train is True:
-            train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
-                                                        cat_features=cat_features, random_state=self.random_state,
-                                                        max_samples_for_training=self.n_samples)
+            x, y = basic_preprocessing_for_domain_classification(train_data, test_data, cat_features,
+                                                                 impute_numerical_nones=True)
 
-            train_significant_samples = train_preds[train_preds < significant_threshold_train]
-            n_samples_to_drop = min(len(train_significant_samples), train_data.shape[0] - max_n_samples_to_keep)
-            train_samples_to_drop = train_significant_samples.sample(n_samples_to_drop,
-                                                                     random_state=self.random_state).index
-            train_data = train_data.drop(train_samples_to_drop)
-            if train_label is not None:
-                train_label = train_label.drop(train_samples_to_drop)
+            train_clusters = cluster_samples_by_label(x, y, self.random_state)
+            drop_counter = 0
+
+            redundant_samples = 0
+            for node_i, samples_in_node in train_clusters.items():
+                if samples_in_node:
+                    train_samples_in_node = sorted(list(set(samples_in_node).intersection(set(train_data.index))))
+                    node_ratio = len(train_samples_in_node) / len(samples_in_node)
+
+                    if node_ratio > 0.5:
+                        n_test_samples = len(samples_in_node) - len(train_samples_in_node)
+                        n_train_samples = len(train_samples_in_node)
+                        redundant_samples += n_train_samples - n_test_samples
+
+            cutoff_factor = min(max_n_samples_to_drop / redundant_samples, 1)
+
+            for node_i, samples_in_node in train_clusters.items():
+                if drop_counter >= max_n_samples_to_drop:
+                    break
+                if samples_in_node:
+                    train_samples_in_node = sorted(list(set(samples_in_node).intersection(set(train_data.index))))
+                    node_ratio = len(train_samples_in_node) / len(samples_in_node)
+
+                    if node_ratio > 0.5:
+                        n_test_samples = len(samples_in_node) - len(train_samples_in_node)
+                        n_train_samples = len(train_samples_in_node)
+                        n_samples_to_drop = int((n_train_samples - n_test_samples) * cutoff_factor)
+                        if n_samples_to_drop > max_n_samples_to_drop - drop_counter:
+                            n_samples_to_drop = max_n_samples_to_drop - drop_counter
+                        drop_counter += n_samples_to_drop
+
+                        if n_samples_to_drop >= len(train_samples_in_node):
+                            indices_to_drop = train_samples_in_node
+                        else:
+                            indices_to_drop = \
+                                list(np.random.choice(train_samples_in_node, n_samples_to_drop, replace=False))
+                        train_data.drop(indices_to_drop, inplace=True)
+                        if train_label is not None:
+                            train_label.drop(indices_to_drop, inplace=True)
 
         if oversample_train is True:
             # Cluster train and test data to find clusters with more test data than train data:
-            model = DecisionTreeClassifier(max_depth=30, min_samples_leaf=50, random_state=self.random_state)
-            x, y = basic_preprocessing_for_model(train_data, test_data, cat_features, impute_numerical_nones=True)
-            model.fit(x, y)
-            x_apply = model.apply(x)
+            x, y = basic_preprocessing_for_domain_classification(train_data, test_data, cat_features,
+                                                                 impute_numerical_nones=True)
+
+            train_clusters = cluster_samples_by_label(x, y, self.random_state)
+
             next_generated_i = 0
 
             cat_features_for_oversampling = copy(cat_features)
@@ -266,26 +302,23 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                 cat_indexes_for_smote = [all_data.columns.get_loc(cat_feature) for cat_feature in
                                          cat_features_for_oversampling]
 
-            for node_i in range(max(x_apply)):
-                samples_in_node = x_apply == node_i
-                if samples_in_node.sum():
-                    indexes_in_node = list(np.where(samples_in_node)[0])
-                    train_samples_in_node = y[samples_in_node][y[samples_in_node] == 0].index
-                    node_ratio = len(train_samples_in_node) / len(indexes_in_node)
+            for node_i, samples_in_node in train_clusters.items():
+                if samples_in_node:
+                    train_samples_in_node = sorted(list(set(samples_in_node).intersection(set(train_data.index))))
+                    node_ratio = len(train_samples_in_node) / len(samples_in_node)
 
-                    # print(f'Node {node_i} ratio: {node_ratio}')
                     if 0 < node_ratio < 0.5:
-                        n_samples_to_add = int((0.5 - node_ratio) * len(indexes_in_node))
+                        n_samples_to_add = int((0.5 - node_ratio) * len(samples_in_node))
 
                         if use_smote is False:
                             duplicate_indices_to_add = list(
                                 np.random.choice(train_samples_in_node, n_samples_to_add, replace=True))
-                            train_data = train_data.append(train_data.iloc[duplicate_indices_to_add])
+                            train_data = train_data.append(train_data.loc[duplicate_indices_to_add])
                         elif use_smote is True and n_samples_to_add > 0 and len(train_samples_in_node) > k_neighbors:
                             sm = SMOTENC(categorical_features=cat_indexes_for_smote,
                                          sampling_strategy={0: n_samples_to_add + len(train_samples_in_node)},
                                          k_neighbors=k_neighbors, random_state=self.random_state)
-                            x_sm, y_sm = sm.fit_resample(all_data.iloc[indexes_in_node], y.loc[indexes_in_node])
+                            x_sm, y_sm = sm.fit_resample(all_data.loc[samples_in_node], y.loc[samples_in_node])
                             new_index = [f'generated_{i}' for i in
                                          range(next_generated_i, next_generated_i + n_samples_to_add)]
                             next_generated_i += n_samples_to_add
@@ -369,7 +402,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                                 'params_display': 0.2,
                                                 'params_description': 'The maximum percentage of samples to move from '
                                                                       'the test dataset to the train dataset'},
-                'max_drop_train_size': {'display': 'Max Drop Train Size',
+                'max_drop_train': {'display': 'Max Drop Train Size',
                                         'params': float,
                                         'min_value': 0,
                                         'max_value': 1,
@@ -411,7 +444,7 @@ def calc_domain_preds(df_a, df_b, cat_features, random_state, max_samples_for_tr
     sample_size = min(max_samples_for_training, int(df_a.shape[0] / 2), int(df_b.shape[0] / 2))
 
     # create new dataset, with label denoting whether sample belongs to test dataset
-    x, y = basic_preprocessing_for_model(df_a, df_b, cat_features)
+    x, y = basic_preprocessing_for_domain_classification(df_a, df_b, cat_features)
     x_train_1, x_train_2, y_train_1, y_train_2 = train_test_split(x, y, train_size=2 * sample_size / x.shape[0],
                                                                   random_state=random_state, stratify=y)
 
@@ -447,3 +480,14 @@ def calc_domain_preds(df_a, df_b, cat_features, random_state, max_samples_for_tr
                                  index=list(df_b_1_processed.index) + list(df_b_2_processed.index))
 
     return df_a_predictions, df_b_predictions
+
+
+def cluster_samples_by_label(x, y, random_state):
+    model = DecisionTreeClassifier(max_depth=30, min_samples_leaf=50, random_state=random_state)
+    model.fit(x, y)
+    x_apply = model.apply(x)
+    ret_dict = OrderedDict()
+    for node_i in range(max(x_apply)):
+        indexes_in_node = list(np.where(x_apply == node_i)[0])
+        ret_dict[node_i] = list(x.iloc[indexes_in_node].index)
+    return ret_dict
