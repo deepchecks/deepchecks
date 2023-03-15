@@ -201,10 +201,10 @@ class Context(TabularContext):
             item_item_similarity = None
         # Compute item popularity based on appearance in the train set
         if is_sequence_not_str(self.train.label_col[0]):
-            item_popularity = self.train.label_col.value_counts(ascending=False).to_dict()
-        else:
             item_popularity = pd.Series([item for sublist in self.train.label_col for item in sublist])\
                 .value_counts(ascending=False).to_dict()
+        else:
+            item_popularity = self.train.label_col.value_counts(ascending=False).to_dict()
 
         if self.train.user_index_name is not None:
             num_users = self.train.data[self.train.user_index_name].nunique()
