@@ -488,7 +488,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         def on_fix_button_click(b):
             b.disabled = True
             b.description = 'Fixing...'
-            print("Fixing")
             check_name_to_params = dict()
             check_name_to_result = dict()
             for result, checkbox in test_result_to_checkbox.items():
@@ -545,7 +544,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 p_bar.description = 'Fixing ' + check_name + ' ' + str(current_index) + '/' + str(
                     len(check_name_to_params))
                 for param_name, param_value in input_params.items():
-                    print(param_name, param_value)
                 check_name_to_result[check_name].check.fix_logic(context=self.value.context, check_result=check_name_to_result[check_name], **input_params)
                 p_bar.value += 1
                 current_index += 1
