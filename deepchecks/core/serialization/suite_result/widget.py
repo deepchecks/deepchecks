@@ -128,11 +128,25 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         checks_vbox_children = []
         input_widgets = dict(dict())
-        check_to_checkbox = dict()
+        train_result_to_checkbox = dict()
+        test_result_to_checkbox = dict()
+        general_result_to_checkbox = dict()
         layout = Layout(width='auto', height='40px')
         for fixable_result in fixable_check_results:
             check, check_name = fixable_result.check, fixable_result.check.name()
-            print("Handling check: ", check_name)
+            check_box = Checkbox(value=True, disabled=False, indent=False)
+            if fixable_result.header is not None:
+                if 'Train Dataset' in fixable_result.header:
+                    check_name = check_name + ' - Train Dataset'
+                    train_result_to_checkbox[fixable_result] = check_box
+                elif 'Test Dataset' in fixable_result.header:
+                    check_name = check_name + ' - Test Dataset'
+                    test_result_to_checkbox[fixable_result] = check_box
+                else:
+                    general_result_to_checkbox[fixable_result] = check_box
+            else:
+                general_result_to_checkbox[fixable_result] = check_box
+            check_box.description = check_name
             if check_name not in input_widgets:
                 input_widgets[check_name] = dict()
             for param_name, param_dict in check.fix_params.items():
@@ -151,9 +165,13 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                         description=user_display,
                         disabled=False
                     )
+                elif param_dict['params'] == bool:
+                    input_widgets[check_name][param_name] = Checkbox(
+                        value=param_dict['params_display'],
+                        description=user_display,
+                        disabled=False
+                    )
             vbox = VBox(children=list(input_widgets[check_name].values()))
-            check_box = Checkbox(value=True, description=check_name, disabled=False, indent=False)
-            check_to_checkbox[check] = check_box
             checks_vbox_children.append(Box([check_box, vbox]))
         checks_vbox = VBox(children=checks_vbox_children)
         save_button = Button(
@@ -165,10 +183,37 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )
 
         def on_fix_button_click(b):
-            print('Fixing!')
-            for check, checkbox in check_to_checkbox.items():
+            print('Fixing test checks')
+            for result, checkbox in test_result_to_checkbox.items():
                 if checkbox.value:
-                    print(f'Fixing {check.name()}')
+                    print(f'Fixing {result.check.name()}')
+                    result_input_values = input_widgets[result.check.name() + ' - Test Dataset']
+                    input_params = {'dataset_kind': DatasetKind.TEST}
+                    for param_dict in [{param_name: param_input.value} for param_name, param_input in
+                                       result_input_values.items()]:
+                        input_params.update(param_dict)
+                    result.check.fix_logic(context=self.value.context, check_result=result, **input_params)
+            print('Fixing train checks')
+            for result, checkbox in train_result_to_checkbox.items():
+                if checkbox.value:
+                    print('Fixing ', result.check.name())
+                    result_input_values = input_widgets[result.check.name() + ' - Train Dataset']
+                    input_params = {'dataset_kind': DatasetKind.TRAIN}
+                    for param_dict in [{param_name: param_input.value} for param_name, param_input in
+                                       result_input_values.items()]:
+                        input_params.update(param_dict)
+                    result.check.fix_logic(context=self.value.context, check_result=result, **input_params)
+            print('Fixing general checks')
+            for result, checkbox in general_result_to_checkbox.items():
+                if checkbox.value:
+                    print('Fixing ', result.check.name())
+                    result_input_values = input_widgets[result.check.name()]
+                    input_params = {}
+                    for param_dict in [{param_name: param_input.value} for param_name, param_input in
+                                       result_input_values.items()]:
+                        input_params.update(param_dict)
+                    result.check.fix_logic(context=self.value.context, check_result=result, **input_params)
+
             # data_duplicates_check.fix_logic(context=self.value.context, check_result=data_duplicates_check_result,
             # dataset_kind=DatasetKind.TRAIN, keep=dropdowns[data_duplicates_check.name()]['keep'].value)
             save_button.disabled = False
