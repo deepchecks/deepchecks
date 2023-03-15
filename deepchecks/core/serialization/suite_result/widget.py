@@ -12,8 +12,11 @@
 """Module containing ipywidget serializer for the SuiteResult type."""
 import typing as t
 import warnings
+import os
 
-from ipywidgets import HTML, Accordion, VBox, Widget, Checkbox, Dropdown, Box, Button, FloatText, Layout
+from ipywidgets import HTML, Accordion, VBox, Widget, Checkbox, Dropdown, Box, Button, FloatText, Layout, IntProgress, \
+    Valid
+from IPython.display import display
 
 from deepchecks.core import DatasetKind
 from deepchecks.core import check_result as check_types
@@ -26,6 +29,7 @@ from deepchecks.core.serialization.common import (aggregate_conditions, create_f
                                                   create_results_dataframe, form_output_anchor, join,
                                                   normalize_widget_style)
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
+from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.strings import get_random_string
 from . import html
 
@@ -131,8 +135,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         train_result_to_checkbox = dict()
         test_result_to_checkbox = dict()
         general_result_to_checkbox = dict()
-        layout = Layout(width='auto', height='40px')
+        layout = Layout(width='auto', height='auto')
         for fixable_result in fixable_check_results:
+            input_widgets_descriptions = []
             check, check_name = fixable_result.check, fixable_result.check.name()
             check_box = Checkbox(value=True, disabled=False, indent=False)
             if fixable_result.header is not None:
@@ -157,78 +162,142 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                         options=options,
                         value=options[0][1],
                         description=user_display,
+                        style={'description_width': 'initial'}
+
                     )
                     input_widgets[check_name][param_name] = dropdown
+                    params_description = zip(param_dict['params_display'], param_dict['params_description'])
+                    params_description = [t[0] + " - " + t[1] for t in params_description]
+                    params_description = "\n".join(params_description)
+
                 elif param_dict['params'] == float:
                     input_widgets[check_name][param_name] = FloatText(
                         value=param_dict['params_display'],
+                        disabled=False,
                         description=user_display,
-                        disabled=False
+                        style={'description_width': 'initial'}
                     )
+                    params_description = param_dict['params_description']
                 elif param_dict['params'] == bool:
                     input_widgets[check_name][param_name] = Checkbox(
                         value=param_dict['params_display'],
+                        disabled=False,
                         description=user_display,
-                        disabled=False
+                        style={'description_width': 'initial'}
                     )
-            vbox = VBox(children=list(input_widgets[check_name].values()))
-            checks_vbox_children.append(Box([check_box, vbox]))
-        checks_vbox = VBox(children=checks_vbox_children)
-        save_button = Button(
-            description='Save datasets',
-            disabled=True,
-            button_style='success',  # 'success', 'info', 'warning', 'danger' or ''
-            tooltip='Fix!',
-            icon='download'  # (FontAwesome names without the `fa-` prefix)
-        )
+                    params_description = param_dict['params_description']
+                input_widgets_descriptions.append(HTML(value="<b title='" + params_description + "'>ⓘ</b>", placeholder='widget description'))
+
+            input_widgets_list = list(input_widgets[check_name].values())
+            input_widget_boxes = []
+            for input_widget_description, input_widget in zip(input_widgets_descriptions, input_widgets_list):
+                input_widget_boxes.append(Box([input_widget, input_widget_description]))
+            input_widgets_list_with_description = zip(input_widgets_descriptions, input_widgets_list)
+            input_widgets_list_with_description = [item for t in input_widgets_list_with_description for item in t]
+            # for widget in input_widgets_list_with_description:
+            #     widget.description = ''
+            input_widgets_vbox = VBox(children=input_widget_boxes, layout=layout)
+            checks_vbox_children.append(Box([check_box, input_widgets_vbox]))
+        checks_vbox = VBox(children=checks_vbox_children, layout=layout)
+
+        def on_save_button_click(b):
+            p_bar = IntProgress(
+                value=0,
+                min=0,
+                max=2,
+                step=1,
+                description='Saving:',
+                bar_style='success',  # 'success', 'info', 'warning', 'danger' or ''
+                orientation='horizontal'
+            )
+            display(p_bar)
+            self.value.context.train.data.to_csv('train.csv')
+            p_bar.value += 1
+            self.value.context.test.data.to_csv('test.csv')
+            p_bar.value += 1
+            p_bar.close()
+            b.description = 'Saved!'
+            b.disabled = True
+            train_path = os.path.join(os.getcwd(), 'train.csv')
+            test_path = os.path.join(os.getcwd(), 'test.csv')
+            display(Valid(
+                value=True,
+                description=train_path,
+                style={'description_width': 'initial'}
+
+            ))
+            display(Valid(
+                value=True,
+                description=test_path,
+                style={'description_width': 'initial'}
+
+            ))
 
         def on_fix_button_click(b):
-            button.disabled = True
-            print('Fixing test checks')
+            b.disabled = True
+            result_to_params = dict()
+
             for result, checkbox in test_result_to_checkbox.items():
                 if checkbox.value:
-                    print(f'Fixing {result.check.name()}')
                     result_input_values = input_widgets[result.check.name() + ' - Test Dataset']
                     input_params = {'dataset_kind': DatasetKind.TEST}
                     for param_dict in [{param_name: param_input.value} for param_name, param_input in
                                        result_input_values.items()]:
                         input_params.update(param_dict)
-                    result.check.fix_logic(context=self.value.context, check_result=result, **input_params)
-            print('Fixing train checks')
+                    result_to_params[result] = input_params
             for result, checkbox in train_result_to_checkbox.items():
                 if checkbox.value:
-                    print('Fixing ', result.check.name())
                     result_input_values = input_widgets[result.check.name() + ' - Train Dataset']
                     input_params = {'dataset_kind': DatasetKind.TRAIN}
                     for param_dict in [{param_name: param_input.value} for param_name, param_input in
                                        result_input_values.items()]:
                         input_params.update(param_dict)
-                    result.check.fix_logic(context=self.value.context, check_result=result, **input_params)
-            print('Fixing general checks')
+                    result_to_params[result] = input_params
             for result, checkbox in general_result_to_checkbox.items():
                 if checkbox.value:
-                    print('Fixing ', result.check.name())
                     result_input_values = input_widgets[result.check.name()]
                     input_params = {}
                     for param_dict in [{param_name: param_input.value} for param_name, param_input in
                                        result_input_values.items()]:
                         input_params.update(param_dict)
-                    result.check.fix_logic(context=self.value.context, check_result=result, **input_params)
-
-            # data_duplicates_check.fix_logic(context=self.value.context, check_result=data_duplicates_check_result,
-            # dataset_kind=DatasetKind.TRAIN, keep=dropdowns[data_duplicates_check.name()]['keep'].value)
-            save_button.disabled = False
-
-        def on_save_button_click(b):
-            print('Saving!')
-            self.value.context.train.data.to_csv('train.csv')
-            self.value.context.test.data.to_csv('test.csv')
-            print('saved!')
-
+                    result_to_params[result] = input_params
+            p_bar = IntProgress(
+                value=0,
+                min=0,
+                max=len(result_to_params),
+                step=1,
+                description='Fixing :',
+                bar_style='success',  # 'success', 'info', 'warning', 'danger' or ''
+                orientation='horizontal',
+                style={'description_width': 'initial'}
+            )
+            display(p_bar)
+            current_index = 1
+            for result, input_params in result_to_params.items():
+                p_bar.description = 'Fixing ' + result.check.name() + ' ' + str(current_index) + '/' + str(len(result_to_params))
+                result.check.fix_logic(context=self.value.context, check_result=result, **input_params)
+                p_bar.value += 1
+                current_index += 1
+            p_bar.close()
+            display(Valid(
+                value=True,
+                description='Done Fixing!',
+            ))
+            save_button = Button(
+                description='Save datasets (CSV)',
+                disabled=False,
+                button_style='success',  # 'success', 'info', 'warning', 'danger' or ''
+                tooltip='Save as CSV',
+                icon='download',  # (FontAwesome names without the `fa-` prefix)
+                style={'description_width': 'initial'},
+                layout=layout
+            )
+            save_button.on_click(on_save_button_click)
+            display(save_button)
+            b.description = 'Fixed!'
         button.on_click(on_fix_button_click)
-        save_button.on_click(on_save_button_click)
         box = Box(children=[checks_vbox])
-        another_vbox = VBox(children=[box, button, save_button])
+        another_vbox = VBox(children=[box, button])
         accordion = Accordion(children=[another_vbox], _titles={'0': 'Fixes'}, selected_index='0')
 
         content = VBox(children=[
