@@ -14,10 +14,12 @@ from .operations_amount_segment_performance import OperationsAmountSegmentPerfor
 from .popularity_bias import PopularityBias
 from .prediction_popularity_drift import PredictionPopularityDrift
 from .scatter_performance import ScatterPerformance
+from .sample_performance import SamplePerformance
 
 __all__ = ['LabelPopularityDrift',
            'OperationsAmountSegmentPerformance',
            'PopularityBias',
            'PredictionPopularityDrift',
            'ScatterPerformance',
+           'SamplePerformance',
            ]
