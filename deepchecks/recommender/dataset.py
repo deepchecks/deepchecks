@@ -18,7 +18,7 @@ import pandas as pd
 from deepchecks.tabular import Dataset
 
 
-__all__ = ['RecDataset']
+__all__ = ['RecDataset', 'ItemDataset']
 
 TDataset = t.TypeVar('TDataset', bound='RecDataset')
 
@@ -26,14 +26,12 @@ TDataset = t.TypeVar('TDataset', bound='RecDataset')
 class RecDataset(Dataset):
 
     _user_index_name: t.Optional[t.Hashable]
-    _item_to_index: t.Optional[t.Mapping[t.Hashable, int]]
 
     def __init__(
             self,
             df: t.Any,
             label: t.Union[t.Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
             user_index_name: t.Optional[t.Hashable] = None,
-            item_to_index: t.Optional[t.Mapping[t.Hashable, int]] = None,
             features: t.Optional[t.Sequence[t.Hashable]] = None,
             cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
             index_name: t.Optional[t.Hashable] = None,
@@ -67,7 +65,6 @@ class RecDataset(Dataset):
             label_classes=label_classes
         )
         self._user_index_name = user_index_name
-        self._item_to_index = item_to_index
 
     def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
         """Create a copy of this Dataset with new data.
@@ -83,7 +80,6 @@ class RecDataset(Dataset):
         """
         dataset = super().copy(new_data)
         dataset._user_index_name = self.user_index_name
-        dataset._item_to_index = self._item_to_index
         return dataset
 
     @property
@@ -91,7 +87,51 @@ class RecDataset(Dataset):
         """Get the user index name."""
         return self._user_index_name
 
+class ItemDataset(Dataset):
+
+    _item_index_name: t.Optional[t.Hashable]
+    _item_item_correlation: np.array
+
+    def __init__(
+            self,
+            df: t.Any,
+            item_index_name: t.Optional[t.Hashable],
+            item_item_similarity: np.array = None,
+            features: t.Optional[t.Sequence[t.Hashable]] = None,
+            cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
+            index_name: t.Optional[t.Hashable] = None,
+            set_index_from_dataframe_index: bool = False,
+            max_categorical_ratio: float = 0.01,
+            max_categories: int = None,
+            dataset_name: t.Optional[str] = 'Item Dataset',
+    ):
+
+        super().__init__(
+            df=df,
+            features=features,
+            cat_features=cat_features,
+            index_name=index_name,
+            set_index_from_dataframe_index=set_index_from_dataframe_index,
+            max_categorical_ratio=max_categorical_ratio,
+            max_categories=max_categories,
+            dataset_name=dataset_name,
+        )
+        self._item_index_name = item_index_name
+        self._item_item_similarity = item_item_similarity
+
     @property
-    def item_to_index(self) -> t.Optional[t.Mapping[t.Hashable, int]]:
-        """Get the item to index mapping."""
-        return self._item_to_index
+    def item_index_name(self) -> t.Optional[t.Hashable]:
+        """Get the user index name."""
+        return self._item_index_name
+
+    @property
+    def item_index_to_ordinal(self) -> t.Optional[t.Dict[t.Hashable, int]]:
+        """Get the user index name."""
+        if self.item_index_name is None:
+            return None
+        return dict(zip(self.item_index_name, range(len(self.item_index_name))))
+
+    @property
+    def item_item_similarity(self) -> np.array:
+        """Get the user index name."""
+        return self._item_item_similarity

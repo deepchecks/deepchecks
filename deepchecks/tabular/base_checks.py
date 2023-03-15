@@ -45,6 +45,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         self,
         dataset: Union[Dataset, pd.DataFrame],
         model: Optional[BasicModel] = None,
+        item_dataset: Optional['ItemDataset'] = None,
         feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
@@ -70,7 +71,12 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         if self.context_type is None:
             from deepchecks.recommender.dataset import RecDataset
             from deepchecks.recommender.context import Context as RecContext
-            self.context_type = RecContext if isinstance(dataset, RecDataset) else Context
+            if isinstance(dataset, RecDataset):
+                self.context_type = RecContext
+            else:
+                self.context_type = Context
+                if item_dataset is not None:
+                    raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
 
         if y_pred_train is not None:
             warnings.warn('y_pred_train is deprecated, please use y_pred instead.', DeprecationWarning, stacklevel=2)
@@ -94,6 +100,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         context = self.context_type(  # pylint: disable=not-callable
             train=dataset,
             model=model,
+            item_dataset=item_dataset,
             feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,
@@ -127,6 +134,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         train_dataset: Union[Dataset, pd.DataFrame],
         test_dataset: Union[Dataset, pd.DataFrame],
         model: Optional[BasicModel] = None,
+        item_dataset: Optional['ItemDataset'] = None,
         feature_importance: Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
@@ -152,12 +160,18 @@ class TrainTestCheck(TrainTestBaseCheck):
         if self.context_type is None:
             from deepchecks.recommender.dataset import RecDataset
             from deepchecks.recommender.context import Context as RecContext
-            self.context_type = RecContext if isinstance(train_dataset, RecDataset) else Context
+            if isinstance(dataset, RecDataset):
+                self.context_type = RecContext
+            else:
+                self.context_type = Context
+                if item_dataset is not None:
+                    raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
 
         context = self.context_type(  # pylint: disable=not-callable
             train=train_dataset,
             test=test_dataset,
             model=model,
+            item_dataset=item_dataset,
             feature_importance=feature_importance,
             feature_importance_force_permutation=feature_importance_force_permutation,
             feature_importance_timeout=feature_importance_timeout,

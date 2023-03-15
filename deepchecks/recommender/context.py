@@ -16,7 +16,7 @@ import pandas as pd
 from deepchecks.utils.function import run_available_kwargs
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.recommender.dataset import RecDataset
+from deepchecks.recommender.dataset import RecDataset, ItemDataset
 
 from deepchecks.tabular.context import Context as TabularContext
 from deepchecks.tabular._shared_docs import docstrings
@@ -167,16 +167,14 @@ class Context(TabularContext):
     {additional_context_params:indent}
     """
 
-    _item_item_similarity: t.Optional[np.array]
-
     def __init__(
         self,
         train: t.Union[Dataset, pd.DataFrame, None] = None,
         test: t.Union[Dataset, pd.DataFrame, None] = None,
+        item_dataset: t.Optional[ItemDataset] = None,
         feature_importance: t.Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
-        item_item_similarity: t.Optional[np.array] = None,
         with_display: bool = True,
         y_pred_train: t.Optional[t.Sequence[t.Hashable]] = None,
         y_pred_test: t.Optional[t.Sequence[t.Hashable]] = None,
@@ -190,15 +188,19 @@ class Context(TabularContext):
                          feature_importance_timeout=feature_importance_timeout,
                          with_display=with_display)
         self._model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
-        self._item_item_similarity = item_item_similarity
-
-    @property
-    def item_to_index(self) -> t.Mapping[t.Hashable, int]:
-        if self.train.item_to_index is not None:
-            return self.train.item_to_index
+        self._item_dataset = item_dataset
 
     def get_scorer_kwargs(self) -> t.Dict:
-        return {'item_item_similarity': self._item_item_similarity, 'item_to_index': self.item_to_index}
+        if self._item_dataset is not None:
+            item_to_index = self._item_dataset.item_index_to_ordinal
+            item_item_similarity = self._item_dataset.item_item_similarity
+        else:
+            item_to_index = None
+            item_item_similarity = None
+        # Compute item popularity based on appearance in the train set
+        item_popularity = self.train.label_col.value_counts(ascending=False).to_dict()
+        return {'item_item_similarity': item_item_similarity, 'item_to_index': item_to_index,
+                'item_popularity': item_popularity}
 
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
