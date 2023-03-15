@@ -178,10 +178,10 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             CheckResult object.
         drop_train : bool, default: True
             Whether to drop samples from the train dataset.
-        move_from_test : bool, default: True
-            Whether to move samples from the test dataset to the train dataset.
         oversample_train : bool, default: True
             Whether to oversample the train dataset.
+        move_from_test : bool, default: True
+            Whether to move samples from the test dataset to the train dataset.
         max_move_from_test_to_train : float, default: 0.2
             The maximum percentage of samples to move from the test dataset to the train dataset.
         use_smote : bool, default: True
@@ -268,6 +268,15 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                 np.random.choice(train_samples_in_node, n_samples_to_add, replace=True))
                             train_data = train_data.append(train_data.iloc[duplicate_indices_to_add])
                         elif use_smote is True and n_samples_to_add > 0 and len(train_samples_in_node) > k_neighbors:
+                            # TODO: Handle Nones:
+                            # SMOTE can't handle nones. Replace numericals with average, and categoricals with "None".
+                            # In case label contains Nones, either drop those labels with None or just don't generate
+                            # labels with SMOTE (and instead just have new labels be None).
+                            # Determine what to do with those labels by the percentage of labels - e.g. if only 10% of
+                            # labels are not None, then don't generate labels for SMOTE. However, if 90% of labels are
+                            # not None, then generate labels for SMOTE.
+
+
                             cat_features_for_smote = copy(cat_features)
                             if train_label is not None and context.task_type != TaskType.REGRESSION:
                                 cat_features_for_smote.append(train_label.name)
