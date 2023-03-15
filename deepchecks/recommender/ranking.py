@@ -10,8 +10,9 @@
 #
 """Used for rec metrics."""
 import itertools
+import warnings
 from math import log2
-from typing import List, Sequence, TypeVar
+from typing import List, Sequence, TypeVar, Dict
 
 import numpy as np
 import pandas as pd
@@ -21,6 +22,56 @@ from sklearn.metrics import dcg_score, ndcg_score
 from sklearn.metrics.pairwise import cosine_similarity
 
 X = TypeVar("X")
+
+
+# Copied from https://github.com/statisticianinstilettos/recmetrics, Licenced under MIT Licence,
+# Copyright (c) 2019 Claire Longo
+
+def prediction_coverage(recommendations: List[list], item_to_index: Dict, unseen_warning: bool = True) -> float:
+    """
+    Computes the prediction coverage for a list of recommendations
+    Parameters
+    ----------
+    predicted : a list of lists
+        Ordered predictions
+        example: [['X', 'Y', 'Z'], ['X', 'Y', 'Z']]
+    catalog: list
+        A list of all unique items in the training data
+        example: ['A', 'B', 'C', 'X', 'Y', Z]
+    unseen_warn: bool
+        when prediction gives any item unseen in catalog:
+            (1) ignore the unseen item and warn
+            (2) or raise an exception.
+    Returns
+    ----------
+    prediction_coverage:
+        The prediction coverage of the recommendations as a percent
+        rounded to 2 decimal places
+    ----------
+    Metric Defintion:
+    Ge, M., Delgado-Battenfeld, C., & Jannach, D. (2010, September).
+    Beyond accuracy: evaluating recommender systems by coverage and serendipity.
+    In Proceedings of the fourth ACM conference on Recommender systems (pp. 257-260). ACM.
+    """
+    catalog = item_to_index.keys()
+    unique_items_catalog = set(catalog)
+    if len(catalog) != len(unique_items_catalog):
+        raise AssertionError("Duplicated items in catalog")
+
+    predicted_flattened = [p for sublist in recommendations for p in sublist]
+    unique_items_pred = set(predicted_flattened)
+
+    if not unique_items_pred.issubset(unique_items_catalog):
+        if unseen_warning:
+            warnings.warn("There are items in predictions but unseen in catalog. "
+                          "They are ignored from prediction_coverage calculation")
+            unique_items_pred = unique_items_pred.intersection(unique_items_catalog)
+        else:
+            raise AssertionError("There are items in predictions but unseen in catalog.")
+
+    num_unique_predictions = len(unique_items_pred)
+    prediction_coverage = round(num_unique_predictions / (len(catalog) * 1.0) * 100, 2)
+    return prediction_coverage
 
 # Cosine similarity code copied from https://github.com/talboger/fastdist, Licenced under MIT Licence,
 # Copyright (c) 2020 tal boger
