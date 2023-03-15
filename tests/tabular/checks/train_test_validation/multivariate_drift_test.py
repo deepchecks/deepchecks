@@ -216,13 +216,31 @@ def test_drift_fix(drifted_data):
     assert_that(result.value['domain_classifier_drift_score'], close_to(0.86, 0.01))
 
     # Fix the drift
-    train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True)
+    train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=False)
 
     result = check.run(train_ds, test_ds)
     print(result.value['domain_classifier_drift_score'], train_ds.n_samples, test_ds.n_samples)
     assert_that(result.value['domain_classifier_drift_score'], close_to(0.5, 0.01))
     assert_that(train_ds.n_samples, equal_to(942))
     assert_that(test_ds.n_samples, equal_to(800))
+
+
+
+def test_drift_fix_with_smote(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+
+    check = MultivariateDrift()
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=True)
+
+    result = check.run(train_ds, test_ds)
+    print(result.value['domain_classifier_drift_score'], train_ds.n_samples, test_ds.n_samples)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.47, 0.01))
+    assert_that(train_ds.n_samples, equal_to(890))
+    assert_that(test_ds.n_samples, equal_to(800))
+
 
 
 
