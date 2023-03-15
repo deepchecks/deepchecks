@@ -10,36 +10,249 @@
 #
 """Used for rec metrics."""
 import itertools
+import warnings
 from math import log2
-from typing import List, Sequence, TypeVar
+from typing import List, Sequence, TypeVar, Dict
 
 import numpy as np
+import pandas as pd
+from numba import njit, jit
 from scipy import stats
 from sklearn.metrics import dcg_score, ndcg_score
 from sklearn.metrics.pairwise import cosine_similarity
 
 X = TypeVar("X")
 
+
+# Copied from https://github.com/statisticianinstilettos/recmetrics, Licenced under MIT Licence,
+# Copyright (c) 2019 Claire Longo
+
+def prediction_coverage(recommendations: List[list], item_to_index: Dict, unseen_warning: bool = True) -> float:
+    """
+    Computes the prediction coverage for a list of recommendations
+    Parameters
+    ----------
+    predicted : a list of lists
+        Ordered predictions
+        example: [['X', 'Y', 'Z'], ['X', 'Y', 'Z']]
+    catalog: list
+        A list of all unique items in the training data
+        example: ['A', 'B', 'C', 'X', 'Y', Z]
+    unseen_warn: bool
+        when prediction gives any item unseen in catalog:
+            (1) ignore the unseen item and warn
+            (2) or raise an exception.
+    Returns
+    ----------
+    prediction_coverage:
+        The prediction coverage of the recommendations as a percent
+        rounded to 2 decimal places
+    ----------
+    Metric Defintion:
+    Ge, M., Delgado-Battenfeld, C., & Jannach, D. (2010, September).
+    Beyond accuracy: evaluating recommender systems by coverage and serendipity.
+    In Proceedings of the fourth ACM conference on Recommender systems (pp. 257-260). ACM.
+    """
+    catalog = item_to_index.keys()
+    unique_items_catalog = set(catalog)
+    if len(catalog) != len(unique_items_catalog):
+        raise AssertionError("Duplicated items in catalog")
+
+    predicted_flattened = [p for sublist in recommendations for p in sublist]
+    unique_items_pred = set(predicted_flattened)
+
+    if not unique_items_pred.issubset(unique_items_catalog):
+        if unseen_warning:
+            warnings.warn("There are items in predictions but unseen in catalog. "
+                          "They are ignored from prediction_coverage calculation")
+            unique_items_pred = unique_items_pred.intersection(unique_items_catalog)
+        else:
+            raise AssertionError("There are items in predictions but unseen in catalog.")
+
+    num_unique_predictions = len(unique_items_pred)
+    prediction_coverage = round(num_unique_predictions / (len(catalog) * 1.0) * 100, 2)
+    return prediction_coverage
+
+# Cosine similarity code copied from https://github.com/talboger/fastdist, Licenced under MIT Licence,
+# Copyright (c) 2020 tal boger
+
+@jit(nopython=True, fastmath=True)
+def init_w(w, n):
+    """
+    :purpose:
+    Initialize a weight array consistent of 1s if none is given
+    This is called at the start of each function containing a w param
+    :params:
+    w      : a weight vector, if one was given to the initial function, else None
+             NOTE: w MUST be an array of np.float64. so, even if you want a boolean w,
+             convert it to np.float64 (using w.astype(np.float64)) before passing it to
+             any function
+    n      : the desired length of the vector of 1s (often set to len(u))
+    :returns:
+    w      : an array of 1s with shape (n,) if w is None, else return w un-changed
+    """
+    if w is None:
+        return np.ones(n)
+    else:
+        return w
+
+
+@jit(nopython=True, fastmath=True)
+def cosine(u, v, w=None):
+    """
+    :purpose:
+    Computes the cosine distance between two 1D arrays
+    NOTE: fastdist before v1.1.5 returned cosine similarity (which is 1 - distance)
+    :params:
+    u, v   : input arrays, both of shape (n,)
+    w      : weights at each index of u and v. array of shape (n,)
+             if no w is set, it is initialized as an array of ones
+             such that it will have no impact on the output
+    :returns:
+    cosine  : float, the cosine distance between u and v
+    """
+    n = len(u)
+    w = init_w(w, n)
+    num = 0
+    u_norm, v_norm = 0, 0
+    for i in range(n):
+        num += u[i] * v[i] * w[i]
+        u_norm += abs(u[i]) ** 2 * w[i]
+        v_norm += abs(v[i]) ** 2 * w[i]
+
+    denom = (u_norm * v_norm) ** (1 / 2)
+    return 1 - num / denom
+
+
+@jit(nopython=True, fastmath=True)
+def cosine_vector_to_matrix(u, m):
+    """
+    :purpose:
+    Computes the cosine similarity between a 1D array and rows of a matrix
+    :params:
+    u      : input vector of shape (n,)
+    m      : input matrix of shape (m, n)
+    :returns:
+    cosine vector  : np.array, of shape (m,) vector containing cosine similarity between u
+                     and the rows of m
+    (returns an array of shape (100,))
+    """
+    norm = 0
+    for i in range(len(u)):
+        norm += abs(u[i]) ** 2
+    u_norm = u / norm ** (1 / 2)
+    m_norm = np.zeros(m.shape)
+    for i in range(m.shape[0]):
+        norm = 0
+        for j in range(len(m[i])):
+            norm += abs(m[i][j]) ** 2
+        m_norm[i] = m[i] / norm ** (1 / 2)
+    return np.dot(u_norm, m_norm.T)
+
+
+@jit(nopython=True, fastmath=True)
+def cosine_matrix_to_matrix(a, b):
+    """
+    :purpose:
+    Computes the cosine similarity between the rows of two matrices
+    :params:
+    a, b   : input matrices of shape (m, n) and (k, n)
+             the matrices must share a common dimension at index 1
+    :returns:
+    cosine matrix  : np.array, an (m, k) array of the cosine similarity
+                     between the rows of a and b
+    (returns an array of shape (10, 100))
+    """
+    a_norm = np.zeros(a.shape)
+    b_norm = np.zeros(b.shape)
+    for i in range(a.shape[0]):
+        norm = 0
+        for j in range(len(a[i])):
+            norm += abs(a[i][j]) ** 2
+        a_norm[i] = a[i] / norm ** (1 / 2)
+    for i in range(b.shape[0]):
+        norm = 0
+        for j in range(len(b[i])):
+            norm += abs(b[i][j]) ** 2
+        b_norm[i] = b[i] / norm ** (1 / 2)
+    return np.dot(a_norm, b_norm.T)
+
+
+@jit(nopython=True, fastmath=True)
+def cosine_pairwise_distance(a, return_matrix=False):
+    """
+    :purpose:
+    Computes the cosine similarity between the pairwise combinations of the rows of a matrix
+    :params:
+    a      : input matrix of shape (n, k)
+    return_matrix : bool, whether to return the similarity as an (n, n) matrix
+                    in which the (i, j) element is the cosine similarity
+                    between rows i and j. if true, return the matrix.
+                    if false, return a (n choose 2, 1) vector of the
+                    similarities
+    :returns:
+    cosine matrix  : np.array, either an (n, n) matrix if return_matrix=True,
+                     or an (n choose 2, 1) array if return_matrix=False
+    (returns an array of shape (10, 10))
+    """
+    n = a.shape[0]
+    rows = np.arange(n)
+    perm = [(rows[i], rows[j]) for i in range(n) for j in range(i + 1, n)]
+    a_norm = np.zeros(a.shape)
+    for i in range(n):
+        norm = 0
+        for j in range(len(a[i])):
+            norm += abs(a[i][j]) ** 2
+        a_norm[i] = a[i] / norm ** (1 / 2)
+
+    if return_matrix:
+        out_mat = np.zeros((n, n))
+        for i in range(n):
+            for j in range(i):
+                out_mat[i][j] = np.dot(a_norm[i], a_norm[j])
+        out_mat = out_mat + out_mat.T
+        np.fill_diagonal(out_mat, 1)
+        return out_mat
+    else:
+        out = np.zeros((len(perm), 1))
+        for i in range(len(perm)):
+            out[i] = np.dot(a_norm[perm[i][0]], a_norm[perm[i][1]])
+        return out
+
+
 # Metrics implemented internally
 # =================================================================================================
 
+def inner_diversity(item_features):
+    """Calculate the diversity of a recommendation list based on an internally provided similarity matrix.
 
-def diversity(recommendation: List, item_item_similarity, item_to_index) -> float:
+    Args:
+        item_features (array-like): An N x M array of item features.
+
+    Returns:
+        diversity (float): The diversity of the recommendation list.
+    """
+    # calculate the cosine similarity between the items
+    similarity = cosine_pairwise_distance(item_features, return_matrix=True)
+    # calculate the diversity
+    return 1 - np.mean(similarity[np.triu_indices(len(similarity), k=1)])
+
+
+def diversity(recommendation: List, item_features: pd.DataFrame) -> float:
     """
     Calculate the diversity of a recommendation list based on an externally provided similarity matrix
 
     Args:
         recommendation (array-like): An N x 1 array of ordered items.
-        item_item_similarity (array-like): An M x M array of item-item similarity scores.
-        item_to_index (dict): A dictionary mapping item names to their index in the similarity matrix.
+        item_features (array-like): An N x M array of item features.
     Returns:
-        diversity (array-like): An N x 1 array of diversity scores.
+        diversity (float): The diversity of the recommendation list.
     """
-    indices_of_recommended_items = [item_to_index[item] for item in recommendation]
-    similarity_of_recommended_items = item_item_similarity[
-        indices_of_recommended_items, indices_of_recommended_items]
-    return 1 - similarity_of_recommended_items.mean()
 
+    # select only the features of the recommended items
+    item_features = item_features.loc[recommendation, :]
+
+    return inner_diversity(item_features.values.astype(np.float32))
 
 # The following metrics where copied from https://github.com/AstraZeneca/rexmex
 # Under the Apache License Version 2.0, January 2004 http://www.apache.org/licenses/.
@@ -293,7 +506,7 @@ def kendall_tau(relevant_items: np.array, recommendation: np.array):
     return stats.kendalltau(relevant_items, recommendation)
 
 
-def intra_list_similarity(recommendations: List[list], items_feature_matrix: np.array):
+def intra_list_similarity(recommendation: List, item_features: pd.DataFrame):
     """
     Calculate the intra list similarity of recommended items. The items
     are represented by feature vectors, which compared with cosine similarity.
@@ -301,9 +514,9 @@ def intra_list_similarity(recommendations: List[list], items_feature_matrix: np.
     features.
 
     Args:
-        recommendations (List[list]): A M x N array of predicted, where M is the number
+        recommendation (List]): A 1 x N array of predicted, where M is the number
                                of predicted and N the number of recommended items
-        items_feature_matrix (matrix-link): A N x D matrix, where N is the number of items and D the
+        item_features (matrix-link): A N x D matrix, where N is the number of items and D the
                                 number of features representing one item
 
     Returns:
@@ -313,14 +526,12 @@ def intra_list_similarity(recommendations: List[list], items_feature_matrix: np.
     """
 
     intra_list_similarities = []
-    for predicted in recommendations:
-        predicted_features = items_feature_matrix[predicted]
-        similarity = cosine_similarity(predicted_features)
-        upper_right = np.triu_indices(similarity.shape[0], k=1)
-        avg_similarity = np.mean(similarity[upper_right])
-        intra_list_similarities.append(avg_similarity)
+    predicted_features = item_features.loc[recommendation, :]
+    similarity = cosine_similarity(predicted_features)
+    upper_right = np.triu_indices(similarity.shape[0], k=1)
+    avg_similarity = np.mean(similarity[upper_right])
 
-    return np.mean(intra_list_similarities)
+    return avg_similarity
 
 
 def personalization(recommendations: List[list]):

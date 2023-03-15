@@ -107,6 +107,9 @@ class _DummyModel:
 
 
 class Scorer(DeepcheckScorer):
+
+    AGGREGATE_METRICS = ['personalization', 'prediction_coverage']
+
     def __init__(self, metric, name, to_avg=True, **kwargs):
         if isinstance(metric, t.Callable):
             self.per_sample_metric = metric
@@ -120,6 +123,11 @@ class Scorer(DeepcheckScorer):
         self.metric_kwargs = kwargs
 
     def run_rec_metric(self, y_true, y_pred):
+
+        # To support metrics such as 'personalization' that are not per sample.
+        if self.name in self.AGGREGATE_METRICS:
+            return run_available_kwargs(self.per_sample_metric, relevant_items=y_true, recommendations=y_pred,
+                                        **self.metric_kwargs)
 
         scores = [run_available_kwargs(self.per_sample_metric,
                                        relevant_items=label if is_sequence_not_str(label) else [label],
@@ -200,7 +208,9 @@ class Context(TabularContext):
             num_users = None
 
         return {'item_item_similarity': item_item_similarity, 'item_to_index': item_to_index,
-                'item_popularity': item_popularity, 'num_users': num_users}
+                'item_popularity': item_popularity, 'num_users': num_users,
+                'item_features': pd.DataFrame(self._item_dataset.features_columns.values,
+                                              index=self._item_dataset.data[self._item_dataset.item_index_name])}
 
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
