@@ -63,16 +63,23 @@ class LabelRecommendationDrift(SingleDatasetCheck):
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         model = context.model
 
-        labels = dataset.label_col
+        labels = dataset.label_col.to_list()
         predictions = model.predict(dataset.features_columns)
         # flatten sequence of sequences to a single sequence
         flattened_predictions = [item for sublist in predictions for item in sublist]
 
+        all_values = pd.Series(labels + flattened_predictions)
+        value_counts = all_values.value_counts(ascending=False)
+        value_counts.iloc[:] = list(range(len(value_counts)))
+        translation_dict = value_counts.to_dict()
+        labels = [translation_dict[label] for label in labels]
+        flattened_predictions = [translation_dict[prediction] for prediction in flattened_predictions]
+
         drift_score, method, drift_display = calc_drift_and_plot(
             train_column=pd.Series(labels),
             test_column=pd.Series(flattened_predictions),
-            value_name='Items',
-            column_type='categorical',
+            value_name='Item Popularity',
+            column_type='numerical',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,
