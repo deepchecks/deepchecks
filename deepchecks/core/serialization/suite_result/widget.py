@@ -543,7 +543,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             for check_name, input_params in check_name_to_params.items():
                 p_bar.description = 'Fixing ' + check_name + ' ' + str(current_index) + '/' + str(
                     len(check_name_to_params))
-                for param_name, param_value in input_params.items():
                 check_name_to_result[check_name].check.fix_logic(context=self.value.context, check_result=check_name_to_result[check_name], **input_params)
                 p_bar.value += 1
                 current_index += 1
