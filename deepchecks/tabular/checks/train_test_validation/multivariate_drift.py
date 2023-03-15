@@ -19,7 +19,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
 from deepchecks.core.check_utils.multivariate_drift_utils import (get_domain_classifier_hq,
-                                                                  preprocess_for_domain_classifier,
+                                                                  basic_preprocessing_for_model,
                                                                   run_multivariable_drift, get_domain_classifier)
 from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
@@ -193,7 +193,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
         significant_threshold_test = 0.75
         significant_threshold_train = 0.25
         k_neighbors = 5  # For SMOTENC
-        new_to_org_index_dict = {}
+        new_to_org_index_dict_train = {}
 
         train, test = context.train, context.test
         cat_features = train.cat_features
@@ -212,8 +212,9 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             revert_index = True
             new_train_index = [f'train_{i}' for i in range(train_data.shape[0])]
             new_test_index = [f'test_{i}' for i in range(test_data.shape[0])]
-            new_to_org_index_dict = dict(zip(new_train_index + new_test_index,
-                                             list(train_data.index) + list(test_data.index)))
+            new_to_org_index_dict_train = dict(zip(new_train_index, list(train_data.index)))
+            new_to_org_index_dict_test = dict(zip(new_test_index, list(test_data.index)))
+
             train_data.index = new_train_index
             test_data.index = new_test_index
             if train_label is not None:
@@ -237,36 +238,33 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
         if oversample_train is True:
             # Cluster train and test data to find clusters with more test data than train data:
             model = DecisionTreeClassifier(max_depth=30, min_samples_leaf=50, random_state=self.random_state)
-            x, y = preprocess_for_domain_classifier(train_data, test_data, cat_features)
+            x, y = basic_preprocessing_for_model(train_data, test_data, cat_features, impute_numerical_nones=True)
             model.fit(x, y)
             x_apply = model.apply(x)
-            duplicate_indices_to_add = []
             next_generated_i = 0
 
+            cat_features_for_oversampling = copy(cat_features)
+            if train_label is not None and context.task_type != TaskType.REGRESSION:
+                cat_features_for_oversampling.append(train_label.name)
+
+            # Oversample data with the label:
+            if train_label is not None:
+                train_data = pd.concat([train_data, train_label], axis=1)
+                if test_label is not None:
+                    test_data = pd.concat([test_data, test_label], axis=1)
+                else:
+                    test_data = pd.concat(
+                        [test_data, pd.Series([np.nan] * test_data.shape[0], index=test_data.index)],
+                        axis=1)
+
             if use_smote is True:
-                cat_features_for_smote = copy(cat_features)
-                if train_label is not None and context.task_type != TaskType.REGRESSION:
-                    cat_features_for_smote.append(train_label.name)
-
-                # Oversample data with the label:
-                if train_label is not None:
-                    train_data = pd.concat([train_data, train_label], axis=1)
-                    if test_label is not None:
-                        test_data = pd.concat([test_data, test_label], axis=1)
-                    else:
-                        test_data = pd.concat(
-                            [test_data, pd.Series([np.nan] * test_data.shape[0], index=test_data.index)],
-                            axis=1)
-
                 all_data = pd.concat([train_data, test_data])
-                all_data[cat_features_for_smote] = all_data[cat_features_for_smote].fillna('deepchecks_none')
-                non_cat_cols = [col for col in all_data.columns if col not in cat_features_for_smote]
-                all_data[non_cat_cols] = all_data[non_cat_cols].fillna(
-                    {col: all_data[col].mean() for col in non_cat_cols})
-
+                all_data[cat_features_for_oversampling] = all_data[cat_features_for_oversampling].astype(str)
+                non_cat_cols = [col for col in all_data.columns if col not in cat_features_for_oversampling]
+                all_data[non_cat_cols] = all_data[non_cat_cols].fillna({col: all_data[col].mean() for col in non_cat_cols})
                 # cat features need to be given as indices:
                 cat_indexes_for_smote = [all_data.columns.get_loc(cat_feature) for cat_feature in
-                                         cat_features_for_smote]
+                                         cat_features_for_oversampling]
 
             for node_i in range(max(x_apply)):
                 samples_in_node = x_apply == node_i
@@ -284,14 +282,6 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                 np.random.choice(train_samples_in_node, n_samples_to_add, replace=True))
                             train_data = train_data.append(train_data.iloc[duplicate_indices_to_add])
                         elif use_smote is True and n_samples_to_add > 0 and len(train_samples_in_node) > k_neighbors:
-                            # TODO: Handle Nones:
-                            # SMOTE can't handle nones. Replace numericals with average, and categoricals with "None".
-                            # In case label contains Nones, either drop those labels with None or just don't generate
-                            # labels with SMOTE (and instead just have new labels be None).
-                            # Determine what to do with those labels by the percentage of labels - e.g. if only 10% of
-                            # labels are not None, then don't generate labels for SMOTE. However, if 90% of labels are
-                            # not None, then generate labels for SMOTE.
-
                             sm = SMOTENC(categorical_features=cat_indexes_for_smote,
                                          sampling_strategy={0: n_samples_to_add + len(train_samples_in_node)},
                                          k_neighbors=k_neighbors, random_state=self.random_state)
@@ -305,9 +295,9 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
 
             # For SMOTE, return categorical features with 'deepchecks_none' to None:
             if use_smote is True:
-                train_data[cat_features_for_smote] = train_data[cat_features_for_smote].replace('deepchecks_none',
+                train_data[cat_features_for_oversampling] = train_data[cat_features_for_oversampling].replace('deepchecks_none',
                                                                                                 np.nan)
-                test_data[cat_features_for_smote] = test_data[cat_features_for_smote].replace('deepchecks_none', np.nan)
+                test_data[cat_features_for_oversampling] = test_data[cat_features_for_oversampling].replace('deepchecks_none', np.nan)
 
             # Separate the label:
             if train_label is not None:
@@ -317,7 +307,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                     test_label = test_data[test_label.name]
                     test_data = test_data.drop(test_label.name, axis=1)
 
-            new_to_org_index_dict.update({f'generated_{i}': f'generated_{i}' for i in range(next_generated_i)})
+            new_to_org_index_dict_train.update({f'generated_{i}': f'generated_{i}' for i in range(next_generated_i)})
 
         if move_from_test is True:
             train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
@@ -332,6 +322,10 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             train_data = pd.concat([train_data, test_data.loc[test_samples_to_move]])
             test_data = test_data.drop(test_samples_to_move)
 
+            # If originally index had common values between train and test, add a unique prefix to test samples:
+            if revert_index is True:
+                new_to_org_index_dict_train.update({x: f'org_from_test_{x}' for x in test_samples_to_move})
+
             if train_label is not None:
                 train_label = pd.concat([train_label, test_label.loc[test_samples_to_move]])
             if test_label is not None:
@@ -344,8 +338,8 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             test_data = pd.concat([test_data, test_label], axis=1)
 
         if revert_index:
-            train_data.index = [new_to_org_index_dict[x] for x in train_data.index]
-            test_data.index = [new_to_org_index_dict[x] for x in test_data.index]
+            train_data.index = [new_to_org_index_dict_train[x] for x in train_data.index]
+            test_data.index = [new_to_org_index_dict_test[x] for x in test_data.index]
 
         # create new datasets
         context.set_dataset_by_kind(DatasetKind.TRAIN, context.train.copy(train_data))
@@ -364,11 +358,11 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                      'params': bool,
                                      'params_display': True,
                                      'params_description': 'Whether to oversample samples from the train dataset'},
-                'move_from_test': {'display': 'Move From Test',  # TODO ADD WARNING
+                'move_from_test': {'display': 'Move From Test',
                                    'params': bool,
                                    'params_display': False,
                                    'params_description': 'Whether to move samples from the test dataset to the '
-                                                         'train dataset'},
+                                                         'train dataset. NOT RECOMMENDED unless '},
                 'use_smote': {'display': 'Use SMOTE',
                               'params': bool,
                               'params_display': True,
@@ -426,7 +420,7 @@ def calc_domain_preds(df_a, df_b, cat_features, random_state, max_samples_for_tr
     # test_data_to_train = test_data.sample(sample_size, random_state=random_state)
 
     # create new dataset, with label denoting whether sample belongs to test dataset
-    x, y = preprocess_for_domain_classifier(df_a, df_b, cat_features)
+    x, y = basic_preprocessing_for_model(df_a, df_b, cat_features)
     x_train_1, x_train_2, y_train_1, y_train_2 = train_test_split(x, y, train_size=2 * sample_size / x.shape[0],
                                                                   random_state=random_state, stratify=y)
 

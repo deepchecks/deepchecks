@@ -395,11 +395,11 @@ def drifted_data() -> Tuple[Dataset, Dataset]:
 
     label = np.random.randint(0, 2, size=(df_train.shape[0],))
     df_train['target'] = label
-    train_ds = Dataset(df_train, label='target')
+    train_ds = Dataset(df_train, label='target', label_type='binary')
 
     label = np.random.randint(0, 2, size=(df_test.shape[0],))
     df_test['target'] = label
-    test_ds = Dataset(df_test, label='target')
+    test_ds = Dataset(df_test, label='target', label_type='binary')
 
     return train_ds, test_ds
 
