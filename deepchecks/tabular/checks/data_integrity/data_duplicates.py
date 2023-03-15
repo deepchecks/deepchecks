@@ -152,7 +152,7 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
                          'params': ['first', 'last'],
                          'params_display': ['By First', 'By Last'],
                          'params_description': ['Drop duplicates by first occurrence',
-                                                 'Drop duplicates by last occurrence']}}
+                                                'Drop duplicates by last occurrence']}}
 
     @property
     def problem_description(self):

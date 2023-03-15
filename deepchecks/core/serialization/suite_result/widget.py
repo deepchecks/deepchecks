@@ -10,14 +10,13 @@
 #
 # pylint: disable=unused-argument
 """Module containing ipywidget serializer for the SuiteResult type."""
-import time
+import os
 import typing as t
 import warnings
-import os
 
-from ipywidgets import HTML, Accordion, VBox, Widget, Checkbox, Dropdown, Box, Button, FloatText, Layout, IntProgress, \
-    Valid
 from IPython.display import display
+from ipywidgets import (HTML, Accordion, Box, Button, Checkbox, Dropdown, FloatText, IntProgress, Layout, Valid, VBox,
+                        Widget)
 
 from deepchecks.core import DatasetKind
 from deepchecks.core import check_result as check_types
@@ -32,6 +31,7 @@ from deepchecks.core.serialization.common import (aggregate_conditions, create_f
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.strings import get_random_string
+
 from . import html
 
 __all__ = ['SuiteResultSerializer']

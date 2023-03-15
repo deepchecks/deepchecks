@@ -221,9 +221,9 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFix
             train = train.drop(columns=cols_to_fix)
             test = test.drop(columns=cols_to_fix)
         elif fix_method == 'replace_with_nones':
-            new_categories = check_result.value['New categories']
+            new_categories_cols = check_result.value['New categories']
             for col in cols_to_fix:
-                new_categories = new_categories[col]
+                new_categories = new_categories_cols[col]
                 train[col] = train[col].apply(lambda x: None if x in new_categories else x)
                 test[col] = test[col].apply(lambda x: None if x in new_categories else x)
         elif fix_method == 'move_to_train':
