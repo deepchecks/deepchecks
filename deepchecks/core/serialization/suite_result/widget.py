@@ -113,7 +113,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             self.prepare_fixes()
         ]
 
-
         content = VBox(children=[
             self.prepare_summary(output_id=output_id, **kwargs),
             *accordions
@@ -407,7 +406,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 input_widgets[check_name][param_name] = param_input_widget
                 # Box the input widget to its description
                 param_input_description = HTML(value="<b title='" + params_description + "'>ⓘ</b>",
-                                                placeholder='widget description')
+                                               placeholder='widget description')
                 param_input_box = Box([param_input_widget, param_input_description])
 
                 # This is the product of this for loop, all the checks input widgets and their descriptions
@@ -456,6 +455,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 style={'description_width': 'initial'}
 
             ))
+
         save_button = Button(
             description='Save datasets (CSV)',
             disabled=False,
@@ -467,12 +467,14 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )
         save_button.on_click(on_save_button_click)
 
-        def input_validation(param_dict, value):
+        def input_validation(param_dict, value, current_check_name):
             if 'min_value' in param_dict:
                 if value < param_dict['min_value']:
                     display(Valid(
                         value=False,
-                        description=param_name + ' must be greater than ' + str(param_dict['min_value']),
+                        description=current_check_name + ' - ' + param_dict['display'] + ' must be greater than ' +
+                                    str(param_dict['min_value']),
+                        style={'description_width': 'initial'},
                     ))
                     return False
 
@@ -480,7 +482,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 if value > param_dict['max_value']:
                     display(Valid(
                         value=False,
-                        description=param_name + ' must be greater than ' + str(param_dict['min_value']),
+                        description=current_check_name + " - " + param_dict['display'] + ' must be less than ' +
+                                    str(param_dict['max_value']),
+                        style={'description_width': 'initial'},
                     ))
                     return False
             return True
@@ -496,7 +500,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                     check_name_to_params[check_name] = dict()
 
                     for param_name, param_widget in input_widgets[check_name].items():
-                        if not input_validation(result.check.fix_params[param_name], param_widget.value):
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
                             b.disabled = False
                             b.description = 'Fix'
                             return
@@ -509,7 +513,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                     check_name_to_params[check_name] = dict()
 
                     for param_name, param_widget in input_widgets[check_name].items():
-                        if not input_validation(result.check.fix_params[param_name], param_widget.value):
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
                             b.disabled = False
                             b.description = 'Fix'
                             return
@@ -522,7 +526,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                     check_name_to_params[check_name] = dict()
 
                     for param_name, param_widget in input_widgets[check_name].items():
-                        if not input_validation(result.check.fix_params[param_name], param_widget.value):
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
                             b.disabled = False
                             b.description = 'Fix'
                             return
@@ -543,7 +547,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             for check_name, input_params in check_name_to_params.items():
                 p_bar.description = 'Fixing ' + check_name + ' ' + str(current_index) + '/' + str(
                     len(check_name_to_params))
-                check_name_to_result[check_name].check.fix_logic(context=self.value.context, check_result=check_name_to_result[check_name], **input_params)
+                check_name_to_result[check_name].check.fix_logic(context=self.value.context,
+                                                                 check_result=check_name_to_result[check_name],
+                                                                 **input_params)
                 p_bar.value += 1
                 current_index += 1
             p_bar.close()
@@ -580,6 +586,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             HTML(value=''),
             accordion,
         ))
+
 
 def select_serializer(result):
     if isinstance(result, check_types.CheckResult):
