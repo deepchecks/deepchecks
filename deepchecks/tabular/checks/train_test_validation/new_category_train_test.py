@@ -252,9 +252,11 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFix
                                                       'Move samples with new categories from test to train']},
                 'max_ratio': {'display': 'Max Ratio Of New Categories',
                               'params': float,
+                              'params_display': 0.0,
                               'params_description': 'Maximum ratio of samples with new categories'},
                 'percentage_to_move': {'display': 'Percentage Of Samples To Move',
                                        'params': float,
+                                       'params_display': 0.2,
                                        'params_description': 'Percentage of samples with new categories to move to '
                                                              'train. Relevant only for move_to_train fix method.'}}
 
