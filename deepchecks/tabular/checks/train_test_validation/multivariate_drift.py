@@ -9,8 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the domain classifier drift check."""
+from copy import copy
+
 import numpy as np
 import pandas as pd
+from imblearn.over_sampling import SMOTENC
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
@@ -20,6 +23,7 @@ from deepchecks.core.check_utils.multivariate_drift_utils import (get_domain_cla
                                                                   run_multivariable_drift, get_domain_classifier)
 from deepchecks.core.fix_classes import TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.strings import format_number
 
 __all__ = ['MultivariateDrift']
@@ -163,7 +167,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
 
     def fix_logic(self, context: Context, check_result: CheckResult, drop_train: bool = True,
                   oversample_train: bool = True, move_from_test: bool = False, max_move_from_test_to_train: float = 0.2,
-                  max_oversample_train: float = 0.25, max_drop_train: float = 0.4) -> Context:
+                  use_smote: bool = True, max_drop_train: float = 0.4) -> Context:
         """Run fix.
 
         Parameters
@@ -180,14 +184,16 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             Whether to oversample the train dataset.
         max_move_from_test_to_train : float, default: 0.2
             The maximum percentage of samples to move from the test dataset to the train dataset.
-        max_oversample_train : float, default: 0.4
-            The maximum percentage of samples to oversample the train dataset.
+        use_smote : bool, default: True
+            Whether to use SMOTE to oversample the train dataset.
         max_drop_train : float, default: 0.4
             The maximum percentage of samples to drop from the train dataset.
         """
         revert_index = False
         significant_threshold_test = 0.75
         significant_threshold_train = 0.25
+        k_neighbors = 5  # For SMOTENC
+        new_to_org_index_dict = {}
 
         train, test = context.train, context.test
         cat_features = train.cat_features
@@ -222,17 +228,30 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
 
             train_significant_samples = train_preds[train_preds < significant_threshold_train]
             n_samples_to_drop = min(len(train_significant_samples), train_data.shape[0] - max_n_samples_to_keep)
-            train_samples_to_drop = train_significant_samples.sample(n_samples_to_drop, random_state=self.random_state).index
+            train_samples_to_drop = train_significant_samples.sample(n_samples_to_drop,
+                                                                     random_state=self.random_state).index
             train_data = train_data.drop(train_samples_to_drop)
             if train_label is not None:
                 train_label = train_label.drop(train_samples_to_drop)
 
         if oversample_train is True:
+            # Cluster train and test data to find clusters with more test data than train data:
             model = DecisionTreeClassifier(max_depth=30, min_samples_leaf=50, random_state=self.random_state)
             x, y = preprocess_for_domain_classifier(train_data, test_data, cat_features)
             model.fit(x, y)
             x_apply = model.apply(x)
             duplicate_indices_to_add = []
+            next_generated_i = 0
+            # Oversample data with the label:
+            if train_label is not None:
+                train_data = pd.concat([train_data, train_label], axis=1)
+                if test_label is not None:
+                    test_data = pd.concat([test_data, test_label], axis=1)
+                else:
+                    test_data = pd.concat([test_data, pd.Series([np.nan] * test_data.shape[0], index=test_data.index)],
+                                          axis=1)
+                all_data = pd.concat([train_data, test_data])
+
             for node_i in range(max(x_apply)):
                 samples_in_node = x_apply == node_i
                 if samples_in_node.sum():
@@ -242,14 +261,40 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
 
                     # print(f'Node {node_i} ratio: {node_ratio}')
                     if 0 < node_ratio < 0.5:
-                        n_dups_to_add = int((0.5 - node_ratio) * len(indexes_in_node))
-                        duplicate_indices_to_add.extend(
-                            list(np.random.choice(train_samples_in_node, n_dups_to_add, replace=True)))
+                        n_samples_to_add = int((0.5 - node_ratio) * len(indexes_in_node))
 
-            duplicate_indices_to_add = x.iloc[duplicate_indices_to_add].index  # Fit to original index
-            train_data = train_data.append(train_data.loc[duplicate_indices_to_add])
+                        if use_smote is False:
+                            duplicate_indices_to_add = list(
+                                np.random.choice(train_samples_in_node, n_samples_to_add, replace=True))
+                            train_data = train_data.append(train_data.iloc[duplicate_indices_to_add])
+                        elif use_smote is True and n_samples_to_add > 0 and len(train_samples_in_node) > k_neighbors:
+                            cat_features_for_smote = copy(cat_features)
+                            if train_label is not None and context.task_type != TaskType.REGRESSION:
+                                cat_features_for_smote.append(train_label.name)
+
+                            # cat features need to be given as indices:
+                            cat_features_for_smote = [train_data.columns.get_loc(cat_feature) for cat_feature in
+                                                      cat_features_for_smote]
+                            sm = SMOTENC(categorical_features=cat_features_for_smote,
+                                         sampling_strategy={0: n_samples_to_add + len(train_samples_in_node)},
+                                         k_neighbors=k_neighbors, random_state=self.random_state)
+                            x_sm, y_sm = sm.fit_resample(all_data.iloc[indexes_in_node], y.loc[indexes_in_node])
+                            new_index = [f'generated_{i}' for i in
+                                         range(next_generated_i, next_generated_i + n_samples_to_add)]
+                            next_generated_i += n_samples_to_add
+                            data_to_add = x_sm[y_sm == 0][-n_samples_to_add:]
+                            data_to_add.index = new_index
+                            train_data = train_data.append(data_to_add)
+
+            # Separate the label:
             if train_label is not None:
-                train_label = train_label.append(train_label.loc[duplicate_indices_to_add])
+                train_label = train_data[train_label.name]
+                train_data = train_data.drop(train_label.name, axis=1)
+                if test_label is not None:
+                    test_label = test_data[test_label.name]
+                    test_data = test_data.drop(test_label.name, axis=1)
+
+            new_to_org_index_dict.update({f'generated_{i}': f'generated_{i}' for i in range(next_generated_i)})
 
         if move_from_test is True:
             train_preds, test_preds = calc_domain_preds(df_a=train_data, df_b=test_data,
@@ -258,7 +303,8 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
             test_significant_samples = test_preds.sort_values(ascending=False)[
                 test_preds > significant_threshold_test].sample(frac=0.5, random_state=self.random_state)
             n_samples_to_move = min(len(test_significant_samples), max_n_samples_to_move)
-            test_samples_to_move = test_significant_samples.sample(n_samples_to_move, random_state=self.random_state).index
+            test_samples_to_move = test_significant_samples.sample(n_samples_to_move,
+                                                                   random_state=self.random_state).index
 
             train_data = pd.concat([train_data, test_data.loc[test_samples_to_move]])
             test_data = test_data.drop(test_samples_to_move)
@@ -300,6 +346,11 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                    'params_display': False,
                                    'params_description': 'Whether to move samples from the test dataset to the '
                                                          'train dataset'},
+                'use_smote': {'display': 'Use SMOTE',
+                              'params': bool,
+                              'params_display': True,
+                              'params_description': 'Whether to use SMOTE to oversample samples from the train '
+                                                    'dataset'},
                 'max_move_from_test_to_train': {'display': 'Max Move From Test To Train',
                                                 'params': float,
                                                 'params_display': 0.2,
