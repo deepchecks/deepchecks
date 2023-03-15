@@ -32,20 +32,12 @@ from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, Confli
                                        TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
 from deepchecks.tabular.utils.task_type import TaskType
 
-__all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'production_suite', 'full_suite']
+__all__ = ['recsys_suite']
 
 from deepchecks.utils.typing import Hashable
 
 
-def production_suite(task_type: str = None,
-                     is_comparative: bool = True,
-                     alternative_scorers: Dict[str, Callable] = None,
-                     columns: Union[Hashable, List[Hashable]] = None,
-                     ignore_columns: Union[Hashable, List[Hashable]] = None,
-                     n_top_columns: int = None,
-                     n_samples: int = None,
-                     random_state: int = 42,
-                     n_to_show: int = 5,
+def recsys_suite(is_comparative: bool = True,
                      **kwargs) -> Suite:
     """Suite for testing the model in production.
 
@@ -137,21 +129,24 @@ def production_suite(task_type: str = None,
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
 
-    checks = [WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
-              PercentOfNulls(**kwargs),
-              ]
+    checks = [
+        WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
+        PercentOfNulls(**kwargs),
+        LabelPopularityDrift(**kwargs).add_condition_drift_score_less_than(),
+        OperationsAmountSegmentPerformance(**kwargs),
+        PopularityBias(**kwargs).add_condition_drift_score_less_than(),
+        PredictionPopularityDrift(**kwargs).add_condition_drift_score_less_than(),
+        SamplePerformance(**kwargs),
+        ScatterPerformance(**kwargs)
+    ]
 
     if is_comparative:
-        checks.append(StringMismatchComparison(**kwargs).add_condition_no_new_variants())
         checks.append(FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than())
         checks.append(FeatureDrift(**kwargs).add_condition_drift_score_less_than())
         checks.append(MultivariateDrift(**kwargs).add_condition_overall_drift_value_less_than())
-        checks.append(LabelDrift(ignore_na=True, **kwargs).add_condition_drift_score_less_than())
-        checks.append(PredictionDrift(**kwargs).add_condition_drift_score_less_than())
         checks.append(TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than())
         checks.append(NewCategoryTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal())
     else:
-        checks.append(StringMismatch(**kwargs).add_condition_no_variants())
         checks.append(FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than())
         checks.append(FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold())
         checks.append(SingleDatasetPerformance(**kwargs))

@@ -18,6 +18,7 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
+from deepchecks.recommender.dataset import RecDataset
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.task_type import TaskType
@@ -103,7 +104,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         dataset.assert_features()
         dataset = dataset.sample(self.n_samples, random_state=self.random_state).drop_na_labels()
         predictions = context.model.predict(dataset.features_columns)
-        if context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
+        if context.task_type in [TaskType.MULTICLASS, TaskType.BINARY] and not isinstance(dataset, RecDataset):
             if not hasattr(context.model, 'predict_proba'):
                 raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'
                                                   ' on log loss error that requires predicted probabilities, rather'

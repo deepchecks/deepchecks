@@ -17,6 +17,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMetricClassMixin
+from deepchecks.recommender.dataset import RecDataset
 from deepchecks.tabular import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
 from deepchecks.tabular.utils.task_type import TaskType
@@ -66,7 +67,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
         results = []
         display = None
-        if context.task_type == TaskType.REGRESSION:
+        if context.task_type == TaskType.REGRESSION or isinstance(dataset, RecDataset):
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
                 results.append([scorer.name, scorer_value])

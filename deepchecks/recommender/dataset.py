@@ -59,7 +59,7 @@ class RecDataset(Dataset):
             datetime_args=datetime_args,
             max_categorical_ratio=max_categorical_ratio,
             max_categories=max_categories,
-            label_type=label_type,
+            label_type=label_type or 'multiclass',
             dataset_name=dataset_name,
             label_classes=label_classes
         )

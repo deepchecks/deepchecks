@@ -20,6 +20,7 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.context import Context as TabularContext
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
+from deepchecks.tabular.utils.task_inference import get_all_labels
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.validation import is_sequence_not_str
@@ -142,14 +143,14 @@ class Scorer(DeepcheckScorer):
         y_pred = model.predict(dataset_without_nulls.features_columns)
         scores = self.run_rec_metric(y_true, y_pred)
         if self.to_avg:
-            return np.nanmean(scores)
+            return pd.Series(scores).mean()
         return scores
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         y_pred = model.predict(data)
         scores = self.run_rec_metric(label_col, y_pred)
         if self.to_avg:
-            return np.nanmean(scores)
+            return pd.Series(scores).mean()
         return scores
 
 
@@ -208,8 +209,9 @@ class Context(TabularContext):
 
         return {'item_item_similarity': item_item_similarity, 'item_to_index': item_to_index,
                 'item_popularity': item_popularity, 'num_users': num_users,
-                'item_features': pd.DataFrame(self._item_dataset.features_columns.values,
-                                              index=self._item_dataset.data[self._item_dataset.item_index_name])}
+                'item_features':  pd.DataFrame(self._item_dataset.features_columns.values,
+                                               index=self._item_dataset.data[self._item_dataset.item_index_name])
+                if self._item_dataset is not None else None}
 
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
@@ -229,3 +231,16 @@ class Context(TabularContext):
         if scorer is None:
             return Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
         return Scorer(scorer, to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
+
+    @property
+    def model_classes(self) -> t.List:
+        """Return ordered list of possible label classes for classification tasks or None for regression."""
+        if self._model_classes is None:
+            return self.observed_classes
+        return self._model_classes
+
+    @property
+    def observed_classes(self) -> t.List:
+        """Return the observed classes in both train and test. None for regression."""
+        # If did not cache yet the observed classes than calculate them
+        return self._observed_classes
