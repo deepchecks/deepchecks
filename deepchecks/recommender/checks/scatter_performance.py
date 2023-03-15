@@ -13,8 +13,8 @@ from numbers import Number
 from typing import TYPE_CHECKING, Callable, Dict, List, Mapping, Optional, TypeVar, Union, cast
 
 import pandas as pd
-import plotly.graph_objects as go
 import plotly.express as px
+import plotly.graph_objects as go
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError

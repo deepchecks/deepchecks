@@ -69,8 +69,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         {additional_context_params:2*indent}
         """
         if self.context_type is None:
-            from deepchecks.recommender.dataset import RecDataset
             from deepchecks.recommender.context import Context as RecContext
+            from deepchecks.recommender.dataset import RecDataset
             if isinstance(dataset, RecDataset):
                 self.context_type = RecContext
             else:
@@ -158,8 +158,8 @@ class TrainTestCheck(TrainTestBaseCheck):
         {additional_context_params:2*indent}
         """
         if self.context_type is None:
-            from deepchecks.recommender.dataset import RecDataset
             from deepchecks.recommender.context import Context as RecContext
+            from deepchecks.recommender.dataset import RecDataset
             if isinstance(train_dataset, RecDataset):
                 self.context_type = RecContext
             else:

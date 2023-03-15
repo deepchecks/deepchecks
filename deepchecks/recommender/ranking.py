@@ -12,11 +12,11 @@
 import itertools
 import warnings
 from math import log2
-from typing import List, Sequence, TypeVar, Dict
+from typing import Dict, List, Sequence, TypeVar
 
 import numpy as np
 import pandas as pd
-from numba import njit, jit
+from numba import jit, njit
 from scipy import stats
 from sklearn.metrics import dcg_score, ndcg_score
 from sklearn.metrics.pairwise import cosine_similarity

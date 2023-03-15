@@ -78,8 +78,8 @@ class Suite(BaseSuite):
             All results by all initialized checks
         """
         if self.context_type is None:
-            from deepchecks.recommender.dataset import RecDataset
             from deepchecks.recommender.context import Context as RecContext
+            from deepchecks.recommender.dataset import RecDataset
             if train_dataset is None and isinstance(test_dataset, RecDataset) or isinstance(train_dataset, RecDataset):
                 self.context_type = RecContext
             else:

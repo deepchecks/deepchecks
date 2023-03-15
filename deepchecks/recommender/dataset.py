@@ -17,7 +17,6 @@ import pandas as pd
 
 from deepchecks.tabular import Dataset
 
-
 __all__ = ['RecDataset', 'ItemDataset']
 
 TDataset = t.TypeVar('TDataset', bound='RecDataset')

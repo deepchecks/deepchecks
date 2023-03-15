@@ -16,9 +16,10 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.preprocessing import LabelBinarizer
 
+from deepchecks.recommender import RecDataset, ranking
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.recommender import RecDataset, ranking
+
 
 def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,
                               classes_index_order: Union[np.array, pd.Series]) -> pd.Series:

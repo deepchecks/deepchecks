@@ -13,15 +13,14 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from deepchecks.utils.function import run_available_kwargs
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.recommender.dataset import RecDataset, ItemDataset
-
-from deepchecks.tabular.context import Context as TabularContext
+from deepchecks.recommender.dataset import ItemDataset, RecDataset
 from deepchecks.tabular._shared_docs import docstrings
+from deepchecks.tabular.context import Context as TabularContext
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
+from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.validation import is_sequence_not_str
 

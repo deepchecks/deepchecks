@@ -18,9 +18,9 @@ from scipy.stats import kurtosis
 from sklearn.metrics import mean_squared_error
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.recommender import Context
 from deepchecks.recommender.dataset import RecDataset
 from deepchecks.tabular import SingleDatasetCheck
-from deepchecks.recommender import Context
 from deepchecks.utils.strings import format_number
 
 __all__ = ['OperationsAmountSegmentPerformance']
