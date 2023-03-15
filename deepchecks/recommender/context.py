@@ -182,15 +182,15 @@ class Context(TabularContext):
         y_pred_test: t.Optional[t.Sequence[t.Hashable]] = None,
         **kwargs
     ):
-
+        model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
+        self._item_dataset = item_dataset
         super().__init__(train=train,
                          test=test,
                          feature_importance=feature_importance,
                          feature_importance_force_permutation=feature_importance_force_permutation,
                          feature_importance_timeout=feature_importance_timeout,
                          with_display=with_display)
-        self._model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
-        self._item_dataset = item_dataset
+        self._model = model
 
     def get_scorer_kwargs(self) -> t.Dict:
         if self._item_dataset is not None:

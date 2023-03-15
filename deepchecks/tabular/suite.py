@@ -18,6 +18,7 @@ import pandas as pd
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
+from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
@@ -37,6 +38,8 @@ class Suite(BaseSuite):
         """Return tuple of supported check types of this suite."""
         return TrainTestCheck, SingleDatasetCheck, ModelOnlyCheck
 
+    context_type = None
+
     @docstrings
     def run(
         self,
@@ -52,7 +55,8 @@ class Suite(BaseSuite):
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
         run_single_dataset: Optional[str] = None,
-        model_classes: Optional[List] = None
+        model_classes: Optional[List] = None,
+        item_dataset=None,
     ) -> SuiteResult:
         """Run all checks.
 
@@ -73,7 +77,16 @@ class Suite(BaseSuite):
         SuiteResult
             All results by all initialized checks
         """
-        context = Context(
+        if self.context_type is None:
+            from deepchecks.recommender.dataset import RecDataset
+            from deepchecks.recommender.context import Context as RecContext
+            if train_dataset is None and isinstance(test_dataset, RecDataset) or isinstance(train_dataset, RecDataset):
+                self.context_type = RecContext
+            else:
+                self.context_type = Context
+                if item_dataset is not None:
+                    raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
+        context = self.context_type(
             train_dataset,
             test_dataset,
             model,
