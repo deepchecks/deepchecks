@@ -23,6 +23,7 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
 from deepchecks.utils.logger import get_logger
+from deepchecks.utils.validation import is_sequence_not_str
 
 from . import ranking
 
@@ -128,7 +129,7 @@ class Scorer(DeepcheckScorer):
         if self.item_item_similarity is not None:
             additional_wkargs['item_item_similarity'] = self.item_item_similarity
         scores = [run_available_kwargs(self.per_sample_metric,
-                                       relevant_items=label if isinstance(label, t.Sequence) else [label],
+                                       relevant_items=label if is_sequence_not_str(label) else [label],
                                        relevant_item=label,
                                        recommendation=pred,
                                        **additional_wkargs)
