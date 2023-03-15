@@ -10,6 +10,7 @@
 #
 # pylint: disable=unused-argument
 """Module containing ipywidget serializer for the SuiteResult type."""
+import time
 import typing as t
 import warnings
 import os
@@ -403,6 +404,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                         style={'description_width': 'initial'}
                     )
                     params_description = param_dict['params_description']
+                input_widgets[check_name][param_name] = param_input_widget
                 # Box the input widget to its description
                 param_input_description = HTML(value="<b title='" + params_description + "'>ⓘ</b>",
                                                 placeholder='widget description')
@@ -465,29 +467,72 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )
         save_button.on_click(on_save_button_click)
 
+        def input_validation(param_dict, value):
+            if 'min_value' in param_dict:
+                if value < param_dict['min_value']:
+                    display(Valid(
+                        value=False,
+                        description=param_name + ' must be greater than ' + str(param_dict['min_value']),
+                    ))
+                    return False
+
+            if 'max_value' in param_dict:
+                if value > param_dict['max_value']:
+                    display(Valid(
+                        value=False,
+                        description=param_name + ' must be greater than ' + str(param_dict['min_value']),
+                    ))
+                    return False
+            return True
+
         def on_fix_button_click(b):
             b.disabled = True
             b.description = 'Fixing...'
-
-            result_to_params = dict()
+            print("Fixing")
+            check_name_to_params = dict()
+            check_name_to_result = dict()
             for result, checkbox in test_result_to_checkbox.items():
                 if checkbox.value:
-                    result_input_values = input_widgets[result.check.name() + ' - Test Dataset']
-                    result_input_values.update({'dataset_kind': DatasetKind.TEST})
-                    result_to_params[result] = result_input_values
+                    check_name = result.check.name() + ' - Test Dataset'
+                    check_name_to_params[check_name] = dict()
+
+                    for param_name, param_widget in input_widgets[check_name].items():
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value):
+                            b.disabled = False
+                            b.description = 'Fix'
+                            return
+                        check_name_to_params[check_name][param_name] = param_widget.value
+                    check_name_to_params[check_name].update({'dataset_kind': DatasetKind.TEST})
+                    check_name_to_result[check_name] = result
             for result, checkbox in train_result_to_checkbox.items():
                 if checkbox.value:
-                    result_input_values = input_widgets[result.check.name() + ' - Train Dataset']
-                    result_input_values.update({'dataset_kind': DatasetKind.TRAIN})
-                    result_to_params[result] = result_input_values
+                    check_name = result.check.name() + ' - Train Dataset'
+                    check_name_to_params[check_name] = dict()
+
+                    for param_name, param_widget in input_widgets[check_name].items():
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value):
+                            b.disabled = False
+                            b.description = 'Fix'
+                            return
+                        check_name_to_params[check_name][param_name] = param_widget.value
+                    check_name_to_params[check_name].update({'dataset_kind': DatasetKind.TEST})
+                    check_name_to_result[check_name] = result
             for result, checkbox in train_test_result_to_checkbox.items():
                 if checkbox.value:
-                    result_to_params[result] = input_widgets[result.check.name()]
+                    check_name = result.check.name()
+                    check_name_to_params[check_name] = dict()
 
+                    for param_name, param_widget in input_widgets[check_name].items():
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value):
+                            b.disabled = False
+                            b.description = 'Fix'
+                            return
+                        check_name_to_params[check_name][param_name] = param_widget.value
+                    check_name_to_result[check_name] = result
             p_bar = IntProgress(
                 value=0,
                 min=0,
-                max=len(result_to_params),
+                max=len(check_name_to_result),
                 step=1,
                 description='Fixing :',
                 bar_style='success',
@@ -495,12 +540,13 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 style={'description_width': 'initial'}
             )
             display(p_bar)
-
             current_index = 1
-            for result, input_params in result_to_params.items():
-                p_bar.description = 'Fixing ' + result.check.name() + ' ' + str(current_index) + '/' + str(
-                    len(result_to_params))
-                result.check.fix_logic(context=self.value.context, check_result=result, **input_params)
+            for check_name, input_params in check_name_to_params.items():
+                p_bar.description = 'Fixing ' + check_name + ' ' + str(current_index) + '/' + str(
+                    len(check_name_to_params))
+                for param_name, param_value in input_params.items():
+                    print(param_name, param_value)
+                check_name_to_result[check_name].check.fix_logic(context=self.value.context, check_result=check_name_to_result[check_name], **input_params)
                 p_bar.value += 1
                 current_index += 1
             p_bar.close()

@@ -381,7 +381,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                                 'params_display': 0.2,
                                                 'params_description': 'The maximum percentage of samples to move from '
                                                                       'the test dataset to the train dataset'},
-                'max_drop_train_size': {'display': 'Max Drop Train Size',
+                'max_drop_train': {'display': 'Max Drop Train Size',
                                         'params': float,
                                         'min_value': 0,
                                         'max_value': 1,
