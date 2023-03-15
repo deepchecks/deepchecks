@@ -9,9 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module with methods for fast calculations."""
+import typing as t
+
 import numpy as np
 import pandas as pd
-import typing as t
 
 from deepchecks.core.errors import DeepchecksValueError
 
