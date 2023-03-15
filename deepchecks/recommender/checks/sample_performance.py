@@ -77,7 +77,7 @@ class SamplePerformance(SingleDatasetCheck):
                 fig.add_trace(box_fig)
             display = fig
 
-        return CheckResult(results_df, header='Single Dataset Performance', display=display)
+        return CheckResult(results_df, header='Sample Performance', display=display)
 
     def config(
         self,
@@ -105,46 +105,3 @@ class SamplePerformance(SingleDatasetCheck):
             key = row['Metric'] if pd.isna(row.get('Class')) else (row['Metric'], str(row['Class']))
             result[key] = row['Value']
         return result
-
-    def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all') -> SDP:
-        """Add condition - the selected metrics scores are greater than the threshold.
-
-        Parameters
-        ----------
-        threshold: float
-            The threshold that the metrics result should be grater than.
-        metrics: List[str]
-            The names of the metrics from the check to apply the condition to. If None, runs on all the metrics that
-            were calculated in the check.
-        class_mode: str, default: 'all'
-            The decision rule over the classes, one of 'any', 'all', class name. If 'any', passes if at least one class
-            result is above the threshold, if 'all' passes if all the class results are above the threshold,
-            class name, passes if the result for this specified class is above the threshold.
-        """
-
-        def condition(check_result, metrics_to_check=metrics):
-            metrics_to_check = check_result['Metric'].unique() if metrics_to_check is None else metrics_to_check
-            metrics_pass = []
-
-            for metric in metrics_to_check:
-                if metric not in check_result.Metric.unique():
-                    raise DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in '
-                                               f'this check are: {check_result.Metric.unique()}.')
-                metric_result = check_result[check_result['Metric'] == metric]
-                if class_mode == 'all':
-                    metrics_pass.append(min(metric_result['Value']) > threshold)
-                elif class_mode == 'any':
-                    metrics_pass.append(max(metric_result['Value']) > threshold)
-                elif str(class_mode) in [str(x) for x in metric_result['Class'].unique()]:
-                    metrics_pass.append(metric_result['Value'][class_mode] > threshold)
-                else:
-                    raise DeepchecksValueError(f'class_mode expected be one of the classes in the check results or any '
-                                               f'or all, received {class_mode}.')
-
-            if all(metrics_pass):
-                return ConditionResult(ConditionCategory.PASS, 'Passed for all of the metrics.')
-            else:
-                failed_metrics = ([a for a, b in zip(metrics_to_check, metrics_pass) if not b])
-                return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
-
-        return self.add_condition(f'Selected metrics scores are greater than {format_number(threshold)}', condition)
