@@ -127,4 +127,4 @@ class LabelRecommendationDrift(SingleDatasetCheck):
             category = ConditionCategory.FAIL if result > max_allowed_score else ConditionCategory.PASS
             return ConditionResult(category, f'The drift score was {result}')
 
-        return self.add_condition(f'drift score less than {max_allowe_score}', condition)
+        return self.add_condition(f'drift score less than {max_allowed_score}', condition)
