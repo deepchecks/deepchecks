@@ -76,7 +76,7 @@ class SamplePerformance(SingleDatasetCheck):
                 fig.add_trace(box_fig)
             display = fig
 
-        return CheckResult(results_df, header='Sample Performance', display=display)
+        return CheckResult(results_df, display=display)
 
     def config(
         self,
