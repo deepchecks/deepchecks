@@ -293,12 +293,6 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                             data_to_add.index = new_index
                             train_data = train_data.append(data_to_add)
 
-            # For SMOTE, return categorical features with 'deepchecks_none' to None:
-            if use_smote is True:
-                train_data[cat_features_for_oversampling] = train_data[cat_features_for_oversampling].replace('deepchecks_none',
-                                                                                                np.nan)
-                test_data[cat_features_for_oversampling] = test_data[cat_features_for_oversampling].replace('deepchecks_none', np.nan)
-
             # Separate the label:
             if train_label is not None:
                 train_label = train_data[train_label.name]
@@ -415,9 +409,6 @@ def calc_domain_preds(df_a, df_b, cat_features, random_state, max_samples_for_tr
     # as we want to have viable predictions for all data samples (and can't use the domain classifier's predictions
     # on the data it was trained on)
     sample_size = min(max_samples_for_training, int(df_a.shape[0] / 2), int(df_b.shape[0] / 2))
-
-    # train_data_to_train = train_data.sample(sample_size, random_state=random_state)
-    # test_data_to_train = test_data.sample(sample_size, random_state=random_state)
 
     # create new dataset, with label denoting whether sample belongs to test dataset
     x, y = basic_preprocessing_for_model(df_a, df_b, cat_features)

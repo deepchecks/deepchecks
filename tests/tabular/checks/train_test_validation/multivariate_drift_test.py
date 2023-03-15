@@ -262,6 +262,7 @@ def test_drift_fix_with_smote_with_nones_in_label_and_numerics(drifted_data):
     train_ds, test_ds = drifted_data
 
     train_data = train_ds.data
+    np.random.seed(42)
     train_data['target'] = np.random.choice([0, 1, None], size=train_data.shape[0])
     random_indexes = np.random.choice(train_data.shape[0], size=100, replace=False)
     train_data.loc[random_indexes, 'numeric_with_drift'] = None
@@ -273,8 +274,8 @@ def test_drift_fix_with_smote_with_nones_in_label_and_numerics(drifted_data):
     train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=True)
 
     result = check.run(train_ds, test_ds)
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.45, 0.01))
-    assert_that(train_ds.n_samples, equal_to(893))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.53, 0.01))
+    assert_that(train_ds.n_samples, equal_to(896))
     assert_that(test_ds.n_samples, equal_to(800))
 
 
