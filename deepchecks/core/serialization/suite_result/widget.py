@@ -578,8 +578,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 description='Done Fixing!',
             ))
             # display(save_button)
-            display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename='fixed_train.csv'))
-            display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename='fixed_train.csv'))
+            if self.value.context.train is not None:
+                display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename='fixed_train.csv'))
+            if self.value.context.test is not None:
+                display(solara.FileDownload(data=self.value.context.test.data.to_csv(), filename='fixed_test.csv'))
 
             b.description = 'Fixed!'
             #display(HTML(value="""<img src="fireworks.gif" alt="Computer man" style="width:700px;height:300px;">"""))
