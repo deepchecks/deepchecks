@@ -17,7 +17,7 @@ import warnings
 from IPython.display import display
 from ipywidgets import (HTML, Accordion, Box, Button, Checkbox, Dropdown, FloatText, IntProgress, Layout, Valid, VBox,
                         Widget)
-
+import solara
 from deepchecks.core import DatasetKind
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
@@ -559,6 +559,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 description='Done Fixing!',
             ))
             display(save_button)
+            display(solara.FileDownload(data=self.value.context.test.data.to_csv(), filename="fixed_test.csv"))
+            display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename="fixed_train.csv"))
 
             b.description = 'Fixed!'
 
