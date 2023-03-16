@@ -148,11 +148,11 @@ class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     @property
     def fix_params(self):
         """Return fix params for display."""
-        return {'keep': {'display': 'Drop By',
+        return {'keep': {'display': 'Keep',
                          'params': ['first', 'last'],
-                         'params_display': ['By First', 'By Last'],
-                         'params_description': ['Drop duplicates by first occurrence',
-                                                'Drop duplicates by last occurrence']}}
+                         'params_display': ['First Sample', 'Last Sample'],
+                         'params_description': ['Drop duplicates and keep first occurrence',
+                                                'Drop duplicates and keep last occurrence']}}
 
     @property
     def problem_description(self):
