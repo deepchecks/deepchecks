@@ -207,7 +207,7 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFix
         check_result : CheckResult
             CheckResult object.
         fix_method : str, default: 'move_to_train'
-            Method to fix the problem. Possible values: 'drop_features', 'replace_with_none', 'move_to_train'.
+            Method to fix the problem. Possible values: 'drop_features', 'replace_with_nones', 'move_to_train'.
         max_ratio : float, default: 0
             Maximum ratio of samples with new categories.
         percentage_to_move : float, default: 0.5

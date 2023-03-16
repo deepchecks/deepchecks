@@ -166,7 +166,7 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                   condition)
 
     def fix_logic(self, context: Context, check_result: CheckResult, drop_train: bool = True,
-                  oversample_train: bool = True, move_from_test: bool = False, max_move_from_test_to_train: float = 0.2,
+                  oversample_train: bool = True, move_from_test: bool = False, max_move_from_test_to_train: float = 0.3,
                   use_smote: bool = True, max_drop_train: float = 0.4) -> Context:
         """Run fix.
 

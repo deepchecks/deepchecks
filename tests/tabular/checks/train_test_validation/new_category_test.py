@@ -294,7 +294,7 @@ def test_new_category_fix():
 
     # Replace new categories with None value:
     new_train_dataset, new_test_dataset = check.fix(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                    fix_method='replace_with_none')
+                                                    fix_method='replace_with_nones')
     assert_that(new_train_dataset.data['col1'].unique(), has_items('a', 'b', 'c'))
     assert_that(new_test_dataset.data['col1'].unique(), has_items('a', 'b', 'c', None))
 
