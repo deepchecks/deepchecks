@@ -430,6 +430,9 @@ def average_recall_at_k(relevant_items: List, recommendation: List, k: int = 10)
             num_hits += 1.0
             score += num_hits / (i + 1.0)
 
+    if len(relevant_items) == 0:
+        return 0.0
+
     return score / len(relevant_items)
 
 
