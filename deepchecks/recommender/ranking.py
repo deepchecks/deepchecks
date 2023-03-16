@@ -608,7 +608,7 @@ def novelty(recommendation: List, item_popularity: dict, num_users: int, k: int 
     epsilon = 1e-10
     all_self_information = []
     self_information_sum = 0.0
-    for i in range(k):
+    for i in range(len(recommendation)):
         item = recommendation[i]
         item_pop = item_popularity[item]
         self_information_sum += -log2((item_pop + epsilon) / num_users)

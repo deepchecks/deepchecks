@@ -74,7 +74,8 @@ class LabelPopularityDrift(TrainTestCheck):
         train_labels = pd.Series(train_dataset.label_col)
         test_labels = pd.Series(test_dataset.label_col)
 
-        value_counts = context.item_popularity
+        all_values = pd.Series(train_labels.tolist() + test_labels.tolist())
+        value_counts = all_values.value_counts(ascending=False)
         value_counts.iloc[:] = list(range(len(value_counts)))
         translation_dict = value_counts.to_dict()
 

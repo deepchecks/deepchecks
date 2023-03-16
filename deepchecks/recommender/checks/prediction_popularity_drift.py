@@ -77,7 +77,7 @@ class PredictionPopularityDrift(TrainTestCheck):
         train_predictions = [item for sublist in train_predictions for item in sublist]
         test_predictions = [item for sublist in test_predictions for item in sublist]
 
-        value_counts = pd.Series(train_predictions).value_counts(ascending=False)
+        value_counts = pd.Series(train_predictions + test_predictions).value_counts(ascending=False)
         value_counts.iloc[:] = list(range(len(value_counts)))
         translation_dict = value_counts.to_dict()
         train_predictions = [translation_dict[prediction] for prediction in train_predictions]
