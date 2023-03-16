@@ -196,17 +196,15 @@ class Context(TabularContext):
     def get_scorer_kwargs(self) -> t.Dict:
         if self._item_dataset is not None:
             item_to_index = self._item_dataset.item_index_to_ordinal
-            item_item_similarity = self._item_dataset.item_item_similarity
         else:
             item_to_index = None
-            item_item_similarity = None
 
         if self.train.user_index_name is not None:
             num_users = self.train.data[self.train.user_index_name].nunique()
         else:
             num_users = None
 
-        return {'item_item_similarity': item_item_similarity, 'item_to_index': item_to_index,
+        return {'item_to_index': item_to_index,
                 'item_popularity': self.item_popularity, 'num_users': num_users,
                 'item_features':  pd.DataFrame(self._item_dataset.features_columns.values,
                                                index=self._item_dataset.data[self._item_dataset.item_index_name])

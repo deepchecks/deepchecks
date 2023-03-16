@@ -86,23 +86,29 @@ class RecDataset(Dataset):
         """Get the user index name."""
         return self._user_index_name
 
+
 class ItemDataset(Dataset):
 
     _item_index_name: t.Optional[t.Hashable]
-    _item_item_correlation: np.array
 
     def __init__(
             self,
             df: t.Any,
-            item_index_name: t.Optional[t.Hashable],
-            item_item_similarity: np.array = None,
+            item_index_name: t.Optional[t.Hashable] = None,
+            label: t.Union[t.Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
             features: t.Optional[t.Sequence[t.Hashable]] = None,
             cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
             index_name: t.Optional[t.Hashable] = None,
             set_index_from_dataframe_index: bool = False,
+            datetime_name: t.Optional[t.Hashable] = None,
+            set_datetime_from_dataframe_index: bool = False,
+            convert_datetime: bool = True,
+            datetime_args: t.Optional[t.Dict] = None,
             max_categorical_ratio: float = 0.01,
             max_categories: int = None,
-            dataset_name: t.Optional[str] = 'Item Dataset',
+            label_type: str = None,
+            dataset_name: t.Optional[str] = None,
+            label_classes=None
     ):
 
         super().__init__(
@@ -116,7 +122,22 @@ class ItemDataset(Dataset):
             dataset_name=dataset_name,
         )
         self._item_index_name = item_index_name
-        self._item_item_similarity = item_item_similarity
+
+    def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
+        """Create a copy of this Dataset with new data.
+
+        Parameters
+        ----------
+        new_data (DataFrame): new data from which new dataset will be created
+
+        Returns
+        -------
+        Dataset
+            new dataset instance
+        """
+        dataset = super().copy(new_data)
+        dataset._item_index_name = self._item_index_name
+        return dataset
 
     @property
     def item_index_name(self) -> t.Optional[t.Hashable]:
@@ -129,8 +150,3 @@ class ItemDataset(Dataset):
         if self.item_index_name is None:
             return None
         return dict(zip(self.item_index_name, range(len(self.item_index_name))))
-
-    @property
-    def item_item_similarity(self) -> np.array:
-        """Get the user index name."""
-        return self._item_item_similarity
