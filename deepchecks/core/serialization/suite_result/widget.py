@@ -555,7 +555,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             for check_name, input_params in check_name_to_params.items():
                 for result in self.value.results:
                     if result.check.name() in check_name:
-                        print(check_name)
                         p_bar.description = 'Fixing ' + check_name + ' ' + str(current_index) + '/' + str(
                             len(check_name_to_params))
                         check_name_to_result[check_name].check.fix_logic(context=self.value.context,
@@ -572,7 +571,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             ))
             #display(save_button)
             display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename="fixed_train.csv"))
-            display(solara.FileDownload(data=self.value.context.test.data.to_csv(), filename="fixed_test.csv"))
+            display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename="fixed_train.csv"))
 
             b.description = 'Fixed!'
 
