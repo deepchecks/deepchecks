@@ -316,11 +316,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         # FixMixin import
         fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
                                  if getattr(check_result.check, 'fix', None) is not None]
-
+        accordion_name = "Fix Datasets!"
         if len(fixable_check_results) == 0:
             accordion = normalize_widget_style(Accordion(
                 children=(HTML(value='<p>No fixes found.</p>'),),
-                _titles={'0': "Fixes"},
+                _titles={'0': accordion_name},
                 selected_index=None
             ))
             return VBox(children=(
@@ -467,25 +467,30 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )
         save_button.on_click(on_save_button_click)
 
+        input_validation_errors = []
         def input_validation(param_dict, value, current_check_name):
             if 'min_value' in param_dict:
                 if value < param_dict['min_value']:
-                    display(Valid(
+                    invalid_widget = Valid(
                         value=False,
                         description=current_check_name + ' - ' + param_dict['display'] + ' must be greater than ' +
                                     str(param_dict['min_value']),
                         style={'description_width': 'initial'},
-                    ))
+                    )
+                    input_validation_errors.append(invalid_widget)
+                    display(invalid_widget)
                     return False
 
             if 'max_value' in param_dict:
                 if value > param_dict['max_value']:
-                    display(Valid(
+                    invalid_widget = Valid(
                         value=False,
                         description=current_check_name + " - " + param_dict['display'] + ' must be less than ' +
                                     str(param_dict['max_value']),
                         style={'description_width': 'initial'},
-                    ))
+                    )
+                    input_validation_errors.append(invalid_widget)
+                    display(invalid_widget)
                     return False
             return True
 
@@ -494,6 +499,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             b.description = 'Fixing...'
             check_name_to_params = dict()
             check_name_to_result = dict()
+
             for result, checkbox in test_result_to_checkbox.items():
                 if checkbox.value:
                     check_name = result.check.name() + ' - Test Dataset'
@@ -532,6 +538,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                             return
                         check_name_to_params[check_name][param_name] = param_widget.value
                     check_name_to_result[check_name] = result
+            for input_validation_widget in input_validation_errors:
+                input_validation_widget.close()
             p_bar = IntProgress(
                 value=0,
                 min=0,
@@ -545,22 +553,26 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             display(p_bar)
             current_index = 1
             for check_name, input_params in check_name_to_params.items():
-                p_bar.description = 'Fixing ' + check_name + ' ' + str(current_index) + '/' + str(
-                    len(check_name_to_params))
-                check_name_to_result[check_name].check.fix_logic(context=self.value.context,
-                                                                 check_result=check_name_to_result[check_name],
-                                                                 **input_params)
-                p_bar.value += 1
-                current_index += 1
+                for result in self.value.results:
+                    if result.check.name() in check_name:
+                        print(check_name)
+                        p_bar.description = 'Fixing ' + check_name + ' ' + str(current_index) + '/' + str(
+                            len(check_name_to_params))
+                        check_name_to_result[check_name].check.fix_logic(context=self.value.context,
+                                                                         check_result=check_name_to_result[check_name],
+                                                                         **input_params)
+                        p_bar.value += 1
+                        current_index += 1
+                        break
             p_bar.close()
 
             display(Valid(
                 value=True,
                 description='Done Fixing!',
             ))
-            display(save_button)
-            display(solara.FileDownload(data=self.value.context.test.data.to_csv(), filename="fixed_test.csv"))
+            #display(save_button)
             display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename="fixed_train.csv"))
+            display(solara.FileDownload(data=self.value.context.test.data.to_csv(), filename="fixed_test.csv"))
 
             b.description = 'Fixed!'
 
@@ -577,7 +589,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         vbox = VBox(children=[box, fix_button])
         accordion = normalize_widget_style(Accordion(
             children=(VBox(children=[vbox]),),
-            _titles={'0': 'Fixes'},
+            _titles={'0': accordion_name},
             selected_index=None
         ))
         return VBox(children=(
