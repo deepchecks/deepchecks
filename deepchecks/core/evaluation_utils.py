@@ -25,6 +25,12 @@ def evaluate_change_in_performance(old_train_ds, old_test_ds, new_train_ds, new_
     cat_features = [old_train_ds.features.index(col) for col in old_train_ds.cat_features]
     task_type = task_type.value
 
+    aligned_features = list(set(old_train_ds.features) & set(new_train_ds.features))
+    old_train_data = old_train_ds.data[aligned_features]
+    old_test_data = old_test_ds.data[aligned_features]
+    new_train_data = new_train_ds.data[aligned_features]
+    new_test_data = new_test_ds.data[aligned_features]
+
     if task_type == 'regression':
         old_model = CatBoostRegressor(cat_features=cat_features, random_state=random_state)
         new_model = CatBoostRegressor(cat_features=cat_features, random_state=random_state)
