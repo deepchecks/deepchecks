@@ -583,12 +583,25 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
             b.description = 'Fixed!'
             #display(HTML(value="""<img src="fireworks.gif" alt="Computer man" style="width:700px;height:300px;">"""))
-
+            calculating = HTML(value=f"""<h3>Calculating Performance Change</h3>""")
+            display(calculating)
             from deepchecks.core.evaluation_utils import evaluate_change_in_performance
             output = evaluate_change_in_performance(old_train_ds=old_train_ds, old_test_ds=old_test_ds,
                                            new_train_ds=self.value.context.train, new_test_ds=self.value.context.test,
                                            task_type=self.value.context.task_type)
-            print(f'Fixes improved performance by {100*output:.0f}%!')
+            if output < 0:
+                display(Valid(
+                    value=False,
+                    description='Fixing did not improve performance!',
+                    style={'description_width': 'initial'},
+                ))
+            else:
+                display(Valid(
+                    value=True,
+                    description=f'Fixing improved performance by {100*output:.0f}%!',
+                    style={'description_width': 'initial'},
+                ))
+            calculating.close()
         fix_button = Button(
             description='Fix!',
             disabled=False,
