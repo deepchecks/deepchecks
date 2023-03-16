@@ -20,7 +20,7 @@ from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['FeatureDrift']
@@ -29,7 +29,7 @@ __all__ = ['FeatureDrift']
 @docstrings
 class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     """
-    Calculate drift between train dataset and test dataset per feature, using statistical measures.
+    Calculate drift between two data sets per property, using statistical measures.
 
     Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
     dataset.
@@ -260,12 +260,9 @@ class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
                                        reverse=True)[:self.n_top_columns]
                 sorted_by = 'drift score'
 
-            headnote = [f"""<span>
-                The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the features, sorted
-                by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
-            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
-                        'If available, the plot titles also show the feature importance (FI) rank']
+            headnote = [
+                        f"{train_dataset.name} time range: {train_dataset.data['Start Time'].min()} - {train_dataset.data['End Time'].max()}",
+                        f"{test_dataset.name} time range: {test_dataset.data['Start Time'].min()} - {test_dataset.data['End Time'].max()}"]
 
             if not_enough_samples:
                 headnote.append(f'<span>The following columns do not have enough samples to calculate drift '
@@ -277,7 +274,7 @@ class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         else:
             displays = None
 
-        return CheckResult(value=values_dict, display=displays, header='Feature Drift')
+        return CheckResult(value=values_dict, display=displays, header='Properties Drift')
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
