@@ -14,10 +14,11 @@ import os
 import typing as t
 import warnings
 
+import solara
 from IPython.display import display
 from ipywidgets import (HTML, Accordion, Box, Button, Checkbox, Dropdown, FloatText, IntProgress, Layout, Valid, VBox,
                         Widget)
-import solara
+
 from deepchecks.core import DatasetKind
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
@@ -29,9 +30,7 @@ from deepchecks.core.serialization.common import (aggregate_conditions, create_f
                                                   create_results_dataframe, form_output_anchor, join,
                                                   normalize_widget_style)
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
-from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.strings import get_random_string
-
 from . import html
 
 __all__ = ['SuiteResultSerializer']
@@ -316,7 +315,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         # FixMixin import
         fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
                                  if getattr(check_result.check, 'fix', None) is not None]
-        accordion_name = "Fix Datasets!"
+        accordion_name = 'Fix Datasets'
         if len(fixable_check_results) == 0:
             accordion = normalize_widget_style(Accordion(
                 children=(HTML(value='<p>No fixes found.</p>'),),
@@ -340,9 +339,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         # This is important in order to distinct between train / test / both datasets when we fix duplicates
         # and also when we present the available fixes to the user
-        train_result_to_checkbox = dict()
-        test_result_to_checkbox = dict()
-        train_test_result_to_checkbox = dict()
+        train_result_to_checkbox = {}
+        test_result_to_checkbox = {}
+        train_test_result_to_checkbox = {}
 
         input_widgets = dict(dict())
 
@@ -368,12 +367,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 train_test_result_to_checkbox[fixable_result] = check_check_box
             check_check_box.description = check_name
 
-            input_widgets[check_name] = dict()
+            input_widgets[check_name] = {}
             for param_name, param_dict in check.fix_params.items():
                 param_name_user_display = param_dict['display']
                 param_input_widget = None
                 params_description = None
-                if type(param_dict['params']) == list:
+                if isinstance(param_dict['params'], list):
                     # params_display is what the user sees, params is the value that is passed to the fix function
                     options = list(zip(param_dict['params_display'], param_dict['params']))
                     param_input_widget = Dropdown(
@@ -384,8 +383,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
                     )
                     params_description = zip(param_dict['params_display'], param_dict['params_description'])
-                    params_description = [t[0] + " - " + t[1] for t in params_description]
-                    params_description = "\n".join(params_description)
+                    params_description = [t[0] + ' - ' + t[1] for t in params_description]
+                    params_description = '\n'.join(params_description)
 
                 elif param_dict['params'] == float:
                     param_input_widget = FloatText(
@@ -468,6 +467,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         save_button.on_click(on_save_button_click)
 
         input_validation_errors = []
+
         def input_validation(param_dict, value, current_check_name):
             if 'min_value' in param_dict:
                 if value < param_dict['min_value']:
@@ -485,7 +485,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 if value > param_dict['max_value']:
                     invalid_widget = Valid(
                         value=False,
-                        description=current_check_name + " - " + param_dict['display'] + ' must be less than ' +
+                        description=current_check_name + ' - ' + param_dict['display'] + ' must be less than ' +
                                     str(param_dict['max_value']),
                         style={'description_width': 'initial'},
                     )
@@ -497,13 +497,13 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         def on_fix_button_click(b):
             b.disabled = True
             b.description = 'Fixing...'
-            check_name_to_params = dict()
-            check_name_to_result = dict()
+            check_name_to_params = {}
+            check_name_to_result = {}
 
             for result, checkbox in test_result_to_checkbox.items():
                 if checkbox.value:
                     check_name = result.check.name() + ' - Test Dataset'
-                    check_name_to_params[check_name] = dict()
+                    check_name_to_params[check_name] = {}
 
                     for param_name, param_widget in input_widgets[check_name].items():
                         if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
@@ -516,7 +516,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             for result, checkbox in train_result_to_checkbox.items():
                 if checkbox.value:
                     check_name = result.check.name() + ' - Train Dataset'
-                    check_name_to_params[check_name] = dict()
+                    check_name_to_params[check_name] = {}
 
                     for param_name, param_widget in input_widgets[check_name].items():
                         if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
@@ -529,7 +529,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             for result, checkbox in train_test_result_to_checkbox.items():
                 if checkbox.value:
                     check_name = result.check.name()
-                    check_name_to_params[check_name] = dict()
+                    check_name_to_params[check_name] = {}
 
                     for param_name, param_widget in input_widgets[check_name].items():
                         if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
@@ -569,9 +569,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 value=True,
                 description='Done Fixing!',
             ))
-            #display(save_button)
-            display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename="fixed_train.csv"))
-            display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename="fixed_train.csv"))
+            # display(save_button)
+            display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename='fixed_train.csv'))
+            display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename='fixed_train.csv'))
 
             b.description = 'Fixed!'
 
