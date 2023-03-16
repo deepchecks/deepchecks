@@ -98,7 +98,7 @@ class SingleDatasetCheckFixMixin(FixMixin):
 
     @abc.abstractmethod
     def fix_logic(self, context, check_result, dataset_kind, **kwargs) -> Context:
-        """Run check."""
+        """Fix check."""
         raise NotImplementedError()
 
 
@@ -148,5 +148,5 @@ class TrainTestCheckFixMixin(FixMixin):
 
     @abc.abstractmethod
     def fix_logic(self, context, check_result, **kwargs) -> Context:
-        """Run check."""
+        """Fix check."""
         raise NotImplementedError()

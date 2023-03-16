@@ -36,11 +36,12 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
-def basic_preprocessing_for_model(train_df, test_df, cat_features, impute_numerical_nones: bool = False):
+def basic_preprocessing_for_domain_classification(train_df, test_df, cat_features,
+                                                  impute_numerical_nones: bool = False):
     domain_class_df = pd.concat([train_df, test_df])
     domain_class_df[cat_features] = RareCategoryEncoder(254).fit_transform(domain_class_df[cat_features].astype(str))
     domain_class_df[cat_features] = OrdinalEncoder().fit_transform(domain_class_df[cat_features].astype(str))
-    domain_class_labels = pd.Series([0] * len(train_df) + [1] * len(test_df))
+    domain_class_labels = pd.Series([0] * len(train_df) + [1] * len(test_df), index=domain_class_df.index)
     if impute_numerical_nones:
         numerical_features = [col for col in domain_class_df.columns if col not in cat_features]
         domain_class_df = domain_class_df.fillna({col: domain_class_df[col].mean() for col in numerical_features})
@@ -77,7 +78,7 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     test_sample_df = test_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
 
     # create new dataset, with label denoting whether sample belongs to test dataset
-    x, y = basic_preprocessing_for_model(train_sample_df, test_sample_df, cat_features)
+    x, y = basic_preprocessing_for_domain_classification(train_sample_df, test_sample_df, cat_features)
 
     x_train, x_test, y_train, y_test = train_test_split(x, y,
                                                         stratify=y,
