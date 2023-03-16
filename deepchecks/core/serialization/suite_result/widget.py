@@ -499,6 +499,14 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             b.description = 'Fixing...'
             check_name_to_params = {}
             check_name_to_result = {}
+            old_test_ds = None
+            old_train_ds = None
+            if self.value.context.test is not None:
+                ds = self.value.context.test
+                old_test_ds = ds.copy(ds.data.copy())
+            if self.value.context.train is not None:
+                ds = self.value.context.train
+                old_train_ds = ds.copy(ds.data.copy())
 
             for result, checkbox in test_result_to_checkbox.items():
                 if checkbox.value:
@@ -574,7 +582,13 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename='fixed_train.csv'))
 
             b.description = 'Fixed!'
+            #display(HTML(value="""<img src="fireworks.gif" alt="Computer man" style="width:700px;height:300px;">"""))
 
+            from deepchecks.core.evaluation_utils import evaluate_change_in_performance
+            output = evaluate_change_in_performance(old_train_ds=old_train_ds, old_test_ds=old_test_ds,
+                                           new_train_ds=self.value.context.train, new_test_ds=self.value.context.test,
+                                           task_type=self.value.context.task_type)
+            print(f'Fixes improved performance by {100*output:.0f}%!')
         fix_button = Button(
             description='Fix!',
             disabled=False,
