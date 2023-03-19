@@ -12,6 +12,7 @@
 import typing as t
 
 import numpy as np
+import pandas as pd
 
 from deepchecks.core.errors import DeepchecksValueError
 
@@ -27,5 +28,7 @@ def sequence_to_numpy(sequence: t.Sequence):
         return sequence.flatten()
     elif isinstance(sequence, t.List):
         return np.asarray(sequence).flatten()
+    elif isinstance(sequence, pd.Series):
+        return sequence.to_numpy().flatten()
     else:
         raise DeepchecksValueError('Trying to convert a non sequence into a flat list.')

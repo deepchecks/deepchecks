@@ -5,6 +5,7 @@ Here you can see the api reference.
 
 .. toctree::
     :caption: API Reference
+    :maxdepth: 2
     :hidden:
 
     deepchecks.core

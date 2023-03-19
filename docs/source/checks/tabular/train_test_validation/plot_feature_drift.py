@@ -169,20 +169,18 @@ result.show(show_additional_outputs=False)
 #
 # We can define the type of aggregation we want to use via the `aggregation_method` parameter. The possible values are:
 #
-# ``l2_weighted`` (Default): L2 norm over the combination of drift scores and feature importance, minus the L2 norm of
-# feature importance alone, specifically, ||FI + DRIFT|| - ||FI||. This method returns a value between 0 and
-# sqrt(n_features). This method is built to give greater weight to features with high importance and high drift, while
-# not zeroing out features with low importance and high drift.
+# ``l3_weighted``: Default. L3 norm over the 'per-feature scores' vector weighted by the feature importance, specifically,
+# sum(FI * PER_FEATURE_SCORES^3)^(1/3). This method takes into account the feature importance yet puts more weight on
+# the per-feature scores. This method is recommended for most cases.
 #
-# ``weighted``: Weighted mean of drift scores based on each feature's feature importance. This method
-# underlying logic is that drift in a feature with a higher feature importance will have a greater effect on the model's
-# performance.
+# ``l5_weighted``: Similar to 'l3_weighted', but with L5 norm. Puts even more emphasis on the per-feature scores and
+# specifically on the largest per-feature scores returning a score closer to the maximum among the per-feature scores.
 #
-# ``mean``: Simple mean of all the features drift scores.
+# ``weighted``: Weighted mean of per-feature scores based on feature importance.
 #
-# ``none``: No averaging. Return a dict with a drift score for each feature.
+# ``max``: Maximum of all the per-feature scores.
 #
-# ``max``: Maximum value of all the individual feature's drift scores.
+# ``none``: No averaging. Return a dict with a per-feature score for each feature.
 #
 
 check = FeatureDrift(aggregation_method='weighted')
