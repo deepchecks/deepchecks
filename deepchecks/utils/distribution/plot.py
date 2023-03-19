@@ -21,6 +21,7 @@ from scipy.stats import gaussian_kde
 from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.nlp.utils.text_utils import break_to_lines_and_trim
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
@@ -432,50 +433,38 @@ def get_property_outlier_graph(dist, data, lower_limit, upper_limit, property_na
                 [mean_train_column, mean_test_column, median_train_column, median_test_column]
             )))
 
-            train_density = get_density(dist, xs)
-            bars_width = (x_range_to_show[1] - x_range_to_show[0]) / 100
+            train_density = list(get_density(dist, xs))
 
             traces: List[go.BaseTraceType] = []
-            common_dist_indices = np.argwhere((xs > lower_limit) & (xs < upper_limit))
-            outlier_dist_indices = np.argwhere((xs < lower_limit) | (xs > upper_limit))
 
-            all_arr = np.array([1 if x > lower_limit and x < upper_limit else 0 for x in xs])
-
-            density_common = np.array(train_density * all_arr).tolist()
-
-            all_arr = list(all_arr)
+            all_arr = [1 if lower_limit <= x <= upper_limit else 0 for x in xs]
             common_beginning = all_arr.index(1)
-            common_ending = len(all_arr) - all_arr[::-1].index(1) - 1
+            common_ending = len(all_arr) - 1 - all_arr[::-1].index(1)
 
-            train_density = list(train_density)
+            show_lower_outliers = common_beginning != 0
+            show_upper_outliers = common_ending != len(xs) - 1
+            total_len = len(xs) + show_lower_outliers + show_upper_outliers
+
+            mask_common = np.zeros(total_len, dtype=bool)
+            mask_outliers_lower = np.zeros(total_len, dtype=bool)
+            mask_outliers_upper = np.zeros(total_len, dtype=bool)
 
             if common_beginning != 0:
                 xs.insert(common_beginning, xs[common_beginning])
                 train_density.insert(common_beginning, train_density[common_beginning])
+                mask_outliers_lower[:common_beginning + 1] = True
                 common_ending += 1
+
             if common_ending != len(xs) - 1:
                 xs.insert(common_ending + 1, xs[common_ending])
                 train_density.insert(common_ending + 1, train_density[common_ending])
+                mask_outliers_upper[common_ending + 1:] = True
 
-            total_len = len(xs)
-
-            mask_common = np.zeros(total_len, dtype=bool)
-            mask_common[common_beginning + 1:common_ending + 1] = True
-            mask_outliers = np.zeros(total_len, dtype=bool)
-            mask_outliers[:common_beginning + 1] = True
-            mask_outliers[common_ending + 1:] = True
-
-            mask_outliers_lower = np.zeros(total_len, dtype=bool)
-            mask_outliers_lower[:common_beginning + 1] = True
-            mask_outliers_upper = np.zeros(total_len, dtype=bool)
-            mask_outliers_upper[common_ending + 1:] = True
+            mask_common[common_beginning + show_lower_outliers:common_ending + show_upper_outliers] = True
 
             density_common = np.array(train_density) * mask_common
             density_outliers_lower = np.array(train_density) * mask_outliers_lower
             density_outliers_upper = np.array(train_density) * mask_outliers_upper
-
-            density_outliers = np.array(train_density) * mask_outliers
-            density_outliers = [x if x != 0 else None for x in density_outliers]
 
             density_common = [x if x != 0 else None for x in density_common]
             density_outliers_lower = [x if x != 0 else None for x in density_outliers_lower]
@@ -483,32 +472,16 @@ def get_property_outlier_graph(dist, data, lower_limit, upper_limit, property_na
 
             green = 'rgba(105, 179, 162, 1)'
             red = 'rgba(179, 106, 106, 1)'
-
             green_fill = 'rgba(105, 179, 162, 0.7)'
-
             red_fill = 'rgba(179, 106, 106, 0.7)'
-
-            # green = '#77E49B'
-            # red = '#E47777'
-
-            # hover_data:
-
-
-            def trim_for_label(s):
-                if len(s) > 100:
-                    s = s[:500] + '...'
-                s = s.split()
-                for i in range(10, len(s), 10):
-                    s.insert(i, '<br>')
-                return ' '.join(s)
 
             n = len(dist)
 
             tuples = list(zip(dist, data))
             tuples.sort(key=lambda x: x[0])
-            samples_indices = np.searchsorted([x[0] for x in tuples], xs,side="left")
+            samples_indices = np.searchsorted([x[0] for x in tuples], xs, side="left")
             samples = [tuples[i][1] for i in samples_indices]
-            samples = [trim_for_label(s) for s in samples]
+            samples = [break_to_lines_and_trim(s) for s in samples]
             quantiles = [100 * i / n for i in samples_indices]
             quantiles_reversed = [100-x for x in quantiles]
             hover_data = np.array([samples, xs, quantiles, quantiles_reversed]).T
