@@ -298,9 +298,6 @@ def test_new_category_fix():
     assert_that(new_train_dataset.data['col1'].unique(), has_items('a', 'b', 'c'))
     assert_that(new_test_dataset.data['col1'].unique(), has_items('a', 'b', 'c', None))
 
-    # result = check.run(new_train_dataset, new_test_dataset)
-    # assert_that(max(result.value['# New Categories']), equal_to(0))
-
     # Move new categories samples to train dataset:
 
     new_train_dataset, new_test_dataset = check.fix(train_dataset=train_dataset, test_dataset=test_dataset,
