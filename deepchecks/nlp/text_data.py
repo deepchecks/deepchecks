@@ -339,13 +339,13 @@ class TextData:
         self._metadata = metadata
 
     def calculate_default_properties(self, include_properties: t.List[str] = None,
-                                     ignore_properties: t.List[str] = None):
+                                     ignore_properties: t.List[str] = None, device: t.Optional[str] = None):
         """Calculate the default properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
         properties = calculate_default_properties(self.text, include_properties=include_properties,
-                                                  ignore_properties=ignore_properties)
+                                                  ignore_properties=ignore_properties, device=device)
         self._properties = pd.DataFrame(properties, index=self.index)
 
     def set_properties(self, properties: pd.DataFrame):

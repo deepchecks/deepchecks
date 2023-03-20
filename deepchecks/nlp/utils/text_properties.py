@@ -11,11 +11,13 @@
 """Module containing the text properties for the NLP module."""
 import string
 import warnings
-from typing import Dict, List, Sequence
+from typing import Dict, List, Sequence, Optional
 
 import numpy as np
 
 __all__ = ['calculate_default_properties']
+
+from deepchecks.utils.function import run_available_kwargs
 
 
 def text_length(raw_text: Sequence[str]) -> List[int]:
@@ -77,6 +79,20 @@ def subjectivity(raw_text: Sequence[str]) -> List[str]:
     return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
 
 
+def text_toxicity(raw_text: Sequence[str], device: Optional[int] = None) -> List[float]:
+    """Return list of floats of toxicity."""
+    try:
+        from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+    except ImportError as e:
+        raise property_import_error("text_toxicity", "transformers") from e
+
+    model_name = "unitary/toxic-bert"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name)
+    classifier = pipeline("text-classification", model=model, tokenizer=tokenizer, device=device)
+    return [classifier(text)[0]['score'] for text in raw_text]
+
+
 DEFAULT_PROPERTIES = [
     {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
@@ -84,6 +100,7 @@ DEFAULT_PROPERTIES = [
     {'name': 'language', 'method': language, 'output_type': 'categorical'},
     {'name': 'sentiment', 'method': sentiment, 'output_type': 'numeric'},
     {'name': 'subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
+    {'name': 'text_toxicity', 'method': text_toxicity, 'output_type': 'numeric'},
 ]
 
 
@@ -106,8 +123,9 @@ def _get_default_properties(include_properties: List[str] = None, ignore_propert
     return ret_properties
 
 
-def calculate_default_properties(raw_text: Sequence[str], include_properties: List[str] = None,
-                                 ignore_properties: List[str] = None) -> Dict[str, List[float]]:
+def calculate_default_properties(raw_text: Sequence[str], include_properties: Optional[List[str]] = None,
+                                 ignore_properties: Optional[List[str]] = None, device: Optional[str] = None
+                                 ) -> Dict[str, List[float]]:
     """Return list of dictionaries of text properties.
 
     Params:
@@ -119,6 +137,8 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Li
         ignore_properties : List[str], default None
             The properties to ignore. If None, no properties will be ignored. Cannot be used together with
             properties parameter.
+        device : int, default None
+            The device to use for the calculation. If None, the default device will be used.
 
     Returns:
         Dict[str, List[float]]
@@ -130,7 +150,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Li
     calculated_properties = {}
     for prop in default_text_properties:
         try:
-            res = prop['method'](raw_text)
+            res = run_available_kwargs(prop['method'], raw_text, device=device)
             calculated_properties[prop['name']] = res
         except ImportError as e:
             warnings.warn(f'Failed to calculate property {prop["name"]}. Error: {e}')
