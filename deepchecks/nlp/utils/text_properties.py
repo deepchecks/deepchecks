@@ -11,7 +11,7 @@
 """Module containing the text properties for the NLP module."""
 import string
 import warnings
-from typing import Dict, List, Sequence, Optional
+from typing import Dict, List, Optional, Sequence
 
 import numpy as np
 
@@ -82,7 +82,7 @@ def subjectivity(raw_text: Sequence[str]) -> List[str]:
 def text_toxicity(raw_text: Sequence[str], device: Optional[int] = None) -> List[float]:
     """Return list of floats of toxicity."""
     try:
-        from transformers import AutoTokenizer, AutoModelForSequenceClassification, pipeline
+        from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
     except ImportError as e:
         raise property_import_error("text_toxicity", "transformers") from e
 
