@@ -16,6 +16,7 @@ from typing import Dict, List, Sequence, TypeVar
 
 import numpy as np
 import pandas as pd
+from deepchecks.utils.validation import is_sequence_not_str
 from numba import jit, njit
 from scipy import stats
 from sklearn.metrics import dcg_score, ndcg_score
@@ -271,6 +272,8 @@ def reciprocal_rank(relevant_item: X, recommendation: Sequence[X]) -> float:
     Returns:
         RR (float): The reciprocal rank of the item.
     """
+    if not is_sequence_not_str(recommendation):
+        return 0
     for i, item in enumerate(recommendation):
         if item == relevant_item:
             return 1.0 / (i + 1.0)
@@ -362,7 +365,10 @@ def average_precision_at_k(relevant_items: np.array, recommendation: np.array, k
             hits += 1.0
             score += hits / (i + 1.0)
 
-    return score / min(len(relevant_items), k)
+    div = min(len(relevant_items), k)
+    if div == 0:
+        return 0.0
+    return score / div
 
 
 def mean_average_precision_at_k(relevant_items: List[list], recommendations: List[list], k: int = 10):

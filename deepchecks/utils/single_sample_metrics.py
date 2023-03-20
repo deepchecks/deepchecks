@@ -13,6 +13,7 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
+from deepchecks.utils.validation import is_sequence_not_str
 from sklearn import metrics
 from sklearn.preprocessing import LabelBinarizer
 
@@ -25,8 +26,12 @@ def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,
                               classes_index_order: Union[np.array, pd.Series]) -> pd.Series:
     """Calculate error per sample for a given model and a dataset."""
     if isinstance(dataset, RecDataset):
-      # TODO might need to add another case for list label
-      return pd.Series([ranking.reciprocal_rank(y, y_pred) for y, y_pred in
+        # TODO might need to add another case for list label
+        if is_sequence_not_str(dataset.label_col):
+            scorer = ranking.reciprocal_rank
+        else:
+            scorer = ranking.mean_reciprocal_rank
+        return pd.Series([scorer(y, y_pred) for y, y_pred in
                           zip(model.predict(dataset.features_columns), dataset.label_col)], index=dataset.data.index)
     if task_type == TaskType.REGRESSION:
         return pd.Series([metrics.mean_squared_error([y], [y_pred]) for y, y_pred in

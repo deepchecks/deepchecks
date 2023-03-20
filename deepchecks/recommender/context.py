@@ -115,6 +115,8 @@ class Scorer(DeepcheckScorer):
             self.per_sample_metric = metric
         elif isinstance(metric, str):
             self.per_sample_metric = getattr(ranking, metric)
+        elif isinstance(metric, dict):
+            self.per_sample_metric = getattr(ranking, list(metric.values())[0])
         else:
             raise DeepchecksValueError('Wrong scorer type')
 
@@ -245,7 +247,7 @@ class Context(TabularContext):
                 labels = [item for sublist in self.train.label_col for item in sublist]
             else:
                 labels = self.train.label_col
-            self._observed_classes = sorted(labels.dropna().unique().tolist())
+            self._observed_classes = sorted(pd.Series(labels).dropna().unique().tolist())
         return self._observed_classes
 
     @property
