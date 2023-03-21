@@ -10,7 +10,9 @@
 #
 """Module containing all outliers algorithms used in the library."""
 from typing import Sequence, Tuple, Union
+
 import numpy as np
+
 from deepchecks.core.errors import DeepchecksValueError
 
 EPS = 0.001
