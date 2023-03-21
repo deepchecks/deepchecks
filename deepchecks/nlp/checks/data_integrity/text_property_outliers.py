@@ -9,25 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module of TextPropertyOutliers check."""
-import string
 import typing as t
-from collections import defaultdict, Counter
-from numbers import Number
-from secrets import choice
 
 import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
-from deepchecks.nlp import Context, SingleDatasetCheck, TextData
-from deepchecks.utils.distribution.plot import feature_distribution_traces, get_text_outliers_graph
+from deepchecks.core.errors import NotEnoughSamplesError
+from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.utils.distribution.plot import get_text_outliers_graph
 from deepchecks.utils.outliers import iqr_outliers_range, sharp_drop_outliers_range
-from deepchecks.utils.strings import format_number
 
 __all__ = ['TextPropertyOutliers']
-
-THUMBNAIL_SIZE = (200, 200)
 
 
 class TextPropertyOutliers(SingleDatasetCheck):
@@ -40,16 +33,16 @@ class TextPropertyOutliers(SingleDatasetCheck):
 
     Parameters
     ----------
-    n_show_top : int , default: 5
+    n_show_top : int , default : 5
         number of outliers to show from each direction (upper limit and bottom limit)
-    iqr_percentiles : Tuple[int, int] , default: (25, 75)
+    iqr_percentiles : Tuple[int, int] , default : (25, 75)
         Two percentiles which define the IQR range
-    iqr_scale : float , default: 1.5
+    iqr_scale : float , default : 1.5
         The scale to multiply the IQR range for the outliers detection
-    sharp_drop_size : float, default: 0.9
+    sharp_drop_size : float, default : 0.9
         The size of the sharp drop to detect categorical outliers
-    min_samples : int , default: 10
-        Minimum number of samples required to calculate IQR. If there are not enough non-null samples a specific 
+    min_samples : int , default : 10
+        Minimum number of samples required to calculate IQR. If there are not enough non-null samples a specific
         property, the check will skip it. If all properties are skipped, the check will raise a NotEnoughSamplesError.
     """
 
@@ -73,7 +66,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
         result = {}
 
         property_types = dataset.properties_types
-        df_properties = dataset.properties[[col for col in dataset.properties.columns]]
+        df_properties = dataset.properties
         properties = df_properties.to_dict(orient='list')
 
         if all(len(np.hstack(v).squeeze()) < self.min_samples for v in properties.values()):

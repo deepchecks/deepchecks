@@ -9,12 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all outliers algorithms used in the library."""
-from typing import Tuple, Union, Sequence
+from typing import Sequence, Tuple, Union
 import numpy as np
-
 from deepchecks.core.errors import DeepchecksValueError
 
 EPS = 0.001
+
 
 def iqr_outliers_range(data: np.ndarray,
                        iqr_range: Tuple[int, int],

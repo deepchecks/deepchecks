@@ -363,7 +363,7 @@ class TextData:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
         properties, properties_types = calculate_default_properties(self.text, include_properties=include_properties,
-                                                                  ignore_properties=ignore_properties)
+                                                                    ignore_properties=ignore_properties)
         self._properties = pd.DataFrame(properties, index=self.index)
         self._properties_types = properties_types
 

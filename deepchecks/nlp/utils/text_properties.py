@@ -17,11 +17,13 @@ import numpy as np
 
 __all__ = ['calculate_default_properties']
 
+
 def property_import_error(property_name: str, package_name: str) -> ImportError:
     """Raise an ImportError for a property that requires a package."""
     return ImportError(
         f'property {property_name} requires the {package_name} python package. '
         f'To get it, run "pip install {package_name}".')
+
 
 def text_length(raw_text: Sequence[str]) -> List[int]:
     """Return list of integers of text lengths."""
@@ -47,6 +49,7 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
     """Return list of integers of max word length."""
     return [max([len(word) for word in text.split()]) for text in raw_text]
 
+
 def language(raw_text: Sequence[str]) -> List[str]:
     """Return list of strings of language."""
     try:
@@ -57,7 +60,6 @@ def language(raw_text: Sequence[str]) -> List[str]:
         raise property_import_error('language', 'langdetect') from e
 
     return [langdetect.detect(text) for text in raw_text]
-
 
 
 def sentiment(raw_text: Sequence[str]) -> List[str]:

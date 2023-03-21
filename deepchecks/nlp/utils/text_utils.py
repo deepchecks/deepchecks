@@ -29,7 +29,7 @@ def break_to_lines_and_trim(s, max_lines: int = 10, min_line_length: int = 50, m
     """
     separating_delimiters = [' ', '\t', '\n', '\r']
     lines = []
-    for i in range(max_lines):
+    for i in range(max_lines):  # pylint: disable=unused-variable
         if len(s) < max_line_length:  # if remaining string is short enough, add it and break
             lines.append(s.strip())
             break

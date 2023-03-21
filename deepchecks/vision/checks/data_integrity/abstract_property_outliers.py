@@ -132,7 +132,6 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
 
         for name, values in self._properties_results.items():
             values_lengths_cumsum = np.cumsum(np.array([len(v) for v in values]))
-            # values_arr = np.hstack(values).astype(float)
 
             values_arr = np.hstack(values).astype(float).squeeze()
             values_arr = np.array([x for x in values_arr if pd.notnull(x)])

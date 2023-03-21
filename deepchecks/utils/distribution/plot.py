@@ -11,7 +11,7 @@
 """A module containing utils for plotting distributions."""
 from functools import cmp_to_key
 from numbers import Number
-from typing import Any, Dict, List, Tuple, Union, Sequence
+from typing import Any, Dict, List, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -415,15 +415,15 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
             index=[un_numpy(cat) for cat in categories_list]
         )
 
-        OUTLIER_LINE_INDEX = 'Outlier<br>Threshold'
+        outlier_line_index = 'Outlier<br>Threshold'
         cat_df = pd.concat([cat_df.iloc[:outliers_first_index],
-                            pd.DataFrame({dist_name: [None]}, index=[OUTLIER_LINE_INDEX]),
+                            pd.DataFrame({dist_name: [None]}, index=[outlier_line_index]),
                             cat_df.iloc[outliers_first_index:]])
 
         tuples = list(zip(dist, data))
 
         tuples.sort(key=lambda x: x[0])
-        samples_indices = np.searchsorted([x[0] for x in tuples], cat_df.index, side="left")
+        samples_indices = np.searchsorted([x[0] for x in tuples], cat_df.index, side='left')
         samples = [tuples[i][1] for i in samples_indices]
         samples = [break_to_lines_and_trim(s) for s in samples]
 
@@ -514,7 +514,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
         density_outliers_lower = np.array(density) * mask_outliers_lower
         density_outliers_upper = np.array(density) * mask_outliers_upper
 
-        # Replace 0s with None so that they won't be plotted:
+        # Replace zeros with None so that they won't be plotted:
         density_common = [x or None for x in density_common]
         density_outliers_lower = [x or None for x in density_outliers_lower]
         density_outliers_upper = [x or None for x in density_outliers_upper]
@@ -522,7 +522,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
         # Get samples and their quantiles for the hover data:
         tuples = list(zip(dist, data))
         tuples.sort(key=lambda x: x[0])
-        samples_indices = np.searchsorted([x[0] for x in tuples], xs, side="left")
+        samples_indices = np.searchsorted([x[0] for x in tuples], xs, side='left')
         samples = [tuples[i][1] for i in samples_indices]
         samples = [break_to_lines_and_trim(s) for s in samples]
         quantiles = [100 * i / len(dist) for i in samples_indices]
@@ -552,8 +552,8 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
     fig.update_xaxes(xaxis_layout)
     fig.update_yaxes(yaxis_layout)
 
-    if is_categorical: # Add vertical line to separate outliers from common values in bar charts:
-        fig.add_vline(x=OUTLIER_LINE_INDEX, line_width=2, line_dash="dash", line_color="black")
+    if is_categorical:  # Add vertical line to separate outliers from common values in bar charts:
+        fig.add_vline(x=outlier_line_index, line_width=2, line_dash='dash', line_color='black')
 
     fig.update_layout(
         legend=dict(
