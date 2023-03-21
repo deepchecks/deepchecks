@@ -608,23 +608,32 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             icon='wrench'
         )
         fix_button.on_click(on_fix_button_click)
-        environment_error_message_widget = HTML(value='<H3>Environment Error</H3>'
-                                                      '<p>Current environment does not support interactive widgets,'
-                                                      'which makes Dataset Fixes unavailable.</p>')
-        #display(environment_error_message_widget)
+
+        environment_error_message_widget = HTML(value="<h3>Environment Error</h3><p>Failed to load environment,"
+                                                      " please check your environment and try again.</p>")
         box = Box(children=[checks_vbox])
         vbox = VBox(children=[out])
+
         accordion = normalize_widget_style(Accordion(
             children=(VBox(children=[vbox, environment_error_message_widget]),),
             _titles={'0': accordion_name},
             selected_index=None
         ))
-        def ondisplayed(accord):
+
+        # This is done because if the user runs the suite in environment that does not support the widgets,
+        # this function will not be called because python code will not run in such environment (such as iframe),
+        # and therefore environment_error_message_widget will not be closed, and the user will see the error message.
+        def on_accord_display(accord):
+            accordion.unobserve(on_accord_display)
             with out:
-                environment_error_message_widget.close()
                 display(box)
                 display(fix_button)
-        accordion.on_displayed(ondisplayed)
+                environment_error_message_widget.close()
+        # We use observe and not on_display because there's a race condition between the display of the accordion
+        # and the closing of environment_error_message_widget.
+        # Function from observe will be called when a user interacts with the accordion.
+        accordion.observe(on_accord_display)
+
         return VBox(children=(
             # by putting `section_anchor` before the results accordion
             # we create a gap between them`s, failures section does not have
