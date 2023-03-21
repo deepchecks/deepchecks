@@ -49,15 +49,18 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
         Two percentiles which define the IQR range
     iqr_scale: float, default: 1.5
         The scale to multiply the IQR range for the outliers detection
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate IQR. If there are not enough non-null samples a specific
+        property, the check will skip it. If all properties are skipped, the check will raise a NotEnoughSamplesError.
     {additional_check_init_params:2*indent}
     """
 
     def __init__(self, label_properties: t.List[t.Dict[str, t.Any]] = None, n_show_top: int = 3,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75), iqr_scale: float = 1.5,
-                 n_samples: t.Optional[int] = 10000, **kwargs):
+                 min_samples: int = 10, n_samples: t.Optional[int] = 10000, **kwargs):
         super().__init__(properties_list=label_properties, property_input_type=PropertiesInputType.LABELS,
                          n_show_top=n_show_top, iqr_percentiles=iqr_percentiles, iqr_scale=iqr_scale,
-                         draw_label_on_image=True, n_samples=n_samples, **kwargs)
+                         draw_label_on_image=True, min_samples=min_samples, n_samples=n_samples, **kwargs)
 
     def get_default_properties(self, data: VisionData):
         """Return default properties to run in the check."""

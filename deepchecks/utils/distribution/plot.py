@@ -11,7 +11,7 @@
 """A module containing utils for plotting distributions."""
 from functools import cmp_to_key
 from numbers import Number
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union, Sequence
 
 import numpy as np
 import pandas as pd
@@ -24,7 +24,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text_utils import break_to_lines_and_trim
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors, common_and_outlier_colors
 
 __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density', 'CategoriesSortingKind']
 
@@ -373,146 +373,187 @@ def _create_distribution_bar_graphs(
     return traces, yaxis_layout
 
 
-def get_property_outlier_graph(dist, data, lower_limit, upper_limit, property_name: str, is_categorical=False):
-    import plotly.graph_objects as go
+def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: float, upper_limit: float, dist_name: str,
+                            is_categorical: bool):
+    """Create a distribution / bar graph of the data and its outliers.
 
-    max_num_categories = 10
-    dataset_names = [property_name, property_name]
-    show_categories_by = 'train_largest'
-    quantile_cut = 0.0
+    Parameters
+    ----------
+    dist : Sequence
+        The distribution of the data.
+    data : Sequence[str]
+        The data (used to give samples of it in hover).
+    lower_limit : float
+        The lower limit of the common part of the data (under it is an outlier).
+    upper_limit : float
+        The upper limit of the common part of the data (above it is an outlier).
+    dist_name : str
+        The name of the distribution (feature)
+    is_categorical : bool
+        Whether the data is categorical or not.
+    """
+    green = common_and_outlier_colors['common']
+    red = common_and_outlier_colors['outliers']
+    green_fill = common_and_outlier_colors['common_fill']
+    red_fill = common_and_outlier_colors['outliers_fill']
+
+    is_categorical = is_categorical or np.unique(dist).size < MAX_NUMERICAL_UNIQUE_FOR_BARS
 
     if is_categorical:
-        traces, yaxis_layout = _create_distribution_bar_graphs(dist, dist,
-                                                               max_num_categories=max_num_categories,
-                                                               show_categories_by=show_categories_by,
-                                                               dataset_names=dataset_names)
+        dist_counts = pd.Series(dist).value_counts(normalize=True).to_dict()
 
-        # NOTE:
-        # the range, in this case, is needed to fix a problem with
-        # too wide bars when there are only one or two of them`s on
-        # the plot, plus it also centralizes them`s on the plot
-        # The min value of the range (range(min. max)) is bigger because
-        # otherwise bars will not be centralized on the plot, they will
-        # appear on the left part of the plot (that is probably because of zero)
-        range_max = max_num_categories if len(set(dist).union(dist)) > max_num_categories \
-            else len(set(dist).union(dist))
-        xaxis_layout = dict(type='category', range=(-3, range_max + 2))
+        counts = list(dist_counts.values())
+        categories_list = list(dist_counts.keys())
+
+        outliers_first_index = counts.index(lower_limit)
+        color_discrete_sequence = [green] * outliers_first_index + [red] * (len(counts) - outliers_first_index + 1)
+
+        # fixes plotly widget bug with numpy values by converting them to native values
+        # https://github.com/plotly/plotly.py/issues/3470
+        cat_df = pd.DataFrame(
+            {dist_name: counts},
+            index=[un_numpy(cat) for cat in categories_list]
+        )
+
+        OUTLIER_LINE_INDEX = 'Outlier<br>Threshold'
+        cat_df = pd.concat([cat_df.iloc[:outliers_first_index],
+                            pd.DataFrame({dist_name: [None]}, index=[OUTLIER_LINE_INDEX]),
+                            cat_df.iloc[outliers_first_index:]])
+
+        tuples = list(zip(dist, data))
+
+        tuples.sort(key=lambda x: x[0])
+        samples_indices = np.searchsorted([x[0] for x in tuples], cat_df.index, side="left")
+        samples = [tuples[i][1] for i in samples_indices]
+        samples = [break_to_lines_and_trim(s) for s in samples]
+
+        hover_data = np.array([samples, list(cat_df.index), list(cat_df[dist_name])]).T
+        hover_template = f'<b>{dist_name}</b>: ' \
+                         '%{customdata[1]}<br>' \
+                         '<b>Frequency</b>: %{customdata[2]:.2%}<br>' \
+                         '<b>Sample</b>:<br>"%{customdata[0]}"<br>'
+
+        traces = [
+            go.Bar(
+                x=cat_df.index,
+                y=cat_df[dist_name],
+                marker=dict(color=color_discrete_sequence),
+                name='Common',
+                text=[f'{x:.2%}' for x in cat_df[dist_name]],
+                customdata=hover_data,
+                hovertemplate=hover_template
+
+            ),
+            go.Bar(  # Adding fake bar traces to show the outlier threshold line in the legend
+                x=[None],
+                y=[None],
+                name='Outliers',
+                marker=dict(color=red),
+            ),
+        ]
+
+        yaxis_layout = dict(
+            fixedrange=True,
+            autorange=True,
+            rangemode='normal',
+            title='Frequency (Log Scale)',
+            type='log'
+        )
+        xaxis_layout = dict(type='category')
+
     else:
-        train_uniques, train_uniques_counts = np.unique(dist, return_counts=True)
-        test_uniques, test_uniques_counts = np.unique(dist, return_counts=True)
-
         x_range = (
             min(dist.min(), dist.min()),
             max(dist.max(), dist.max())
         )
-        x_width = x_range[1] - x_range[0]
 
-        # If there are less than 20 total unique values, draw bar graph
-        train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
-        if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
-            traces, yaxis_layout = _create_distribution_bar_graphs(dist, dist, 20, show_categories_by,
-                                                                   dataset_names=dataset_names)
-            x_range = (x_range[0] - x_width * 0.2, x_range[1] + x_width * 0.2)
-            xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
-        else:
+        # Heuristically take points on x-axis to show on the plot
+        # The intuition is the graph will look "smooth" wherever we will zoom it
+        # Also takes mean and median values in order to plot it later accurately
+        xs = sorted(np.concatenate((
+            np.linspace(x_range[0], x_range[1], 50),
+            np.quantile(dist, q=np.arange(0.02, 1, 0.02))
+        )))
 
-            x_range_to_show = (
-                min(np.quantile(dist, quantile_cut), np.quantile(dist, quantile_cut)),
-                max(np.quantile(dist, 1 - quantile_cut), np.quantile(dist, 1 - quantile_cut))
-            )
-            # Heuristically take points on x-axis to show on the plot
-            # The intuition is the graph will look "smooth" wherever we will zoom it
-            # Also takes mean and median values in order to plot it later accurately
-            mean_train_column = np.mean(dist)
-            mean_test_column = np.mean(dist)
-            median_train_column = np.median(dist)
-            median_test_column = np.median(dist)
-            xs = sorted(np.concatenate((
-                np.linspace(x_range[0], x_range[1], 50),
-                np.quantile(dist, q=np.arange(0.02, 1, 0.02)),
-                [mean_train_column, mean_test_column, median_train_column, median_test_column]
-            )))
+        traces: List[go.BaseTraceType] = []
 
-            train_density = list(get_density(dist, xs))
+        # In order to plot the common and outliers parts of the graph in different colors, we need to separate them into
+        # different traces. We do it by creating a mask for each part and then using it to filter the data.
+        # However, for the graphs to start and end smoothly, we need to add a point in the beginning and end of the
+        # common part. Those duplicate points will be set to start or end each trace in 0.
+        all_arr = [1 if lower_limit <= x <= upper_limit else 0 for x in xs]
+        common_beginning = all_arr.index(1)
+        common_ending = len(all_arr) - 1 - all_arr[::-1].index(1)
 
-            traces: List[go.BaseTraceType] = []
+        show_lower_outliers = common_beginning != 0
+        show_upper_outliers = common_ending != len(xs) - 1
+        total_len = len(xs) + show_lower_outliers + show_upper_outliers
 
-            all_arr = [1 if lower_limit <= x <= upper_limit else 0 for x in xs]
-            common_beginning = all_arr.index(1)
-            common_ending = len(all_arr) - 1 - all_arr[::-1].index(1)
+        mask_common = np.zeros(total_len, dtype=bool)
+        mask_outliers_lower = np.zeros(total_len, dtype=bool)
+        mask_outliers_upper = np.zeros(total_len, dtype=bool)
 
-            show_lower_outliers = common_beginning != 0
-            show_upper_outliers = common_ending != len(xs) - 1
-            total_len = len(xs) + show_lower_outliers + show_upper_outliers
+        density = list(get_density(dist, xs))
 
-            mask_common = np.zeros(total_len, dtype=bool)
-            mask_outliers_lower = np.zeros(total_len, dtype=bool)
-            mask_outliers_upper = np.zeros(total_len, dtype=bool)
+        # If there are lower outliers, add a duplicate point to the beginning of the common part:
+        if common_beginning != 0:
+            xs.insert(common_beginning, xs[common_beginning])
+            density.insert(common_beginning, density[common_beginning])
+            mask_outliers_lower[:common_beginning + 1] = True
+            common_ending += 1
 
-            if common_beginning != 0:
-                xs.insert(common_beginning, xs[common_beginning])
-                train_density.insert(common_beginning, train_density[common_beginning])
-                mask_outliers_lower[:common_beginning + 1] = True
-                common_ending += 1
+        # If there are upper outliers, add a duplicate point to the end of the common part:
+        if common_ending != len(xs) - 1:
+            xs.insert(common_ending + 1, xs[common_ending])
+            density.insert(common_ending + 1, density[common_ending])
+            mask_outliers_upper[common_ending + 1:] = True
 
-            if common_ending != len(xs) - 1:
-                xs.insert(common_ending + 1, xs[common_ending])
-                train_density.insert(common_ending + 1, train_density[common_ending])
-                mask_outliers_upper[common_ending + 1:] = True
+        mask_common[common_beginning + show_lower_outliers:common_ending + show_upper_outliers] = True
 
-            mask_common[common_beginning + show_lower_outliers:common_ending + show_upper_outliers] = True
+        density_common = np.array(density) * mask_common
+        density_outliers_lower = np.array(density) * mask_outliers_lower
+        density_outliers_upper = np.array(density) * mask_outliers_upper
 
-            density_common = np.array(train_density) * mask_common
-            density_outliers_lower = np.array(train_density) * mask_outliers_lower
-            density_outliers_upper = np.array(train_density) * mask_outliers_upper
+        # Replace 0s with None so that they won't be plotted:
+        density_common = [x or None for x in density_common]
+        density_outliers_lower = [x or None for x in density_outliers_lower]
+        density_outliers_upper = [x or None for x in density_outliers_upper]
 
-            density_common = [x if x != 0 else None for x in density_common]
-            density_outliers_lower = [x if x != 0 else None for x in density_outliers_lower]
-            density_outliers_upper = [x if x != 0 else None for x in density_outliers_upper]
+        # Get samples and their quantiles for the hover data:
+        tuples = list(zip(dist, data))
+        tuples.sort(key=lambda x: x[0])
+        samples_indices = np.searchsorted([x[0] for x in tuples], xs, side="left")
+        samples = [tuples[i][1] for i in samples_indices]
+        samples = [break_to_lines_and_trim(s) for s in samples]
+        quantiles = [100 * i / len(dist) for i in samples_indices]
+        hover_data = np.array([samples, xs, quantiles]).T
+        hover_template = f'<b>{dist_name}</b>: ' \
+                         '%{customdata[1]:.2f}<br>' \
+                         '<b>Larger than</b> %{customdata[2]:.2f}% of samples<br>' \
+                         '<b>Sample</b>:<br>"%{customdata[0]}"<br>'
 
-            green = 'rgba(105, 179, 162, 1)'
-            red = 'rgba(179, 106, 106, 1)'
-            green_fill = 'rgba(105, 179, 162, 0.7)'
-            red_fill = 'rgba(179, 106, 106, 0.7)'
+        traces.append(go.Scatter(
+            x=xs, y=density_common, name='Common', fill='tozeroy', fillcolor=green_fill,
+            line=dict(color=green, shape='linear', width=5), customdata=hover_data, hovertemplate=hover_template
+        ))
+        traces.append(go.Scatter(
+            x=xs, y=density_outliers_lower, name='Lower Outliers', fill='tozeroy', fillcolor=red_fill,
+            line=dict(color=red, shape='linear', width=5), customdata=hover_data, hovertemplate=hover_template))
 
-            n = len(dist)
+        traces.append(go.Scatter(
+            x=xs, y=density_outliers_upper, name='Upper Outliers', fill='tozeroy', fillcolor=red_fill,
+            line=dict(color=red, shape='linear', width=5), customdata=hover_data, hovertemplate=hover_template))
 
-            tuples = list(zip(dist, data))
-            tuples.sort(key=lambda x: x[0])
-            samples_indices = np.searchsorted([x[0] for x in tuples], xs, side="left")
-            samples = [tuples[i][1] for i in samples_indices]
-            samples = [break_to_lines_and_trim(s) for s in samples]
-            quantiles = [100 * i / n for i in samples_indices]
-            quantiles_reversed = [100-x for x in quantiles]
-            hover_data = np.array([samples, xs, quantiles, quantiles_reversed]).T
-            hover_template = f'<b>{property_name}</b>: ' \
-                             '%{customdata[1]:.2f}<br>' \
-                             'Larger than %{customdata[2]:.2f}% of the samples<br>' \
-                             'Smaller than %{customdata[3]:.2f}% of the samples<br>' \
-                             '<b>Sample</b>:<br>"%{customdata[0]}"<br>'
-
-            traces.append(go.Scatter(x=xs, y=density_common, name='Common', fill='tozeroy', fillcolor=green_fill,
-                                     line=dict(color=green, shape='linear', width=5), customdata=hover_data,
-                                     hovertemplate=hover_template
-                                     ))
-            traces.append(
-                go.Scatter(x=xs, y=density_outliers_lower, name='Lower Outliers', fill='tozeroy', fillcolor=red_fill,
-                           line=dict(color=red, shape='linear', width=5), customdata=hover_data,
-                                     hovertemplate=hover_template))
-
-            traces.append(
-                go.Scatter(x=xs, y=density_outliers_upper, name='Upper Outliers', fill='tozeroy', fillcolor=red_fill,
-                           line=dict(color=red, shape='linear', width=5), customdata=hover_data,
-                                     hovertemplate=hover_template))
-
-            xaxis_layout = dict(fixedrange=False,
-                                range=x_range_to_show,
-                                title=property_name)
-            yaxis_layout = dict(title='Probability Density', fixedrange=True)
+        xaxis_layout = dict(fixedrange=False,
+                            title=dist_name)
+        yaxis_layout = dict(title='Probability Density', fixedrange=True)
 
     fig = go.Figure(data=traces)
     fig.update_xaxes(xaxis_layout)
     fig.update_yaxes(yaxis_layout)
+
+    if is_categorical: # Add vertical line to separate outliers from common values in bar charts:
+        fig.add_vline(x=OUTLIER_LINE_INDEX, line_width=2, line_dash="dash", line_color="black")
 
     fig.update_layout(
         legend=dict(
@@ -520,7 +561,7 @@ def get_property_outlier_graph(dist, data, lower_limit, upper_limit, property_na
             yanchor='top',
             y=0.6),
         height=400,
-        title=dict(text=property_name, x=0.5, xanchor='center'),
+        title=dict(text=dist_name, x=0.5, xanchor='center'),
         bargroupgap=0,
         hovermode='closest')
 

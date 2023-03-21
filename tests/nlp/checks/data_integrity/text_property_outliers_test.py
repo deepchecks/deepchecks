@@ -10,11 +10,10 @@
 #
 """Test for the NLP TextPropertyOutliers check"""
 
-from hamcrest import assert_that, close_to, equal_to, has_items
+from hamcrest import assert_that, close_to, equal_to, raises, calling
 
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.checks import TextPropertyOutliers
-from deepchecks.nlp.datasets.classification import tweet_emotion
-from tests.base.utils import equal_condition_result
 
 
 def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
@@ -23,14 +22,31 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     check = TextPropertyOutliers()
     # Act
     result = check.run(test)
-    # condition_result = check.conditions_decision(result)
 
     # Assert
-    # assert_that(condition_result, has_items(
-    #     equal_condition_result(is_pass=False,
-    #                            details="Found 1 out of 6 properties with PPS above threshold: {'sentiment': '0.11'}",
-    #                            name="Properties' Predictive Power Score is less than 0.1")
-    # ))
-
+    assert_that(len(result.value['sentiment']['indices']), equal_to(137))
     assert_that(result.value['sentiment']['lower_limit'], close_to(-0.72, 0.01))
+    assert_that(result.value['sentiment']['upper_limit'], close_to(0.74, 0.01))
+
+    assert_that(len(result.value['text_length']['indices']), equal_to(0))
     assert_that(result.value['text_length']['lower_limit'], equal_to(6))
+    assert_that(result.value['text_length']['upper_limit'], equal_to(160))
+
+    # Categorical property:
+    assert_that(len(result.value['language']['indices']), equal_to(55))
+    assert_that(result.value['language']['lower_limit'], close_to(0.007, 0.001))
+    assert_that(result.value['language']['upper_limit'], equal_to(None))
+
+    # Assert display
+    assert_that(len(result.display), equal_to(6))
+    assert_that(result.display[4], equal_to('<h5><b>Properties With No Outliers Found</h5></b>'))
+
+
+def test_not_enough_samples(tweet_emotion_train_test_textdata):
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    check = TextPropertyOutliers(min_samples=6000)
+
+    assert_that(calling(check.run).with_args(test),
+                raises(NotEnoughSamplesError, 'Need at least 6000 non-null samples to calculate outliers.'))
+

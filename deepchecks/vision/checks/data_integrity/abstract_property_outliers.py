@@ -55,16 +55,19 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
         For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
-    property_input_type: PropertiesInputType, default: PropertiesInputType.IMAGES
+    property_input_type : PropertiesInputType , default: PropertiesInputType.IMAGES
         The type of input to the properties, required for caching the results after first calculation.
     n_show_top : int , default: 3
         number of outliers to show from each direction (upper limit and bottom limit)
-    iqr_percentiles: Tuple[int, int], default: (25, 75)
+    iqr_percentiles : Tuple[int, int] , default: (25, 75)
         Two percentiles which define the IQR range
-    iqr_scale: float, default: 1.5
+    iqr_scale : float, default : 1.5
         The scale to multiply the IQR range for the outliers detection
-    draw_label_on_image: bool, default: True
+    draw_label_on_image : bool, default : True
         Whether to draw the label on the image displayed or not.
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate IQR. If there are not enough non-null samples a specific
+        property, the check will skip it. If all properties are skipped, the check will raise a NotEnoughSamplesError.
     """
 
     def __init__(self,
@@ -74,6 +77,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
                  draw_label_on_image: bool = True,
+                 min_samples: int = 10,
                  n_samples: t.Optional[int] = 10000,
                  **kwargs):
         super().__init__(**kwargs)
@@ -82,9 +86,11 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
         self.n_show_top = n_show_top
+        self.min_samples = min_samples
+        self.n_samples = n_samples
+
         self._draw_label_on_image = draw_label_on_image
         self._properties_results = None
-        self.n_samples = n_samples
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties state."""
@@ -121,15 +127,21 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         check_result = {}
         self._images_uuid = np.asarray(self._images_uuid)
 
+        if all(len(np.hstack(v).squeeze()) < self.min_samples for v in self._properties_results.values()):
+            raise NotEnoughSamplesError(f'Need at least {self.min_samples} non-null samples to calculate IQR outliers.')
+
         for name, values in self._properties_results.items():
             values_lengths_cumsum = np.cumsum(np.array([len(v) for v in values]))
-            values_arr = np.hstack(values).astype(float)
+            # values_arr = np.hstack(values).astype(float)
 
-            try:
-                lower_limit, upper_limit = iqr_outliers_range(values_arr, self.iqr_percentiles, self.iqr_scale)
-            except NotEnoughSamplesError:
+            values_arr = np.hstack(values).astype(float).squeeze()
+            values_arr = np.array([x for x in values_arr if pd.notnull(x)])
+
+            if len(values_arr) < self.min_samples:
                 check_result[name] = 'Not enough non-null samples to calculate outliers.'
                 continue
+
+            lower_limit, upper_limit = iqr_outliers_range(values_arr, self.iqr_percentiles, self.iqr_scale)
 
             outlier_values_idx = np.argwhere((values_arr < lower_limit) | (values_arr > upper_limit)).squeeze(axis=1)
             outlier_img_idx = np.unique([_sample_index_from_flatten_index(values_lengths_cumsum, outlier_index)
