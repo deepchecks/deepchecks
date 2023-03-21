@@ -10,6 +10,7 @@
 #
 """Module containing the text properties for the NLP module."""
 import string
+import time
 import warnings
 from typing import Dict, List, Optional, Sequence
 
@@ -20,15 +21,42 @@ from deepchecks.utils.function import run_available_kwargs
 __all__ = ['calculate_default_properties']
 
 
-def get_transformer_pipeline(model_name: str, device: Optional[str]):
+def property_import_error(property_name: str, package_name: str) -> ImportError:
+    """Raise an ImportError for a property that requires a package."""
+    return ImportError(
+        f'property {property_name} requires the {package_name} python package. '
+        f'To get it, run "pip install {package_name}".')
+
+
+def get_transformer_model(property_name: str, model_name: str, device: Optional[str] = None):
+    """Get the transformer model and decide if to use optimum.onnxruntime."""
+    if device is None or device == 'cpu':
+        try:
+            from optimum.onnxruntime import ORTModelForSequenceClassification  # pylint: disable=import-outside-toplevel
+        except ImportError as e:
+            error_message = f'The device was set to {device} while computing the {property_name} property, in which' \
+                            f' case deepchecks resorts to accelerating the inference using optimum. Either set the ' \
+                            f'device according to your hardware, or install the required libraries by running:\n' \
+                            f'pip install optimum onnx onnxruntime'
+            raise error_message from e
+
+        return ORTModelForSequenceClassification.from_pretrained(model_name, export=True)
+    else:
+        try:
+            from transformers import AutoModelForSequenceClassification  # pylint: disable=import-outside-toplevel
+        except ImportError as e:
+            raise property_import_error(property_name, 'transformers') from e
+        return AutoModelForSequenceClassification.from_pretrained(model_name)
+
+
+def get_transformer_pipeline(property_name: str, model_name: str, device: Optional[str] = None):
     """Return a transformers pipeline for the given model name."""
     try:
-        from transformers import (AutoModelForSequenceClassification,  # pylint: disable=import-outside-toplevel
-                                  AutoTokenizer, pipeline)  # pylint: disable=import-outside-toplevel
+        from transformers import AutoTokenizer, pipeline  # pylint: disable=import-outside-toplevel
     except ImportError as e:
-        raise property_import_error('text_toxicity', 'transformers') from e
+        raise property_import_error(property_name, 'transformers') from e
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name)
+    model = get_transformer_model(property_name, model_name, device)
     return pipeline('text-classification', model=model, tokenizer=tokenizer, device=device)
 
 
@@ -50,13 +78,6 @@ def average_word_length(raw_text: Sequence[str]) -> List[float]:
 def percentage_special_characters(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of percentage of special characters."""
     return [len([c for c in text if c in string.punctuation]) / len(text) for text in raw_text]
-
-
-def property_import_error(property_name: str, package_name: str) -> ImportError:
-    """Raise an ImportError for a property that requires a package."""
-    return ImportError(
-        f'property {property_name} requires the {package_name} python package. '
-        f'To get it, run "pip install {package_name}".')
 
 
 def language(raw_text: Sequence[str]) -> List[str]:
@@ -94,27 +115,39 @@ def subjectivity(raw_text: Sequence[str]) -> List[str]:
 def toxicity(raw_text: Sequence[str], device: Optional[int] = None) -> List[float]:
     """Return list of floats of toxicity."""
     model_name = 'unitary/toxic-bert'
-    classifier = get_transformer_pipeline(model_name, device=device)
+    classifier = get_transformer_pipeline('toxicity', model_name, device=device)
     return [x['score'] for x in classifier(raw_text)]
 
 
 def fluency(raw_text: Sequence[str], device: Optional[int] = None) -> List[float]:
     """Return list of floats of fluency."""
     model_name = 'prithivida/parrot_fluency_model'
-    classifier = get_transformer_pipeline(model_name, device=device)
+    classifier = get_transformer_pipeline('fluency', model_name, device=device)
     return [x['score'] if x['label'] == 'LABEL_1' else 1 - x['score'] for x in classifier(raw_text)]
 
 
+def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[float]:
+    """Return list of floats of formality."""
+    model_name = 's-nlp/roberta-base-formality-ranker'
+    classifier = get_transformer_pipeline('formality', model_name, device=device)
+    return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
+
+
 DEFAULT_PROPERTIES = [
-    {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
-    {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
-    {'name': 'percentage_special_characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
-    {'name': 'language', 'method': language, 'output_type': 'categorical'},
-    {'name': 'sentiment', 'method': sentiment, 'output_type': 'numeric'},
-    {'name': 'subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
-    {'name': 'toxicity', 'method': toxicity, 'output_type': 'numeric'},
-    {'name': 'fluency', 'method': fluency, 'output_type': 'numeric'},
+    {'name': 'Text Lengh', 'method': text_length, 'output_type': 'numeric'},
+    {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
+    {'name': '% Special Characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
+    {'name': 'Language', 'method': language, 'output_type': 'categorical'},
+    {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
+    {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
+    {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
+    {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
+    {'name': 'Formality', 'method': formality, 'output_type': 'numeric'}
 ]
+
+
+HEAVY_PROPERTIES = ['toxicity', 'fluency', 'formality']
+LARGE_SAMPLE_SIZE = 10_000
 
 
 def _get_default_properties(include_properties: List[str] = None, ignore_properties: List[str] = None):
@@ -159,6 +192,26 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
     """
     default_text_properties = _get_default_properties(include_properties=include_properties,
                                                       ignore_properties=ignore_properties)
+
+    # TODO: Avoid running english specific properties if the language is not english
+    heavy_properties = [prop['name'] for prop in default_text_properties if prop['name'] in HEAVY_PROPERTIES]
+    if heavy_properties and len(raw_text) > LARGE_SAMPLE_SIZE:
+        text_sample = raw_text[:10]
+        # time the run on a small sample
+        start_time = time.time()
+        calculate_default_properties(text_sample, include_properties=heavy_properties, device=device)
+        end_time = time.time()
+        time_per_sample = (end_time - start_time) / len(text_sample)
+        estimated_time = time_per_sample * len(raw_text)
+        # warn if the run will take a long time
+        warning_message = f'Calculating the properties {heavy_properties} on a large dataset may take a long time, ' \
+                          f'and is estimated to take {int(estimated_time)} seconds. Consider using a smaller sample' \
+                          f' size or running this code on appropriate hardware.'
+        if device is None or device == 'cpu':
+            warning_message += f' The device used is {device}. If any other device is available, consider using it' \
+                               f' instead.'
+
+        warnings.warn(warning_message, UserWarning)
 
     calculated_properties = {}
     for prop in default_text_properties:
