@@ -14,10 +14,9 @@ import os
 import typing as t
 import warnings
 
-import solara
 from IPython.display import display
 from ipywidgets import (HTML, Accordion, Box, Button, Checkbox, Dropdown, FloatText, IntProgress, Layout, Valid, VBox,
-                        Widget)
+                        Widget, Output)
 
 from deepchecks.core import DatasetKind
 from deepchecks.core import check_result as check_types
@@ -311,6 +310,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             return DataFrameSerializer(df.style.hide_index()).serialize()
 
     def prepare_fixes(self):
+        out = Output()
+
         # TODO: Change the if from getattr to isinstance, we left it like this because we had circular imports from
         # FixMixin import
         fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
@@ -318,7 +319,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         accordion_name = 'Fix Datasets'
         if len(fixable_check_results) == 0:
             accordion = normalize_widget_style(Accordion(
-                children=(HTML(value='<p>No fixes found.</p>'),),
+                children=(HTML(value='<p>No potential fixes found, this could be because:</p>'
+                                     '<p>1. All checks passed</p>'
+                                     '<p>2. Fix is not yet implemented current not passed checks</p>'),),
                 _titles={'0': accordion_name},
                 selected_index=None
             ))
@@ -347,6 +350,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
         # Iterate over all results, generate a checkbox for each result, and input widgets for its parameters for the
         # fix method
+
         for fixable_result in fixable_check_results:
             input_widget_boxes = []
             check, check_name = fixable_result.check, fixable_result.check.name()
@@ -412,11 +416,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 input_widget_boxes.append(param_input_box)
 
             # Place all input widgets in a vertical box
-            input_widgets_vbox = VBox(children=input_widget_boxes, layout=layout)
+            input_widgets_vbox = VBox(children=input_widget_boxes)#, layout=layout)
             # Box the check's checkbox and its input widgets
             check_and_inputs_boxes.append(Box([check_check_box, input_widgets_vbox]))
 
-        checks_vbox = VBox(children=check_and_inputs_boxes, layout=layout)
+        checks_vbox = VBox(children=check_and_inputs_boxes)#, layout=layout)
 
         def on_save_button_click(b):
             b.disabled = True
@@ -427,33 +431,41 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 min=0,
                 max=2,
                 step=1,
-                description='Saving:',
+                description='Saving...',
                 bar_style='success',
                 orientation='horizontal'
             )
-            display(p_bar)
-            self.value.context.train.data.to_csv('train.csv')
+            with out:
+                display(p_bar)
+            if self.value.context.train is not None:
+                self.value.context.train.data.to_csv('train.csv')
+                train_path = os.path.join(os.getcwd(), 'train.csv')
+
             p_bar.value += 1
-            self.value.context.test.data.to_csv('test.csv')
+            if self.value.context.test is not None:
+                self.value.context.test.data.to_csv('test.csv')
+                test_path = os.path.join(os.getcwd(), 'test.csv')
             p_bar.value += 1
             p_bar.close()
 
             b.description = 'Saved!'
 
-            train_path = os.path.join(os.getcwd(), 'train.csv')
-            test_path = os.path.join(os.getcwd(), 'test.csv')
-            display(Valid(
-                value=True,
-                description=train_path,
-                style={'description_width': 'initial'}
+            if self.value.context.train is not None:
+                with out:
+                    display(Valid(
+                        value=True,
+                        description=train_path,
+                        style={'description_width': 'initial'}
 
-            ))
-            display(Valid(
-                value=True,
-                description=test_path,
-                style={'description_width': 'initial'}
+                    ))
+            if self.value.context.test is not None:
+                with out:
+                    display(Valid(
+                        value=True,
+                        description=test_path,
+                        style={'description_width': 'initial'}
 
-            ))
+                    ))
 
         save_button = Button(
             description='Save datasets (CSV)',
@@ -462,8 +474,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             tooltip='Save as CSV',
             icon='download',  # (FontAwesome names without the `fa-` prefix)
             style={'description_width': 'initial'},
-            layout=layout
-        )
+            layout=layout)
         save_button.on_click(on_save_button_click)
 
         input_validation_errors = []
@@ -577,11 +588,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 value=True,
                 description='Done Fixing!',
             ))
-            # display(save_button)
-            if self.value.context.train is not None:
-                display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename='fixed_train.csv'))
-            if self.value.context.test is not None:
-                display(solara.FileDownload(data=self.value.context.test.data.to_csv(), filename='fixed_test.csv'))
+
+            if self.value.context.train is not None or self.value.context.test is not None:
+                with out:
+                    display(save_button)
 
             b.description = 'Fixed!'
             #display(HTML(value="""<img src="fireworks.gif" alt="Computer man" style="width:700px;height:300px;">"""))
@@ -611,10 +621,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             tooltip='Fix!',
             icon='wrench'
         )
+        with out:
+            display(fix_button)
         fix_button.on_click(on_fix_button_click)
 
         box = Box(children=[checks_vbox])
-        vbox = VBox(children=[box, fix_button])
+        vbox = VBox(children=[box, out])
         accordion = normalize_widget_style(Accordion(
             children=(VBox(children=[vbox]),),
             _titles={'0': accordion_name},
