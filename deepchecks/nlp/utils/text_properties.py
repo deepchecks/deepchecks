@@ -15,9 +15,21 @@ from typing import Dict, List, Optional, Sequence
 
 import numpy as np
 
+from deepchecks.utils.function import run_available_kwargs
+
 __all__ = ['calculate_default_properties']
 
-from deepchecks.utils.function import run_available_kwargs
+
+def get_transformer_pipeline(model_name: str, device: Optional[str]):
+    """Return a transformers pipeline for the given model name."""
+    try:
+        from transformers import (AutoModelForSequenceClassification,  # pylint: disable=import-outside-toplevel
+                                  AutoTokenizer, pipeline)  # pylint: disable=import-outside-toplevel
+    except ImportError as e:
+        raise property_import_error('text_toxicity', 'transformers') from e
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSequenceClassification.from_pretrained(model_name)
+    return pipeline('text-classification', model=model, tokenizer=tokenizer, device=device)
 
 
 def text_length(raw_text: Sequence[str]) -> List[int]:
@@ -79,18 +91,18 @@ def subjectivity(raw_text: Sequence[str]) -> List[str]:
     return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
 
 
-def text_toxicity(raw_text: Sequence[str], device: Optional[int] = None) -> List[float]:
+def toxicity(raw_text: Sequence[str], device: Optional[int] = None) -> List[float]:
     """Return list of floats of toxicity."""
-    try:
-        from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
-    except ImportError as e:
-        raise property_import_error("text_toxicity", "transformers") from e
+    model_name = 'unitary/toxic-bert'
+    classifier = get_transformer_pipeline(model_name, device=device)
+    return [x['score'] for x in classifier(raw_text)]
 
-    model_name = "unitary/toxic-bert"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name)
-    classifier = pipeline("text-classification", model=model, tokenizer=tokenizer, device=device)
-    return [classifier(text)[0]['score'] for text in raw_text]
+
+def fluency(raw_text: Sequence[str], device: Optional[int] = None) -> List[float]:
+    """Return list of floats of fluency."""
+    model_name = 'prithivida/parrot_fluency_model'
+    classifier = get_transformer_pipeline(model_name, device=device)
+    return [x['score'] if x['label'] == 'LABEL_1' else 1 - x['score'] for x in classifier(raw_text)]
 
 
 DEFAULT_PROPERTIES = [
@@ -100,7 +112,8 @@ DEFAULT_PROPERTIES = [
     {'name': 'language', 'method': language, 'output_type': 'categorical'},
     {'name': 'sentiment', 'method': sentiment, 'output_type': 'numeric'},
     {'name': 'subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
-    {'name': 'text_toxicity', 'method': text_toxicity, 'output_type': 'numeric'},
+    {'name': 'toxicity', 'method': toxicity, 'output_type': 'numeric'},
+    {'name': 'fluency', 'method': fluency, 'output_type': 'numeric'},
 ]
 
 
@@ -150,7 +163,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
     calculated_properties = {}
     for prop in default_text_properties:
         try:
-            res = run_available_kwargs(prop['method'], raw_text, device=device)
+            res = run_available_kwargs(prop['method'], raw_text=raw_text, device=device)
             calculated_properties[prop['name']] = res
         except ImportError as e:
             warnings.warn(f'Failed to calculate property {prop["name"]}. Error: {e}')
