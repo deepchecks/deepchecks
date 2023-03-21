@@ -416,11 +416,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 input_widget_boxes.append(param_input_box)
 
             # Place all input widgets in a vertical box
-            input_widgets_vbox = VBox(children=input_widget_boxes)#, layout=layout)
+            input_widgets_vbox = VBox(children=input_widget_boxes)
             # Box the check's checkbox and its input widgets
             check_and_inputs_boxes.append(Box([check_check_box, input_widgets_vbox]))
 
-        checks_vbox = VBox(children=check_and_inputs_boxes)#, layout=layout)
+        checks_vbox = VBox(children=check_and_inputs_boxes)
 
         def on_save_button_click(b):
             b.disabled = True
@@ -607,17 +607,24 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             tooltip='Fix!',
             icon='wrench'
         )
-        with out:
-            display(fix_button)
         fix_button.on_click(on_fix_button_click)
-
+        environment_error_message_widget = HTML(value='<H3>Environment Error</H3>'
+                                                      '<p>Current environment does not support interactive widgets,'
+                                                      'which makes Dataset Fixes unavailable.</p>')
+        #display(environment_error_message_widget)
         box = Box(children=[checks_vbox])
-        vbox = VBox(children=[box, out])
+        vbox = VBox(children=[out])
         accordion = normalize_widget_style(Accordion(
-            children=(VBox(children=[vbox]),),
+            children=(VBox(children=[vbox, environment_error_message_widget]),),
             _titles={'0': accordion_name},
             selected_index=None
         ))
+        def ondisplayed(accord):
+            with out:
+                environment_error_message_widget.close()
+                display(box)
+                display(fix_button)
+        accordion.on_displayed(ondisplayed)
         return VBox(children=(
             # by putting `section_anchor` before the results accordion
             # we create a gap between them`s, failures section does not have
