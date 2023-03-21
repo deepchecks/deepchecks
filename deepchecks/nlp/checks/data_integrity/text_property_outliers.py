@@ -98,7 +98,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
                 # Counting the frequency of each category. Normalizing because distribution graph shows the percentage.
                 counts_map = pd.Series(values_arr.astype(str)).value_counts(normalize=True).to_dict()
                 lower_limit = sharp_drop_outliers_range(sorted(list(counts_map.values()), reverse=True),
-                                                        self.sharp_drop_size)
+                                                        self.sharp_drop_size) or 0
                 upper_limit = len(values_arr)  # No upper limit for categorical properties
                 values_arr = np.array([counts_map[x] for x in values_arr])  # replace the values with the counts
 

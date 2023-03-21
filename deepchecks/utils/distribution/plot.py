@@ -397,11 +397,8 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
     green_fill = common_and_outlier_colors['common_fill']
     red_fill = common_and_outlier_colors['outliers_fill']
 
-    is_categorical = is_categorical or np.unique(dist).size < MAX_NUMERICAL_UNIQUE_FOR_BARS
-
     if is_categorical:
         dist_counts = pd.Series(dist).value_counts(normalize=True).to_dict()
-
         counts = list(dist_counts.values())
         categories_list = list(dist_counts.keys())
 
