@@ -69,7 +69,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ipywidgets.VBox
         """
         # Need this in order to create kernel see https://github.com/jupyter-widgets/ipywidgets/issues/3729
-        import ipykernel.ipkernel  # pylint: disable=unused-import,import-outside-toplevel
+        import ipykernel.ipkernel  # pylint: disable=unused-import,import-outside-toplevel # noqa: F401
 
         passed_checks = self.value.get_passed_checks()
         not_passed_checks = self.value.get_not_passed_checks()
