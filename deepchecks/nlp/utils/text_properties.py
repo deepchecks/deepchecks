@@ -194,18 +194,20 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
                                                       ignore_properties=ignore_properties)
 
     # TODO: Avoid running english specific properties if the language is not english
-    heavy_properties = [prop['name'] for prop in default_text_properties if prop['name'] in HEAVY_PROPERTIES]
+    heavy_properties = [prop for prop in default_text_properties if prop['name'] in HEAVY_PROPERTIES]
     if heavy_properties and len(raw_text) > LARGE_SAMPLE_SIZE:
         text_sample = raw_text[:20]
         # time the run on a small sample
         start_time = time.time()
         for prop in heavy_properties:
-            run_available_kwargs(prop['method'], raw_text=raw_text, device=device)
+            run_available_kwargs(prop['method'], raw_text=text_sample, device=device)
         end_time = time.time()
         time_per_sample = (end_time - start_time) / len(text_sample)
         estimated_time = time_per_sample * len(raw_text)
+
         # warn if the run will take a long time
-        warning_message = f'Calculating the properties {heavy_properties} on a large dataset may take a long time, ' \
+        h_property_names = [prop['name'] for prop in heavy_properties]
+        warning_message = f'Calculating the properties {h_property_names} on a large dataset may take a long time, ' \
                           f'and is estimated to take {int(estimated_time)} seconds. Consider using a smaller sample' \
                           f' size or running this code on appropriate hardware.'
         if device is None or device == 'cpu':
