@@ -44,4 +44,7 @@ class DataFrameSerializer(WidgetSerializer[DataFrameOrStyler]):
 
     def serialize(self, **kwargs) -> HTML:
         """Serialize pandas.DataFrame instance into ipywidgets.Widget instance."""
+        # Need this in order to create kernel see https://github.com/jupyter-widgets/ipywidgets/issues/3729
+        import ipykernel.ipkernel  # pylint: disable=unused-import,import-outside-toplevel
+
         return HTML(value=self._html_serializer.serialize())
