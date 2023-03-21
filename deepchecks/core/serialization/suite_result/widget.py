@@ -489,7 +489,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                         style={'description_width': 'initial'},
                     )
                     input_validation_errors.append(invalid_widget)
-                    display(invalid_widget)
+                    with out:
+                        display(invalid_widget)
                     return False
 
             if 'max_value' in param_dict:
@@ -501,7 +502,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                         style={'description_width': 'initial'},
                     )
                     input_validation_errors.append(invalid_widget)
-                    display(invalid_widget)
+                    with out:
+                        display(invalid_widget)
                     return False
             return True
 
@@ -518,7 +520,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             if self.value.context.train is not None:
                 ds = self.value.context.train
                 old_train_ds = ds.copy(ds.data.copy())
-
+            with out:
+                for input_validation_widget in input_validation_errors:
+                    input_validation_widget.close()
+            is_input_valid = True
             for result, checkbox in test_result_to_checkbox.items():
                 if checkbox.value:
                     check_name = result.check.name() + ' - Test Dataset'
@@ -526,9 +531,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
                     for param_name, param_widget in input_widgets[check_name].items():
                         if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
-                            b.disabled = False
-                            b.description = 'Fix'
-                            return
+                            is_input_valid = False
                         check_name_to_params[check_name][param_name] = param_widget.value
                     check_name_to_params[check_name].update({'dataset_kind': DatasetKind.TEST})
                     check_name_to_result[check_name] = result
@@ -539,9 +542,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
                     for param_name, param_widget in input_widgets[check_name].items():
                         if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
-                            b.disabled = False
-                            b.description = 'Fix'
-                            return
+                            is_input_valid = False
                         check_name_to_params[check_name][param_name] = param_widget.value
                     check_name_to_params[check_name].update({'dataset_kind': DatasetKind.TEST})
                     check_name_to_result[check_name] = result
@@ -552,13 +553,17 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
                     for param_name, param_widget in input_widgets[check_name].items():
                         if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
-                            b.disabled = False
-                            b.description = 'Fix'
-                            return
+                            is_input_valid = False
                         check_name_to_params[check_name][param_name] = param_widget.value
                     check_name_to_result[check_name] = result
-            for input_validation_widget in input_validation_errors:
-                input_validation_widget.close()
+            if not is_input_valid:
+                b.disabled = False
+                b.description = 'Fix'
+                return
+            else:
+                with out:
+                    for input_validation_widget in input_validation_errors:
+                        input_validation_widget.close()
             p_bar = IntProgress(
                 value=0,
                 min=0,
@@ -569,7 +574,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 orientation='horizontal',
                 style={'description_width': 'initial'}
             )
-            display(p_bar)
+            with out:
+                display(p_bar)
             current_index = 1
             for check_name, input_params in check_name_to_params.items():
                 for result in self.value.results:
@@ -583,37 +589,17 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                         current_index += 1
                         break
             p_bar.close()
-
-            display(Valid(
-                value=True,
-                description='Done Fixing!',
-            ))
+            with out:
+                display(Valid(
+                    value=True,
+                    description='Done Fixing!',
+                ))
 
             if self.value.context.train is not None or self.value.context.test is not None:
                 with out:
                     display(save_button)
 
             b.description = 'Fixed!'
-            #display(HTML(value="""<img src="fireworks.gif" alt="Computer man" style="width:700px;height:300px;">"""))
-            calculating = HTML(value=f"""<h3>Calculating Performance Change</h3>""")
-            display(calculating)
-            from deepchecks.core.evaluation_utils import evaluate_change_in_performance
-            output = evaluate_change_in_performance(old_train_ds=old_train_ds, old_test_ds=old_test_ds,
-                                           new_train_ds=self.value.context.train, new_test_ds=self.value.context.test,
-                                           task_type=self.value.context.task_type)
-            if output < 0:
-                display(Valid(
-                    value=False,
-                    description='Fixing did not improve performance!',
-                    style={'description_width': 'initial'},
-                ))
-            else:
-                display(Valid(
-                    value=True,
-                    description=f'Fixing improved performance by {100*output:.0f}%!',
-                    style={'description_width': 'initial'},
-                ))
-            calculating.close()
         fix_button = Button(
             description='Fix!',
             disabled=False,
