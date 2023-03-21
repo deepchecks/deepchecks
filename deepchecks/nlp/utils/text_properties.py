@@ -134,7 +134,7 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
 
 
 DEFAULT_PROPERTIES = [
-    {'name': 'Text Lengh', 'method': text_length, 'output_type': 'numeric'},
+    {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
     {'name': '% Special Characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
     {'name': 'Language', 'method': language, 'output_type': 'categorical'},
@@ -146,7 +146,7 @@ DEFAULT_PROPERTIES = [
 ]
 
 
-HEAVY_PROPERTIES = ['toxicity', 'fluency', 'formality']
+HEAVY_PROPERTIES = ['Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
 
 
