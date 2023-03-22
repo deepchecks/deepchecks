@@ -108,7 +108,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 output_id=output_id,
                 **kwargs
             ),
-            self.prepare_fixes()
+            #self.prepare_fixes()
         ]
 
         content = VBox(children=[
@@ -622,20 +622,26 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             selected_index=None
         ))
 
-        # This is done because if the user runs the suite in environment that does not support the widgets,
-        # this function will not be called because python code will not run in such environment (such as iframe),
-        # and therefore environment_error_message_widget will not be closed, and the user will see the error message.
-        def on_accord_display(accord):
-            accordion.unobserve(on_accord_display)
+        # # This is done because if the user runs the suite in environment that does not support the widgets,
+        # # this function will not be called because python code will not run in such environment (such as iframe),
+        # # and therefore environment_error_message_widget will not be closed, and the user will see the error message.
+        # def on_accord_display(accord):
+        #     accordion.unobserve(on_accord_display)
+        #     with out:
+        #         display(box)
+        #         display(fix_button)
+        #         environment_error_message_widget.close()
+        # # We use observe and not on_display because there's a race condition between the display of the accordion
+        # # and the closing of environment_error_message_widget.
+        # # Function from observe will be called when a user interacts with the accordion.
+        # accordion.observe(on_accord_display)
+        #
+        def ondisplay(accord):
             with out:
                 display(box)
                 display(fix_button)
                 environment_error_message_widget.close()
-        # We use observe and not on_display because there's a race condition between the display of the accordion
-        # and the closing of environment_error_message_widget.
-        # Function from observe will be called when a user interacts with the accordion.
-        accordion.observe(on_accord_display)
-
+        accordion.on_displayed(ondisplay)
         return VBox(children=(
             # by putting `section_anchor` before the results accordion
             # we create a gap between them`s, failures section does not have
