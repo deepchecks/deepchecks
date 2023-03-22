@@ -512,14 +512,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             b.description = 'Fixing...'
             check_name_to_params = {}
             check_name_to_result = {}
-            old_test_ds = None
-            old_train_ds = None
-            if self.value.context.test is not None:
-                ds = self.value.context.test
-                old_test_ds = ds.copy(ds.data.copy())
-            if self.value.context.train is not None:
-                ds = self.value.context.train
-                old_train_ds = ds.copy(ds.data.copy())
             with out:
                 for input_validation_widget in input_validation_errors:
                     input_validation_widget.close()
@@ -609,9 +601,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )
         fix_button.on_click(on_fix_button_click)
 
-        environment_error_message_widget = HTML(value="<h3>Environment Error</h3><p>Failed to load environment,"
-                                                      " Fixes feature is not available in environments that "
-                                                      "don't support interactive widgets.</p>")
+        environment_error_message_widget = HTML(value='<h3>Environment Error</h3><p>Failed to load environment,'
+                                                      ' Fixes feature is not available in environments that '
+                                                      'don\'t support interactive widgets.</p>')
         box = Box(children=[checks_vbox])
         vbox = VBox(children=[out])
 

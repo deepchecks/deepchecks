@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Callable, Dict, List, Union, Tuple
 
 import numpy as np
 import pandas as pd
-from imblearn.over_sampling import SMOTENC
+#from imblearn.over_sampling import SMOTENC
 
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
@@ -230,6 +230,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract, SingleDat
                     additional_samples.index = [f'duplicate_{i}' for i in range(new_i, new_i + len(additional_samples))]
                     new_i += len(additional_samples)
                 elif oversample_by.lower() == 'smote':
+                    #TODO: Add SMOTE support python3.6
+                    pass
                     # SMOTENC requires a label, we'll give the label as whether the sample is from the weak segment
                     # or not:
                     irrelevant_samples = data[~data.index.isin(relevant_samples.index)]
@@ -247,11 +249,11 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract, SingleDat
                     cat_indexes_for_smote = [data_to_smote.columns.get_loc(cat_feature) for cat_feature in
                                              cat_features_for_smote]
 
-                    smote = SMOTENC(categorical_features=cat_indexes_for_smote, random_state=self.random_state,
-                                    sampling_strategy={0: n_samples_for_smote})
-                    additional_samples = smote.fit_resample(data_to_smote, label_to_smote)[0][-n_samples_to_add:]
-                    additional_samples.index = [f'generated_{i}' for i in
-                                                range(new_i, new_i + n_samples_to_add)]
+                    # smote = SMOTENC(categorical_features=cat_indexes_for_smote, random_state=self.random_state,
+                    #                 sampling_strategy={0: n_samples_for_smote})
+                    # additional_samples = smote.fit_resample(data_to_smote, label_to_smote)[0][-n_samples_to_add:]
+                    # additional_samples.index = [f'generated_{i}' for i in
+                    #                             range(new_i, new_i + n_samples_to_add)]
                     new_i += n_samples_to_add
 
             data = pd.concat([data, additional_samples])

@@ -14,7 +14,7 @@ from copy import copy
 
 import numpy as np
 import pandas as pd
-from imblearn.over_sampling import SMOTENC
+#from imblearn.over_sampling import SMOTENC
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
@@ -315,16 +315,17 @@ class MultivariateDrift(TrainTestCheck, TrainTestCheckFixMixin):
                                 np.random.choice(train_samples_in_node, n_samples_to_add, replace=True))
                             train_data = train_data.append(train_data.loc[duplicate_indices_to_add])
                         elif use_smote is True and n_samples_to_add > 0 and len(train_samples_in_node) > k_neighbors:
-                            sm = SMOTENC(categorical_features=cat_indexes_for_smote,
-                                         sampling_strategy={0: n_samples_to_add + len(train_samples_in_node)},
-                                         k_neighbors=k_neighbors, random_state=self.random_state)
-                            x_sm, y_sm = sm.fit_resample(all_data.loc[samples_in_node], y.loc[samples_in_node])
-                            new_index = [f'generated_{i}' for i in
-                                         range(next_generated_i, next_generated_i + n_samples_to_add)]
-                            next_generated_i += n_samples_to_add
-                            data_to_add = x_sm[y_sm == 0][-n_samples_to_add:]
-                            data_to_add.index = new_index
-                            train_data = train_data.append(data_to_add)
+                            pass
+                            # sm = SMOTENC(categorical_features=cat_indexes_for_smote,
+                            #              sampling_strategy={0: n_samples_to_add + len(train_samples_in_node)},
+                            #              k_neighbors=k_neighbors, random_state=self.random_state)
+                            # x_sm, y_sm = sm.fit_resample(all_data.loc[samples_in_node], y.loc[samples_in_node])
+                            # new_index = [f'generated_{i}' for i in
+                            #              range(next_generated_i, next_generated_i + n_samples_to_add)]
+                            # next_generated_i += n_samples_to_add
+                            # data_to_add = x_sm[y_sm == 0][-n_samples_to_add:]
+                            # data_to_add.index = new_index
+                            # train_data = train_data.append(data_to_add)
 
             # Separate the label:
             if train_label is not None:
