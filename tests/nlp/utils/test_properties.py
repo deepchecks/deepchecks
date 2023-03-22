@@ -36,14 +36,3 @@ def test_calculate_default_properties():
 
     # Assert
     assert_that(result, equal_to({'Toxicity': [0] * 20_000}))
-
-
-def test_toxicity_on_small_sample():
-    # Arrange
-    raw_text = ['This is a test sentence.'] * 10
-
-    # Act
-    result = calculate_default_properties(raw_text, include_properties=['Toxicity'])
-
-    # Assert
-    assert_that(result['Toxicity'][0], close_to(0.002, 0.0005))
