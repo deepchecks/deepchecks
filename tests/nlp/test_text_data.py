@@ -14,7 +14,7 @@ from hamcrest import assert_that, calling, raises, equal_to, contains_exactly
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text_properties import HEAVY_PROPERTIES
+from deepchecks.nlp.utils.text_properties import LONG_RUN_PROPERTIES
 
 
 def test_text_data_init():
@@ -142,7 +142,8 @@ def test_properties(text_classification_dataset_mock):
 
     # Act & Assert
     assert_that(dataset._properties, equal_to(None))  # pylint: disable=protected-access
-    dataset.calculate_default_properties(ignore_properties=['topic'] + HEAVY_PROPERTIES)
+    # TODO: Create test for the heavy properties
+    dataset.calculate_default_properties(ignore_properties=['topic'] + LONG_RUN_PROPERTIES)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
     assert_that(properties.shape[1], equal_to(6))
