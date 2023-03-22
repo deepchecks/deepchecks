@@ -321,7 +321,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         out = Output()
 
         # TODO: Change the if from getattr to isinstance, we left it like this because we had circular imports from
-        # FixMixin import
+        # "FixMixin" import
         fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
                                  if getattr(check_result.check, 'fix', None) is not None]
         accordion_name = 'Fix Datasets'
@@ -492,8 +492,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 if value < param_dict['min_value']:
                     invalid_widget = Valid(
                         value=False,
-                        description=current_check_name + ' - ' + param_dict['display'] + ' must be greater than ' +
-                                    str(param_dict['min_value']),
+                        description=current_check_name + ' - ' + param_dict['display'] + ' must be greater than ' + str
+                        (param_dict['min_value']),
                         style={'description_width': 'initial'},
                     )
                     input_validation_errors.append(invalid_widget)
@@ -505,8 +505,8 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 if value > param_dict['max_value']:
                     invalid_widget = Valid(
                         value=False,
-                        description=current_check_name + ' - ' + param_dict['display'] + ' must be less than ' +
-                                    str(param_dict['max_value']),
+                        description=current_check_name + ' - ' + param_dict['display'] + ' must be less than ' + str
+                        (param_dict['max_value']),
                         style={'description_width': 'initial'},
                     )
                     input_validation_errors.append(invalid_widget)
@@ -600,6 +600,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                     display(save_button)
 
             b.description = 'Fixed!'
+
         fix_button = Button(
             description='Fix!',
             disabled=False,
@@ -630,6 +631,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 display(box)
                 display(fix_button)
                 environment_error_message_widget.close()
+
         # We use observe and not on_display because there's a race condition between the display of the accordion
         # and the closing of environment_error_message_widget.
         # Function from observe will be called when a user interacts with the accordion.
