@@ -75,6 +75,8 @@ class TextData:
         The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
         using the default properties. If a DataFrame is given, it must contain the properties for each sample as the raw
         text and identical index.
+    device : str, default: None
+        The device to use to calculate the text properties.
     """
 
     _text: t.Sequence[str]
@@ -97,6 +99,7 @@ class TextData:
             index: t.Optional[t.Sequence[t.Any]] = None,
             metadata: t.Optional[pd.DataFrame] = None,
             properties: t.Optional[t.Union[pd.DataFrame, str]] = None,
+            device: t.Optional[str] = None
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -156,7 +159,7 @@ class TextData:
 
         if properties is not None:
             if isinstance(properties, str) and properties == 'auto':
-                self.calculate_default_properties()
+                self.calculate_default_properties(device=device)
             else:
                 self.set_properties(properties)
 
