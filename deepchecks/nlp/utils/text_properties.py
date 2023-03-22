@@ -29,7 +29,9 @@ def property_import_error(property_name: str, package_name: str) -> ImportError:
 
 
 def get_transformer_model(property_name: str, model_name: str, device: Optional[str] = None):
-    """Get the transformer model and decide if to use optimum.onnxruntime."""
+    """Get the transformer model and decide if to use optimum.onnxruntime.
+    
+    optimum.onnxruntime is used to optimize running times on CPU."""
     if device is None or device == 'cpu':
         try:
             from optimum.onnxruntime import ORTModelForSequenceClassification  # pylint: disable=import-outside-toplevel
