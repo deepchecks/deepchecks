@@ -455,16 +455,16 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                     display(Valid(
                         value=True,
                         description=train_path,
-                        style={'description_width': 'initial'}
-
+                        style={'description_width': 'initial'},
+                        layout=layout
                     ))
             if self.value.context.test is not None:
                 with out:
                     display(Valid(
                         value=True,
                         description=test_path,
-                        style={'description_width': 'initial'}
-
+                        style={'description_width': 'initial'},
+                        layout=layout
                     ))
 
         save_button = Button(
@@ -610,7 +610,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         fix_button.on_click(on_fix_button_click)
 
         environment_error_message_widget = HTML(value="<h3>Environment Error</h3><p>Failed to load environment,"
-                                                      " please check your environment and try again.</p>")
+                                                      " please check your environment and try again.<br>"
+                                                      "Fixes feature is not available in environments that "
+                                                      "don't support interactive widgets.</p>")
         box = Box(children=[checks_vbox])
         vbox = VBox(children=[out])
 
