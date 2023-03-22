@@ -45,7 +45,4 @@ protobuf>=3.12.0,<4.0dev  # wandb does not work if version is higer that 4.0
 beautifulsoup4>=4.11.1
 
 # NLP
-nltk<=3.6.7
-datasets
-langdetect
-textblob
+-r nlp-prop-requirements.txt

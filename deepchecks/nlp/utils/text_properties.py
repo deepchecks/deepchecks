@@ -25,7 +25,8 @@ def property_import_error(property_name: str, package_name: str) -> ImportError:
     """Raise an ImportError for a property that requires a package."""
     return ImportError(
         f'property {property_name} requires the {package_name} python package. '
-        f'To get it, run "pip install {package_name}".')
+        f'To get it, run "pip install {package_name}". You may install the dependencies for all text properties '
+        f'by running "pip install deepchecks[nlp-properties]"')
 
 
 def get_transformer_model(property_name: str, model_name: str, device: Optional[str] = None):
@@ -38,8 +39,8 @@ def get_transformer_model(property_name: str, model_name: str, device: Optional[
         except ImportError as e:
             error_message = f'The device was set to {device} while computing the {property_name} property, in which' \
                             f' case deepchecks resorts to accelerating the inference using optimum. Either set the ' \
-                            f'device according to your hardware, or install the required libraries by running:\n' \
-                            f'pip install optimum onnx onnxruntime'
+                            f'device according to your hardware, or install the dependencies for all text properties ' \
+                            f'by running "pip install deepchecks[nlp-properties]"'
             raise error_message from e
 
         return ORTModelForSequenceClassification.from_pretrained(model_name, export=True)
