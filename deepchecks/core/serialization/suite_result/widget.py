@@ -311,7 +311,13 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             )
             return DataFrameSerializer(df.style.hide_index()).serialize()
 
-    def prepare_fixes(self):
+    def prepare_fixes(self) -> Widget:
+        """Prepare fixes section.
+
+        Returns
+        -------
+        ipywidgets.Widget
+        """
         out = Output()
 
         # TODO: Change the if from getattr to isinstance, we left it like this because we had circular imports from
@@ -348,7 +354,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         test_result_to_checkbox = {}
         train_test_result_to_checkbox = {}
 
-        input_widgets = dict(dict())
+        input_widgets = dict({})
 
         # Iterate over all results, generate a checkbox for each result, and input widgets for its parameters for the
         # fix method
