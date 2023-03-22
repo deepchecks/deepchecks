@@ -10,7 +10,6 @@
 #
 """Module containing the text properties for the NLP module."""
 import string
-import time
 import warnings
 from typing import Dict, List, Optional, Sequence
 
@@ -31,8 +30,9 @@ def property_import_error(property_name: str, package_name: str) -> ImportError:
 
 def get_transformer_model(property_name: str, model_name: str, device: Optional[str] = None):
     """Get the transformer model and decide if to use optimum.onnxruntime.
-    
-    optimum.onnxruntime is used to optimize running times on CPU."""
+
+    optimum.onnxruntime is used to optimize running times on CPU.
+    """
     if device is None or device == 'cpu':
         try:
             from optimum.onnxruntime import ORTModelForSequenceClassification  # pylint: disable=import-outside-toplevel
@@ -204,7 +204,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
         warning_message = f'Calculating the properties {h_property_names} on a large dataset may take a long time.' \
                           f' Consider using a smaller sample size or running this code on better hardware.'
         if device is None or device == 'cpu':
-            warning_message += f' Consider using a GPU or a similar device to run these properties.'
+            warning_message += ' Consider using a GPU or a similar device to run these properties.'
 
         warnings.warn(warning_message, UserWarning)
 

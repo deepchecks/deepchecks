@@ -10,7 +10,7 @@
 #
 """Test for the properties module"""
 import pytest
-from hamcrest import assert_that, close_to
+from hamcrest import assert_that, close_to, equal_to
 from unittest.mock import patch
 
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
