@@ -320,8 +320,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         """
         out = Output()
 
-        # TODO: Change the if from getattr to isinstance, we left it like this because we had circular imports from
-        # "FixMixin" import
+        # TODO: Change the if from getattr to isinstance, we left it like this because we had circular imports
         fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
                                  if getattr(check_result.check, 'fix', None) is not None]
         accordion_name = 'Fix Datasets'
