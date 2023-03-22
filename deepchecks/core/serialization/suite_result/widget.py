@@ -15,8 +15,8 @@ import typing as t
 import warnings
 
 from IPython.display import display
-from ipywidgets import (HTML, Accordion, Box, Button, Checkbox, Dropdown, FloatText, IntProgress, Layout, Valid, VBox,
-                        Widget, Output)
+from ipywidgets import (HTML, Accordion, Box, Button, Checkbox, Dropdown, FloatText, IntProgress, Layout, Output, Valid,
+                        VBox, Widget)
 
 from deepchecks.core import DatasetKind
 from deepchecks.core import check_result as check_types
@@ -30,6 +30,7 @@ from deepchecks.core.serialization.common import (aggregate_conditions, create_f
                                                   normalize_widget_style)
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 from deepchecks.utils.strings import get_random_string
+
 from . import html
 
 __all__ = ['SuiteResultSerializer']
