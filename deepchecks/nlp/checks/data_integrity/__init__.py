@@ -11,5 +11,6 @@
 """Module importing all nlp checks."""
 
 from .property_label_correlation import PropertyLabelCorrelation
+from .text_property_outliers import TextPropertyOutliers
 
-__all__ = ['PropertyLabelCorrelation']
+__all__ = ['PropertyLabelCorrelation', 'TextPropertyOutliers']

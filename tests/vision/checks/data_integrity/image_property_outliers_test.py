@@ -15,7 +15,7 @@ from hamcrest import (all_of, any_of, assert_that, calling, close_to, equal_to, 
 from hamcrest.core.matcher import Matcher
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks.core.errors import DeepchecksProcessError, NotEnoughSamplesError
 from deepchecks.vision.checks import ImagePropertyOutliers
 from deepchecks.vision.utils.image_properties import default_image_properties
 
@@ -116,13 +116,10 @@ def test_run_on_custom_task(mnist_train_custom_task):
 def test_not_enough_samples_for_iqr(mnist_train_very_small):
     # Arrange
     check = ImagePropertyOutliers()
-    # Act
-    result = check.run(mnist_train_very_small)
+
     # Assert
-    assert_that(result, is_correct_image_property_outliers_result())
-    assert_that(result.value, has_entries({
-        'Brightness': equal_to('Not enough non-null samples to calculate outliers.')
-    }))
+    assert_that(calling(check.run).with_args(mnist_train_very_small),
+                raises(NotEnoughSamplesError, 'Need at least 10 non-null samples to calculate IQR outliers.'))
 
 
 def test_string_property_exception(mnist_visiondata_train):
