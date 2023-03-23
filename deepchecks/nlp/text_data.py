@@ -354,6 +354,8 @@ class TextData:
             cat_features = infer_categorical_features(metadata)
             metadata_types = {metadata.columns[i]: 'categorical' if metadata.columns[i] in cat_features else 'numeric'
                               for i in range(len(metadata.columns))}
+        elif sorted(list(metadata_types.keys())) != sorted(list(metadata.columns)):
+            raise DeepchecksValueError('metadata_types keys must identical to metadata columns')
         self._metadata_types = metadata_types
 
     def calculate_default_properties(self, include_properties: t.List[str] = None,
@@ -379,12 +381,15 @@ class TextData:
             raise DeepchecksValueError('properties index must be the same as the text data index')
         self._properties = properties
 
-        if properties_types is None:  # TODO: Add tests
+        if properties_types is None:
             # TODO: move infer_categorical_features to core
             cat_features = infer_categorical_features(properties)
             properties_types = {
                 properties.columns[i]: 'categorical' if properties.columns[i] in cat_features else 'numeric'
                 for i in range(len(properties.columns))}
+        elif sorted(list(properties_types.keys())) != sorted(list(properties.columns)):
+            raise DeepchecksValueError('properties_types keys must identical to properties columns')
+
         self._properties_types = properties_types
 
     @property

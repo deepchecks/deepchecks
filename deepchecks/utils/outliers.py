@@ -49,7 +49,7 @@ def iqr_outliers_range(data: np.ndarray,
     return low_lim, up_lim
 
 
-def sharp_drop_outliers_range(data_percents: Sequence, sharp_drop: float = 0.9,
+def sharp_drop_outliers_range(data_percents: Sequence, sharp_drop_ratio: float = 0.9,
                               max_outlier_percentage: float = 0.05) -> Union[float, None]:
     """Calculate outliers range on the data given using sharp drop.
 
@@ -58,7 +58,7 @@ def sharp_drop_outliers_range(data_percents: Sequence, sharp_drop: float = 0.9,
     data_percents : np.ndarray
         Counts of data to calculate outliers range for. The data is assumed to be sorted from the most common to the
         least common.
-    sharp_drop : float , default 0.9
+    sharp_drop_ratio : float , default 0.9
         The sharp drop threshold to use for the outliers detection.
     max_outlier_percentage : float , default 0.05
         The maximum percentage of data that can be considered as "outliers".
@@ -69,7 +69,7 @@ def sharp_drop_outliers_range(data_percents: Sequence, sharp_drop: float = 0.9,
     for i in range(len(data_percents) - 1):
         if sum(data_percents[:i+1]) < 1 - max_outlier_percentage:
             continue
-        if 1 - (data_percents[i + 1] / data_percents[i]) >= sharp_drop:
+        if 1 - (data_percents[i + 1] / data_percents[i]) >= sharp_drop_ratio:
             return data_percents[i + 1]
     else:
         return None

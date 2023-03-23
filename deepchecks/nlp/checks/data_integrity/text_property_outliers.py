@@ -39,7 +39,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
         Two percentiles which define the IQR range
     iqr_scale : float , default : 1.5
         The scale to multiply the IQR range for the outliers detection
-    sharp_drop_size : float, default : 0.9
+    sharp_drop_ratio : float, default : 0.9
         The size of the sharp drop to detect categorical outliers
     min_samples : int , default : 10
         Minimum number of samples required to calculate IQR. If there are not enough non-null samples a specific
@@ -50,13 +50,13 @@ class TextPropertyOutliers(SingleDatasetCheck):
                  n_show_top: int = 5,
                  iqr_percentiles: t.Tuple[int, int] = (25, 75),
                  iqr_scale: float = 1.5,
-                 sharp_drop_size: float = 0.9,
+                 sharp_drop_ratio: float = 0.9,
                  min_samples: int = 10,
                  **kwargs):
         super().__init__(**kwargs)
         self.iqr_percentiles = iqr_percentiles
         self.iqr_scale = iqr_scale
-        self.sharp_drop_size = sharp_drop_size
+        self.sharp_drop_ratio = sharp_drop_ratio
         self.n_show_top = n_show_top
         self.min_samples = min_samples
 
@@ -98,7 +98,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
                 # Counting the frequency of each category. Normalizing because distribution graph shows the percentage.
                 counts_map = pd.Series(values_arr.astype(str)).value_counts(normalize=True).to_dict()
                 lower_limit = sharp_drop_outliers_range(sorted(list(counts_map.values()), reverse=True),
-                                                        self.sharp_drop_size) or 0
+                                                        self.sharp_drop_ratio) or 0
                 upper_limit = len(values_arr)  # No upper limit for categorical properties
                 values_arr = np.array([counts_map[x] for x in values_arr])  # replace the values with the counts
 

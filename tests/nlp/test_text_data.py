@@ -147,7 +147,7 @@ def test_properties(text_classification_dataset_mock):
     assert_that(properties.shape[1], equal_to(7))
     assert_that(properties.columns,
                 contains_exactly('text_length',  'average_word_length', 'percentage_special_characters',
-                                 'max_word_length', 'language', 'sentiment', 'subjectivity'))
+                                 'Max Word Length', 'language', 'sentiment', 'subjectivity'))
     assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 0.0, 9, 'en', 0.0, 0.0))
 
 
@@ -172,6 +172,12 @@ def test_set_metadata(text_classification_dataset_mock):
     dataset.set_metadata(metadata, metadata_types={'first': 'numeric', 'second': 'numeric'})
     assert_that(dataset.metadata_types, equal_to({'first': 'numeric', 'second': 'numeric'}))
 
+    dataset._metadata = None
+    dataset._metadata_types = None
+
+    assert_that(calling(dataset.set_metadata).with_args(metadata, metadata_types={'first': 'numeric'}),
+                raises(DeepchecksValueError, 'metadata_types keys must identical to metadata columns'))
+
 
 def test_set_properties(text_classification_dataset_mock):
     # Arrange
@@ -187,8 +193,14 @@ def test_set_properties(text_classification_dataset_mock):
     assert_that((dataset.properties != properties).sum().sum(), equal_to(0))
 
     dataset._properties = None
-    dataset._metadata_types = None
+    dataset._properties_types = None
 
     dataset.set_properties(properties, properties_types={'text_length': 'numeric', 'average_word_length': 'numeric'})
     assert_that(dataset.properties_types, equal_to({'text_length': 'numeric', 'average_word_length': 'numeric'}))
+
+    dataset._properties = None
+    dataset._properties_types = None
+
+    assert_that(calling(dataset.set_properties).with_args(properties, properties_types={'text_length': 'numeric'}),
+                raises(DeepchecksValueError, 'properties_types keys must identical to properties columns'))
 

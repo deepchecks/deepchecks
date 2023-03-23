@@ -86,7 +86,7 @@ DEFAULT_PROPERTIES = [
     {'name': 'text_length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'average_word_length', 'method': average_word_length, 'output_type': 'numeric'},
     {'name': 'percentage_special_characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
-    {'name': 'Max Word Lengh', 'method': max_word_length, 'output_type': 'numeric'},
+    {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
     {'name': 'language', 'method': language, 'output_type': 'categorical'},
     {'name': 'sentiment', 'method': sentiment, 'output_type': 'numeric'},
     {'name': 'subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
