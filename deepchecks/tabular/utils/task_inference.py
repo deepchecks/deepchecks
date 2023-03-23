@@ -16,7 +16,7 @@ import pandas as pd
 from pandas._libs.lib import infer_dtype
 
 from deepchecks.core.errors import ValidationError
-from deepchecks.core.utils.type_inference import is_categorical
+from deepchecks.utils.type_inference import is_categorical
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.array_math import sequence_to_numpy
 from deepchecks.utils.logger import get_logger
