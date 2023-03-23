@@ -17,9 +17,9 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
+from deepchecks.core.utils.type_inference import infer_categorical_features
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
-from deepchecks.core.utils.type_inference import infer_categorical_features
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.validation import is_sequence_not_str
 

@@ -9,4 +9,4 @@
 # ----------------------------------------------------------------------------
 #
 
-"""utils for core package and common utils for all subpackages"""
+"""utils for core package and common utils for all subpackages."""
