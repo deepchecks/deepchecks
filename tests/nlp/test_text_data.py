@@ -148,9 +148,9 @@ def test_properties(text_classification_dataset_mock):
     assert_that(properties.shape[0], equal_to(3))
     assert_that(properties.shape[1], equal_to(7))
     assert_that(properties.columns,
-                contains_exactly('Text Length', 'Average Word Length', '% Special Characters', 'Max Word Length', 'Language',
-                                 'Sentiment', 'Subjectivity', 'language', 'sentiment', 'subjectivity'))
-    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 0.0, 9, 'en', 0.0, 0.0))
+                contains_exactly('Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters',
+                                 'Language', 'Sentiment', 'Subjectivity'))
+    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 'en', 0.0, 0.0))
 
 
 def test_set_metadata(text_classification_dataset_mock):
@@ -205,4 +205,3 @@ def test_set_properties(text_classification_dataset_mock):
 
     assert_that(calling(dataset.set_properties).with_args(properties, properties_types={'text_length': 'numeric'}),
                 raises(DeepchecksValueError, 'properties_types keys must identical to properties columns'))
-
