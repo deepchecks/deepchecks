@@ -192,13 +192,18 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
         The text to calculate the properties for.
     include_properties : List[str], default None
         The properties to calculate. If None, all default properties will be calculated. Cannot be used together
-        with ignore_properties parameter.
+        with ignore_properties parameter. Available properties are:
+        ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
+        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
+        Note that the properties ['Toxicity', 'Fluency', 'Formality'] may take a long time to calculate. If
+        include_long_calculation_properties is False, these properties will be ignored, even if they are in the
+        include_properties parameter.
     ignore_properties : List[str], default None
         The properties to ignore. If None, no properties will be ignored. Cannot be used together with
         properties parameter.
     include_long_calculation_properties : bool, default False
         Whether to include properties that may take a long time to calculate. If False, these properties will be
-        ignored.
+        ignored, even if they are in the include_properties parameter.
     device : int, default None
         The device to use for the calculation. If None, the default device will be used.
 
