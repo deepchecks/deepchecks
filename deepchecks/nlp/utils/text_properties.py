@@ -11,7 +11,7 @@
 """Module containing the text properties for the NLP module."""
 import string
 import warnings
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -83,6 +83,11 @@ def percentage_special_characters(raw_text: Sequence[str]) -> List[float]:
     return [len([c for c in text if c in string.punctuation]) / len(text) for text in raw_text]
 
 
+def max_word_length(raw_text: Sequence[str]) -> List[int]:
+    """Return list of integers of max word length."""
+    return [max([len(word) for word in text.split()]) for text in raw_text]
+
+
 def language(raw_text: Sequence[str]) -> List[str]:
     """Return list of strings of language."""
     try:
@@ -139,6 +144,7 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
 DEFAULT_PROPERTIES = [
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
+    {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
     {'name': '% Special Characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
     {'name': 'Language', 'method': language, 'output_type': 'categorical'},
     {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
@@ -177,7 +183,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
                                  ignore_properties: Optional[List[str]] = None,
                                  include_long_calculation_properties: Optional[bool] = False,
                                  device: Optional[str] = None
-                                 ) -> Dict[str, List[float]]:
+                                 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Return list of dictionaries of text properties.
 
     Parameters
@@ -200,6 +206,8 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
     -------
     Dict[str, List[float]]
         A dictionary with the property name as key and a list of the property values for each text as value.
+    Dict[str, str]
+        A dictionary with the property name as key and the property's type as value.
     """
     default_text_properties = _get_default_properties(include_properties=include_properties,
                                                       ignore_properties=ignore_properties)
@@ -227,4 +235,6 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 
-    return calculated_properties
+    properties_types = {prop['name']: prop['output_type'] for prop in default_text_properties}  # TODO: Add tests
+
+    return calculated_properties, properties_types
