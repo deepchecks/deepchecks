@@ -212,13 +212,13 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
     default_text_properties = _get_default_properties(include_properties=include_properties,
                                                       ignore_properties=ignore_properties)
 
-    heavy_properties = [prop for prop in default_text_properties if prop['name'] in LONG_RUN_PROPERTIES]
     if not include_long_calculation_properties:
-        default_text_properties = [prop for prop in default_text_properties if prop['name'] not in heavy_properties]
+        default_text_properties = [prop for prop in default_text_properties if prop['name'] not in LONG_RUN_PROPERTIES]
     else:  # Check if the run may take a long time and warn
+        heavy_properties = [prop for prop in default_text_properties if prop['name'] in LONG_RUN_PROPERTIES]
         if heavy_properties and len(raw_text) > LARGE_SAMPLE_SIZE:
             h_property_names = [prop['name'] for prop in heavy_properties]
-            warning_message = f'Calculating the properties {h_property_names} on a large dataset may take a long time.' \
+            warning_message = f'Calculating the properties {h_property_names} on a large dataset may take a long time.'\
                               f' Consider using a smaller sample size or running this code on better hardware.'
             if device is None or device == 'cpu':
                 warning_message += ' Consider using a GPU or a similar device to run these properties.'

@@ -24,22 +24,22 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     result = check.run(test)
 
     # Assert
-    assert_that(len(result.value['sentiment']['indices']), equal_to(137))
-    assert_that(result.value['sentiment']['lower_limit'], close_to(-0.72, 0.01))
-    assert_that(result.value['sentiment']['upper_limit'], close_to(0.74, 0.01))
+    assert_that(len(result.value['Sentiment']['indices']), equal_to(137))
+    assert_that(result.value['Sentiment']['lower_limit'], close_to(-0.72, 0.01))
+    assert_that(result.value['Sentiment']['upper_limit'], close_to(0.74, 0.01))
 
-    assert_that(len(result.value['text_length']['indices']), equal_to(0))
-    assert_that(result.value['text_length']['lower_limit'], equal_to(6))
-    assert_that(result.value['text_length']['upper_limit'], equal_to(160))
+    assert_that(len(result.value['Text Length']['indices']), equal_to(0))
+    assert_that(result.value['Text Length']['lower_limit'], equal_to(6))
+    assert_that(result.value['Text Length']['upper_limit'], equal_to(160))
 
     # Categorical property:
-    assert_that(len(result.value['language']['indices']), equal_to(55))
-    assert_that(result.value['language']['lower_limit'], close_to(0.007, 0.001))
-    assert_that(result.value['language']['upper_limit'], equal_to(None))
+    assert_that(len(result.value['Language']['indices']), equal_to(55))
+    assert_that(result.value['Language']['lower_limit'], close_to(0.007, 0.001))
+    assert_that(result.value['Language']['upper_limit'], equal_to(None))
 
     # Assert display
-    assert_that(len(result.display), equal_to(6))
-    assert_that(result.display[4], equal_to('<h5><b>Properties With No Outliers Found</h5></b>'))
+    assert_that(len(result.display), equal_to(9))
+    assert_that(result.display[7], equal_to('<h5><b>Properties With No Outliers Found</h5></b>'))
 
 
 def test_not_enough_samples(tweet_emotion_train_test_textdata):
