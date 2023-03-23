@@ -70,10 +70,6 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
         self._warn_n_top_columns(features.shape[1])
 
-        # # TODO: Don't use cat_features but enable user to give their own datatype / use properties known types.
-        # # This is here because Dataset object writes a warning if categorical features are not given
-        # cat_features = infer_categorical_features(features)
-
         predictions = context.model.predict(text_data)
         if not hasattr(context.model, 'predict_proba'):
             raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'

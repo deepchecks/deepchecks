@@ -417,8 +417,8 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
                             pd.DataFrame({dist_name: [None]}, index=[outlier_line_index]),
                             cat_df.iloc[outliers_first_index:]])
 
+        # Get samples and their frequency for the hover data:
         tuples = list(zip(dist, data))
-
         tuples.sort(key=lambda x: x[0])
         samples_indices = np.searchsorted([x[0] for x in tuples], cat_df.index, side='left')
         samples = [tuples[i][1] for i in samples_indices]
@@ -511,7 +511,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
         density_outliers_lower = np.array(density) * mask_outliers_lower
         density_outliers_upper = np.array(density) * mask_outliers_upper
 
-        # Replace zeros with None so that they won't be plotted:
+        # Replace zeros (meaning, non-related values from the mask) with None so that they won't be plotted:
         density_common = [x or None for x in density_common]
         density_outliers_lower = [x or None for x in density_outliers_lower]
         density_outliers_upper = [x or None for x in density_outliers_upper]
