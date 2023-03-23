@@ -17,7 +17,7 @@ import pandas as pd
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp import Context, SingleDatasetCheck
-from deepchecks.utils.distribution.plot import get_text_outliers_graph
+from deepchecks.nlp.utils.nlp_plot import get_text_outliers_graph
 from deepchecks.utils.outliers import iqr_outliers_range, sharp_drop_outliers_range
 
 __all__ = ['TextPropertyOutliers']

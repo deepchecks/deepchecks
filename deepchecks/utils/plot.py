@@ -18,7 +18,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from deepchecks.utils.strings import format_number_if_not_nan
 
 __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map',
-           'create_confusion_matrix_figure', 'colors', 'hex_to_rgba', 'DEFAULT_DATASET_NAMES']
+           'create_confusion_matrix_figure', 'colors', 'common_and_outlier_colors',
+           'hex_to_rgba', 'DEFAULT_DATASET_NAMES']
 
 DEFAULT_DATASET_NAMES = ('Train', 'Test')
 
