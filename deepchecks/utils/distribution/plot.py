@@ -11,7 +11,7 @@
 """A module containing utils for plotting distributions."""
 from functools import cmp_to_key
 from numbers import Number
-from typing import Any, Dict, List, Sequence, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -21,10 +21,9 @@ from scipy.stats import gaussian_kde
 from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text_utils import break_to_lines_and_trim
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors, common_and_outlier_colors
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 
 __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density', 'CategoriesSortingKind']
 
