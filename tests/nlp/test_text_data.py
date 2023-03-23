@@ -166,14 +166,14 @@ def test_set_metadata(text_classification_dataset_mock):
     assert_that((dataset.metadata != metadata).sum().sum(), equal_to(0))
     assert_that(dataset.metadata_types, equal_to({'first': 'categorical', 'second': 'categorical'}))
 
-    dataset._metadata = None
-    dataset._metadata_types = None
+    dataset._metadata = None  # pylint: disable=protected-access
+    dataset._metadata_types = None  # pylint: disable=protected-access
 
     dataset.set_metadata(metadata, metadata_types={'first': 'numeric', 'second': 'numeric'})
     assert_that(dataset.metadata_types, equal_to({'first': 'numeric', 'second': 'numeric'}))
 
-    dataset._metadata = None
-    dataset._metadata_types = None
+    dataset._metadata = None  # pylint: disable=protected-access
+    dataset._metadata_types = None  # pylint: disable=protected-access
 
     assert_that(calling(dataset.set_metadata).with_args(metadata, metadata_types={'first': 'numeric'}),
                 raises(DeepchecksValueError, 'metadata_types keys must identical to metadata columns'))
@@ -192,14 +192,14 @@ def test_set_properties(text_classification_dataset_mock):
     # Assert
     assert_that((dataset.properties != properties).sum().sum(), equal_to(0))
 
-    dataset._properties = None
-    dataset._properties_types = None
+    dataset._properties = None  # pylint: disable=protected-access
+    dataset._properties_types = None  # pylint: disable=protected-access
 
     dataset.set_properties(properties, properties_types={'text_length': 'numeric', 'average_word_length': 'numeric'})
     assert_that(dataset.properties_types, equal_to({'text_length': 'numeric', 'average_word_length': 'numeric'}))
 
-    dataset._properties = None
-    dataset._properties_types = None
+    dataset._properties = None  # pylint: disable=protected-access
+    dataset._properties_types = None  # pylint: disable=protected-access
 
     assert_that(calling(dataset.set_properties).with_args(properties, properties_types={'text_length': 'numeric'}),
                 raises(DeepchecksValueError, 'properties_types keys must identical to properties columns'))
