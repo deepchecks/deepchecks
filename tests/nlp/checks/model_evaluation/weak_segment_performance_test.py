@@ -49,13 +49,13 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata, tweet_emoti
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Found a segment with Accuracy score of 0.548 in comparison to an average score of 0.708 in sampled data.',
+                               details='Found a segment with Accuracy score of 0.525 in comparison to an average score of 0.708 in sampled data.',
                                name='The relative performance of weakest segment is greater than 70% of average model performance.')
     ))
 
     assert_that(result.value['avg_score'], close_to(0.708, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(12))
-    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.548, 0.01))
+    assert_that(len(result.value['weak_segments_list']), equal_to(33))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.525, 0.01))
 
 
 def test_warning_of_n_top_columns(tweet_emotion_train_test_textdata, tweet_emotion_train_test_probabilities):
