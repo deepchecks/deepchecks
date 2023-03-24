@@ -362,13 +362,31 @@ class TextData:
         self._metadata_types = metadata_types
 
     def calculate_default_properties(self, include_properties: t.List[str] = None,
-                                     ignore_properties: t.List[str] = None, device: t.Optional[str] = None):
-        """Calculate the default properties of the dataset."""
+                                     ignore_properties: t.List[str] = None,
+                                     include_long_calculation_properties: t.Optional[bool] = False,
+                                     device: t.Optional[str] = None):
+        """Calculate the default properties of the dataset.
+
+        Parameters
+        ----------
+        include_properties : List[str], default None
+            The properties to calculate. If None, all default properties will be calculated. Cannot be used together
+            with ignore_properties parameter.
+        ignore_properties : List[str], default None
+            The properties to ignore. If None, no properties will be ignored. Cannot be used together with
+            properties parameter.
+        include_long_calculation_properties : bool, default False
+            Whether to include properties that may take a long time to calculate. If False, these properties will be
+            ignored.
+        device : int, default None
+            The device to use for the calculation. If None, the default device will be used.
+        """
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        properties, properties_types = calculate_default_properties(self.text, include_properties=include_properties,
-                                                                    ignore_properties=ignore_properties, device=device)
+        properties, properties_types = calculate_default_properties(
+            self.text, include_properties=include_properties, ignore_properties=ignore_properties,
+            include_long_calculation_properties=include_long_calculation_properties, device=device)
         self._properties = pd.DataFrame(properties, index=self.index)
         self._properties_types = properties_types
 

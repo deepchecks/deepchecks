@@ -32,7 +32,8 @@ def test_calculate_default_properties():
     # Act
     with pytest.warns(UserWarning,
                       match=match_text):
-        result = calculate_default_properties(raw_text, include_properties=['Toxicity'])[0]
+        result = calculate_default_properties(raw_text, include_properties=['Toxicity'],
+                                              include_long_calculation_properties=True)[0]
 
     # Assert
     assert_that(result, equal_to({'Toxicity': [0] * 20_000}))
