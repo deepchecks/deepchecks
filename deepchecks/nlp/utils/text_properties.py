@@ -193,7 +193,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
         ignore_properties : List[str], default None
             The properties to ignore. If None, no properties will be ignored. Cannot be used together with
             properties parameter.
-        device : int, default None
+        device : str, default None
             The device to use for the calculation. If None, the default device will be used.
 
     Returns:

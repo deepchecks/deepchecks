@@ -29,7 +29,7 @@ from deepchecks.nlp import TextData
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
 _FULL_DATA_URL = 'https://figshare.com/ndownloader/files/39486889'
-_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39264332'
+_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39729283'
 _PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39460924'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
@@ -37,6 +37,37 @@ ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet
 _target = 'label'
 
 _LABEL_MAP = {0: 'anger', 1: 'happiness', 2: 'optimism', 3: 'sadness'}
+
+
+def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
+    """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
+
+    Parameters
+    ----------
+    as_train_test : bool, default: True
+        If True, the returned data is split into train and test exactly like the toy model
+        was trained. The first return value is the train data and the second is the test data.
+        In order to get this model, call the load_fitted_model() function.
+        Otherwise, returns a single object.
+
+    Returns
+    -------
+    embeddings : np.ndarray
+        Embeddings for the tweet_emotion dataset.
+    """
+    # return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
+    if (ASSETS_DIR / 'tweet_emotion_embeddings.csv').exists():
+        embeddings = pd.read_csv(ASSETS_DIR / 'tweet_emotion_embeddings.csv', index_col=0)
+    else:
+        embeddings = pd.read_csv(_EMBEDDINGS_URL, index_col='index')
+        embeddings.to_csv(ASSETS_DIR / 'tweet_emotion_embeddings.csv')
+
+    if as_train_test:
+        train = embeddings[embeddings['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
+        test = embeddings[embeddings['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
+        return train, test
+    else:
+        return embeddings.drop(columns=['train_test_split']).sort_index()
 
 
 def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
@@ -70,7 +101,7 @@ def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
 
 
 def load_data(data_format: str = 'TextData', as_train_test: bool = True,
-              include_properties: bool = True) -> \
+              include_embeddings: bool = False, include_properties: bool = True) -> \
         t.Union[t.Tuple, t.Union[TextData, pd.DataFrame]]:
     """Load and returns the Tweet Emotion dataset (classification).
 
@@ -87,6 +118,8 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         Otherwise, returns a single object.
     include_properties : bool, default: True
         If True, the returned data will include the properties of the tweets. Incompatible with data_format='DataFrame'
+    include_embeddings : bool, default: True
+        If True, the returned data will include the embeddings of the tweets. Incompatible with data_format='DataFrame'
 
     Returns
     -------
@@ -108,13 +141,11 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
     if not as_train_test:
         dataset.drop(columns=['train_test_split'], inplace=True)
         if data_format.lower() == 'textdata':
-            if include_properties:
-                properties = load_properties(as_train_test=False)
-            else:
-                properties = None
+            properties = load_properties(as_train_test=False) if include_properties else None
+            embeddings = load_embeddings(as_train_test=False) if include_embeddings else None
             dataset = TextData(dataset.text, label=dataset[_target], task_type='text_classification',
                                metadata=dataset.drop(columns=[_target, 'text']),
-                               properties=properties, index=dataset.index)
+                               embeddings=embeddings, properties=properties, index=dataset.index)
         return dataset
     else:
         # train has more sport and Customer Complains but less Terror and Optimism
@@ -122,29 +153,16 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         test = dataset[dataset['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
 
         if data_format.lower() == 'textdata':
-            if include_properties:
-                train_properties, test_properties = load_properties(as_train_test=True)
-            else:
-                train_properties, test_properties = None, None
+            train_props, test_props = load_properties(as_train_test=True) if include_properties else (None, None)
+            train_embeds, test_embeds = load_embeddings(as_train_test=True) if include_embeddings else (None, None)
 
             train = TextData(train.text, label=train[_target], task_type='text_classification',
                              index=train.index, metadata=train.drop(columns=[_target, 'text']),
-                             properties=train_properties)
+                             embeddings=train_embeds, properties=train_props)
             test = TextData(test.text, label=test[_target], task_type='text_classification',
                             index=test.index, metadata=test.drop(columns=[_target, 'text']),
-                            properties=test_properties)
+                            embeddings=test_embeds, properties=test_props)
         return train, test
-
-
-def load_embeddings() -> np.ndarray:
-    """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
-
-    Returns
-    -------
-    embeddings : np.ndarray
-        Embeddings for the tweet_emotion dataset.
-    """
-    return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
 
 
 def load_precalculated_predictions(pred_format: str = 'predictions') -> np.array:

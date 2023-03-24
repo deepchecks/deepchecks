@@ -153,6 +153,16 @@ def test_properties(text_classification_dataset_mock):
     assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 'en', 0.0, 0.0))
 
 
+def test_set_embeddings(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    embeddings = pd.DataFrame({'0': [1, 2, 3], '1': [4, 5, 6]})
+    assert_that(dataset._embeddings, equal_to(None))  # pylint: disable=protected-access
+
+    dataset.set_embeddings(embeddings)
+    assert_that((dataset.embeddings != embeddings).sum().sum(), equal_to(0))
+
+
 def test_set_metadata(text_classification_dataset_mock):
     # Arrange
     dataset = text_classification_dataset_mock

@@ -18,6 +18,7 @@ import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.type_inference import infer_categorical_features
@@ -69,6 +70,10 @@ class TextData:
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
     index : t.Optional[t.Sequence[int]] , default: None
         The index of the samples. If None, the index is set to np.arange(len(raw_text)).
+    embeddings : t.Optional[Union[pd.DataFrame, str]] , default: None
+        The text embeddings for the samples (1 embeddings per sample). If None, no embeddings are set. If 'auto', the
+        embeddings are calculated using the default embeddings. If a DataFrame is given, it must contain the embeddings
+        for each sample as the raw text and identical index.
     metadata : t.Optional[pd.DataFrame] , default: None
         Metadata for the samples. If None, no metadata is set. If a DataFrame is given, it must contain
         the same number of samples as the raw_text and identical index.
@@ -87,6 +92,7 @@ class TextData:
     _has_label: bool
     _is_multilabel: bool = False
     name: t.Optional[str] = None
+    _embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None
     _metadata: t.Optional[pd.DataFrame] = None
     _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
 
@@ -98,6 +104,7 @@ class TextData:
             task_type: t.Optional[str] = None,
             dataset_name: t.Optional[str] = None,
             index: t.Optional[t.Sequence[t.Any]] = None,
+            embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None,
             metadata: t.Optional[pd.DataFrame] = None,
             properties: t.Optional[t.Union[pd.DataFrame, str]] = None,
             device: t.Optional[str] = None
@@ -154,6 +161,14 @@ class TextData:
                 raise DeepchecksNotSupportedError(f'dataset_name type {type(dataset_name)} is not supported, must be a'
                                                   f' str')
         self.name = dataset_name
+
+        if embeddings is not None:
+            if isinstance(embeddings, str) and embeddings == 'auto':
+                self.calculate_default_embeddings(device=device)
+            else:
+                self.set_embeddings(embeddings)
+        else:
+            self._embeddings = None
 
         if metadata is not None:
             self.set_metadata(metadata)
@@ -332,6 +347,32 @@ class TextData:
         return len(self._text)
 
     @property
+    def embeddings(self) -> pd.DataFrame:
+        """Return the metadata of for the dataset."""
+        return self._embeddings
+
+    def calculate_default_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.csv',
+                                     device: t.Optional[str] = None):
+        """Calculate the default properties of the dataset."""
+        if self._embeddings is not None:
+            warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        self._embeddings = calculate_default_embeddings(text=self.text, index=self.index, model=model,
+                                                        file_path=file_path, device=device)
+
+    def set_embeddings(self, embeddings: pd.DataFrame):
+        """Set the metadata of the dataset."""
+        if self._embeddings is not None:
+            warnings.warn('Embeddings already exist, overwriting it', UserWarning)
+
+        if not isinstance(embeddings, pd.DataFrame):
+            raise DeepchecksValueError(f'embeddings type {type(embeddings)} is not supported, must be a'
+                                       f' pandas DataFrame')
+        if self.index != list(embeddings.index):
+            raise DeepchecksValueError('embeddings index must be the same as the text data index')
+        self._embeddings = embeddings
+
+    @property
     def metadata(self) -> pd.DataFrame:
         """Return the metadata of for the dataset."""
         return self._metadata
@@ -353,7 +394,7 @@ class TextData:
             raise DeepchecksValueError('metadata index must be the same as the text data index')
         self._metadata = metadata
 
-        if metadata_types is None:  # TODO: Add tests
+        if metadata_types is None:
             cat_features = infer_categorical_features(metadata)
             metadata_types = {metadata.columns[i]: 'categorical' if metadata.columns[i] in cat_features else 'numeric'
                               for i in range(len(metadata.columns))}
@@ -385,7 +426,6 @@ class TextData:
         self._properties = properties
 
         if properties_types is None:
-            # TODO: move infer_categorical_features to core
             cat_features = infer_categorical_features(properties)
             properties_types = {
                 properties.columns[i]: 'categorical' if properties.columns[i] in cat_features else 'numeric'

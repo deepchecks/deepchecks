@@ -10,8 +10,8 @@
 #
 """Utils package for nlp functionality."""
 
-from deepchecks.nlp.utils.embeddings_calculator import calculate_embeddings_for_text
+from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 
 __all__ = [
-    'calculate_embeddings_for_text',
+    'calculate_default_embeddings',
 ]
