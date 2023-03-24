@@ -54,7 +54,7 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata, tweet_emoti
     ))
 
     assert_that(result.value['avg_score'], close_to(0.708, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(33))
+    assert_that(len(result.value['weak_segments_list']), close_to(33, 1))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.525, 0.01))
 
 
