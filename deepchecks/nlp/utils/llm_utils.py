@@ -8,8 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils module for calculating embeddings for text."""
-from typing import Optional, Sequence, List
+"""Utils module for calculating embeddings or completion for text."""
+from typing import List, Optional, Sequence
 
 import pandas as pd
 from tqdm import tqdm
@@ -76,7 +76,7 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
     return embeddings
 
 
-def call_open_ai_completion_api(inputs, max_tokens=200, batch_size=20,  # open ai api limits to 20 requests per call
+def call_open_ai_completion_api(inputs: Sequence[str], max_tokens=200, batch_size=20,  # open ai api limits to 20 requests per call
                                 model: str = 'text-davinci-003', temperature: float = 0.5) -> List[str]:
     """
     Call the open ai completion api with the given inputs batch by batch.
