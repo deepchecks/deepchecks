@@ -184,7 +184,8 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
                                  ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Return list of dictionaries of text properties.
 
-    Params:
+    Parameters
+    ----------
         raw_text : Sequence[str]
             The text to calculate the properties for.
         include_properties : List[str], default None
@@ -196,7 +197,8 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
         device : str, default None
             The device to use for the calculation. If None, the default device will be used.
 
-    Returns:
+    Returns
+    -------
         Dict[str, List[float]]
             A dictionary with the property name as key and a list of the property values for each text as value.
         Dict[str, str]
