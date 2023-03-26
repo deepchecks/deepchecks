@@ -162,19 +162,26 @@ class Context(TabularContext):
 
     Parameters
     ----------
-    train: Union[Dataset, pd.DataFrame, None] , default: None
-        Dataset or DataFrame object, representing data an estimator was fitted on
-    test: Union[Dataset, pd.DataFrame, None] , default: None
-        Dataset or DataFrame object, representing data an estimator predicts on
-    model: Optional[BasicModel] , default: None
-        A scikit-learn-compatible fitted estimator instance
-    {additional_context_params:indent}
+    train: RecDataset , default: None
+        RecDataset object (dataset object for recommendation systems), representing data an estimator was fitted on
+    test: RecDataset , default: None
+        RecDataset object (dataset object for recommendation systems), representing data an estimator was fitted on
+    feature_importance: pd.Series , default: None
+        pass manual features importance
+    feature_importance_force_permutation : bool , default: False
+        force calculation of permutation features importance
+    feature_importance_timeout : int , default: 120
+        timeout in second for the permutation features importance calculation
+    y_pred_train: Optional[np.ndarray] , default: None
+        Array of the model prediction over the train dataset.
+    y_pred_test: Optional[np.ndarray] , default: None
+        Array of the model prediction over the test dataset.
     """
 
     def __init__(
         self,
-        train: t.Union[Dataset, pd.DataFrame, None] = None,
-        test: t.Union[Dataset, pd.DataFrame, None] = None,
+        train: RecDataset = None,
+        test: RecDataset = None,
         item_dataset: t.Optional[ItemDataset] = None,
         feature_importance: t.Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
