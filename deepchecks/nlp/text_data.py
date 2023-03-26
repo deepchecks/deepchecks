@@ -77,10 +77,14 @@ class TextData:
     metadata : t.Optional[pd.DataFrame] , default: None
         Metadata for the samples. If None, no metadata is set. If a DataFrame is given, it must contain
         the same number of samples as the raw_text and identical index.
+    metadata_types : t.Optional[Dict[str, str]] , default: None
+        The types of the metadata columns. If None, the types are inferred from the metadata.
     properties : t.Optional[Union[pd.DataFrame, str]] , default: None
         The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
         using the default properties. If a DataFrame is given, it must contain the properties for each sample as the raw
         text and identical index.
+    properties_types : t.Optional[Dict[str, str]] , default: None
+        The types of the properties columns. If None, the types are inferred from the properties.
     device : str, default: None
         The device to use to calculate the text properties.
     """
@@ -106,7 +110,9 @@ class TextData:
             index: t.Optional[t.Sequence[t.Any]] = None,
             embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None,
             metadata: t.Optional[pd.DataFrame] = None,
+            metadata_types: t.Optional[t.Dict[str, str]] = None,
             properties: t.Optional[t.Union[pd.DataFrame, str]] = None,
+            properties_types: t.Optional[t.Dict[str, str]] = None,
             device: t.Optional[str] = None
     ):
         # Require explicitly setting task type if label is provided
@@ -171,7 +177,7 @@ class TextData:
             self._embeddings = None
 
         if metadata is not None:
-            self.set_metadata(metadata)
+            self.set_metadata(metadata=metadata, metadata_types=metadata_types)
         else:
             self._metadata = None
             self._metadata_types = None
@@ -180,7 +186,7 @@ class TextData:
             if isinstance(properties, str) and properties == 'auto':
                 self.calculate_default_properties(device=device)
             else:
-                self.set_properties(properties)
+                self.set_properties(properties=properties, properties_types=properties_types)
         else:
             self._properties = None
             self._properties_types = None
@@ -267,8 +273,9 @@ class TextData:
         if rows_to_use is None:
             new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
                            task_type=self._task_type.value,
-                           dataset_name=self.name, index=self.index, metadata=self.metadata,
-                           properties=self._properties)
+                           dataset_name=self.name, index=self.index, embeddings=self.embeddings, metadata=self.metadata,
+                           metadata_types=self._metadata_types, properties=self._properties,
+                           properties_types=self._properties_types)
         else:
             new_copy = cls(
                 raw_text=list(itemgetter(*rows_to_use)(self._text)),
@@ -276,8 +283,11 @@ class TextData:
                     itemgetter(*rows_to_use)(self._tokenized_text)) if self._tokenized_text else None,
                 label=list(itemgetter(*rows_to_use)(self._label)) if self._label else None,
                 index=list(itemgetter(*rows_to_use)(self.index)),
+                embeddings=self.embeddings.iloc[rows_to_use, :] if self.embeddings is not None else None,
                 metadata=self._metadata.iloc[rows_to_use, :] if self._metadata is not None else None,
+                metadata_types=self._metadata_types,
                 properties=self._properties.iloc[rows_to_use, :] if self._properties is not None else None,
+                properties_types=self._properties_types,
                 task_type=self._task_type.value, dataset_name=self.name)
         get_logger().disabled = logger_state
         return new_copy

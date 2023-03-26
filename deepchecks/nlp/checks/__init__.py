@@ -13,7 +13,7 @@
 from deepchecks.nlp.checks.data_integrity import PropertyLabelCorrelation, TextPropertyOutliers
 from deepchecks.nlp.checks.model_evaluation import (MetadataSegmentsPerformance, PredictionDrift,
                                                     PropertySegmentsPerformance, SingleDatasetPerformance)
-from deepchecks.nlp.checks.train_test_validation import LabelDrift
+from deepchecks.nlp.checks.train_test_validation import LabelDrift, TextEmbeddingsDrift
 
 __all__ = [
     # Data Integrity
@@ -24,8 +24,9 @@ __all__ = [
     'SingleDatasetPerformance',
     'MetadataSegmentsPerformance',
     'PropertySegmentsPerformance',
+    'PredictionDrift',
 
     # Train Test Validation
-    'PredictionDrift',
-    'LabelDrift'
+    'LabelDrift',
+    'TextEmbeddingsDrift',
 ]
