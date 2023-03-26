@@ -112,7 +112,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     def run(
         self,
-        dataset: t.Union[Dataset, pd.DataFrame],
+        dataset: t.Union[Dataset, pd.DataFrame, 'RecDataset'],
         model: t.Optional[BasicModel] = None,
         item_dataset: t.Optional['ItemDataset'] = None,
         feature_importance: t.Optional[pd.Series] = None,
@@ -263,12 +263,11 @@ class TrainTestCheck(TrainTestBaseCheck):
             Array of the model prediction over the test dataset.
         """
 
-    @t.overload
     @docstrings
     def run(
         self,
-        train_dataset: t.Union[Dataset, pd.DataFrame],
-        test_dataset: t.Union[Dataset, pd.DataFrame],
+        train_dataset: t.Union[Dataset, pd.DataFrame, 'RecDataset'],
+        test_dataset: t.Union[Dataset, pd.DataFrame, 'RecDataset'],
         model: t.Optional[BasicModel] = None,
         item_dataset: t.Optional['ItemDataset'] = None,
         feature_importance: t.Optional[pd.Series] = None,
@@ -281,18 +280,6 @@ class TrainTestCheck(TrainTestBaseCheck):
         y_proba_test: t.Optional[np.ndarray] = None,
         model_classes: t.Optional[t.List] = None
     ) -> CheckResult:
-        """Run check.
-
-        Parameters
-        ----------
-        train_dataset: t.Union[Dataset, pd.DataFrame]
-            Dataset or DataFrame object, representing data an estimator was fitted on
-        test_dataset: t.Union[Dataset, pd.DataFrame]
-            Dataset or DataFrame object, representing data an estimator predicts on
-        model: t.Optional[BasicModel], default: None
-            A scikit-learn-compatible fitted estimator instance
-        {additional_context_params:2*indent}
-        """
         from deepchecks.recommender.context import Context as RecContext
         from deepchecks.recommender.dataset import RecDataset
         
@@ -314,8 +301,6 @@ class TrainTestCheck(TrainTestBaseCheck):
                     feature_importance_timeout=feature_importance_timeout,
                     y_pred_train=y_pred_train,
                     y_pred_test=y_pred_test,
-                    y_proba_train=y_proba_train,
-                    y_proba_test=y_proba_test,
                     with_display=with_display,
                 )
             else:
