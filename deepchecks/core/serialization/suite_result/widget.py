@@ -329,15 +329,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             accordion = normalize_widget_style(Accordion(
                 children=(HTML(value='<p>No potential fixes found, this could be because:</p>'
                                      '<p>1. All checks passed</p>'
-                                     '<p>2. Fix is not yet implemented current not passed checks</p>'),),
+                                     '<p>2. Fix is not yet implemented for current not passed checks</p>'),),
                 _titles={'0': accordion_name},
                 selected_index=None
             ))
             return VBox(children=(
-                # by putting HTML before the results accordion
-                # we create a gap between them`s, failures section does not have
-                # `section_anchor`` but we need to create a gap.
-                # Take a look at the `prepare_results` method to understand
+                # Putting HTML widget to create gap between sections
                 HTML(value=''),
                 accordion,
             ))
@@ -345,7 +342,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         # This is used so that widgets are set to the correct size automatically
         layout = Layout(width='auto', height='auto')
 
-        # List of boxes of each check's check box and inputs
         check_and_inputs_boxes = []
 
         # This is important in order to distinct between train / test / both datasets when we fix duplicates
@@ -354,7 +350,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         test_result_to_checkbox = {}
         train_test_result_to_checkbox = {}
 
-        input_widgets = dict({})
+        input_widgets = {}
 
         # Iterate over all results, generate a checkbox for each result, and input widgets for its parameters for the
         # fix method
@@ -392,7 +388,6 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                         value=options[0][1],
                         description=param_name_user_display,
                         style={'description_width': 'initial'}
-
                     )
                     params_description = zip(param_dict['params_display'], param_dict['params_description'])
                     params_description = [t[0] + ' - ' + t[1] for t in params_description]
@@ -638,10 +633,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         accordion.observe(on_accord_display)
 
         return VBox(children=(
-            # by putting `section_anchor` before the results accordion
-            # we create a gap between them`s, failures section does not have
-            # `section_anchor`` but we need to create a gap.
-            # Take a look at the `prepare_results` method to understand
+            # Putting HTML widget to create gap between sections
             HTML(value=''),
             accordion,
         ))
