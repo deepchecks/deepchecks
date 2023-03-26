@@ -29,7 +29,7 @@ from deepchecks.tabular.model_base import ModelComparisonContext
 from deepchecks.utils.typing import BasicModel
 
 if TYPE_CHECKING:
-    from deepchecks.recommender.dataset import RecDataset
+    from deepchecks.recommender.dataset import RecDataset, ItemDataset
 
 __all__ = [
     'SingleDatasetCheck',
@@ -43,7 +43,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
     """Parent class for checks that only use one dataset."""
 
     context_type = None
-
 
     @t.overload
     @docstrings
@@ -128,6 +127,9 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         y_proba_test: t.Optional[np.ndarray] = None,
         model_classes: t.Optional[t.List] = None,
     ) -> CheckResult:
+        from deepchecks.recommender.context import Context as RecContext
+        from deepchecks.recommender.dataset import RecDataset
+
         if not isinstance(dataset, RecDataset) and item_dataset is not None:
             raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
 
@@ -154,11 +156,8 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         y_proba_train = y_proba_train if y_proba_train is not None else y_proba
 
         if self.context_type is None:
-            from deepchecks.recommender.context import Context as RecContext
-            from deepchecks.recommender.dataset import RecDataset
             if isinstance(dataset, RecDataset):
                 self.context_type = RecContext
-
                 context = self.context_type(  # pylint: disable=not-callable
                     train=dataset,
                     item_dataset=item_dataset,
@@ -169,10 +168,10 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                     y_pred_train=y_pred,
                 )
             else:
+                self.context_type = Context
                 context = self.context_type(  # pylint: disable=not-callable
                     train=dataset,
                     model=model,
-                    item_dataset=item_dataset,
                     feature_importance=feature_importance,
                     feature_importance_force_permutation=feature_importance_force_permutation,
                     feature_importance_timeout=feature_importance_timeout,
@@ -199,6 +198,7 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = None
 
+    @t.overload
     @docstrings
     def run(
         self,
@@ -228,31 +228,114 @@ class TrainTestCheck(TrainTestBaseCheck):
             A scikit-learn-compatible fitted estimator instance
         {additional_context_params:2*indent}
         """
+
+    @t.overload
+    @docstrings
+    def run(
+        self,
+        train_dataset: 'RecDataset',
+        test_dataset: 'RecDataset',
+        item_dataset: t.Optional['ItemDataset'] = None,
+        feature_importance: t.Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        with_display: bool = True,
+        y_pred_train: t.Optional[np.ndarray] = None,
+        y_pred_test: t.Optional[np.ndarray] = None,
+    ) -> CheckResult:
+        """Run check.
+
+        Parameters
+        ----------
+        train: RecDataset
+            RecDataset object (dataset object for recommendation systems), representing data an estimator was fitted on
+        test: RecDataset
+            RecDataset object (dataset object for recommendation systems), representing data an estimator was fitted on
+        feature_importance: pd.Series , default: None
+            pass manual features importance
+        feature_importance_force_permutation : bool , default: False
+            force calculation of permutation features importance
+        feature_importance_timeout : int , default: 120
+            timeout in second for the permutation features importance calculation
+        y_pred_train: Optional[np.ndarray] , default: None
+            Array of the model prediction over the train dataset.
+        y_pred_test: Optional[np.ndarray] , default: None
+            Array of the model prediction over the test dataset.
+        """
+
+    @t.overload
+    @docstrings
+    def run(
+        self,
+        train_dataset: t.Union[Dataset, pd.DataFrame],
+        test_dataset: t.Union[Dataset, pd.DataFrame],
+        model: t.Optional[BasicModel] = None,
+        item_dataset: t.Optional['ItemDataset'] = None,
+        feature_importance: t.Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        with_display: bool = True,
+        y_pred_train: t.Optional[np.ndarray] = None,
+        y_pred_test: t.Optional[np.ndarray] = None,
+        y_proba_train: t.Optional[np.ndarray] = None,
+        y_proba_test: t.Optional[np.ndarray] = None,
+        model_classes: t.Optional[t.List] = None
+    ) -> CheckResult:
+        """Run check.
+
+        Parameters
+        ----------
+        train_dataset: t.Union[Dataset, pd.DataFrame]
+            Dataset or DataFrame object, representing data an estimator was fitted on
+        test_dataset: t.Union[Dataset, pd.DataFrame]
+            Dataset or DataFrame object, representing data an estimator predicts on
+        model: t.Optional[BasicModel], default: None
+            A scikit-learn-compatible fitted estimator instance
+        {additional_context_params:2*indent}
+        """
+        from deepchecks.recommender.context import Context as RecContext
+        from deepchecks.recommender.dataset import RecDataset
+        
+        if not isinstance(train_dataset, RecDataset) and item_dataset is not None:
+            raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
+
+        if isinstance(train_dataset, RecDataset) and model_classes is not None:
+            raise DeepchecksNotSupportedError('model_classes is not supported for recommendation datasets.')
+
         if self.context_type is None:
-            from deepchecks.recommender.context import Context as RecContext
-            from deepchecks.recommender.dataset import RecDataset
             if isinstance(train_dataset, RecDataset):
                 self.context_type = RecContext
+                context = self.context_type(  # pylint: disable=not-callable
+                    train=train_dataset,
+                    test=test_dataset,
+                    item_dataset=item_dataset,
+                    feature_importance=feature_importance,
+                    feature_importance_force_permutation=feature_importance_force_permutation,
+                    feature_importance_timeout=feature_importance_timeout,
+                    y_pred_train=y_pred_train,
+                    y_pred_test=y_pred_test,
+                    y_proba_train=y_proba_train,
+                    y_proba_test=y_proba_test,
+                    with_display=with_display,
+                )
             else:
                 self.context_type = Context
-                if item_dataset is not None:
-                    raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
+                context = self.context_type(  # pylint: disable=not-callable
+                    train=train_dataset,
+                    test=test_dataset,
+                    model=model,
+                    feature_importance=feature_importance,
+                    feature_importance_force_permutation=feature_importance_force_permutation,
+                    feature_importance_timeout=feature_importance_timeout,
+                    y_pred_train=y_pred_train,
+                    y_pred_test=y_pred_test,
+                    y_proba_train=y_proba_train,
+                    y_proba_test=y_proba_test,
+                    with_display=with_display,
+                    model_classes=model_classes
+                )
 
-        context = self.context_type(  # pylint: disable=not-callable
-            train=train_dataset,
-            test=test_dataset,
-            model=model,
-            item_dataset=item_dataset,
-            feature_importance=feature_importance,
-            feature_importance_force_permutation=feature_importance_force_permutation,
-            feature_importance_timeout=feature_importance_timeout,
-            y_pred_train=y_pred_train,
-            y_pred_test=y_pred_test,
-            y_proba_train=y_proba_train,
-            y_proba_test=y_proba_test,
-            with_display=with_display,
-            model_classes=model_classes
-        )
+       
         result = self.run_logic(context)
         context.finalize_check_result(result, self)
         return result
