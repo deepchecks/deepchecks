@@ -71,15 +71,16 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         self._warn_n_top_columns(features.shape[1])
 
         predictions = context.model.predict(text_data)
-        if not hasattr(context.model, 'predict_proba'):
-            raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'
-                                              ' on log loss error that requires predicted probabilities, rather'
-                                              ' than only predicted classes.')
-        proba_values = context.model.predict_proba(text_data)
 
         if self.loss_per_sample is not None:
             loss_per_sample = self.loss_per_sample[list(text_data.index)]
+            proba_values = None
+        elif not hasattr(context.model, 'predict_proba'):
+            raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'
+                                              ' on log loss error that requires predicted probabilities, rather'
+                                              ' than only predicted classes.')
         else:
+            proba_values = np.asarray(context.model.predict_proba(text_data))
             loss_per_sample = [log_loss([y_true], [y_proba], labels=sorted(context.model_classes)) for y_true, y_proba
                                in zip(list(text_data.label), proba_values)]
 
@@ -90,7 +91,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, list(np.unique(text_data.label)))
 
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),
-                                  y_proba_test=np.asarray(proba_values), validate_data_on_predict=False)
+                                  y_proba_test=proba_values, validate_data_on_predict=False)
         scorer = context.get_single_scorer(self.alternative_scorer)
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, np.asarray(encoded_dataset.features),
                                                    loss_per_sample, scorer)
