@@ -116,6 +116,8 @@ class Suite(BaseSuite):
             Array of the model prediction over the train dataset.
         y_pred_test: Optional[np.ndarray] , default: None
             Array of the model prediction over the test dataset.
+        run_single_dataset: t.Optional[str], default None
+            'Train', 'Test' , or None to run on both train and test.
 
         Returns
         -------
