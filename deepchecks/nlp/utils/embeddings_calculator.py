@@ -100,6 +100,17 @@ def question_answering_open_ai(questions: Sequence[str], model: str = 'text-davi
         Sequence[str]
             The answers for the questions.
     """
+    if prompt_context is None:
+        prompt_context = 'Answer the following question'
+    question_structure = prompt_context + '\n Question: {} \nAnswer:'
+    questions = [question_structure.format(_clean_special_chars(question)) for question in questions]
+
+    return _call_open_ai_completion_api(questions, model=model, temperature=temperature)
+
+
+def _call_open_ai_completion_api(inputs, max_tokens=200, batch_size=20,  # open ai api limits to 20 requests per call
+                                 model: str = 'text-davinci-003', temperature: float = 0.5):
+    """Call the open ai completion api with the given inputs batch by batch."""
     try:
         import openai  # pylint: disable=import-outside-toplevel
     except ImportError as e:
@@ -111,17 +122,11 @@ def question_answering_open_ai(questions: Sequence[str], model: str = 'text-davi
     @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(15))
     def _get_answers_with_backoff(questions_in_context):
         return openai.Completion.create(engine=model, prompt=questions_in_context,
-                                        max_tokens=200, temperature=temperature)
+                                        max_tokens=max_tokens, temperature=temperature)
 
-    if prompt_context is None:
-        prompt_context = 'Answer the following question'
-    question_structure = prompt_context + '\n Question: {} \nAnswer:'
-    questions = [question_structure.format(_clean_special_chars(question)) for question in questions]
-
-    batch_size = 20
     answers = []
-    for sub_list in tqdm([questions[x:x + batch_size] for x in range(0, len(questions), batch_size)],
-                         desc='Calculating Responses '):
+    for sub_list in tqdm([inputs[x:x + batch_size] for x in range(0, len(inputs), batch_size)],
+                         desc=f'Calculating Responses (Total of {len(inputs)})'):
         open_ai_responses = _get_answers_with_backoff(sub_list)
         choices = sorted(open_ai_responses['choices'], key=lambda x: x['index'])
         answers = answers + [choice['text'] for choice in choices]
