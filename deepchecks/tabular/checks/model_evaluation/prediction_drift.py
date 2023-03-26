@@ -18,7 +18,7 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.reduce_classes import ReduceMixin
+from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
@@ -28,7 +28,7 @@ from deepchecks.utils.strings import format_number
 __all__ = ['PredictionDrift']
 
 
-class PredictionDrift(TrainTestCheck, ReduceMixin):
+class PredictionDrift(TrainTestCheck, ReduceLabelMixin):
     """
     Calculate prediction drift between train dataset and test dataset, using statistical measures.
 
