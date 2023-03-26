@@ -18,7 +18,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from deepchecks.utils.strings import format_number_if_not_nan
 
 __all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map',
-           'create_confusion_matrix_figure', 'colors', 'hex_to_rgba', 'DEFAULT_DATASET_NAMES']
+           'create_confusion_matrix_figure', 'colors', 'common_and_outlier_colors',
+           'hex_to_rgba', 'DEFAULT_DATASET_NAMES']
 
 DEFAULT_DATASET_NAMES = ('Train', 'Test')
 
@@ -36,19 +37,24 @@ metric_colors = ['rgb(102, 197, 204)',
                  'rgb(139, 224, 164)',
                  'rgb(180, 151, 231)']
 
+common_and_outlier_colors = {'common': 'rgba(105, 179, 162, 1)',
+                             'outliers': 'rgba(179, 106, 106, 1)',
+                             'common_fill': 'rgba(105, 179, 162, 0.7)',
+                             'outliers_fill': 'rgba(179, 106, 106, 0.7)'}
+
 
 def create_colorbar_barchart_for_check(
-    x: np.ndarray,
-    y: np.ndarray,
-    ylabel: str = 'Result',
-    xlabel: str = 'Features',
-    color_map: str = 'RdYlGn_r',
-    start: float = 0,
-    stop: float = 1.0,
-    tick_steps: float = 0.1,
-    color_label: str = 'Color',
-    color_shift_midpoint: float = 0.5,
-    check_name: str = ''
+        x: np.ndarray,
+        y: np.ndarray,
+        ylabel: str = 'Result',
+        xlabel: str = 'Features',
+        color_map: str = 'RdYlGn_r',
+        start: float = 0,
+        stop: float = 1.0,
+        tick_steps: float = 0.1,
+        color_label: str = 'Color',
+        color_shift_midpoint: float = 0.5,
+        check_name: str = ''
 ):
     """Output a colorbar barchart using matplotlib.
 
@@ -163,7 +169,7 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
 
 def hex_to_rgba(h, alpha):
     """Convert color value in hex format to rgba format with alpha transparency."""
-    return 'rgba' + str(tuple([int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)] + [alpha]))
+    return 'rgba' + str(tuple([int(h.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4)] + [alpha]))
 
 
 def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
@@ -189,7 +195,7 @@ def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
     """
     if normalized:
         confusion_matrix_norm = confusion_matrix.astype('float') / \
-            (confusion_matrix.sum(axis=1)[:, np.newaxis] + np.finfo(float).eps) * 100
+                                (confusion_matrix.sum(axis=1)[:, np.newaxis] + np.finfo(float).eps) * 100
         z = np.vectorize(format_number_if_not_nan)(confusion_matrix_norm)
         texttemplate = '%{z}%<br>(%{text})'
         colorbar_title = '% out of<br>True Values'
@@ -201,11 +207,11 @@ def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
         plot_title = 'Value Count'
 
     fig = go.Figure(data=go.Heatmap(
-                x=x,
-                y=y,
-                z=z,
-                text=confusion_matrix,
-                texttemplate=texttemplate))
+        x=x,
+        y=y,
+        z=z,
+        text=confusion_matrix,
+        texttemplate=texttemplate))
     fig.data[0].colorbar.title = colorbar_title
     fig.update_layout(title=plot_title)
     fig.update_layout(height=600)

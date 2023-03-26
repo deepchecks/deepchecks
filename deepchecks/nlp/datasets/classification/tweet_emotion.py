@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Dataset containing tweets and meta data information for multiclass prediction for emotion of tweet.
+"""Dataset containing tweet and metadata information for multiclass prediction for emotion of tweet.
 
 The data has 4653 tweet records with 5 features and a multiclass target column, referring to the emotion of the tweet.
 
@@ -28,9 +28,9 @@ from deepchecks.nlp import TextData
 
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/39486889'
+_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
 _EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39264332'
-_PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39460924'
+_PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39717619'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
 ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet_emotion'

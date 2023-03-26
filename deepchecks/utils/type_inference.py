@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 
-"""Utils module containing feature related calculations."""
+"""Utils module containing type inference related calculations."""
 
 import typing as t
 

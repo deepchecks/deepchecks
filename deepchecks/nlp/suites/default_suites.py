@@ -17,7 +17,7 @@ It is possible to customize these suites by editing the checks and conditions in
 
 from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import (LabelDrift, MetadataSegmentsPerformance, PredictionDrift, PropertyLabelCorrelation,
-                                   PropertySegmentsPerformance, SingleDatasetPerformance)
+                                   PropertySegmentsPerformance, SingleDatasetPerformance, TextPropertyOutliers)
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -57,6 +57,7 @@ def data_integrity(n_samples: int = None,
     return Suite(
         'Data Integrity Suite',
         PropertyLabelCorrelation().add_condition_property_pps_less_than(),
+        TextPropertyOutliers()
     )
 
 

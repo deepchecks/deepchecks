@@ -22,7 +22,6 @@ from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProces
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
-from deepchecks.tabular.utils.feature_inference import infer_categorical_features
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.typing import Hashable
@@ -58,20 +57,18 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         if self.segment_by == 'metadata':
             context.assert_metadata(text_data=text_data)
             features = select_from_dataframe(text_data.metadata, self.columns, self.ignore_columns)
+            cat_features = [col for col in features.columns if text_data.metadata_types[col] == 'categorical']
             features_name = 'metadata'
 
         elif self.segment_by == 'properties':
             context.assert_properties(text_data=text_data)
             features = select_from_dataframe(text_data.properties, self.columns, self.ignore_columns)
+            cat_features = [col for col in features.columns if text_data.properties_types[col] == 'categorical']
             features_name = 'properties'
         else:
             raise DeepchecksProcessError(f'Unknown segment_by value: {self.segment_by}')
 
         self._warn_n_top_columns(features.shape[1])
-
-        # TODO: Don't use cat_features but enable user to give their own datatype / use properties known types.
-        # This is here because Dataset object writes a warning if categorical features are not given
-        cat_features = infer_categorical_features(features)
 
         predictions = context.model.predict(text_data)
         if not hasattr(context.model, 'predict_proba'):
