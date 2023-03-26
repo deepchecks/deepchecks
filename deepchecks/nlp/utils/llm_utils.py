@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module for calculating embeddings for text."""
-from typing import Optional, Sequence
+from typing import Optional, Sequence, List
 
 import pandas as pd
 from tqdm import tqdm
@@ -76,41 +76,31 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
     return embeddings
 
 
-def question_answering_open_ai(questions: Sequence[str], model: str = 'text-davinci-003', temperature: float = 0.5,
-                               prompt_context: Optional[str] = None) -> Sequence[str]:
+def call_open_ai_completion_api(inputs, max_tokens=200, batch_size=20,  # open ai api limits to 20 requests per call
+                                model: str = 'text-davinci-003', temperature: float = 0.5) -> List[str]:
     """
-    Get answers for a list of questions using open ai.
+    Call the open ai completion api with the given inputs batch by batch.
 
     Parameters
     ----------
-    questions : Sequence[str]
-        The questions to get answers for.
+    inputs : Sequence[str]
+        The inputs to send to the api.
+    max_tokens : int, default 200
+        The maximum number of tokens to return for each input.
+    batch_size : int, default 20
+        The number of inputs to send in each batch.
     model : str, default 'text-davinci-003'
         The model to use for the question answering task. For more information about the models, see:
         https://beta.openai.com/docs/api-reference/models
     temperature : float, default 0.5
-         The temperature to use for the question answering task. For more information about the temperature, see:
-            https://beta.openai.com/docs/api-reference/completions/create-completion
-    prompt_context : str, default None
-        The context to use for the question answering task. For more information about the context, see:
-            https://beta.openai.com/docs/api-reference/completions/create-completion
+        The temperature to use for the question answering task. For more information about the temperature, see:
+        https://beta.openai.com/docs/api-reference/completions/create-completion
 
     Returns
     -------
-        Sequence[str]
-            The answers for the questions.
+    List[str]
+        The answers for the questions.
     """
-    if prompt_context is None:
-        prompt_context = 'Answer the following question'
-    question_structure = prompt_context + '\n Question: {} \nAnswer:'
-    questions = [question_structure.format(_clean_special_chars(question)) for question in questions]
-
-    return _call_open_ai_completion_api(questions, model=model, temperature=temperature)
-
-
-def _call_open_ai_completion_api(inputs, max_tokens=200, batch_size=20,  # open ai api limits to 20 requests per call
-                                 model: str = 'text-davinci-003', temperature: float = 0.5):
-    """Call the open ai completion api with the given inputs batch by batch."""
     try:
         import openai  # pylint: disable=import-outside-toplevel
     except ImportError as e:
