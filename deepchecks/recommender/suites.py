@@ -121,10 +121,8 @@ def recsys_suite(is_comparative: bool = True,
     checks = [
         WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         PercentOfNulls(**kwargs),
-        LabelPopularityDrift(**kwargs).add_condition_drift_score_less_than(),
         OperationsAmountSegmentPerformance(**kwargs),
-        PopularityBias(**kwargs).add_condition_drift_score_less_than(),
-        PredictionPopularityDrift(**kwargs).add_condition_drift_score_less_than(),
+        PopularityBias(**kwargs).add_condition_drift_score_less_than(),   
         SamplePerformance(**kwargs),
         ScatterPerformance(**kwargs)
     ]
@@ -139,5 +137,7 @@ def recsys_suite(is_comparative: bool = True,
         checks.append(FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than())
         checks.append(FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold())
         checks.append(SingleDatasetPerformance(**kwargs))
+        checks.append(PredictionPopularityDrift(**kwargs).add_condition_drift_score_less_than())
+        checks.append(LabelPopularityDrift(**kwargs).add_condition_drift_score_less_than())
 
     return Suite('RecSys Suite', *checks)

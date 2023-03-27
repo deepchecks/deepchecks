@@ -183,7 +183,7 @@ class Suite(BaseSuite):
                 )
 
         progress_bar = create_progress_bar(
-            iterable=t.List(self.checks.values()),
+            iterable=list(self.checks.values()),
             name=self.name,
             unit='Check'
         )

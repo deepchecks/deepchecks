@@ -165,7 +165,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
                     feature_importance_force_permutation=feature_importance_force_permutation,
                     feature_importance_timeout=feature_importance_timeout,
                     with_display=with_display,
-                    y_pred_train=y_pred,
+                    y_pred_train=y_pred_train,
                 )
             else:
                 self.context_type = Context

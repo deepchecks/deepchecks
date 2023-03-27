@@ -66,7 +66,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
 
         results = []
         display = None
-        if context.task_type == TaskType.REGRESSION or isinstance(dataset, RecDataset):
+        if context.task_type in [TaskType.REGRESSION, TaskType.RECOMMENDETION]:
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
                 results.append([scorer.name, scorer_value])

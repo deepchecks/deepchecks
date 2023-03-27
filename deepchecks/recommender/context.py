@@ -189,7 +189,6 @@ class Context(TabularContext):
         with_display: bool = True,
         y_pred_train: t.Optional[t.Sequence[t.Hashable]] = None,
         y_pred_test: t.Optional[t.Sequence[t.Hashable]] = None,
-        **kwargs
     ):
         model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
         self._item_dataset = item_dataset

@@ -25,8 +25,7 @@ from deepchecks.tabular.utils.task_type import TaskType
 def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,
                               classes_index_order: Union[np.array, pd.Series]) -> pd.Series:
     """Calculate error per sample for a given model and a dataset."""
-    if isinstance(dataset, RecDataset):
-        # TODO might need to add another case for list label
+    if task_type == TaskType.RECOMMENDETION:
         if is_sequence_not_str(dataset.label_col):
             scorer = ranking.reciprocal_rank
         else:
