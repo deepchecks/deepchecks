@@ -44,8 +44,6 @@ def test_no_drift_regression_label_emd(diabetes, diabetes_model):
 def test_no_drift_regression_label_ks(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
-    train = remove_label(train)
-    test = remove_label(test)
     check = PredictionDrift(numerical_drift_method='KS')
 
     # Act
@@ -107,8 +105,6 @@ def test_drift_not_enough_samples(drifted_data_and_model):
 def test_drift_classification_label_without_display(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    train = remove_label(train)
-    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', drift_mode='prediction')
 
     # Act
@@ -138,8 +134,6 @@ def test_drift_regression_label_raise_on_proba(diabetes, diabetes_model):
 def test_drift_regression_label_cramer(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
-    train = remove_label(train)
-    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='cramers_v', drift_mode='prediction')
 
     # Act
