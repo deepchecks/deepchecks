@@ -326,7 +326,6 @@ class Context(BaseContext):
         self._observed_classes, self._model_classes = \
             infer_observed_and_model_labels(train_dataset=train_dataset, test_dataset=test_dataset,
                                             model=None, y_pred_train=train_pred, y_pred_test=test_pred,
-                                            y_proba_train=train_proba, y_proba_test=test_proba,
                                             model_classes=model_classes, task_type=self.task_type)
 
         if any(x is not None for x in (train_pred, test_pred, train_proba, test_proba)):

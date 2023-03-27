@@ -193,8 +193,13 @@ class TextData:
     def _validate_and_set_label(self, label: t.Optional[TTextLabel]):
         """Validate and process label to accepted formats."""
         # If label is not set, create an empty label of nulls
-        if label is None or all(pd.isnull(x) for x in label):
+        if label is None:
             self._has_label, self._label = False, [None] * len(self._text)
+            return
+
+        # Check if label is n array of None, if so return
+        if isinstance(label, t.Sequence) and all(x is None for x in label):
+            self._has_label, self._label = False, label
             return
 
         self._has_label = True

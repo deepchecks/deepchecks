@@ -174,6 +174,8 @@ class PredictionDrift(TrainTestCheck):
                 classes = context.model_classes
                 class_dict = dict(zip(range(len(classes)), classes))
                 samples_per_class.index = samples_per_class.index.to_series().map(class_dict).values
+            else:
+                classes = list(sorted(samples_per_class.keys()))
             samples_per_class = samples_per_class.to_dict()
         else:
             train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
@@ -182,9 +184,10 @@ class PredictionDrift(TrainTestCheck):
             # Get the classes in the same order as the model's predictions
             samples_per_class = pd.Series(np.concatenate([train_prediction, test_prediction], axis=0
                                                          ).squeeze()).value_counts().to_dict()
+            classes = list(sorted(samples_per_class.keys()))
 
         for class_idx in range(train_prediction.shape[1]):
-            class_name = context.model_classes[class_idx]
+            class_name = classes[class_idx]
             drift_score_dict[class_name], method, drift_display_dict[class_name] = calc_drift_and_plot(
                 train_column=pd.Series(train_prediction[:, class_idx].flatten()),
                 test_column=pd.Series(test_prediction[:, class_idx].flatten()),

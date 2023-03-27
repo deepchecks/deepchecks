@@ -24,10 +24,8 @@ __all__ = ['infer_observed_and_model_labels']
 
 
 def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model: BaseEstimator = None,
-                                    y_pred_train: np.array = None,
-                                    y_pred_test: np.array = None,
-                                    y_proba_train: np.array = None,
-                                    y_proba_test: np.array = None,
+                                    y_pred_train: np.array = None,  # pylint: disable=unused-argument
+                                    y_pred_test: np.array = None,  # pylint: disable=unused-argument
                                     model_classes: list = None,
                                     task_type: TaskType = None) -> \
         Tuple[List, List]:
@@ -45,11 +43,7 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
     y_pred_train : np.array
         Predictions on train_dataset
     y_pred_test : np.array
-        Predictions on test_dataset\
-    y_proba_train : np.array
-        Predicted probabilities on train_dataset
-    y_proba_test : np.array
-        Predicted probabilities on test_dataset
+        Predictions on test_dataset
     model_classes : Optional[List], default None
         list of classes known to the model
     task_type : Union[TaskType, None], default None
@@ -63,6 +57,7 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
             List of the user-given model classes. For multi-label, if not given by the user, returns a range of
             len(label)
     """
+    # TODO: Doesn't work for predictions
     train_labels = []
     test_labels = []
     have_model = model is not None  # Currently irrelevant as no model is given in NLP
@@ -72,15 +67,11 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
             train_labels += list(train_dataset.label)
         if have_model:
             train_labels += list(model.predict(train_dataset))
-        elif y_pred_train is not None:
-            train_labels += list(y_pred_train)
     if test_dataset:
         if test_dataset.has_label():
             test_labels += list(test_dataset.label)
         if have_model:
             test_labels += list(model.predict(test_dataset))
-        elif y_pred_test is not None:
-            test_labels += list(y_pred_test)
 
     if task_type == TaskType.TOKEN_CLASSIFICATION:
         # Flatten:
@@ -110,11 +101,5 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
 
     if task_type == TaskType.TOKEN_CLASSIFICATION:
         observed_classes = [c for c in observed_classes if c != 'O']
-    elif task_type == TaskType.TEXT_CLASSIFICATION:
-        if model_classes is None and y_proba_train is not None:
-            model_classes = list(range(y_proba_train.shape[1]))
-            if y_proba_test is not None and len(model_classes) != y_proba_test.shape[1]:
-                raise DeepchecksValueError(f'The shapes of the predicted probabilities on train and test '
-                                           f'datasets are not equal: {y_proba_train.shape} and {y_proba_test.shape}')
 
     return observed_classes, model_classes
