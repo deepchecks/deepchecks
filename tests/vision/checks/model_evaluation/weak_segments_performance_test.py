@@ -27,7 +27,7 @@ def test_detection_defaults(coco_visiondata_train):
 
 
 def test_detection_condition(coco_visiondata_train):
-    check = WeakSegmentsPerformance().add_condition_segments_relative_performance_greater_than(0.5)
+    check = WeakSegmentsPerformance().add_condition_segments_relative_performance_greater_than(0.8)
 
     result = check.run(coco_visiondata_train)
     condition_result = result.conditions_results
@@ -36,8 +36,8 @@ def test_detection_condition(coco_visiondata_train):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=True,
-            name='The relative performance of weakest segment is greater than 50% of average model performance.',
-            details='Found a segment with mean IoU score of 0.494 in comparison to an average score of 0.691 in '
+            name='The relative performance of weakest segment is greater than 20% of average model performance.',
+            details='Found a segment with mean IoU score of 0.382 in comparison to an average score of 0.691 in '
                     'sampled data.')
     ))
 
@@ -54,6 +54,11 @@ def test_classification_defaults(mnist_visiondata_train):
 
 
 def test_segmentation_defaults(segmentation_coco_visiondata_test):
-    check = WeakSegmentsPerformance()
-    assert_that(calling(check.run).with_args(segmentation_coco_visiondata_test),
-                raises(DeepchecksProcessError))
+    # Arrange
+    check = WeakSegmentsPerformance(n_samples=1000)
+
+    # Act
+    result = check.run(segmentation_coco_visiondata_test)
+
+    # Assert
+    assert_that(result.value['avg_score'], close_to(0.957, 0.001))

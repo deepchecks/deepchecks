@@ -28,10 +28,10 @@ def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(10))
+    assert_that(segments, has_length(8))
     assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
-    assert_that(segments.iloc[0, 0], close_to(-89, 1))
-    assert_that(segments.iloc[0, 1], equal_to('bmi'))
+    assert_that(segments.iloc[0, 0], close_to(-95, 1))
+    assert_that(segments.iloc[0, 1], equal_to('s2'))
 
 
 def test_segment_performance_diabetes_with_arguments(diabetes_split_dataset_and_model):
@@ -62,15 +62,15 @@ def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(
-            is_pass=True,
+            is_pass=False,
             name='The relative performance of weakest segment is greater than 80% of average model performance.',
-            details='Found a segment with Accuracy score of 0.75 in comparison to an average score of 0.92 in sampled '
+            details='Found a segment with Accuracy score of 0.333 in comparison to an average score of 0.92 in sampled '
                     'data.')
     ))
-    assert_that(segments, has_length(3))
+    assert_that(segments, has_length(5))
     assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
-    assert_that(segments.iloc[0, 0], close_to(0.75, 0))
-    assert_that(segments.iloc[0, 1], equal_to('petal length (cm)'))
+    assert_that(segments.iloc[0, 0], close_to(0.33, 0.01))
+    assert_that(segments.iloc[0, 1], equal_to('petal width (cm)'))
 
 
 def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
@@ -85,7 +85,7 @@ def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
 
     # Assert
     assert_that(segments, any_of(has_length(5), has_length(6)))
-    assert_that(segments.iloc[0, 0], close_to(0.7692307692307693, 0.01))
+    assert_that(segments.iloc[0, 0], close_to(0.4, 0.01))
 
 
 def test_regression_categorical_features_avocado(avocado_split_dataset_and_model):
