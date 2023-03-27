@@ -161,11 +161,27 @@ class PredictionDrift(TrainTestCheck):
             if test_prediction.shape[1] == 2:
                 train_prediction = train_prediction[:, [1]]
                 test_prediction = test_prediction[:, [1]]
+
+            # Get the classes in the same order as the model's predictions
+            train_converted_from_proba = train_prediction.argmax(axis=1)
+            test_converted_from_proba = test_prediction.argmax(axis=1)
+            samples_per_class = pd.Series(
+                np.concatenate([train_converted_from_proba, test_converted_from_proba], axis=0
+                               ).squeeze()).value_counts().sort_index()
+
+            # If label exists, get classes from it and map the samples_per_class index to these classes
+            if context.model_classes is not None:
+                classes = context.model_classes
+                class_dict = dict(zip(range(len(classes)), classes))
+                samples_per_class.index = samples_per_class.index.to_series().map(class_dict).values
+            samples_per_class = samples_per_class.to_dict()
         else:
             train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
             test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
 
-        samples_per_class = pd.Series(train_dataset.label).value_counts().to_dict()
+            # Get the classes in the same order as the model's predictions
+            samples_per_class = pd.Series(np.concatenate([train_prediction, test_prediction], axis=0
+                                                         ).squeeze()).value_counts().to_dict()
 
         for class_idx in range(train_prediction.shape[1]):
             class_name = context.model_classes[class_idx]
