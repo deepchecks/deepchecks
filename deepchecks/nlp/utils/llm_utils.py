@@ -76,7 +76,7 @@ def calculate_embeddings_for_text(text: pd.Series, model: str = 'miniLM',
     return embeddings
 
 
-def call_open_ai_completion_api(inputs: Sequence[str], max_tokens=200, batch_size=20,  # open ai api limits to 20 requests per call
+def call_open_ai_completion_api(inputs: Sequence[str], max_tokens=200, batch_size=20,  # api limit of 20 requests
                                 model: str = 'text-davinci-003', temperature: float = 0.5) -> List[str]:
     """
     Call the open ai completion api with the given inputs batch by batch.
