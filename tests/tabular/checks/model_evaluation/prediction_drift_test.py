@@ -13,13 +13,22 @@ from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has
 
 import pandas as pd
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import PredictionDrift
 from tests.base.utils import equal_condition_result
+
+
+def remove_label(ds: Dataset) -> Dataset:
+    """Remove the label from the dataset."""
+    return Dataset(ds.data.drop(columns=ds.label_name, axis=1), cat_features=ds.cat_features)
 
 
 def test_no_drift_regression_label_emd(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
+    # Remove labels
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
@@ -35,6 +44,8 @@ def test_no_drift_regression_label_emd(diabetes, diabetes_model):
 def test_no_drift_regression_label_ks(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(numerical_drift_method='KS')
 
     # Act
@@ -50,6 +61,8 @@ def test_no_drift_regression_label_ks(diabetes, diabetes_model):
 def test_reduce_no_drift_regression_label(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD')
 
     # Act
@@ -64,6 +77,8 @@ def test_reduce_no_drift_regression_label(diabetes, diabetes_model):
 def test_drift_classification_label(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', drift_mode='prediction')
 
     # Act
@@ -80,6 +95,8 @@ def test_drift_classification_label(drifted_data_and_model):
 def test_drift_not_enough_samples(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(min_samples=1000000)
 
     # Assert
@@ -90,6 +107,8 @@ def test_drift_not_enough_samples(drifted_data_and_model):
 def test_drift_classification_label_without_display(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', drift_mode='prediction')
 
     # Act
@@ -106,6 +125,8 @@ def test_drift_classification_label_without_display(drifted_data_and_model):
 def test_drift_regression_label_raise_on_proba(diabetes, diabetes_model):
     # Arrange
     train, test = diabetes
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', drift_mode='proba')
 
     # Act & Assert
@@ -117,6 +138,8 @@ def test_drift_regression_label_raise_on_proba(diabetes, diabetes_model):
 def test_drift_regression_label_cramer(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='cramers_v', drift_mode='prediction')
 
     # Act
@@ -132,6 +155,8 @@ def test_drift_regression_label_cramer(drifted_data_and_model):
 def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', drift_mode='prediction'
                                      ).add_condition_drift_score_less_than()
 
@@ -150,6 +175,8 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
 def test_balance_classes_without_cramers_v(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', drift_mode='prediction', balance_classes=True)
 
     assert_that(calling(check.run).with_args(train, test, model),
@@ -168,6 +195,8 @@ def test_balance_classes_without_correct_drift_mode():
 def test_balance_classes_with_drift_mode_auto(drifted_data):
     # Arrange
     train, test = drifted_data
+    train = remove_label(train)
+    test = remove_label(test)
 
     n_train = train.n_samples
     n_test = test.n_samples
@@ -189,6 +218,8 @@ def test_balance_classes_with_drift_mode_auto(drifted_data):
 def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', drift_mode='prediction') \
         .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
                                              max_allowed_numeric_score=1)
@@ -208,9 +239,11 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
 def test_multiclass_proba(iris_split_dataset_and_model_rf):
     # Arrange
     train, test, model = iris_split_dataset_and_model_rf
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
-                                     max_num_categories=10, min_category_size_ratio=0,
-                                     drift_mode='proba')
+                            max_num_categories=10, min_category_size_ratio=0,
+                            drift_mode='proba')
 
     # Act
     result = check.run(train, test, model)
@@ -227,6 +260,8 @@ def test_multiclass_proba(iris_split_dataset_and_model_rf):
 def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
     # Arrange
     train, test, model = drifted_data_and_model
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD', drift_mode='proba'
                                      ).add_condition_drift_score_less_than()
 
@@ -250,6 +285,8 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
 def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
     # Arrange
     train, test, model = iris_split_dataset_and_model_rf
+    train = remove_label(train)
+    test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                      max_num_categories=10, min_category_size_ratio=0,
                                      drift_mode='proba', aggregation_method='weighted'
