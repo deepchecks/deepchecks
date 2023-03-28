@@ -25,6 +25,7 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.base_checks import ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
 
@@ -145,14 +146,14 @@ class Suite(BaseSuite):
         from deepchecks.recommender.context import Context as RecContext
         from deepchecks.recommender.dataset import RecDataset
         
-        if not isinstance(train_dataset, RecDataset) and item_dataset is not None:
+        if train_dataset.label_type != TaskType.RECOMMENDETION and item_dataset is not None:
             raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
 
-        if isinstance(train_dataset, RecDataset) and model_classes is not None:
+        if train_dataset.label_type == TaskType.RECOMMENDETION and model_classes is not None:
             raise DeepchecksNotSupportedError('model_classes is not supported for recommendation datasets.')
     
         if self.context_type is None:
-            if isinstance(train_dataset, RecDataset):
+            if train_dataset.label_type == TaskType.RECOMMENDETION:
                 self.context_type = RecContext
                 context = self.context_type(  # pylint: disable=not-callable
                     train=train_dataset,

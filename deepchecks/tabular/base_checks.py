@@ -26,6 +26,7 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
+from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.typing import BasicModel
 
 if TYPE_CHECKING:
@@ -130,10 +131,10 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         from deepchecks.recommender.context import Context as RecContext
         from deepchecks.recommender.dataset import RecDataset
 
-        if not isinstance(dataset, RecDataset) and item_dataset is not None:
+        if dataset.label_type != TaskType.RECOMMENDETION and item_dataset is not None:
             raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
 
-        if isinstance(dataset, RecDataset) and model_classes is not None:
+        if dataset.label_type == TaskType.RECOMMENDETION and model_classes is not None:
             raise DeepchecksNotSupportedError('model_classes is not supported for recommendation datasets.')
 
         if y_pred_train is not None:
@@ -156,7 +157,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         y_proba_train = y_proba_train if y_proba_train is not None else y_proba
 
         if self.context_type is None:
-            if isinstance(dataset, RecDataset):
+            if dataset.label_type == TaskType.RECOMMENDETION:
                 self.context_type = RecContext
                 context = self.context_type(  # pylint: disable=not-callable
                     train=dataset,
@@ -283,14 +284,14 @@ class TrainTestCheck(TrainTestBaseCheck):
         from deepchecks.recommender.context import Context as RecContext
         from deepchecks.recommender.dataset import RecDataset
         
-        if not isinstance(train_dataset, RecDataset) and item_dataset is not None:
+        if train_dataset.label_type != TaskType.RECOMMENDETION and item_dataset is not None:
             raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
 
-        if isinstance(train_dataset, RecDataset) and model_classes is not None:
+        if train_dataset.label_type == TaskType.RECOMMENDETION and model_classes is not None:
             raise DeepchecksNotSupportedError('model_classes is not supported for recommendation datasets.')
 
         if self.context_type is None:
-            if isinstance(train_dataset, RecDataset):
+            if train_dataset.label_type == TaskType.RECOMMENDETION:
                 self.context_type = RecContext
                 context = self.context_type(  # pylint: disable=not-callable
                     train=train_dataset,

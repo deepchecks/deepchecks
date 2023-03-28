@@ -284,9 +284,16 @@ class Dataset:
                           f' binary and regression.', DeprecationWarning, stacklevel=2)
             self._label_type = TaskType.REGRESSION if label_type == 'regression_label' else TaskType.MULTICLASS
         elif label_type in [task.value for task in TaskType]:
+            from deepchecks.recommender.dataset import RecDataset
             self._label_type = TaskType(label_type)
+            if not isinstance(self, RecDataset) and self._label_type == TaskType.RECOMMENDETION:
+                raise DeepchecksValueError(
+                    f'Label type are {TaskType.RECOMMENDETION.value} only compatible with RecDataset.'
+                )
+
         elif label_type is not None:
-            raise DeepchecksValueError(f'allowed value for label type are {[task.value for task in TaskType]},'
+            raise DeepchecksValueError(f'allowed value for label type are \
+                                       {[task.value for task in TaskType if task != TaskType.RECOMMENDETION]},'
                                        f' received {label_type}.')
         else:
             self._label_type = None
