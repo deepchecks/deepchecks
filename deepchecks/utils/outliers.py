@@ -9,18 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all outliers algorithms used in the library."""
-from typing import Tuple
+from typing import Sequence, Tuple, Union
 
 import numpy as np
-import pandas as pd
 
-from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.core.errors import DeepchecksValueError
+
+EPS = 0.001
 
 
 def iqr_outliers_range(data: np.ndarray,
                        iqr_range: Tuple[int, int],
-                       scale: float,
-                       min_samples: int = 10) -> Tuple[float, float]:
+                       scale: float) -> Tuple[float, float]:
     """Calculate outliers range on the data given using IQR.
 
     Parameters
@@ -41,16 +41,35 @@ def iqr_outliers_range(data: np.ndarray,
     if len(iqr_range) != 2 or any((x < 0 or x > 100 for x in iqr_range)) or all(x < 1 for x in iqr_range):
         raise DeepchecksValueError('IQR range must contain two numbers between 0 to 100')
 
-    data = data.squeeze()
-    # Filter nulls
-    data = [x for x in data if pd.notnull(x)]
-    if len(data) < min_samples:
-        raise NotEnoughSamplesError(f'Need at least {min_samples} non-null samples to calculate IQR outliers, but got '
-                                    f'{len(data)}')
-
     q1, q3 = np.percentile(data, sorted(iqr_range))
     iqr = q3 - q1
     low_lim = q1 - scale * iqr
     up_lim = q3 + scale * iqr
 
     return low_lim, up_lim
+
+
+def sharp_drop_outliers_range(data_percents: Sequence, sharp_drop_ratio: float = 0.9,
+                              max_outlier_percentage: float = 0.05) -> Union[float, None]:
+    """Calculate outliers range on the data given using sharp drop.
+
+    Parameters
+    ----------
+    data_percents : np.ndarray
+        Counts of data to calculate outliers range for. The data is assumed to be sorted from the most common to the
+        least common.
+    sharp_drop_ratio : float , default 0.9
+        The sharp drop threshold to use for the outliers detection.
+    max_outlier_percentage : float , default 0.05
+        The maximum percentage of data that can be considered as "outliers".
+    """
+    if not 1 - EPS < sum(data_percents) < 1 + EPS:
+        raise DeepchecksValueError('Data percents must sum to 1')
+
+    for i in range(len(data_percents) - 1):
+        if sum(data_percents[:i+1]) < 1 - max_outlier_percentage:
+            continue
+        if 1 - (data_percents[i + 1] / data_percents[i]) >= sharp_drop_ratio:
+            return data_percents[i + 1]
+    else:
+        return None

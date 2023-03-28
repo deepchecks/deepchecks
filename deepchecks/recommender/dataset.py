@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.tabular import Dataset
+from deepchecks.tabular.utils.task_type import TaskType
 
 __all__ = ['RecDataset', 'ItemDataset']
 
@@ -59,7 +60,7 @@ class RecDataset(Dataset):
             datetime_args=datetime_args,
             max_categorical_ratio=max_categorical_ratio,
             max_categories=max_categories,
-            label_type=label_type or 'multiclass',
+            label_type=label_type or TaskType.RECOMMENDETION,
             dataset_name=dataset_name,
             label_classes=label_classes
         )
@@ -95,20 +96,13 @@ class ItemDataset(Dataset):
             self,
             df: t.Any,
             item_index_name: t.Optional[t.Hashable] = None,
-            label: t.Union[t.Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
             features: t.Optional[t.Sequence[t.Hashable]] = None,
             cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
             index_name: t.Optional[t.Hashable] = None,
             set_index_from_dataframe_index: bool = False,
-            datetime_name: t.Optional[t.Hashable] = None,
-            set_datetime_from_dataframe_index: bool = False,
-            convert_datetime: bool = True,
-            datetime_args: t.Optional[t.Dict] = None,
             max_categorical_ratio: float = 0.01,
             max_categories: int = None,
-            label_type: str = None,
             dataset_name: t.Optional[str] = None,
-            label_classes=None
     ):
 
         super().__init__(

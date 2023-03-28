@@ -105,12 +105,15 @@ def read_requirements() -> t.Dict[str,t.List[str]]:
         main, main_dep_links = read_requirements_file(requirements_folder / "requirements.txt")
         vision, vision_dep_links = read_requirements_file(requirements_folder / "vision-requirements.txt")
         nlp, nlp_dep_links = read_requirements_file(requirements_folder / "nlp-requirements.txt")
+        nlp_properties, nlp_properties_dep_links = \
+            read_requirements_file(requirements_folder / "nlp-prop-requirements.txt")
 
         return {
-            "dependency_links": main_dep_links + vision_dep_links + nlp_dep_links,
+            "dependency_links": main_dep_links + vision_dep_links + nlp_dep_links + nlp_properties_dep_links,
             "main": main,
             "vision": vision,
             "nlp": nlp,
+            "nlp-properties": nlp_properties
         }
 
 

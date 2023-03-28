@@ -27,7 +27,6 @@ from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 
 __all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density', 'CategoriesSortingKind']
 
-
 # For numerical plots, below this number of unique values we draw bar plots, else KDE
 MAX_NUMERICAL_UNIQUE_FOR_BARS = 20
 # For numerical plots, where the total unique is above MAX_NUMERICAL_UNIQUE_FOR_BARS, if any of the single
@@ -128,14 +127,14 @@ CategoriesSortingKind = L['train_largest', 'test_largest', 'largest_difference']
 
 
 def feature_distribution_traces(
-    train_column: Union[np.ndarray, pd.Series],
-    test_column: Union[np.ndarray, pd.Series],
-    column_name: str,
-    is_categorical: bool = False,
-    max_num_categories: int = 10,
-    show_categories_by: CategoriesSortingKind = 'largest_difference',
-    quantile_cut: float = 0.02,
-    dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+        train_column: Union[np.ndarray, pd.Series],
+        test_column: Union[np.ndarray, pd.Series],
+        column_name: str,
+        is_categorical: bool = False,
+        max_num_categories: int = 10,
+        show_categories_by: CategoriesSortingKind = 'largest_difference',
+        quantile_cut: float = 0.02,
+        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
 ) -> Tuple[List[BaseTraceType], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -269,19 +268,21 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     return counts * normalize_factor
 
 
-def _create_distribution_scatter_plot(xs, ys, mean, median, is_train,
+def _create_distribution_scatter_plot(xs, ys, mean=None, median=None, is_train=True,
                                       dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES) -> List[go.Scatter]:
     traces = []
     name = dataset_names[0] if is_train else dataset_names[1]
     train_or_test = DEFAULT_DATASET_NAMES[0] if is_train else DEFAULT_DATASET_NAMES[1]
-    traces.append(go.Scatter(x=xs, y=ys, fill='tozeroy', name=f'{name} Dataset',
-                             line=dict(color=colors[train_or_test], shape='spline')))
-    y_mean_index = np.argmax(xs == mean)
-    traces.append(go.Scatter(x=[mean, mean], y=[0, ys[y_mean_index]], name=f'{name} Mean',
-                             line=dict(color=colors[train_or_test], dash='dash'), mode='lines+markers'))
-    y_median_index = np.argmax(xs == median)
-    traces.append(go.Scatter(x=[median, median], y=[0, ys[y_median_index]], name=f'{name} Median',
-                             line=dict(color=colors[train_or_test]), mode='lines'))
+    traces.append(go.Scatter(x=xs, y=ys, name=f'{name} Dataset', fill='tozeroy',
+                             line=dict(color=colors[train_or_test], shape='linear')))
+    if mean:
+        y_mean_index = np.argmax(xs == mean)
+        traces.append(go.Scatter(x=[mean, mean], y=[0, ys[y_mean_index]], name=f'{name} Mean',
+                                 line=dict(color=colors[train_or_test], dash='dash'), mode='lines+markers'))
+    if median:
+        y_median_index = np.argmax(xs == median)
+        traces.append(go.Scatter(x=[median, median], y=[0, ys[y_median_index]], name=f'{name} Median',
+                                 line=dict(color=colors[train_or_test]), mode='lines'))
     return traces
 
 

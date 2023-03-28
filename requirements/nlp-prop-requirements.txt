@@ -1,0 +1,8 @@
+nltk<=3.6.7
+datasets
+langdetect
+textblob
+transformers
+optimum
+onnx
+onnxruntime

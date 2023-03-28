@@ -22,12 +22,11 @@ from sklearn.model_selection import train_test_split
 from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.tabular.utils.feature_inference import (infer_categorical_features, infer_numerical_features,
-                                                        is_categorical)
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
+from deepchecks.utils.type_inference import infer_categorical_features, infer_numerical_features, is_categorical
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['Dataset']
@@ -285,9 +284,16 @@ class Dataset:
                           f' binary and regression.', DeprecationWarning, stacklevel=2)
             self._label_type = TaskType.REGRESSION if label_type == 'regression_label' else TaskType.MULTICLASS
         elif label_type in [task.value for task in TaskType]:
+            from deepchecks.recommender.dataset import RecDataset
             self._label_type = TaskType(label_type)
+            if not isinstance(self, RecDataset) and self._label_type == TaskType.RECOMMENDETION:
+                raise DeepchecksValueError(
+                    f'Label type are {TaskType.RECOMMENDETION.value} only compatible with RecDataset.'
+                )
+
         elif label_type is not None:
-            raise DeepchecksValueError(f'allowed value for label type are {[task.value for task in TaskType]},'
+            raise DeepchecksValueError(f'allowed value for label type are \
+                                       {[task.value for task in TaskType if task != TaskType.RECOMMENDETION]},'
                                        f' received {label_type}.')
         else:
             self._label_type = None

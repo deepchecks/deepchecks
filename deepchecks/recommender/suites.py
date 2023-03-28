@@ -14,27 +14,16 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
-from typing import Callable, Dict, List, Union
-
 from deepchecks.recommender.checks import (LabelPopularityDrift, OperationsAmountSegmentPerformance, PopularityBias,
                                            PredictionPopularityDrift, SamplePerformance, ScatterPerformance)
 from deepchecks.tabular import Suite
-from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, ConflictingLabels, ConfusionMatrixReport,
-                                       DataDuplicates, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
-                                       DateTrainTestLeakageOverlap, FeatureDrift, FeatureFeatureCorrelation,
-                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange,
-                                       IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, LabelDrift,
-                                       MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
-                                       NewCategoryTrainTest, NewLabelTrainTest, OutlierSampleDetection, PercentOfNulls,
-                                       PredictionDrift, RegressionErrorDistribution, RocReport, SimpleModelComparison,
-                                       SingleDatasetPerformance, SpecialCharacters, StringLengthOutOfBounds,
-                                       StringMismatch, StringMismatchComparison, TrainTestPerformance,
-                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
-from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.tabular.checks import (FeatureDrift, FeatureFeatureCorrelation, FeatureLabelCorrelation,
+                                       FeatureLabelCorrelationChange, MultivariateDrift, NewCategoryTrainTest,
+                                       PercentOfNulls, SingleDatasetPerformance, TrainTestPerformance,
+                                       WeakSegmentsPerformance)
 
 __all__ = ['recsys_suite']
 
-from deepchecks.utils.typing import Hashable
 
 
 def recsys_suite(is_comparative: bool = True,
@@ -132,10 +121,8 @@ def recsys_suite(is_comparative: bool = True,
     checks = [
         WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         PercentOfNulls(**kwargs),
-        LabelPopularityDrift(**kwargs).add_condition_drift_score_less_than(),
         OperationsAmountSegmentPerformance(**kwargs),
-        PopularityBias(**kwargs).add_condition_drift_score_less_than(),
-        PredictionPopularityDrift(**kwargs).add_condition_drift_score_less_than(),
+        PopularityBias(**kwargs).add_condition_drift_score_less_than(),   
         SamplePerformance(**kwargs),
         ScatterPerformance(**kwargs)
     ]
@@ -150,5 +137,7 @@ def recsys_suite(is_comparative: bool = True,
         checks.append(FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than())
         checks.append(FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold())
         checks.append(SingleDatasetPerformance(**kwargs))
+        checks.append(PredictionPopularityDrift(**kwargs).add_condition_drift_score_less_than())
+        checks.append(LabelPopularityDrift(**kwargs).add_condition_drift_score_less_than())
 
     return Suite('RecSys Suite', *checks)
