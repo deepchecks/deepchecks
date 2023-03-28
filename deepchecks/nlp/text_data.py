@@ -20,6 +20,7 @@ from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueE
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
 from deepchecks.utils.logger import get_logger
+from deepchecks.utils.type_inference import infer_categorical_features
 from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = ['TextData', 'TTokenLabel', 'TClassLabel', 'TTextLabel']
@@ -75,6 +76,8 @@ class TextData:
         The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
         using the default properties. If a DataFrame is given, it must contain the properties for each sample as the raw
         text and identical index.
+    device : str, default: None
+        The device to use to calculate the text properties.
     """
 
     _text: t.Sequence[str]
@@ -97,6 +100,7 @@ class TextData:
             index: t.Optional[t.Sequence[t.Any]] = None,
             metadata: t.Optional[pd.DataFrame] = None,
             properties: t.Optional[t.Union[pd.DataFrame, str]] = None,
+            device: t.Optional[str] = None
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -153,12 +157,18 @@ class TextData:
 
         if metadata is not None:
             self.set_metadata(metadata)
+        else:
+            self._metadata = None
+            self._metadata_types = None
 
         if properties is not None:
             if isinstance(properties, str) and properties == 'auto':
-                self.calculate_default_properties()
+                self.calculate_default_properties(device=device)
             else:
                 self.set_properties(properties)
+        else:
+            self._properties = None
+            self._properties_types = None
 
     @staticmethod
     def _validate_text(raw_text: t.Sequence[str]):
@@ -326,7 +336,12 @@ class TextData:
         """Return the metadata of for the dataset."""
         return self._metadata
 
-    def set_metadata(self, metadata: pd.DataFrame):
+    @property
+    def metadata_types(self) -> t.Dict[str, str]:
+        """Return the metadata types of for the dataset."""
+        return self._metadata_types
+
+    def set_metadata(self, metadata: pd.DataFrame, metadata_types: t.Optional[t.Dict[str, str]] = None):
         """Set the metadata of the dataset."""
         if self._metadata is not None:
             warnings.warn('Metadata already exist, overwriting it', UserWarning)
@@ -338,17 +353,44 @@ class TextData:
             raise DeepchecksValueError('metadata index must be the same as the text data index')
         self._metadata = metadata
 
+        if metadata_types is None:  # TODO: Add tests
+            cat_features = infer_categorical_features(metadata)
+            metadata_types = {metadata.columns[i]: 'categorical' if metadata.columns[i] in cat_features else 'numeric'
+                              for i in range(len(metadata.columns))}
+        elif sorted(list(metadata_types.keys())) != sorted(list(metadata.columns)):
+            raise DeepchecksValueError('metadata_types keys must identical to metadata columns')
+        self._metadata_types = metadata_types
+
     def calculate_default_properties(self, include_properties: t.List[str] = None,
-                                     ignore_properties: t.List[str] = None):
-        """Calculate the default properties of the dataset."""
+                                     ignore_properties: t.List[str] = None,
+                                     include_long_calculation_properties: t.Optional[bool] = False,
+                                     device: t.Optional[str] = None):
+        """Calculate the default properties of the dataset.
+
+        Parameters
+        ----------
+        include_properties : List[str], default None
+            The properties to calculate. If None, all default properties will be calculated. Cannot be used together
+            with ignore_properties parameter.
+        ignore_properties : List[str], default None
+            The properties to ignore. If None, no properties will be ignored. Cannot be used together with
+            properties parameter.
+        include_long_calculation_properties : bool, default False
+            Whether to include properties that may take a long time to calculate. If False, these properties will be
+            ignored.
+        device : int, default None
+            The device to use for the calculation. If None, the default device will be used.
+        """
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        properties = calculate_default_properties(self.text, include_properties=include_properties,
-                                                  ignore_properties=ignore_properties)
+        properties, properties_types = calculate_default_properties(
+            self.text, include_properties=include_properties, ignore_properties=ignore_properties,
+            include_long_calculation_properties=include_long_calculation_properties, device=device)
         self._properties = pd.DataFrame(properties, index=self.index)
+        self._properties_types = properties_types
 
-    def set_properties(self, properties: pd.DataFrame):
+    def set_properties(self, properties: pd.DataFrame, properties_types: t.Optional[t.Dict[str, str]] = None):
         """Set the properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
@@ -360,10 +402,26 @@ class TextData:
             raise DeepchecksValueError('properties index must be the same as the text data index')
         self._properties = properties
 
+        if properties_types is None:
+            # TODO: move infer_categorical_features to core
+            cat_features = infer_categorical_features(properties)
+            properties_types = {
+                properties.columns[i]: 'categorical' if properties.columns[i] in cat_features else 'numeric'
+                for i in range(len(properties.columns))}
+        elif sorted(list(properties_types.keys())) != sorted(list(properties.columns)):
+            raise DeepchecksValueError('properties_types keys must identical to properties columns')
+
+        self._properties_types = properties_types
+
     @property
     def properties(self) -> pd.DataFrame:
         """Return the properties of the dataset."""
         return self._properties
+
+    @property
+    def properties_types(self) -> t.Dict[str, str]:
+        """Return the property types of the dataset."""
+        return self._properties_types
 
     def __len__(self):
         """Return number of samples in the dataset."""

@@ -15,9 +15,10 @@ from enum import Enum
 __all__ = ['TaskType']
 
 
-class TaskType(Enum):
+class TaskType(str, Enum):
     """Enum containing supported task types."""
 
     REGRESSION = 'regression'
     BINARY = 'binary'
     MULTICLASS = 'multiclass'
+    RECOMMENDETION = 'recommendation'

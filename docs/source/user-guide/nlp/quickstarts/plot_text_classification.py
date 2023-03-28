@@ -175,6 +175,15 @@ result.show()
 #    DataFrame of properties to the TextData `properties` argument, or by calling the
 #    :meth:`set_properties <deepchecks.nlp.TextData.set_properties>` method anytime later with such a DataFrame. You
 #
+# .. note::
+#
+#    Some of the default properties require additional packages to be installed. If you want to use them, you can
+#    install them by running ``pip install deepchecks[nlp-properties]``.
+#    Additionally, some properties that use the ``transformers`` package are computationally expensive, and may take
+#    a long time to calculate. If you have a GPU or a similar device you can use it by installing the appropriate
+#    package versions and passing a ``device`` argument to the ``TextData`` constructor or to the
+#    ``calculate_default_properties`` method.
+#
 
 # Calculate properties
 train.calculate_default_properties()
