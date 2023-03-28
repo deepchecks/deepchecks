@@ -17,8 +17,8 @@ import numpy as np
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.utils.abstracts.prediction_drift import PredictionDriftAbstract
 from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS
-from deepchecks.utils.distribution.prediction_drift import PredictionDriftAbstract
 from deepchecks.utils.strings import format_number
 
 __all__ = ['PredictionDrift']
@@ -160,7 +160,8 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
             train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
             test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
 
-        return self.prediction_drift(context, train_prediction, test_prediction, proba_drift, not proba_drift)
+        return self.prediction_drift(train_prediction, test_prediction, context.model_classes, context.with_display,
+                                     proba_drift, not proba_drift)
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.15):

@@ -19,16 +19,19 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_p
 class PredictionDriftAbstract:
     """Abstract class for prediction drift checks."""
 
-    def prediction_drift(self, context, train_prediction, test_prediction, proba_drift, cat_plot) -> CheckResult:
+    def prediction_drift(self, train_prediction, test_prediction, model_classes, with_display,
+                         proba_drift, cat_plot) -> CheckResult:
         """Calculate prediction drift.
 
         Args:
-            context : Context
-                context object to get model classes from
             train_prediction : np.ndarray
-                train prediction
+                train prediction or probabilities
             test_prediction : np.ndarray
-                test prediction
+                test prediction or probabilities
+            model_classes : list
+                list of model classes
+            with_display : bool
+                flag for displaying the prediction distribution graph
             proba_drift : bool
                 flag for computing drift on the probabilities rather than the predicted labels
             cat_plot : bool
@@ -53,8 +56,8 @@ class PredictionDriftAbstract:
                                                          ).squeeze()).value_counts().sort_index()
 
             # If label exists, get classes from it and map the samples_per_class index to these classes
-            if context.model_classes is not None:
-                classes = context.model_classes
+            if model_classes is not None:
+                classes = model_classes
                 class_dict = dict(zip(range(len(classes)), classes))
                 samples_per_class.index = samples_per_class.index.to_series().map(class_dict).values
             else:
@@ -67,7 +70,9 @@ class PredictionDriftAbstract:
             classes = list(sorted(samples_per_class.keys()))
 
         has_min_samples = hasattr(self, 'min_samples')
-        min_samples = self.min_samples if has_min_samples else 10
+        additional_kwargs = {}
+        if has_min_samples:
+            additional_kwargs['min_samples'] = self.min_samples
 
         for class_idx in range(train_prediction.shape[1]):
             class_name = classes[class_idx]
@@ -86,12 +91,12 @@ class PredictionDriftAbstract:
                 categorical_drift_method=self.categorical_drift_method,
                 balance_classes=self.balance_classes,
                 ignore_na=self.ignore_na,
-                min_samples=min_samples,
                 raise_min_samples_error=has_min_samples,
-                with_display=context.with_display,
+                with_display=with_display,
+                **additional_kwargs
             )
 
-        if context.with_display:
+        if with_display:
             headnote = [f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
                 and train distributions.<br> The check shows the drift score and distributions for the predicted
