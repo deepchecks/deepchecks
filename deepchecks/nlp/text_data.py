@@ -421,6 +421,10 @@ class TextData:
     @property
     def properties(self) -> pd.DataFrame:
         """Return the properties of the dataset."""
+        if self._properties is None:
+            raise DeepchecksNotSupportedError(
+                'TextData does not contain properties, add them by using calculate_default_properties or '
+                'set_properties functions')
         return self._properties
 
     @property

@@ -22,8 +22,8 @@ from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProces
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
+from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['MetadataSegmentsPerformance', 'PropertySegmentsPerformance']

@@ -21,8 +21,8 @@ from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProces
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.docref import doclink
-from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.single_sample_metrics import calculate_per_sample_loss
 from deepchecks.utils.typing import Hashable
 

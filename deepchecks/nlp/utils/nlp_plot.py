@@ -86,7 +86,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
                 y=cat_df[dist_name],
                 marker=dict(color=color_discrete_sequence),
                 name='Common',
-                text=[f'{x:.2%}' for x in cat_df[dist_name]],
+                # text=[f'{x:.2%}' for x in cat_data[dist_name]],
                 customdata=hover_data,
                 hovertemplate=hover_template
 

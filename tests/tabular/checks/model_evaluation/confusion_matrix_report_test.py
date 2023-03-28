@@ -72,7 +72,7 @@ def test_model_info_object_without_display(iris_labeled_dataset, iris_adaboost):
 
 def test_model_info_object_not_normalize(iris_labeled_dataset, iris_adaboost):
     # Arrange
-    check = ConfusionMatrixReport(normalized=False)
+    check = ConfusionMatrixReport(normalize_display=False)
     # Act X
     result = check.run(iris_labeled_dataset, iris_adaboost).value
     # Assert
