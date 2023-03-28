@@ -11,9 +11,8 @@
 """Module importing all nlp checks."""
 
 from deepchecks.nlp.checks.data_integrity import PropertyLabelCorrelation, TextPropertyOutliers
-from deepchecks.nlp.checks.model_evaluation import (MetadataSegmentsPerformance, PredictionDrift,
-                                                    PropertySegmentsPerformance, SingleDatasetPerformance,
-                                                    ConfusionMatrixReport)
+from deepchecks.nlp.checks.model_evaluation import (ConfusionMatrixReport, MetadataSegmentsPerformance, PredictionDrift,
+                                                    PropertySegmentsPerformance, SingleDatasetPerformance)
 from deepchecks.nlp.checks.train_test_validation import LabelDrift
 
 __all__ = [
