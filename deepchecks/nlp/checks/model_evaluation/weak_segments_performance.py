@@ -106,7 +106,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         for idx, segment in weak_segments.copy().iterrows():
             for feature in ['Feature1', 'Feature2']:
                 if segment[feature] in encoded_dataset.cat_features:
-                    weak_segments[f'{feature} range'][idx] = \
+                    weak_segments.at[idx, f'{feature} range'] = \
                         self._format_partition_vec_for_display(segment[f'{feature} range'], segment[feature], None)[0]
 
         display_msg = 'Showcasing intersections of metadata columns with weakest detected segments.<br> The full ' \

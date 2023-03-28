@@ -197,6 +197,11 @@ class TextData:
             self._has_label, self._label = False, [None] * len(self._text)
             return
 
+        # Check if label is n array of None, if so return
+        if isinstance(label, t.Sequence) and all(x is None for x in label):
+            self._has_label, self._label = False, label
+            return
+
         self._has_label = True
         if not is_sequence_not_str(label):
             raise DeepchecksValueError('label must be a Sequence')
