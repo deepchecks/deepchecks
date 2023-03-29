@@ -110,7 +110,7 @@ class ReduceFeatureMixin(ReduceMixin):
 
         if aggregation_method not in ['weighted', 'l3_weighted', 'l5_weighted']:
             raise DeepchecksValueError(f'Unknown aggregation method: {aggregation_method}')
-        elif feature_importance is None:
+        elif feature_importance is None or feature_importance.isna().values.any():
             get_logger().warning('Failed to calculate feature importance, using uniform mean instead.')
             return {str(str.title(aggregation_method.replace('_', ' ')) + ' ' + score_name): np.mean(value_per_feature)}
         else:
