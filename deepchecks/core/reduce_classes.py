@@ -122,6 +122,7 @@ class ReduceFeatureMixin(ReduceMixin):
         if aggregation_method == 'weighted':
             return {str('Weighted ' + score_name): np.sum(value_per_feature * feature_importance)}
         elif aggregation_method == 'l3_weighted':
+            
             return {str('L3 Weighted ' + score_name): np.sum((value_per_feature ** 3) * feature_importance) ** (1. / 3)}
         elif aggregation_method == 'l5_weighted':
             return {str('L5 Weighted ' + score_name): np.sum((value_per_feature ** 5) * feature_importance) ** (1. / 5)}

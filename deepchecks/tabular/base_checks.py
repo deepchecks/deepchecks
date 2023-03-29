@@ -156,31 +156,30 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         y_pred_train = y_pred_train if y_pred_train is not None else y_pred
         y_proba_train = y_proba_train if y_proba_train is not None else y_proba
 
-        if self.context_type is None:
-            if dataset.label_type == TaskType.RECOMMENDETION:
-                self.context_type = RecContext
-                context = self.context_type(  # pylint: disable=not-callable
-                    train=dataset,
-                    item_dataset=item_dataset,
-                    feature_importance=feature_importance,
-                    feature_importance_force_permutation=feature_importance_force_permutation,
-                    feature_importance_timeout=feature_importance_timeout,
-                    with_display=with_display,
-                    y_pred_train=y_pred_train,
-                )
-            else:
-                self.context_type = Context
-                context = self.context_type(  # pylint: disable=not-callable
-                    train=dataset,
-                    model=model,
-                    feature_importance=feature_importance,
-                    feature_importance_force_permutation=feature_importance_force_permutation,
-                    feature_importance_timeout=feature_importance_timeout,
-                    with_display=with_display,
-                    y_pred_train=y_pred_train,
-                    y_proba_train=y_proba_train,
-                    model_classes=model_classes
-                )
+        if dataset.label_type == TaskType.RECOMMENDETION:
+            self.context_type = RecContext
+            context = self.context_type(  # pylint: disable=not-callable
+                train=dataset,
+                item_dataset=item_dataset,
+                feature_importance=feature_importance,
+                feature_importance_force_permutation=feature_importance_force_permutation,
+                feature_importance_timeout=feature_importance_timeout,
+                with_display=with_display,
+                y_pred_train=y_pred_train,
+            )
+        else:
+            self.context_type = self.context_type or Context
+            context = self.context_type(  # pylint: disable=not-callable
+                train=dataset,
+                model=model,
+                feature_importance=feature_importance,
+                feature_importance_force_permutation=feature_importance_force_permutation,
+                feature_importance_timeout=feature_importance_timeout,
+                with_display=with_display,
+                y_pred_train=y_pred_train,
+                y_proba_train=y_proba_train,
+                model_classes=model_classes
+            )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
         context.finalize_check_result(result, self, DatasetKind.TRAIN)
         return result
@@ -290,36 +289,35 @@ class TrainTestCheck(TrainTestBaseCheck):
         if train_dataset.label_type == TaskType.RECOMMENDETION and model_classes is not None:
             raise DeepchecksNotSupportedError('model_classes is not supported for recommendation datasets.')
 
-        if self.context_type is None:
-            if train_dataset.label_type == TaskType.RECOMMENDETION:
-                self.context_type = RecContext
-                context = self.context_type(  # pylint: disable=not-callable
-                    train=train_dataset,
-                    test=test_dataset,
-                    item_dataset=item_dataset,
-                    feature_importance=feature_importance,
-                    feature_importance_force_permutation=feature_importance_force_permutation,
-                    feature_importance_timeout=feature_importance_timeout,
-                    y_pred_train=y_pred_train,
-                    y_pred_test=y_pred_test,
-                    with_display=with_display,
-                )
-            else:
-                self.context_type = Context
-                context = self.context_type(  # pylint: disable=not-callable
-                    train=train_dataset,
-                    test=test_dataset,
-                    model=model,
-                    feature_importance=feature_importance,
-                    feature_importance_force_permutation=feature_importance_force_permutation,
-                    feature_importance_timeout=feature_importance_timeout,
-                    y_pred_train=y_pred_train,
-                    y_pred_test=y_pred_test,
-                    y_proba_train=y_proba_train,
-                    y_proba_test=y_proba_test,
-                    with_display=with_display,
-                    model_classes=model_classes
-                )
+        if train_dataset.label_type == TaskType.RECOMMENDETION:
+            self.context_type = RecContext
+            context = self.context_type(  # pylint: disable=not-callable
+                train=train_dataset,
+                test=test_dataset,
+                item_dataset=item_dataset,
+                feature_importance=feature_importance,
+                feature_importance_force_permutation=feature_importance_force_permutation,
+                feature_importance_timeout=feature_importance_timeout,
+                y_pred_train=y_pred_train,
+                y_pred_test=y_pred_test,
+                with_display=with_display,
+            )
+        else:
+            self.context_type = self.context_type or Context
+            context = self.context_type(  # pylint: disable=not-callable
+                train=train_dataset,
+                test=test_dataset,
+                model=model,
+                feature_importance=feature_importance,
+                feature_importance_force_permutation=feature_importance_force_permutation,
+                feature_importance_timeout=feature_importance_timeout,
+                y_pred_train=y_pred_train,
+                y_pred_test=y_pred_test,
+                y_proba_train=y_proba_train,
+                y_proba_test=y_proba_test,
+                with_display=with_display,
+                model_classes=model_classes
+            )
 
        
         result = self.run_logic(context)
