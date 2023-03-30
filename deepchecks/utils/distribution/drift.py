@@ -157,6 +157,9 @@ def cramers_v(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.S
             dist1_counts, dist2_counts = _balance_sizes_downsizing(dist1_counts, dist2_counts)
     contingency_matrix = pd.DataFrame([dist1_counts, dist2_counts], dtype=int)
 
+    # filter all columns that have all 0 values
+    contingency_matrix = contingency_matrix.loc[:, (contingency_matrix != 0).any(axis=0)]
+
     # Based on https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V# bias correction method # noqa: SC100
     chi2 = chi2_contingency(contingency_matrix)[0]
     n = contingency_matrix.sum().sum()
