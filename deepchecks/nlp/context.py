@@ -14,7 +14,6 @@ import typing as t
 from operator import itemgetter
 
 import numpy as np
-
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
@@ -90,9 +89,9 @@ class _DummyModel(BasicModel):
 
         if train is not None and test is not None:
             # check if datasets have same indexes
-            if set(train.index) & set(test.index):
-                train.reindex(list(map(lambda x: f'train-{x}', list(train.index))))
-                test.reindex(list(map(lambda x: f'test-{x}', list(test.index))))
+            if set(train.get_original_text_indexes()) & set(test.get_original_text_indexes()):
+                train._original_text_index = np.asarray([f'train-{i}' for i in train.get_original_text_indexes()])
+                test._original_text_index = np.asarray([f'test-{i}' for i in test.get_original_text_indexes()])
                 get_logger().warning('train and test datasets have common index - adding "train"/"test"'
                                      ' prefixes. To avoid that provide datasets with no common indexes '
                                      'or pass the model object instead of the predictions.')
@@ -108,26 +107,29 @@ class _DummyModel(BasicModel):
 
                 if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
                     if (y_pred is None) and (y_proba is not None):
-                        if dataset.is_multilabel:
+                        if dataset.is_multi_label_classification():
                             y_pred = (np.array(y_proba) > 0.5)  # TODO: Replace with user-configurable threshold
                             y_pred = [np.array(model_classes)[pred] for pred in y_pred]
                         else:
                             y_pred = np.argmax(np.array(y_proba), axis=-1)
-                            y_pred = np.array(model_classes)[y_pred]
+                            y_pred = np.array(model_classes, dtype='str')[y_pred]
 
                     if y_pred is not None:
-                        y_pred = np.array(y_pred)
+                        if dataset.is_multi_label_classification():
+                            y_pred = np.array(y_pred)
+                        else:
+                            y_pred = np.array(y_pred, dtype='str')
                         if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
                             y_pred = y_pred[:, 0]
                         ensure_predictions_shape(y_pred, dataset.text)
 
                     if y_proba is not None:
                         ensure_predictions_proba(y_proba, y_pred)
-                        y_proba_dict = dict(zip(dataset.index, y_proba))
+                        y_proba_dict = dict(zip(dataset.get_original_text_indexes(), y_proba))
                         probas.update({dataset.name: y_proba_dict})
 
                 if y_pred is not None:
-                    y_pred_dict = dict(zip(dataset.index, y_pred))
+                    y_pred_dict = dict(zip(dataset.get_original_text_indexes(), y_pred))
                     predictions.update({dataset.name: y_pred_dict})
 
         self.predictions = predictions
@@ -148,20 +150,22 @@ class _DummyModel(BasicModel):
     def _predict(self, data: TextData) -> TTextPred:  # TODO: Needs to receive list of strings, not TextData
         """Predict on given data by the data indexes."""
         if self.validate_data_on_predict:
-            data_indices = set(np.random.choice(data.index, min(100, len(data.index)), replace=False))
+            data_indices = set(np.random.choice(data.get_original_text_indexes(), min(100, len(data)), replace=False))
             if not data_indices.issubset(self._prediction_indices[data.name]):
                 raise DeepchecksValueError('Data that has not been seen before passed for inference with pre computed '
                                            'predictions.')
-        return list(itemgetter(*data.index)(self.predictions[data.name]))  # pylint: disable=unsubscriptable-object
+        return list(itemgetter(*data.get_original_text_indexes())(
+            self.predictions[data.name]))  # pylint: disable=unsubscriptable-object
 
     def _predict_proba(self, data: TextData) -> TTextProba:  # TODO: Needs to receive list of strings, not TextData
         """Predict probabilities on given data by the data indexes."""
         if self.validate_data_on_predict:
-            data_indices = set(np.random.choice(data.index, min(100, len(data.index)), replace=False))
+            data_indices = set(np.random.choice(data.get_original_text_indexes(), min(100, len(data)), replace=False))
             if not data_indices.issubset(self._proba_indices[data.name]):
                 raise DeepchecksValueError('Data that has not been seen before passed for inference with pre computed '
                                            'probabilities.')
-        return list(itemgetter(*data.index)(self.probas[data.name]))  # pylint: disable=unsubscriptable-object
+        return list(itemgetter(*data.get_original_text_indexes())(
+            self.probas[data.name]))  # pylint: disable=unsubscriptable-object
 
     def fit(self, *args, **kwargs):
         """Just for python 3.6 (sklearn validates fit method)."""
@@ -192,7 +196,7 @@ class _DummyModel(BasicModel):
 
         try:
             prediction = np.array(prediction)
-            if dataset.is_multilabel:
+            if dataset.is_multi_label_classification():
                 prediction = prediction.astype(float)  # Multilabel prediction is a binary matrix
             else:
                 prediction = prediction.reshape((-1, 1))  # Multiclass (not multilabel) Prediction can be a string
@@ -201,7 +205,7 @@ class _DummyModel(BasicModel):
         except ValueError as e:
             raise ValidationError(classification_format_error) from e
         pred_shape = prediction.shape
-        if dataset.is_multilabel:
+        if dataset.is_multi_label_classification():
             if len(pred_shape) == 1 or pred_shape[1] != n_classes:
                 raise ValidationError(classification_format_error)
             if not np.array_equal(prediction, prediction.astype(bool)):
@@ -247,7 +251,7 @@ class _DummyModel(BasicModel):
             if proba_shape[1] != n_classes:
                 raise ValidationError(f'Check requires classification probabilities for {dataset.name} dataset '
                                       f'to have {n_classes} columns, same as the number of classes')
-            if dataset.is_multilabel:
+            if dataset.is_multi_label_classification():
                 if (probabilities > 1).any() or (probabilities < 0).any():
                     raise ValidationError(f'Check requires classification probabilities for {dataset.name} '
                                           f'dataset to be between 0 and 1')
@@ -308,18 +312,19 @@ class Context(BaseContext):
         # If both dataset, validate they fit each other
         if train_dataset and test_dataset:
             if test_dataset.has_label() and train_dataset.has_label() and not \
-                    TextData.datasets_share_task_type(train_dataset, test_dataset):
+                    train_dataset.validate_textdata_compatibility(test_dataset):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')
-        if model_classes and len(model_classes) == 0:
-            raise DeepchecksValueError('Received empty model_classes')
-        if model_classes and sorted(model_classes) != model_classes:
-            supported_models_link = doclink(
-                'nlp-supported-predictions-format',
-                template='For more information please refer to the Supported Tasks guide {link}')
-            raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
+        if model_classes is not None:
+            if (not is_sequence_not_str(model_classes)) or len(model_classes) == 0:
+                raise DeepchecksValueError('model_classes must be a non-empty sequence')
+            if sorted(model_classes) != model_classes:
+                supported_models_link = doclink(
+                    'nlp-supported-predictions-format',
+                    template='For more information please refer to the Supported Tasks guide {link}')
+                raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
 
         self._task_type = self.infer_task_type(train_dataset, test_dataset)
 

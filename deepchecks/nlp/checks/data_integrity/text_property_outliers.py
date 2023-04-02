@@ -119,7 +119,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
             text_outliers = np.concatenate([bottom_outliers, top_outliers])
 
             result[name] = {
-                'indices': [dataset.index[i] for i in text_outliers],
+                'indices': [dataset.get_original_text_indexes()[i] for i in text_outliers],
                 # For the upper and lower limits doesn't show values that are smaller/larger than the actual values
                 # we have in the data
                 'lower_limit': max(lower_limit, min(values_arr)),

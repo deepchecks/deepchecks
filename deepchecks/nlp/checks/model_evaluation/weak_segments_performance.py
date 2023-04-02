@@ -87,7 +87,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         if features.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
         # label is not used in the check, just here to avoid errors
-        dataset = Dataset(features, label=pd.Series(text_data.label, index=text_data.index), cat_features=cat_features)
+        dataset = Dataset(features, label=pd.Series(text_data.label), cat_features=cat_features)
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, list(np.unique(text_data.label)))
 
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),

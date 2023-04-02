@@ -114,7 +114,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
                 properties = None
             dataset = TextData(dataset.text, label=dataset[_target], task_type='text_classification',
                                metadata=dataset.drop(columns=[_target, 'text']),
-                               properties=properties, index=dataset.index)
+                               properties=properties)
         return dataset
     else:
         # train has more sport and Customer Complains but less Terror and Optimism
@@ -128,10 +128,10 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
                 train_properties, test_properties = None, None
 
             train = TextData(train.text, label=train[_target], task_type='text_classification',
-                             index=train.index, metadata=train.drop(columns=[_target, 'text']),
+                             metadata=train.drop(columns=[_target, 'text']),
                              properties=train_properties)
             test = TextData(test.text, label=test[_target], task_type='text_classification',
-                            index=test.index, metadata=test.drop(columns=[_target, 'text']),
+                            metadata=test.drop(columns=[_target, 'text']),
                             properties=test_properties)
         return train, test
 
@@ -147,7 +147,8 @@ def load_embeddings() -> np.ndarray:
     return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
 
 
-def load_precalculated_predictions(pred_format: str = 'predictions') -> np.array:
+def load_precalculated_predictions(pred_format: str = 'predictions',
+                                   as_train_test: bool = False) -> np.array:
     """Load and return a precalculated predictions for the dataset.
 
     Parameters
@@ -156,7 +157,11 @@ def load_precalculated_predictions(pred_format: str = 'predictions') -> np.array
         Represent the format of the returned value. Can be 'predictions' or 'probabilities'.
         'predictions' will return the predicted class for each sample.
         'probabilities' will return the predicted probabilities for each sample.
-
+    as_train_test : bool, default: True
+        If True, the returned data is split into train and test exactly like the toy model
+        was trained. The first return value is the train data and the second is the test data.
+        In order to get this model, call the load_fitted_model() function.
+        Otherwise, returns a single object.
     Returns
     -------
     predictions : np.ndarray
@@ -165,16 +170,27 @@ def load_precalculated_predictions(pred_format: str = 'predictions') -> np.array
     """
     os.makedirs(ASSETS_DIR, exist_ok=True)
     if (ASSETS_DIR / 'tweet_emotion_probabilities.csv').exists():
-        preds = pd.read_csv(ASSETS_DIR / 'tweet_emotion_probabilities.csv', index_col=0)
+        all_preds = pd.read_csv(ASSETS_DIR / 'tweet_emotion_probabilities.csv', index_col=0)
     else:
-        preds = pd.read_csv(_PREDICTIONS_URL, index_col=0)
-        preds.to_csv(ASSETS_DIR / 'tweet_emotion_probabilities.csv')
-
-    preds = preds.to_numpy()
+        all_preds = pd.read_csv(_PREDICTIONS_URL, index_col=0)
+        all_preds.to_csv(ASSETS_DIR / 'tweet_emotion_probabilities.csv')
+    all_preds = all_preds.to_numpy()
 
     if pred_format == 'predictions':
-        return np.array([_LABEL_MAP[x] for x in np.argmax(preds, axis=1)])
-    elif pred_format == 'probabilities':
-        return preds
-    else:
+        all_preds = np.array([_LABEL_MAP[x] for x in np.argmax(all_preds, axis=1)])
+    elif pred_format != 'probabilities':
         raise ValueError('pred_format must be either "predictions" or "probabilities"')
+
+    if not as_train_test:
+        return all_preds
+
+    # Load indexes of train and test
+    if (ASSETS_DIR / 'tweet_emotion_data.csv').exists():
+        dataset = pd.read_csv(ASSETS_DIR / 'tweet_emotion_data.csv', index_col=0,
+                              usecols=['Unnamed: 0', 'train_test_split'])
+    else:
+        dataset = pd.read_csv(_FULL_DATA_URL, index_col=0, usecols=['Unnamed: 0', 'train_test_split'])
+
+    train_indexes = dataset[dataset['train_test_split'] == 'Train'].index
+    test_indexes = dataset[dataset['train_test_split'] == 'Test'].index
+    return all_preds[train_indexes], all_preds[test_indexes]

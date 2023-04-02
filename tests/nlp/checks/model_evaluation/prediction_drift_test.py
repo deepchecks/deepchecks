@@ -60,7 +60,7 @@ def test_tweet_emotion_no_drift_no_label(tweet_emotion_train_test_textdata, twee
     # Arrange
     train, _ = tweet_emotion_train_test_textdata
     train = TextData(train.text, task_type='text_classification', metadata=train.metadata,
-                     properties=train.properties, index=train.index)
+                     properties=train.properties)
     train_preds, _ = tweet_emotion_train_test_predictions
     check = PredictionDrift().add_condition_drift_score_less_than()
     # Act

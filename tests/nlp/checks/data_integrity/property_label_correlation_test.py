@@ -17,13 +17,12 @@ from deepchecks.nlp.datasets.classification import tweet_emotion
 from tests.base.utils import equal_condition_result
 
 
-def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
+def test_tweet_emotion_properties(tweet_emotion_train_test_textdata, tweet_emotion_train_test_probabilities):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
-    test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[test.index]
     check = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.1)
     # Act
-    result = check.run(test, probabilities=test_probas)
+    result = check.run(test, probabilities=tweet_emotion_train_test_probabilities[1])
     condition_result = check.conditions_decision(result)
 
     # Assert
