@@ -15,6 +15,7 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
+
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_modify_label,
                                               validate_raw_text, validate_tokenized_text)

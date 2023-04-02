@@ -14,6 +14,7 @@ import typing as t
 from operator import itemgetter
 
 import numpy as np
+
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
