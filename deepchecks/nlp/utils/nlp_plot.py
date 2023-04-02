@@ -23,6 +23,16 @@ from deepchecks.utils.plot import common_and_outlier_colors
 __all__ = ['get_text_outliers_graph']
 
 
+def clean_x_axis_non_existent_values(x_axis, distribution):
+    """Remove values from x_axis where the distribution has no values."""
+    # Find the index of the first value in x_axis that is bigger than the value in distribution
+    ixs = np.searchsorted(sorted(distribution), x_axis, side='left')
+    # If 2 neighboring values in ixs are the same, it means that there are no values in the distribution for
+    # the corresponding value in x_axis. We remove it.
+    x_axis = [x_axis[i] for i in range(len(ixs)) if ixs[i] != ixs[i - 1]]
+    return x_axis
+
+
 def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: float, upper_limit: float, dist_name: str,
                             is_categorical: bool):
     """Create a distribution / bar graph of the data and its outliers.
@@ -121,6 +131,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
             np.linspace(x_range[0], x_range[1], 50),
             np.quantile(dist, q=np.arange(0.02, 1, 0.02))
         )))
+        xs = clean_x_axis_non_existent_values(xs, dist)
 
         traces: List[go.BaseTraceType] = []
 
