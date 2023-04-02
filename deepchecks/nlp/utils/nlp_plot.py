@@ -120,18 +120,23 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
 
     else:
         x_range = (
-            min(dist.min(), dist.min()),
-            max(dist.max(), dist.max())
+            dist.min(), dist.max()
         )
-
-        # Heuristically take points on x-axis to show on the plot
-        # The intuition is the graph will look "smooth" wherever we will zoom it
-        # Also takes mean and median values in order to plot it later accurately
-        xs = sorted(np.concatenate((
-            np.linspace(x_range[0], x_range[1], 50),
-            np.quantile(dist, q=np.arange(0.02, 1, 0.02))
-        )))
-        xs = clean_x_axis_non_existent_values(xs, dist)
+        if all(int(x) == x for x in dist if x is not None):
+            # If the distribution is discrete, we take all the values in it:
+            xs = sorted(np.unique(dist))
+            if len(xs) > 50:
+                # If there are too many values, we take only 50, using a constant interval between them:
+                xs = list(range(int(xs[0]), int(xs[-1]) + 1, int((xs[-1] - xs[0]) // 50)))
+        else:
+            # Heuristically take points on x-axis to show on the plot
+            # The intuition is the graph will look "smooth" wherever we will zoom it
+            # Also takes mean and median values in order to plot it later accurately
+            xs = sorted(np.concatenate((
+                np.linspace(x_range[0], x_range[1], 50),
+                np.quantile(dist, q=np.arange(0.02, 1, 0.02))
+            )))
+            xs = clean_x_axis_non_existent_values(xs, dist)
 
         traces: List[go.BaseTraceType] = []
 
@@ -192,7 +197,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
 
         traces.append(go.Scatter(
             x=xs, y=density_common, name='Common', fill='tozeroy', fillcolor=green_fill,
-            line=dict(color=green, shape='linear', width=5), customdata=hover_data, hovertemplate=hover_template
+            line=dict(color=green, shape='linear', width=5), customdata=hover_data, hovertemplate=hover_template,
         ))
         traces.append(go.Scatter(
             x=xs, y=density_outliers_lower, name='Lower Outliers', fill='tozeroy', fillcolor=red_fill,
@@ -221,6 +226,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
         height=400,
         title=dict(text=dist_name, x=0.5, xanchor='center'),
         bargroupgap=0,
-        hovermode='closest')
+        hovermode='closest',
+        hoverdistance=-1)
 
     return fig
