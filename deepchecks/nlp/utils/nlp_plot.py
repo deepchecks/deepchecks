@@ -27,7 +27,7 @@ def clean_x_axis_non_existent_values(x_axis, distribution):
     """Remove values from x_axis where the distribution has no values."""
     # Find the index of the first value in x_axis that is bigger than the value in distribution
     ixs = np.searchsorted(sorted(distribution), x_axis, side='left')
-    # If 2 neighboring values in ixs are the same, it means that there are no values in the distribution for
+    # If 2 neighboring indexes are the same, it means that there are no values in the distribution for
     # the corresponding value in x_axis. We remove it.
     x_axis = [x_axis[i] for i in range(len(ixs)) if ixs[i] != ixs[i - 1]]
     return x_axis
