@@ -106,7 +106,7 @@ class TextData:
                 raise DeepchecksValueError('tokenized_text must be provided for token_classification task type')
             validate_tokenized_text(tokenized_text)
             modified = [[str(token) for token in tokens_per_sample] for tokens_per_sample in tokenized_text]
-            self._tokenized_text = np.asarray(modified)
+            self._tokenized_text = np.asarray(modified, dtype=object)
             self._task_type = TaskType.TOKEN_CLASSIFICATION
         else:
             raise DeepchecksNotSupportedError(f'task_type {task_type} is not supported, must be one of '
@@ -301,8 +301,8 @@ class TextData:
     def properties(self) -> pd.DataFrame:
         """Return the properties of the dataset."""
         if self._properties is None:
-            get_logger().info('No properties are set, calculating default properties')
-            self.calculate_default_properties()
+            raise DeepchecksValueError('TextData does not contain properties, add them by using '
+                                       'calculate_default_properties or set_properties functions')
         return self._properties
 
     @property

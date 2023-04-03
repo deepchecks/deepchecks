@@ -23,7 +23,7 @@ from deepchecks.utils.validation import is_sequence_not_str
 
 def validate_tokenized_text(tokenized_text: Optional[Sequence[Sequence[str]]]):
     """Validate tokenized text format."""
-    error_string = 'tokenized_text must be a Sequence of sequences of strings'
+    error_string = 'tokenized_text must be a Sequence of Sequences of strings'
     if not is_sequence_not_str(tokenized_text):
         raise DeepchecksValueError(error_string)
     if not all(is_sequence_not_str(x) for x in tokenized_text):
@@ -80,7 +80,7 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
                                            f'However, for sample index {idx} received token list of length '
                                            f'{len(tokens)} and label list of length {len(label)}')
             result.append([str(x) for x in label])
-        labels = result
+        labels = np.asarray(result, dtype=object)
 
     return np.asarray(labels)
 
