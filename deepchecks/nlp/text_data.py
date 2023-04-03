@@ -116,7 +116,7 @@ class TextData:
             raise DeepchecksValueError('Either raw_text or tokenized_text must be provided')
         elif raw_text is None:
             self._text = np.asarray([' '.join(tokens) for tokens in tokenized_text])  # Revisit this decision
-        else:
+        else:  # raw_text is not None, tokenized_text can be None
             validate_raw_text(raw_text)
             self._text = np.asarray([str(x) for x in raw_text])
             if tokenized_text is not None and len(raw_text) != len(tokenized_text):
