@@ -91,7 +91,7 @@ class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: Optional[str], default: 'l2_weighted'
+    aggregation_method: Optional[str], default: 'l3_weighted'
         {feature_aggregation_method_argument:2*indent}
     min_samples : int , default: 10
         Minimum number of samples required to calculate the drift score. If there are not enough samples for either
@@ -117,7 +117,7 @@ class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
             numerical_drift_method: str = 'KS',
             categorical_drift_method: str = 'cramers_v',
             ignore_na: bool = True,
-            aggregation_method: Optional[str] = 'l2_weighted',
+            aggregation_method: Optional[str] = 'l3_weighted',
             min_samples: Optional[int] = 10,
             n_samples: int = 100_000,
             random_state: int = 42,
@@ -282,7 +282,6 @@ class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
         feature_importance = pd.Series({column: info['Importance'] for column, info in check_result.value.items()})
-        feature_importance = None if None in feature_importance else feature_importance
         values = pd.Series({column: info['Drift score'] for column, info in check_result.value.items()})
         return self.feature_reduce(self.aggregation_method, values, feature_importance, 'Drift Score')
 

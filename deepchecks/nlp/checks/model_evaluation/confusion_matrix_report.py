@@ -12,7 +12,7 @@
 import numpy as np
 
 from deepchecks.core import CheckResult
-from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.utils.abstracts.confusion_matrix_abstract import run_confusion_matrix_check
 
 __all__ = ['ConfusionMatrixReport']
@@ -25,7 +25,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     ----------
     normalize_display : bool , default: True:
         boolean that determines whether to normalize the values of the matrix in the display.
-    n_samples : int , default: 1_000_000
+    n_samples : int , default: 10_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
@@ -55,8 +55,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             If the data is not a Dataset instance with a label
         """
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
-        context.assert_classification_task()
-        y_true = dataset.label_col
-        y_pred = np.array(context.model.predict(dataset.features_columns)).reshape(len(y_true), )
+        y_true = np.asarray(dataset.label)
+        y_pred = np.array(context.model.predict(dataset)).reshape(len(y_true), )
 
         return run_confusion_matrix_check(y_pred, y_true, context.with_display, self.normalize_display)

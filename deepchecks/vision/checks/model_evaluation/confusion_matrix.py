@@ -17,7 +17,7 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.utils.plot import create_confusion_matrix_figure
+from deepchecks.utils.abstracts.confusion_matrix_abstract import create_confusion_matrix_figure
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import SingleDatasetCheck
 from deepchecks.vision.context import Context
@@ -146,7 +146,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     y.append('No overlapping')
 
             description.append(
-                create_confusion_matrix_figure(confusion_matrix, x, y, self.normalized)
+                create_confusion_matrix_figure(confusion_matrix, x, self.normalized)
             )
         else:
             description = None

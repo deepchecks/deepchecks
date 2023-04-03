@@ -126,7 +126,7 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
             display = result_data.copy()
             display['Ratio of New Categories'] = display['Ratio of New Categories'].apply(format_percent)
             display['# New Categories'] = display['# New Categories'].apply(format_number)
-            display['Examples'] = display['New categories']. \
+            display['New Categories Names'] = display['New categories']. \
                 apply(lambda x: x[:self.max_new_categories_to_show])
             display.drop('New categories', axis=1, inplace=True)
             display = display.iloc[:self.max_features_to_show, :]

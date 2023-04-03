@@ -70,6 +70,9 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         -------
         ipywidgets.VBox
         """
+        # Need this in order to create kernel see https://github.com/jupyter-widgets/ipywidgets/issues/3729
+        import ipykernel.ipkernel  # pylint: disable=unused-import,import-outside-toplevel # noqa: F401
+
         sections_to_include = html.verify_include_parameter(check_sections)
         sections: t.List[Widget] = [self.prepare_header(output_id), self.prepare_summary()]
 

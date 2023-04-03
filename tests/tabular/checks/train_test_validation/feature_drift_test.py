@@ -262,15 +262,15 @@ def test_reduce_output_with_nones(drifted_data_with_nulls, drifted_data_and_mode
 
     _, _, model = drifted_data_and_model
     train, test = drifted_data_with_nulls
-    check = FeatureDrift(min_samples=999, ignore_na=False, aggregation_method='l2_weighted')
+    check = FeatureDrift(min_samples=999, ignore_na=False, aggregation_method='l3_weighted')
     fi = pd.Series(np.ones(len(train.features)), index=train.features) / len(train.features)
 
     # Act
     aggregated_result = check.run(train, test, model, feature_importance=fi).reduce_output()
 
     # Assert
-    assert_that(aggregated_result.keys(), has_item('L2 Weighted Drift Score'))
-    assert_that(aggregated_result['L2 Weighted Drift Score'], close_to(0.127, 0.01))
+    assert_that(aggregated_result.keys(), has_item('L3 Weighted Drift Score'))
+    assert_that(aggregated_result['L3 Weighted Drift Score'], close_to(0.152, 0.01))
 
 
 def test_weighted_aggregation_drift_with_model(drifted_data_and_model):
@@ -294,21 +294,21 @@ def test_aggregation_drift_with_model(drifted_data_and_model):
                                      aggregation_method='weighted')
     check_l2 = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0,
-                                  aggregation_method='l2_weighted')
+                                  aggregation_method='l3_weighted')
     check_l3 = FeatureDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                   max_num_categories=10, min_category_size_ratio=0,
-                                  aggregation_method='l3_weighted')
+                                  aggregation_method='l5_weighted')
     # Act
     aggregated_result_l1 = check_l1.run(train, test, model).reduce_output()
     aggregated_result_l2 = check_l2.run(train, test, model).reduce_output()
     aggregated_result_l3 = check_l3.run(train, test, model).reduce_output()
     # Assert
-    assert_that(aggregated_result_l2.keys(), has_item('L2 Weighted Drift Score'))
-    assert_that(aggregated_result_l3.keys(), has_item('L3 Weighted Drift Score'))
-    assert_that(aggregated_result_l3['L3 Weighted Drift Score'],
-                greater_than(aggregated_result_l2['L2 Weighted Drift Score']))
+    assert_that(aggregated_result_l2.keys(), has_item('L3 Weighted Drift Score'))
+    assert_that(aggregated_result_l3.keys(), has_item('L5 Weighted Drift Score'))
+    assert_that(aggregated_result_l3['L5 Weighted Drift Score'],
+                greater_than(aggregated_result_l2['L3 Weighted Drift Score']))
     assert_that(aggregated_result_l1.keys(), has_item('Weighted Drift Score'))
-    assert_that(aggregated_result_l2['L2 Weighted Drift Score'],
+    assert_that(aggregated_result_l2['L3 Weighted Drift Score'],
                 greater_than(aggregated_result_l1['Weighted Drift Score']))
 
 def test_none_aggregation_drift_with_model(drifted_data_and_model):

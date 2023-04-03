@@ -13,19 +13,18 @@
 from typing import Dict
 
 import numpy as np
-import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
-from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot, get_drift_plot_sidenote)
+from deepchecks.utils.abstracts.prediction_drift import PredictionDriftAbstract
+from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS
 from deepchecks.utils.strings import format_number
 
 __all__ = ['PredictionDrift']
 
 
-class PredictionDrift(TrainTestCheck):
+class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
     """
     Calculate prediction drift between train dataset and test dataset, using statistical measures.
 
@@ -149,7 +148,6 @@ class PredictionDrift(TrainTestCheck):
         train_dataset = context.train.sample(self.n_samples, random_state=context.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=context.random_state)
         model = context.model
-        drift_score_dict, drift_display_dict = {}, {}
 
         # Flag for computing drift on the probabilities rather than the predicted labels
         proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
@@ -158,55 +156,12 @@ class PredictionDrift(TrainTestCheck):
         if proba_drift:
             train_prediction = np.array(model.predict_proba(train_dataset))
             test_prediction = np.array(model.predict_proba(test_dataset))
-            if test_prediction.shape[1] == 2:
-                train_prediction = train_prediction[:, [1]]
-                test_prediction = test_prediction[:, [1]]
         else:
             train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
             test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
 
-        samples_per_class = pd.Series(train_dataset.label).value_counts().to_dict()
-
-        for class_idx in range(train_prediction.shape[1]):
-            class_name = context.model_classes[class_idx]
-            drift_score_dict[class_name], method, drift_display_dict[class_name] = calc_drift_and_plot(
-                train_column=pd.Series(train_prediction[:, class_idx].flatten()),
-                test_column=pd.Series(test_prediction[:, class_idx].flatten()),
-                value_name='model predictions' if not proba_drift else
-                f'predicted probabilities for class {class_name}',
-                column_type='numerical' if proba_drift else 'categorical',
-                margin_quantile_filter=self.margin_quantile_filter,
-                max_num_categories_for_drift=self.max_num_categories_for_drift,
-                min_category_size_ratio=self.min_category_size_ratio,
-                max_num_categories_for_display=self.max_num_categories_for_display,
-                show_categories_by=self.show_categories_by,
-                numerical_drift_method=self.numerical_drift_method,
-                categorical_drift_method=self.categorical_drift_method,
-                balance_classes=self.balance_classes,
-                ignore_na=self.ignore_na,
-                with_display=context.with_display,
-            )
-
-        if context.with_display:
-            headnote = [f"""<span>
-                The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the predicted
-                {'class probabilities' if proba_drift else 'classes'}.
-            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
-
-            # sort classes by their drift score
-            displays = headnote + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()),
-                                                        reverse=True)][:self.max_classes_to_display]
-        else:
-            displays = None
-
-        # Return float if single value (happens by default) or the whole dict if computing on probabilities for
-        # multi-class tasks.
-        values_dict = {
-            'Drift score': drift_score_dict if len(drift_score_dict) > 1 else list(drift_score_dict.values())[0],
-            'Method': method, 'Samples per class': samples_per_class}
-
-        return CheckResult(value=values_dict, display=displays, header='Train Test Prediction Drift')
+        return self.prediction_drift(train_prediction, test_prediction, context.model_classes, context.with_display,
+                                     proba_drift, not proba_drift)
 
     def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
                                             max_allowed_numeric_score: float = 0.15):

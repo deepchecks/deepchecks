@@ -108,9 +108,9 @@ class ReduceFeatureMixin(ReduceMixin):
         elif aggregation_method == 'max':
             return {str('Max ' + score_name): np.max(value_per_feature)}
 
-        if aggregation_method not in ['weighted', 'l2_weighted', 'l3_weighted']:
+        if aggregation_method not in ['weighted', 'l3_weighted', 'l5_weighted']:
             raise DeepchecksValueError(f'Unknown aggregation method: {aggregation_method}')
-        elif feature_importance is None:
+        elif feature_importance is None or feature_importance.isna().values.any():
             get_logger().warning('Failed to calculate feature importance, using uniform mean instead.')
             return {str(str.title(aggregation_method.replace('_', ' ')) + ' ' + score_name): np.mean(value_per_feature)}
         else:
@@ -121,10 +121,10 @@ class ReduceFeatureMixin(ReduceMixin):
 
         if aggregation_method == 'weighted':
             return {str('Weighted ' + score_name): np.sum(value_per_feature * feature_importance)}
-        elif aggregation_method == 'l2_weighted':
-            return {str('L2 Weighted ' + score_name): np.sum((value_per_feature ** 2) * feature_importance) ** (1. / 2)}
         elif aggregation_method == 'l3_weighted':
             return {str('L3 Weighted ' + score_name): np.sum((value_per_feature ** 3) * feature_importance) ** (1. / 3)}
+        elif aggregation_method == 'l5_weighted':
+            return {str('L5 Weighted ' + score_name): np.sum((value_per_feature ** 5) * feature_importance) ** (1. / 5)}
 
 
 class ReducePropertyMixin(ReduceMixin):

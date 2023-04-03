@@ -20,7 +20,7 @@ from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
-from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
+from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import SingleDatasetCheck

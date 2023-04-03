@@ -1,4 +1,3 @@
-# ----------------------------------------------------------------------------
 # Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
 # This file is part of Deepchecks.
@@ -8,9 +7,4 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module importing all nlp checks."""
-
-from .property_label_correlation import PropertyLabelCorrelation
-from .text_property_outliers import TextPropertyOutliers
-
-__all__ = ['PropertyLabelCorrelation', 'TextPropertyOutliers']
+"""Module contains the Abstract classes for checks that span several sub-packages."""

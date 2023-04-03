@@ -11,21 +11,16 @@
 """Utils module containing utilities for plotting."""
 import matplotlib.pyplot as plt
 import numpy as np
-import plotly.graph_objects as go
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
-from deepchecks.utils.strings import format_number_if_not_nan
-
-__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map',
-           'create_confusion_matrix_figure', 'colors', 'hex_to_rgba', 'DEFAULT_DATASET_NAMES']
+__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors', 'common_and_outlier_colors',
+           'hex_to_rgba', 'DEFAULT_DATASET_NAMES']
 
 DEFAULT_DATASET_NAMES = ('Train', 'Test')
 
 colors = {DEFAULT_DATASET_NAMES[0]: '#00008b',  # dark blue
-          DEFAULT_DATASET_NAMES[1]: '#69b3a2',
-          'Baseline': '#b287a3',
-          'Generated': '#2191FB'}
+          DEFAULT_DATASET_NAMES[1]: '#69b3a2', 'Baseline': '#b287a3', 'Generated': '#2191FB'}
 # iterable for displaying colors on metrics
 metric_colors = ['rgb(102, 197, 204)',
                  'rgb(220, 176, 242)',
@@ -36,20 +31,16 @@ metric_colors = ['rgb(102, 197, 204)',
                  'rgb(139, 224, 164)',
                  'rgb(180, 151, 231)']
 
+common_and_outlier_colors = {'common': 'rgba(105, 179, 162, 1)',
+                             'outliers': 'rgba(179, 106, 106, 1)',
+                             'common_fill': 'rgba(105, 179, 162, 0.7)',
+                             'outliers_fill': 'rgba(179, 106, 106, 0.7)'}
 
-def create_colorbar_barchart_for_check(
-    x: np.ndarray,
-    y: np.ndarray,
-    ylabel: str = 'Result',
-    xlabel: str = 'Features',
-    color_map: str = 'RdYlGn_r',
-    start: float = 0,
-    stop: float = 1.0,
-    tick_steps: float = 0.1,
-    color_label: str = 'Color',
-    color_shift_midpoint: float = 0.5,
-    check_name: str = ''
-):
+
+def create_colorbar_barchart_for_check(x: np.ndarray, y: np.ndarray, ylabel: str = 'Result', xlabel: str = 'Features',
+                                       color_map: str = 'RdYlGn_r', start: float = 0, stop: float = 1.0,
+                                       tick_steps: float = 0.1, color_label: str = 'Color',
+                                       color_shift_midpoint: float = 0.5, check_name: str = ''):
     """Output a colorbar barchart using matplotlib.
 
     Parameters
@@ -128,21 +119,14 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
     if transparent_from is None:
         transparent_from = stop
 
-    cdict = {
-        'red': [],
-        'green': [],
-        'blue': [],
-        'alpha': []
-    }
+    cdict = {'red': [], 'green': [], 'blue': [], 'alpha': []}
 
     # regular index to compute the colors
     reg_index = np.linspace(start, stop, 257)
 
     # shifted index to match the data
-    shift_index = np.hstack([
-        np.linspace(0.0, midpoint, 128, endpoint=False),
-        np.linspace(midpoint, 1.0, 129, endpoint=True)
-    ])
+    shift_index = np.hstack(
+        [np.linspace(0.0, midpoint, 128, endpoint=False), np.linspace(midpoint, 1.0, 129, endpoint=True)])
 
     for ri, si in zip(reg_index, shift_index):
         r, g, b, a = cmap(ri)
@@ -163,53 +147,4 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
 
 def hex_to_rgba(h, alpha):
     """Convert color value in hex format to rgba format with alpha transparency."""
-    return 'rgba' + str(tuple([int(h.lstrip('#')[i:i+2], 16) for i in (0, 2, 4)] + [alpha]))
-
-
-def create_confusion_matrix_figure(confusion_matrix: np.ndarray, x: np.ndarray,
-                                   y: np.ndarray, normalized: bool):
-    """Create a confusion matrix figure.
-
-    Parameters
-    ----------
-    confusion_matrix: np.ndarray
-        2D array containing the confusion matrix.
-    x: np.ndarray
-        array containing x axis data.
-    y: np.ndarray
-        array containing y axis data.
-    normalized: bool
-        if True will also show normalized values by the true values.
-
-    Returns
-    -------
-    plotly Figure object
-        confusion matrix figure
-
-    """
-    if normalized:
-        confusion_matrix_norm = confusion_matrix.astype('float') / \
-            (confusion_matrix.sum(axis=1)[:, np.newaxis] + np.finfo(float).eps) * 100
-        z = np.vectorize(format_number_if_not_nan)(confusion_matrix_norm)
-        texttemplate = '%{z}%<br>(%{text})'
-        colorbar_title = '% out of<br>True Values'
-        plot_title = 'Percent Out of True Values (Count)'
-    else:
-        z = confusion_matrix
-        colorbar_title = None
-        texttemplate = '%{text}'
-        plot_title = 'Value Count'
-
-    fig = go.Figure(data=go.Heatmap(
-                x=x,
-                y=y,
-                z=z,
-                text=confusion_matrix,
-                texttemplate=texttemplate))
-    fig.data[0].colorbar.title = colorbar_title
-    fig.update_layout(title=plot_title)
-    fig.update_layout(height=600)
-    fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
-    fig.update_yaxes(title='True value', type='category', constrain='domain', autorange='reversed')
-
-    return fig
+    return 'rgba' + str(tuple([int(h.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4)] + [alpha]))
