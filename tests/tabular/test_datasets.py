@@ -17,7 +17,7 @@ from hamcrest import assert_that, instance_of
 from sklearn.base import BaseEstimator
 
 from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
-from deepchecks.tabular.datasets.regression import avocado, wine_quality
+from deepchecks.tabular.datasets.regression import avocado, wine_quality, airbnb
 
 
 def assert_sklearn_model_params_equals(model1, model2):
@@ -74,3 +74,10 @@ def test_model_predict_on_lending_club():
 
 def test_model_predict_on_wine_quality():
     assert_dataset_module(wine_quality)
+
+def test_sampling_airbnb():
+    train_sampled , _ = airbnb.load_data(data_format='DataFrame', data_size=100)
+    pred_full, _ = airbnb.load_pre_calculated_prediction(data_size=None)
+    pred_sampled, _ = airbnb.load_pre_calculated_prediction(data_size=100)
+
+    assert list(pred_full[train_sampled.index]) == list(pred_sampled)

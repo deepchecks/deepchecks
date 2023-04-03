@@ -103,8 +103,8 @@ _NUM_FEATURES = ['minimum_nights', 'number_of_reviews', 'reviews_per_month', 'ca
 _FEATURES = _NUM_FEATURES + _CAT_FEATURES
 
 
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True, modify_timestamps: bool = True) \
-        -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+def load_data(data_format: str = 'Dataset', as_train_test: bool = True, modify_timestamps: bool = True,
+              data_size: t.Optional[int] = 10000) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Airbnb NYC 2019 dataset (regression).
 
     Parameters
@@ -121,6 +121,8 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True, modify_t
     modify_timestamps : bool , default: True
         If True, the returned data timestamp column will be for the last 30 days.
         Otherwise, the data timestamp will be for March 2023.
+    data_size : t.Optional[int] , default: 10000
+        The number of samples to return. If None, returns all the data.
 
     Returns
     -------
@@ -131,6 +133,12 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True, modify_t
     """
     train = pd.read_csv(_TRAIN_DATA_URL, index_col=0).drop(_predictions, axis=1)
     test = pd.read_csv(_TEST_DATA_URL, index_col=0).drop(_predictions, axis=1)
+
+    if data_size is not None:
+        if data_size < len(train):
+            train = train.sample(data_size, random_state=42)
+        if data_size < len(test):
+            test = test.sample(data_size, random_state=42)
 
     if modify_timestamps:
         current_time = int(time.time())
@@ -152,8 +160,13 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True, modify_t
         return train, test
 
 
-def load_pre_calculated_prediction() -> Tuple[ndarray, ndarray]:
+def load_pre_calculated_prediction(data_size: t.Optional[int] = 30000) -> Tuple[ndarray, ndarray]:
     """Load the pre-calculated prediction for the Airbnb NYC 2019 dataset.
+
+    Parameters
+    ----------
+    data_size : t.Optional[int] , default: 10000
+        The number of samples to return. If None, returns all the data.
 
     Returns
     -------
@@ -164,6 +177,11 @@ def load_pre_calculated_prediction() -> Tuple[ndarray, ndarray]:
     usable_columns = [_target, _predictions]
     train = pd.read_csv(_TRAIN_DATA_URL, usecols=usable_columns)
     test = pd.read_csv(_TEST_DATA_URL, usecols=usable_columns)
+    if data_size is not None:
+        if data_size < len(train):
+            train = train.sample(data_size, random_state=42)
+        if data_size < len(test):
+            test = test.sample(data_size, random_state=42)
     return np.asarray(train[_predictions]), np.asarray(test[_predictions])
 
 
