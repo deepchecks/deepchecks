@@ -10,10 +10,9 @@
 #
 """Test for the nlp SingleDatasetPerformance check"""
 
-from hamcrest import assert_that, close_to, calling, raises, equal_to, has_items
-
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
+from hamcrest import assert_that, close_to, calling, raises, equal_to, has_items
 from tests.base.utils import equal_condition_result
 
 
@@ -133,6 +132,7 @@ def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_d
     assert_that(result.value.values[0][-1], close_to(1.0, 0.001))
     assert_that(result.value.values[0][0], equal_to('a'))
 
+
 def test_wikiann_data(wikiann):
     """Temp to test wikiann dataset loads correctly"""
     dataset = wikiann
@@ -141,14 +141,15 @@ def test_wikiann_data(wikiann):
 
     assert_that(result.value.values[0][-1], equal_to(1))
 
+
 def test_run_with_scorer_token(text_token_classification_dataset_mock):
     # Arrange
     check = SingleDatasetPerformance(scorers=['token_f1_macro'])
 
     correct_predictions = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
-                     ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
-    almost_correct_predictions = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'O', 'O', 'B-GEO'],
                            ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
+    almost_correct_predictions = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'O', 'O', 'B-GEO'],
+                                  ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
 
     # Act
     result = check.run(text_token_classification_dataset_mock,
@@ -168,7 +169,6 @@ def test_run_with_scorer_token(text_token_classification_dataset_mock):
 
 
 def test_run_with_scorer_token_per_class(text_token_classification_dataset_mock):
-
     # Arrange
     check = SingleDatasetPerformance(scorers=['token_recall_per_class'])
 
@@ -187,6 +187,7 @@ def test_run_with_scorer_token_per_class(text_token_classification_dataset_mock)
     assert_that(result.value.values[1][0], equal_to('B-GEO'))
     assert_that(result.value.values[2][-1], close_to(1., 0.001))
     assert_that(result.value.values[2][0], equal_to('B-PER'))
+
 
 def test_ignore_O_label_in_model_classes(text_token_classification_dataset_mock):
     # Arrange

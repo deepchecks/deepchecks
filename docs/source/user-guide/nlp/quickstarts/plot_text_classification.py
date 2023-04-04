@@ -67,9 +67,9 @@ train.head()
 #
 
 train = TextData(train.text, label=train['label'], task_type='text_classification',
-                 index=train.index, metadata=train.drop(columns=['label', 'text']))
+                 metadata=train.drop(columns=['label', 'text']))
 test = TextData(test.text, label=test['label'], task_type='text_classification',
-                index=test.index, metadata=test.drop(columns=['label', 'text']))
+                metadata=test.drop(columns=['label', 'text']))
 
 #%%
 # Building a Model
@@ -86,13 +86,11 @@ from sklearn.metrics import roc_auc_score
 from catboost import CatBoostClassifier
 
 # Load Embeddings and Split to Train and Test
-embeddings = tweet_emotion.load_embeddings()
-train_embeddings, test_embeddings = embeddings[train.index, :], embeddings[test.index, :]
+train_embeddings, test_embeddings = tweet_emotion.load_embeddings(as_train_test=True)
 
 model = CatBoostClassifier(max_depth=2, n_estimators=50, random_state=42)
-model.fit(embeddings[train.index, :], train.label, verbose=0)
-print(roc_auc_score(test.label,
-                    model.predict_proba(embeddings[test.index, :]),
+model.fit(train_embeddings, train.label, verbose=0)
+print(roc_auc_score(test.label, model.predict_proba(test_embeddings),
                     multi_class="ovr", average="macro"))
 
 #%%
@@ -120,8 +118,8 @@ print(roc_auc_score(test.label,
 # We'll also add a condition to the check, which will make it fail if the drift score is higher than 0.1.
 
 # Start by computing the predictions for the train and test data:
-train_preds, train_probas = model.predict(embeddings[train.index, :]), model.predict_proba(embeddings[train.index, :])
-test_preds, test_probas = model.predict(embeddings[test.index, :]), model.predict_proba(embeddings[test.index, :])
+train_preds, train_probas = model.predict(train_embeddings), model.predict_proba(train_embeddings)
+test_preds, test_probas = model.predict(test_embeddings), model.predict_proba(test_embeddings)
 
 # Run the check
 from deepchecks.nlp.checks import PredictionDrift

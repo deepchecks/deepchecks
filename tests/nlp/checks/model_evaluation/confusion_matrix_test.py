@@ -20,10 +20,10 @@ def test_defaults(text_classification_dataset_mock):
 
     # Act
     result = check.run(text_classification_dataset_mock,
-                       predictions=[0, 1, 1])
+                       predictions=['0', '1', '1'])
 
     # Assert
-    assert_that(text_classification_dataset_mock.label, equal_to([0, 0, 1]))
+    assert_that(list(text_classification_dataset_mock.label), equal_to(['0', '0', '1']))
     assert_that(result.value[0][0], close_to(1, 0.001))
     assert_that(result.value.shape[0], close_to(2, 0.001))
 
@@ -37,7 +37,7 @@ def test_run_default_scorer_string_class(text_classification_string_class_datase
                        predictions=['wise', 'wise', 'meh'])
 
     # Assert
-    assert_that(text_classification_string_class_dataset_mock.label, equal_to(['wise', 'meh', 'meh']))
+    assert_that(list(text_classification_string_class_dataset_mock.label), equal_to(['wise', 'meh', 'meh']))
     assert_that(result.value[0][0], close_to(1, 0.001))
     assert_that(result.value.shape[0], close_to(2, 0.001))
 
@@ -51,7 +51,7 @@ def test_run_default_scorer_string_class_new_cats_in_model_classes(text_classifi
                        predictions=['wise', 'new', 'meh'])
 
     # Assert
-    assert_that(text_classification_string_class_dataset_mock.label, equal_to(['wise', 'meh', 'meh']))
+    assert_that(list(text_classification_string_class_dataset_mock.label), equal_to(['wise', 'meh', 'meh']))
     assert_that(result.value[0][0], close_to(1, 0.001))
     assert_that(result.value.shape[0], close_to(3, 0.001))
 
