@@ -240,6 +240,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 
-    properties_types = {prop['name']: prop['output_type'] for prop in default_text_properties}  # TODO: Add tests
+    properties_types = {prop['name']: prop['output_type'] for prop in default_text_properties
+                        if prop['name'] in calculated_properties.keys()}  # TODO: Add tests
 
     return calculated_properties, properties_types

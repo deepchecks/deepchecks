@@ -73,7 +73,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         predictions = context.model.predict(text_data)
 
         if self.loss_per_sample is not None:
-            loss_per_sample = self.loss_per_sample[list(text_data.index)]
+            loss_per_sample = self.loss_per_sample[text_data.get_original_text_indexes()]
             proba_values = None
         elif not hasattr(context.model, 'predict_proba'):
             raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'
