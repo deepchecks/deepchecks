@@ -243,6 +243,7 @@ class TextData:
 
     @property
     def cat_metadata(self) -> t.List[str]:
+        """Return categorical metadata column names."""
         if self._cat_metadata is None:
             raise ValueError(
                 'TextData does not contain metadata, add it by using '
@@ -347,6 +348,7 @@ class TextData:
 
     @property
     def cat_properties(self) -> t.List[str]:
+        """Return categorical properties names."""
         if self._cat_properties is None:
             raise ValueError(
                 'TextData does not contain properties, add them by using '

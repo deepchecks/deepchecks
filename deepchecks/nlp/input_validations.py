@@ -86,6 +86,8 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
 
 
 class ColumnTypes(NamedTuple):
+    """Utility data transfer object."""
+
     categorical_columns: List[str]
     numerical_columns: List[str]
 
