@@ -105,18 +105,27 @@ def test_wrong_token_label_format():
     )
 
 
-def test_metadata_format():
+def test_text_data_initialization_with_incorrect_type_of_metadata():
     # Arrange
     text = ['a', 'b b b', 'c c c c']
     metadata = {'first': [1, 2, 3], 'second': [4, 5, 6]}
 
     # Act & Assert
-    _ = TextData(raw_text=text, metadata=pd.DataFrame(metadata),
-                 task_type='text_classification')  # Should pass
+    _ = TextData(
+        raw_text=text,
+        metadata=pd.DataFrame(metadata),
+        task_type='text_classification'
+    )
     assert_that(
-        calling(TextData).with_args(raw_text=text, metadata=metadata, task_type='text_classification'),
-        raises(DeepchecksValueError,
-               r"Metadata type <class 'dict'> is not supported, must be a pandas DataFrame")
+        calling(TextData).with_args(
+            raw_text=text,
+            metadata=metadata,
+            task_type='text_classification'
+        ),
+        raises(
+            TypeError,
+            r"Unexpected type of metadata - <class 'dict'>"
+        )
     )
 
 

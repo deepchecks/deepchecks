@@ -129,8 +129,10 @@ class TextData:
             raise DeepchecksNotSupportedError(f'name must be a string, got {type(name)}')
         self.name = name
 
-        self.set_metadata(metadata)
-        self.set_properties(properties)
+        if metadata is not None:
+            self.set_metadata(metadata)
+        if properties is not None:
+            self.set_properties(properties)
 
         # Used for display purposes
         self._original_text_index = np.arange(len(self))
@@ -153,7 +155,7 @@ class TextData:
 
         # TODO:
         # why do we disable the root logger here instead of disabling/having
-        # a didicated logger for this module/subpackage?
+        # a dedicated logger for this module/sub-package?
         logger_state = get_logger().disabled
         get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
 
@@ -258,7 +260,7 @@ class TextData:
             warnings.warn('Metadata already exist, overwriting it', UserWarning)
 
         if not isinstance(metadata, pd.DataFrame):
-            raise TypeError(f"Unexpected type of metadata - {type(metadata)}")
+            raise TypeError(f'Unexpected type of metadata - {type(metadata)}')
 
         column_types = validate_length_and_calculate_column_types(
             data_table=metadata,
@@ -318,7 +320,7 @@ class TextData:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
         if not isinstance(properties, pd.DataFrame):
-            raise TypeError(f"Unexpected type of properties - {type(properties)}")
+            raise TypeError(f'Unexpected type of properties - {type(properties)}')
 
         column_types = validate_length_and_calculate_column_types(
             data_table=properties,
@@ -419,7 +421,7 @@ class TextData:
         t.Sequence[int]
            Original indexes of the text samples.
         """
-        assert self._original_text_index is not None, "Internal Error"
+        assert self._original_text_index is not None, 'Internal Error'
         return self._original_text_index
 
     @classmethod
