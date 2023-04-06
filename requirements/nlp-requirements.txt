@@ -1,2 +1,4 @@
 seqeval>=1.0.0
 nltk>=3.4.0
+langdetect==1.0.9
+textblob==0.17.1

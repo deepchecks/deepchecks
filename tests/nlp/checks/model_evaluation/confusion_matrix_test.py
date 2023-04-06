@@ -10,8 +10,9 @@
 #
 """Test for the nlp SingleDatasetPerformance check"""
 
-from deepchecks.nlp.checks.model_evaluation import ConfusionMatrixReport
 from hamcrest import assert_that, close_to, equal_to
+
+from deepchecks.nlp.checks.model_evaluation import ConfusionMatrixReport
 
 
 def test_defaults(text_classification_dataset_mock):

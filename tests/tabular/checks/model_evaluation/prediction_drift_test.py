@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the label drift."""
+import pandas as pd
 from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
-import pandas as pd
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import PredictionDrift

@@ -10,7 +10,7 @@
 #
 """Test for the NLP PredictionDrift check"""
 
-from hamcrest import assert_that, close_to, has_items, equal_to
+from hamcrest import assert_that, close_to, equal_to, has_items
 
 from deepchecks.nlp import TextData
 from deepchecks.nlp.checks import PredictionDrift

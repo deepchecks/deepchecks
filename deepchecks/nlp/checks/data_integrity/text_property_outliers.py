@@ -65,8 +65,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
         dataset = context.get_data_by_kind(dataset_kind)
         result = {}
 
-        property_types = dataset.properties_types
         df_properties = dataset.properties
+        cat_properties = dataset.cat_properties
         properties = df_properties.to_dict(orient='list')
 
         if all(len(np.hstack(v).squeeze()) < self.min_samples for v in properties.values()):
@@ -80,7 +80,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
             if not isinstance(values[0], list):
                 values = [[x] for x in values]
 
-            is_numeric = property_types[name] == 'numeric'
+            is_numeric = name not in cat_properties
 
             if is_numeric:
                 values_arr = np.hstack(values).astype(float).squeeze()
@@ -143,8 +143,13 @@ class TextPropertyOutliers(SingleDatasetCheck):
                     upper_limit = info['upper_limit']
 
                     fig = get_text_outliers_graph(
-                        dist=dist, data=dataset.text, lower_limit=lower_limit, upper_limit=upper_limit,
-                        dist_name=property_name, is_categorical=property_types[property_name] != 'numeric')
+                        dist=dist,
+                        data=dataset.text,
+                        lower_limit=lower_limit,
+                        upper_limit=upper_limit,
+                        dist_name=property_name,
+                        is_categorical=property_name in cat_properties
+                    )
 
                     display.append(fig)
 

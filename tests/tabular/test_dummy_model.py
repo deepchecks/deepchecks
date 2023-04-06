@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-from hamcrest import assert_that, calling, has_items, raises, close_to
+from hamcrest import assert_that, calling, close_to, has_items, raises
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.condition import ConditionCategory
