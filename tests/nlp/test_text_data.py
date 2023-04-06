@@ -44,7 +44,7 @@ def test_init_mismatched_task_type():
     # Act & Assert
     assert_that(
         calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
-        raises(DeepchecksValueError, r'label must be a Sequence of Sequences of either strings or integers')
+        raises(DeepchecksValueError, r'tokenized_text must be provided for token_classification task type')
     )
 
     # Arrange
@@ -60,7 +60,7 @@ def test_init_mismatched_task_type():
 
 def test_wrong_token_label_format():
     # Arrange
-    text = ['a', 'b b b', 'c c c c']
+    tokenized_text = [['a'] ,['b', 'b' ,'b'], ['c', 'c', 'c', 'c']]
 
     label_structure_error = r'label must be a Sequence of Sequences of either strings or integers'
 
@@ -69,28 +69,28 @@ def test_wrong_token_label_format():
     label = [['B-PER'],
              ['B-PER', 'B-GEO', 'B-GEO'],
              ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
-    _ = TextData(raw_text=text, label=label, task_type='token_classification')  # Should pass
+    _ = TextData(tokenized_text=tokenized_text, label=label, task_type='token_classification')  # Should pass
 
     # Not a list:
     label = 'PER'
     assert_that(
-        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
+        calling(TextData).with_args(tokenized_text=tokenized_text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, 'label must be a Sequence')
     )
 
     # Not a list of lists:
     label = [3, 3, 3]
     assert_that(
-        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
+        calling(TextData).with_args(tokenized_text=tokenized_text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, label_structure_error)
     )
 
     # Mixed strings and integers:
     label = [['B-PER'],
-             ['B-PER', 1, 'B-GEO'],
+             1,
              ['B-PER', 'B-GEO', 'B-GEO', 'B-GEO']]
     assert_that(
-        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
+        calling(TextData).with_args(tokenized_text=tokenized_text, label=label, task_type='token_classification'),
         raises(DeepchecksValueError, label_structure_error)
     )
 
@@ -99,9 +99,9 @@ def test_wrong_token_label_format():
              ['B-PER', 'B-GEO', 'B-GEO'],
              ['B-PER', 'B-GEO', 'B-GEO']]
     assert_that(
-        calling(TextData).with_args(raw_text=text, label=label, task_type='token_classification'),
-        raises(DeepchecksValueError, r'label must be the same length as tokenized_text. '
-                                     r'However, for sample index 2 of length 4 received label of length 3')
+        calling(TextData).with_args(tokenized_text=tokenized_text, label=label, task_type='token_classification'),
+        raises(DeepchecksValueError, r'label must be the same length as tokenized_text. However, for sample '
+                                     r'index 2 received token list of length 4 and label list of length 3')
     )
 
 
@@ -116,7 +116,7 @@ def test_metadata_format():
     assert_that(
         calling(TextData).with_args(raw_text=text, metadata=metadata, task_type='text_classification'),
         raises(DeepchecksValueError,
-               r"metadata type <class 'dict'> is not supported, must be a pandas DataFrame")
+               r"Metadata type <class 'dict'> is not supported, must be a pandas DataFrame")
     )
 
 
@@ -202,7 +202,7 @@ def test_set_metadata_with_an_incorrect_list_of_categorical_columns(text_classif
         ),
         raises(
             DeepchecksValueError,
-            r"Unknown metadata columns - \['foo'\]"
+            r"Unknown Metadata columns - \['foo'\]"
         )
     )
 
@@ -239,7 +239,7 @@ def test_set_properties_with_an_incorrect_list_of_categorical_columns(text_class
         ),
         raises(
             DeepchecksValueError,
-            r"Unknown properties - \['foo'\]"
+            r"Unknown Properties columns - \['foo'\]"
         )
     )
 

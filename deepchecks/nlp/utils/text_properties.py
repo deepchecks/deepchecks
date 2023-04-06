@@ -200,7 +200,6 @@ DEFAULT_PROPERTIES = (
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'}
 )
 
-
 LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality']
 ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
@@ -273,8 +272,8 @@ def calculate_default_properties(
     else:  # Check if the run may take a long time and warn
         heavy_properties = [prop for prop in default_text_properties if prop['name'] in LONG_RUN_PROPERTIES]
         if heavy_properties and len(raw_text) > LARGE_SAMPLE_SIZE:
-            h_property_names = [prop['name'] for prop in heavy_properties]
-            warning_message = f'Calculating the properties {h_property_names} on a large dataset may take a long time.'\
+            h_prop_names = [prop['name'] for prop in heavy_properties]
+            warning_message = f'Calculating the properties {h_prop_names} on a large dataset may take a long time.' \
                               f' Consider using a smaller sample size or running this code on better hardware.'
             if device is None or device == 'cpu':
                 warning_message += ' Consider using a GPU or a similar device to run these properties.'
@@ -291,6 +290,7 @@ def calculate_default_properties(
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 
-    properties_types = {prop['name']: prop['output_type'] for prop in default_text_properties}  # TODO: Add tests
+    properties_types = {prop['name']: prop['output_type'] for prop in default_text_properties
+                        if prop['name'] in calculated_properties}  # TODO: Add tests
 
     return calculated_properties, properties_types

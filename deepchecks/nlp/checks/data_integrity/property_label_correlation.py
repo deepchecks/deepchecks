@@ -94,7 +94,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         """
         text_data = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=context.random_state)
 
-        label = pd.Series(text_data.label, name='label', index=text_data.index)
+        label = pd.Series(text_data.label, name='label', index=text_data.get_original_text_indexes())
 
         # Classification labels should be of type object (and not int, for example)
         if context.task_type in [TaskType.TEXT_CLASSIFICATION, TaskType.TOKEN_CLASSIFICATION]:

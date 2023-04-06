@@ -37,22 +37,16 @@ def tweet_emotion_train_test_textdata():
 
 
 @pytest.fixture(scope='session')
-def tweet_emotion_train_test_predictions(tweet_emotion_train_test_textdata):
+def tweet_emotion_train_test_predictions():
     """Tweet emotion text classification dataset predictions"""
-    train_data, test_data = tweet_emotion_train_test_textdata
-    train_preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions')[train_data.index]
-    test_preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions')[test_data.index]
-
-    return train_preds, test_preds
+    return tweet_emotion.load_precalculated_predictions(pred_format='predictions', as_train_test=True)
 
 
 @pytest.fixture(scope='session')
-def tweet_emotion_train_test_probabilities(tweet_emotion_train_test_textdata):
+def tweet_emotion_train_test_probabilities():
     """Tweet emotion text classification dataset probabilities"""
-    train_data, test_data = tweet_emotion_train_test_textdata
-    train_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[train_data.index]
-    test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')[test_data.index]
-    return train_probas, test_probas
+    return tweet_emotion.load_precalculated_predictions(pred_format='probabilities', as_train_test=True)
+
 
 
 @pytest.fixture(scope='function')
@@ -95,7 +89,7 @@ def movie_reviews_data_positive():
     download_nltk_resources()
     random.seed(42)
     pos_sentences = [' '.join(x) for x in movie_reviews.sents(categories='pos')]
-    pos_data = TextData(random.choices(pos_sentences, k=1000), dataset_name='Positive')
+    pos_data = TextData(random.choices(pos_sentences, k=1000), name='Positive')
     return pos_data
 
 
@@ -105,15 +99,18 @@ def movie_reviews_data_negative():
     download_nltk_resources()
     random.seed(42)
     neg_sentences = [' '.join(x) for x in movie_reviews.sents(categories='neg')]
-    neg_data = TextData(random.choices(neg_sentences, k=1000), dataset_name='Negative')
+    neg_data = TextData(random.choices(neg_sentences, k=1000), name='Negative')
     return neg_data
 
+def _tokenize_raw_text(raw_text):
+    """Tokenize raw text"""
+    return [x.split() for x in raw_text]
 
 @pytest.fixture(scope='session')
 def text_token_classification_dataset_mock():
     """Mock for a token classification dataset"""
-    return TextData(raw_text=['Mary had a little lamb', 'Mary lives in London and Paris',
-                              'How much wood can a wood chuck chuck?'],
+    return TextData(tokenized_text=_tokenize_raw_text(['Mary had a little lamb', 'Mary lives in London and Paris',
+                              'How much wood can a wood chuck chuck?']),
                     label=[['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
                            ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']],
                     task_type='token_classification')
@@ -129,4 +126,4 @@ def wikiann():
     ner_to_iob_dict = {0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC', 6: 'I-LOC'}
     ner_tags_translated = [[ner_to_iob_dict[ner_tag] for ner_tag in ner_tag_list.as_py()] for ner_tag_list in ner_tags]
 
-    return TextData(raw_text=data, label=ner_tags_translated, task_type='token_classification')
+    return TextData(tokenized_text=_tokenize_raw_text(data), label=ner_tags_translated, task_type='token_classification')
