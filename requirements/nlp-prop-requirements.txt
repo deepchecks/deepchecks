@@ -1,6 +1,2 @@
-nltk<=3.6.7
-datasets
-transformers
-optimum
-onnx
-onnxruntime
+transformers==4.27.4
+optimum[onnxruntime]==1.7.3
