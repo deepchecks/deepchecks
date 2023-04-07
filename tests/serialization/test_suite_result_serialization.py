@@ -347,6 +347,7 @@ def test_widget_serialization():
             section_assertion,
             section_assertion,
             section_assertion,
+            section_assertion,
         ))
     )
 
