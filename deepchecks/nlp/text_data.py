@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The dataset module containing the tabular Dataset class and its functions."""
+import contextlib
 import typing as t
 import warnings
 from numbers import Number
@@ -79,7 +80,6 @@ class TextData:
     _tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None  # Outer sequence is np array
     name: t.Optional[str] = None
     _metadata: t.Optional[pd.DataFrame] = None
-    _metadata_types: t.Optional[t.Dict[str, str]] = None
     _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
     _cat_properties: t.Optional[t.List[str]] = None
     _cat_metadata: t.Optional[t.List[str]] = None
@@ -143,6 +143,7 @@ class TextData:
             return is_sequence_not_str(self._label[0])
         return False
 
+    # pylint: disable=protected-access
     def copy(self: TDataset, rows_to_use: t.Optional[t.Sequence[int]] = None) -> TDataset:
         """Create a copy of this Dataset with new data.
 
@@ -156,18 +157,37 @@ class TextData:
         # TODO:
         # why do we disable the root logger here instead of disabling/having
         # a dedicated logger for this module/sub-package?
-        logger_state = get_logger().disabled
-        get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
+        #
+        # NOTE:
+        # Make sure we won't get the warning for setting class in the non multilabel case
+        with disable_deepchecks_logger():
 
-        if rows_to_use is None:
-            new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
-                           task_type=self._task_type.value, name=self.name)
-            metadata, properties = self._metadata, self._properties
-            index_kept = self._original_text_index
-        else:
+            if rows_to_use is None:
+                new_copy = cls(
+                    raw_text=self._text,
+                    tokenized_text=self._tokenized_text,
+                    label=self._label,
+                    task_type=self._task_type.value,
+                    name=self.name
+                )
+
+                if self._metadata is not None:
+                    new_copy.set_metadata(self._metadata, self._cat_metadata)
+
+                if self._properties is not None:
+                    # TODO:-
+                    # - why self._properties is of type Union[DataFrame, str]?
+                    # - what to do if self._properties is a string?
+                    new_copy.set_properties(self._properties, self._cat_properties)
+
+                new_copy._original_text_index = self._original_text_index
+                return new_copy
+
             if not isinstance(rows_to_use, t.Sequence) or any(not isinstance(x, Number) for x in rows_to_use):
                 raise DeepchecksValueError('rows_to_use must be a list of integers')
+
             rows_to_use = sorted(rows_to_use)
+
             new_copy = cls(
                 raw_text=self._text[rows_to_use],
                 tokenized_text=(
@@ -178,15 +198,17 @@ class TextData:
                 label=self._label[rows_to_use] if self.has_label() else None,
                 task_type=self._task_type.value, name=self.name
             )
-            metadata = self._metadata.iloc[rows_to_use, :] if self._metadata is not None else None
-            properties = self._properties.iloc[rows_to_use, :] if self._properties is not None else None
-            index_kept = self._original_text_index[rows_to_use]
 
-        new_copy.set_metadata(metadata, self._metadata_types)
-        new_copy.set_properties(properties, self._properties_types)
-        new_copy._original_text_index = index_kept  # pylint: disable=protected-access
-        get_logger().disabled = logger_state
-        return new_copy
+            if self._metadata is not None:
+                metadata = self._metadata.iloc[rows_to_use, :]
+                new_copy.set_metadata(metadata, self._cat_metadata)
+
+            if self._properties is not None:
+                properties = self._properties.iloc[rows_to_use, :]
+                new_copy.set_properties(properties, self._cat_properties)
+
+            new_copy._original_text_index = self._original_text_index[rows_to_use]
+            return new_copy
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
@@ -492,3 +514,13 @@ class TextData:
         if n_samples is None:
             return False
         return self.n_samples > n_samples
+
+
+@contextlib.contextmanager
+def disable_deepchecks_logger():
+    """Disable deepchecks root logger."""
+    logger = get_logger()
+    logger_state = logger.disabled
+    logger.disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
+    yield
+    logger.disabled = logger_state
