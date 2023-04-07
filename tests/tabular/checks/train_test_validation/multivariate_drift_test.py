@@ -14,7 +14,7 @@ import string
 
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, greater_than, has_entries, has_length
+from hamcrest import assert_that, close_to, greater_than, has_entries, has_length, equal_to
 
 from deepchecks.tabular.checks import MultivariateDrift
 from deepchecks.tabular.dataset import Dataset
@@ -22,7 +22,6 @@ from tests.base.utils import equal_condition_result
 
 
 def test_no_drift(drifted_data):
-
     # Arrange
     train_ds, test_ds = drifted_data
     train_ds = Dataset(train_ds.data.drop(columns=['numeric_with_drift', 'categorical_with_drift']),
@@ -46,7 +45,6 @@ def test_no_drift(drifted_data):
 
 
 def test_drift(drifted_data):
-
     # Arrange
     train_ds, test_ds = drifted_data
     check = MultivariateDrift()
@@ -70,7 +68,6 @@ def test_drift(drifted_data):
 
 
 def test_drift_without_display(drifted_data):
-
     # Arrange
     train_ds, test_ds = drifted_data
     check = MultivariateDrift()
@@ -172,7 +169,6 @@ def test_over_255_categories_in_column():
 
 
 def test_runs_with_Nonetimeout(drifted_data):
-
     # Arrange
     train_ds, test_ds = drifted_data
     train_ds = Dataset(
@@ -204,3 +200,135 @@ def test_runs_with_Nonetimeout(drifted_data):
             }
         ),
     )
+
+
+def test_drift_fix(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+
+    check = MultivariateDrift()
+
+    # Act & Assert
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.86, 0.01))
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=False)
+
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.42, 0.01))
+    assert_that(train_ds.n_samples, equal_to(952))
+    assert_that(test_ds.n_samples, equal_to(800))
+
+
+def test_drift_fix_only_drop_train(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+
+    check = MultivariateDrift()
+
+    # Act & Assert
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.86, 0.01))
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds, drop_train=True, oversample_train=False, move_from_test=False)
+
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.74, 0.01))
+    assert_that(train_ds.n_samples, equal_to(609))
+    assert_that(test_ds.n_samples, equal_to(1000))
+
+
+def test_drift_fix_only_oversample_duplicates(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+
+    check = MultivariateDrift()
+
+    # Act & Assert
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.86, 0.01))
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds, drop_train=False, move_from_test=False,
+                                  oversample_train=True, use_smote=False)
+
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.77, 0.01))
+    assert_that(train_ds.n_samples, equal_to(1139))
+    assert_that(test_ds.n_samples, equal_to(1000))
+
+
+def test_drift_fix_only_oversample_smote(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+
+    check = MultivariateDrift()
+
+    # Act & Assert
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.86, 0.01))
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds, drop_train=False, move_from_test=False,
+                                  oversample_train=True, use_smote=True)
+
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.81, 0.01))
+    assert_that(train_ds.n_samples, equal_to(1087))
+    assert_that(test_ds.n_samples, equal_to(1000))
+
+
+def test_drift_fix_with_smote(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+
+    check = MultivariateDrift()
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=True)
+
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.49, 0.01))
+    assert_that(train_ds.n_samples, equal_to(900))
+    assert_that(test_ds.n_samples, equal_to(800))
+
+
+def test_drift_fix_with_smote_no_label(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+    train_ds = train_ds.copy(train_ds.data.drop(columns=['target']))
+    test_ds = test_ds.copy(test_ds.data.drop(columns=['target']))
+
+    check = MultivariateDrift()
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=True)
+
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.45, 0.01))
+    assert_that(train_ds.n_samples, equal_to(900))
+    assert_that(test_ds.n_samples, equal_to(800))
+
+
+def test_drift_fix_with_smote_with_nones_in_label_and_numerics(drifted_data):
+    # Arrange
+    train_ds, test_ds = drifted_data
+
+    train_data = train_ds.data
+    np.random.seed(42)
+    train_data['target'] = np.random.choice([0, 1, None], size=train_data.shape[0])
+    random_indexes = np.random.choice(train_data.shape[0], size=100, replace=False)
+    train_data.loc[random_indexes, 'numeric_with_drift'] = None
+    train_ds = train_ds.copy(train_data)
+
+    check = MultivariateDrift()
+
+    # Fix the drift
+    train_ds, test_ds = check.fix(train_ds, test_ds, move_from_test=True, use_smote=True)
+
+    result = check.run(train_ds, test_ds)
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.53, 0.01))
+    assert_that(train_ds.n_samples, equal_to(908))
+    assert_that(test_ds.n_samples, equal_to(800))

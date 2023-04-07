@@ -1,6 +1,7 @@
 pandas>=1.1.5
 numpy>=1.19
 scikit-learn>=0.23.2
+imblearn
 jsonpickle>=2
 PyNomaly>=0.3.3
 
@@ -13,6 +14,8 @@ ipywidgets>=7.6.5,<8; python_version >= '3.8'
 ipython>=5.5.0,<8; python_version < '3.8'
 ipykernel>=4.10.1; python_version < '3.8'
 ipywidgets>=7.5.0,<8; python_version < '3.8'
+
+solara
 
 typing_extensions>=4.0.0
 tqdm>=4.62.3

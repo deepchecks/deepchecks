@@ -11,13 +11,16 @@
 """Tests for weak segment performance check."""
 import numpy as np
 import pandas as pd
-from hamcrest import any_of, assert_that, calling, close_to, equal_to, has_items, has_length, raises
+from hamcrest import any_of, assert_that, calling, close_to, equal_to, has_items, has_length, raises, greater_than
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import f1_score, make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import WeakSegmentsPerformance
+from deepchecks.tabular.checks.model_evaluation.weak_segments_performance import get_samples_by_range
 from tests.base.utils import equal_condition_result
 
+from sklearn.metrics import mean_squared_error
 
 def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
     # Arrange
@@ -76,7 +79,7 @@ def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
 def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
     # Arrange
     _, val, model = iris_split_dataset_and_model
-    loss_per_sample = pd.Series(np.arange(0, 1, 1/val.n_samples, dtype=float), index=val.data.index)
+    loss_per_sample = pd.Series(np.arange(0, 1, 1 / val.n_samples, dtype=float), index=val.data.index)
     scorer = {'f1_score': make_scorer(f1_score, average='micro')}
 
     # Act
@@ -99,7 +102,7 @@ def test_regression_categorical_features_avocado(avocado_split_dataset_and_model
     # Assert
     assert_that(segments, has_length(7))
     assert_that(segments[segments['Feature1'] == 'type']['Feature1 range'].iloc[0], equal_to(['organic']))
-    assert_that(segments[segments['Feature1'] == 'type'].iloc[0, 0], close_to(-0.362,0.01))
+    assert_that(segments[segments['Feature1'] == 'type'].iloc[0, 0], close_to(-0.362, 0.01))
     assert_that(segments.iloc[0, 0], close_to(-0.379, 0.01))
 
 
@@ -130,3 +133,95 @@ def test_categorical_feat_target(adult_split_dataset_and_model):
 
     # Assert
     assert_that(segments, has_length(10))
+
+
+def test_weak_segment_fix(diabetes_split_dataset_and_model):
+    # Arrange
+    train, val, model = diabetes_split_dataset_and_model
+
+    # Act
+    check = WeakSegmentsPerformance()
+    result = check.run(val, model)
+
+    segments = result.value['weak_segments_list']
+
+    # Assert
+    assert_that(segments, has_length(10))
+    assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
+    assert_that(segments.iloc[0, 0], close_to(-89, 1))
+    assert_that(segments.iloc[0, 1], equal_to('bmi'))
+
+    fixed_train = check.fix(train, model, oversample_factor=1.5)  # FIXING ON TRAIN!
+
+    # Train new model and see performance on segment:
+    fixed_model = GradientBoostingRegressor(random_state=0)
+    fixed_model.fit(fixed_train.data[fixed_train.features], fixed_train.data[fixed_train.label_name])
+
+    # Assert
+    feature1_name = segments.iloc[0]['Feature1']
+    feature2_name = segments.iloc[0]['Feature2']
+    feature1_range = segments.iloc[0]['Feature1 range']
+    feature2_range = segments.iloc[0]['Feature2 range']
+
+    val_feature1_indexes = get_samples_by_range(s=val.data[feature1_name], values_range=feature1_range,
+                                                is_categorical=feature1_name in val.cat_features)
+    val_feature2_indexes = get_samples_by_range(s=val.data[feature2_name], values_range=feature2_range,
+                                                is_categorical=feature2_name in val.cat_features)
+    val_segment = val.data.loc[val_feature1_indexes & val_feature2_indexes]
+
+    original_model_rmse_for_segment = -mean_squared_error(model.predict(val_segment[val.features]), val_segment[val.label_name], squared=False)
+    fixed_model_rmse_for_segment = -mean_squared_error(fixed_model.predict(val_segment[val.features]), val_segment[val.label_name], squared=False)
+
+    original_model_rmse_for_all = -mean_squared_error(model.predict(val.features_columns), val.label_col, squared=False)
+    fixed_model_rmse_for_all = -mean_squared_error(fixed_model.predict(val.features_columns), val.label_col, squared=False)
+
+    assert_that(original_model_rmse_for_segment, close_to(-89, 1))
+    assert_that(fixed_model_rmse_for_segment, close_to(-87, 1))
+    assert_that(fixed_model_rmse_for_segment, greater_than(original_model_rmse_for_segment))
+    assert_that(fixed_model_rmse_for_all, greater_than(original_model_rmse_for_all))
+
+
+def test_weak_segment_fix_with_smote(diabetes_split_dataset_and_model):
+    # Arrange
+    train, val, model = diabetes_split_dataset_and_model
+
+    # Act
+    check = WeakSegmentsPerformance()
+    result = check.run(val, model)
+
+    segments = result.value['weak_segments_list']
+
+    # Assert
+    assert_that(segments, has_length(10))
+    assert_that(max(segments.iloc[:, 0]), result.value['avg_score'])
+    assert_that(segments.iloc[0, 0], close_to(-89, 1))
+    assert_that(segments.iloc[0, 1], equal_to('bmi'))
+
+    fixed_train = check.fix(train, model, oversample_by='smote', oversample_factor=5)  # FIXING ON TRAIN!
+
+    # Train new model and see performance on segment:
+    fixed_model = GradientBoostingRegressor(random_state=0)
+    fixed_model.fit(fixed_train.data[fixed_train.features], fixed_train.data[fixed_train.label_name])
+
+    # Assert
+    feature1_name = segments.iloc[0]['Feature1']
+    feature2_name = segments.iloc[0]['Feature2']
+    feature1_range = segments.iloc[0]['Feature1 range']
+    feature2_range = segments.iloc[0]['Feature2 range']
+
+    val_feature1_indexes = get_samples_by_range(s=val.data[feature1_name], values_range=feature1_range,
+                                                is_categorical=feature1_name in val.cat_features)
+    val_feature2_indexes = get_samples_by_range(s=val.data[feature2_name], values_range=feature2_range,
+                                                is_categorical=feature2_name in val.cat_features)
+    val_segment = val.data.loc[val_feature1_indexes & val_feature2_indexes]
+
+    original_model_rmse_for_segment = -mean_squared_error(model.predict(val_segment[val.features]), val_segment[val.label_name], squared=False)
+    fixed_model_rmse_for_segment = -mean_squared_error(fixed_model.predict(val_segment[val.features]), val_segment[val.label_name], squared=False)
+
+    original_model_rmse_for_all = -mean_squared_error(model.predict(val.features_columns), val.label_col, squared=False)
+    fixed_model_rmse_for_all = -mean_squared_error(fixed_model.predict(val.features_columns), val.label_col, squared=False)
+
+    assert_that(original_model_rmse_for_segment, close_to(-89, 1))
+    assert_that(fixed_model_rmse_for_segment, close_to(-85, 1))
+    assert_that(fixed_model_rmse_for_segment, greater_than(original_model_rmse_for_segment))
+    # assert_that(fixed_model_rmse_for_all, greater_than(original_model_rmse_for_all))

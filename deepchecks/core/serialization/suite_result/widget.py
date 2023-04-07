@@ -10,11 +10,16 @@
 #
 # pylint: disable=unused-argument
 """Module containing ipywidget serializer for the SuiteResult type."""
+import os
 import typing as t
 import warnings
 
-from ipywidgets import HTML, Accordion, VBox, Widget
+import solara
+from IPython.display import display
+from ipywidgets import (HTML, Accordion, Box, Button, Checkbox, Dropdown, FloatText, IntProgress, Layout, Valid, VBox,
+                        Widget)
 
+from deepchecks.core import DatasetKind
 from deepchecks.core import check_result as check_types
 from deepchecks.core import suite
 from deepchecks.core.serialization.abc import WidgetSerializer
@@ -26,7 +31,6 @@ from deepchecks.core.serialization.common import (aggregate_conditions, create_f
                                                   normalize_widget_style)
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
 from deepchecks.utils.strings import get_random_string
-
 from . import html
 
 __all__ = ['SuiteResultSerializer']
@@ -50,9 +54,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         self._html_serializer = html.SuiteResultSerializer(self.value)
 
     def serialize(
-        self,
-        output_id: t.Optional[str] = None,
-        **kwargs
+            self,
+            output_id: t.Optional[str] = None,
+            **kwargs
     ) -> Widget:
         """Serialize a SuiteResult instance into ipywidgets.Widget instance.
 
@@ -107,13 +111,15 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 failures=not_ran_checks,
                 output_id=output_id,
                 **kwargs
-            )
+            ),
+            self.prepare_fixes()
         ]
 
         content = VBox(children=[
             self.prepare_summary(output_id=output_id, **kwargs),
             *accordions
         ])
+
         return Accordion(
             children=[content],
             _titles={'0': self.value.name},
@@ -121,9 +127,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )
 
     def prepare_summary(
-        self,
-        output_id: t.Optional[str] = None,
-        **kwargs
+            self,
+            output_id: t.Optional[str] = None,
+            **kwargs
     ) -> HTML:
         """Prepare summary widget."""
         return HTML(value=self._html_serializer.prepare_summary(
@@ -132,10 +138,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ))
 
     def prepare_failures(
-        self,
-        failures: t.Sequence['check_types.CheckFailure'],
-        title: str,
-        **kwargs
+            self,
+            failures: t.Sequence['check_types.CheckFailure'],
+            title: str,
+            **kwargs
     ) -> VBox:
         """Prepare failures section.
 
@@ -173,12 +179,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ))
 
     def prepare_results(
-        self,
-        results: t.Sequence['check_types.CheckResult'],
-        title: str,
-        output_id: t.Optional[str] = None,
-        summary_creation_method: t.Optional[t.Callable[..., Widget]] = None,
-        **kwargs
+            self,
+            results: t.Sequence['check_types.CheckResult'],
+            title: str,
+            output_id: t.Optional[str] = None,
+            summary_creation_method: t.Optional[t.Callable[..., Widget]] = None,
+            **kwargs
     ) -> VBox:
         """Prepare results section.
 
@@ -240,12 +246,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         ))
 
     def prepare_conditions_summary(
-        self,
-        results: t.Sequence['check_types.CheckResult'],
-        output_id: t.Optional[str] = None,
-        include_check_name: bool = True,
-        is_for_iframe_with_srcdoc: bool = False,
-        **kwargs
+            self,
+            results: t.Sequence['check_types.CheckResult'],
+            output_id: t.Optional[str] = None,
+            include_check_name: bool = True,
+            is_for_iframe_with_srcdoc: bool = False,
+            **kwargs
     ) -> Widget:
         """Prepare conditions summary table.
 
@@ -275,11 +281,11 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         )).serialize()
 
     def prepare_unconditioned_results_summary(
-        self,
-        results: t.Sequence['check_types.CheckResult'],
-        output_id: t.Optional[str] = None,
-        is_for_iframe_with_srcdoc: bool = False,
-        **kwargs
+            self,
+            results: t.Sequence['check_types.CheckResult'],
+            output_id: t.Optional[str] = None,
+            is_for_iframe_with_srcdoc: bool = False,
+            **kwargs
     ) -> Widget:
         """Prepare results summary table.
 
@@ -306,6 +312,325 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             )
             return DataFrameSerializer(df.style.hide_index()).serialize()
+
+    def prepare_fixes(self):
+        # TODO: Change the if from getattr to isinstance, we left it like this because we had circular imports from
+        # FixMixin import
+        fixable_check_results = [check_result for check_result in self.value.get_not_passed_checks()
+                                 if getattr(check_result.check, 'fix', None) is not None]
+        accordion_name = 'Fix Datasets'
+        if len(fixable_check_results) == 0:
+            accordion = normalize_widget_style(Accordion(
+                children=(HTML(value='<p>No fixes found.</p>'),),
+                _titles={'0': accordion_name},
+                selected_index=None
+            ))
+            return VBox(children=(
+                # by putting HTML before the results accordion
+                # we create a gap between them`s, failures section does not have
+                # `section_anchor`` but we need to create a gap.
+                # Take a look at the `prepare_results` method to understand
+                HTML(value=''),
+                accordion,
+            ))
+
+        # This is used so that widgets are set to the correct size automatically
+        layout = Layout(width='auto', height='auto')
+
+        # List of boxes of each check's check box and inputs
+        check_and_inputs_boxes = []
+
+        # This is important in order to distinct between train / test / both datasets when we fix duplicates
+        # and also when we present the available fixes to the user
+        train_result_to_checkbox = {}
+        test_result_to_checkbox = {}
+        train_test_result_to_checkbox = {}
+
+        input_widgets = dict(dict())
+
+        # Iterate over all results, generate a checkbox for each result, and input widgets for its parameters for the
+        # fix method
+        for fixable_result in fixable_check_results:
+            input_widget_boxes = []
+            check, check_name = fixable_result.check, fixable_result.check.name()
+            check_check_box = Checkbox(value=True, disabled=False, indent=False)
+
+            # Determine if the check is related to a specific dataset and set its name accordingly
+            if fixable_result.header is not None:
+                if 'Train Dataset' in fixable_result.header:
+                    check_name = check_name + ' - Train Dataset'
+                    train_result_to_checkbox[fixable_result] = check_check_box
+                elif 'Test Dataset' in fixable_result.header:
+                    check_name = check_name + ' - Test Dataset'
+                    test_result_to_checkbox[fixable_result] = check_check_box
+                else:
+                    train_test_result_to_checkbox[fixable_result] = check_check_box
+            # If the header is None, we assume that the check is not related to a specific dataset
+            else:
+                train_test_result_to_checkbox[fixable_result] = check_check_box
+            check_check_box.description = check_name
+
+            input_widgets[check_name] = {}
+            for param_name, param_dict in check.fix_params.items():
+                param_name_user_display = param_dict['display']
+                param_input_widget = None
+                params_description = None
+                if isinstance(param_dict['params'], list):
+                    # params_display is what the user sees, params is the value that is passed to the fix function
+                    options = list(zip(param_dict['params_display'], param_dict['params']))
+                    param_input_widget = Dropdown(
+                        options=options,
+                        value=options[0][1],
+                        description=param_name_user_display,
+                        style={'description_width': 'initial'}
+
+                    )
+                    params_description = zip(param_dict['params_display'], param_dict['params_description'])
+                    params_description = [t[0] + ' - ' + t[1] for t in params_description]
+                    params_description = '\n'.join(params_description)
+
+                elif param_dict['params'] == float:
+                    param_input_widget = FloatText(
+                        value=param_dict['params_display'],
+                        disabled=False,
+                        description=param_name_user_display,
+                        style={'description_width': 'initial'}
+                    )
+                    params_description = param_dict['params_description']
+                elif param_dict['params'] == bool:
+                    param_input_widget = Checkbox(
+                        value=param_dict['params_display'],
+                        disabled=False,
+                        description=param_name_user_display,
+                        style={'description_width': 'initial'}
+                    )
+                    params_description = param_dict['params_description']
+                input_widgets[check_name][param_name] = param_input_widget
+                # Box the input widget to its description
+                param_input_description = HTML(value="<b title='" + params_description + "'>ⓘ</b>",
+                                               placeholder='widget description')
+                param_input_box = Box([param_input_widget, param_input_description])
+
+                # This is the product of this for loop, all the checks input widgets and their descriptions
+                input_widget_boxes.append(param_input_box)
+
+            # Place all input widgets in a vertical box
+            input_widgets_vbox = VBox(children=input_widget_boxes, layout=layout)
+            # Box the check's checkbox and its input widgets
+            check_and_inputs_boxes.append(Box([check_check_box, input_widgets_vbox]))
+
+        checks_vbox = VBox(children=check_and_inputs_boxes, layout=layout)
+
+        def on_save_button_click(b):
+            b.disabled = True
+            b.description = 'Saving...'
+
+            p_bar = IntProgress(
+                value=0,
+                min=0,
+                max=2,
+                step=1,
+                description='Saving:',
+                bar_style='success',
+                orientation='horizontal'
+            )
+            display(p_bar)
+            self.value.context.train.data.to_csv('train.csv')
+            p_bar.value += 1
+            self.value.context.test.data.to_csv('test.csv')
+            p_bar.value += 1
+            p_bar.close()
+
+            b.description = 'Saved!'
+
+            train_path = os.path.join(os.getcwd(), 'train.csv')
+            test_path = os.path.join(os.getcwd(), 'test.csv')
+            display(Valid(
+                value=True,
+                description=train_path,
+                style={'description_width': 'initial'}
+
+            ))
+            display(Valid(
+                value=True,
+                description=test_path,
+                style={'description_width': 'initial'}
+
+            ))
+
+        save_button = Button(
+            description='Save datasets (CSV)',
+            disabled=False,
+            button_style='success',  # 'success', 'info', 'warning', 'danger' or ''
+            tooltip='Save as CSV',
+            icon='download',  # (FontAwesome names without the `fa-` prefix)
+            style={'description_width': 'initial'},
+            layout=layout
+        )
+        save_button.on_click(on_save_button_click)
+
+        input_validation_errors = []
+
+        def input_validation(param_dict, value, current_check_name):
+            if 'min_value' in param_dict:
+                if value < param_dict['min_value']:
+                    invalid_widget = Valid(
+                        value=False,
+                        description=current_check_name + ' - ' + param_dict['display'] + ' must be greater than ' +
+                                    str(param_dict['min_value']),
+                        style={'description_width': 'initial'},
+                    )
+                    input_validation_errors.append(invalid_widget)
+                    display(invalid_widget)
+                    return False
+
+            if 'max_value' in param_dict:
+                if value > param_dict['max_value']:
+                    invalid_widget = Valid(
+                        value=False,
+                        description=current_check_name + ' - ' + param_dict['display'] + ' must be less than ' +
+                                    str(param_dict['max_value']),
+                        style={'description_width': 'initial'},
+                    )
+                    input_validation_errors.append(invalid_widget)
+                    display(invalid_widget)
+                    return False
+            return True
+
+        def on_fix_button_click(b):
+            b.disabled = True
+            b.description = 'Fixing...'
+            check_name_to_params = {}
+            check_name_to_result = {}
+            old_test_ds = None
+            old_train_ds = None
+            if self.value.context.test is not None:
+                ds = self.value.context.test
+                old_test_ds = ds.copy(ds.data.copy())
+            if self.value.context.train is not None:
+                ds = self.value.context.train
+                old_train_ds = ds.copy(ds.data.copy())
+
+            for result, checkbox in test_result_to_checkbox.items():
+                if checkbox.value:
+                    check_name = result.check.name() + ' - Test Dataset'
+                    check_name_to_params[check_name] = {}
+
+                    for param_name, param_widget in input_widgets[check_name].items():
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
+                            b.disabled = False
+                            b.description = 'Fix'
+                            return
+                        check_name_to_params[check_name][param_name] = param_widget.value
+                    check_name_to_params[check_name].update({'dataset_kind': DatasetKind.TEST})
+                    check_name_to_result[check_name] = result
+            for result, checkbox in train_result_to_checkbox.items():
+                if checkbox.value:
+                    check_name = result.check.name() + ' - Train Dataset'
+                    check_name_to_params[check_name] = {}
+
+                    for param_name, param_widget in input_widgets[check_name].items():
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
+                            b.disabled = False
+                            b.description = 'Fix'
+                            return
+                        check_name_to_params[check_name][param_name] = param_widget.value
+                    check_name_to_params[check_name].update({'dataset_kind': DatasetKind.TEST})
+                    check_name_to_result[check_name] = result
+            for result, checkbox in train_test_result_to_checkbox.items():
+                if checkbox.value:
+                    check_name = result.check.name()
+                    check_name_to_params[check_name] = {}
+
+                    for param_name, param_widget in input_widgets[check_name].items():
+                        if not input_validation(result.check.fix_params[param_name], param_widget.value, check_name):
+                            b.disabled = False
+                            b.description = 'Fix'
+                            return
+                        check_name_to_params[check_name][param_name] = param_widget.value
+                    check_name_to_result[check_name] = result
+            for input_validation_widget in input_validation_errors:
+                input_validation_widget.close()
+            p_bar = IntProgress(
+                value=0,
+                min=0,
+                max=len(check_name_to_result),
+                step=1,
+                description='Fixing :',
+                bar_style='success',
+                orientation='horizontal',
+                style={'description_width': 'initial'}
+            )
+            display(p_bar)
+            current_index = 1
+            for check_name, input_params in check_name_to_params.items():
+                for result in self.value.results:
+                    if result.check.name() in check_name:
+                        p_bar.description = 'Fixing ' + check_name + ' ' + str(current_index) + '/' + str(
+                            len(check_name_to_params))
+                        check_name_to_result[check_name].check.fix_logic(context=self.value.context,
+                                                                         check_result=check_name_to_result[check_name],
+                                                                         **input_params)
+                        p_bar.value += 1
+                        current_index += 1
+                        break
+            p_bar.close()
+
+            display(Valid(
+                value=True,
+                description='Done Fixing!',
+            ))
+            # display(save_button)
+            if self.value.context.train is not None:
+                display(solara.FileDownload(data=self.value.context.train.data.to_csv(), filename='fixed_train.csv'))
+            if self.value.context.test is not None:
+                display(solara.FileDownload(data=self.value.context.test.data.to_csv(), filename='fixed_test.csv'))
+
+            b.description = 'Fixed!'
+            #display(HTML(value="""<img src="fireworks.gif" alt="Computer man" style="width:700px;height:300px;">"""))
+            calculating = HTML(value=f"""<h3>Calculating Performance Change</h3>""")
+            display(calculating)
+            from deepchecks.core.evaluation_utils import evaluate_change_in_performance
+            output = evaluate_change_in_performance(old_train_ds=old_train_ds, old_test_ds=old_test_ds,
+                                           new_train_ds=self.value.context.train, new_test_ds=self.value.context.test,
+                                           task_type=self.value.context.task_type)
+            if output < 0:
+                display(Valid(
+                    value=False,
+                    description='Fixing did not improve performance!',
+                    style={'description_width': 'initial'},
+                ))
+            else:
+                display(Valid(
+                    value=True,
+                    description=f'Fixing improved performance by {100*output:.0f}%!',
+                    style={'description_width': 'initial'},
+                ))
+            calculating.close()
+        fix_button = Button(
+            description='Fix!',
+            disabled=False,
+            button_style='info',
+            tooltip='Fix!',
+            icon='wrench'
+        )
+        fix_button.on_click(on_fix_button_click)
+
+        box = Box(children=[checks_vbox])
+        vbox = VBox(children=[box, fix_button])
+        accordion = normalize_widget_style(Accordion(
+            children=(VBox(children=[vbox]),),
+            _titles={'0': accordion_name},
+            selected_index=None
+        ))
+        return VBox(children=(
+            # by putting `section_anchor` before the results accordion
+            # we create a gap between them`s, failures section does not have
+            # `section_anchor`` but we need to create a gap.
+            # Take a look at the `prepare_results` method to understand
+            HTML(value=''),
+            accordion,
+        ))
 
 
 def select_serializer(result):

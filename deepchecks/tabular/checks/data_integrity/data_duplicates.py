@@ -15,6 +15,7 @@ import numpy as np
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DatasetValidationError
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_list, format_percent
@@ -23,7 +24,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['DataDuplicates']
 
 
-class DataDuplicates(SingleDatasetCheck):
+class DataDuplicates(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     """Checks for duplicate samples in the dataset.
 
     Parameters
@@ -43,13 +44,13 @@ class DataDuplicates(SingleDatasetCheck):
     """
 
     def __init__(
-        self,
-        columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_to_show: int = 5,
-        n_samples: int = 10_000_000,
-        random_state: int = 42,
-        **kwargs
+            self,
+            columns: Union[Hashable, List[Hashable], None] = None,
+            ignore_columns: Union[Hashable, List[Hashable], None] = None,
+            n_to_show: int = 5,
+            n_samples: int = 10_000_000,
+            random_state: int = 42,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -126,6 +127,7 @@ class DataDuplicates(SingleDatasetCheck):
         max_ratio : float , default: 0
             Maximum ratio of duplicates.
         """
+
         def max_ratio_condition(result: float) -> ConditionResult:
             details = f'Found {format_percent(result)} duplicate data'
             category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.WARN
@@ -133,3 +135,37 @@ class DataDuplicates(SingleDatasetCheck):
 
         return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
                                   max_ratio_condition)
+
+    def fix_logic(self, context: Context, check_result, dataset_kind, keep: str = 'first') -> Context:
+        """Run fix."""
+        dataset = context.get_data_by_kind(dataset_kind)
+        data = dataset.data.copy()
+        data = select_from_dataframe(data, self.columns, self.ignore_columns)
+        data.drop_duplicates(inplace=True, keep=keep)
+        context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
+        return context
+
+    @property
+    def fix_params(self):
+        """Return fix params for display."""
+        return {'keep': {'display': 'Keep',
+                         'params': ['first', 'last'],
+                         'params_display': ['First Sample', 'Last Sample'],
+                         'params_description': ['Drop duplicates and keep first occurrence',
+                                                'Drop duplicates and keep last occurrence']}}
+
+    @property
+    def problem_description(self):
+        """Return problem description."""
+        return """Duplicate data samples are present in the dataset. This can lead to overfitting and
+                  decrease the performance of the model."""
+
+    @property
+    def manual_solution_description(self):
+        """Return manual solution description."""
+        return """Remove duplicate samples."""
+
+    @property
+    def automatic_solution_description(self):
+        """Return automatic solution description."""
+        return """Remove duplicate samples."""

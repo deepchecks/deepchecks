@@ -67,11 +67,13 @@ class SuiteResult(DisplayableResult):
         self,
         name: str,
         results: List['check_types.BaseCheckResult'],
+        context=None,
         extra_info: Optional[List[str]] = None,
     ):
         """Initialize suite result."""
         self.name = name
         self.results = sort_check_results(results)
+        self.context = context
         self.extra_info = extra_info or []
 
         # NOTE:
@@ -519,7 +521,7 @@ class BaseSuite:
     @classmethod
     @abc.abstractmethod
     def supported_checks(cls) -> Tuple:
-        """Return list of of supported check types."""
+        """Return list of supported check types."""
         pass
 
     checks: 'OrderedDict[int, BaseCheck]'
