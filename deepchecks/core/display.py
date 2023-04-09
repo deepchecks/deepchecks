@@ -107,7 +107,7 @@ class DisplayableResult(abc.ABC):
             # widget = self.widget_serializer.serialize(**kwargs)
             # content = widget_to_html_string(widget, title=get_result_name(self))
             # display_html(content, raw=True)
-            display_html(self.widget_serializer.serialize(
+            display(self.widget_serializer.serialize(
                 output_id=unique_id,
                 **kwargs
             ))
