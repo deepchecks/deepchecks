@@ -139,7 +139,7 @@ def is_categorical(
         max_categories = max_categories_type_string
     elif col_type == 'float':
         # If all values are natural numbers, treat as int
-        all_numbers_natural = np.max(column.astype(float) % 1) == 0
+        all_numbers_natural = np.max(column.astype(float).dropna() % 1) == 0
         max_categories = max_categories_type_int if all_numbers_natural else max_categories_type_float_or_datetime
     elif col_type == 'time':
         max_categories = max_categories_type_float_or_datetime
@@ -161,13 +161,13 @@ def get_column_type(column: pd.Series) -> Literal['float', 'int', 'string', 'tim
         return 'time'
 
     try:
-        column = pd.to_numeric(column)
+        column: pd.Series = pd.to_numeric(column)
         if is_float_dtype(column):
             return 'float'
         else:
             return 'int'
     except ValueError:
         return 'string'
-    # Non string objects like pd.Timestamp results in TypeError
+    # Non-string objects like pd.Timestamp results in TypeError
     except TypeError:
         return 'other'
