@@ -12,11 +12,11 @@
 """Utils module containing type inference related calculations."""
 
 import typing as t
-from typing_extensions import Literal
 
 import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_datetime_or_timedelta_dtype, is_float_dtype, is_numeric_dtype
+from typing_extensions import Literal
 
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
@@ -139,10 +139,11 @@ def is_categorical(
         max_categories = max_categories_type_string
     elif col_type == 'float':
         # If all values are natural numbers, treat as int
-        max_categories = max_categories_type_float_or_datetime if np.max(column % 1) > 0 else max_categories_type_int
+        all_numbers_natural = np.max(column.astype(float) % 1) == 0
+        max_categories = max_categories_type_int if all_numbers_natural else max_categories_type_float_or_datetime
     elif col_type == 'time':
         max_categories = max_categories_type_float_or_datetime
-    elif col_type == 'numeric':
+    elif col_type == 'int':
         max_categories = max_categories_type_int
     else:
         return False
