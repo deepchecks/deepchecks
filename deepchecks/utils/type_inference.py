@@ -149,7 +149,7 @@ def is_categorical(
     return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories
 
 
-def get_column_type(column: pd.Series) -> t.Literal['float', 'int', 'string', 'time', 'other']:
+def get_column_type(column: pd.Series):
     """Get the type of column."""
     if is_float_dtype(column):
         return 'float'
