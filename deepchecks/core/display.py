@@ -99,9 +99,13 @@ class DisplayableResult(abc.ABC):
         if is_kaggle_env() or is_databricks_env() or is_sagemaker_env():
             self.show_in_iframe(as_widget=as_widget, unique_id=unique_id, **kwargs)
         elif is_colab_env() and as_widget is True:
-            widget = self.widget_serializer.serialize(**kwargs)
-            content = widget_to_html_string(widget, title=get_result_name(self))
-            display_html(content, raw=True)
+            # widget = self.widget_serializer.serialize(**kwargs)
+            # content = widget_to_html_string(widget, title=get_result_name(self))
+            # display_html(content, raw=True)
+            display_html(self.widget_serializer.serialize(
+                output_id=unique_id,
+                **kwargs
+            ))
         elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
