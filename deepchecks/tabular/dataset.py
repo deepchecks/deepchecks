@@ -26,7 +26,7 @@ from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
-from deepchecks.utils.type_inference import infer_categorical_features, infer_numerical_features, is_categorical
+from deepchecks.utils.type_inference import infer_categorical_features, infer_numerical_features
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['Dataset']
@@ -535,23 +535,6 @@ class Dataset:
                                              shuffle=shuffle,
                                              stratify=stratify)
         return self.copy(train_df), self.copy(test_df)
-
-    @staticmethod
-    def _infer_label_type(label_col: pd.Series):
-        if is_categorical(label_col, max_categorical_ratio=0.05):
-            if label_col.nunique(dropna=True) > 2:
-                if infer_dtype(label_col) == 'integer' \
-                        and label_col.nunique() >= 5:
-                    get_logger().warning(
-                        'Integer label has many unique values. In this case, deepchecks automatically '
-                        'infers label to be multiclass. If your label is a regression label and not multiclass, '
-                        'please use "label_type=\'regression\'" when initializing your Dataset.'
-                    )
-                return TaskType.MULTICLASS
-            else:
-                return TaskType.BINARY
-        else:
-            return TaskType.REGRESSION
 
     @staticmethod
     def _infer_categorical_features(
