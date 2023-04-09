@@ -62,7 +62,7 @@ class DisplayableResult(abc.ABC):
         as_widget: bool = True,
         unique_id: t.Optional[str] = None,
         **kwargs
-    ) -> t.Optional[HTMLFormatter]:
+    ):
         """Display result.
 
         Parameters
@@ -107,10 +107,10 @@ class DisplayableResult(abc.ABC):
             # widget = self.widget_serializer.serialize(**kwargs)
             # content = widget_to_html_string(widget, title=get_result_name(self))
             # display_html(content, raw=True)
-            display(self.widget_serializer.serialize(
+            return self.widget_serializer.serialize(
                 output_id=unique_id,
                 **kwargs
-            ))
+            )
         elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
