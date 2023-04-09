@@ -397,6 +397,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "thewchan",
+      "name": "Matt Chan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/49702524?v=4",
+      "profile": "https://github.com/thewchan",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "projectName": "deepchecks",
