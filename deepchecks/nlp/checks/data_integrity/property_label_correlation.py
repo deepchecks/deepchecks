@@ -16,6 +16,7 @@ import pandas as pd
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
+from deepchecks.core.errors import DatasetValidationError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.tabular.utils.messages import get_condition_passed_message
@@ -45,6 +46,10 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
     Parameters
     ----------
+    properties_to_ignore: Optional[List[str]], default: None
+        List of properties to ignore in the check.
+    properties_to_include: Optional[List[str]], default: None
+        List of properties to include in the check. If None, all properties will be included.
     ppscore_params : dict , default: None
         dictionary of additional parameters for the ppscore.predictors function
     n_top_properties : int , default: 5
@@ -57,12 +62,18 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
     def __init__(
             self,
+            properties_to_ignore: t.Optional[t.List[str]] = None,
+            properties_to_include: t.Optional[t.List[str]] = None,
             ppscore_params: t.Optional[t.Dict[t.Any, t.Any]] = None,
             n_top_properties: int = 5,
             n_samples: int = 100_000,
             **kwargs
     ):
         super().__init__(**kwargs)
+        if properties_to_ignore is not None and properties_to_include is not None:
+            raise DatasetValidationError('Cannot use both properties_to_ignore and properties_to_include arguments.')
+        self.properties_to_ignore = properties_to_ignore
+        self.properties_to_include = properties_to_include
         self.ppscore_params = ppscore_params or {}
         self.n_top_properties = n_top_properties
         self.n_samples = n_samples
@@ -83,13 +94,18 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         """
         text_data = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=context.random_state)
 
-        label = pd.Series(text_data.label, name='label', index=text_data.index)
+        label = pd.Series(text_data.label, name='label', index=text_data.get_original_text_indexes())
 
         # Classification labels should be of type object (and not int, for example)
         if context.task_type in [TaskType.TEXT_CLASSIFICATION, TaskType.TOKEN_CLASSIFICATION]:
             label = label.astype('object')
 
-        df = text_data.properties.join(label)
+        properties_df = text_data.properties
+        if self.properties_to_ignore is not None:
+            properties_df = properties_df.drop(columns=self.properties_to_ignore)
+        elif self.properties_to_include is not None:
+            properties_df = properties_df[self.properties_to_include]
+        df = properties_df.join(label)
 
         df_pps = pps.predictors(df=df, y='label', random_seed=context.random_state,
                                 **self.ppscore_params)

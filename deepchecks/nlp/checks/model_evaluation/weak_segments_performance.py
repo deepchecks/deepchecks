@@ -22,8 +22,8 @@ from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProces
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
+from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.performance.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['MetadataSegmentsPerformance', 'PropertySegmentsPerformance']
@@ -71,26 +71,27 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         self._warn_n_top_columns(features.shape[1])
 
         predictions = context.model.predict(text_data)
-        if not hasattr(context.model, 'predict_proba'):
+
+        if self.loss_per_sample is not None:
+            loss_per_sample = self.loss_per_sample[text_data.get_original_text_indexes()]
+            proba_values = None
+        elif not hasattr(context.model, 'predict_proba'):
             raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'
                                               ' on log loss error that requires predicted probabilities, rather'
                                               ' than only predicted classes.')
-        proba_values = context.model.predict_proba(text_data)
-
-        if self.loss_per_sample is not None:
-            loss_per_sample = self.loss_per_sample[list(text_data.index)]
         else:
+            proba_values = np.asarray(context.model.predict_proba(text_data))
             loss_per_sample = [log_loss([y_true], [y_proba], labels=sorted(context.model_classes)) for y_true, y_proba
                                in zip(list(text_data.label), proba_values)]
 
         if features.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
         # label is not used in the check, just here to avoid errors
-        dataset = Dataset(features, label=pd.Series(text_data.label, index=text_data.index), cat_features=cat_features)
+        dataset = Dataset(features, label=pd.Series(text_data.label), cat_features=cat_features)
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, list(np.unique(text_data.label)))
 
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),
-                                  y_proba_test=np.asarray(proba_values), validate_data_on_predict=False)
+                                  y_proba_test=proba_values, validate_data_on_predict=False)
         scorer = context.get_single_scorer(self.alternative_scorer)
         weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, np.asarray(encoded_dataset.features),
                                                    loss_per_sample, scorer)
@@ -105,7 +106,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         for idx, segment in weak_segments.copy().iterrows():
             for feature in ['Feature1', 'Feature2']:
                 if segment[feature] in encoded_dataset.cat_features:
-                    weak_segments[f'{feature} range'][idx] = \
+                    weak_segments.at[idx, f'{feature} range'] = \
                         self._format_partition_vec_for_display(segment[f'{feature} range'], segment[feature], None)[0]
 
         display_msg = 'Showcasing intersections of metadata columns with weakest detected segments.<br> The full ' \

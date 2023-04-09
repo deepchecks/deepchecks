@@ -154,7 +154,6 @@ DEFAULT_PROPERTIES = [
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'}
 ]
 
-
 LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality']
 ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
@@ -180,43 +179,55 @@ def _get_default_properties(include_properties: List[str] = None, ignore_propert
 
 
 def calculate_default_properties(raw_text: Sequence[str], include_properties: Optional[List[str]] = None,
-                                 ignore_properties: Optional[List[str]] = None, device: Optional[str] = None
+                                 ignore_properties: Optional[List[str]] = None,
+                                 include_long_calculation_properties: Optional[bool] = False,
+                                 device: Optional[str] = None
                                  ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Return list of dictionaries of text properties.
 
     Parameters
     ----------
-        raw_text : Sequence[str]
-            The text to calculate the properties for.
-        include_properties : List[str], default None
-            The properties to calculate. If None, all default properties will be calculated. Cannot be used together
-            with ignore_properties parameter.
-        ignore_properties : List[str], default None
-            The properties to ignore. If None, no properties will be ignored. Cannot be used together with
-            properties parameter.
-        device : str, default None
-            The device to use for the calculation. If None, the default device will be used.
+    raw_text : Sequence[str]
+        The text to calculate the properties for.
+    include_properties : List[str], default None
+        The properties to calculate. If None, all default properties will be calculated. Cannot be used together
+        with ignore_properties parameter. Available properties are:
+        ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
+        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
+        Note that the properties ['Toxicity', 'Fluency', 'Formality'] may take a long time to calculate. If
+        include_long_calculation_properties is False, these properties will be ignored, even if they are in the
+        include_properties parameter.
+    ignore_properties : List[str], default None
+        The properties to ignore. If None, no properties will be ignored. Cannot be used together with
+        properties parameter.
+    include_long_calculation_properties : bool, default False
+        Whether to include properties that may take a long time to calculate. If False, these properties will be
+        ignored, even if they are in the include_properties parameter.
+    device : int, default None
+        The device to use for the calculation. If None, the default device will be used.
 
     Returns
     -------
-        Dict[str, List[float]]
-            A dictionary with the property name as key and a list of the property values for each text as value.
-        Dict[str, str]
-            A dictionary with the property name as key and the property's type as value.
+    Dict[str, List[float]]
+        A dictionary with the property name as key and a list of the property values for each text as value.
+    Dict[str, str]
+        A dictionary with the property name as key and the property's type as value.
     """
     default_text_properties = _get_default_properties(include_properties=include_properties,
                                                       ignore_properties=ignore_properties)
 
-    # Check if the run may take a long time and warn
-    heavy_properties = [prop for prop in default_text_properties if prop['name'] in LONG_RUN_PROPERTIES]
-    if heavy_properties and len(raw_text) > LARGE_SAMPLE_SIZE:
-        h_property_names = [prop['name'] for prop in heavy_properties]
-        warning_message = f'Calculating the properties {h_property_names} on a large dataset may take a long time.' \
-                          f' Consider using a smaller sample size or running this code on better hardware.'
-        if device is None or device == 'cpu':
-            warning_message += ' Consider using a GPU or a similar device to run these properties.'
+    if not include_long_calculation_properties:
+        default_text_properties = [prop for prop in default_text_properties if prop['name'] not in LONG_RUN_PROPERTIES]
+    else:  # Check if the run may take a long time and warn
+        heavy_properties = [prop for prop in default_text_properties if prop['name'] in LONG_RUN_PROPERTIES]
+        if heavy_properties and len(raw_text) > LARGE_SAMPLE_SIZE:
+            h_prop_names = [prop['name'] for prop in heavy_properties]
+            warning_message = f'Calculating the properties {h_prop_names} on a large dataset may take a long time.' \
+                              f' Consider using a smaller sample size or running this code on better hardware.'
+            if device is None or device == 'cpu':
+                warning_message += ' Consider using a GPU or a similar device to run these properties.'
 
-        warnings.warn(warning_message, UserWarning)
+            warnings.warn(warning_message, UserWarning)
 
     calculated_properties = {}
     for prop in default_text_properties:
@@ -228,6 +239,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 
-    properties_types = {prop['name']: prop['output_type'] for prop in default_text_properties}  # TODO: Add tests
+    properties_types = {prop['name']: prop['output_type'] for prop in default_text_properties
+                        if prop['name'] in calculated_properties}  # TODO: Add tests
 
     return calculated_properties, properties_types

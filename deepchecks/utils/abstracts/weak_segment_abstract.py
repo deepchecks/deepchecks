@@ -175,7 +175,7 @@ class WeakSegmentAbstract:
         search_space = {
             'max_depth': [5],
             'min_weight_fraction_leaf': [self.segment_minimum_size_ratio],
-            'min_samples_leaf': [10],
+            'min_samples_leaf': [5],
             'criterion': criterion
         }
 

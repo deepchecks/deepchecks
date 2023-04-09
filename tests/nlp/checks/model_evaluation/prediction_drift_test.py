@@ -12,6 +12,7 @@
 
 from hamcrest import assert_that, close_to, has_items, equal_to
 
+from deepchecks.nlp import TextData
 from deepchecks.nlp.checks import PredictionDrift
 from tests.base.utils import equal_condition_result
 
@@ -39,6 +40,27 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata, tweet_emotion_train_te
 def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata, tweet_emotion_train_test_predictions):
     # Arrange
     train, _ = tweet_emotion_train_test_textdata
+    train_preds, _ = tweet_emotion_train_test_predictions
+    check = PredictionDrift().add_condition_drift_score_less_than()
+    # Act
+    result = check.run(train, train, train_predictions=train_preds, test_predictions=train_preds)
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=True,
+                               details="Found model prediction Cramer's V drift score of 0",
+                               name='categorical drift score < 0.15 and numerical drift score < 0.15')
+    ))
+
+    assert_that(result.value['Drift score'], equal_to(0))
+
+
+def test_tweet_emotion_no_drift_no_label(tweet_emotion_train_test_textdata, tweet_emotion_train_test_predictions):
+    # Arrange
+    train, _ = tweet_emotion_train_test_textdata
+    train = TextData(train.text, task_type='text_classification', metadata=train.metadata,
+                     properties=train.properties)
     train_preds, _ = tweet_emotion_train_test_predictions
     check = PredictionDrift().add_condition_drift_score_less_than()
     # Act

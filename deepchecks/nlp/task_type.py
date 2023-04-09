@@ -9,9 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """The task type module containing the TaskType enum."""
+import typing as t
 from enum import Enum
 
-__all__ = ['TaskType']
+__all__ = ['TaskType', 'TTokenLabel', 'TClassLabel', 'TTextLabel']
+
+TSingleLabel = t.Union[int, str]
+TClassLabel = t.Sequence[t.Union[TSingleLabel, t.Tuple[TSingleLabel]]]
+TTokenLabel = t.Sequence[t.Sequence[t.Union[str, int]]]
+TTextLabel = t.Union[TClassLabel, TTokenLabel]
 
 
 class TaskType(Enum):

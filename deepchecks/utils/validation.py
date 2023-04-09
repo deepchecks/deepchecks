@@ -10,8 +10,6 @@
 #
 """Objects validation utilities."""
 
-# TODO: move tabular functionality to the tabular sub-package
-
 import typing as t
 
 import numpy as np
@@ -22,18 +20,17 @@ from deepchecks.utils.typing import Hashable
 
 __all__ = [
     'ensure_hashable_or_mutable_sequence',
-    'is_sequence_not_str'
+    'is_sequence_not_str',
 ]
-
 
 T = t.TypeVar('T', bound=Hashable)
 
 
 def ensure_hashable_or_mutable_sequence(
-    value: t.Union[T, t.MutableSequence[T]],
-    message: str = (
-        'Provided value is neither hashable nor mutable '
-        'sequence of hashable items. Got {type}')
+        value: t.Union[T, t.MutableSequence[T]],
+        message: str = (
+                'Provided value is neither hashable nor mutable '
+                'sequence of hashable items. Got {type}')
 ) -> t.List[T]:
     """Validate that provided value is either hashable or mutable sequence of hashable values."""
     if isinstance(value, Hashable):

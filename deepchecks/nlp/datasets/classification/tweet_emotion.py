@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Dataset containing tweets and meta data information for multiclass prediction for emotion of tweet.
+"""Dataset containing tweet and metadata information for multiclass prediction for emotion of tweet.
 
 The data has 4653 tweet records with 5 features and a multiclass target column, referring to the emotion of the tweet.
 
@@ -28,9 +28,9 @@ from deepchecks.nlp import TextData
 
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/39486889'
+_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
 _EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39729283'
-_PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39460924'
+_PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39717619'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
 ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet_emotion'
@@ -68,6 +68,29 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
         return train, test
     else:
         return embeddings.drop(columns=['train_test_split']).sort_index()
+
+    # TODO RESOLVE
+    # def load_embeddings(as_train_test: bool = False) -> np.ndarray:
+    #     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
+    #
+    #     Parameters
+    #     ----------
+    #     as_train_test : bool, default: True
+    #         If True, the returned data is split into train and test exactly like the toy model
+    #         was trained. The first return value is the train data and the second is the test data.
+    #         Otherwise, returns a single object.
+    #
+    #     Returns
+    #     -------
+    #     embeddings : np.ndarray
+    #         Embeddings for the tweet_emotion dataset.
+    #     """
+    #     all_embeddings = _read_and_save('tweet_emotion_embeddings.csv', _EMBEDDINGS_URL)
+    #     if as_train_test:
+    #         train_indexes, test_indexes = _get_train_test_indexes()
+    #         return all_embeddings[train_indexes], all_embeddings[test_indexes]
+    #     else:
+    #         return all_embeddings
 
 
 def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
@@ -131,13 +154,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
     if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')
 
-    os.makedirs(ASSETS_DIR, exist_ok=True)
-    if (ASSETS_DIR / 'tweet_emotion_data.csv').exists():
-        dataset = pd.read_csv(ASSETS_DIR / 'tweet_emotion_data.csv', index_col=0)
-    else:
-        dataset = pd.read_csv(_FULL_DATA_URL, index_col=0)
-        dataset.to_csv(ASSETS_DIR / 'tweet_emotion_data.csv')
-
+    dataset = _read_and_save('tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
     if not as_train_test:
         dataset.drop(columns=['train_test_split'], inplace=True)
         if data_format.lower() == 'textdata':
@@ -145,7 +162,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
             embeddings = load_embeddings(as_train_test=False) if include_embeddings else None
             dataset = TextData(dataset.text, label=dataset[_target], task_type='text_classification',
                                metadata=dataset.drop(columns=[_target, 'text']),
-                               embeddings=embeddings, properties=properties, index=dataset.index)
+                               embeddings=embeddings, properties=properties)
         return dataset
     else:
         # train has more sport and Customer Complains but less Terror and Optimism
@@ -157,10 +174,10 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
             train_embeds, test_embeds = load_embeddings(as_train_test=True) if include_embeddings else (None, None)
 
             train = TextData(train.text, label=train[_target], task_type='text_classification',
-                             index=train.index, metadata=train.drop(columns=[_target, 'text']),
+                             metadata=train.drop(columns=[_target, 'text']),
                              embeddings=train_embeds, properties=train_props)
             test = TextData(test.text, label=test[_target], task_type='text_classification',
-                            index=test.index, metadata=test.drop(columns=[_target, 'text']),
+                            metadata=test.drop(columns=[_target, 'text']),
                             embeddings=test_embeds, properties=test_props)
         return train, test
 
@@ -174,6 +191,10 @@ def load_precalculated_predictions(pred_format: str = 'predictions') -> np.array
         Represent the format of the returned value. Can be 'predictions' or 'probabilities'.
         'predictions' will return the predicted class for each sample.
         'probabilities' will return the predicted probabilities for each sample.
+    as_train_test : bool, default: True
+        If True, the returned data is split into train and test exactly like the toy model
+        was trained. The first return value is the train data and the second is the test data.
+        Otherwise, returns a single object.
 
     Returns
     -------
@@ -181,18 +202,41 @@ def load_precalculated_predictions(pred_format: str = 'predictions') -> np.array
         The prediction of the data elements in the dataset.
 
     """
-    os.makedirs(ASSETS_DIR, exist_ok=True)
-    if (ASSETS_DIR / 'tweet_emotion_probabilities.csv').exists():
-        preds = pd.read_csv(ASSETS_DIR / 'tweet_emotion_probabilities.csv', index_col=0)
-    else:
-        preds = pd.read_csv(_PREDICTIONS_URL, index_col=0)
-        preds.to_csv(ASSETS_DIR / 'tweet_emotion_probabilities.csv')
-
-    preds = preds.to_numpy()
-
+    all_preds = _read_and_save('tweet_emotion_probabilities.csv', _PREDICTIONS_URL)
     if pred_format == 'predictions':
-        return np.array([_LABEL_MAP[x] for x in np.argmax(preds, axis=1)])
-    elif pred_format == 'probabilities':
-        return preds
-    else:
+        all_preds = np.array([_LABEL_MAP[x] for x in np.argmax(all_preds, axis=1)])
+    elif pred_format != 'probabilities':
         raise ValueError('pred_format must be either "predictions" or "probabilities"')
+
+    if as_train_test:
+        train_indexes, test_indexes = _get_train_test_indexes()
+        return all_preds[train_indexes], all_preds[test_indexes]
+    else:
+        return all_preds
+
+
+def _read_and_save(file_name, url_to_file, to_numpy=True):
+    """Read a file from a url and save it to the assets directory."""
+    os.makedirs(ASSETS_DIR, exist_ok=True)
+    if (ASSETS_DIR / file_name).exists():
+        data = pd.read_csv(ASSETS_DIR / file_name, index_col=0)
+    else:
+        data = pd.read_csv(url_to_file, index_col=0)
+        data.to_csv(ASSETS_DIR / file_name)
+
+    if to_numpy:
+        data = data.to_numpy()
+    return data
+
+
+def _get_train_test_indexes() -> t.Tuple[np.array, np.array]:
+    """Get the indexes of the train and test sets."""
+    if (ASSETS_DIR / 'tweet_emotion_data.csv').exists():
+        dataset = pd.read_csv(ASSETS_DIR / 'tweet_emotion_data.csv', index_col=0,
+                              usecols=['Unnamed: 0', 'train_test_split'])
+    else:
+        dataset = pd.read_csv(_FULL_DATA_URL, index_col=0, usecols=['Unnamed: 0', 'train_test_split'])
+
+    train_indexes = dataset[dataset['train_test_split'] == 'Train'].index
+    test_indexes = dataset[dataset['train_test_split'] == 'Test'].index
+    return train_indexes, test_indexes
