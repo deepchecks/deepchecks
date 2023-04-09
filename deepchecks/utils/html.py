@@ -14,6 +14,8 @@ import typing as t
 
 __all__ = ['imagetag', 'linktag']
 
+from deepchecks.utils.ipython import is_colab_env
+
 
 def imagetag(img: bytes) -> str:
     """Return html image tag with embedded image."""
@@ -44,8 +46,11 @@ def linktag(
     -------
     str
     """
-    if is_for_iframe_with_srcdoc and kwargs.get('href', '').startswith('#'):
-        kwargs['href'] = f'about:srcdoc{kwargs["href"]}'
+    if kwargs.get('href', '').startswith('#'):
+        if is_for_iframe_with_srcdoc:
+            kwargs['href'] = f'about:srcdoc{kwargs["href"]}'
+        elif is_colab_env():
+            kwargs['href'] = f'#scrollTo={kwargs["href"][1:]}'
 
     if style is not None:
         kwargs['style'] = '\n'.join([
