@@ -114,11 +114,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             self.prepare_summary(output_id=output_id, **kwargs),
             *accordions
         ])
-        return Accordion(
-            children=[content],
-            _titles={'0': self.value.name},
-            selected_index='0'
-        )
+        return content
+        # return Accordion(
+        #     children=[content],
+        #     _titles={'0': self.value.name},
+        #     selected_index='0'
+        # )
 
     def prepare_summary(
         self,
