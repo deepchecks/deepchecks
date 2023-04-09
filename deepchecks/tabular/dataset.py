@@ -26,7 +26,7 @@ from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_docs_link
-from deepchecks.utils.type_inference import infer_categorical_features, infer_numerical_features, is_categorical
+from deepchecks.utils.type_inference import infer_categorical_features, infer_numerical_features
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['Dataset']
