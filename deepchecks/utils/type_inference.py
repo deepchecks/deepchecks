@@ -135,27 +135,35 @@ def is_categorical(
     n_unique = column.nunique(dropna=True)
     col_type = get_column_type(column)
     if col_type == 'string':
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_string
-    elif (col_type == 'float' and np.max(column % 1) > 0) or col_type == 'time':
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_float_or_datetime
+        max_categories = max_categories_type_string
+    elif col_type == 'float':
+        # If all values are natural numbers, treat as int
+        max_categories = max_categories_type_float_or_datetime if np.max(column % 1) > 0 else max_categories_type_int
+    elif col_type == 'time':
+        max_categories = max_categories_type_float_or_datetime
     elif col_type == 'numeric':
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_int
+        max_categories = max_categories_type_int
     else:
         return False
 
+    return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories
 
-def get_column_type(column: pd.Series) -> t.Literal['float', 'numeric', 'string', 'time', 'other']:
+
+def get_column_type(column: pd.Series) -> t.Literal['float', 'int', 'string', 'time', 'other']:
     """Get the type of column."""
     if is_float_dtype(column):
         return 'float'
     elif is_numeric_dtype(column):
-        return 'numeric'
+        return 'int'
     elif is_datetime_or_timedelta_dtype(column):
         return 'time'
 
     try:
-        pd.to_numeric(column)
-        return 'numeric'
+        column = pd.to_numeric(column)
+        if is_float_dtype(column):
+            return 'float'
+        else:
+            return 'int'
     except ValueError:
         return 'string'
     # Non string objects like pd.Timestamp results in TypeError
