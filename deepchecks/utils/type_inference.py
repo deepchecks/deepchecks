@@ -12,6 +12,7 @@
 """Utils module containing type inference related calculations."""
 
 import typing as t
+from typing_extensions import Literal
 
 import numpy as np
 import pandas as pd
@@ -149,7 +150,7 @@ def is_categorical(
     return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories
 
 
-def get_column_type(column: pd.Series):
+def get_column_type(column: pd.Series) -> Literal['float', 'int', 'string', 'time', 'other']:
     """Get the type of column."""
     if is_float_dtype(column):
         return 'float'
