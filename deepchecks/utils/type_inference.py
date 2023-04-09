@@ -139,7 +139,7 @@ def is_categorical(
         max_categories = max_categories_type_string
     elif col_type == 'float':
         # If all values are natural numbers, treat as int
-        all_numbers_natural = np.max(column.astype(float).dropna() % 1) == 0
+        all_numbers_natural = np.max(pd.to_numeric(column).dropna() % 1) == 0
         max_categories = max_categories_type_int if all_numbers_natural else max_categories_type_float_or_datetime
     elif col_type == 'time':
         max_categories = max_categories_type_float_or_datetime
