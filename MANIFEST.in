@@ -2,6 +2,7 @@ include requirements/requirements.txt
 include requirements/vision-requirements.txt
 include requirements/nlp-requirements.txt
 include requirements/dev-requirements.txt
+include requirements/nlp-prop-requirements.txt
 include LICENSE
 include VERSION
 include README.md
