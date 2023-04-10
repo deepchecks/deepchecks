@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 # TODO: Add tests!
 
+
 def calculate_default_embeddings(text: Sequence[str], index: list, model: str = 'miniLM', file_path: str = 'embeddings.csv',
                                  device: Optional[str] = None) -> pd.DataFrame:
     """

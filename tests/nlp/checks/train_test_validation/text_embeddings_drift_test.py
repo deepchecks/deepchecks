@@ -23,23 +23,14 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata):
     # Act
     result = check.run(train, test)
 
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.26, 0.01))
 
-    assert_that(result.value['Drift score'], close_to(0.23, 0.01))
 
+def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata):
+    # Arrange
+    train, _ = tweet_emotion_train_test_textdata
+    check = TextEmbeddingsDrift()
+    # Act
+    result = check.run(train, train)
 
-# def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata):
-#     # Arrange
-#     train, _ = tweet_emotion_train_test_textdata
-#     check = TextEmbeddingsDrift().add_condition_drift_score_less_than()
-#     # Act
-#     result = check.run(train, train)
-#     condition_result = check.conditions_decision(result)
-#
-#     # Assert
-#     assert_that(condition_result, has_items(
-#         equal_condition_result(is_pass=True,
-#                                details="Label's drift score Cramer's V is 0",
-#                                name='categorical drift score < 0.15 and numerical drift score < 0.15 for label drift')
-#     ))
-#
-#     assert_that(result.value['Drift score'], close_to(0, 0.01))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0, 0.01))

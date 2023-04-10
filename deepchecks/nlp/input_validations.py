@@ -85,6 +85,14 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
     return np.asarray(labels)
 
 
+def validate_length_and_type(data_table: pd.DataFrame, data_table_name: str, expected_size: int):
+    if not isinstance(data_table, pd.DataFrame):
+        raise DeepchecksValueError(f'{data_table_name} type {type(data_table)} is not supported, must be a'
+                                   f' pandas DataFrame') #TODO add comment about 'auto' mode...
+    if len(data_table) != expected_size:
+        raise DeepchecksValueError(f'received metadata with {len(data_table)} rows, expected {expected_size}')
+
+
 def validate_length_and_calculate_column_types(data_table: pd.DataFrame, data_table_name: str, expected_size: int,
                                                column_types: Optional[Dict[str, str]] = None) -> \
         Optional[Dict[str, str]]:
@@ -92,11 +100,7 @@ def validate_length_and_calculate_column_types(data_table: pd.DataFrame, data_ta
     if data_table is None:
         return None
 
-    if not isinstance(data_table, pd.DataFrame):
-        raise DeepchecksValueError(f'{data_table_name} type {type(data_table)} is not supported, must be a'
-                                   f' pandas DataFrame')
-    if len(data_table) != expected_size:
-        raise DeepchecksValueError(f'received metadata with {len(data_table)} rows, expected {expected_size}')
+    validate_length_and_type(data_table, data_table_name, expected_size)
 
     if column_types is None:  # TODO: Add tests
         cat_features = infer_categorical_features(data_table)

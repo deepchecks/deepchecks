@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing common MultivariateDrift Check (domain classifier drift) utils."""
+import numpy as np
 import warnings
 from typing import Container, List, Tuple, Dict
 
@@ -272,27 +273,27 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
     else:
         top_fi = None
 
-    if True:
+    if drift_score > min_meaningful_drift_score:
         train_embeddings = pd.DataFrame(reducer.transform(train_embeddings), index=train_embeddings.index)
         test_embeddings = pd.DataFrame(reducer.transform(test_embeddings), index=test_embeddings.index)
 
-        score = values_dict['domain_classifier_drift_score']
         # Sample data before display calculations
         num_samples_in_display = min(num_samples_in_display, sample_size)
-        train_dataset_for_display = train_dataset.sample(num_samples_in_display, random_state=42)
-        train_embeddings = train_embeddings.loc[train_dataset_for_display.index]
-        train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset_for_display.index]
-        test_dataset_for_display = test_dataset.sample(num_samples_in_display, random_state=42)
-        test_embeddings = test_embeddings.loc[test_dataset_for_display.index]
-        test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset_for_display.index]
+        samples_for_display = np.random.choice(range(len(train_dataset)), size=num_samples_in_display, replace=False).tolist()
+        train_dataset_for_display = train_dataset.copy(samples_for_display)
+        train_embeddings = train_embeddings.iloc[samples_for_display]
+        # train_indexes_to_highlight = [x for x in train_indexes_to_highlight if x in train_dataset_for_display.index]
+        samples_for_display = np.random.choice(range(len(test_dataset)), size=num_samples_in_display, replace=False).tolist()
+        test_dataset_for_display = test_dataset.copy(samples_for_display)
+        test_embeddings = test_embeddings.iloc[samples_for_display]
+        # test_indexes_to_highlight = [x for x in test_indexes_to_highlight if x in test_dataset_for_display.index]
 
         # Calculate display
         embeddings_for_display = pd.concat([train_embeddings, test_embeddings])
         # embeddings_for_display = pd.DataFrame(pca.transform(embeddings_for_display), index=embeddings_for_display.index)
         domain_classifier_probas = domain_classifier.predict_proba(floatify_dataframe(embeddings_for_display))[:, 1]
 
-        print(f'Domain classifier AUC is {domain_classifier_auc}')
-        displays = [feature_importance_note, build_drift_plot(score),
+        displays = [feature_importance_note, build_drift_plot(drift_score),
                     # display_embeddings_only(train_embeddings=train_embeddings, test_embeddings=test_embeddings,
                     #                         top_fi_embeddings=top_fi, train_dataset=train_dataset_for_display,
                     #                         test_dataset=test_dataset_for_display,
@@ -336,9 +337,9 @@ def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_hi
                          train_indexes_to_highlight, indexes_per_node: Dict[int, List[str]] = None):
     import plotly.express as px
     save_for_later = plot_data.copy()
-    plot_data['dataset'] = ['train_full'] * len(train_dataset.index) + ['test_full'] * len(test_dataset.index)
-    plot_data['label'] = train_dataset.label + test_dataset.label
-    plot_data['sample'] = train_dataset.text + test_dataset.text
+    plot_data['dataset'] = ['train_full'] * len(train_dataset.get_original_text_indexes()) + ['test_full'] * len(test_dataset.get_original_text_indexes())
+    plot_data['label'] = np.concatenate([train_dataset.label, test_dataset.label])
+    plot_data['sample'] = np.concatenate([train_dataset.text, test_dataset.text])
     plot_data['sample'] = plot_data['sample'].apply(clean_sample)
 
     # Only keep relevant indexes

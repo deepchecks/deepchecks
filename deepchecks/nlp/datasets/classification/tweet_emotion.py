@@ -39,7 +39,38 @@ _target = 'label'
 _LABEL_MAP = {0: 'anger', 1: 'happiness', 2: 'optimism', 3: 'sadness'}
 
 
-def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
+# def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
+#     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
+#
+#     Parameters
+#     ----------
+#     as_train_test : bool, default: True
+#         If True, the returned data is split into train and test exactly like the toy model
+#         was trained. The first return value is the train data and the second is the test data.
+#         In order to get this model, call the load_fitted_model() function.
+#         Otherwise, returns a single object.
+#
+#     Returns
+#     -------
+#     embeddings : np.ndarray
+#         Embeddings for the tweet_emotion dataset.
+#     """
+#     # return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
+#     if (ASSETS_DIR / 'tweet_emotion_embeddings.csv').exists():
+#         embeddings = pd.read_csv(ASSETS_DIR / 'tweet_emotion_embeddings.csv', index_col=0)
+#     else:
+#         embeddings = pd.read_csv(_EMBEDDINGS_URL, index_col='index')
+#         embeddings.to_csv(ASSETS_DIR / 'tweet_emotion_embeddings.csv')
+#
+#     if as_train_test:
+#         train = embeddings[embeddings['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
+#         test = embeddings[embeddings['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
+#         return train, test
+#     else:
+#         return embeddings.drop(columns=['train_test_split']).sort_index()
+
+    # TODO RESOLVE
+def load_embeddings(as_train_test: bool = False) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
 
     Parameters
@@ -47,7 +78,6 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     as_train_test : bool, default: True
         If True, the returned data is split into train and test exactly like the toy model
         was trained. The first return value is the train data and the second is the test data.
-        In order to get this model, call the load_fitted_model() function.
         Otherwise, returns a single object.
 
     Returns
@@ -55,42 +85,12 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     embeddings : np.ndarray
         Embeddings for the tweet_emotion dataset.
     """
-    # return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
-    if (ASSETS_DIR / 'tweet_emotion_embeddings.csv').exists():
-        embeddings = pd.read_csv(ASSETS_DIR / 'tweet_emotion_embeddings.csv', index_col=0)
-    else:
-        embeddings = pd.read_csv(_EMBEDDINGS_URL, index_col='index')
-        embeddings.to_csv(ASSETS_DIR / 'tweet_emotion_embeddings.csv')
-
+    all_embeddings = _read_and_save('tweet_emotion_embeddings.csv', _EMBEDDINGS_URL, to_numpy=False).drop(columns=['train_test_split'])
     if as_train_test:
-        train = embeddings[embeddings['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
-        test = embeddings[embeddings['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
-        return train, test
+        train_indexes, test_indexes = _get_train_test_indexes()
+        return all_embeddings.loc[train_indexes], all_embeddings.loc[test_indexes]
     else:
-        return embeddings.drop(columns=['train_test_split']).sort_index()
-
-    # TODO RESOLVE
-    # def load_embeddings(as_train_test: bool = False) -> np.ndarray:
-    #     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
-    #
-    #     Parameters
-    #     ----------
-    #     as_train_test : bool, default: True
-    #         If True, the returned data is split into train and test exactly like the toy model
-    #         was trained. The first return value is the train data and the second is the test data.
-    #         Otherwise, returns a single object.
-    #
-    #     Returns
-    #     -------
-    #     embeddings : np.ndarray
-    #         Embeddings for the tweet_emotion dataset.
-    #     """
-    #     all_embeddings = _read_and_save('tweet_emotion_embeddings.csv', _EMBEDDINGS_URL)
-    #     if as_train_test:
-    #         train_indexes, test_indexes = _get_train_test_indexes()
-    #         return all_embeddings[train_indexes], all_embeddings[test_indexes]
-    #     else:
-    #         return all_embeddings
+        return all_embeddings
 
 
 def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
@@ -182,7 +182,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         return train, test
 
 
-def load_precalculated_predictions(pred_format: str = 'predictions') -> np.array:
+def load_precalculated_predictions(pred_format: str = 'predictions', as_train_test: bool = False) -> np.array:
     """Load and return a precalculated predictions for the dataset.
 
     Parameters

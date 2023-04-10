@@ -18,7 +18,7 @@ import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_modify_label,
-                                              validate_raw_text, validate_tokenized_text)
+                                              validate_raw_text, validate_tokenized_text, validate_length_and_type)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
@@ -142,18 +142,17 @@ class TextData:
             raise DeepchecksNotSupportedError(f'name must be a string, got {type(name)}')
         self.name = name
 
-        self.set_metadata(metadata)
-        self.set_properties(properties)
+        self.set_metadata(metadata, metadata_types)
 
-        #TODO Embeddings
-        # if embeddings is not None:
-        #     if isinstance(embeddings, str) and embeddings == 'auto':
-        #         self.calculate_default_embeddings(device=device)
-        #     else:
-        #         self.set_embeddings(embeddings)
-        # else:
-        #     self._embeddings = None
+        if isinstance(properties, str) and properties == 'auto':
+            self.calculate_default_properties(device=device)
+        else:
+            self.set_properties(properties, properties_types)
 
+        if isinstance(embeddings, str) and embeddings == 'auto':
+            self.calculate_default_embeddings(device=device)
+        else:
+            self.set_embeddings(embeddings)
 
         # Used for display purposes
         self._original_text_index = np.arange(len(self))
@@ -178,7 +177,7 @@ class TextData:
         if rows_to_use is None:
             new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
                            task_type=self._task_type.value, name=self.name)
-            metadata, properties = self._metadata, self._properties
+            metadata, properties, embeddings = self._metadata, self._properties, self._embeddings
             index_kept = self._original_text_index
         else:
             if not isinstance(rows_to_use, t.Sequence) or any(not isinstance(x, Number) for x in rows_to_use):
@@ -191,11 +190,12 @@ class TextData:
                            task_type=self._task_type.value, name=self.name)
             metadata = self._metadata.iloc[rows_to_use, :] if self._metadata is not None else None
             properties = self._properties.iloc[rows_to_use, :] if self._properties is not None else None
+            embeddings = self._embeddings.iloc[rows_to_use, :] if self._embeddings is not None else None
             index_kept = self._original_text_index[rows_to_use]
 
         new_copy.set_metadata(metadata, self._metadata_types)
         new_copy.set_properties(properties, self._properties_types)
-        #TODO: Embeddings
+        new_copy.set_embeddings(embeddings)
         new_copy._original_text_index = index_kept  # pylint: disable=protected-access
         get_logger().disabled = logger_state
         return new_copy
@@ -261,13 +261,10 @@ class TextData:
         """Set the metadata of the dataset."""
         if self._embeddings is not None:
             warnings.warn('Embeddings already exist, overwriting it', UserWarning)
+            validate_length_and_type(embeddings, 'Embeddings', len(self))
 
-        if not isinstance(embeddings, pd.DataFrame):
-            raise DeepchecksValueError(f'embeddings type {type(embeddings)} is not supported, must be a'
-                                       f' pandas DataFrame')
-        if self.index != list(embeddings.index):
-            raise DeepchecksValueError('embeddings index must be the same as the text data index')
-        self._embeddings = embeddings
+        self._embeddings = embeddings.reset_index(drop=True) if isinstance(embeddings, pd.DataFrame) else None
+
 
     @property
     def metadata(self) -> pd.DataFrame:
