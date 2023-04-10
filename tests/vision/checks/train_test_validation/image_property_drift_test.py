@@ -10,8 +10,8 @@
 #
 """Image Property Drift check tests"""
 import numpy as np
-from hamcrest import (all_of, assert_that, close_to, greater_than, has_entries, has_key, has_length,
-                      has_properties, instance_of, calling, raises, equal_to)
+from hamcrest import (all_of, assert_that, calling, close_to, equal_to, greater_than, has_entries, has_key, has_length,
+                      has_properties, instance_of, raises)
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import NotEnoughSamplesError

@@ -1,8 +1,3 @@
-nltk<=3.6.7
-datasets
-langdetect
-textblob
-transformers
-optimum
-onnx
-onnxruntime
+transformers==4.27.4
+optimum[onnxruntime]==1.7.3
+langdetect==1.0.9

@@ -11,11 +11,11 @@
 """Test functions of the label drift."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, raises, calling
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.tabular import Dataset
-from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular.checks import LabelDrift
 from tests.base.utils import equal_condition_result
 

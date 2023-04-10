@@ -16,8 +16,8 @@ from hamcrest import assert_that, calling, contains_inanyorder, has_length, inst
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.vision.base_checks import SingleDatasetCheck, TrainTestCheck
-from deepchecks.vision.datasets.detection import coco_torch
 from deepchecks.vision.datasets.classification import mnist_tensorflow
+from deepchecks.vision.datasets.detection import coco_torch
 from deepchecks.vision.suite import Suite
 from deepchecks.vision.suites.default_suites import full_suite
 from tests.common import get_expected_results_length, validate_suite_result

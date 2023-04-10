@@ -21,7 +21,7 @@ from deepchecks.nlp.datasets.classification import tweet_emotion
 from deepchecks.nlp.text_data import TextData
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def text_classification_dataset_mock():
     """Mock for a text classification dataset"""
     return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
@@ -29,7 +29,7 @@ def text_classification_dataset_mock():
                     task_type='text_classification')
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def tweet_emotion_train_test_textdata():
     """Tweet emotion text classification dataset"""
     train, test = tweet_emotion.load_data(data_format='TextData', as_train_test=True, include_properties=True)
@@ -49,7 +49,7 @@ def tweet_emotion_train_test_probabilities():
 
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def text_classification_string_class_dataset_mock():
     """Mock for a text classification dataset with string labels"""
     return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],
@@ -57,7 +57,7 @@ def text_classification_string_class_dataset_mock():
                     task_type='text_classification')
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='function')
 def text_multilabel_classification_dataset_mock():
     """Mock for a multilabel text classification dataset"""
     return TextData(raw_text=['I think therefore I am', 'I am therefore I think', 'I am'],

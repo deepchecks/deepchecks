@@ -17,10 +17,10 @@ import pytest
 from sklearn.metrics import accuracy_score
 
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import (MultiModelPerformanceReport, SegmentPerformance, SimpleModelComparison,
-                                       WeakSegmentsPerformance, WholeDatasetDrift, RegressionSystematicError,
-                                       CategoryMismatchTrainTest, TrainTestPredictionDrift, TrainTestFeatureDrift,
-                                       TrainTestLabelDrift)
+from deepchecks.tabular.checks import (CategoryMismatchTrainTest, MultiModelPerformanceReport,
+                                       RegressionSystematicError, SegmentPerformance, SimpleModelComparison,
+                                       TrainTestFeatureDrift, TrainTestLabelDrift, TrainTestPredictionDrift,
+                                       WeakSegmentsPerformance, WholeDatasetDrift)
 
 
 def test_deprecation_segment_performance_warning():

@@ -10,7 +10,7 @@
 #
 
 import numpy as np
-from hamcrest import assert_that, equal_to, contains_exactly
+from hamcrest import assert_that, contains_exactly, equal_to
 
 from deepchecks.nlp.datasets.classification import tweet_emotion
 

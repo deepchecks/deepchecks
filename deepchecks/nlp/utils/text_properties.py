@@ -9,58 +9,119 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the text properties for the NLP module."""
+import importlib
+import pathlib
 import string
 import warnings
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+import textblob
 
 from deepchecks.utils.function import run_available_kwargs
 
 __all__ = ['calculate_default_properties']
 
 
-def property_import_error(property_name: str, package_name: str) -> ImportError:
-    """Raise an ImportError for a property that requires a package."""
-    return ImportError(
-        f'property {property_name} requires the {package_name} python package. '
-        f'To get it, run "pip install {package_name}". You may install the dependencies for all text properties '
-        f'by running "pip install deepchecks[nlp-properties]"')
+ONNX_MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.onnx-nlp-models'
 
 
-def get_transformer_model(property_name: str, model_name: str, device: Optional[str] = None):
+def _import_optional_property_dependency(
+    module: str,
+    property_name: str,
+    package_name: Optional[str] = None,
+    error_template: Optional[str] = None
+):
+    try:
+        lib = importlib.import_module(module)
+    except ImportError as error:
+        package_name = package_name or module.split('.', maxsplit=1)[0]
+        error_template = error_template or (
+            'property {property_name} requires the {package_name} python package. '
+            'To get it, run:\n'
+            '>> pip install {package_name}\n\n'
+            'You may install dependencies for all text properties by running:\n'
+            '>> pip install deepchecks[nlp-properties]\n'
+        )
+        raise ImportError(error_template.format(
+            property_name=property_name,
+            package_name=package_name
+        )) from error
+    else:
+        return lib
+
+
+def get_transformer_model(
+    property_name: str,
+    model_name: str,
+    device: Optional[str] = None,
+    quantize_model: bool = False
+):
     """Get the transformer model and decide if to use optimum.onnxruntime.
 
     optimum.onnxruntime is used to optimize running times on CPU.
     """
-    if device is None or device == 'cpu':
-        try:
-            from optimum.onnxruntime import ORTModelForSequenceClassification  # pylint: disable=import-outside-toplevel
-        except ImportError as e:
-            error_message = f'The device was set to {device} while computing the {property_name} property, in which' \
-                            f' case deepchecks resorts to accelerating the inference using optimum. Either set the ' \
-                            f'device according to your hardware, or install the dependencies for all text properties ' \
-                            f'by running "pip install deepchecks[nlp-properties]"'
-            raise error_message from e
+    if device not in (None, 'cpu'):
+        transformers = _import_optional_property_dependency('transformers', property_name=property_name)
+        # TODO: quantize if 'quantize_model' is True
+        return transformers.AutoModelForSequenceClassification.from_pretrained(model_name)
 
-        return ORTModelForSequenceClassification.from_pretrained(model_name, export=True)
-    else:
-        try:
-            from transformers import AutoModelForSequenceClassification  # pylint: disable=import-outside-toplevel
-        except ImportError as e:
-            raise property_import_error(property_name, 'transformers') from e
-        return AutoModelForSequenceClassification.from_pretrained(model_name)
+    onnx = _import_optional_property_dependency(
+        'optimum.onnxruntime',
+        property_name=property_name,
+        error_template=(
+            f'The device was set to {device} while computing the {property_name} property,'
+            'in which case deepchecks resorts to accelerating the inference by using optimum,'
+            'bit it is not installed. Either:\n'
+            '\t- Set the device according to your hardware;\n'
+            '\t- Install optimum by running "pip install optimum";\n'
+            '\t- Install all dependencies needed for text properties by running '
+            '"pip install deepchecks[nlp-properties]";\n'
+        )
+    )
+
+    if quantize_model is False:
+        model_path = ONNX_MODELS_STORAGE / model_name
+
+        if model_path.exists():
+            return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
+
+        model = onnx.ORTModelForSequenceClassification.from_pretrained(
+            model_name,
+            export=True
+        )
+        # NOTE:
+        # 'optimum', after exporting/converting a model to the ONNX format,
+        # does not store it onto disk we need to save it now to not reconvert
+        # it each time
+        model.save_pretrained(model_path)
+        return model
+
+    model_path = ONNX_MODELS_STORAGE / 'quantized' / model_name
+
+    if model_path.exists():
+        return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
+
+    not_quantized_model = get_transformer_model(property_name, model_name, device, quantize_model=False)
+    quantizer = onnx.ORTQuantizer.from_pretrained(not_quantized_model)
+
+    quantizer.quantize(
+        save_dir=model_path,
+        # TODO: make it possible to provide a config as a parameter
+        quantization_config=onnx.configuration.AutoQuantizationConfig.avx512_vnni(
+            is_static=False,
+            per_channel=False
+        )
+    )
+    return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
 
 
 def get_transformer_pipeline(property_name: str, model_name: str, device: Optional[str] = None):
     """Return a transformers pipeline for the given model name."""
-    try:
-        from transformers import AutoTokenizer, pipeline  # pylint: disable=import-outside-toplevel
-    except ImportError as e:
-        raise property_import_error(property_name, 'transformers') from e
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    transformers = _import_optional_property_dependency('transformers', property_name=property_name)
+    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
     model = get_transformer_model(property_name, model_name, device)
-    return pipeline('text-classification', model=model, tokenizer=tokenizer, device=device)
+    return transformers.pipeline('text-classification', model=model, tokenizer=tokenizer, device=device)
 
 
 def text_length(raw_text: Sequence[str]) -> List[int]:
@@ -90,12 +151,8 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
 
 def language(raw_text: Sequence[str]) -> List[str]:
     """Return list of strings of language."""
-    try:
-        import langdetect  # pylint: disable=import-outside-toplevel
-        from langdetect import DetectorFactory  # pylint: disable=import-outside-toplevel
-        DetectorFactory.seed = 42
-    except ImportError as e:
-        raise property_import_error('language', 'langdetect') from e
+    langdetect = _import_optional_property_dependency(module='langdetect', property_name='language')
+    langdetect.DetectorFactory.seed = 42
 
     result = []
     for text in raw_text:
@@ -108,21 +165,11 @@ def language(raw_text: Sequence[str]) -> List[str]:
 
 def sentiment(raw_text: Sequence[str]) -> List[str]:
     """Return list of floats of sentiment."""
-    try:
-        import textblob  # pylint: disable=import-outside-toplevel
-    except ImportError as e:
-        raise property_import_error('sentiment', 'textblob') from e
-
     return [textblob.TextBlob(text).sentiment.polarity for text in raw_text]
 
 
 def subjectivity(raw_text: Sequence[str]) -> List[str]:
     """Return list of floats of subjectivity."""
-    try:
-        import textblob  # pylint: disable=import-outside-toplevel
-    except ImportError as e:
-        raise property_import_error('subjectivity', 'textblob') from e
-
     return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
 
 
@@ -147,7 +194,7 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
     return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
 
 
-DEFAULT_PROPERTIES = [
+DEFAULT_PROPERTIES = (
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
     {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
@@ -158,38 +205,43 @@ DEFAULT_PROPERTIES = [
     {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
     {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'}
-]
+)
 
-LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality']
+LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language']
 ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
 
 
-def _get_default_properties(include_properties: List[str] = None, ignore_properties: List[str] = None):
+def _get_default_properties(
+    include_properties: Optional[List[str]] = None,
+    ignore_properties: Optional[List[str]] = None
+):
     """Return the default properties.
 
     Default properties are defined here and not outside the function so not to import all the packages
     if they are not needed.
     """
-    ret_properties = DEFAULT_PROPERTIES
+    properties = DEFAULT_PROPERTIES
 
     # Filter by properties or ignore_properties:
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
     elif include_properties is not None:
-        ret_properties = [prop for prop in ret_properties if prop['name'] in include_properties]
+        properties = [prop for prop in properties if prop['name'] in include_properties]
     elif ignore_properties is not None:
-        ret_properties = [prop for prop in ret_properties if prop['name'] not in ignore_properties]
+        properties = [prop for prop in properties if prop['name'] not in ignore_properties]
 
-    return ret_properties
+    return properties
 
 
-def calculate_default_properties(raw_text: Sequence[str], include_properties: Optional[List[str]] = None,
-                                 ignore_properties: Optional[List[str]] = None,
-                                 include_long_calculation_properties: Optional[bool] = False,
-                                 device: Optional[str] = None
-                                 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
-    """Return list of dictionaries of text properties.
+def calculate_default_properties(
+    raw_text: Sequence[str],
+    include_properties: Optional[List[str]] = None,
+    ignore_properties: Optional[List[str]] = None,
+    include_long_calculation_properties: Optional[bool] = False,
+    device: Optional[str] = None
+) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
+    """Calculate properties on provided text samples.
 
     Parameters
     ----------
@@ -200,7 +252,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
-        Note that the properties ['Toxicity', 'Fluency', 'Formality'] may take a long time to calculate. If
+        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language'] may take a long time to calculate. If
         include_long_calculation_properties is False, these properties will be ignored, even if they are in the
         include_properties parameter.
     ignore_properties : List[str], default None
@@ -241,7 +293,7 @@ def calculate_default_properties(raw_text: Sequence[str], include_properties: Op
             res = run_available_kwargs(prop['method'], raw_text=raw_text, device=device)
             calculated_properties[prop['name']] = res
         except ImportError as e:
-            warnings.warn(f'Failed to calculate property {prop["name"]}. Error: {e}')
+            warnings.warn(f'Failed to calculate property {prop["name"]}.\nError: {e}')
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 

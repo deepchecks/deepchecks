@@ -12,7 +12,7 @@
 
 import pytest
 
-from deepchecks.vision.checks import TrainTestPredictionDrift, TrainTestLabelDrift
+from deepchecks.vision.checks import TrainTestLabelDrift, TrainTestPredictionDrift
 
 
 def test_deprecation_warning_train_test_label_drift():

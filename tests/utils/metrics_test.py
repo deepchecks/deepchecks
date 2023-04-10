@@ -19,7 +19,7 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
-from deepchecks.tabular.utils.task_inference import infer_classes_from_model, get_all_labels
+from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model
 from tests.common import is_nan
 
 

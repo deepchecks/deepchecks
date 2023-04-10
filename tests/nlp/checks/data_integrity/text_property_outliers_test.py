@@ -10,7 +10,7 @@
 #
 """Test for the NLP TextPropertyOutliers check"""
 
-from hamcrest import assert_that, close_to, equal_to, raises, calling
+from hamcrest import assert_that, calling, close_to, equal_to, raises
 
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.checks import TextPropertyOutliers
