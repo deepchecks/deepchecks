@@ -151,7 +151,7 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
 
 def language(raw_text: Sequence[str]) -> List[str]:
     """Return list of strings of language."""
-    langdetect = _import_optional_property_dependency(module="langdetect", property_name="language")
+    langdetect = _import_optional_property_dependency(module='langdetect', property_name='language')
     langdetect.DetectorFactory.seed = 42
     return [langdetect.detect(text) for text in raw_text]
 
