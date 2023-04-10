@@ -107,7 +107,7 @@ def validate_length_and_calculate_column_types(
 
     if len(data_table) != expected_size:
         raise DeepchecksValueError(
-            f'received metadata with {len(data_table)} rows, '
+            f'received {data_table_name} with {len(data_table)} rows, '
             f'expected {expected_size}'
         )
 
@@ -134,7 +134,7 @@ def validate_length_and_calculate_column_types(
     difference = set(categorical_columns).difference(data_table.columns)
 
     if len(difference) != 0:
-        raise DeepchecksValueError(f'Unknown {data_table_name} columns - {list(difference)}')
+        raise DeepchecksValueError(f'The following columns are does not exist in {data_table_name} - {list(difference)}')
 
     numeric_features = [
         c for c in data_table.columns
