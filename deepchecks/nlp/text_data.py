@@ -175,9 +175,6 @@ class TextData:
                     new_copy.set_metadata(self._metadata, self._cat_metadata)
 
                 if self._properties is not None:
-                    # TODO:-
-                    # - why self._properties is of type Union[DataFrame, str]?
-                    # - what to do if self._properties is a string?
                     new_copy.set_properties(self._properties, self._cat_properties)
 
                 new_copy._original_text_index = self._original_text_index
@@ -330,7 +327,6 @@ class TextData:
         )
 
         self._properties = pd.DataFrame(properties, index=self.get_original_text_indexes())
-        # self._properties = pd.DataFrame(properties, index=self.index)
         self._cat_properties = [k for k, v in properties_types.items() if v == 'categorical']
 
     def set_properties(
@@ -363,9 +359,6 @@ class TextData:
                 'TextData does not contain properties, add them by using '
                 '"calculate_default_properties" or "set_properties" functions'
             )
-        # TODO:
-        # - why "self._properties" is of type Union[DataFrame, str]?
-        # - what if "self._properties" is a string?
         return self._properties
 
     @property
@@ -521,6 +514,6 @@ def disable_deepchecks_logger():
     """Disable deepchecks root logger."""
     logger = get_logger()
     logger_state = logger.disabled
-    logger.disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
+    logger.disabled = True
     yield
     logger.disabled = logger_state
