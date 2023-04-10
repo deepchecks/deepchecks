@@ -234,7 +234,8 @@ def calculate_default_properties(
     include_long_calculation_properties: Optional[bool] = False,
     device: Optional[str] = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
-    """Return list of dictionaries of text properties.
+    """Calculate properties on provided text samples.
+    ```
 
     Parameters
     ----------
