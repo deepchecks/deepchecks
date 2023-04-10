@@ -235,7 +235,6 @@ def calculate_default_properties(
     device: Optional[str] = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
-    ```
 
     Parameters
     ----------
