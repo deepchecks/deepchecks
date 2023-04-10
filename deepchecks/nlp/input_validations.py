@@ -107,7 +107,7 @@ def validate_length_and_calculate_column_types(
 
     if len(data_table) != expected_size:
         raise DeepchecksValueError(
-            f'received metadata with {len(data_table)} rows, '
+            f'received {data_table_name} with {len(data_table)} rows, '
             f'expected {expected_size}'
         )
 
