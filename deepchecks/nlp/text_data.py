@@ -154,10 +154,6 @@ class TextData:
         """
         cls = type(self)
 
-        # TODO:
-        # why do we disable the root logger here instead of disabling/having
-        # a dedicated logger for this module/sub-package?
-        #
         # NOTE:
         # Make sure we won't get the warning for setting class in the non multilabel case
         with disable_deepchecks_logger():
