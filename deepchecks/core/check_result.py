@@ -598,7 +598,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
     def print_traceback(self):
         """Print the traceback of the failure."""
         print(''.join(traceback.format_exception(
-            etype=type(self.exception),
+            type(self.exception),
             value=self.exception,
             tb=self.exception.__traceback__
         )))

@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the Context & _DummyModel creation process"""
-from hamcrest import assert_that, calling, raises, close_to
+from hamcrest import assert_that, calling, close_to, raises
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import SingleDatasetPerformance, LabelDrift
+from deepchecks.nlp.checks import LabelDrift, SingleDatasetPerformance
 
 CLASSIFICATION_ERROR_FORMAT = r'Check requires classification for Train to be ' \
                               r'either a sequence that can be cast to a 1D numpy array of shape' \

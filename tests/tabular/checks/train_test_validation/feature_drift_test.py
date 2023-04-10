@@ -9,11 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of drift."""
-import pandas as pd
 import numpy as np
-
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_item, has_length, is_not, calling, \
-    raises
+import pandas as pd
+from hamcrest import (assert_that, calling, close_to, equal_to, greater_than, has_entries, has_item, has_length, is_not,
+                      raises)
 
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.tabular.checks import FeatureDrift

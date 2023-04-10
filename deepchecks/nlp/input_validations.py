@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing input validation functions."""
-from typing import Dict, Optional, Sequence
+from typing import List, NamedTuple, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -85,26 +85,64 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
     return np.asarray(labels)
 
 
-def validate_length_and_calculate_column_types(data_table: pd.DataFrame, data_table_name: str, expected_size: int,
-                                               column_types: Optional[Dict[str, str]] = None) -> \
-        Optional[Dict[str, str]]:
+class ColumnTypes(NamedTuple):
+    """Utility data transfer object."""
+
+    categorical_columns: List[str]
+    numerical_columns: List[str]
+
+
+def validate_length_and_calculate_column_types(
+    data_table: pd.DataFrame,
+    data_table_name: str,
+    expected_size: int,
+    categorical_columns: Optional[Sequence[str]] = None
+) -> ColumnTypes:
     """Validate length of data table and calculate column types."""
-    if data_table is None:
-        return None
-
     if not isinstance(data_table, pd.DataFrame):
-        raise DeepchecksValueError(f'{data_table_name} type {type(data_table)} is not supported, must be a'
-                                   f' pandas DataFrame')
+        raise DeepchecksValueError(
+            f'{data_table_name} type {type(data_table)} is not supported, '
+            'must be a pandas DataFrame'
+        )
+
     if len(data_table) != expected_size:
-        raise DeepchecksValueError(f'received metadata with {len(data_table)} rows, expected {expected_size}')
+        raise DeepchecksValueError(
+            f'received {data_table_name} with {len(data_table)} rows, '
+            f'expected {expected_size}'
+        )
 
-    if column_types is None:  # TODO: Add tests
-        cat_features = infer_categorical_features(data_table)
-        column_types = {data_table.columns[i]: 'categorical' if data_table.columns[i] in cat_features else 'numeric'
-                        for i in range(len(data_table.columns))}
-        get_logger().info('%s types were not provided, auto inferred types are: ', data_table_name)
-        get_logger().info(column_types)
-    elif sorted(list(column_types.keys())) != sorted(list(data_table.columns)):
-        raise DeepchecksValueError(f'{data_table_name} types keys must identical to {data_table_name} table columns')
+    if categorical_columns is None:  # TODO: Add tests
+        categorical_features = infer_categorical_features(data_table)
+        numeric_features = [
+            c for c in data_table.columns
+            if c not in categorical_features
+        ]
 
-    return column_types
+        column_types = ColumnTypes(
+            categorical_columns=categorical_features,
+            numerical_columns=numeric_features
+        )
+
+        get_logger().info(
+            '%s types were not provided, auto inferred types are:\n%s',
+            data_table_name,
+            column_types._asdict()
+        )
+
+        return column_types
+
+    difference = set(categorical_columns).difference(data_table.columns)
+
+    if len(difference) != 0:
+        raise DeepchecksValueError(
+            f'The following columns does not exist in {data_table_name} - {list(difference)}'
+        )
+
+    numeric_features = [
+        c for c in data_table.columns
+        if c not in categorical_columns
+    ]
+    return ColumnTypes(
+        categorical_columns=list(categorical_columns),
+        numerical_columns=numeric_features
+    )

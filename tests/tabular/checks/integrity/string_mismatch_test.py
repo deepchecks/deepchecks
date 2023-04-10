@@ -11,7 +11,7 @@
 """Contains unit tests for the string_mismatch check."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, greater_than, has_entries, has_entry, has_items, has_length, close_to
+from hamcrest import assert_that, close_to, greater_than, has_entries, has_entry, has_items, has_length
 
 from deepchecks.core import ConditionCategory
 from deepchecks.tabular.checks.data_integrity import StringMismatch

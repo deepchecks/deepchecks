@@ -9,10 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the nlp SingleDatasetPerformance check"""
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, raises
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
-from hamcrest import assert_that, close_to, calling, raises, equal_to, has_items
 from tests.base.utils import equal_condition_result
 
 
