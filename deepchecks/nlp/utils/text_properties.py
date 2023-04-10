@@ -15,7 +15,6 @@ import string
 import warnings
 from typing import Dict, List, Optional, Sequence, Tuple
 
-import langdetect
 import numpy as np
 import textblob
 
@@ -24,7 +23,6 @@ from deepchecks.utils.function import run_available_kwargs
 __all__ = ['calculate_default_properties']
 
 
-langdetect.DetectorFactory.seed = 42
 ONNX_MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.onnx-nlp-models'
 
 
@@ -153,6 +151,8 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
 
 def language(raw_text: Sequence[str]) -> List[str]:
     """Return list of strings of language."""
+    langdetect = _import_optional_property_dependency(module="langdetect", property_name="language")
+    langdetect.DetectorFactory.seed = 42
     return [langdetect.detect(text) for text in raw_text]
 
 
@@ -200,7 +200,7 @@ DEFAULT_PROPERTIES = (
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'}
 )
 
-LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality']
+LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language']
 ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
 
@@ -246,7 +246,7 @@ def calculate_default_properties(
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
-        Note that the properties ['Toxicity', 'Fluency', 'Formality'] may take a long time to calculate. If
+        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language'] may take a long time to calculate. If
         include_long_calculation_properties is False, these properties will be ignored, even if they are in the
         include_properties parameter.
     ignore_properties : List[str], default None
