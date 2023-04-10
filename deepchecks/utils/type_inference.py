@@ -16,9 +16,9 @@ import typing as t
 import numpy as np
 import pandas as pd
 from pandas.core.dtypes.common import is_datetime_or_timedelta_dtype, is_float_dtype, is_numeric_dtype
+from typing_extensions import Literal
 
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.strings import is_string_column
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
@@ -134,11 +134,40 @@ def is_categorical(
 
     n_samples = np.max([n_samples, 1000])
     n_unique = column.nunique(dropna=True)
-    if is_string_column(column):
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_string
-    elif (is_float_dtype(column) and np.max(column % 1) > 0) or is_datetime_or_timedelta_dtype(column):
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_float_or_datetime
-    elif is_numeric_dtype(column):
-        return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories_type_int
+    col_type = get_column_type(column)
+    if col_type == 'string':
+        max_categories = max_categories_type_string
+    elif col_type == 'float':
+        # If all values are natural numbers, treat as int
+        all_numbers_natural = np.max(pd.to_numeric(column).dropna() % 1) == 0
+        max_categories = max_categories_type_int if all_numbers_natural else max_categories_type_float_or_datetime
+    elif col_type == 'time':
+        max_categories = max_categories_type_float_or_datetime
+    elif col_type == 'int':
+        max_categories = max_categories_type_int
     else:
         return False
+
+    return (n_unique / n_samples) < max_categorical_ratio and n_unique <= max_categories
+
+
+def get_column_type(column: pd.Series) -> Literal['float', 'int', 'string', 'time', 'other']:
+    """Get the type of column."""
+    if is_float_dtype(column):
+        return 'float'
+    elif is_numeric_dtype(column):
+        return 'int'
+    elif is_datetime_or_timedelta_dtype(column):
+        return 'time'
+
+    try:
+        column: pd.Series = pd.to_numeric(column)
+        if is_float_dtype(column):
+            return 'float'
+        else:
+            return 'int'
+    except ValueError:
+        return 'string'
+    # Non-string objects like pd.Timestamp results in TypeError
+    except TypeError:
+        return 'other'
