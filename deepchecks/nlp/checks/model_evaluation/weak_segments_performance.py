@@ -57,15 +57,13 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         if self.segment_by == 'metadata':
             context.assert_metadata(text_data=text_data)
             features = select_from_dataframe(text_data.metadata, self.columns, self.ignore_columns)
-            # cat_features = [col for col in features.columns if text_data.metadata_types[col] == 'categorical']
             cat_features = [col for col in features.columns if col in text_data.cat_metadata]
             features_name = 'metadata'
 
         elif self.segment_by == 'properties':
             context.assert_properties(text_data=text_data)
             features = select_from_dataframe(text_data.properties, self.columns, self.ignore_columns)
-            # cat_features = [col for col in features.columns if text_data.properties_types[col] == 'categorical']
-            cat_features = [col for col in features.columns if col in text_data.cat_properties]
+            cat_features = [col for col in features.columns if col in text_data.categorical_properties]
             features_name = 'properties'
         else:
             raise DeepchecksProcessError(f'Unknown segment_by value: {self.segment_by}')

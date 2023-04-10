@@ -286,7 +286,7 @@ def calculate_default_properties(
             res = run_available_kwargs(prop['method'], raw_text=raw_text, device=device)
             calculated_properties[prop['name']] = res
         except ImportError as e:
-            warnings.warn(f'Failed to calculate property {prop["name"]}. Error: {e}')
+            warnings.warn(f'Failed to calculate property {prop["name"]}.\nError: {e}')
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 

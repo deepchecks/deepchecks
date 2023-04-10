@@ -228,7 +228,7 @@ def test_set_properties(text_classification_dataset_mock):
     dataset.set_properties(properties, categorical_properties=[])
 
     # Assert
-    assert_that(dataset.cat_properties, equal_to([]))
+    assert_that(dataset.categorical_properties, equal_to([]))
     assert_that((dataset.properties != properties).sum().sum(), equal_to(0))
 
     dataset._properties = None
@@ -265,4 +265,4 @@ def test_set_properties_with_categorical_columns(text_classification_dataset_moc
     dataset.set_properties(properties)
 
     # Assert
-    assert_that(dataset.cat_properties, equal_to(['unknown_property']))
+    assert_that(dataset.categorical_properties, equal_to(['unknown_property']))

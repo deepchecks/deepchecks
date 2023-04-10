@@ -80,7 +80,7 @@ class TextData:
     _tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None  # Outer sequence is np array
     name: t.Optional[str] = None
     _metadata: t.Optional[pd.DataFrame] = None
-    _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
+    _properties: t.Optional[pd.DataFrame] = None
     _cat_properties: t.Optional[t.List[str]] = None
     _cat_metadata: t.Optional[t.List[str]] = None
     _original_text_index: t.Optional[t.Sequence[int]] = None  # Sequence is np array
@@ -93,7 +93,7 @@ class TextData:
             task_type: str = 'other',
             name: t.Optional[str] = None,
             metadata: t.Optional[pd.DataFrame] = None,
-            properties: t.Optional[t.Union[pd.DataFrame]] = None,
+            properties: t.Optional[pd.DataFrame] = None,
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -322,7 +322,7 @@ class TextData:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
         properties, properties_types = calculate_default_properties(
-            self.text,
+            list(self.text),
             include_properties=include_properties,
             ignore_properties=ignore_properties,
             include_long_calculation_properties=include_long_calculation_properties,
@@ -369,7 +369,7 @@ class TextData:
         return self._properties
 
     @property
-    def cat_properties(self) -> t.List[str]:
+    def categorical_properties(self) -> t.List[str]:
         """Return categorical properties names."""
         if self._cat_properties is None:
             raise ValueError(

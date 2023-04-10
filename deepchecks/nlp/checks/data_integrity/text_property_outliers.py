@@ -66,7 +66,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
         result = {}
 
         df_properties = dataset.properties
-        cat_properties = dataset.cat_properties
+        cat_properties = dataset.categorical_properties
         properties = df_properties.to_dict(orient='list')
 
         if all(len(np.hstack(v).squeeze()) < self.min_samples for v in properties.values()):
