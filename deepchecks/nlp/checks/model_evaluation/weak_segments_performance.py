@@ -57,7 +57,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         if self.segment_by == 'metadata':
             context.assert_metadata(text_data=text_data)
             features = select_from_dataframe(text_data.metadata, self.columns, self.ignore_columns)
-            cat_features = [col for col in features.columns if col in text_data.cat_metadata]
+            cat_features = [col for col in features.columns if col in text_data.categorical_metadata_columns]
             features_name = 'metadata'
 
         elif self.segment_by == 'properties':

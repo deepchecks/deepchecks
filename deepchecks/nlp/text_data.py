@@ -257,7 +257,7 @@ class TextData:
         return self._metadata
 
     @property
-    def cat_metadata(self) -> t.List[str]:
+    def categorical_metadata_columns(self) -> t.List[str]:
         """Return categorical metadata column names."""
         if self._cat_metadata is None:
             raise ValueError(
@@ -274,9 +274,6 @@ class TextData:
         """Set the metadata of the dataset."""
         if self._metadata is not None:
             warnings.warn('Metadata already exist, overwriting it', UserWarning)
-
-        if not isinstance(metadata, pd.DataFrame):
-            raise TypeError(f'Unexpected type of metadata - {type(metadata)}')
 
         column_types = validate_length_and_calculate_column_types(
             data_table=metadata,
@@ -333,9 +330,6 @@ class TextData:
         """Set the properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
-
-        if not isinstance(properties, pd.DataFrame):
-            raise TypeError(f'Unexpected type of properties - {type(properties)}')
 
         column_types = validate_length_and_calculate_column_types(
             data_table=properties,

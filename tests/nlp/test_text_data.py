@@ -123,8 +123,8 @@ def test_text_data_initialization_with_incorrect_type_of_metadata():
             task_type='text_classification'
         ),
         raises(
-            TypeError,
-            r"Unexpected type of metadata - <class 'dict'>"
+            DeepchecksValueError,
+            r"Metadata type <class 'dict'> is not supported, must be a pandas DataFrame"
         )
     )
 
@@ -176,7 +176,7 @@ def test_set_metadata(text_classification_dataset_mock):
 
     # Assert
     assert_that((dataset.metadata != metadata).sum().sum(), equal_to(0))
-    assert_that(dataset.cat_metadata, equal_to([]))
+    assert_that(dataset.categorical_metadata_columns, equal_to([]))
 
 
 def test_set_metadata_with_categorical_columns(text_classification_dataset_mock):
@@ -192,7 +192,7 @@ def test_set_metadata_with_categorical_columns(text_classification_dataset_mock)
 
     # Assert
     assert_that((dataset.metadata != metadata).sum().sum(), equal_to(0))
-    assert_that(dataset.cat_metadata, equal_to(['second']))
+    assert_that(dataset.categorical_metadata_columns, equal_to(['second']))
 
 
 def test_set_metadata_with_an_incorrect_list_of_categorical_columns(text_classification_dataset_mock):
