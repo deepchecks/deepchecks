@@ -446,7 +446,7 @@ def _transform_to_multi_label_format(y: np.ndarray, classes):
     if y.ndim == 1:
         kwargs = {'sparse_output': False} if version.parse(scikit_version) >= version.parse('1.2') \
             else {'sparse': False}
-        ohe = OneHotEncoder(handle_unknown='ignore', **kwargs)
+        ohe = OneHotEncoder(handle_unknown='ignore', **kwargs)  # pylint: disable=unexpected-keyword-arg
         ohe.fit(np.array(classes).reshape(-1, 1))
         return ohe.transform(y.reshape(-1, 1))
     # If after squeeze there are still 2 dimensions, then it must have column for each model class.
