@@ -55,7 +55,7 @@ def get_transformer_model(
     property_name: str,
     model_name: str,
     device: Optional[str] = None,
-    quantize_model: bool = True
+    quantize_model: bool = False
 ):
     """Get the transformer model and decide if to use optimum.onnxruntime.
 

@@ -156,11 +156,11 @@ def test_properties(text_classification_dataset_mock):
     dataset.calculate_default_properties(ignore_properties=['topic'] + LONG_RUN_PROPERTIES)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
-    assert_that(properties.shape[1], equal_to(7))
+    assert_that(properties.shape[1], equal_to(6))
     assert_that(properties.columns,
                 contains_exactly('Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters',
-                                 'Language', 'Sentiment', 'Subjectivity'))
-    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 'en', 0.0, 0.0))
+                                 'Sentiment', 'Subjectivity'))
+    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 0.0, 0.0))
 
 
 def test_set_metadata(text_classification_dataset_mock):
@@ -211,7 +211,7 @@ def test_set_metadata_with_an_incorrect_list_of_categorical_columns(text_classif
         ),
         raises(
             DeepchecksValueError,
-            r"Unknown Metadata columns - \['foo'\]"
+            r"The following columns does not exist in Metadata - \['foo'\]"
         )
     )
 
@@ -248,7 +248,7 @@ def test_set_properties_with_an_incorrect_list_of_categorical_columns(text_class
         ),
         raises(
             DeepchecksValueError,
-            r"Unknown Properties columns - \['foo'\]"
+            r"The following columns does not exist in Properties - \['foo'\]"
         )
     )
 
