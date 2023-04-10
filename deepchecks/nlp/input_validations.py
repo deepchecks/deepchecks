@@ -134,7 +134,7 @@ def validate_length_and_calculate_column_types(
     difference = set(categorical_columns).difference(data_table.columns)
 
     if len(difference) != 0:
-        raise DeepchecksValueError(f'Unknown {data_table_name} columns - {list(difference)}')
+        raise DeepchecksValueError(f'The following columns are does not exist in {data_table_name} - {list(difference)}')
 
     numeric_features = [
         c for c in data_table.columns
