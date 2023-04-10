@@ -97,7 +97,13 @@ def language(raw_text: Sequence[str]) -> List[str]:
     except ImportError as e:
         raise property_import_error('language', 'langdetect') from e
 
-    return [langdetect.detect(text) for text in raw_text]
+    result = []
+    for text in raw_text:
+        try:
+            result.append(langdetect.detect(text))
+        except langdetect.lang_detect_exception.LangDetectException:
+            result.append(np.nan)
+    return result
 
 
 def sentiment(raw_text: Sequence[str]) -> List[str]:
