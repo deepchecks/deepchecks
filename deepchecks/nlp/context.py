@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base nlp context."""
+import collections
 import typing as t
 from operator import itemgetter
 
@@ -218,7 +219,7 @@ class _DummyModel(BasicModel):
 
         if (
             isinstance(prediction, (str, bytes, bytearray))
-            or not isinstance(prediction, (np.ndarray, t.Sequence)
+            or not isinstance(prediction, (np.ndarray, t.Sequence))
             # TODO: fix error messages, make it more particular
             # third party containers do not extend Sequence. Example:
             # >> import numpy as np
@@ -226,7 +227,6 @@ class _DummyModel(BasicModel):
             # >> isinstance(np.array([1,2,3]), t.Sequence)
             # ... False
             #
-            # Is that ok?
         ):
             raise ValidationError(
                 f'Check requires predictions for {dataset.name} to be a sequence of sequences'
@@ -242,12 +242,17 @@ class _DummyModel(BasicModel):
                 raise ValidationError(
                     f'Check requires predictions for {dataset.name} to be a sequence of sequences'
                 )
+
+            predictions_types_counter = collections.defaultdict(int)
+
             for p in sample_predictions:
-                if not isinstance(p, (str, int)):
-                    raise ValidationError(
-                        f'Check requires predictions for {dataset.name} to be a sequence '
-                        'of sequences of strings or integers'
-                    )
+                predictions_types_counter[type(p)] += 1
+
+            if predictions_types_counter[str] > 0 and predictions_types_counter[int] > 0:
+                raise ValidationError(
+                    f'Check requires predictions for {dataset.name} to be a sequence '
+                    'of sequences of strings or integers'
+                )
             if len(sample_predictions) != len(tokenized_text[idx]):
                 raise ValidationError(
                     f'Check requires predictions for {dataset.name} to have '
