@@ -10,7 +10,7 @@
 #
 """Module containing the single dataset performance check."""
 from numbers import Number
-from typing import Callable, Dict, List, TypeVar, Union
+from typing import Callable, Dict, List, Union
 
 import pandas as pd
 

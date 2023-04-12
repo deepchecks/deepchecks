@@ -101,4 +101,4 @@ def get_default_token_scorers(use_avg_defaults=True) -> t.List[str]:
         if use_avg_defaults
         else DEFAULT_PER_CLASS_SCORER_NAMES
     )
-    return [f"token_{it}" for it in names]
+    return [f'token_{it}' for it in names]
