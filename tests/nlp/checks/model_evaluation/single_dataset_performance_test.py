@@ -137,8 +137,7 @@ def test_wikiann_data(wikiann):
     """Temp to test wikiann dataset loads correctly"""
     dataset = wikiann
     check = SingleDatasetPerformance(scorers=['token_f1_macro'])
-    result = check.run(dataset, predictions=dataset.label)
-
+    result = check.run(dataset, predictions=list(dataset.label))
     assert_that(result.value.values[0][-1], equal_to(1))
 
 

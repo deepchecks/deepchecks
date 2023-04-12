@@ -21,11 +21,11 @@ from deepchecks.core.errors import DeepchecksValueError
 __all__ = ['get_default_token_scorers', 'validate_scorers', 'get_scorer_dict']
 
 DEFAULT_AVG_SCORER_NAMES = ('f1_macro', 'recall_macro', 'precision_macro')
-DEFAULT_PER_CLASS_SCORER_NAMES = ('f1_per_class', 'f1_per_class', 'f1_per_class')
+DEFAULT_PER_CLASS_SCORER_NAMES = tuple()
 
-
-if t.TYPE_CHECKING:
-    from deepchecks.nlp.context import TTokenPred  # pylint: disable=unused-import # noqa: F401
+# see issue DEE-473
+#https://linear.app/deepchecks/issue/DEE-473/incorrectly-inferred-model-classes-for-token-classification-task
+# DEFAULT_PER_CLASS_SCORER_NAMES = ('f1_per_class',)
 
 
 def get_scorer_dict(
