@@ -216,7 +216,6 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_token_classification_prediction(dataset: TextData, prediction: TTextPred):
         """Validate prediction for given token classification dataset."""
-
         if (
             isinstance(prediction, (str, bytes, bytearray))
             or not isinstance(prediction, (np.ndarray, t.Sequence))
