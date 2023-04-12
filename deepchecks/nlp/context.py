@@ -218,8 +218,8 @@ class _DummyModel(BasicModel):
 
         if (
             isinstance(prediction, (str, bytes, bytearray))
-            or not isinstance(prediction, t.Sequence)
-            # TODO:
+            or not isinstance(prediction, (np.ndarray, t.Sequence)
+            # TODO: fix error messages, make it more particular
             # third party containers do not extend Sequence. Example:
             # >> import numpy as np
             # >> import typing as t
@@ -237,7 +237,7 @@ class _DummyModel(BasicModel):
         for idx, sample_predictions in enumerate(prediction):
             if (
                 isinstance(sample_predictions, (str, bytes, bytearray))
-                or not isinstance(sample_predictions, t.Sequence)
+                or not isinstance(sample_predictions, (np.ndarray, t.Sequence))
             ):
                 raise ValidationError(
                     f'Check requires predictions for {dataset.name} to be a sequence of sequences'
