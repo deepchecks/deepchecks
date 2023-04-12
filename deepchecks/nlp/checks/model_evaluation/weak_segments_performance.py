@@ -20,6 +20,7 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
@@ -51,7 +52,17 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
+        type_name = type(self).__name__
+
+        if context.task_type is TaskType.TOKEN_CLASSIFICATION:
+            task_type_name = TaskType.TOKEN_CLASSIFICATION.value
+            raise DeepchecksNotSupportedError(f'"{type_name}" is not suited for the "{task_type_name}" tasks')
+
         text_data = context.get_data_by_kind(dataset_kind)
+
+        if text_data.is_multi_label_classification():
+            raise DeepchecksNotSupportedError(f'"{type_name}" is not suited for the multilable classification tasks')
+
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
         if self.segment_by == 'metadata':
@@ -86,6 +97,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
         if features.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
+
         # label is not used in the check, just here to avoid errors
         dataset = Dataset(features, label=pd.Series(text_data.label), cat_features=cat_features)
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, list(np.unique(text_data.label)))

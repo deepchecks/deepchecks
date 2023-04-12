@@ -16,8 +16,9 @@ import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
                                                  calc_drift_and_plot, get_drift_plot_sidenote)
 from deepchecks.utils.strings import format_number
@@ -113,6 +114,15 @@ class LabelDrift(TrainTestCheck):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
+        type_name = type(self).__name__
+
+        if context.task_type is TaskType.TOKEN_CLASSIFICATION:
+            task_type_name = TaskType.TOKEN_CLASSIFICATION.value
+            raise DeepchecksNotSupportedError(f'"{type_name}" is not suited for the "{task_type_name}" tasks')
+
+        if context.train.is_multi_label_classification():
+            raise DeepchecksNotSupportedError(f'"{type_name}" is not suited for the multilable classification tasks')
+
         train_dataset = context.train.sample(self.n_samples, random_state=context.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=context.random_state)
 

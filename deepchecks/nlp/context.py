@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base nlp context."""
-import collections
 import typing as t
 from operator import itemgetter
 
@@ -44,7 +43,7 @@ TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Unio
 TClassProba = t.Sequence[t.Sequence[float]]
 TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
 TTextPred = t.Union[TClassPred, TTokenPred]
-TTextProba = t.Union[TClassProba]
+TTextProba = t.Union[TClassProba]  # TODO: incorrect, why union have only one type argument?
 
 
 class _DummyModel(BasicModel):
@@ -216,18 +215,44 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_token_classification_prediction(dataset: TextData, prediction: TTextPred):
         """Validate prediction for given token classification dataset."""
-        if not all(isinstance(pred, collections.abc.Sequence) for pred in prediction):
-            raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence '
-                                  f'of sequences')
 
-        for i in range(len(prediction)):  # TODO: Goes over all predictions, fix this
-            if not all(isinstance(pred, str) for pred in prediction[i]) \
-                    and not all(isinstance(pred, int) for pred in prediction[i]):
-                raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence '
-                                      f'of sequences of strings or integers')
-            if len(prediction[i]) != len(dataset.tokenized_text[i]):
-                raise ValidationError(f'Check requires predictions for {dataset.name} to have '
-                                      f'the same number of tokens as the input text')
+        if (
+            isinstance(prediction, (str, bytes, bytearray))
+            or not isinstance(prediction, t.Sequence)
+            # TODO:
+            # third party containers do not extend Sequence. Example:
+            # >> import numpy as np
+            # >> import typing as t
+            # >> isinstance(np.array([1,2,3]), t.Sequence)
+            # ... False
+            #
+            # Is that ok?
+        ):
+            raise ValidationError(
+                f'Check requires predictions for {dataset.name} to be a sequence of sequences'
+            )
+
+        tokenized_text = dataset.tokenized_text
+
+        for idx, sample_predictions in enumerate(prediction):
+            if (
+                isinstance(sample_predictions, (str, bytes, bytearray))
+                or not isinstance(sample_predictions, t.Sequence)
+            ):
+                raise ValidationError(
+                    f'Check requires predictions for {dataset.name} to be a sequence of sequences'
+                )
+            for p in sample_predictions:
+                if not isinstance(p, (str, int)):
+                    raise ValidationError(
+                        f'Check requires predictions for {dataset.name} to be a sequence '
+                        'of sequences of strings or integers'
+                    )
+            if len(sample_predictions) != len(tokenized_text[idx]):
+                raise ValidationError(
+                    f'Check requires predictions for {dataset.name} to have '
+                    'the same number of tokens as the input text'
+                )
 
     @staticmethod
     def _validate_proba(dataset: TextData, probabilities: TTextProba, n_classes: int,
@@ -454,11 +479,11 @@ class Context(BaseContext):
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
         elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            scoring_dict = get_scorer_dict()
             if scorers is None:
                 scorers = get_default_token_scorers(use_avg_defaults)  # Get string names of default scorers
             else:
                 validate_scorers(scorers)  # Validate that use supplied scorer names are OK
+            scoring_dict = get_scorer_dict()
             scorers = {name: scoring_dict[name] for name in scorers}
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '

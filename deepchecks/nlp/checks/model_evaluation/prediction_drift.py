@@ -15,8 +15,9 @@ from typing import Dict
 import numpy as np
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.utils.abstracts.prediction_drift import PredictionDriftAbstract
 from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS
 from deepchecks.utils.strings import format_number
@@ -145,6 +146,12 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
             value: drift score.
             display: prediction distribution graph, comparing the train and test distributions.
         """
+        type_name = type(self).__name__
+
+        if context.task_type is TaskType.TOKEN_CLASSIFICATION:
+            task_type_name = TaskType.TOKEN_CLASSIFICATION.value
+            raise DeepchecksNotSupportedError(f'"{type_name}" is not suited for the "{task_type_name}" tasks')
+
         train_dataset = context.train.sample(self.n_samples, random_state=context.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=context.random_state)
         model = context.model
