@@ -35,7 +35,7 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
     ----------
     scorers : Mapping[str, Union[str, Callable]]
         dict of scorers names to scorer sklearn_name/function or a list without a name
-    model_classes : t.Optional[t.List]sklearn
+    model_classes : t.Optional[t.List]
         possible classes output for model. None for regression tasks.
     observed_classes : t.Optional[t.List]
         observed classes from labels and predictions. None for regression tasks.
@@ -68,5 +68,4 @@ def infer_on_text_data(scorer: DeepcheckScorer, model: ClassificationModel, data
     else:
         y_proba = None
     results = scorer.run_on_pred(y_true, y_pred, y_proba)
-    breakpoint()
     return scorer.validate_scorer_multilabel_output(results)
