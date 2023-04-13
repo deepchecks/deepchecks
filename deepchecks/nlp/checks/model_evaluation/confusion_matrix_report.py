@@ -54,8 +54,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         DeepchecksValueError
             If the data is not a Dataset instance with a label
         """
-        context.assert_token_classification_task(self)
-        context.assert_multi_label_task()
+        context.raise_if_token_classification_task(self)
+        context.raise_if_multi_label_task(self)
 
         dataset = context.get_data_by_kind(dataset_kind)
         dataset = dataset.sample(self.n_samples, random_state=self.random_state)

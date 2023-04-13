@@ -113,8 +113,8 @@ class LabelDrift(TrainTestCheck):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-        context.assert_token_classification_task(self)
-        context.assert_multi_label_task()
+        context.raise_if_token_classification_task(self)
+        context.raise_if_multi_label_task(self)
 
         train_dataset = context.train.sample(self.n_samples, random_state=context.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=context.random_state)

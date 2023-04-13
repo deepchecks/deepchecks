@@ -446,7 +446,7 @@ class Context(BaseContext):
                 'set_properties method to set your own properties with a pandas.DataFrame or use '
                 'TextData.calculate_default_properties to add the default deepchecks properties.')
 
-    def assert_token_classification_task(self, check = None):
+    def raise_if_token_classification_task(self, check = None):
         check_name = type(check).__name__ if check else "Check"
         task_type_name = TaskType.TOKEN_CLASSIFICATION.value
         if self.task_type is TaskType.TOKEN_CLASSIFICATION:
@@ -454,7 +454,7 @@ class Context(BaseContext):
                 f'"{check_name}" is not supported for the "{task_type_name}" tasks'
             )
 
-    def assert_multi_label_task(self, check = None):
+    def raise_if_multi_label_task(self, check = None):
         dataset = self._train if self._train is not None else self._test
 
         if dataset is None:
