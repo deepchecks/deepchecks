@@ -12,6 +12,9 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote, drift_condition
 from deepchecks.tabular._shared_docs import docstrings
 
+
+# TODO: 
+# refactor, seperate general drift logic into seperate class/module and use it with drift checks
 @docstrings
 class PropertyDrift(TrainTestCheck):
     """
@@ -33,7 +36,6 @@ class PropertyDrift(TrainTestCheck):
     For categorical variables, it is recommended to use Cramer's V, unless your variable includes categories with a
     small number of samples (common practice is categories with less than 5 samples).
     However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
-
 
     Parameters
     ----------
