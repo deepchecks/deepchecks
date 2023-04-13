@@ -20,7 +20,6 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.nlp import Context, SingleDatasetCheck
-from deepchecks.nlp.task_type import TaskType
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract

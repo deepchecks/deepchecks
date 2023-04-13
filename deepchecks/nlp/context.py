@@ -448,7 +448,7 @@ class Context(BaseContext):
 
     def raise_if_token_classification_task(self, check = None):
         """Raise an exception if it is a token classification task."""
-        check_name = type(check).__name__ if check else "Check"
+        check_name = type(check).__name__ if check else 'Check'
         task_type_name = TaskType.TOKEN_CLASSIFICATION.value
         if self.task_type is TaskType.TOKEN_CLASSIFICATION:
             raise DeepchecksNotSupportedError(
@@ -462,7 +462,7 @@ class Context(BaseContext):
         if dataset is None:
             return
 
-        check_name = type(check).__name__ if check else "Check"
+        check_name = type(check).__name__ if check else 'Check'
         is_multi_label = dataset.is_multi_label_classification()
 
         if is_multi_label:
