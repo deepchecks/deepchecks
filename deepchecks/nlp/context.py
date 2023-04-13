@@ -446,7 +446,7 @@ class Context(BaseContext):
                 'set_properties method to set your own properties with a pandas.DataFrame or use '
                 'TextData.calculate_default_properties to add the default deepchecks properties.')
 
-    def raise_if_token_classification_task(self, check = None):
+    def raise_if_token_classification_task(self, check=None):
         """Raise an exception if it is a token classification task."""
         check_name = type(check).__name__ if check else 'Check'
         task_type_name = TaskType.TOKEN_CLASSIFICATION.value
@@ -455,7 +455,7 @@ class Context(BaseContext):
                 f'"{check_name}" is not supported for the "{task_type_name}" tasks'
             )
 
-    def raise_if_multi_label_task(self, check = None):
+    def raise_if_multi_label_task(self, check=None):
         """Raise an exception if it is a multi-label classification task."""
         dataset = self._train if self._train is not None else self._test
 
