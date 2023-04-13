@@ -463,9 +463,7 @@ class Context(BaseContext):
             return
 
         check_name = type(check).__name__ if check else 'Check'
-        is_multi_label = dataset.is_multi_label_classification()
-
-        if is_multi_label:
+        if dataset.is_multi_label_classification():
             raise DeepchecksNotSupportedError(
                 f'"{check_name}" is not supported for the multilable classification tasks'
             )
