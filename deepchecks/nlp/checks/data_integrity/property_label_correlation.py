@@ -16,7 +16,7 @@ import pandas as pd
 import deepchecks.ppscore as pps
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.check_utils.feature_label_correlation_utils import get_pps_figure, pd_series_to_trace
-from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError
+from deepchecks.core.errors import DatasetValidationError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.tabular.utils.messages import get_condition_passed_message
@@ -92,17 +92,10 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        type_name = type(self).__name__
-
-        if context.task_type is TaskType.TOKEN_CLASSIFICATION:
-            task_type_name = TaskType.TOKEN_CLASSIFICATION.value
-            raise DeepchecksNotSupportedError(f'"{type_name}" is not supported for the "{task_type_name}" tasks')
+        context.assert_token_classification_task(self)
+        context.assert_multi_label_task()
 
         text_data = context.get_data_by_kind(dataset_kind)
-
-        if text_data.is_multi_label_classification():
-            raise DeepchecksNotSupportedError(f'"{type_name}" is not supported for the multilable classification tasks')
-
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
         label = pd.Series(text_data.label, name='label', index=text_data.get_original_text_indexes())
 

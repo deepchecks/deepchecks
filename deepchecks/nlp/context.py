@@ -216,17 +216,7 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_token_classification_prediction(dataset: TextData, prediction: TTextPred):
         """Validate prediction for given token classification dataset."""
-        if (
-            isinstance(prediction, (str, bytes, bytearray))
-            or not isinstance(prediction, (np.ndarray, t.Sequence))
-            # TODO: fix error messages, make it more particular
-            # third party containers do not extend Sequence. Example:
-            # >> import numpy as np
-            # >> import typing as t
-            # >> isinstance(np.array([1,2,3]), t.Sequence)
-            # ... False
-            #
-        ):
+        if not is_sequence_not_str(prediction):
             raise ValidationError(
                 f'Check requires predictions for {dataset.name} to be a sequence of sequences'
             )
@@ -234,10 +224,7 @@ class _DummyModel(BasicModel):
         tokenized_text = dataset.tokenized_text
 
         for idx, sample_predictions in enumerate(prediction):
-            if (
-                isinstance(sample_predictions, (str, bytes, bytearray))
-                or not isinstance(sample_predictions, (np.ndarray, t.Sequence))
-            ):
+            if not is_sequence_not_str(sample_predictions):
                 raise ValidationError(
                     f'Check requires predictions for {dataset.name} to be a sequence of sequences'
                 )
@@ -458,6 +445,28 @@ class Context(BaseContext):
                 'Check requires properties, but the the TextData object had none. To use this check, use the'
                 'set_properties method to set your own properties with a pandas.DataFrame or use '
                 'TextData.calculate_default_properties to add the default deepchecks properties.')
+
+    def assert_token_classification_task(self, check = None):
+        check_name = type(check).__name__ if check else "Check"
+        task_type_name = TaskType.TOKEN_CLASSIFICATION.value
+        if self.task_type is TaskType.TOKEN_CLASSIFICATION:
+            raise DeepchecksNotSupportedError(
+                f'"{check_name}" is not supported for the "{task_type_name}" tasks'
+            )
+
+    def assert_multi_label_task(self, check = None):
+        dataset = self._train if self._train is not None else self._test
+
+        if dataset is None:
+            return
+
+        check_name = type(check).__name__ if check else "Check"
+        is_multi_label = dataset.is_multi_label_classification()
+
+        if is_multi_label:
+            raise DeepchecksNotSupportedError(
+                f'"{check_name}" is not supported for the multilable classification tasks'
+            )
 
     def get_scorers(self,
                     scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
