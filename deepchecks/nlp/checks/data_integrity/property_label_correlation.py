@@ -96,7 +96,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
 
         if context.task_type is TaskType.TOKEN_CLASSIFICATION:
             task_type_name = TaskType.TOKEN_CLASSIFICATION.value
-            raise DeepchecksNotSupportedError(f'"{type_name}" is not suited for the "{task_type_name}" tasks')
+            raise DeepchecksNotSupportedError(f'"{type_name}" is not supported for the "{task_type_name}" tasks')
 
         text_data = context.get_data_by_kind(dataset_kind)
 
