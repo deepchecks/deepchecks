@@ -1,4 +1,5 @@
 import typing as t
+import textwrap
 import pandas as pd
 
 from deepchecks.core import CheckResult
@@ -8,7 +9,7 @@ from deepchecks.nlp.context import Context
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote, drift_condition
 from deepchecks.tabular._shared_docs import docstrings
 
 @docstrings
@@ -184,37 +185,71 @@ class PropertyDrift(TrainTestCheck):
 
         if context.with_display:
             key = lambda column: results[column]['Drift score'] or 0
-            properties_order = sorted(results.keys(), key=key,reverse=True)[:self.n_top_properties]
-            sorted_by = 'drift score'
+            sorted_properties = sorted(results.keys(), key=key, reverse=True)[:self.n_top_properties]
 
             headnote = [
-                f"""
+                textwrap.dedent(f"""
                 <span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the features, sorted
-                by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
+                and train distributions.<br> The check shows the drift score and distributions for the properties, sorted
+                by drift score and showing only the top {self.n_top_properties} properties.
                 </span>
-                """, 
+                """),
                 get_drift_plot_sidenote(
                     self.max_num_categories_for_display, 
                     self.show_categories_by
-                ),
-                        If available, the plot titles also show the feature importance (FI) rank']
+                )
+            ]
 
             if not_enough_samples:
-                headnote.append(f'<span>The following columns do not have enough samples to calculate drift '
-                                f'score: {not_enough_samples}</span>')
+                headnote.append(
+                    '<span>The following properties do not have enough samples to calculate drift '
+                    f'score: {not_enough_samples}</span>'
+                )
 
-            displays = headnote + [displays_dict[col] for col in columns_order
-                                   if col in train_dataset.cat_features + train_dataset.numerical_features
-                                   and values_dict[col]['Drift score'] is not None]
+            displays = [
+                *headnote,
+                *(plots[p] for p in sorted_properties if results[p]['Drift score'] is not None)
+            ]
         else:
             displays = None
 
-        return CheckResult(value=values_dict, display=displays, header='Feature Drift')
+        return CheckResult(
+            value=results, 
+            display=displays, 
+            header='Properties Drift'
+        )
 
+    def add_condition_drift_score_less_than(
+        self, 
+        max_allowed_categorical_score: float = 0.2,
+        max_allowed_numeric_score: float = 0.2,
+        allowed_num_features_exceeding_threshold: int = 0
+    ):
+        """
+        Add condition - require drift score to be less than the threshold.
 
+        The industry standard for PSI limit is above 0.2.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
 
+        Parameters
+        ----------
+        max_allowed_categorical_score: float , default: 0.2
+            The max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.2
+            The max threshold for the numeric variable drift score
+        allowed_num_features_exceeding_threshold: int , default: 0
+            Determines the number of features with drift score above threshold needed to fail the condition.
 
-        
+        Returns
+        -------
+        ConditionResult
+            False if more than allowed_num_features_exceeding_threshold drift scores are above threshold, True otherwise
+        """
+        condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score, 'column', 'columns',
+                                    allowed_num_features_exceeding_threshold)
 
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
+                                  condition)
