@@ -101,7 +101,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         text_data = context.get_data_by_kind(dataset_kind)
 
         if text_data.is_multi_label_classification():
-            raise DeepchecksNotSupportedError(f'"{type_name}" is not suited for the multilable classification tasks')
+            raise DeepchecksNotSupportedError(f'"{type_name}" is not supported for the multilable classification tasks')
 
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
         label = pd.Series(text_data.label, name='label', index=text_data.get_original_text_indexes())
