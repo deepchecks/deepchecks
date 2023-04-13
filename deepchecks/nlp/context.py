@@ -457,15 +457,9 @@ class Context(BaseContext):
 
     def raise_if_multi_label_task(self, check=None):
         """Raise an exception if it is a multi-label classification task."""
-        dataset = self._train if self._train is not None else self._test
-
-        if dataset is None:
-            return
-
+        dataset = t.cast(TextData, self._train if self._train is not None else self._test)
         check_name = type(check).__name__ if check else 'Check'
-        is_multi_label = dataset.is_multi_label_classification()
-
-        if is_multi_label:
+        if dataset.is_multi_label_classification():
             raise DeepchecksNotSupportedError(
                 f'"{check_name}" is not supported for the multilable classification tasks'
             )
