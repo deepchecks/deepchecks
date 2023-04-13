@@ -1,0 +1,220 @@
+import typing as t
+import pandas as pd
+
+from deepchecks.core import CheckResult
+from deepchecks.core.errors import NotEnoughSamplesError
+from deepchecks.nlp.base_checks import TrainTestCheck
+from deepchecks.nlp.context import Context
+from deepchecks.nlp.text_data import TextData
+from deepchecks.utils.typing import Hashable
+from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.tabular._shared_docs import docstrings
+
+@docstrings
+class PropertyDrift(TrainTestCheck):
+    """
+    Calculate drift between train dataset and test dataset per feature, using statistical measures.
+
+    Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
+    dataset.
+
+    For numerical columns, we use the Kolmogorov-Smirnov statistic.
+    See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
+    We also support Earth Mover's Distance (EMD).
+    See https://en.wikipedia.org/wiki/Wasserstein_metric
+
+    For categorical distributions, we use the Cramer's V.
+    See https://en.wikipedia.org/wiki/Cram%C3%A9r%27s_V
+    We also support Population Stability Index (PSI).
+    See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
+
+    For categorical variables, it is recommended to use Cramer's V, unless your variable includes categories with a
+    small number of samples (common practice is categories with less than 5 samples).
+    However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
+
+
+    Parameters
+    ----------
+    properties : Union[Hashable, List[Hashable]] , default: None
+        Properties to check, if none is given, checks all
+        properties except ignored ones.
+    ignore_properties : Union[Hashable, List[Hashable]] , default: None
+        Properties to ignore, if none is given, checks based on
+        properties variable.
+    n_top_properties : int , default 5
+        amount of properties to show ordered by drift score
+    margin_quantile_filter: float, default: 0.025
+        float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
+        out of the EMD calculation. This is done in order for extreme values not to affect the calculation
+        disproportionally. This filter is applied to both distributions, in both margins.
+    min_category_size_ratio: float, default 0.01
+        minimum size ratio for categories. Categories with size ratio lower than this number are binned
+        into an "Other" category.
+    max_num_categories_for_drift: Optional[int], default: None
+        Only for categorical features. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
+    max_num_categories_for_display: int, default: 10
+        Max number of categories to show in plot.
+    show_categories_by: str, default: 'largest_difference'
+        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
+        by max_num_categories_for_display. Possible values:
+        - 'train_largest': Show the largest train categories.
+        - 'test_largest': Show the largest test categories.
+        - 'largest_difference': Show the largest difference between categories.
+    numerical_drift_method: str, default: "KS"
+        decides which method to use on numerical variables. Possible values are:
+        "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
+    categorical_drift_method: str, default: "cramers_v"
+        decides which method to use on categorical variables. Possible values are:
+        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
+    ignore_na: bool, default True
+        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
+        separate category. For numerical columns we always ignore nones.
+    aggregation_method: Optional[str], default: 'l3_weighted'
+        {feature_aggregation_method_argument:2*indent}
+    min_samples : int , default: 10
+        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
+        train or test, the check will return None for that feature. If there are not enough samples for all properties,
+        the check will raise a ``NotEnoughSamplesError`` exception.
+    n_samples : int , default: 100_000
+        Number of samples to use for drift computation and plot.
+    random_state : int , default: 42
+        Random seed for sampling.
+    """
+
+    def __init__(
+        self, 
+        properties: t.Union[t.Hashable, t.List[Hashable], None] = None,
+        ignore_properties: t.Union[Hashable, t.List[Hashable], None] = None,
+        n_top_properties: int = 5,
+        margin_quantile_filter: float = 0.025,
+        max_num_categories_for_drift: t.Optional[int] = None,
+        min_category_size_ratio: float = 0.01,
+        max_num_categories_for_display: int = 10,
+        show_categories_by: str = 'largest_difference',
+        numerical_drift_method: str = 'KS',
+        categorical_drift_method: str = 'cramers_v',
+        ignore_na: bool = True,
+        aggregation_method: t.Optional[str] = 'l3_weighted',
+        min_samples: int = 10,
+        n_samples: int = 100_000,
+        random_state: int = 42,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.properties = properties
+        self.ignore_properties = ignore_properties
+        self.n_top_properties = n_top_properties
+        self.margin_quantile_filter = margin_quantile_filter
+        self.max_num_categories_for_drift = max_num_categories_for_drift
+        self.min_category_size_ratio = min_category_size_ratio
+        self.max_num_categories_for_display = max_num_categories_for_display
+        self.show_categories_by = show_categories_by
+        self.numerical_drift_method = numerical_drift_method
+        self.categorical_drift_method = categorical_drift_method
+        self.ignore_na = ignore_na
+        self.aggregation_method = aggregation_method
+        self.min_samples = min_samples
+        self.n_samples = n_samples
+        self.random_state = random_state
+    
+    def run_logic(self, context: Context) -> CheckResult:
+        train = t.cast(TextData, context.train)
+        test = t.cast(TextData, context.test)
+
+        train_properties = select_from_dataframe(
+            train.properties,
+            columns=self.properties,
+            ignore_columns=self.ignore_properties
+        )
+        test_properties = select_from_dataframe(
+            test.properties,
+            columns=self.properties,
+            ignore_columns=self.ignore_properties
+        )
+
+        columns = set(train_properties.columns).intersection(set(test_properties.columns))
+        cat_columns = set([*train.categorical_properties, *test.categorical_properties])
+        results = {}
+        plots = {}
+        not_enough_samples = []
+
+        for column_name in columns:
+            score, method, display = calc_drift_and_plot(
+                train_column=train_properties.data[column_name],
+                test_column=test_properties.data[column_name],
+                value_name=column_name,
+                column_type=(
+                    'categorical' 
+                    if column_name in cat_columns 
+                    else 'numerical'
+                ),
+                plot_title=f"Property {column_name}",
+                margin_quantile_filter=self.margin_quantile_filter,
+                max_num_categories_for_drift=self.max_num_categories_for_drift,
+                min_category_size_ratio=self.min_category_size_ratio,
+                max_num_categories_for_display=self.max_num_categories_for_display,
+                show_categories_by=self.show_categories_by,
+                numerical_drift_method=self.numerical_drift_method,
+                categorical_drift_method=self.categorical_drift_method,
+                ignore_na=self.ignore_na,
+                min_samples=self.min_samples,
+                with_display=context.with_display,
+                dataset_names=(train.name or "Train", test.name or "Test")
+            )
+
+            if isinstance(score, str) and score == 'not_enough_samples':
+                not_enough_samples.append(column_name)
+                score = None
+            else:
+                plots[column_name] = display
+
+            results[column_name] = {
+                'Drift score': score,
+                'Method': method,
+            }
+        
+        if len(not_enough_samples) == len(results.keys()):
+            raise NotEnoughSamplesError(
+                f'Not enough samples to calculate drift score. Minimum {self.min_samples} samples required. '
+                'Note that for numerical properties, None values do not count as samples.'
+                'Use the \'min_samples\' parameter to change this requirement.'
+            )
+
+        if context.with_display:
+            key = lambda column: results[column]['Drift score'] or 0
+            properties_order = sorted(results.keys(), key=key,reverse=True)[:self.n_top_properties]
+            sorted_by = 'drift score'
+
+            headnote = [
+                f"""
+                <span>
+                The Drift score is a measure for the difference between two distributions, in this check - the test
+                and train distributions.<br> The check shows the drift score and distributions for the features, sorted
+                by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
+                </span>
+                """, 
+                get_drift_plot_sidenote(
+                    self.max_num_categories_for_display, 
+                    self.show_categories_by
+                ),
+                        If available, the plot titles also show the feature importance (FI) rank']
+
+            if not_enough_samples:
+                headnote.append(f'<span>The following columns do not have enough samples to calculate drift '
+                                f'score: {not_enough_samples}</span>')
+
+            displays = headnote + [displays_dict[col] for col in columns_order
+                                   if col in train_dataset.cat_features + train_dataset.numerical_features
+                                   and values_dict[col]['Drift score'] is not None]
+        else:
+            displays = None
+
+        return CheckResult(value=values_dict, display=displays, header='Feature Drift')
+
+
+
+
+        
+
