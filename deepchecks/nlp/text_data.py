@@ -254,15 +254,16 @@ class TextData:
         if self._embeddings is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        self._embeddings = calculate_default_embeddings(text=self.text, index=self.index, model=model,
+        self._embeddings = calculate_default_embeddings(text=self.text, index=list(range(len(self))), model=model,
                                                         file_path=file_path, device=device)
 
     def set_embeddings(self, embeddings: pd.DataFrame):
         """Set the metadata of the dataset."""
         if self._embeddings is not None:
             warnings.warn('Embeddings already exist, overwriting it', UserWarning)
-            validate_length_and_type(embeddings, 'Embeddings', len(self))
 
+        if embeddings is not None:
+            validate_length_and_type(embeddings, 'Embeddings', len(self))
         self._embeddings = embeddings.reset_index(drop=True) if isinstance(embeddings, pd.DataFrame) else None
 
 
@@ -409,6 +410,20 @@ class TextData:
                                        'to run the requested functionalities')
         return self._label
 
+    @property
+    def label_for_display(self) -> TTextLabel:
+        """Return the label defined in the dataset.
+
+        Returns
+        -------
+        TTextLabel
+        """
+        if self.is_multi_label_classification():
+            return [np.argwhere(x == 1).flatten().tolist() for x in self.label]
+        else:
+            return self.label
+
+
     def has_label(self) -> bool:
         """Return True if label was set.
 
@@ -477,7 +492,10 @@ class TextData:
             n_samples = len(self) - 1
         result = pd.DataFrame({'text': self.text[:n_samples]}, index=self.get_original_text_indexes()[:n_samples])
         if self.has_label():
-            result['label'] = self.label[:n_samples]
+            # if self.is_multi_label_classification():
+            #     result['label'] = [np.argwhere(x == 1).flatten().tolist() for x in self.label[:n_samples]]
+            # else:
+            result['label'] = self.label_for_display[:n_samples]
         if self._tokenized_text is not None:
             result['tokenized_text'] = self.tokenized_text[:n_samples]
         if self._metadata is not None:

@@ -232,7 +232,7 @@ def run_multivariable_drift_for_embeddings(train_embeddings: pd.DataFrame, test_
     from umap import UMAP
 
     # reducer = PCA(n_components=30, random_state=42)
-    reducer = UMAP(init='random', random_state=42, n_components=30, n_neighbors=15, min_dist=0.1)
+    reducer = UMAP(init='random', random_state=42, n_components=10, n_neighbors=15, min_dist=0.1)
     domain_class_df = pd.DataFrame(reducer.fit_transform(domain_class_df), index=domain_class_df.index)
 
     x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(domain_class_df), domain_class_labels,
@@ -338,7 +338,10 @@ def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_hi
     import plotly.express as px
     save_for_later = plot_data.copy()
     plot_data['dataset'] = ['train_full'] * len(train_dataset.get_original_text_indexes()) + ['test_full'] * len(test_dataset.get_original_text_indexes())
-    plot_data['label'] = np.concatenate([train_dataset.label, test_dataset.label])
+    if train_dataset.has_label():
+        plot_data['label'] = np.concatenate([train_dataset.label_for_display, test_dataset.label_for_display])
+    else:
+        plot_data['label'] = None
     plot_data['sample'] = np.concatenate([train_dataset.text, test_dataset.text])
     plot_data['sample'] = plot_data['sample'].apply(clean_sample)
 
@@ -356,7 +359,7 @@ def _draw_plot_from_data(plot_title, plot_data, test_dataset, test_indexes_to_hi
             print(f'Node {node_id} has {len(indexes)} samples')
             to_add = plot_data[plot_data.index.isin(indexes)].copy()
             print('Percent of train in node is {}'.format(to_add['dataset'].value_counts()['train_full'] / len(to_add)))
-            print(to_add['label'].value_counts().to_dict())
+            # print(to_add['label'].value_counts().to_dict())
             to_add['dataset'] = f'node_{node_id}'
             stuff_to_add.append(to_add)
         plot_data = pd.concat([plot_data] + stuff_to_add, ignore_index=True)
@@ -574,7 +577,7 @@ def display_embeddings_proba_as_axis_with_nodes(domain_classifier_probas, train_
     min_cluster_size = max(50, int(len(plot_data) * 0.04))
     classifier = DecisionTreeClassifier(max_depth=30, min_samples_leaf=min_cluster_size, random_state=42,
                                         criterion='entropy')
-    classifier.fit(plot_data, domain_class_labels)
+    classifier.fit(plot_data, domain_class_labels) # TODO: Skip graph if no meaningful nodes
     # classifier_auc = roc_auc_score(test_labels, classifier.predict_proba(test)[:, 1])
     # print(f'Classifier AUC: {classifier_auc}')
 
