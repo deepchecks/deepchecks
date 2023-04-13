@@ -447,6 +447,7 @@ class Context(BaseContext):
                 'TextData.calculate_default_properties to add the default deepchecks properties.')
 
     def raise_if_token_classification_task(self, check = None):
+        """Raise an exception if it is a token classification task."""
         check_name = type(check).__name__ if check else "Check"
         task_type_name = TaskType.TOKEN_CLASSIFICATION.value
         if self.task_type is TaskType.TOKEN_CLASSIFICATION:
@@ -455,6 +456,7 @@ class Context(BaseContext):
             )
 
     def raise_if_multi_label_task(self, check = None):
+        """Raise an exception if it is a multi-label classification task."""
         dataset = self._train if self._train is not None else self._test
 
         if dataset is None:
