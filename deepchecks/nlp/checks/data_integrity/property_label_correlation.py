@@ -92,8 +92,11 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         DeepchecksValueError
             If the object is not a Dataset instance with a label.
         """
-        text_data = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=context.random_state)
+        context.raise_if_token_classification_task(self)
+        context.raise_if_multi_label_task(self)
 
+        text_data = context.get_data_by_kind(dataset_kind)
+        text_data = text_data.sample(self.n_samples, random_state=context.random_state)
         label = pd.Series(text_data.label, name='label', index=text_data.get_original_text_indexes())
 
         # Classification labels should be of type object (and not int, for example)

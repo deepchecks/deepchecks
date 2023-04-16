@@ -21,15 +21,19 @@ from deepchecks.core.errors import DeepchecksValueError
 __all__ = ['get_default_token_scorers', 'validate_scorers', 'get_scorer_dict']
 
 DEFAULT_AVG_SCORER_NAMES = ('f1_macro', 'recall_macro', 'precision_macro')
-DEFAULT_PER_CLASS_SCORER_NAMES = ('f1_per_class', 'f1_per_class', 'f1_per_class')
+DEFAULT_PER_CLASS_SCORER_NAMES = tuple()
+
+# see issue DEE-473
+# https://linear.app/deepchecks/issue/DEE-473/incorrectly-inferred-model-classes-for-token-classification-task
+#
+# DEFAULT_PER_CLASS_SCORER_NAMES = ('f1_per_class',)
 
 
-if t.TYPE_CHECKING:
-    from deepchecks.nlp.context import TTokenPred  # pylint: disable=unused-import # noqa: F401
-
-
-def get_scorer_dict(suffix: bool = False, mode: t.Optional[str] = None, scheme: t.Optional[t.Type[Token]] = None,
-                    ) -> t.Dict[str, t.Callable[[t.List[str], t.List[str]], float]]:
+def get_scorer_dict(
+    suffix: bool = False,
+    mode: t.Optional[str] = None,
+    scheme: t.Optional[t.Type[Token]] = None,
+) -> t.Dict[str, t.Callable[[t.List[str], t.List[str]], float]]:
     """Return a dict of scorers for token classification.
 
     Parameters:
@@ -77,14 +81,25 @@ def validate_scorers(scorers: t.List[str]):
 
     if not isinstance(scorers, Sequence):
         raise DeepchecksValueError(f'Scorers must be a Sequence, got {type(scorers)}')
-    if not all(isinstance(name, str) for name in scorers):
-        # TODO: support custom scorers
-        raise DeepchecksValueError(f'Scorers must be a Sequence of strings, got {type(scorers[0])}')
-    if any(name not in scoring_dict for name in scorers):
-        raise DeepchecksValueError(f'Scorers must be a list of names of existing token classification metrics, which '
-                                   f'is {scoring_dict.keys()}, got {scorers}')
+
+    for name in scorers:
+        if not isinstance(name, str):
+            # TODO: support custom scorers
+            raise DeepchecksValueError(
+                f'Scorers must be a Sequence of strings, got {type(name)}'
+            )
+        if name not in scoring_dict:
+            raise DeepchecksValueError(
+                'Scorers must be a list of names of existing token classification metrics, '
+                f'which is {scoring_dict.keys()}, got {scorers}'
+            )
 
 
 def get_default_token_scorers(use_avg_defaults=True) -> t.List[str]:
     """Return the default scorers for token classification."""
-    return DEFAULT_AVG_SCORER_NAMES if use_avg_defaults else DEFAULT_PER_CLASS_SCORER_NAMES
+    names = (
+        DEFAULT_AVG_SCORER_NAMES
+        if use_avg_defaults
+        else DEFAULT_PER_CLASS_SCORER_NAMES
+    )
+    return [f'token_{it}' for it in names]
