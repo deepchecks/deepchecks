@@ -24,7 +24,7 @@ __all__ = ['TextPropertyOutliers']
 
 
 class TextPropertyOutliers(SingleDatasetCheck):
-    """Find outliers images with respect to the given properties.
+    """Find outliers with respect to the given properties.
 
     The check finds outliers in the text properties.
     For numeric properties, the check uses `IQR <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to

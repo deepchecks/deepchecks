@@ -40,8 +40,6 @@ class DeepchecksNotImplementedError(DeepchecksBaseError):
 class DeepchecksNotSupportedError(DeepchecksBaseError):
     """Exception class that represents an unsupported action in Deepchecks."""
 
-    pass
-
 
 class DeepchecksProcessError(DeepchecksBaseError):
     """Exception class that represents an issue with a process."""

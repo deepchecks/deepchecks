@@ -51,6 +51,9 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
+        context.raise_if_token_classification_task(self)
+        context.raise_if_multi_label_task(self)
+
         text_data = context.get_data_by_kind(dataset_kind)
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
@@ -86,6 +89,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
         if features.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
+
         # label is not used in the check, just here to avoid errors
         dataset = Dataset(features, label=pd.Series(text_data.label), cat_features=cat_features)
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, list(np.unique(text_data.label)))
