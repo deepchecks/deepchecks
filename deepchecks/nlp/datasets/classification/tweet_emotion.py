@@ -123,10 +123,10 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
 
         train_ds = TextData(train.text, label=train[_target], task_type='text_classification')
         train_ds.set_metadata(metadata=train.drop(columns=[_target, 'text']),
-                           categorical_metadata=_CAT_METADATA)
+                              categorical_metadata=_CAT_METADATA)
         test_ds = TextData(test.text, label=test[_target], task_type='text_classification')
         test_ds.set_metadata(metadata=test.drop(columns=[_target, 'text']),
-                            categorical_metadata=_CAT_METADATA)
+                             categorical_metadata=_CAT_METADATA)
 
         if include_properties:
             train_properties, test_properties = load_properties(as_train_test=True)
