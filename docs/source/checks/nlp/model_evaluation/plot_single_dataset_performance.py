@@ -4,7 +4,7 @@
 
 Single Dataset Performance
 *****************************
-This notebook provides an overview for using and understanding single dataset performance check.
+This notebook provides an overview for using and understanding single dataset performance check for NLP tasks.
 
 **Structure:**
 
@@ -12,7 +12,6 @@ This notebook provides an overview for using and understanding single dataset pe
 * `Generate data & model <#generate-data-model>`__
 * `Run the check <#run-the-check>`__
 * `Define a condition <#define-a-condition>`__
-* `Using a custom scorer <#using-a-custom-scorer>`__
 
 What is the purpose of the check?
 ==================================
@@ -23,18 +22,17 @@ it is a function which accepts (model, X, y_true) and returns a float result whi
 A sklearn convention is that higher scores are better than lower scores. For additional details `see scorers
 documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_.
 
-The default scorers that are used are F1, Precision, and Recall for Classification
-and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression.
+The default scorers that are used are F1, Precision, and Recall.
 """
 
 #%%
 # Generate data & model
 # ======================
 
-from deepchecks.tabular.datasets.classification.iris import load_data, load_fitted_model
+from deepchecks.nlp.datasets.classification.tweet_emotion import load_data, load_precalculated_predictions
 
-_, test_dataset = load_data()
-model = load_fitted_model()
+_, test_dataset = load_data(data_format='TextData')
+_, test_probas = load_precalculated_predictions(pred_format='probabilities')
 
 #%%
 # Run the check
@@ -43,10 +41,10 @@ model = load_fitted_model()
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
 # see :doc:`Metrics Guide </user-guide/general/metrics_guide>` for additional details.
 
-from deepchecks.tabular.checks import SingleDatasetPerformance
+from deepchecks.nlp.checks import SingleDatasetPerformance
 
 check = SingleDatasetPerformance(scorers=['recall_per_class', 'precision_per_class', 'f1_macro', 'f1_micro'])
-result = check.run(test_dataset, model)
+result = check.run(dataset=test_dataset, probabilities=test_probas)
 result.show()
 
 #%%
@@ -58,22 +56,10 @@ result.show()
 # Let's add a condition to the check and see what happens when it fails:
 
 check.add_condition_greater_than(threshold=0.85, class_mode='all')
-result = check.run(test_dataset, model)
+result = check.run(dataset=test_dataset, probabilities=test_probas)
 result.show(show_additional_outputs=False)
 
 #%%
 # We detected that the Recall score is below specified threshold in at least one of the classes.
 
 #%%
-# Using a custom scorer
-# =========================
-# In addition to the built-in scorers, we can define our own scorer based on sklearn api
-# and run it using the check alongside other scorers:
-
-from sklearn.metrics import fbeta_score, make_scorer
-
-fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1, 2], average=None, beta=0.2)
-
-check = SingleDatasetPerformance(scorers={'my scorer': fbeta_scorer, 'recall': 'recall_per_class'})
-result = check.run(test_dataset, model)
-result.show()

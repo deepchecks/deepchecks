@@ -20,8 +20,8 @@ def test_tweet_emotion():
     train, test = tweet_emotion.load_data(data_format='Dataframe', as_train_test=True)
     full = tweet_emotion.load_data(data_format='Dataframe', as_train_test=False)
     full_ds = tweet_emotion.load_data(data_format='TextData', as_train_test=False)
-    preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions')
-    probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')
+    preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions', as_train_test=False)
+    probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities', as_train_test=False)
     properties = tweet_emotion.load_properties(as_train_test=False)
     train_props, test_props = tweet_emotion.load_properties(as_train_test=True)
 

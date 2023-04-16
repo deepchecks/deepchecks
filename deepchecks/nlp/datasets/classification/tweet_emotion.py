@@ -37,6 +37,8 @@ ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'tweet
 _target = 'label'
 
 _LABEL_MAP = {0: 'anger', 1: 'happiness', 2: 'optimism', 3: 'sadness'}
+_CAT_METADATA = ['gender', 'user_region']
+_CAT_PROPERTIES = ['Language']
 
 
 def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
@@ -98,36 +100,40 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
     if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')
 
-    dataset = _read_and_save('tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
+    data = _read_and_save('tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
     if not as_train_test:
-        dataset.drop(columns=['train_test_split'], inplace=True)
-        if data_format.lower() == 'textdata':
-            if include_properties:
-                properties = load_properties(as_train_test=False)
-            else:
-                properties = None
-            dataset = TextData(dataset.text, label=dataset[_target], task_type='text_classification',
-                               metadata=dataset.drop(columns=[_target, 'text']),
-                               properties=properties)
+        data.drop(columns=['train_test_split'], inplace=True)
+        if data_format.lower() != 'textdata':
+            return data
+
+        dataset = TextData(data.text, label=data[_target], task_type='text_classification')
+        dataset.set_metadata(metadata=data.drop(columns=[_target, 'text']),
+                             categorical_metadata=_CAT_METADATA)
+        if include_properties:
+            properties = load_properties(as_train_test=False)
+            dataset.set_properties(properties=properties, categorical_properties=_CAT_PROPERTIES)
         return dataset
     else:
         # train has more sport and Customer Complains but less Terror and Optimism
-        train = dataset[dataset['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
-        test = dataset[dataset['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
+        train = data[data['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
+        test = data[data['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
 
-        if data_format.lower() == 'textdata':
-            if include_properties:
-                train_properties, test_properties = load_properties(as_train_test=True)
-            else:
-                train_properties, test_properties = None, None
+        if data_format.lower() != 'textdata':
+            return train, test
 
-            train = TextData(train.text, label=train[_target], task_type='text_classification',
-                             metadata=train.drop(columns=[_target, 'text']),
-                             properties=train_properties)
-            test = TextData(test.text, label=test[_target], task_type='text_classification',
-                            metadata=test.drop(columns=[_target, 'text']),
-                            properties=test_properties)
-        return train, test
+        train_ds = TextData(train.text, label=train[_target], task_type='text_classification')
+        train_ds.set_metadata(metadata=train.drop(columns=[_target, 'text']),
+                           categorical_metadata=_CAT_METADATA)
+        test_ds = TextData(test.text, label=test[_target], task_type='text_classification')
+        test_ds.set_metadata(metadata=test.drop(columns=[_target, 'text']),
+                            categorical_metadata=_CAT_METADATA)
+
+        if include_properties:
+            train_properties, test_properties = load_properties(as_train_test=True)
+            train_ds.set_properties(properties=train_properties, categorical_properties=_CAT_PROPERTIES)
+            test_ds.set_properties(properties=test_properties, categorical_properties=_CAT_PROPERTIES)
+
+        return train_ds, test_ds
 
 
 def load_embeddings(as_train_test: bool = False) -> np.ndarray:
@@ -154,7 +160,7 @@ def load_embeddings(as_train_test: bool = False) -> np.ndarray:
 
 
 def load_precalculated_predictions(pred_format: str = 'predictions',
-                                   as_train_test: bool = False) -> np.array:
+                                   as_train_test: bool = True) -> np.array:
     """Load and return a precalculated predictions for the dataset.
 
     Parameters
