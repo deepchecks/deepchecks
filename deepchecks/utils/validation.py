@@ -14,6 +14,7 @@ import typing as t
 
 import numpy as np
 import pandas as pd
+from typing_extensions import TypeGuard
 
 from deepchecks.core import errors
 from deepchecks.utils.typing import Hashable
@@ -48,6 +49,9 @@ def ensure_hashable_or_mutable_sequence(
     ))
 
 
-def is_sequence_not_str(value):
+def is_sequence_not_str(value) -> TypeGuard[t.Sequence[t.Any]]:
     """Check if value is a non str sequence."""
-    return isinstance(value, (t.Sequence, pd.Series, np.ndarray)) and not isinstance(value, str)
+    return (
+        not isinstance(value, (bytes, str, bytearray))
+        and isinstance(value, (t.Sequence, pd.Series, np.ndarray))
+    )
