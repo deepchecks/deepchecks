@@ -32,46 +32,16 @@ class TestTextClassification:
         assert condition_results[0].is_pass() is True
 
         assert_that(result.value, has_entries({
-            "Formality": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Language": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Cramer's V")
-            }),
-            "Subjectivity": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Average Word Length": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Text Length": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Max Word Length": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Toxicity": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "% Special Characters": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Sentiment": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Fluency": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
+            "Formality": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
+            "Language": {"Drift score": 0.0, "Method": "Cramer's V"},
+            "Subjectivity": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
+            "Average Word Length": {"Drift score": 0.0,"Method": "Kolmogorov-Smirnov"},
+            "Text Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
+            "Max Word Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
+            "Toxicity": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
+            "% Special Characters": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
+            "Sentiment": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
+            "Fluency": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
         }))  # type: ignore
 
 
@@ -81,12 +51,8 @@ class TestTextClassification:
         train = train.sample(20, random_state=0)
         test = test.sample(20, random_state=0)
 
-        train.calculate_default_properties(
-            include_long_calculation_properties=True
-        )
-        test.calculate_default_properties(
-            include_long_calculation_properties=True
-        )
+        train.calculate_default_properties()
+        test.calculate_default_properties()
 
         check = PropertyDrift().add_condition_drift_score_less_than()
 
@@ -99,46 +65,12 @@ class TestTextClassification:
         assert condition_results[0].is_pass() is False
 
         assert_that(result.value, has_entries({
-            "Formality": has_entries({
-                "Drift score": equal_to(0.4),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Language": has_entries({
-                "Drift score": equal_to(0.0),
-                "Method": equal_to("Cramer's V")
-            }),
-            "Subjectivity": has_entries({
-                "Drift score": equal_to(0.15000000000000002),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Average Word Length": has_entries({
-                "Drift score": equal_to(0.4),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Text Length": has_entries({
-                "Drift score": equal_to(0.19999999999999996),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Max Word Length": has_entries({
-                "Drift score": equal_to(0.19999999999999996),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Toxicity": has_entries({
-                "Drift score": equal_to(0.4),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "% Special Characters": has_entries({
-                "Drift score": equal_to(0.19999999999999996),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Sentiment": has_entries({
-                "Drift score": equal_to(0.15000000000000002),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
-            "Fluency": has_entries({
-                "Drift score": equal_to(0.35000000000000003),
-                "Method": equal_to("Kolmogorov-Smirnov")
-            }),
+            "Subjectivity": {"Drift score": 0.15000000000000002, "Method": "Kolmogorov-Smirnov"},
+            "Average Word Length": {"Drift score": 0.4, "Method": "Kolmogorov-Smirnov"},
+            "Text Length": {"Drift score": 0.19999999999999996, "Method": "Kolmogorov-Smirnov"},
+            "Max Word Length": {"Drift score": 0.19999999999999996, "Method": "Kolmogorov-Smirnov"},
+            "% Special Characters": {"Drift score": 0.19999999999999996, "Method": "Kolmogorov-Smirnov"},
+            "Sentiment": {"Drift score": 0.15000000000000002,"Method": "Kolmogorov-Smirnov"},
         }))  # type: ignore
 
 

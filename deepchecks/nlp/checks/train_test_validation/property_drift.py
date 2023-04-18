@@ -135,6 +135,7 @@ class PropertyDrift(TrainTestCheck):
         self.random_state = random_state
 
     def run_logic(self, context: Context) -> CheckResult:
+        """Run check."""
         train = t.cast(TextData, context.train)
         test = t.cast(TextData, context.test)
 
