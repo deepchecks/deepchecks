@@ -193,6 +193,13 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
     classifier = get_transformer_pipeline('formality', model_name, device=device)
     return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
 
+def lexical_density(raw_text: Sequence[str]) -> List[str]:
+    """Return list of floats of lexical density."""
+    return [set(textblob.TextBlob(text).words) * 100 /textblob.TextBlob(text).words for text in raw_text]
+
+def noun_count(raw_text: Sequence[str]) -> List[str]:
+    """Returns list of integers of number of nouns in the text"""
+    return [word for text in raw_text for (word, tag) in textblob.TextBlob(text).tags if tag.startswith("N")]
 
 DEFAULT_PROPERTIES = (
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
@@ -204,7 +211,9 @@ DEFAULT_PROPERTIES = (
     {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
     {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
     {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
-    {'name': 'Formality', 'method': formality, 'output_type': 'numeric'}
+    {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
+    {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
+    {'name': 'Noun Count', 'method': noun_count, 'output_type': 'numeric'},
 )
 
 LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language']
