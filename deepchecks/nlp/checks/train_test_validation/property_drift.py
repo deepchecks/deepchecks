@@ -12,6 +12,7 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote, drift_condition
 from deepchecks.tabular._shared_docs import docstrings
 
+__all__ = ["PropertyDrift"]
 
 # TODO: 
 # refactor, seperate general drift logic into seperate class/module and use it with drift checks
@@ -145,8 +146,8 @@ class PropertyDrift(TrainTestCheck):
 
         for column_name in columns:
             score, method, display = calc_drift_and_plot(
-                train_column=train_properties.data[column_name],
-                test_column=test_properties.data[column_name],
+                train_column=train_properties[column_name],
+                test_column=test_properties[column_name],
                 value_name=column_name,
                 column_type=(
                     'categorical' 

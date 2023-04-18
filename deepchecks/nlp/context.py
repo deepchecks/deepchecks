@@ -431,7 +431,7 @@ class Context(BaseContext):
                 'TextData.calculate_default_properties to add the default deepchecks properties.')
 
     def get_scorers(self,
-                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
+                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str], None] = None,
                     use_avg_defaults=True) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers if provided or default scorers otherwise.
 
