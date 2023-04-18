@@ -29,12 +29,3 @@ Model Evaluation
     :glob:
 
     nlp/model_evaluation/plot_*
-
-Custom Checks
-----------------
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    nlp/custom/plot_*

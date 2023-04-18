@@ -30,11 +30,3 @@ Model Evaluation
 
     tabular/model_evaluation/plot_*
 
-Custom Checks
-----------------
-
-.. toctree::
-    :maxdepth: 1
-    :glob:
-
-    tabular/custom/plot_*

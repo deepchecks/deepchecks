@@ -131,22 +131,18 @@ sphinx_gallery_conf = {
     "examples_dirs": [
         "checks/vision",
         "checks/tabular",
-        "user-guide/tabular/tutorials",
-        "user-guide/vision/tutorials",
-        "user-guide/tabular/quickstarts",
-        "user-guide/nlp/quickstarts",
-        "user-guide/general/customizations",
-        "user-guide/general/exporting_results",
+        "checks/nlp",
+        "tabular/tutorials",
+        "vision/tutorials",
+        "nlp/tutorials",
     ],  # path to your example scripts
     "gallery_dirs": [
         "checks_gallery/vision",
         "checks_gallery/tabular",
-        "user-guide/tabular/auto_tutorials",
-        "user-guide/vision/auto_tutorials",
-        "user-guide/tabular/auto_quickstarts",
-        "user-guide/nlp/auto_quickstarts",
-        "user-guide/general/customizations/examples",
-        "user-guide/general/exporting_results/examples",
+        "checks_gallery/nlp",
+        "tabular/auto_tutorials",
+        "vision/auto_tutorials",
+        "nlp/auto_tutorials",
     ], # path to where to save gallery generated output
     "image_scrapers": (
         "matplotlib",
@@ -249,7 +245,7 @@ autosummary_context = {
     'getcwd': os.getcwd
 }
 
-# TODO: explaine
+# TODO: explain
 autosummary_filename_map = {
     "deepchecks.tabular.checks": "../deepchecks.tabular.checks",
     "deepchecks.vision.checks": "../deepchecks.vision.checks",
