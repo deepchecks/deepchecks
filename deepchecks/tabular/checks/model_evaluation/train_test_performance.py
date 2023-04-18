@@ -10,7 +10,7 @@
 #
 """Module containing the train test performance check."""
 from numbers import Number
-from typing import Callable, List, Mapping, TypeVar, Union, cast
+from typing import Callable, Dict, List, Mapping, TypeVar, Union, cast
 
 import pandas as pd
 import plotly.express as px
@@ -18,9 +18,10 @@ import plotly.express as px
 from deepchecks.core import CheckResult
 from deepchecks.core.checks import CheckConfig
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
+from deepchecks.utils.abstracts.train_test_performace import TrainTestPerformanceAbstract
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
-from deepchecks.utils.abstracts.train_test_performace import TrainTestPerformanceAbstract
 
 __all__ = ['TrainTestPerformance']
 
@@ -85,6 +86,10 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         self.scorers = scorers
         self.n_samples = n_samples
         self.random_state = random_state
+
+    @classmethod
+    def _default_per_class_scorers(cls) -> Dict[str, str]:
+        return MULTICLASS_SCORERS_NON_AVERAGE
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""

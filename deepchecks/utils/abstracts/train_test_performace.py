@@ -9,16 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the train test performance check."""
-import typing as t
 import abc
+import typing as t
 
 from typing_extensions import Self
 
 from deepchecks.core.check_utils.class_performance_utils import (
-    get_condition_class_performance_imbalance_ratio_less_than, 
-    get_condition_test_performance_greater_than,
-    get_condition_train_test_relative_degradation_less_than
-)
+    get_condition_class_performance_imbalance_ratio_less_than, get_condition_test_performance_greater_than,
+    get_condition_train_test_relative_degradation_less_than)
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['TrainTestPerformanceAbstract']
@@ -29,7 +27,7 @@ class TrainTestPerformanceAbstract:
 
     @classmethod
     @abc.abstractmethod
-    def _default_per_class_scorers(cls) -> t.Sequence[str]:
+    def _default_per_class_scorers(cls) -> t.Mapping[str, str]:
         raise NotImplementedError()
 
     def add_condition_test_performance_greater_than(self: Self, min_score: float) -> Self:

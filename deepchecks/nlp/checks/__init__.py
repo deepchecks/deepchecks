@@ -12,7 +12,8 @@
 
 from deepchecks.nlp.checks.data_integrity import PropertyLabelCorrelation, TextPropertyOutliers
 from deepchecks.nlp.checks.model_evaluation import (ConfusionMatrixReport, MetadataSegmentsPerformance, PredictionDrift,
-                                                    PropertySegmentsPerformance, SingleDatasetPerformance, TrainTestPerformance)
+                                                    PropertySegmentsPerformance, SingleDatasetPerformance,
+                                                    TrainTestPerformance)
 from deepchecks.nlp.checks.train_test_validation import LabelDrift, PropertyDrift
 
 __all__ = [

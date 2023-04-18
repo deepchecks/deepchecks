@@ -1,5 +1,6 @@
-import typing as t
 import textwrap
+import typing as t
+
 import pandas as pd
 
 from deepchecks.core import CheckResult
@@ -7,14 +8,14 @@ from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.base_checks import TrainTestCheck
 from deepchecks.nlp.context import Context
 from deepchecks.nlp.text_data import TextData
-from deepchecks.utils.typing import Hashable
-from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote, drift_condition
 from deepchecks.tabular._shared_docs import docstrings
+from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
+from deepchecks.utils.typing import Hashable
 
 __all__ = ["PropertyDrift"]
 
-# TODO: 
+# TODO:
 # refactor, seperate general drift logic into seperate class/module and use it with drift checks
 @docstrings
 class PropertyDrift(TrainTestCheck):
@@ -88,7 +89,7 @@ class PropertyDrift(TrainTestCheck):
     """
 
     def __init__(
-        self, 
+        self,
         properties: t.Union[t.Hashable, t.List[Hashable], None] = None,
         ignore_properties: t.Union[Hashable, t.List[Hashable], None] = None,
         n_top_properties: int = 5,
@@ -122,7 +123,7 @@ class PropertyDrift(TrainTestCheck):
         self.min_samples = min_samples
         self.n_samples = n_samples
         self.random_state = random_state
-    
+
     def run_logic(self, context: Context) -> CheckResult:
         train = t.cast(TextData, context.train)
         test = t.cast(TextData, context.test)
@@ -150,8 +151,8 @@ class PropertyDrift(TrainTestCheck):
                 test_column=test_properties[column_name],
                 value_name=column_name,
                 column_type=(
-                    'categorical' 
-                    if column_name in cat_columns 
+                    'categorical'
+                    if column_name in cat_columns
                     else 'numerical'
                 ),
                 plot_title=f"Property {column_name}",
@@ -178,7 +179,7 @@ class PropertyDrift(TrainTestCheck):
                 'Drift score': score,
                 'Method': method,
             }
-        
+
         if len(not_enough_samples) == len(results.keys()):
             raise NotEnoughSamplesError(
                 f'Not enough samples to calculate drift score. Minimum {self.min_samples} samples required. '
@@ -199,7 +200,7 @@ class PropertyDrift(TrainTestCheck):
                 </span>
                 """),
                 get_drift_plot_sidenote(
-                    self.max_num_categories_for_display, 
+                    self.max_num_categories_for_display,
                     self.show_categories_by
                 )
             ]
@@ -218,13 +219,13 @@ class PropertyDrift(TrainTestCheck):
             displays = None
 
         return CheckResult(
-            value=results, 
-            display=displays, 
+            value=results,
+            display=displays,
             header='Properties Drift'
         )
 
     def add_condition_drift_score_less_than(
-        self, 
+        self,
         max_allowed_categorical_score: float = 0.2,
         max_allowed_numeric_score: float = 0.2,
         allowed_num_features_exceeding_threshold: int = 0
