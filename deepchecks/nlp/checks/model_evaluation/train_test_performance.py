@@ -166,9 +166,9 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
             figures = None
         else:
             display_df = results_df.replace({
-                "Dataset": {
-                    DEFAULT_DATASET_NAMES[0]: train_dataset.name or "Train",
-                    DEFAULT_DATASET_NAMES[1]: test_dataset.name or "Test"
+                'Dataset': {
+                    DEFAULT_DATASET_NAMES[0]: train_dataset.name or 'Train',
+                    DEFAULT_DATASET_NAMES[1]: test_dataset.name or 'Test'
                 }
             })
 

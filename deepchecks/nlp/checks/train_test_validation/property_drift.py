@@ -1,8 +1,6 @@
 import textwrap
 import typing as t
 
-import pandas as pd
-
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.base_checks import TrainTestCheck
@@ -13,10 +11,11 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.utils.typing import Hashable
 
-__all__ = ["PropertyDrift"]
+__all__ = ['PropertyDrift']
+
 
 # TODO:
-# refactor, seperate general drift logic into seperate class/module and use it with drift checks
+# refactor, separate general drift logic into separate class/module and use it with drift checks
 @docstrings
 class PropertyDrift(TrainTestCheck):
     """
@@ -155,7 +154,7 @@ class PropertyDrift(TrainTestCheck):
                     if column_name in cat_columns
                     else 'numerical'
                 ),
-                plot_title=f"Property {column_name}",
+                plot_title=f'Property {column_name}',
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 min_category_size_ratio=self.min_category_size_ratio,
@@ -166,7 +165,7 @@ class PropertyDrift(TrainTestCheck):
                 ignore_na=self.ignore_na,
                 min_samples=self.min_samples,
                 with_display=context.with_display,
-                dataset_names=(train.name or "Train", test.name or "Test")
+                dataset_names=(train.name or 'Train', test.name or 'Test')
             )
 
             if isinstance(score, str) and score == 'not_enough_samples':
@@ -195,8 +194,8 @@ class PropertyDrift(TrainTestCheck):
                 textwrap.dedent(f"""
                 <span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the properties, sorted
-                by drift score and showing only the top {self.n_top_properties} properties.
+                and train distributions.<br> The check shows the drift score and distributions for the properties,
+                sorted by drift score and showing only the top {self.n_top_properties} properties.
                 </span>
                 """),
                 get_drift_plot_sidenote(
