@@ -164,7 +164,7 @@ class WeakSegmentAbstract:
                                                              tuple(filters[feature1]), feature2,
                                                              tuple(filters[feature2]), data_size]
 
-        return weak_segments.drop_duplicates().sort_values(f'{scorer.name} score')
+        return weak_segments.drop_duplicates().sort_values(f'{scorer.name} score').reset_index(drop=True)
 
     def _find_weak_segment(self, dummy_model, dataset, features_for_segment, scorer: DeepcheckScorer, loss_per_sample):
         """Find weak segment based on scorer for specified features."""

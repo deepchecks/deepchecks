@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Weak Segments Performance
+Property Segments Performance
 *************************
 
-This notebook provides an overview for using and understanding the weak segment performance check.
+This notebook provides an overview for using and understanding the property segment performance check.
 
 **Structure:**
 
@@ -16,8 +16,9 @@ This notebook provides an overview for using and understanding the weak segment 
 What is the purpose of the check?
 ==================================
 
-The check is designed to help you easily identify the model's weakest segments in the data provided. In addition,
-it enables to provide a sublist of the Dataset's features, thus limiting the check to search in
+The check is designed to help you easily identify the model's weakest segments based on the provided
+:func:`properties <deepchecks.nlp.text_data.TextData.set_properties>`. In addition,
+it enables to provide a sublist of the metadata columns, thus limiting the check to search in
 interesting subspaces.
 
 Automatically detecting weak segments
@@ -42,11 +43,12 @@ The check contains several steps:
 # Generate data & model
 # =====================
 
-from deepchecks.tabular.datasets.classification.phishing import (
-    load_data, load_fitted_model)
+from deepchecks.nlp.datasets.classification.tweet_emotion import load_data, load_precalculated_predictions
 
-_, test_ds = load_data()
-model = load_fitted_model()
+_, test_dataset = load_data(data_format='TextData')
+_, test_probas = load_precalculated_predictions(pred_format='probabilities')
+
+test_dataset.properties.head(3)
 
 #%%
 # Run the check
@@ -55,12 +57,11 @@ model = load_fitted_model()
 # The check has several key parameters (that are all optional) that affect the behavior of the
 # check and especially its output.
 #
-# ``columns / ignore_columns``: Controls which columns should be searched for weak segments. By default,
-# a heuristic is used to determine which columns to use based solely on their feature importance.
+# ``properties / ignore_properties``: Controls which properties should be searched for weak segments. By default,
+# uses all properties data provided.
 #
 # ``alternative_scorer``: Determines the metric to be used as the performance measurement of the model on different
 # segments. It is important to select a metric that is relevant to the data domain and task you are performing.
-# By default, the check uses Neg RMSE for regression tasks and Accuracy for classification tasks.
 # For additional information on scorers and how to use them see
 # :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
 #
@@ -74,15 +75,13 @@ model = load_fitted_model()
 #
 # see :class:`API reference <deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance>` for more details.
 
-from deepchecks.tabular.checks import WeakSegmentsPerformance
+from deepchecks.nlp.checks import PropertySegmentsPerformance
 from sklearn.metrics import make_scorer, f1_score
 
 scorer = {'f1': make_scorer(f1_score, average='micro')}
-check = WeakSegmentsPerformance(columns=['urlLength', 'numTitles', 'ext', 'entropy'],
-                                alternative_scorer=scorer,
-                                segment_minimum_size_ratio=0.03,
-                                categorical_aggregation_threshold=0.05)
-result = check.run(test_ds, model)
+check = PropertySegmentsPerformance(alternative_scorer=scorer,
+                                    segment_minimum_size_ratio=0.03)
+result = check.run(test_dataset, probabilities=test_probas)
 result.show()
 
 #%%
@@ -103,11 +102,11 @@ result.value['weak_segments_list'].head(3)
 #
 # We can add a condition that will validate the model's performance on the weakest segment detected is above a certain
 # threshold. A scenario where this can be useful is when we want to make sure that the model is not under performing
-# on a subset of the data that is of interest to us, for example for specific age or gender groups.
+# on a subset of the data that is of interest to us.
 
 # Let's add a condition and re-run the check:
 
-check = WeakSegmentsPerformance(alternative_scorer=scorer, segment_minimum_size_ratio=0.03)
+check = PropertySegmentsPerformance(alternative_scorer=scorer, segment_minimum_size_ratio=0.03)
 check.add_condition_segments_relative_performance_greater_than(0.1)
-result = check.run(test_ds, model)
+result = check.run(test_dataset, probabilities=test_probas)
 result.show(show_additional_outputs=False)
