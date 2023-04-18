@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the train test performance check."""
+"""Module containing the Train-Test Performance check."""
 import typing as t
 from numbers import Number
 
