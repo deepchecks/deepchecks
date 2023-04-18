@@ -3,7 +3,7 @@
 Property Segments Performance
 *************************
 
-This notebook provides an overview for using and understanding the metadata segment performance check.
+This notebook provides an overview for using and understanding the property segment performance check.
 
 **Structure:**
 
@@ -35,8 +35,9 @@ The check contains several steps:
 #. We train multiple simple tree based models, each one is trained using exactly two
    features (out of the ones selected above) to predict the per sample error calculated before.
 
-#. We convert each of the leafs in each of the trees into a segment and calculate the segment's performance. For the
-   weakest segments detected we also calculate the model's performance on data segments surrounding them.
+#. We extract the corresponding data samples for each of the leaves in each of the trees (data segments) and calculate
+   the model performance on them. For the weakest data segments detected we also calculate the model's
+   performance on data segments surrounding them.
 """
 #%%
 # Generate data & model
@@ -61,9 +62,12 @@ test_dataset.properties.head(3)
 #
 # ``alternative_scorer``: Determines the metric to be used as the performance measurement of the model on different
 # segments. It is important to select a metric that is relevant to the data domain and task you are performing.
+# For additional information on scorers and how to use them see
+# :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
 #
-# ``segment_minimum_size_ratio``: Determines the minimum size of segments that are of interest. The check is tuned
-# to find the weakest segment regardless of the segment size and so it is recommended to try different configurations
+# ``segment_minimum_size_ratio``: Determines the minimum size of segments that are of interest. The check will
+# return data segments that contain at least this fraction of the total data samples. It is recommended to
+# try different configurations
 # of this parameter as larger segments can be of interest even the model performance on them is superior.
 #
 # ``categorical_aggregation_threshold``: By default the check will combine rare categories into a single category called
@@ -87,7 +91,7 @@ result.show()
 # We see in the results that the check indeed found several segments on which the model performance is below average.
 # In the heatmap display we can see model performance on the weakest segments and their environment with respect to the
 # two features that are relevant to the segment. In order to get the full list of weak segments found we will inspect
-# the result.value attribute.
+# the ``result.value`` attribute. Shown below are the 3 segments with the worst performance.
 
 
 result.value['weak_segments_list'].head(3)
@@ -96,8 +100,9 @@ result.value['weak_segments_list'].head(3)
 # Define a condition
 # ==================
 #
-# We can define on our check a condition that will validate that the model performance on the weakest segment detected
-# is greater than a specified ratio of the average model performance of the entire dataset.
+# We can add a condition that will validate the model's performance on the weakest segment detected is above a certain
+# threshold. A scenario where this can be useful is when we want to make sure that the model is not under performing
+# on a subset of the data that is of interest to us.
 
 # Let's add a condition and re-run the check:
 
