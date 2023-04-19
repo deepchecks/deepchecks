@@ -129,7 +129,7 @@ class TestTokenClassification:
         }))  # type: ignore
 
 
-class TestLabelClassification:
+class TestMultiLabelClassification:
 
     def generate_dataset(self):
         return TextData(

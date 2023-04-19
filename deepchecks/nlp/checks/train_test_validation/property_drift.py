@@ -17,7 +17,6 @@ from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.base_checks import TrainTestCheck
 from deepchecks.nlp.context import Context
 from deepchecks.nlp.text_data import TextData
-from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.utils.typing import Hashable
@@ -27,7 +26,6 @@ __all__ = ['PropertyDrift']
 
 # TODO:
 # refactor, separate general drift logic into separate class/module and use it with drift checks
-@docstrings
 class PropertyDrift(TrainTestCheck):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
@@ -86,9 +84,7 @@ class PropertyDrift(TrainTestCheck):
     ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    aggregation_method: Optional[str], default: 'l3_weighted'
-        {feature_aggregation_method_argument:2*indent}
-    min_samples : int , default: 10
+    min_samples : int , default: 100
         Minimum number of samples required to calculate the drift score. If there are not enough samples for either
         train or test, the check will return None for that feature. If there are not enough samples for all properties,
         the check will raise a ``NotEnoughSamplesError`` exception.
@@ -111,8 +107,7 @@ class PropertyDrift(TrainTestCheck):
         numerical_drift_method: str = 'KS',
         categorical_drift_method: str = 'cramers_v',
         ignore_na: bool = True,
-        aggregation_method: t.Optional[str] = 'l3_weighted',
-        min_samples: int = 10,
+        min_samples: int = 100,
         n_samples: int = 100_000,
         random_state: int = 42,
         **kwargs
@@ -129,7 +124,6 @@ class PropertyDrift(TrainTestCheck):
         self.numerical_drift_method = numerical_drift_method
         self.categorical_drift_method = categorical_drift_method
         self.ignore_na = ignore_na
-        self.aggregation_method = aggregation_method
         self.min_samples = min_samples
         self.n_samples = n_samples
         self.random_state = random_state

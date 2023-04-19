@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing input validation functions."""
-from typing import List, NamedTuple, Optional, Sequence
+from typing import List, NamedTuple, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -146,3 +146,49 @@ def validate_length_and_calculate_column_types(
         categorical_columns=list(categorical_columns),
         numerical_columns=numeric_features
     )
+
+
+class DataframesDifference(NamedTuple):
+    only_in_train: Tuple[str, ...]
+    only_in_test: Tuple[str, ...]
+    types_mismatch: Tuple[str, ...]
+
+
+def dataframes_difference(
+    train: pd.DataFrame,
+    test: pd.DataFrame,
+    train_categorical_columns: Sequence[str],
+    test_categorical_columns: Sequence[str]
+) -> Optional[DataframesDifference]:
+    """Compare two dataframes and return a difference."""
+    train_columns = set(train.columns)
+    test_columns = set(test.columns)
+    only_in_train = train_columns.difference(test_columns)
+    only_in_test = test_columns.difference(train_columns)
+    types_mismatch = []
+
+    for column in train_columns.intersection(test_columns):
+        is_cat_in_both_dataframes = (
+            column in train_categorical_columns
+            and column in test_categorical_columns
+        )
+
+        if is_cat_in_both_dataframes:
+            continue
+        if not is_cat_in_both_dataframes:
+            continue
+
+        types_mismatch.append(column)
+
+    if only_in_train or only_in_test or types_mismatch:
+        return DataframesDifference(
+            only_in_train=tuple(only_in_train),
+            only_in_test=tuple(only_in_test),
+            types_mismatch=tuple(types_mismatch)
+        )
+
+
+
+
+
+

@@ -326,14 +326,22 @@ class Context(BaseContext):
             test_dataset = TextData.cast_to_dataset(test_dataset)
             if test_dataset.name is None:
                 test_dataset.name = 'Test'
+
         # If both dataset, validate they fit each other
         if train_dataset and test_dataset:
-            if test_dataset.has_label() and train_dataset.has_label() and not \
-                    train_dataset.validate_textdata_compatibility(test_dataset):
+            if (
+                test_dataset.has_label()
+                and train_dataset.has_label()
+                and not train_dataset.validate_textdata_compatibility(test_dataset)
+            ):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
+
+            train_dataset.properties
+
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')
+
         if model_classes is not None:
             if (not is_sequence_not_str(model_classes)) or len(model_classes) == 0:
                 raise DeepchecksValueError('model_classes must be a non-empty sequence')
