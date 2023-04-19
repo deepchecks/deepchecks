@@ -15,7 +15,8 @@ This section gives an overview about how to work with deepchecks: when to use it
 
 
 .. toctree::
-    :maxdepth: 2
+    :titlesonly:
+    :maxdepth: 0
     :caption: Concepts
 
     concepts/when_should_you_use
@@ -29,7 +30,8 @@ The logic explained in the guides is used throughout the package in a variety of
 
 
 .. toctree::
-    :maxdepth: 2
+    :titlesonly:
+    :maxdepth: 0
     :caption: Guides
 
     guides/drift_guide
@@ -43,10 +45,12 @@ to your ci/cd process, different ways to save the check and suite results,
 how to customize checks, suites, metrics, etc.
 
 .. toctree::
-    :maxdepth: 2
+    :titlesonly:
+    :maxdepth: 0
     :caption: Usage
 
     usage/ci_cd
+    usage/customizations/auto_examples/index
     usage/showing_results
     usage/export_save_results
 
@@ -61,7 +65,8 @@ Of course, deepchecks can easily be integrated with many additional tools, here 
 examples and code snippets for inspiration. Contributions to this docs section are very welcome!
 
 .. toctree::
-    :maxdepth: 2
+    :titlesonly:
+    :maxdepth: 0
     :caption: Integrations
 
     integrations/spark_databricks
@@ -71,4 +76,4 @@ examples and code snippets for inspiration. Contributions to this docs section a
     integrations/airflow
     integrations/cml
     integrations/junit
-    usage/exporting_results/examples/plot_exports_output_to_wandb
+    usage/exporting_results/auto_examples/plot_exports_output_to_wandb

@@ -18,10 +18,10 @@ Tutorials
 This section contain tutorials for different use cases, and how to use deepchecks in your workflow.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
     :caption: Tutorials
 
-    auto_tutorials/index
+    auto_tutorials/quickstarts/index
 
 Guides
 ------
@@ -29,10 +29,11 @@ Guides
 This section contain in-depth guides on different aspects and components of the deepchecks nlp sub package.
 
 .. toctree::
-    :maxdepth: 2
+    :titlesonly:
+    :maxdepth: 0
     :caption: Guides
 
-    auto_guides/index
+    guides/supported_tasks
 
 Checks Gallery
 --------------
@@ -40,8 +41,11 @@ Checks Gallery
 Below in the full list of checks and suites available in the deepchecks nlp sub package.
 
 .. toctree::
-    :maxdepth: 3
-    :hidden:
+    :titlesonly:
+    :maxdepth: 0
+    :caption: Checks Gallery
 
-    nlp/index
+    auto_checks/data_integrity/index
+    auto_checks/train_test_validation/index
+    auto_checks/model_evaluation/index
 

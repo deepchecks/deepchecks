@@ -89,7 +89,7 @@ class AntsBeesDataset(torchvision.datasets.ImageFolder):
         else:
             raise RuntimeError("Only PIL.Image and CV2 loaders currently supported!")
 
-data_dir = '../../user-guide/vision/tutorials/hymenoptera_data'
+data_dir = '../../vision/tutorials/hymenoptera_data'
 # Just normalization for validation
 data_transforms = A.Compose([
     A.Resize(height=256, width=256),

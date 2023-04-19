@@ -129,20 +129,43 @@ imgmath_image_format = 'svg'
 
 sphinx_gallery_conf = {
     "examples_dirs": [
-        "checks/vision",
-        "checks/tabular",
-        "checks/nlp",
-        "tabular/tutorials",
-        "vision/tutorials",
-        "nlp/tutorials",
+        "general/usage/customizations",
+        "general/usage/exporting_results",
+        "checks/tabular/data_integrity",
+        "checks/tabular/train_test_validation",
+        "checks/tabular/model_evaluation",
+        "tabular/tutorials/quickstarts",
+        "tabular/tutorials/other",
+        "checks/vision/data_integrity",
+        "checks/vision/train_test_validation",
+        "checks/vision/model_evaluation",
+        "vision/tutorials/quickstarts",
+        "vision/tutorials/other",
+        "checks/nlp/data_integrity",
+        "checks/nlp/train_test_validation",
+        "checks/nlp/model_evaluation",
+        "nlp/tutorials/quickstarts",
+        "nlp/tutorials/other"
+
     ],  # path to your example scripts
     "gallery_dirs": [
-        "checks_gallery/vision",
-        "checks_gallery/tabular",
-        "checks_gallery/nlp",
-        "tabular/auto_tutorials",
-        "vision/auto_tutorials",
-        "nlp/auto_tutorials",
+        "general/usage/customizations/auto_examples",
+        "general/usage/exporting_results/auto_examples",
+        "tabular/auto_checks/data_integrity",
+        "tabular/auto_checks/train_test_validation",
+        "tabular/auto_checks/model_evaluation",
+        "tabular/auto_tutorials/quickstarts",
+        "tabular/auto_tutorials/other",
+        "vision/auto_checks/data_integrity",
+        "vision/auto_checks/train_test_validation",
+        "vision/auto_checks/model_evaluation",
+        "vision/auto_tutorials/quickstarts",
+        "vision/auto_tutorials/other",
+        "nlp/auto_checks/data_integrity",
+        "nlp/auto_checks/train_test_validation",
+        "nlp/auto_checks/model_evaluation",
+        "nlp/auto_tutorials/quickstarts",
+        "nlp/auto_tutorials/other"
     ], # path to where to save gallery generated output
     "image_scrapers": (
         "matplotlib",

@@ -152,8 +152,8 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
 
 # Download and load the datasets
-train_ds = CocoInstanceSegmentationDataset.load_or_download(Path('../../user-guide/vision/tutorials'), train=True)
-test_ds = CocoInstanceSegmentationDataset.load_or_download(Path('../../user-guide/vision/tutorials'), train=False)
+train_ds = CocoInstanceSegmentationDataset.load_or_download(Path('..'), train=True)
+test_ds = CocoInstanceSegmentationDataset.load_or_download(Path('..'), train=False)
 
 # %%
 # Visualizing that we loaded our datasets correctly:

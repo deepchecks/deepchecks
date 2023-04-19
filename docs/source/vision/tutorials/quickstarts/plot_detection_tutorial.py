@@ -60,9 +60,9 @@ import urllib.request
 import zipfile
 
 url = 'https://figshare.com/ndownloader/files/34488599'
-urllib.request.urlretrieve(url, '../../vision/tutorials/tomato-detection.zip')
+urllib.request.urlretrieve(url, 'tomato-detection.zip')
 
-with zipfile.ZipFile('../../vision/tutorials/tomato-detection.zip', 'r') as zip_ref:
+with zipfile.ZipFile('tomato-detection.zip', 'r') as zip_ref:
     zip_ref.extractall('.')
 
 class TomatoDataset(Dataset):
