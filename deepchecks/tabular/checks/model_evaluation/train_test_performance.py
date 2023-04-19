@@ -85,10 +85,6 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         self.n_samples = n_samples
         self.random_state = random_state
 
-    @classmethod
-    def _default_per_class_scorers(cls) -> Dict[str, str]:
-        return MULTICLASS_SCORERS_NON_AVERAGE
-
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)

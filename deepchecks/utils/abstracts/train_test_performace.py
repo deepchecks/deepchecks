@@ -30,11 +30,6 @@ class TrainTestPerformanceAbstract:
 
     add_condition: t.Callable[..., t.Any]
 
-    @classmethod
-    @abc.abstractmethod
-    def _default_per_class_scorers(cls) -> t.Mapping[str, str]:
-        raise NotImplementedError()
-
     def _prepare_display(
         self,
         results: pd.DataFrame,
@@ -109,7 +104,7 @@ class TrainTestPerformanceAbstract:
     def add_condition_class_performance_imbalance_ratio_less_than(
         self: Self,
         threshold: float = 0.3,
-        score: t.Optional[str] = None
+        score: str
     ) -> Self:
         """Add condition - relative ratio difference between highest-class and lowest-class is less than threshold.
 
@@ -117,7 +112,7 @@ class TrainTestPerformanceAbstract:
         ----------
         threshold : float , default: 0.3
             ratio difference threshold
-        score : str , default: None
+        score : str
             limit score for condition
 
         Returns
@@ -130,9 +125,6 @@ class TrainTestPerformanceAbstract:
         DeepchecksValueError
             if unknown score function name were passed.
         """
-        if score is None:
-            score = next(iter(self._default_per_class_scorers()))
-
         name = f"Relative ratio difference between labels '{score}' score is less than {format_percent(threshold)}"
         condition = get_condition_class_performance_imbalance_ratio_less_than(threshold=threshold, score=score)
         return self.add_condition(name=name, condition_func=condition)
