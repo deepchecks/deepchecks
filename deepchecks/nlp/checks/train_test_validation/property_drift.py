@@ -144,23 +144,18 @@ class PropertyDrift(TrainTestCheck):
             ignore_columns=self.ignore_properties
         )
 
-        columns = set(train_properties.columns).intersection(set(test_properties.columns))
-        cat_columns = set([*train.categorical_properties, *test.categorical_properties])
+        common_properties = context.common_datasets_properties
         results = {}
         plots = {}
         not_enough_samples = []
 
-        for column_name in columns:
+        for property_name, property_kind in common_properties:
             score, method, display = calc_drift_and_plot(
-                train_column=train_properties[column_name],
-                test_column=test_properties[column_name],
-                value_name=column_name,
-                column_type=(
-                    'categorical'
-                    if column_name in cat_columns
-                    else 'numerical'
-                ),
-                plot_title=f'Property {column_name}',
+                train_column=train_properties[property_name],
+                test_column=test_properties[property_name],
+                value_name=property_name,
+                column_type=property_kind,
+                plot_title=property_name,
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 min_category_size_ratio=self.min_category_size_ratio,
@@ -175,12 +170,12 @@ class PropertyDrift(TrainTestCheck):
             )
 
             if isinstance(score, str) and score == 'not_enough_samples':
-                not_enough_samples.append(column_name)
+                not_enough_samples.append(property_name)
                 score = None
             else:
-                plots[column_name] = display
+                plots[property_name] = display
 
-            results[column_name] = {
+            results[property_name] = {
                 'Drift score': score,
                 'Method': method,
             }

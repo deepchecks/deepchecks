@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing input validation functions."""
-from typing import List, NamedTuple, Optional, Sequence, Tuple
+from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
 import numpy as np
 import pandas as pd
@@ -152,6 +152,7 @@ class DataframesDifference(NamedTuple):
     only_in_train: Tuple[str, ...]
     only_in_test: Tuple[str, ...]
     types_mismatch: Tuple[str, ...]
+    common: Dict[str, str]
 
 
 def dataframes_difference(
@@ -161,11 +162,12 @@ def dataframes_difference(
     test_categorical_columns: Sequence[str]
 ) -> Optional[DataframesDifference]:
     """Compare two dataframes and return a difference."""
-    train_columns = set(train.columns)
-    test_columns = set(test.columns)
+    train_columns = cast(Set[str], set(train.columns))
+    test_columns = cast(Set[str], set(test.columns))
     only_in_train = train_columns.difference(test_columns)
     only_in_test = test_columns.difference(train_columns)
-    types_mismatch = []
+    common_columns = train_columns.intersection(test_columns)
+    types_mismatch: Set[str] = set()
 
     for column in train_columns.intersection(test_columns):
         is_cat_in_both_dataframes = (
@@ -178,13 +180,21 @@ def dataframes_difference(
         if not is_cat_in_both_dataframes:
             continue
 
-        types_mismatch.append(column)
+        types_mismatch.add(column)
 
     if only_in_train or only_in_test or types_mismatch:
         return DataframesDifference(
             only_in_train=tuple(only_in_train),
             only_in_test=tuple(only_in_test),
-            types_mismatch=tuple(types_mismatch)
+            types_mismatch=tuple(types_mismatch),
+            common={
+                column: (
+                    "categorical"
+                    if column in train_categorical_columns
+                    else "numerical"
+                )
+                for column in common_columns.difference(types_mismatch)
+            }
         )
 
 

@@ -18,6 +18,7 @@ import numpy as np
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
+from deepchecks.nlp.input_validations import dataframes_difference
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
@@ -303,6 +304,8 @@ class Context(BaseContext):
         A seed to set for pseudo-random functions , primarily sampling.
     """
 
+    _common_datasets_properties: t.Optional[t.Dict[str, str]] = None
+
     def __init__(
             self,
             train_dataset: t.Union[TextData, None] = None,
@@ -336,7 +339,30 @@ class Context(BaseContext):
             ):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
 
-            train_dataset.properties
+            if (
+                train_dataset._properties is not None
+                and train_dataset._cat_properties is not None
+                and test_dataset._properties is not None
+                and test_dataset._cat_properties is not None
+            ):
+                difference = dataframes_difference(
+                    train=train_dataset._properties,
+                    test=test_dataset._properties,
+                    train_categorical_columns=train_dataset._cat_properties,
+                    test_categorical_columns=test_dataset._cat_properties
+                )
+                if difference is not None:
+                    get_logger().warning(
+                        'Train and Test datasets have different properties, '
+                        'only common properties will be used in train-test checks"\n'
+                        'Properties present only in train dataset: %s\n'
+                        'Properties present only in test dataset: %s\n'
+                        'Properties with different types: %s\n',
+                        difference.only_in_train,
+                        difference.only_in_test,
+                        difference.types_mismatch
+                    )
+                    self._common_datasets_properties = difference.common
 
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
@@ -371,6 +397,16 @@ class Context(BaseContext):
         self._validated_model = False
         self._with_display = with_display
         self.random_state = random_state
+
+    @property
+    def common_datasets_properties(self) -> t.Dict[str, str]:
+        """Return common for train and test datasets properties."""
+        if self._common_datasets_properties is None:
+            raise DeepchecksNotSupportedError(
+                'Check is irrelevant without providing train and test '
+                'datasets with precalculated properties'
+            )
+        return dict(self._common_datasets_properties)
 
     @property
     def model(self) -> _DummyModel:
