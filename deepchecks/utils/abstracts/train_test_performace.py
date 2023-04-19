@@ -12,11 +12,14 @@
 import abc
 import typing as t
 
+import pandas as pd
+import plotly.express as px
 from typing_extensions import Self
 
 from deepchecks.core.check_utils.class_performance_utils import (
     get_condition_class_performance_imbalance_ratio_less_than, get_condition_test_performance_greater_than,
     get_condition_train_test_relative_degradation_less_than)
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['TrainTestPerformanceAbstract']
@@ -29,6 +32,54 @@ class TrainTestPerformanceAbstract:
     @abc.abstractmethod
     def _default_per_class_scorers(cls) -> t.Mapping[str, str]:
         raise NotImplementedError()
+
+    def _prepare_display(
+        self,
+        results: pd.DataFrame,
+        train_dataset_name: str,
+        test_dataset_name: str,
+    ):
+        display_df = results.replace({
+            'Dataset': {
+                DEFAULT_DATASET_NAMES[0]: train_dataset_name,
+                DEFAULT_DATASET_NAMES[1]: test_dataset_name
+            }
+        })
+
+        figures = []
+        data_scorers_per_class = display_df[results['Class'].notna()]
+        data_scorers_per_dataset = display_df[results['Class'].isna()].drop(columns=['Class'])
+
+        for data in (data_scorers_per_dataset, data_scorers_per_class):
+            if data.shape[0] == 0:
+                continue
+
+            fig = px.histogram(
+                data,
+                x='Class' if 'Class' in data.columns else 'Dataset',
+                y='Value',
+                color='Dataset',
+                barmode='group',
+                facet_col='Metric',
+                facet_col_spacing=0.05,
+                hover_data=['Number of samples'],
+                color_discrete_map={
+                    train_dataset_name: colors[DEFAULT_DATASET_NAMES[0]],
+                    test_dataset_name: colors[DEFAULT_DATASET_NAMES[1]]
+                },
+            )
+
+            if 'Class' in data.columns:
+                fig.update_xaxes(tickprefix='Class ', tickangle=60)
+
+            figures.append(
+                fig.update_xaxes(title=None, type='category')
+                .update_yaxes(title=None, matches=None)
+                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+            )
+
+        return figures
 
     def add_condition_test_performance_greater_than(self: Self, min_score: float) -> Self:
         """Add condition - metric scores are greater than the threshold.

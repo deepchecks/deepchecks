@@ -131,22 +131,9 @@ class TestTokenClassification:
 
 class TestMultiLabelClassification:
 
-    def generate_dataset(self):
-        return TextData(
-            raw_text=[
-                random.choice(['I think therefore I am', 'I am therefore I think', 'I am'])
-                for _ in range(20)
-            ],
-            label=[
-                random.choice([[0, 0, 1], [1, 1, 0], [0, 1, 0]])
-                for _ in range(20)
-            ],
-            task_type='text_classification'
-        )
-
-    def test_without_drift(self):
+    def test_without_drift(self, dummy_multilabel_dataset: TextData):
         # Arrange
-        train = self.generate_dataset()
+        train = dummy_multilabel_dataset
         train.calculate_default_properties()
         check = PropertyDrift().add_condition_drift_score_less_than()
         # Act

@@ -14,7 +14,6 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
-import plotly.express as px
 
 from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, TrainTestCheck
@@ -22,7 +21,6 @@ from deepchecks.nlp.metric_utils.scorers import infer_on_text_data
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.abstracts.train_test_performace import TrainTestPerformanceAbstract
-from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 
 __all__ = ['TrainTestPerformance']
 
@@ -165,45 +163,11 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         if context.with_display is False:
             figures = None
         else:
-            display_df = results_df.replace({
-                'Dataset': {
-                    DEFAULT_DATASET_NAMES[0]: train_dataset.name or 'Train',
-                    DEFAULT_DATASET_NAMES[1]: test_dataset.name or 'Test'
-                }
-            })
-
-            figures = []
-            data_scorers_per_class = display_df[results_df['Class'].notna()]
-            data_scorers_per_dataset = display_df[results_df['Class'].isna()].drop(columns=['Class'])
-
-            for data in (data_scorers_per_dataset, data_scorers_per_class):
-                if data.shape[0] == 0:
-                    continue
-
-                fig = px.histogram(
-                    data,
-                    x='Class' if 'Class' in data.columns else 'Dataset',
-                    y='Value',
-                    color='Dataset',
-                    barmode='group',
-                    facet_col='Metric',
-                    facet_col_spacing=0.05,
-                    hover_data=['Number of samples'],
-                    color_discrete_map={
-                        train_dataset.name: colors[DEFAULT_DATASET_NAMES[0]],
-                        test_dataset.name: colors[DEFAULT_DATASET_NAMES[1]]
-                    },
-                )
-
-                if 'Class' in data.columns:
-                    fig.update_xaxes(tickprefix='Class ', tickangle=60)
-
-                figures.append(
-                    fig.update_xaxes(title=None, type='category')
-                    .update_yaxes(title=None, matches=None)
-                    .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                    .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
-                )
+            figures = self._prepare_display(
+                results_df,
+                train_dataset.name or 'Train',
+                test_dataset.name or 'Test'
+            )
 
         return CheckResult(
             results_df,

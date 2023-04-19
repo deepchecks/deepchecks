@@ -66,6 +66,21 @@ def text_multilabel_classification_dataset_mock():
                     task_type='text_classification')
 
 
+@pytest.fixture(scope='function')
+def dummy_multilabel_dataset(self):
+    return TextData(
+        raw_text=[
+            random.choice(['I think therefore I am', 'I am therefore I think', 'I am'])
+            for _ in range(20)
+        ],
+        label=[
+            random.choice([[0, 0, 1], [1, 1, 0], [0, 1, 0]])
+            for _ in range(20)
+        ],
+        task_type='text_classification'
+    )
+
+
 def download_nltk_resources():
     """Download nltk resources"""
     nltk_download('movie_reviews', quiet=True)
