@@ -152,15 +152,19 @@ class DataframesDifference(NamedTuple):
     only_in_train: Tuple[str, ...]
     only_in_test: Tuple[str, ...]
     types_mismatch: Tuple[str, ...]
+
+
+class DataframesComparison(NamedTuple):
     common: Dict[str, str]
+    difference: Optional[DataframesDifference]
 
 
-def dataframes_difference(
+def compare_dataframes(
     train: pd.DataFrame,
     test: pd.DataFrame,
     train_categorical_columns: Sequence[str],
     test_categorical_columns: Sequence[str]
-) -> Optional[DataframesDifference]:
+) -> DataframesComparison:
     """Compare two dataframes and return a difference."""
     train_columns = cast(Set[str], set(train.columns))
     test_columns = cast(Set[str], set(test.columns))
@@ -182,20 +186,25 @@ def dataframes_difference(
 
         types_mismatch.add(column)
 
+    common = {
+        column: (
+            "categorical"
+            if column in train_categorical_columns
+            else "numerical"
+        )
+        for column in common_columns.difference(types_mismatch)
+    }
+
     if only_in_train or only_in_test or types_mismatch:
-        return DataframesDifference(
+        difference = DataframesDifference(
             only_in_train=tuple(only_in_train),
             only_in_test=tuple(only_in_test),
             types_mismatch=tuple(types_mismatch),
-            common={
-                column: (
-                    "categorical"
-                    if column in train_categorical_columns
-                    else "numerical"
-                )
-                for column in common_columns.difference(types_mismatch)
-            }
         )
+    else:
+        difference = None
+
+    return DataframesComparison(common, difference)
 
 
 

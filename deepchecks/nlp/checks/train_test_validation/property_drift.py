@@ -9,17 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Property Drift check."""
-import textwrap
 import typing as t
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.base_checks import TrainTestCheck
 from deepchecks.nlp.context import Context
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.abstracts.feature_drift import FeatureDriftAbstract
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['PropertyDrift']
@@ -116,7 +113,7 @@ class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
         super().__init__(**kwargs)
         self.properties = properties
         self.ignore_properties = ignore_properties
-        self.n_top_properties = n_top_properties
+        self.n_top_columns = n_top_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
@@ -128,12 +125,12 @@ class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
         self.min_samples = min_samples
         self.n_samples = n_samples
         self.random_state = random_state
+        self.sort_feature_by = 'drift score'
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         train = t.cast(TextData, context.train)
         test = t.cast(TextData, context.test)
-
         train_properties = select_from_dataframe(
             train.properties,
             columns=self.properties,
@@ -144,81 +141,14 @@ class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
             columns=self.properties,
             ignore_columns=self.ignore_properties
         )
-
-        common_properties = context.common_datasets_properties
-        results = {}
-        plots = {}
-        not_enough_samples = []
-
-        for property_name, property_kind in common_properties:
-            score, method, display = calc_drift_and_plot(
-                train_column=train_properties[property_name],
-                test_column=test_properties[property_name],
-                value_name=property_name,
-                column_type=property_kind,
-                plot_title=property_name,
-                margin_quantile_filter=self.margin_quantile_filter,
-                max_num_categories_for_drift=self.max_num_categories_for_drift,
-                min_category_size_ratio=self.min_category_size_ratio,
-                max_num_categories_for_display=self.max_num_categories_for_display,
-                show_categories_by=self.show_categories_by,
-                numerical_drift_method=self.numerical_drift_method,
-                categorical_drift_method=self.categorical_drift_method,
-                ignore_na=self.ignore_na,
-                min_samples=self.min_samples,
-                with_display=context.with_display,
-                dataset_names=(train.name or 'Train', test.name or 'Test')
-            )
-
-            if isinstance(score, str) and score == 'not_enough_samples':
-                not_enough_samples.append(property_name)
-                score = None
-            else:
-                plots[property_name] = display
-
-            results[property_name] = {
-                'Drift score': score,
-                'Method': method,
-            }
-
-        if len(not_enough_samples) == len(results.keys()):
-            raise NotEnoughSamplesError(
-                f'Not enough samples to calculate drift score. Minimum {self.min_samples} samples required. '
-                'Note that for numerical properties, None values do not count as samples.'
-                'Use the \'min_samples\' parameter to change this requirement.'
-            )
-
-        if not context.with_display:
-            displays = None
-        else:
-            key = lambda column: results[column]['Drift score'] or 0
-            sorted_properties = sorted(results.keys(), key=key, reverse=True)[:self.n_top_properties]
-
-            headnote = [
-                textwrap.dedent(f"""
-                <span>
-                The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the properties,
-                sorted by drift score and showing only the top {self.n_top_properties} properties.
-                </span>
-                """),
-                get_drift_plot_sidenote(
-                    self.max_num_categories_for_display,
-                    self.show_categories_by
-                )
-            ]
-
-            if not_enough_samples:
-                headnote.append(
-                    '<span>The following properties do not have enough samples to calculate drift '
-                    f'score: {not_enough_samples}</span>'
-                )
-
-            displays = [
-                *headnote,
-                *(plots[p] for p in sorted_properties if results[p]['Drift score'] is not None)
-            ]
-
+        results, displays = self._calculate_feature_drift(
+            train=train_properties,
+            test=test_properties,
+            train_dataframe_name=train.name or 'Train',
+            test_dataframe_name=test.name or 'Test',
+            common_columns=context.common_datasets_properties,
+            with_display=context.with_display
+        )
         return CheckResult(
             value=results,
             display=displays,

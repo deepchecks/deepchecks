@@ -28,6 +28,8 @@ __all__ = ['TrainTestPerformanceAbstract']
 class TrainTestPerformanceAbstract:
     """Base functionality for some train-test performance checks."""
 
+    add_condition: t.Callable[..., t.Any]
+
     @classmethod
     @abc.abstractmethod
     def _default_per_class_scorers(cls) -> t.Mapping[str, str]:

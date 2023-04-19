@@ -18,7 +18,7 @@ import numpy as np
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
-from deepchecks.nlp.input_validations import dataframes_difference
+from deepchecks.nlp.input_validations import compare_dataframes
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
@@ -345,24 +345,24 @@ class Context(BaseContext):
                 and test_dataset._properties is not None
                 and test_dataset._cat_properties is not None
             ):
-                difference = dataframes_difference(
+                result = compare_dataframes(
                     train=train_dataset._properties,
                     test=test_dataset._properties,
                     train_categorical_columns=train_dataset._cat_properties,
                     test_categorical_columns=test_dataset._cat_properties
                 )
-                if difference is not None:
+                self._common_datasets_properties = result.common
+                if result.difference is not None:
                     get_logger().warning(
                         'Train and Test datasets have different properties, '
                         'only common properties will be used in train-test checks"\n'
                         'Properties present only in train dataset: %s\n'
                         'Properties present only in test dataset: %s\n'
                         'Properties with different types: %s\n',
-                        difference.only_in_train,
-                        difference.only_in_test,
-                        difference.types_mismatch
+                        result.difference.only_in_train,
+                        result.difference.only_in_test,
+                        result.difference.types_mismatch
                     )
-                    self._common_datasets_properties = difference.common
 
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '

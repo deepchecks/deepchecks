@@ -9,19 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Feature Drift check."""
-
-from collections import OrderedDict
 from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.utils.abstracts.feature_drift import FeatureDriftAbstract
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['FeatureDrift']
@@ -111,7 +108,7 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
             n_top_columns: int = 5,
             sort_feature_by: str = 'drift + importance',
             margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = None,
+            max_num_categories_for_drift: Optional[int] = None,
             min_category_size_ratio: float = 0.01,
             max_num_categories_for_display: int = 10,
             show_categories_by: str = 'largest_difference',
@@ -119,7 +116,7 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
             categorical_drift_method: str = 'cramers_v',
             ignore_na: bool = True,
             aggregation_method: Optional[str] = 'l3_weighted',
-            min_samples: Optional[int] = 10,
+            min_samples: int = 10,
             n_samples: int = 100_000,
             random_state: int = 42,
             **kwargs
@@ -180,10 +177,6 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
             self.columns, self.ignore_columns
         ).sample(self.n_samples, random_state=self.random_state)
 
-        values_dict = OrderedDict()
-        displays_dict = OrderedDict()
-        not_enough_samples = []
-
         features_order = (
             # In order to have consistent order for features with same importance, first sorting by index, and then
             # using mergesort which preserves the order of equal elements.
@@ -193,92 +186,32 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
             else None
         )
 
+        common_columns = {}
+
         for column in train_dataset.features:
             if column in train_dataset.numerical_features:
-                column_type = 'numerical'
+                common_columns[column] = 'numerical'
             elif column in train_dataset.cat_features:
-                column_type = 'categorical'
+                common_columns[column] = 'categorical'
             else:
-                continue  # we only support categorical or numerical features
-            if feature_importance is not None:
-                fi_rank = features_order.index(column) + 1
-                plot_title = f'{column} (#{int(fi_rank)} in FI)'
-            else:
-                plot_title = column
+                # we only support categorical or numerical features
+                continue
 
-            value, method, display = calc_drift_and_plot(
-                train_column=train_dataset.data[column],
-                test_column=test_dataset.data[column],
-                value_name=column,
-                column_type=column_type,
-                plot_title=plot_title,
-                margin_quantile_filter=self.margin_quantile_filter,
-                max_num_categories_for_drift=self.max_num_categories_for_drift,
-                min_category_size_ratio=self.min_category_size_ratio,
-                max_num_categories_for_display=self.max_num_categories_for_display,
-                show_categories_by=self.show_categories_by,
-                numerical_drift_method=self.numerical_drift_method,
-                categorical_drift_method=self.categorical_drift_method,
-                ignore_na=self.ignore_na,
-                min_samples=self.min_samples,
-                with_display=context.with_display,
-                dataset_names=(train_dataset.name, test_dataset.name)
-            )
-
-            if value == 'not_enough_samples':
-                not_enough_samples.append(column)
-                value = None
-            else:
-                displays_dict[column] = display
-
-            values_dict[column] = {
-                'Drift score': value,
-                'Method': method,
-                'Importance': feature_importance[column] if feature_importance is not None else None
-            }
-
-        if len(not_enough_samples) == len(values_dict.keys()):
-            raise NotEnoughSamplesError(
-                f'Not enough samples to calculate drift score. Minimum {self.min_samples} samples required. '
-                'Note that for numerical columns, None values do not count as samples.'
-                'Use the \'min_samples\' parameter to change this requirement.'
-            )
-
-        if context.with_display:
-            sorted_by = self.sort_feature_by
-            if self.sort_feature_by == 'feature importance' and feature_importance is not None:
-                features_order = [feat for feat in features_order if feat in values_dict]
-                columns_order = features_order[:self.n_top_columns]
-            elif self.sort_feature_by == 'drift + importance' and feature_importance is not None:
-                feature_columns = [feat for feat in features_order if feat in values_dict]
-                feature_columns.sort(
-                    key=lambda col: (values_dict[col]['Drift score'] or 0) + values_dict[col]['Importance'],
-                    reverse=True)
-                columns_order = feature_columns[:self.n_top_columns]
-                sorted_by = 'the sum of the drift score and the feature importance'
-            else:
-                columns_order = sorted(values_dict.keys(), key=lambda col: values_dict[col]['Drift score'] or 0,
-                                       reverse=True)[:self.n_top_columns]
-                sorted_by = 'drift score'
-
-            headnote = [f"""<span>
-                The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the features, sorted
-                by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
-            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
-                        'If available, the plot titles also show the feature importance (FI) rank']
-
-            if not_enough_samples:
-                headnote.append(f'<span>The following columns do not have enough samples to calculate drift '
-                                f'score: {not_enough_samples}</span>')
-
-            displays = headnote + [displays_dict[col] for col in columns_order
-                                   if col in train_dataset.cat_features + train_dataset.numerical_features
-                                   and values_dict[col]['Drift score'] is not None]
-        else:
-            displays = None
-
-        return CheckResult(value=values_dict, display=displays, header='Feature Drift')
+        results, displays = self._calculate_feature_drift(
+            train=train_dataset.data,
+            test=test_dataset.data,
+            train_dataframe_name=train_dataset.name,
+            test_dataframe_name=test_dataset.name,
+            common_columns=common_columns,
+            feature_importance=feature_importance,
+            features_order=features_order,
+            with_display=context.with_display
+        )
+        return CheckResult(
+            value=results,
+            display=displays,
+            header='Feature Drift'
+        )
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
