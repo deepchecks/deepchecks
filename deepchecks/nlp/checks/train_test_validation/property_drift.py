@@ -17,8 +17,9 @@ from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.base_checks import TrainTestCheck
 from deepchecks.nlp.context import Context
 from deepchecks.nlp.text_data import TextData
+from deepchecks.utils.abstracts.feature_drift import FeatureDriftAbstract
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
+from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['PropertyDrift']
@@ -26,7 +27,7 @@ __all__ = ['PropertyDrift']
 
 # TODO:
 # refactor, separate general drift logic into separate class/module and use it with drift checks
-class PropertyDrift(TrainTestCheck):
+class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
@@ -187,7 +188,9 @@ class PropertyDrift(TrainTestCheck):
                 'Use the \'min_samples\' parameter to change this requirement.'
             )
 
-        if context.with_display:
+        if not context.with_display:
+            displays = None
+        else:
             key = lambda column: results[column]['Drift score'] or 0
             sorted_properties = sorted(results.keys(), key=key, reverse=True)[:self.n_top_properties]
 
@@ -215,45 +218,9 @@ class PropertyDrift(TrainTestCheck):
                 *headnote,
                 *(plots[p] for p in sorted_properties if results[p]['Drift score'] is not None)
             ]
-        else:
-            displays = None
 
         return CheckResult(
             value=results,
             display=displays,
             header='Properties Drift'
         )
-
-    def add_condition_drift_score_less_than(
-        self,
-        max_allowed_categorical_score: float = 0.2,
-        max_allowed_numeric_score: float = 0.2,
-        allowed_num_features_exceeding_threshold: int = 0
-    ):
-        """
-        Add condition - require drift score to be less than the threshold.
-
-        The industry standard for PSI limit is above 0.2.
-        There are no common industry standards for other drift methods, such as Cramer's V,
-        Kolmogorov-Smirnov and Earth Mover's Distance.
-
-        Parameters
-        ----------
-        max_allowed_categorical_score: float , default: 0.2
-            The max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.2
-            The max threshold for the numeric variable drift score
-        allowed_num_features_exceeding_threshold: int , default: 0
-            Determines the number of features with drift score above threshold needed to fail the condition.
-
-        Returns
-        -------
-        ConditionResult
-            False if more than allowed_num_features_exceeding_threshold drift scores are above threshold, True otherwise
-        """
-        condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score, 'column', 'columns',
-                                    allowed_num_features_exceeding_threshold)
-
-        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
-                                  f'numerical drift score < {max_allowed_numeric_score}',
-                                  condition)

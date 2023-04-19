@@ -20,6 +20,7 @@ from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
+from deepchecks.utils.abstracts.feature_drift import FeatureDriftAbstract
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 from deepchecks.utils.typing import Hashable
 
@@ -27,7 +28,7 @@ __all__ = ['FeatureDrift']
 
 
 @docstrings
-class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
+class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
@@ -284,34 +285,3 @@ class FeatureDrift(TrainTestCheck, ReduceFeatureMixin):
         feature_importance = pd.Series({column: info['Importance'] for column, info in check_result.value.items()})
         values = pd.Series({column: info['Drift score'] for column, info in check_result.value.items()})
         return self.feature_reduce(self.aggregation_method, values, feature_importance, 'Drift Score')
-
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.2,
-                                            max_allowed_numeric_score: float = 0.2,
-                                            allowed_num_features_exceeding_threshold: int = 0):
-        """
-        Add condition - require drift score to be less than the threshold.
-
-        The industry standard for PSI limit is above 0.2.
-        There are no common industry standards for other drift methods, such as Cramer's V,
-        Kolmogorov-Smirnov and Earth Mover's Distance.
-
-        Parameters
-        ----------
-        max_allowed_categorical_score: float , default: 0.2
-            The max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.2
-            The max threshold for the numeric variable drift score
-        allowed_num_features_exceeding_threshold: int , default: 0
-            Determines the number of features with drift score above threshold needed to fail the condition.
-
-        Returns
-        -------
-        ConditionResult
-            False if more than allowed_num_features_exceeding_threshold drift scores are above threshold, True otherwise
-        """
-        condition = drift_condition(max_allowed_categorical_score, max_allowed_numeric_score, 'column', 'columns',
-                                    allowed_num_features_exceeding_threshold)
-
-        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
-                                  f'numerical drift score < {max_allowed_numeric_score}',
-                                  condition)
