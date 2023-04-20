@@ -185,10 +185,13 @@ class DataframesComparison(NamedTuple):
 def compare_dataframes(
     train: pd.DataFrame,
     test: pd.DataFrame,
-    train_categorical_columns: Sequence[str],
-    test_categorical_columns: Sequence[str]
+    train_categorical_columns: Optional[Sequence[str]] = None,
+    test_categorical_columns: Optional[Sequence[str]] = None
 ) -> DataframesComparison:
     """Compare two dataframes and return a difference."""
+    train_categorical_columns = train_categorical_columns or []
+    test_categorical_columns = test_categorical_columns or []
+
     train_columns = cast(Set[str], set(train.columns))
     test_columns = cast(Set[str], set(test.columns))
     only_in_train = train_columns.difference(test_columns)

@@ -341,9 +341,7 @@ class Context(BaseContext):
 
             if (
                 train_dataset._properties is not None
-                and train_dataset._cat_properties is not None
                 and test_dataset._properties is not None
-                and test_dataset._cat_properties is not None
             ):
                 result = compare_dataframes(
                     train=train_dataset._properties,
