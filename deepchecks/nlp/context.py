@@ -355,7 +355,7 @@ class Context(BaseContext):
                 if result.difference is not None:
                     get_logger().warning(
                         'Train and Test datasets have different properties, '
-                        'only common properties will be used in train-test checks"\n'
+                        'only common properties will be used in train-test checks.\n'
                         'Properties present only in train dataset: %s\n'
                         'Properties present only in test dataset: %s\n'
                         'Properties with different types: %s\n',

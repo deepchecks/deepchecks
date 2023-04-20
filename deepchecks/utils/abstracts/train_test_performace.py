@@ -67,10 +67,22 @@ class TrainTestPerformanceAbstract(abc.ABC):
             )
 
             figures.append(
-                fig.update_xaxes(title=None, type='category', tickangle=60)
+                fig.update_xaxes(
+                    title=None,
+                    type='category',
+                    tickangle=60,
+                )
                 .update_yaxes(title=None, matches=None)
                 .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
+                .add_annotation(
+                    text="Class",
+                    showarrow=False,
+                    xref="paper",
+                    yref="paper",
+                    y=-0.1,
+                    x=-0.1
+                )
             )
 
         return figures

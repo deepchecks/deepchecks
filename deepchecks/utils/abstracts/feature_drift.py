@@ -14,7 +14,7 @@ import textwrap
 import typing as t
 
 import pandas as pd
-from typing_extensions import Self
+from typing_extensions import Literal, Self
 
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
@@ -41,7 +41,7 @@ class FeatureDriftAbstract(abc.ABC):
 
     def _calculate_feature_drift(
         self,
-        drift_kind: t.Literal['tabular-features', 'nlp-properties'],
+        drift_kind: Literal['tabular-features', 'nlp-properties'],
         train: pd.DataFrame,
         test: pd.DataFrame,
         common_columns: t.Dict[str, str],
