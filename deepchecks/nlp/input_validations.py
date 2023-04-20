@@ -188,9 +188,9 @@ def compare_dataframes(
 
     common = {
         column: (
-            "categorical"
+            'categorical'
             if column in train_categorical_columns
-            else "numerical"
+            else 'numerical'
         )
         for column in common_columns.difference(types_mismatch)
     }

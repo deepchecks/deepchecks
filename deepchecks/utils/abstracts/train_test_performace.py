@@ -25,7 +25,7 @@ from deepchecks.utils.strings import format_percent
 __all__ = ['TrainTestPerformanceAbstract']
 
 
-class TrainTestPerformanceAbstract:
+class TrainTestPerformanceAbstract(abc.ABC):
     """Base functionality for some train-test performance checks."""
 
     add_condition: t.Callable[..., t.Any]

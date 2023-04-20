@@ -19,10 +19,11 @@ from typing_extensions import Self
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
 
-__all__ = ["FeatureDriftAbstract"]
+__all__ = ['FeatureDriftAbstract']
 
 
 class FeatureDriftAbstract(abc.ABC):
+    """Base class for feature drift checks."""
 
     n_top_columns: int
     sort_feature_by: str

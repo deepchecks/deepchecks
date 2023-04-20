@@ -10,14 +10,13 @@
 #
 """Module containing the train test performance check."""
 from numbers import Number
-from typing import Callable, Dict, List, Mapping, TypeVar, Union, cast
+from typing import Callable, List, Mapping, TypeVar, Union, cast
 
 import pandas as pd
 
 from deepchecks.core import CheckResult
 from deepchecks.core.checks import CheckConfig
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
 from deepchecks.utils.abstracts.train_test_performace import TrainTestPerformanceAbstract
 from deepchecks.utils.docref import doclink
 
@@ -111,8 +110,8 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         if context.with_display:
             figs = self._prepare_display(
                 results_df,
-                train_dataset.name or "Train",
-                test_dataset.name or "Test"
+                train_dataset.name or 'Train',
+                test_dataset.name or 'Test'
             )
         else:
             figs = None
