@@ -228,9 +228,3 @@ def compare_dataframes(
         difference = None
 
     return DataframesComparison(common, difference)
-
-
-
-
-
-
