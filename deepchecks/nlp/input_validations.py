@@ -149,12 +149,35 @@ def validate_length_and_calculate_column_types(
 
 
 class DataframesDifference(NamedTuple):
+    """Facility type for the 'compare_dataframes' function.
+
+    Parameters
+    ==========
+    only_in_train: Tuple[str, ...]
+        set of columns present only in train dataframe.
+    only_in_test: Tuple[str, ...]
+        set of columns present only in test dataframe.
+    types_mismatch: Tuple[str, ...]
+        set of columns that are present in both dataframes
+        but have different types.
+    """
+
     only_in_train: Tuple[str, ...]
     only_in_test: Tuple[str, ...]
     types_mismatch: Tuple[str, ...]
 
 
 class DataframesComparison(NamedTuple):
+    """Facility type for the 'compare_dataframes' function.
+
+    Parameters
+    ==========
+    common: Dict[str, str]
+        set of columns common for both dataframes.
+    difference: Optional[DataframesDifference]
+        difference between two dataframes.
+    """
+
     common: Dict[str, str]
     difference: Optional[DataframesDifference]
 
