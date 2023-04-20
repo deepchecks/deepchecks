@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the NLP PropertyDrift check"""
-import random
 import typing as t
 
 from hamcrest import *
@@ -20,7 +19,7 @@ from deepchecks.nlp.text_data import TextData
 
 class TestTextClassification:
 
-    def test_with_datasets_without_drift(self, tweet_emotion_train_test_textdata):
+    def test_without_drift(self, tweet_emotion_train_test_textdata):
         # Arrange
         train, _ = tweet_emotion_train_test_textdata
         check = PropertyDrift().add_condition_drift_score_less_than()
@@ -32,20 +31,20 @@ class TestTextClassification:
         assert condition_results[0].is_pass() is True
 
         assert_that(result.value, has_entries({
-            "Formality": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
-            "Language": {"Drift score": 0.0, "Method": "Cramer's V"},
-            "Subjectivity": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
-            "Average Word Length": {"Drift score": 0.0,"Method": "Kolmogorov-Smirnov"},
-            "Text Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
-            "Max Word Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
-            "Toxicity": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
-            "% Special Characters": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
-            "Sentiment": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
-            "Fluency": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov"},
+            "Formality": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov","Importance": None},
+            "Language": {"Drift score": 0.0, "Method": "Cramer's V", "Importance": None},
+            "Subjectivity": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
+            "Average Word Length": {"Drift score": 0.0,"Method": "Kolmogorov-Smirnov", "Importance": None},
+            "Text Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
+            "Max Word Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
+            "Toxicity": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
+            "% Special Characters": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
+            "Sentiment": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
+            "Fluency": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
         }))  # type: ignore
 
 
-    def test_with_drifted_datasets(self, tweet_emotion_train_test_textdata):
+    def test_with_drift(self, tweet_emotion_train_test_textdata):
         # Arrange
         train, test = tweet_emotion_train_test_textdata
         train = train.sample(20, random_state=0)
@@ -54,7 +53,7 @@ class TestTextClassification:
         train.calculate_default_properties()
         test.calculate_default_properties()
 
-        check = PropertyDrift().add_condition_drift_score_less_than()
+        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
 
         # Act
         result = check.run(train_dataset=train, test_dataset=test)
@@ -65,12 +64,30 @@ class TestTextClassification:
         assert condition_results[0].is_pass() is False
 
         assert_that(result.value, has_entries({
-            "Subjectivity": {"Drift score": 0.15000000000000002, "Method": "Kolmogorov-Smirnov"},
-            "Average Word Length": {"Drift score": 0.4, "Method": "Kolmogorov-Smirnov"},
-            "Text Length": {"Drift score": 0.19999999999999996, "Method": "Kolmogorov-Smirnov"},
-            "Max Word Length": {"Drift score": 0.19999999999999996, "Method": "Kolmogorov-Smirnov"},
-            "% Special Characters": {"Drift score": 0.19999999999999996, "Method": "Kolmogorov-Smirnov"},
-            "Sentiment": {"Drift score": 0.15000000000000002,"Method": "Kolmogorov-Smirnov"},
+            "Subjectivity": {
+                "Drift score": 0.15000000000000002,
+                "Method": "Kolmogorov-Smirnov",
+                "Importance": None},
+            "Average Word Length": {
+                "Drift score": 0.4,
+                "Method": "Kolmogorov-Smirnov",
+                "Importance": None},
+            "Text Length": {
+                "Drift score": 0.19999999999999996,
+                "Method": "Kolmogorov-Smirnov",
+                "Importance": None},
+            "Max Word Length": {
+                "Drift score": 0.19999999999999996,
+                "Method": "Kolmogorov-Smirnov",
+                "Importance": None},
+            "% Special Characters": {
+                "Drift score": 0.19999999999999996,
+                "Method": "Kolmogorov-Smirnov",
+                "Importance": None},
+            "Sentiment": {
+                "Drift score": 0.15000000000000002,
+                "Method": "Kolmogorov-Smirnov",
+                "Importance": None},
         }))  # type: ignore
 
 
@@ -80,7 +97,7 @@ class TestTokenClassification:
         # Arrange
         train, _ = small_wikiann
         train.calculate_default_properties()
-        check = PropertyDrift().add_condition_drift_score_less_than()
+        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
         # Act
         result = check.run(train_dataset=train, test_dataset=train)
         condition_results = check.conditions_decision(result)
@@ -97,7 +114,6 @@ class TestTokenClassification:
             'Max Word Length': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'})
         }))  # type: ignore
 
-
     def test_with_drift(self, small_wikiann: t.Tuple[TextData, TextData]):
         # Arrange
         train, test = small_wikiann
@@ -109,7 +125,7 @@ class TestTokenClassification:
             include_long_calculation_properties=False
         )
 
-        check = PropertyDrift().add_condition_drift_score_less_than()
+        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
 
         # Act
         result = check.run(train_dataset=train, test_dataset=test)
@@ -135,7 +151,7 @@ class TestMultiLabelClassification:
         # Arrange
         train = dummy_multilabel_dataset
         train.calculate_default_properties()
-        check = PropertyDrift().add_condition_drift_score_less_than()
+        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
         # Act
         result = check.run(train_dataset=train, test_dataset=train)
         condition_results = check.conditions_decision(result)

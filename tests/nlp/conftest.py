@@ -8,9 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: skip-file
 """Fixtures for testing the nlp package"""
 import random
-# pylint: skip-file
 import typing as t
 
 import pytest
@@ -67,7 +67,7 @@ def text_multilabel_classification_dataset_mock():
 
 
 @pytest.fixture(scope='function')
-def dummy_multilabel_dataset(self):
+def dummy_multilabel_dataset():
     return TextData(
         raw_text=[
             random.choice(['I think therefore I am', 'I am therefore I think', 'I am'])
