@@ -66,11 +66,8 @@ class TrainTestPerformanceAbstract(abc.ABC):
                 },
             )
 
-            if 'Class' in data.columns:
-                fig.update_xaxes(tickprefix='Class ', tickangle=60)
-
             figures.append(
-                fig.update_xaxes(title=None, type='category')
+                fig.update_xaxes(title=None, type='category', tickangle=60)
                 .update_yaxes(title=None, matches=None)
                 .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
