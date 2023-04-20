@@ -23,17 +23,17 @@ This section contain tutorials for different use cases, and how to use deepcheck
 
     auto_tutorials/quickstarts/index
 
-Guides
-------
+Usage Guides
+------------
 
 This section contain in-depth guides on different aspects and components of the deepchecks nlp sub package.
 
 .. toctree::
     :titlesonly:
     :maxdepth: 0
-    :caption: Guides
+    :caption: Usage Guides
 
-    guides/supported_tasks
+    usage_guides/supported_tasks
 
 Checks Gallery
 --------------

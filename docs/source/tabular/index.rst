@@ -24,19 +24,19 @@ This section contain tutorials for different use cases, and how to use deepcheck
     custom_check_templates
 
 
-Guides
-------
+Usage Guides
+------------
 
 This section contain in-depth guides on different aspects and components of the deepchecks tabular sub package.
 
 .. toctree::
     :titlesonly:
     :maxdepth: 0
-    :caption: Guides
+    :caption: Usage Guides
 
-    guides/dataset_object
-    guides/supported_models
-    guides/feature_importance
+    usage_guides/dataset_object
+    usage_guides/supported_models
+    usage_guides/feature_importance
 
 Checks Gallery
 --------------

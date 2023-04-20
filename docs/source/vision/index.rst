@@ -24,19 +24,19 @@ This section contain tutorials for different use cases, and how to use deepcheck
     auto_tutorials/other/plot_custom_checks
     custom_check_templates
 
-Guides
-------
+Usage Guides
+------------
 
 This section contain in-depth guides on different aspects and components of the deepchecks nlp sub package.
 
 .. toctree::
     :titlesonly:
     :maxdepth: 0
-    :caption: Guides
+    :caption: Usage Guides
 
-    guides/visiondata_object
-    guides/supported_tasks_and_formats
-    guides/vision_properties
+    usage_guides/visiondata_object
+    usage_guides/supported_tasks_and_formats
+    usage_guides/vision_properties
 
 Checks Gallery
 --------------
