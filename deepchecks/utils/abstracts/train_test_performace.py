@@ -76,10 +76,10 @@ class TrainTestPerformanceAbstract(abc.ABC):
                 .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
                 .add_annotation(
-                    text="Class",
+                    text='Class',
                     showarrow=False,
-                    xref="paper",
-                    yref="paper",
+                    xref='paper',
+                    yref='paper',
                     y=-0.1,
                     x=-0.1
                 )

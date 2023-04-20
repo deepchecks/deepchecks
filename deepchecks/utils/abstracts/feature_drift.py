@@ -133,8 +133,9 @@ class FeatureDriftAbstract(abc.ABC):
                 f"""
                 <span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the {check_target}, sorted
-                by {sorted_by} and showing only the top {self.n_top_columns} {check_target}, according to {sorted_by}.
+                and train distributions.<br> The check shows the drift score and distributions for the {check_target},
+                sorted by {sorted_by} and showing only the top {self.n_top_columns} {check_target},
+                according to {sorted_by}.
                 </span>
                 """
             ),
