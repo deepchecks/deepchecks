@@ -41,6 +41,7 @@ class FeatureDriftAbstract(abc.ABC):
 
     def _calculate_feature_drift(
         self,
+        drift_kind: t.Literal['tabular-features', 'nlp-properties'],
         train: pd.DataFrame,
         test: pd.DataFrame,
         common_columns: t.Dict[str, str],
@@ -120,13 +121,20 @@ class FeatureDriftAbstract(abc.ABC):
             key = lambda col: results[col]['Drift score'] or 0
             columns_order = sorted(results.keys(), key=key, reverse=True)[:self.n_top_columns]
 
+        if drift_kind == 'tabular-features':
+            check_target = 'features'
+            footnote = 'If available, the plot titles also show the feature importance (FI) rank'
+        elif drift_kind == 'nlp-properties':
+            check_target = 'properties'
+            footnote = ''
+
         headnote = [
             textwrap.dedent(
                 f"""
                 <span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the features, sorted
-                by {sorted_by} and showing only the top {self.n_top_columns} features, according to {sorted_by}.
+                and train distributions.<br> The check shows the drift score and distributions for the {check_target}, sorted
+                by {sorted_by} and showing only the top {self.n_top_columns} {check_target}, according to {sorted_by}.
                 </span>
                 """
             ),
@@ -134,7 +142,7 @@ class FeatureDriftAbstract(abc.ABC):
                 self.max_num_categories_for_display,
                 self.show_categories_by
             ),
-            'If available, the plot titles also show the feature importance (FI) rank'
+            footnote
         ]
 
         if not_enough_samples:

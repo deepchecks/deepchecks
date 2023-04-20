@@ -198,6 +198,7 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
                 continue
 
         results, displays = self._calculate_feature_drift(
+            drift_kind='tabular-features',
             train=train_dataset.data,
             test=test_dataset.data,
             train_dataframe_name=train_dataset.name,

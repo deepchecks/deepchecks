@@ -142,6 +142,7 @@ class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
             ignore_columns=self.ignore_properties
         )
         results, displays = self._calculate_feature_drift(
+            drift_kind='nlp-properties',
             train=train_properties,
             test=test_properties,
             train_dataframe_name=train.name or 'Train',
