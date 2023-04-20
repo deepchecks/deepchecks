@@ -53,7 +53,10 @@ class ModelInfo(ModelOnlyCheck):
                 return n * ['']
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
-            model_param_df = model_param_df.style.apply(highlight_not_default, axis=1).hide_index()
+            model_param_df = model_param_df.style.apply(highlight_not_default, axis=1)
+            # style.hide_index() was deprecated in the latest versions and new method was added
+            model_param_df = model_param_df.hide(axis='index') if hasattr(model_param_df, 'hide') \
+                else model_param_df.hide_index()
 
         value = {'type': model_type, 'params': model_params}
         footnote = '<p style="font-size:0.7em"><i>Colored rows are parameters with non-default values</i></p>'

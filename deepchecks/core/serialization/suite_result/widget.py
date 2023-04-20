@@ -305,7 +305,10 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 output_id=output_id,
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             )
-            return DataFrameSerializer(df.style.hide_index()).serialize()
+            # style.hide_index() was deprecated in the latest versions and new method was added
+            styler = df.style
+            styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
+            return DataFrameSerializer(styler).serialize()
 
 
 def select_serializer(result):
