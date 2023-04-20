@@ -51,16 +51,16 @@ def get_scorer_dict(
     }
 
     return {
-        'token_accuracy': make_token_scorer(accuracy_score, **common_kwargs),
-        'token_f1_per_class': make_token_scorer(f1_score, **common_kwargs, average=None),
-        'token_f1_macro': make_token_scorer(f1_score, **common_kwargs, average='macro'),
-        'token_f1_micro': make_token_scorer(f1_score, **common_kwargs, average='micro'),
-        'token_precision_per_class': make_token_scorer(precision_score, **common_kwargs, average=None),
-        'token_precision_macro': make_token_scorer(precision_score, **common_kwargs, average='macro'),
-        'token_precision_micro': make_token_scorer(precision_score, **common_kwargs, average='micro'),
-        'token_recall_per_class': make_token_scorer(recall_score, **common_kwargs, average=None),
-        'token_recall_macro': make_token_scorer(recall_score, **common_kwargs, average='macro'),
-        'token_recall_micro': make_token_scorer(recall_score, **common_kwargs, average='micro'),
+        'accuracy': make_token_scorer(accuracy_score, **common_kwargs),
+        'f1_per_class': make_token_scorer(f1_score, **common_kwargs, average=None),
+        'f1_macro': make_token_scorer(f1_score, **common_kwargs, average='macro'),
+        'f1_micro': make_token_scorer(f1_score, **common_kwargs, average='micro'),
+        'precision_per_class': make_token_scorer(precision_score, **common_kwargs, average=None),
+        'precision_macro': make_token_scorer(precision_score, **common_kwargs, average='macro'),
+        'precision_micro': make_token_scorer(precision_score, **common_kwargs, average='micro'),
+        'recall_per_class': make_token_scorer(recall_score, **common_kwargs, average=None),
+        'recall_macro': make_token_scorer(recall_score, **common_kwargs, average='macro'),
+        'recall_micro': make_token_scorer(recall_score, **common_kwargs, average='micro'),
     }
 
 
@@ -92,9 +92,8 @@ def validate_scorers(scorers: t.List[str]):
 
 def get_default_token_scorers(use_avg_defaults=True) -> t.List[str]:
     """Return the default scorers for token classification."""
-    names = (
+    return list(
         DEFAULT_AVG_SCORER_NAMES
         if use_avg_defaults
         else DEFAULT_PER_CLASS_SCORER_NAMES
     )
-    return [f'token_{it}' for it in names]

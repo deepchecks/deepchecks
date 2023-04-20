@@ -99,10 +99,7 @@ class TestTokenClassification:
     def test_check_execution(self, small_wikiann: t.Tuple[TextData, TextData]):
         # Arrange
         train, test = small_wikiann
-        # TODO:
-        # currently 'token_*_per_class' scorers are not supported, see DEE-473
-        # threfore, we are using only not avg scorers in test
-        scorers = ["token_recall_macro", "token_f1_macro"]
+        scorers = ["recall_macro", "f1_macro"]
         check = TrainTestPerformance(scorers=scorers)
         # Act
         result = check.run(
