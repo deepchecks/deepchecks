@@ -8,9 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Fixtures for testing the nlp package"""
 # pylint: skip-file
+"""Fixtures for testing the nlp package"""
 import random
+import typing as t
 
 import pytest
 from datasets import load_dataset
@@ -65,6 +66,21 @@ def text_multilabel_classification_dataset_mock():
                     task_type='text_classification')
 
 
+@pytest.fixture(scope='function')
+def dummy_multilabel_dataset():
+    return TextData(
+        raw_text=[
+            random.choice(['I think therefore I am', 'I am therefore I think', 'I am'])
+            for _ in range(20)
+        ],
+        label=[
+            random.choice([[0, 0, 1], [1, 1, 0], [0, 1, 0]])
+            for _ in range(20)
+        ],
+        task_type='text_classification'
+    )
+
+
 def download_nltk_resources():
     """Download nltk resources"""
     nltk_download('movie_reviews', quiet=True)
@@ -117,13 +133,51 @@ def text_token_classification_dataset_mock():
 
 
 @pytest.fixture(scope='session')
-def wikiann():
+def original_wikiann():
+    return t.cast(t.Any, load_dataset('wikiann', name='en'))
+
+
+@pytest.fixture(scope='function')
+def wikiann(original_wikiann):
     """Wikiann dataset for token classification"""
-    dataset = load_dataset('wikiann', name='en', split='train')
+    train = original_wikiann["train"]
+    return _wikiann_to_text_data(train)
 
-    data = list([' '.join(l.as_py()) for l in dataset.data['tokens']])  # pylint: disable=consider-using-generator
-    ner_tags = dataset.data['ner_tags']
-    ner_to_iob_dict = {0: 'O', 1: 'B-PER', 2: 'I-PER', 3: 'B-ORG', 4: 'I-ORG', 5: 'B-LOC', 6: 'I-LOC'}
-    ner_tags_translated = [[ner_to_iob_dict[ner_tag] for ner_tag in ner_tag_list.as_py()] for ner_tag_list in ner_tags]
 
-    return TextData(tokenized_text=_tokenize_raw_text(data), label=ner_tags_translated, task_type='token_classification')
+class SmallWikiannSplit(t.NamedTuple):
+    train: TextData
+    test: TextData
+
+
+# TODO: refactore, code redundancy
+@pytest.fixture(scope='function')
+def small_wikiann(original_wikiann) -> SmallWikiannSplit:
+    """Wikiann dataset for token classification"""
+    train = original_wikiann["train"][:50]
+    test = original_wikiann["test"][:50]
+    return SmallWikiannSplit(
+        _wikiann_to_text_data(train),
+        _wikiann_to_text_data(test),
+    )
+
+
+def _wikiann_to_text_data(wikiann):
+    ner_to_iob_dict = {
+        0: 'O', 1: 'B-PER',
+        2: 'I-PER', 3: 'B-ORG',
+        4: 'I-ORG', 5: 'B-LOC',
+        6: 'I-LOC'
+    }
+    return TextData(
+        tokenized_text=_tokenize_raw_text([
+            ' '.join(l)
+            for l in wikiann["tokens"]
+        ]),
+        label=[
+            [ner_to_iob_dict[tag] for tag in tags_list]
+            for tags_list in wikiann["ner_tags"]
+        ],
+        task_type='token_classification'
+    )
+
+
