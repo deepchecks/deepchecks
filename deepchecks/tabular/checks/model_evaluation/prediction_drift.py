@@ -193,7 +193,7 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck, ReduceMixin):
             train_pred = np.array(model.predict(train_dataset.features_columns)).reshape((-1, 1))
             test_pred = np.array(model.predict(test_dataset.features_columns)).reshape((-1, 1))
 
-        return self.prediction_drift(train_pred, test_pred, context.model_classes, context.with_display, proba_drift,
+        return self._prediction_drift(train_pred, test_pred, context.model_classes, context.with_display, proba_drift,
                                      (context.task_type != TaskType.REGRESSION) and (not proba_drift))
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
@@ -217,51 +217,3 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck, ReduceMixin):
     def greater_is_better(self):
         """Return True if the check reduce_output is better when it is greater."""
         return False
-
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
-                                            max_allowed_numeric_score: float = 0.15):
-        """
-        Add condition - require drift score to be less than a certain threshold.
-
-        The industry standard for PSI limit is above 0.2.
-        There are no common industry standards for other drift methods, such as Cramer's V,
-        Kolmogorov-Smirnov and Earth Mover's Distance.
-        The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of prediction
-        drift.
-
-        Parameters
-        ----------
-        max_allowed_categorical_score: float , default: 0.15
-            the max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.15
-            the max threshold for the numeric variable drift score
-        Returns
-        -------
-        ConditionResult
-            False if any column has passed the max threshold, True otherwise
-        """
-
-        def condition(result: t.Dict) -> ConditionResult:
-            drift_score_dict = result['Drift score']
-            # Move to dict for easier looping
-            if not isinstance(drift_score_dict, dict):
-                drift_score_dict = {0: drift_score_dict}
-            method = result['Method']
-            has_failed = {}
-            drift_score = 0
-            for class_name, drift_score in drift_score_dict.items():
-                has_failed[class_name] = \
-                    (drift_score >= max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
-                    (drift_score >= max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
-
-            if len(has_failed) == 1:
-                details = f'Found model prediction {method} drift score of {format_number(drift_score)}'
-            else:
-                details = f'Found {sum(has_failed.values())} classes with model predicted probability {method} drift' \
-                          f' score above threshold: {max_allowed_numeric_score}.'
-            category = ConditionCategory.FAIL if any(has_failed.values()) else ConditionCategory.PASS
-            return ConditionResult(category, details)
-
-        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
-                                  f'numerical drift score < {max_allowed_numeric_score}',
-                                  condition)

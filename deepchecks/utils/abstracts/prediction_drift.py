@@ -8,19 +8,42 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains the Abstract cass for Prediction Drift checks."""
+"""The base abstract functionality for prediction drift checks."""
+import abc
+import typing as t
+
 import numpy as np
 import pandas as pd
 
-from deepchecks import CheckResult
+from deepchecks import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
+from deepchecks.utils.strings import format_number
+
+__all__ = ['PredictionDriftAbstract']
 
 
-class PredictionDriftAbstract:
-    """Abstract class for prediction drift checks."""
+class PredictionDriftAbstract(abc.ABC):
+    """Base class for prediction drift checks."""
 
-    def prediction_drift(self, train_prediction, test_prediction, model_classes, with_display,
-                         proba_drift, cat_plot) -> CheckResult:
+    drift_mode: str = 'auto'
+    margin_quantile_filter: float = 0.025
+    max_num_categories_for_drift: int = None
+    min_category_size_ratio: float = 0.01
+    max_num_categories_for_display: int = 10
+    show_categories_by: str = 'largest_difference'
+    numerical_drift_method: str = 'KS'
+    categorical_drift_method: str = 'cramers_v'
+    balance_classes: bool = False
+    ignore_na: bool = True
+    aggregation_method: t.Optional[str] = 'max'
+    max_classes_to_display: int = 3
+    min_samples: t.Optional[int] = 10
+    n_samples: int = 100_000
+    random_state: int = 42
+    add_condition: t.Callable[..., t.Any]
+
+    def _prediction_drift(self, train_prediction, test_prediction, model_classes, with_display,
+                          proba_drift, cat_plot) -> CheckResult:
         """Calculate prediction drift.
 
         Args:
@@ -116,3 +139,43 @@ class PredictionDriftAbstract:
             'Method': method, 'Samples per class': samples_per_class}
 
         return CheckResult(value=values_dict, display=displays, header='Prediction Drift')
+
+    def add_condition_drift_score_less_than(self, max_allowed_drift_score: float = 0.15):
+        """
+        Add condition - require drift score to be less than the threshold.
+
+        The industry standard for PSI limit is above 0.2.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
+
+        Parameters
+        ----------
+        max_allowed_drift_score: float , default: 0.15
+            the max threshold for the categorical variable drift score
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
+        """
+
+        def condition(result: t.Dict) -> ConditionResult:
+            drift_score_dict = result['Drift score']
+            # Move to dict for easier looping
+            if not isinstance(drift_score_dict, dict):
+                drift_score_dict = {0: drift_score_dict}
+            method = result['Method']
+            has_failed = {}
+            drift_score = 0
+            for class_name, drift_score in drift_score_dict.items():
+                has_failed[class_name] = drift_score > max_allowed_drift_score
+
+            if len(has_failed) == 1:
+                details = f'Found model prediction {method} drift score of {format_number(drift_score)}'
+            else:
+                details = f'Found {sum(has_failed.values())} classes with model predicted probability {method} drift' \
+                          f' score above threshold: {max_allowed_drift_score}.'
+
+            category = ConditionCategory.FAIL if any(has_failed.values()) else ConditionCategory.PASS
+            return ConditionResult(category, details)
+
+        return self.add_condition(f'Prediction drift score < {max_allowed_drift_score}', condition)
