@@ -173,7 +173,7 @@ def compare_dataframes(
     common_columns = train_columns.intersection(test_columns)
     types_mismatch: Set[str] = set()
 
-    for column in train_columns.intersection(test_columns):
+    for column in common_columns:
         is_cat_in_both_dataframes = (
             column in train_categorical_columns
             and column in test_categorical_columns

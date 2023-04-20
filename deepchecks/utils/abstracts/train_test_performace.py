@@ -103,8 +103,8 @@ class TrainTestPerformanceAbstract:
 
     def add_condition_class_performance_imbalance_ratio_less_than(
         self: Self,
+        score: str,
         threshold: float = 0.3,
-        score: str
     ) -> Self:
         """Add condition - relative ratio difference between highest-class and lowest-class is less than threshold.
 
