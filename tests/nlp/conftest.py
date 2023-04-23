@@ -49,7 +49,6 @@ def tweet_emotion_train_test_probabilities():
     return tweet_emotion.load_precalculated_predictions(pred_format='probabilities', as_train_test=True)
 
 
-
 @pytest.fixture(scope='function')
 def text_classification_string_class_dataset_mock():
     """Mock for a text classification dataset with string labels"""
@@ -67,18 +66,13 @@ def text_multilabel_classification_dataset_mock():
 
 
 @pytest.fixture(scope='function')
-def dummy_multilabel_dataset():
-    return TextData(
-        raw_text=[
-            random.choice(['I think therefore I am', 'I am therefore I think', 'I am'])
-            for _ in range(20)
-        ],
-        label=[
-            random.choice([[0, 0, 1], [1, 1, 0], [0, 1, 0]])
-            for _ in range(20)
-        ],
-        task_type='text_classification'
-    )
+def dummy_multilabel_textdata_train_test(set_numpy_seed):
+    """Dummy multilabel text classification dataset"""
+    raw_text = [random.choice(['I think therefore I am', 'I am therefore I think', 'I am']) for _ in range(40)] + \
+               ['bla'] * 10
+    label = [random.choice([[0, 0, 1], [1, 1, 0], [0, 1, 0]]) for _ in range(40)] + [[1, 0, 0]] * 10
+    text_data = TextData(raw_text=raw_text, label=label, task_type='text_classification')
+    return text_data.copy(rows_to_use=list(range(20))), text_data.copy(rows_to_use=list(range(20, 50)))
 
 
 def download_nltk_resources():
@@ -118,15 +112,17 @@ def movie_reviews_data_negative():
     neg_data = TextData(random.choices(neg_sentences, k=1000), name='Negative')
     return neg_data
 
+
 def _tokenize_raw_text(raw_text):
     """Tokenize raw text"""
     return [x.split() for x in raw_text]
+
 
 @pytest.fixture(scope='session')
 def text_token_classification_dataset_mock():
     """Mock for a token classification dataset"""
     return TextData(tokenized_text=_tokenize_raw_text(['Mary had a little lamb', 'Mary lives in London and Paris',
-                              'How much wood can a wood chuck chuck?']),
+                                                       'How much wood can a wood chuck chuck?']),
                     label=[['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
                            ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']],
                     task_type='token_classification')
@@ -179,5 +175,3 @@ def _wikiann_to_text_data(wikiann):
         ],
         task_type='token_classification'
     )
-
-

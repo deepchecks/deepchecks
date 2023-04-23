@@ -15,6 +15,7 @@ from hamcrest import *
 
 from deepchecks.nlp.checks import PropertyDrift
 from deepchecks.nlp.text_data import TextData
+from tests.base.utils import equal_condition_result
 
 
 class TestTextClassification:
@@ -31,10 +32,10 @@ class TestTextClassification:
         assert condition_results[0].is_pass() is True
 
         assert_that(result.value, has_entries({
-            "Formality": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov","Importance": None},
+            "Formality": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
             "Language": {"Drift score": 0.0, "Method": "Cramer's V", "Importance": None},
             "Subjectivity": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
-            "Average Word Length": {"Drift score": 0.0,"Method": "Kolmogorov-Smirnov", "Importance": None},
+            "Average Word Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
             "Text Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
             "Max Word Length": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
             "Toxicity": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
@@ -42,7 +43,6 @@ class TestTextClassification:
             "Sentiment": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
             "Fluency": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
         }))  # type: ignore
-
 
     def test_with_drift(self, tweet_emotion_train_test_textdata):
         # Arrange
@@ -147,9 +147,9 @@ class TestTokenClassification:
 
 class TestMultiLabelClassification:
 
-    def test_without_drift(self, dummy_multilabel_dataset: TextData):
+    def test_without_drift(self, dummy_multilabel_textdata_train_test):
         # Arrange
-        train = dummy_multilabel_dataset
+        train, _ = dummy_multilabel_textdata_train_test
         train.calculate_default_properties()
         check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
         # Act
@@ -167,3 +167,22 @@ class TestMultiLabelClassification:
             'Subjectivity': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'}),
             'Max Word Length': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'})
         }))  # type: ignore
+
+    def test_with_drift(self, dummy_multilabel_textdata_train_test):
+        # Arrange
+        train, test = dummy_multilabel_textdata_train_test
+        train.calculate_default_properties()
+        test.calculate_default_properties()
+        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than(max_allowed_numeric_score=0.3,
+                                                                                  max_allowed_categorical_score=0.3)
+        # Act
+        result = check.run(train_dataset=train, test_dataset=test)
+        condition_results = check.conditions_decision(result)
+
+        assert_that(condition_results, has_items(
+            equal_condition_result(is_pass=False,
+                                   details="Failed for 1 out of 6 columns.\nFound 1 "
+                                           "numeric columns with Kolmogorov-Smirnov above threshold: "
+                                           "{'Text Length': '0.33'}",
+                                   name='categorical drift score < 0.3 and numerical drift score < 0.3')
+        ))
