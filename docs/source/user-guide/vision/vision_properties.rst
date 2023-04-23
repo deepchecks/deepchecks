@@ -25,7 +25,7 @@ Example for specific scenarios in which measuring properties may come in handy:
 #. **Generalizability on new data** - a drift in significant data properties,
    may indicate lower ability of the model to accurately predict on the new (different) unlabeled data.
 #. **Find weak segments** - The properties can be used to segment the data and test for low performing segments.
-   If found, the weak segment may indicate a underrepresented segment or an area where the data quality is worse.
+   If found, the weak segment may indicate an underrepresented segment or an area where the data quality is worse.
 #. **Find obscure relations between the data and the targets** - the model training might be affected
    by properties we are not aware of, and that aren't the core attributes of what we are aiming for it to learn.
    For example, in a classification dataset of wolves and dogs photographs, if only wolves are photographed in
