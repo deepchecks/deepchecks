@@ -10,16 +10,12 @@
 #
 """Module contains Prediction Drift check."""
 
-from typing import Dict
-
 import numpy as np
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.utils.abstracts.prediction_drift import PredictionDriftAbstract
-from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS
-from deepchecks.utils.strings import format_number
 
 __all__ = ['PredictionDrift']
 
@@ -163,4 +159,4 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
             test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
 
         return self._prediction_drift(train_prediction, test_prediction, context.model_classes, context.with_display,
-                                     proba_drift, not proba_drift)
+                                      proba_drift, not proba_drift)

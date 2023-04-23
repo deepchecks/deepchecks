@@ -28,7 +28,7 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata):
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
                                details="Label's drift score Cramer's V is 0.22",
-                               name='label drift score < 0.1')
+                               name='Label drift score < 0.1')
     ))
 
     assert_that(result.value['Drift score'], close_to(0.23, 0.01))
@@ -46,7 +46,7 @@ def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata):
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
                                details="Label's drift score Cramer's V is 0",
-                               name='label drift score < 0.15')
+                               name='Label drift score < 0.15')
     ))
 
     assert_that(result.value['Drift score'], close_to(0, 0.01))
@@ -64,7 +64,7 @@ def test_multi_label_without_drift(dummy_multilabel_textdata_train_test):
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
                                details="Label's drift score Cramer's V is 0",
-                               name='label drift score < 0.15')
+                               name='Label drift score < 0.15')
     ))
     assert_that(result.value['Drift score'], close_to(0, 0.01))
 

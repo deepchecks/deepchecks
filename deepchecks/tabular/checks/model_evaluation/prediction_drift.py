@@ -15,14 +15,12 @@ from numbers import Number
 
 import numpy as np
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.abstracts.prediction_drift import PredictionDriftAbstract
-from deepchecks.utils.distribution.drift import SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS
-from deepchecks.utils.strings import format_number
 
 __all__ = ['PredictionDrift']
 
@@ -194,7 +192,7 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck, ReduceMixin):
             test_pred = np.array(model.predict(test_dataset.features_columns)).reshape((-1, 1))
 
         return self._prediction_drift(train_pred, test_pred, context.model_classes, context.with_display, proba_drift,
-                                     (context.task_type != TaskType.REGRESSION) and (not proba_drift))
+                                      (context.task_type != TaskType.REGRESSION) and (not proba_drift))
 
     def reduce_output(self, check_result: CheckResult) -> t.Dict[str, float]:
         """Return prediction drift score."""

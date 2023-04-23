@@ -21,7 +21,6 @@ from deepchecks.utils.strings import format_number
 __all__ = ['LabelDriftAbstract']
 
 
-
 class LabelDriftAbstract(abc.ABC):
     """Base class for label drift checks."""
 
@@ -66,9 +65,10 @@ class LabelDriftAbstract(abc.ABC):
 
         if with_display:
             displays = ["""<span>
-                        The Drift score is a measure for the difference between two distributions, in this check - the test
-                        and train distributions.<br> The check shows the drift score and distributions for the label.
-                    </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
+                        The Drift score is a measure for the difference between two distributions, in this check -
+                        the test and train distributions.<br> The check shows the drift score
+                        and distributions for the label. </span>""",
+                        get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
                         display]
         else:
             displays = None
