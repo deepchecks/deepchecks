@@ -53,15 +53,15 @@ _______________________________
 
 Classification metrics averaged over the tokens:
 
-*   Accuracy ``'token_accuracy'``
-*   Precision ``'token_precision_macro'``
-*   Recall ``'token_recall_macro'``
+*   Accuracy ``'accuracy'``
+*   Precision ``'precision_macro'``
+*   Recall ``'recall_macro'``
 
 Classification metrics per token class:
 
-*   F1 ``'token_f1_per_class'``
-*   Precision ``'token_precision_per_class'``
-*   Recall ``'token_recall_per_class'``
+*   F1 ``'f1_per_class'``
+*   Precision ``'precision_per_class'``
+*   Recall ``'recall_per_class'``
 
 Object Detection (Vision only)
 ______________________________
@@ -226,16 +226,16 @@ ____________________
    * - String
      - Metric
      - Comments
-   * - 'token_accuracy'
+   * - 'accuracy'
      - classification accuracy across all tokens
      -
-   * - 'token_precision_per_class'
+   * - 'precision_per_class'
      - precision per token class - no averaging
      -
-   * - 'token_precision_macro'
+   * - 'precision_macro'
      - precision per token class with macro averaging
      -
-   * - 'token_precision_micro'
+   * - 'precision_micro'
      - precision per token class with micro averaging
      -
    * - 'recall'

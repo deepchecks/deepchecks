@@ -15,6 +15,7 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
+from seqeval.metrics.sequence_labeling import get_entities
 from sklearn.base import BaseEstimator
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -105,5 +106,6 @@ def infer_observed_and_model_labels(
 
     if task_type == TaskType.TOKEN_CLASSIFICATION:
         observed_classes = [c for c in observed_classes if c != 'O']
+        observed_classes = sorted({tag for tag, _, _ in get_entities(observed_classes)})
 
     return observed_classes, model_classes
