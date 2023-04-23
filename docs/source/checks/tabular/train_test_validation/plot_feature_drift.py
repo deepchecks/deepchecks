@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_feature_drift:
+.. _tabular__feature_drift:
 
 Feature Drift
 ************************

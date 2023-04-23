@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_label_drift:
+.. _vision__label_drift:
 
 Label Drift
 **********************

@@ -1,4 +1,4 @@
-.. _feature_importance:
+.. _tabular__feature_importance:
 
 ====================
 Feature Importance

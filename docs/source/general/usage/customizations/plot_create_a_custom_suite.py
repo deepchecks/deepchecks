@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _create_custom_suite:
+
 Create a Custom Suite
 *********************
 

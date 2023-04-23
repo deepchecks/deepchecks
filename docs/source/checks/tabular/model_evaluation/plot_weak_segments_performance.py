@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _tabular__weak_segments_performance:
+
 Weak Segments Performance
 *************************
 

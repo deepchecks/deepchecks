@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _tabular__create_custom_check:
+
 =======================
 Creating a Custom Check
 =======================

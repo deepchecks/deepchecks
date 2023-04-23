@@ -1,4 +1,7 @@
 """
+
+.. _create_custom_check:
+
 =====================
 Create a Custom Check
 =====================

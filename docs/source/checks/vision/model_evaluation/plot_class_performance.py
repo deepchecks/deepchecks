@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_class_performance:
+.. _vision__class_performance:
 
 Class Performance
 ***********************

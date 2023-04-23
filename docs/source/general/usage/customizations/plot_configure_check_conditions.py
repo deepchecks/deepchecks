@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _configure_check_conditions:
+
 Configure Check Conditions
 **************************
 

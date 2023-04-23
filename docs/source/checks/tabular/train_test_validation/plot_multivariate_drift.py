@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_multivariate_drift:
+.. _tabular__multivariate_drift:
 
 Multivariate Drift
 *******************

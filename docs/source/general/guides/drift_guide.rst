@@ -124,8 +124,8 @@ In classification problems, it is common to have unbalanced data, meaning that t
 highly skewed. For example, in a dataset of credit card transactions, the number of fraudulent transactions is usually
 much lower than the number of non-fraudulent transactions, and can be below 1% of the total number of samples.
 
-In such cases, running the :doc:`LabelDrift </checks_gallery/tabular/train_test_validation/plot_label_drift>`:
-or :doc:`PredictionDrift </checks_gallery/tabular/model_evaluation/plot_prediction_drift>` checks
+In such cases, running the :ref:`tabular__label_drift`:
+or :ref:`_tabular__prediction_drift` checks
 with the default parameters will likely lead to a false negative, as for example a change in the percent of fraudulent
 transactions from 0.2% to 0.4% will not be detected, but may in fact be very significant for our business.
 
@@ -148,8 +148,8 @@ If the classifier can easily predict which sample is from which dataset, it woul
 The main advantage of this method is that it can also uncover covariate drift, meaning drift in the data that does not
 affect the distribution of each individual variable, but does affect the relationship between them.
 
-In deepchecks (in checks :doc:`Multivariate Drift</checks_gallery/tabular/train_test_validation/plot_multivariate_drift>` and
-:doc:`Image Dataset Drift</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`) we merge
+In deepchecks (in checks :ref:`tabular__multivariate_drift` and
+:ref:`vision__image_dataset_drift`) we merge
 the train and the test sets, and assign label 0 to samples that come from the training set, and 1 to those who are
 from the test set. Then, we train a binary classifer of type
 `Histogram-based Gradient Boosting Classification Tree
@@ -166,14 +166,14 @@ Tabular Data
 ------------
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
-:doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_feature_drift>` which uses
-`univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Multivariate Drift check</checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`
+:ref:`tabular__feature_drift` which uses
+`univariate measures <#detection-by-univariate-measure>`__ and the :ref:`tabular__multivariate_drift`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For drift in your label's distribution, deepchecks offers the :doc:`Label Drift check </checks_gallery/tabular/train_test_validation/plot_label_drift>`,
+For drift in your label's distribution, deepchecks offers the :ref:`tabular__label_drift`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/tabular/model_evaluation/plot_prediction_drift>`,
+In cases where the label is not available, we strongly recommend to also use the :ref:`tabular__prediction_drift`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#tabular-checks>`__
@@ -187,18 +187,18 @@ Computer Vision Data
 In computer vision we can't measure drift on images directly, as the individual pixel has little
 value when estimating drift. Also, labels in computer vision are sometimes complex structures as well (for example, in
 object detection, an image can have any number of bounding boxes).
-Therefore, the computer vision checks use :doc:`image and label properties</user-guide/vision/vision_properties>` to estimate
+Therefore, the computer vision checks use :ref:`_vision__properties_guide` to estimate
 drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the
-:doc:`Image Property Drift check </checks_gallery/vision/train_test_validation/plot_image_property_drift>` which uses
-`univariate measures <#detection-by-univariate-measure>`__ and the :doc:`Image Dataset Drift check</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`
+:ref:`vision__image_property_drift` which uses
+`univariate measures <#detection-by-univariate-measure>`__ and the :ref:`vision__image_dataset_drift`
 which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to detect multivariate drift.
 
-For drift in your label's distribution, deepchecks offers the :doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_label_drift>`,
+For drift in your label's distribution, deepchecks offers the :ref:`vision__label_drift`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :doc:`Prediction Drift check</checks_gallery/vision/model_evaluation/plot_prediction_drift>`,
+In cases where the label is not available, we strongly recommend to also use the :ref:`vision__prediction_drift`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#computer-vision-checks>`__
@@ -212,7 +212,7 @@ What Can You Do in Case of Drift?
 
 When suspecting drift in your data, you must first understand what changed in the data - were it the features, the labels,
 or maybe just the predictions.
-In deepchecks, we show a drift score for each feature, starting with your most :doc:`important features </user-guide/tabular/feature_importance>`,
+In deepchecks, we show a drift score for each feature, starting with your most :ref:`tabular__feature_importance`,
 giving you an idea of the severity of your drift, even if you're not still sure of its source.
 
 It is recommended to manually explore your data and try to understand the root cause of your changes, in order to
@@ -261,7 +261,7 @@ Code Examples
 Tabular Checks
 --------------
 
-:doc:`FeatureDrift </checks_gallery/tabular/train_test_validation/plot_feature_drift>`:
+:ref:`tabular__feature_drift`:
 
 .. code-block:: python
 
@@ -269,7 +269,7 @@ Tabular Checks
     check = FeatureDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`MultivariateDrift </checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`:
+:ref:`tabular__multivariate_drift`:
 
 .. code-block:: python
 
@@ -277,7 +277,7 @@ Tabular Checks
     check = MultivariateDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`LabelDrift </checks_gallery/tabular/train_test_validation/plot_label_drift>`:
+:ref:`tabular__label_drift`:
 
 .. code-block:: python
 
@@ -285,7 +285,7 @@ Tabular Checks
     check = LabelDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`PredictionDrift </checks_gallery/tabular/model_evaluation/plot_prediction_drift>`:
+:ref:`tabular__prediction_drift`:
 
 .. code-block:: python
 
@@ -297,7 +297,7 @@ Tabular Checks
 Computer Vision Checks
 ----------------------
 
-:doc:`ImagePropertyDrift </checks_gallery/vision/train_test_validation/plot_image_property_drift>`:
+:ref:`vision__image_property_drift`:
 
 .. code-block:: python
 
@@ -305,7 +305,7 @@ Computer Vision Checks
     check = TrainTestPropertyDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`ImageDatasetDrift </checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`:
+:ref:`vision__image_dataset_drift`:
 
 .. code-block:: python
 
@@ -313,7 +313,7 @@ Computer Vision Checks
     check = ImageDatasetDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`LabelDrift </checks_gallery/vision/train_test_validation/plot_label_drift>`:
+:ref:`vision__label_drift`:
 
 .. code-block:: python
 
@@ -321,7 +321,7 @@ Computer Vision Checks
     check = LabelDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
-:doc:`PredictionDrift </checks_gallery/vision/model_evaluation/plot_prediction_drift>`:
+:ref:`vision__prediction_drift`:
 
 .. code-block:: python
 

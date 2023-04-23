@@ -22,7 +22,7 @@ Controlling the metrics helps you shape the checks and suites according to the s
 Default Metrics
 ===============
 All of the checks that evaluate model performance, such as
-:doc:`TrainTestPerformance </checks_gallery/tabular/model_evaluation/plot_train_test_performance>`
+:ref:`tabular__train_test_performance`
 come with default metrics.
 
 The default metrics by task type are:
@@ -88,7 +88,7 @@ ____________________________________
 
 To run a check with the default metrics, run it without passing any value to the "scorers"
 parameter. We will demonstrate it using the
-:doc:`ClassPerformance </checks_gallery/vision/model_evaluation/plot_class_performance>` check:
+:ref:`vision__class_performance` check:
 
 .. literalinclude:: ../../../../examples/examples_metrics_guide.py
     :language: python
@@ -149,7 +149,7 @@ ______________
     list of all possible classes (Can also be inferred from provided data and model).
     It is also recommended to supply the model's output probabilities per class, as they are required for some metrics and checks
     which will not work without them.
-    See :doc:`link </user-guide/tabular/supported_models>` for additional information.
+    See :ref:`tabular__supported_models` for additional information.
 .. list-table::
    :widths: 25 75 75
    :header-rows: 1

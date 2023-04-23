@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_image_dataset_drift:
+.. _vision__image_dataset_drift:
 
 Image Dataset Drift
 *******************

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _nlp__metadata_segments_performance:
+
 Metadata Segments Performance
 *************************
 

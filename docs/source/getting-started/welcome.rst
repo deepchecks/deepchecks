@@ -27,24 +27,10 @@ Start Working with Deepchecks Testing
 
 .. grid:: 1
     :gutter: 3
-
-    .. grid-item-card:: 🏃‍♀️ Tabular Quickstarts 🏃‍♀️
-        :link-type: doc
-        :link: /user-guide/tabular/auto_quickstarts/index
-        
-        End-to-end guides to start testing your tabular data & model in 5 minutes.
-
-    .. grid-item-card:: 💁‍♂️ Get Help & Give Us Feedback 💁
-        :link-type: ref
-        :link: welcome__get_help
    
-        Links for how to interact with us via our `Slack Community  <https://www.deepchecks.com/slack>`__ 
-        or by opening `an issue on Github <https://github.com/deepchecks/deepchecks/issues>`__.
-
-   
-    .. grid-item-card:: 🤓 User Guide 🤓
+    .. grid-item-card:: 🤓 Concepts & Guides 🤓
         :link-type: doc
-        :link: /user-guide/index
+        :link: /general/index
          
         A comprehensive view of deepchecks concepts,
         customizations, and core use cases.
@@ -55,7 +41,7 @@ Start Working with Deepchecks Testing
 
         Full installation guide (quick one can be found in quickstarts)
 
-    .. grid-item-card:: 🚀 Interactive Demo of the Tabular Checks 🚀
+    .. grid-item-card:: 🚀 Interactive Checks Demo 🚀
         :link-type: url
         :link: https://checks-demo.deepchecks.com/?check=No+check+selected
              &utm_source=docs.deepchecks.com&utm_medium=referral&
@@ -63,27 +49,40 @@ Start Working with Deepchecks Testing
       
         Play with some of the existing tabular checks
         and see how they work on various datasets with custom corruptions injected.
-      
+
+    .. grid-item-card:: 📋 Tabular 📋‍
+        :link-type: doc
+        :link: /tabular/index
+
+        Main concepts, check gallery and end-to-end guides demonstrating how to start working Deepchecks
+        with tabular data and models.
+
+    .. grid-item-card:: 🎦‍ Computer Vision (Note: in Beta Release) 🎦‍
+        :link-type: doc
+        :link: /vision/index
+         
+        Main concepts, check gallery and end-to-end guides demonstrating how to start working Deepchecks
+        with CV data and models. Build-in support for PyTorch, TensorFlow, and custom frameworks.
+
+    .. grid-item-card:: 🔤️ NLP (Note: in Alpha Release) 🔤️
+        :link-type: doc
+        :link: /nlp/index
+
+        Main concepts, check gallery and end-to-end guides demonstrating how to start working Deepchecks
+        with NLP data.
+
+    .. grid-item-card:: 💁‍♂️ Get Help & Give Us Feedback 💁
+        :link-type: ref
+        :link: welcome__get_help
+
+        Links for how to interact with us via our `Slack Community  <https://www.deepchecks.com/slack>`__
+        or by opening `an issue on Github <https://github.com/deepchecks/deepchecks/issues>`__.
+
     .. grid-item-card:: 🤖 API Reference 🤖
         :link-type: doc
         :link: /api/index
-            
+
         Reference and links to source code for Deepchecks' components
-
-    .. grid-item-card:: 🏃‍♀️ Vision Quickstarts (Note: CV is in Beta Release) 🏃‍♀️
-        :link-type: doc
-        :link: /user-guide/vision/auto_quickstarts/index
-         
-        End-to-end guides demonstrating how to start working with various CV use cases 
-        (object detection, classification and more)
-
-    .. grid-item-card:: 🔤️ NLP Quickstarts (Note: NLP is in Alpha Release) 🔤️
-        :link-type: doc
-        :link: /user-guide/nlp/auto_quickstarts/index
-
-        Initial release demonstrating how to test NLP models and data. Future releases
-        to come! Currently supports text classification and token classification.
-
 
 .. _welcome__get_help:
 
@@ -126,7 +125,7 @@ Head over to the relevant documentation for more info:
     
     .. grid-item-card:: Testing Package CI/CD Usage
         :link-type: doc
-        :link: /user-guide/general/ci_cd
+        :link: /general/usage/ci_cd
         :img-top: /_static/images/welcome/ci_cd_title.png
         :columns: 4
         

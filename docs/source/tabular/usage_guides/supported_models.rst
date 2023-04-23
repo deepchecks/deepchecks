@@ -1,4 +1,4 @@
-.. _supported_models:
+.. _tabular__supported_models:
 
 ===================================
 Working with Models and Predictions

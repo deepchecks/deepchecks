@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_train_test_prediction_drift:
+.. __vision__prediction_drift:
 
 Prediction Drift
 ***************************

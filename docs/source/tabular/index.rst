@@ -38,6 +38,8 @@ This section contain in-depth guides on different aspects and components of the 
     usage_guides/supported_models
     usage_guides/feature_importance
 
+
+.. _tabular__checks_gallery:
 Checks Gallery
 --------------
 
