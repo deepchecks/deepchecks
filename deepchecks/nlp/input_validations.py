@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing input validation functions."""
-from typing import List, NamedTuple, Optional, Sequence
+from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
 import numpy as np
 import pandas as pd
@@ -146,3 +146,88 @@ def validate_length_and_calculate_column_types(
         categorical_columns=list(categorical_columns),
         numerical_columns=numeric_features
     )
+
+
+class DataframesDifference(NamedTuple):
+    """Facility type for the 'compare_dataframes' function.
+
+    Parameters
+    ==========
+    only_in_train: Tuple[str, ...]
+        set of columns present only in train dataframe.
+    only_in_test: Tuple[str, ...]
+        set of columns present only in test dataframe.
+    types_mismatch: Tuple[str, ...]
+        set of columns that are present in both dataframes
+        but have different types.
+    """
+
+    only_in_train: Tuple[str, ...]
+    only_in_test: Tuple[str, ...]
+    types_mismatch: Tuple[str, ...]
+
+
+class DataframesComparison(NamedTuple):
+    """Facility type for the 'compare_dataframes' function.
+
+    Parameters
+    ==========
+    common: Dict[str, str]
+        set of columns common for both dataframes.
+    difference: Optional[DataframesDifference]
+        difference between two dataframes.
+    """
+
+    common: Dict[str, str]
+    difference: Optional[DataframesDifference]
+
+
+def compare_dataframes(
+    train: pd.DataFrame,
+    test: pd.DataFrame,
+    train_categorical_columns: Optional[Sequence[str]] = None,
+    test_categorical_columns: Optional[Sequence[str]] = None
+) -> DataframesComparison:
+    """Compare two dataframes and return a difference."""
+    train_categorical_columns = train_categorical_columns or []
+    test_categorical_columns = test_categorical_columns or []
+
+    train_columns = cast(Set[str], set(train.columns))
+    test_columns = cast(Set[str], set(test.columns))
+    only_in_train = train_columns.difference(test_columns)
+    only_in_test = test_columns.difference(train_columns)
+    common_columns = train_columns.intersection(test_columns)
+    types_mismatch: Set[str] = set()
+
+    for column in common_columns:
+        is_cat_in_both_dataframes = (
+            column in train_categorical_columns
+            and column in test_categorical_columns
+        )
+
+        if is_cat_in_both_dataframes:
+            continue
+        if not is_cat_in_both_dataframes:
+            continue
+
+        types_mismatch.add(column)
+
+    common = {
+        column: (
+            'categorical'
+            if column in train_categorical_columns
+            else 'numerical'
+        )
+        for column in common_columns.difference(types_mismatch)
+    }
+
+    if only_in_train or only_in_test or types_mismatch:
+        difference = DataframesDifference(
+            only_in_train=tuple(only_in_train),
+            only_in_test=tuple(only_in_test),
+            types_mismatch=tuple(types_mismatch),
+        )
+    else:
+        difference = None
+
+    return DataframesComparison(common, difference)

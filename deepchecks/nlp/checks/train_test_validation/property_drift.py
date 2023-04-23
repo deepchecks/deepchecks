@@ -8,25 +8,27 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-
-"""Module contains Label Drift check."""
-
-from typing import Dict
+"""Module contains Property Drift check."""
+import typing as t
 
 from deepchecks.core import CheckResult
-from deepchecks.core.reduce_classes import ReduceLabelMixin
-from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.abstracts.label_drift import LabelDriftAbstract
+from deepchecks.nlp.base_checks import TrainTestCheck
+from deepchecks.nlp.context import Context
+from deepchecks.nlp.text_data import TextData
+from deepchecks.utils.abstracts.feature_drift import FeatureDriftAbstract
+from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.typing import Hashable
 
-__all__ = ['LabelDrift']
+__all__ = ['PropertyDrift']
 
 
-class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
+# TODO:
+# refactor, separate general drift logic into separate class/module and use it with drift checks
+class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
     """
-    Calculate label drift between train dataset and test dataset, using statistical measures.
+    Calculate drift between train dataset and test dataset per feature, using statistical measures.
 
-    Check calculates a drift score for the label in test dataset, by comparing its distribution to the train
+    Check calculates a drift score for each column in test dataset, by comparing its distribution to the train
     dataset.
 
     For numerical columns, we use the Kolmogorov-Smirnov statistic.
@@ -39,25 +41,30 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
-    For categorical labels, it is recommended to use Cramer's V, unless your variable includes categories with a
+    For categorical variables, it is recommended to use Cramer's V, unless your variable includes categories with a
     small number of samples (common practice is categories with less than 5 samples).
     However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
 
-    **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V, together with setting
-    the ``balance_classes`` parameter to ``True``.
-
     Parameters
     ----------
+    properties : Union[Hashable, List[Hashable]] , default: None
+        Properties to check, if none is given, checks all
+        properties except ignored ones.
+    ignore_properties : Union[Hashable, List[Hashable]] , default: None
+        Properties to ignore, if none is given, checks based on
+        properties variable.
+    n_top_properties : int , default 5
+        amount of properties to show ordered by drift score
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
     min_category_size_ratio: float, default 0.01
         minimum size ratio for categories. Categories with size ratio lower than this number are binned
-        into an "Other" category. Ignored if balance_classes=True.
-    max_num_categories_for_drift: int, default: None
-        Only for classification. Max number of allowed categories. If there are more,
-        they are binned into an "Other" category.
+        into an "Other" category.
+    max_num_categories_for_drift: Optional[int], default: None
+        Only for categorical features. Max number of allowed categories. If there are more,
+        they are binned into an "Other" category. This limit applies for both drift calculation and distribution plots.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
@@ -72,17 +79,13 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
     categorical_drift_method: str, default: "cramers_v"
         decides which method to use on categorical variables. Possible values are:
         "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
-    balance_classes: bool, default: False
-        If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
-        variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
-        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v".
-        If True, the variable frequency plot will be created with a log scale in the y-axis.
-    ignore_na: bool, default False
+    ignore_na: bool, default True
         For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
         separate category. For numerical columns we always ignore nones.
-    min_samples : int , default: 10
+    min_samples : int , default: 100
         Minimum number of samples required to calculate the drift score. If there are not enough samples for either
-        train or test, the check will raise a ``NotEnoughSamplesError`` exception.
+        train or test, the check will return None for that feature. If there are not enough samples for all properties,
+        the check will raise a ``NotEnoughSamplesError`` exception.
     n_samples : int , default: 100_000
         Number of samples to use for drift computation and plot.
     random_state : int , default: 42
@@ -90,22 +93,27 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
     """
 
     def __init__(
-            self,
-            margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = None,
-            min_category_size_ratio: float = 0.01,
-            max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'largest_difference',
-            numerical_drift_method: str = 'KS',
-            categorical_drift_method: str = 'cramers_v',
-            balance_classes: bool = False,
-            ignore_na: bool = False,
-            min_samples: int = 10,
-            n_samples: int = 100_000,
-            random_state: int = 42,
-            **kwargs
+        self,
+        properties: t.Union[t.Hashable, t.List[Hashable], None] = None,
+        ignore_properties: t.Union[Hashable, t.List[Hashable], None] = None,
+        n_top_properties: int = 5,
+        margin_quantile_filter: float = 0.025,
+        max_num_categories_for_drift: t.Optional[int] = None,
+        min_category_size_ratio: float = 0.01,
+        max_num_categories_for_display: int = 10,
+        show_categories_by: str = 'largest_difference',
+        numerical_drift_method: str = 'KS',
+        categorical_drift_method: str = 'cramers_v',
+        ignore_na: bool = True,
+        min_samples: int = 100,
+        n_samples: int = 100_000,
+        random_state: int = 42,
+        **kwargs
     ):
         super().__init__(**kwargs)
+        self.properties = properties
+        self.ignore_properties = ignore_properties
+        self.n_top_columns = n_top_properties
         self.margin_quantile_filter = margin_quantile_filter
         self.max_num_categories_for_drift = max_num_categories_for_drift
         self.min_category_size_ratio = min_category_size_ratio
@@ -113,33 +121,37 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
         self.show_categories_by = show_categories_by
         self.numerical_drift_method = numerical_drift_method
         self.categorical_drift_method = categorical_drift_method
-        self.balance_classes = balance_classes
         self.ignore_na = ignore_na
         self.min_samples = min_samples
         self.n_samples = n_samples
         self.random_state = random_state
+        self.sort_feature_by = 'drift score'
 
     def run_logic(self, context: Context) -> CheckResult:
-        """Calculate drift for all columns.
-
-        Returns
-        -------
-        CheckResult
-            value: drift score.
-            display: label distribution graph, comparing the train and test distributions.
-        """
-        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
-        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
-
-        column_type = 'categorical' if context.task_type != TaskType.REGRESSION else 'numerical'
-
-        return self._calculate_label_drift(train_dataset.label_col, test_dataset.label_col, train_dataset.label_name,
-                                           column_type, context.with_display, (train_dataset.name, test_dataset.name))
-
-    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
-        """Return label drift score."""
-        return {'Label Drift Score': check_result.value['Drift score']}
-
-    def greater_is_better(self):
-        """Return True if the check reduce_output is better when it is greater."""
-        return False
+        """Run check."""
+        train = t.cast(TextData, context.train)
+        test = t.cast(TextData, context.test)
+        train_properties = select_from_dataframe(
+            train.properties,
+            columns=self.properties,
+            ignore_columns=self.ignore_properties
+        )
+        test_properties = select_from_dataframe(
+            test.properties,
+            columns=self.properties,
+            ignore_columns=self.ignore_properties
+        )
+        results, displays = self._calculate_feature_drift(
+            drift_kind='nlp-properties',
+            train=train_properties,
+            test=test_properties,
+            train_dataframe_name=train.name or 'Train',
+            test_dataframe_name=test.name or 'Test',
+            common_columns=context.common_datasets_properties,
+            with_display=context.with_display
+        )
+        return CheckResult(
+            value=results,
+            display=displays,
+            header='Properties Drift'
+        )
