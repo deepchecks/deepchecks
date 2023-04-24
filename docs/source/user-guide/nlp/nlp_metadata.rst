@@ -48,7 +48,9 @@ The metadata can be passed to the :class:`TextData <deepchecks.nlp.TextData>` ob
 #. After initializing the :class:`TextData <deepchecks.nlp.TextData>` object, by using the ``TextData.set_metadata``
    function.
 
-In both options, it's advised to also use the ``categorical_metadata`` parameter to specify which metadata columns are
+In both methods, you can pass the metadata as a pandas DataFrame, or as a path to a csv file.
+
+Additionally, it's advised to also use the ``categorical_metadata`` parameter to specify which metadata columns are
 categorical. The parameter should be a list of the names of the categorical columns.
 
 

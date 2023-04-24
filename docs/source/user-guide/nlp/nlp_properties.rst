@@ -126,18 +126,33 @@ In the following example, we will calculate the properties and include only the 
 
   text_data.calculate_default_properties(include_long_calculation_properties=True, include_properties=['Toxicity'])
 
+Saving The Calculated Properties
+################################
+
+If you want to save the calculated properties, you can use the ``save_properties`` method of the ``TextData`` object:
+
+.. code-block:: python
+
+  text_data.save_properties('path/to/file.csv')
+
+See how to reload the properties in the :ref:`Using Your Own Properties` section.
+
 
 Using Your Own Properties
 -------------------------
 
-If you already have the properties calculated, there are 2 ways to use them:
+If you've already calculated the built-in properties, or you've implemented your own properties, you can use them
+in the checks by passing them to the ``TextData`` object.
 
 #. When initializing the :class:`TextData <deepchecks.nlp.TextData>` object, pass your pre-calculated
    properties to the ``properties`` parameter.
 #. After the initialization, call the ``set_properties`` method of the :class:`TextData <deepchecks.nlp.TextData>`
    object.
 
-In both options, it's advised to also use the ``categorical_properties`` parameter to specify which properties are
+In both methods, you can pass the properties as a pandas DataFrame, or as a path to a csv file. For the correct format
+of the properties, see the :ref:`Pre-Calculated Properties Format` section.
+
+Additionally, it's advised to also use the ``categorical_properties`` parameter to specify which properties are
 categorical. The parameter should be a list of the names of the categorical properties (columns).
 
 In the following example, we will pass pre-calculated properties to the ``TextData`` object in order to use the
@@ -157,6 +172,7 @@ TextPropertyOutliers check:
 
   # Run the check
   TextPropertyOutliers().run(text_data)
+
 
 
 Pre-Calculated Properties Format

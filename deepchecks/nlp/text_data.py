@@ -65,8 +65,9 @@ class TextData:
         label is provided.
     name : t.Optional[str] , default: None
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
-    metadata : t.Optional[pd.DataFrame] , default: None
-        Metadata for the samples. Metadata must be given as a pandas DataFrame, with the rows representing each sample
+    metadata : t.Optional[t.Union[pd.DataFrame, str]] , default: None
+        Metadata for the samples. Metadata must be given as a pandas DataFrame or a path to a pandas
+        DataFrame compatible csv file, with the rows representing each sample
         and columns representing the different metadata columns. If None, no metadata is set.
         The number of rows in the metadata DataFrame must be equal to the number of samples in the dataset, and the
         order of the rows must be the same as the order of the samples in the dataset.
@@ -75,9 +76,10 @@ class TextData:
     categorical_metadata : t.Optional[t.List[str]] , default: None
         The names of the categorical metadata columns. If None, categorical metadata columns are automatically inferred.
         Only relevant if metadata is not None.
-    properties : t.Optional[pd.DataFrame] , default: None
-        The text properties for the samples. Properties must be given as a pandas DataFrame, with the rows representing
-        each sample and columns representing the different properties. If None, no properties are set.
+    properties : t.Optional[t.Union[pd.DataFrame, str]] , default: None
+        The text properties for the samples. Properties must be given as either a pandas DataFrame or a path to a pandas
+        DataFrame compatible csv file, with the rows representing each sample and columns representing the different
+        properties. If None, no properties are set.
         The number of rows in the properties DataFrame must be equal to the number of samples in the dataset, and the
         order of the rows must be the same as the order of the samples in the dataset.
         In order to calculate the default properties, use the `TextData.calculate_default_properties` function after
@@ -94,8 +96,8 @@ class TextData:
     task_type: t.Optional[TaskType]
     _tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None  # Outer sequence is np array
     name: t.Optional[str] = None
-    _metadata: t.Optional[pd.DataFrame] = None
-    _properties: t.Optional[pd.DataFrame] = None
+    _metadata: t.Optional[t.Union[pd.DataFrame, str]] = None
+    _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
     _cat_properties: t.Optional[t.List[str]] = None
     _cat_metadata: t.Optional[t.List[str]] = None
     _original_text_index: t.Optional[t.Sequence[int]] = None  # Sequence is np array
@@ -292,6 +294,9 @@ class TextData:
         if self._metadata is not None:
             warnings.warn('Metadata already exist, overwriting it', UserWarning)
 
+        if isinstance(metadata, str):
+            metadata = pd.read_csv(metadata)
+
         column_types = validate_length_and_calculate_column_types(
             data_table=metadata,
             data_table_name='Metadata',
@@ -348,6 +353,9 @@ class TextData:
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
+        if isinstance(properties, str):
+            properties = pd.read_csv(properties)
+
         column_types = validate_length_and_calculate_column_types(
             data_table=properties,
             data_table_name='Properties',
@@ -357,6 +365,24 @@ class TextData:
 
         self._properties = properties.reset_index(drop=True)
         self._cat_properties = column_types.categorical_columns
+
+
+    def save_properties(self, path: str):
+        """Save the dataset properties to csv.
+
+        Parameters
+        ----------
+        path : str
+            Path to save the properties to.
+        """
+        if self._properties is None:
+            raise DeepchecksNotSupportedError(
+                'TextData does not contain properties, add them by using '
+                '"calculate_default_properties" or "set_properties" functions'
+            )
+
+        self._properties.to_csv(path, index=False)
+
 
     @property
     def properties(self) -> pd.DataFrame:
