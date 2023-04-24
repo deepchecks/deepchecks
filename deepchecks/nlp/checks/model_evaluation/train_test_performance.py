@@ -8,22 +8,21 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the train test performance check."""
+"""Module containing the Train-Test Performance check."""
+import typing as t
 from numbers import Number
-from typing import Callable, List, Mapping, TypeVar, Union, cast
 
+import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult
-from deepchecks.core.checks import CheckConfig
-from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.nlp.metric_utils.scorers import infer_on_text_data
+from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.abstracts.train_test_performace import TrainTestPerformanceAbstract
-from deepchecks.utils.docref import doclink
 
 __all__ = ['TrainTestPerformance']
-
-
-PR = TypeVar('PR', bound='TrainTestPerformance')
 
 
 class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
@@ -74,11 +73,17 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self,
-                 scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
-                 n_samples: int = 1_000_000,
-                 random_state: int = 42,
-                 **kwargs):
+    def __init__(
+        self,
+        scorers: t.Union[
+            t.Mapping[str, t.Union[str, t.Callable]],
+            t.List[str],
+            None
+        ] = None,
+        n_samples: int = 1_000_000,
+        random_state: int = 42,
+        **kwargs
+    ):
         super().__init__(**kwargs)
         self.scorers = scorers
         self.n_samples = n_samples
@@ -86,54 +91,81 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
-        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
-        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
+        train_dataset = t.cast(TextData, context.train.sample(self.n_samples, random_state=self.random_state))
+        test_dataset = t.cast(TextData, context.test.sample(self.n_samples, random_state=self.random_state))
         model = context.model
         scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
         datasets = {'Train': train_dataset, 'Test': test_dataset}
 
         results = []
+
         for dataset_name, dataset in datasets.items():
-            label = cast(pd.Series, dataset.label_col)
-            n_samples_per_class = label.groupby(label).count()
+
+            if context.task_type is TaskType.TEXT_CLASSIFICATION and dataset.is_multi_label_classification():
+                n_samples_per_class = dict(enumerate(np.array(dataset.label).sum(axis=0)))
+                n_of_labels = sum(n_samples_per_class.values())
+
+            elif context.task_type is TaskType.TEXT_CLASSIFICATION:
+                label = pd.Series(dataset.label)
+                n_samples_per_class = label.groupby(label).count()
+                n_of_labels = len(label)
+
+            elif context.task_type is TaskType.TOKEN_CLASSIFICATION:
+                # TODO:
+                n_samples_per_class = {}
+                n_of_labels = 0
+
+            else:
+                raise NotImplementedError()
+
             for scorer in scorers:
-                scorer_value = scorer(model, dataset)
+                scorer_value = infer_on_text_data(
+                    scorer=scorer,
+                    model=model,
+                    data=dataset
+                )
                 if isinstance(scorer_value, Number):
-                    results.append([dataset_name, pd.NA, scorer.name, scorer_value, len(label)])
+                    results.append([
+                        dataset_name,
+                        pd.NA,
+                        scorer.name,
+                        scorer_value,
+                        n_of_labels
+                    ])
                 else:
-                    results.extend(
-                        [[dataset_name, class_name, scorer.name, class_score, n_samples_per_class.get(class_name, 0)]
-                            for class_name, class_score in scorer_value.items()])
+                    results.extend((
+                        [
+                            dataset_name,
+                            class_name,
+                            scorer.name,
+                            class_score,
+                            n_samples_per_class.get(class_name, 0)
+                        ]
+                        for class_name, class_score in scorer_value.items()
+                    ))
 
-        results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
+        results_df = pd.DataFrame(
+            results,
+            columns=[
+                'Dataset',
+                'Class',
+                'Metric',
+                'Value',
+                'Number of samples'
+            ]
+        )
 
-        if context.with_display:
-            figs = self._prepare_display(
+        if context.with_display is False:
+            figures = None
+        else:
+            figures = self._prepare_display(
                 results_df,
                 train_dataset.name or 'Train',
                 test_dataset.name or 'Test'
             )
-        else:
-            figs = None
 
         return CheckResult(
             results_df,
             header='Train Test Performance',
-            display=figs
+            display=figures
         )
-
-    def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
-        """Return check configuration."""
-        if isinstance(self.scorers, dict):
-            for k, v in self.scorers.items():
-                if not isinstance(v, str):
-                    reference = doclink(
-                        'supported-metrics-by-string',
-                        template='For a list of built-in scorers please refer to {link}'
-                    )
-                    raise ValueError(
-                        'Only built-in scorers are allowed when serializing check instances. '
-                        f'{reference}. Scorer name: {k}'
-                    )
-
-        return super().config(include_version=include_version, include_defaults=include_defaults)

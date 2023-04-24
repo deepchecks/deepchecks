@@ -4,7 +4,7 @@
 
 Confusion Matrix Report
 ***********************
-This notebook provides an overview for using and understanding the Confusion Matrix Report check.
+This notebook provides an overview for using and understanding the Confusion Matrix Report check for NLP tasks.
 
 
 **Structure:**
@@ -25,31 +25,23 @@ such as accuracy, precision, recall etc. (`confusion matrix <https://en.wikipedi
 #%%
 # Generate data & model
 # =======================
-import pandas as pd
-from sklearn.datasets import load_iris
-from sklearn.ensemble import AdaBoostClassifier
-from sklearn.model_selection import train_test_split
+from deepchecks.nlp import TextData
+from deepchecks.nlp.checks import ConfusionMatrixReport
+from deepchecks.nlp.datasets.classification.tweet_emotion import load_data, load_precalculated_predictions
 
-from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import ConfusionMatrixReport
+tweets_data = load_data(data_format='DataFrame', as_train_test=False)
+tweets_dataset = TextData(tweets_data.text, label=tweets_data['label'],
+                          task_type='text_classification')
 
-iris = load_iris(as_frame=True)
-clf = AdaBoostClassifier()
-frame = iris.frame
-X = iris.data
-y = iris.target
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=42)
-clf.fit(X_train, y_train)
-ds = Dataset(pd.concat([X_test, y_test], axis=1), 
-            features=iris.feature_names,
-            label='target')
+predictions = load_precalculated_predictions(as_train_test=False)
+
 
 #%%
 # Run the check
 # ===============
 
 check = ConfusionMatrixReport()
-result = check.run(ds, clf)
+result = check.run(tweets_dataset, predictions=predictions)
 result.show()
 
 #%%

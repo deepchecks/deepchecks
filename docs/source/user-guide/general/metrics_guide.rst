@@ -22,13 +22,13 @@ Controlling the metrics helps you shape the checks and suites according to the s
 Default Metrics
 ===============
 All of the checks that evaluate model performance, such as
-:doc:`SingleDatasetPerformance </checks_gallery/vision/model_evaluation/plot_single_dataset_performance>`
+:doc:`TrainTestPerformance </checks_gallery/tabular/model_evaluation/plot_train_test_performance>`
 come with default metrics.
 
 The default metrics by task type are:
 
-Tabular
-_______
+Classification
+______________
 
 Binary classification:
 
@@ -48,7 +48,29 @@ Multiclass classification per class:
 *   Precision ``'precision_per_class'``
 *   Recall ``'recall_per_class'``
 
-Regression:
+Token Classification (NLP only)
+_______________________________
+
+Classification metrics averaged over the tokens:
+
+*   Accuracy ``'accuracy'``
+*   Precision ``'precision_macro'``
+*   Recall ``'recall_macro'``
+
+Classification metrics per token class:
+
+*   F1 ``'f1_per_class'``
+*   Precision ``'precision_per_class'``
+*   Recall ``'recall_per_class'``
+
+Object Detection (Vision only)
+______________________________
+
+*   Mean average precision ``'average_precision_per_class'``
+*   Mean average recall  ``'average_recall_per_class'``
+
+Regression
+__________
 
 *   Negative RMSE ``'neg_rmse'``
 *   Negative MAE ``'neg_mae'``
@@ -60,18 +82,6 @@ Regression:
     Therefore, it is recommended to only use metrics that follow
     this convention, for example, Negative MAE instead of MAE.
 
-Vision
-______
-
-Classification:
-
-*   Precision ``'precision_per_class'``
-*   Recall ``'recall_per_class'``
-
-Object detection:
-
-*   Mean average precision ``'average_precision_per_class'``
-*   Mean average recall  ``'average_recall_per_class'``
 
 Running a Check with Default Metrics
 ____________________________________
@@ -131,33 +141,6 @@ In addition to the strings listed below, all Sklearn `scorer strings
 <https://scikit-learn.org/stable/modules/model_evaluation.html#the-scoring-parameter-defining-model-evaluation-rules>`__
 apply for all tabular task types, and for computer vision classification tasks.
 
-Regression
-__________
-.. list-table::
-   :widths: 25 75 75
-   :header-rows: 1
-
-   * - String
-     - Metric
-     - Comments
-   * - 'neg_rmse'
-     - negative root mean squared error
-     - higher value represents better performance
-   * - 'neg_mae'
-     - negative mean absolute error
-     - higher value represents better performance
-   * - 'rmse'
-     - root mean squared error
-     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
-   * - 'mae'
-     - mean absolute error
-     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
-   * - 'mse'
-     - mean squared error
-     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
-   * - 'r2'
-     - R2 score
-     -
 
 Classification
 ______________
@@ -234,6 +217,34 @@ ______________
      - AUC - One-vs-One, weighted by support
      -
 
+Token Classification
+____________________
+.. list-table::
+   :widths: 25 75 75
+   :header-rows: 1
+
+   * - String
+     - Metric
+     - Comments
+   * - 'accuracy'
+     - classification accuracy across all tokens
+     -
+   * - 'precision_per_class'
+     - precision per token class - no averaging
+     -
+   * - 'precision_macro'
+     - precision per token class with macro averaging
+     -
+   * - 'precision_micro'
+     - precision per token class with micro averaging
+     -
+   * - 'recall'
+     - recall
+     - suffixes apply as with 'precision'
+   * - 'f1'
+     - f1
+     - suffixes apply as with 'precision'
+
 Object Detection
 ________________
 .. list-table::
@@ -256,8 +267,35 @@ ________________
      - average recall for object detection
      - suffixes apply as with 'average_precision'
 
-.. _metrics_guide__custom_metrics:
+Regression
+__________
+.. list-table::
+   :widths: 25 75 75
+   :header-rows: 1
 
+   * - String
+     - Metric
+     - Comments
+   * - 'neg_rmse'
+     - negative root mean squared error
+     - higher value represents better performance
+   * - 'neg_mae'
+     - negative mean absolute error
+     - higher value represents better performance
+   * - 'rmse'
+     - root mean squared error
+     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
+   * - 'mae'
+     - mean absolute error
+     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
+   * - 'mse'
+     - mean squared error
+     - not recommended, see :ref:`note <metrics_guide_note_regression>`.
+   * - 'r2'
+     - R2 score
+     -
+
+.. _metrics_guide__custom_metrics:
 Custom Metrics
 ==============
 You can also pass your own custom metric to relevant checks and suites.
@@ -309,3 +347,8 @@ ______________
     :language: python
     :lines: 34-64
     :tab-width: 0
+
+NLP Example
+___________
+
+Currently unavailable, will be added in future releases.

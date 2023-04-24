@@ -153,7 +153,14 @@ def language(raw_text: Sequence[str]) -> List[str]:
     """Return list of strings of language."""
     langdetect = _import_optional_property_dependency(module='langdetect', property_name='language')
     langdetect.DetectorFactory.seed = 42
-    return [langdetect.detect(text) for text in raw_text]
+
+    result = []
+    for text in raw_text:
+        try:
+            result.append(langdetect.detect(text))
+        except langdetect.lang_detect_exception.LangDetectException:
+            result.append(np.nan)
+    return result
 
 
 def sentiment(raw_text: Sequence[str]) -> List[str]:

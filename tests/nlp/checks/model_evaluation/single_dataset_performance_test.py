@@ -136,15 +136,14 @@ def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_d
 def test_wikiann_data(wikiann):
     """Temp to test wikiann dataset loads correctly"""
     dataset = wikiann
-    check = SingleDatasetPerformance(scorers=['token_f1_macro'])
-    result = check.run(dataset, predictions=dataset.label)
-
+    check = SingleDatasetPerformance(scorers=['f1_macro'])
+    result = check.run(dataset, predictions=list(dataset.label))
     assert_that(result.value.values[0][-1], equal_to(1))
 
 
 def test_run_with_scorer_token(text_token_classification_dataset_mock):
     # Arrange
-    check = SingleDatasetPerformance(scorers=['token_f1_macro'])
+    check = SingleDatasetPerformance(scorers=['f1_macro'])
 
     correct_predictions = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
                            ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
@@ -170,7 +169,7 @@ def test_run_with_scorer_token(text_token_classification_dataset_mock):
 
 def test_run_with_scorer_token_per_class(text_token_classification_dataset_mock):
     # Arrange
-    check = SingleDatasetPerformance(scorers=['token_recall_per_class'])
+    check = SingleDatasetPerformance(scorers=['recall_per_class'])
 
     # Act
     result = check.run(text_token_classification_dataset_mock,
@@ -191,7 +190,7 @@ def test_run_with_scorer_token_per_class(text_token_classification_dataset_mock)
 
 def test_ignore_O_label_in_model_classes(text_token_classification_dataset_mock):
     # Arrange
-    check = SingleDatasetPerformance(scorers=['token_recall_per_class'])
+    check = SingleDatasetPerformance(scorers=['recall_per_class'])
 
     # Act
     result = check.run(text_token_classification_dataset_mock,
