@@ -366,7 +366,6 @@ class TextData:
         self._properties = properties.reset_index(drop=True)
         self._cat_properties = column_types.categorical_columns
 
-
     def save_properties(self, path: str):
         """Save the dataset properties to csv.
 
@@ -382,7 +381,6 @@ class TextData:
             )
 
         self._properties.to_csv(path, index=False)
-
 
     @property
     def properties(self) -> pd.DataFrame:
