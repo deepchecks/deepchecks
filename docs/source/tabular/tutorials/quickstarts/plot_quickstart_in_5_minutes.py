@@ -9,7 +9,7 @@ In order to run your first Deepchecks Suite all you need to have is the data
 and model that you wish to validate. More specifically, you need:
 
 * Your train and test data (in Pandas DataFrames or Numpy Arrays)
-* (optional) A :doc:`supported model </user-guide/tabular/supported_models>` (including XGBoost,
+* (optional) A :ref:`tabular__supported_models` (including XGBoost,
   scikit-learn models, and many more). Required for running checks that need the
   model's predictions for running.
 
@@ -100,7 +100,7 @@ integ_suite.run(ds_train)
 # ======================
 # If you want to run a specific check, you can just import it and run it directly.
 #
-# Check out the :doc:`Check tabular examples </checks_gallery/tabular/index>` in
+# Check out the :ref:`tabular__checks_gallery` in
 # the examples or the :doc:`API Reference </api/index>` for more info about the
 # existing checks and their parameters.
 

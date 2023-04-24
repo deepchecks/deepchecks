@@ -1,4 +1,4 @@
-.. _nlp_index:
+.. _nlp__index:
 
 ===
 NLP
@@ -35,6 +35,7 @@ This section contain in-depth guides on different aspects and components of the 
 
     usage_guides/supported_tasks
 
+.. _nlp__checks_gallery:
 Checks Gallery
 --------------
 

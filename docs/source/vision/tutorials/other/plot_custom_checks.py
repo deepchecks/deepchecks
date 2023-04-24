@@ -1,4 +1,7 @@
 """
+
+.. _vision__custom_check:
+
 =======================
 Creating a Custom Check
 =======================
@@ -8,7 +11,7 @@ checks and more. Nevertheless, in order to fully validate your ML pipeline you o
 This guide will walk you through the basics of writing your own checks.
 
 We recommend writing a single check for each aspect of the model or data you would like to validate. As explained in
-:doc:`/user-guide/general/deepchecks_hierarchy`, the role of the check is to run the logic and output a display and
+:ref:`general__deepchecks_hierarchy`, the role of the check is to run the logic and output a display and
 a pythonic value. Then, a condition can be defined on that value to determine if the check is successful or not.
 
 1. `Vision Checks Structure <#vision-checks-structure>`__
@@ -135,7 +138,7 @@ class ColorAveragesCheck(TrainTestCheck):
 #
 # .. note::
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
-#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data_class>`.
+#   or other frameworks, please visit the :ref:`vision__vision_data_class` guide.
 #
 
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset

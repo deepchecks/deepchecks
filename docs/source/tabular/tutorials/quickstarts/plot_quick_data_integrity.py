@@ -138,7 +138,7 @@ result.show()
 # Finally, we'll choose to keep the "organic" multiple spellings as they represent different sources.
 # So we'll customaize the suite by removing the condition from it (or delete check completely).
 # Alternatively - we can customize it by creating a new Suite with the desired checks and conditions.
-# See :doc:`/user-guide/general/customizations/examples/plot_create_a_custom_suite` for more info.
+# See :ref:`create_custom_suite` for more info.
 
 # let's inspect the suite's structure
 integ_suite
@@ -161,6 +161,6 @@ res = integ_suite.run(ds)
 # Additional Outputs section*
 #
 # For more info about working with conditions, see the detailed
-# :doc:`/user-guide/general/customizations/examples/plot_configure_check_conditions` guide.
+# :ref:`configure_check_conditions` guide.
 
 # sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/tabular_quickstarts/data_integrity.png'

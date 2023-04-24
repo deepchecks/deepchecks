@@ -1,4 +1,4 @@
-.. _nlp_supported_tasks:
+.. _nlp__supported_tasks:
 
 ===========================
 Supported Tasks and Formats

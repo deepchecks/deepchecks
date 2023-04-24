@@ -96,22 +96,22 @@ suite_result.show()
 #
 # The result showcase a number of interesting insights, first let's inspect the "Didn't Pass" section.
 #
-# * :doc:`/checks_gallery/tabular/model_evaluation/plot_train_test_performance`
+# * :ref:`tabular__train_test_performance`
 #   check result implies that the model overfitted the training data.
-# * :doc:`/checks_gallery/tabular/model_evaluation/plot_regression_systematic_error`
+# * :ref:`tabular__regression_systematic_error`
 #   (test set) check result demonstrate the model small positive bias.
-# * :doc:`/checks_gallery/tabular/model_evaluation/plot_weak_segments_performance`
+# * :ref:`tabular__weak_segments_performance`
 #   (test set) check result visualize some specific sub-spaces on which the
 #   model performs poorly. Examples for those sub-spaces are
 #   wines with low total sulfur dioxide and wines with high alcohol percentage.
 #
 # Next, let's examine the "Passed" section.
 #
-# * :doc:`/checks_gallery/tabular/model_evaluation/plot_simple_model_comparison` check result states that the model
+# * :ref:`tabular__simple_model_comparison` check result states that the model
 #   performs better than naive baseline models, an opposite result could indicate a problem with the model
 #   or the data it was trained on.
-# * :doc:`/checks_gallery/tabular/model_evaluation/plot_boosting_overfit` check
-#   and the :doc:`/checks_gallery/tabular/model_evaluation/plot_unused_features` check results implies that the
+# * :ref:`tabular__boosting_overfit` check
+#   and the :ref:`tabular__unused_features` check results implies that the
 #   model has a well calibrating boosting stopping rule and that it make good use on the different data features.
 #
 # Let's try and fix the overfitting issue found in the model.
@@ -137,7 +137,7 @@ result.show()
 # --------------------------
 #
 # To create our own suite, we can start with an empty suite and add checks and condition to it
-# (see :doc:`/user-guide/general/customizations/examples/plot_create_a_custom_suite`), or we can start with
+# (see :ref:`create_custom_suite`), or we can start with
 # one of the default suites and update it as demonstrated in this section.
 #
 # let's inspect our model evaluation suite's structure
@@ -161,6 +161,6 @@ result.passed(fail_if_warning=False)
 #%%
 #
 # For more info about working with conditions, see the detailed
-# :doc:`/user-guide/general/customizations/examples/plot_configure_check_conditions` guide.
+# :ref:`configure_check_conditions` guide.
 
 # sphinx_gallery_thumbnail_path = '_static/images/sphinx_thumbnails/tabular_quickstarts/model_evaluation.png'

@@ -15,7 +15,7 @@ tasks have a base implementation, meaning you will have to create your own task.
 When creating your own task you will be limited to run checks which are agnostic to the specific task type.
 For example performance checks that uses IOU works only on object detection tasks, since they need to know
 the exact bounding box format in order to run, while other checks that uses
-:doc:`/user-guide/vision/vision_properties` or custom metrics are agnostic to the task type.
+:ref:`vision__properties_guide` or custom metrics are agnostic to the task type.
 
 In this guide we will implement a custom instance segmentation task and run checks on it.
 Note that instance segmentation is different from semantic segmentation, which is currently supported in Deepchecks.
@@ -176,7 +176,7 @@ fig.show()
 # predictions (when available). In order to do that, those must be in a pre-defined format, according to the task type.
 #
 # In the following example we're using pytorch. To see how this can be done using tensorflow or a generic generator,
-# please refer to :doc:`creating VisionData guide </user-guide/vision/VisionData>`.
+# please refer to :ref:`vision__vision_data_class` guide.
 #
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.vision_data.VisionData` object,
@@ -184,7 +184,7 @@ fig.show()
 #
 # For a custom task, only the images have a pre-defined format while the labels and predictions can arrive
 # in any format. To learn more about the expected formats for the different tasks please visit
-# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`.
+# :ref:`vision__supported_tasks` guide.
 #
 
 from deepchecks.vision import VisionData, BatchOutputFormat
@@ -238,7 +238,7 @@ result.show()
 # ---------------------------
 #
 # In order to run checks that are using label or prediction properties we'll have to implement
-# a custom :doc:`property </user-guide/vision/vision_properties>`. We'll write label properties and run the label drift
+# a custom :ref:`property <vision__properties_guide>`. We'll write label properties and run the label drift
 # check.
 
 from deepchecks.vision.checks import LabelDrift

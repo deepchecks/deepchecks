@@ -88,7 +88,7 @@ Feature Importance (Optional)
 -----------------------------
 
 Some checks uses the model's
-:doc:`feature importance </api/generated/deepchecks.user-guide.tabular.feature_importance>`
+:ref:`tabular__feature_importance`
 in their analysis. By default, if available, it is extracted directly from the model via property
 (``feature_importances_`` or ``coef_`` for a linear model) otherwise it is calculated
 using |permutation importance|. The required format for the feature importance is a pandas series with feature names
@@ -107,7 +107,7 @@ only relevant for classification tasks.
 See more about the :ref:`supported formats here<supported_models__predictions_format>`.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
-:doc:`Simple Model Comparison </api/generated/deepchecks.tabular.checks.model_evaluation.SimpleModelComparison>`
+:doc:`tabular__simple_model_comparison`
 check for a regression model
 requires both train and test :ref:`predicted values <supported_models__predictions_format>`
 to be provided via the ``y_pred_train``, ``y_pred_test`` arguments.
@@ -126,7 +126,7 @@ Code Example
 We will run the deepchecks model evaluation suite using pre-computed predictions from a random forest classification
 model. In addition, we will calculate and pass |permutation importance| which provides a better estimate of the
 effect of different features on the model's performance. See the
-:doc:`feature importance API reference </api/generated/deepchecks.user-guide.tabular.feature_importance>`
+:ref:`tabular__feature_importance`
 for more details.
 
 .. literalinclude:: ../../../../examples/examples_supported_models.py

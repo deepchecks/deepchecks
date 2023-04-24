@@ -1,4 +1,4 @@
-.. _tabular_index:
+.. _tabular__index:
 
 =======
 Tabular

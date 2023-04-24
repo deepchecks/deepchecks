@@ -26,9 +26,9 @@ Why Does Deepchecks Use Feature Importance?
 
 Deepchecks uses your model's feature importance for 2 main reasons:
 
-* Help you find issues with your model or data, as in the check :doc:`UnusedFeatures </checks_gallery/tabular/model_evaluation/plot_unused_features>`
+* Help you find issues with your model or data, as in the check :ref:`tabular__unused_features>`
 * Prioritize the display according to the most relevant information the check has found (for instance, if deepchecks found drift in many features,
-  as in the check :doc:`FeatureDrift </checks_gallery/tabular/train_test_validation/plot_feature_drift>`,
+  as in the check :ref:`tabular__feature_drift>`,
   it would only display the features with the highest importance)
 
 

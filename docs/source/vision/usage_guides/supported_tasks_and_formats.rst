@@ -1,11 +1,11 @@
-.. _supported_tasks_and_formats:
+.. _vision__supported_tasks:
 
 ===========================
 Supported Tasks and Formats
 ===========================
 
 In order to analyze the images, labels and predictions provided in the
-:doc:`VisionData object </user-guide/vision/VisionData>`,
+:ref:`vision__vision_data_class`,
 they must be provided in the accepted deepchecks format. In this section we will describe the supported formats
 for each supported task type.
 
@@ -30,7 +30,7 @@ Common Formats
 
 Batch General Format
 --------------------
-Each batch, which is the output of the :doc:`batch loader </user-guide/vision/VisionData>`,
+Each batch, which is the output of the :ref:`batch loader <vision__vision_data_class>`,
 is required to be a :class:`dictionary <deepchecks.vision.vision_data.BatchOutputFormat>`
 with keys for each provided data input: images, labels, predictions and image identifiers.
 Since each data input represents multiple samples,
@@ -183,11 +183,11 @@ not validated. There are two ways in which Deepchecks can provide value for thes
 
 The quick option: Run checks that require only the images themselves.
 Few examples for such checks include:
-:doc:`Image Property Outliers </checks_gallery/vision/data_integrity/plot_image_property_outliers>`,
-:doc:`Image Dataset Drift </checks_gallery/vision/train_test_validation/plot_image_dataset_drift>` and
-:doc:`Image Property Drift </checks_gallery/vision/train_test_validation/plot_image_property_drift>`.
+:ref:`vision__image_property_outliers>`,
+:ref:`vision__image_dataset_drift>` and
+:ref:`vision__image_property_drift>`.
 
 The advanced option: Add custom metrics and properties for the
 predictions and labels provided and run additional checks.
 For more information on how to do so, see the
-:doc:`custom task tutorial </user-guide/vision/auto_tutorials/plot_custom_task_tutorial>`.
+:ref:`vision__custom_check>` tutorial.

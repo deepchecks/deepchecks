@@ -6,7 +6,7 @@ Custom Check Templates
 
 This page supplies templates for the different types of custom checks that you can create using the deepchecks package.
 For more information on custom checks, please see the
-:doc:`Custom Check Guide. </user-guide/vision/auto_tutorials/plot_custom_checks>`
+:ref:`vision__custom_checks`
 
 
 Templates:

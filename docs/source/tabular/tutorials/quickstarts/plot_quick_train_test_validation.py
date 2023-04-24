@@ -154,7 +154,7 @@ suite_result.show()
 # Ok, the date leakage doesn't happen anymore!
 #
 # However, in the current split after the fix, we can see that we have a multivariate drift, 
-# detected by the :doc:`/checks_gallery/tabular/train_test_validation/plot_multivariate_drift` check.
+# detected by the :ref:`tabular__multivariate_drift` check.
 # The drift is caused mainly by a combination of features representing the loan's interest rate (``int_rate``) 
 # and its grade (``sub_grade``). In order to proceed, we should think about the two options we have: 
 # To split the data in a different manner, or to stay with the current split.
@@ -169,7 +169,7 @@ suite_result.show()
 # it is worth understanding this drift (do we expect this kind of drift in the model's 
 # production environment? can we do something about it?).
 #
-# For more details about drift, see the :doc:`/user-guide/general/drift_guide`.
+# For more details about drift, see the :ref:`drift_user_guide`.
 
 
 

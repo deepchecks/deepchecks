@@ -6,10 +6,10 @@ The Vision Data Class
 The :class:`VisionData <deepchecks.vision.VisionData>` data class is the deepchecks base class for
 storing your data for a vision task. It is essentially a wrapper around a batch loader of images, labels,
 and predictions, that allows deepchecks to efficiently calculate different
-:doc:`checks </checks_gallery/vision>` on your data, by caching some of the information.
+:ref:`vision__checks_gallery` on your data, by caching some of the information.
 
 Information about the supported task types and the required formats for each task is available at
-:doc:`/user-guide/vision/supported_tasks_and_formats`.
+:ref:`vision__supported_tasks`.
 
 
 This file contain three main sections:
@@ -27,8 +27,8 @@ Common Class Parameters
 
 - **task_type** - The task type of the data, can be either ``classification``, ``object_detection``,
   ``semantic_segmentation``, or ``other``. Data format validation is done upon creation of VisionData based
-  on the selected task type. See the :doc:`supported tasks and formats </user-guide/vision/supported_tasks_and_formats>`
-  section for more information.
+  on the selected task type. See the :ref:`vision__supported_tasks`
+  guide for more information.
 
 - **label_map** - A dictionary mapping class ids to their names.
 
@@ -52,7 +52,7 @@ From a Generic Generator
 If you are not already using a pytorch DataLoader or a tensorflow Dataset for the project, for example
 if you are using fastai, jax or any autoML framework, this is the most recommended option.
 The custom generator can be implemented in any way you like, as long as it outputs the data in the
-:doc:`required format </user-guide/vision/supported_tasks_and_formats>`
+:ref:`required format <vision__supported_tasks>`
 and that it loads the data in a shuffled manner. The following is an example of a custom generator
 based on data that is fully stored in memory as numpy arrays.
 
@@ -94,7 +94,7 @@ The collate function receives a list containing the results of running your impl
 ``__getitem__`` function on several indexes and returns a batch in any desired format.
 
 In order create a deepchecks compatible DataLoader, you need to create a collate function that
-returns a batch in the :doc:`following format </user-guide/vision/supported_tasks_and_formats>`
+returns a batch in the :ref:`following format <vision__supported_tasks>`
 and replace the default collate function via the ``collate_fn`` argument in the creation of the DataLoader.
 
 A full code implementation of this method for the COCO128 dataset can be seen at
@@ -130,7 +130,7 @@ We will demonstrate the second option.
 In the following example, we have a tensorflow dataset object that outputs a
 batch of images and labels as a tuple of (images, labels).
 We will use the `map <https://www.tensorflow.org/api_docs/python/tf/data/Dataset#map>`_
-function to convert the data into :doc:`Deepchecks' format </user-guide/vision/supported_tasks_and_formats>`.
+function to convert the data into :ref:`Deepchecks' format <vision__supported_tasks>`.
 
 A full code implementation of this method for the COCO128 dataset can be seen at the following
 `link <https://github.com/deepchecks/deepchecks/tree/main/deepchecks/vision/datasets/detection/coco_tensorflow.py>`_.
@@ -156,7 +156,7 @@ A full code implementation of this method for the COCO128 dataset can be seen at
 .. _vision_data__adding_predictions:
 Adding Model Predictions
 ========================
-Some checks, including the :doc:`model evaluation checks and suite </checks_gallery/vision>`,
+Some checks, including the :ref:`model evaluation checks and suite <vision__checks_gallery>`,
 require model predictions in
 order to run. Model predictions are supplied via the batch loader in a similar fashion to the images and labels.
 There are several ways to supply them which can be roughly divide into two categories: Pre-calculated predictions and

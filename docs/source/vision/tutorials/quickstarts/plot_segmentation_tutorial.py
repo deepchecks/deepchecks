@@ -7,7 +7,7 @@ Semantic Segmentation Tutorial
 
 In this tutorial, you will learn how to validate your **semantic segmentation model** using deepchecks test suites.
 You can read more about the different checks and suites for computer vision use cases at the
-:doc:`examples section </checks_gallery/vision/index>`.
+:ref:`examples section <vision__checks_gallery>`.
 
 If you just want to see the output of this tutorial, jump to :ref:`observing_the_result` section.
 
@@ -29,7 +29,7 @@ of the probability for each class.
 # ===========================
 # .. note::
 #   In this tutorial, we use the pytorch to create the dataset and model. To see how this can be done using tensorflow
-#   or other frameworks, please visit the :ref:`creating VisionData guide <vision_data_class>`.
+#   or other frameworks, please visit the :ref:`vision__vision_data_class` guide.
 
 # %%
 # Load Data
@@ -74,12 +74,12 @@ model = load_model(pretrained=True)
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
 # predictions. In order to do that, those must be in a pre-defined format, according to the task type.
 # In the following example we're using pytorch. To see an implementation of this in tensorflow, please refer to
-# :ref:`creating VisionData guide <vision_data_class>`
+# :ref:`vision__vision_data_class` guide.
 # For pytorch, we will use our DataLoader, but we'll create a new collate function for it, that transforms the batch to
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected formats, please visit the
-# :doc:`supported tasks and formats guide </user-guide/vision/supported_tasks_and_formats>`.
+# :ref:`vision__supported_tasks`.
 #
 # First, we'll create the collate function that will be used by the DataLoader.
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that

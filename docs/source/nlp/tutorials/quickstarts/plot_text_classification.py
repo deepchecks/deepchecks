@@ -8,7 +8,7 @@ In order to run deepchecks for NLP all you need to have are the following for bo
 1. Your text data - a list of strings, each string is a single sample (can be a sentence, paragraph, document etc.).
 2. Your labels - either a :ref:`Text Classification <nlp_supported_text_classification> label or a
    :ref:`Token Classification <nlp_supported_token_classification>` label.
-3. Your models predictions (see :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` for info on supported formats).
+3. Your models predictions (see :ref:`nlp__supported_tasks>` for info on supported formats).
 
 If you don't have deepchecks installed yet:
 

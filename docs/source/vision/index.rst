@@ -1,4 +1,4 @@
-.. _vision_index:
+.. _vision__index:
 
 ======
 Vision

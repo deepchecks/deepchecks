@@ -26,7 +26,7 @@ Each check consists of 3 main parts:
 * Conditions
 
 This guide will demonstrate how to implement a Check with a return value and
-display, for adding a condition see :doc:`working with conditions </user-guide/general/customizations/examples/plot_configure_check_conditions>`,
+display, for adding a condition see :ref:`configure_check_conditions>`,
 or have a look at the examples in :ref:`tabular__custom_check_templates` guide..
 
 Write a Basic Check

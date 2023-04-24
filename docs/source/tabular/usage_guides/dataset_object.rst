@@ -1,4 +1,4 @@
-.. _dataset_object:
+.. _tabular__dataset_object:
 
 ====================
 The Dataset Object

@@ -1,3 +1,5 @@
+.. _general__deepchecks_hierarchy:
+
 ====================
 Deepchecks Hierarchy
 ====================

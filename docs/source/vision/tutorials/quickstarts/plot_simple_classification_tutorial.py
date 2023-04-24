@@ -7,9 +7,9 @@ Image Data Validation in 5 Minutes
 
 Deepchecks Vision is built to validate your data and model, however complex your model and data may be. That
 being said, sometime there is no need to write a full-blown
-:doc:`classification task </user-guide/vision/auto_tutorials/plot_classification_tutorial>`,
-:doc:`object detection task </user-guide/vision/auto_tutorials/plot_detection_tutorial>` or
-:doc:`semantic segmentation task </user-guide/vision/auto_tutorials/plot_segmentation_tutorial>`. In the case of a simple classification
+:ref:`classification task <vision__classification_tutorial>`,
+:ref:`object detection task <vision__detection_tutorial>` or
+:ref:`semantic segmentation task <vision__segmentation_tutorial>`. In the case of a simple classification
 task, there are quite a few checks that can be run writing only a few lines of code. In this tutorial, we will show you
 how to run all checks that do not require a model on a simple classification task.
 
@@ -82,7 +82,7 @@ train_ds, test_ds = classification_dataset_from_directory(
 # and checks. Here we will demonstrate how to run train_test_validation suite:
 #
 # for additional information on the different suites and checks available see our
-# :doc:`Vision Checks </checks_gallery/vision>` gallery.
+# :ref:`Vision Checks <vision__checks_gallery>` gallery.
 
 from deepchecks.vision.suites import train_test_validation
 
@@ -106,9 +106,8 @@ result.show()
 # ===========================
 # Looking at the results we see one check whose condition has failed: Feature Label Correlation.
 #
-# The :doc:`Property Label Correlation Change
-# </checks_gallery/vision/train_test_validation/plot_property_label_correlation_change>` check computes various
-# :doc:`image properties </user-guide/vision/vision_properties>` and checks if the image label can be inferred using a
+# The :ref:`vision__property_label_correlation_change>` check computes various
+# :ref:`image properties <vision__properties_guide>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measured by the Predictive Power Score (PPS) and this measure is compared between the training
 # and test dataset. In this case, the condition alerts us to the fact that the PPS for the "RMS Contrast" property was
