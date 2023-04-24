@@ -1,4 +1,4 @@
-.. _nlp_properties_guide:
+.. _nlp__properties_guide:
 
 =================
 NLP Properties

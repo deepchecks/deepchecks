@@ -1,4 +1,4 @@
-.. _nlp_metadata_guide:
+.. _nlp__metadata_guide:
 
 =================
 NLP Metadata
