@@ -141,8 +141,8 @@ See how to reload the properties in the :ref:`Using Your Own Properties` section
 Using Your Own Properties
 -------------------------
 
-If you've already calculated the built-in properties, or you've implemented your own properties, you can use them
-in the checks by passing them to the ``TextData`` object.
+Whether you saved the deepchecks properties for this dataset somewhere to save time, or you calculated something smart
+of your own, you can set the properties of the ``TextData`` object to be your own, by using one of the following methods:
 
 #. When initializing the :class:`TextData <deepchecks.nlp.TextData>` object, pass your pre-calculated
    properties to the ``properties`` parameter.
