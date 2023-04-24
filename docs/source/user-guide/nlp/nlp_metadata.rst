@@ -9,13 +9,17 @@ behavior. In contrast to unstructured text, metadata is structured, and is expec
 Metadata can be anything - from the source of the data, the timestamp of its creation, to the age of the author, and
 any other information that is given about the text.
 
+Not to be confused with :ref:`text properties <nlp_properties_guide>`, which are features extracted from the text
+itself, such as text length or sentiment.
+
 What Is Metadata Used For?
 =============================
 
-Metadata is used by Deepchecks' checks to extract meaningful features from the data, since some computations cannot be
-computed directly on the text (for example, drift). Inspecting the distribution of a metadata column's values (e.g. to
-notice that the source of the texts is different between the train and test sets) can help uncover potential problems in
-the way that the datasets were built, or hint about the model's expected performance on unseen data.
+Metadata is used by Deepchecks' checks to examine the dataset, without directly using the text, as some tests are
+difficult to perform on unstructured data.
+Inspecting the distribution of a metadata column's values (e.g. to notice that the source of the texts is different
+between the train and test sets) can help uncover potential problems in the way that the datasets were built,
+or hint about the model's expected performance on unseen data.
 
 Example for specific scenarios in which measuring the metadata may come in handy:
 

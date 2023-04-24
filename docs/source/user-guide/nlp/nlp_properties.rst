@@ -4,11 +4,14 @@
 NLP Properties
 =================
 
-Properties are one-dimension values that are extracted from either the text, labels or predictions. For example, a
-text property could be **text length** or **sentiment**, and a label property could be **number of tokens** (for token
-classification tasks).
+Properties are one-dimension values that are extracted from the text. For example, a property could be **text length**
+or **sentiment**.
 Deepchecks includes :ref:`built-in properties <Deepchecks' Built-in Properties>` and supports :ref:`using your own
 properties <Using Your Own Properties>`.
+
+Not to be confused with :ref:`metadata <nlp_metadata_guide>`, which is additional data that comes with it organically,
+such as the text's author or date of creation.
+
 
 What Are Properties Used For?
 =============================
@@ -38,12 +41,7 @@ Example for specific scenarios in which measuring properties may come in handy:
 Deepchecks' Built-in Properties
 ===============================
 
-We divide the properties by the data that they are based on: text, labels or predictions.
 You can either use the built-in properties or implement your own ones and pass them to the relevant checks.
-
-
-Text Properties
-------------------
 The built-in image properties are:
 
 ==============================  ==========
@@ -63,13 +61,6 @@ Formality*                      Formality of the text. Uses the s-nlp/roberta-ba
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass
 ``include_long_calculation_properties=True`` to the :class:`TextData.calculate_properties <deepchecks.nlp.TextData>` method.
-
-
-Label & Prediction Properties
--------------------------------
-
-..note:
-    Not implemented yet
 
 
 Using Properties in Checks
