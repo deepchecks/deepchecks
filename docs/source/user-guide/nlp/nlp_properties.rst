@@ -62,7 +62,7 @@ Formality*                      Formality of the text. Uses the s-nlp/roberta-ba
 ==============================  ==========
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass
-``include_long_calculation_properties`` to the :class:`TextData.calculate_properties <deepchecks.nlp.TextData>` method.
+``include_long_calculation_properties=True`` to the :class:`TextData.calculate_properties <deepchecks.nlp.TextData>` method.
 
 
 Label & Prediction Properties
