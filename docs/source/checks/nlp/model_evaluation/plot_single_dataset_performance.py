@@ -17,12 +17,14 @@ What is the purpose of the check?
 ==================================
 This check is designed for evaluating a model's performance on a labeled dataset based on a scorer or multiple scorers.
 
-Scorers are a convention of sklearn to evaluate a model,
-it is a function which accepts (model, X, y_true) and returns a float result which is the score.
-A sklearn convention is that higher scores are better than lower scores. For additional details `see scorers
-documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_.
+For Text Classification tasks the supported metrics are sklearn scorers. You may use any of the existing sklearn
+scorers or create your own. For more information about the supported sklearn scorers, defining your own metrics and
+to learn how to use metrics for other supported task types, see the
+:doc:`Metrics Guide </user-guide/general/metrics_guide>`.
 
-The default scorers that are used are F1, Precision, and Recall.
+The default scorers that are used for are F1, Precision, and Recall for Classification,
+and F1 Macro, Recall Macro and Precision Macro for Token Classification. See more about the supported task types at the
+:doc:`Supported Tasks </user-guide/nlp/supported_tasks>` guide.
 """
 
 #%%
