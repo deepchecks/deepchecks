@@ -78,7 +78,7 @@ class TextData:
     properties : t.Optional[pd.DataFrame] , default: None
         The text properties for the samples. Properties must be given as a pandas DataFrame, with the rows representing
         each sample and columns representing the different properties. If None, no properties are set.
-        The number of rows in the metadata DataFrame must be equal to the number of samples in the dataset, and the
+        The number of rows in the properties DataFrame must be equal to the number of samples in the dataset, and the
         order of the rows must be the same as the order of the samples in the dataset.
         In order to calculate the default properties, use the `TextData.calculate_default_properties` function after
         the creation of the TextData object.
