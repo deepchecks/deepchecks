@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. __tabular__special_chars:
+.. _tabular__special_chars:
 
 Special Characters
 ******************

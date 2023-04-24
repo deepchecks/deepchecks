@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. __tabular__data_duplicates:
+.. _tabular__data_duplicates:
 
 Data Duplicates
 ***************

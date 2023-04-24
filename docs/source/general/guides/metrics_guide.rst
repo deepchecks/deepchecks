@@ -1,8 +1,8 @@
 .. _metrics_guide:
 
-====================
+=============
 Metrics Guide
-====================
+=============
 
 In this guide we'll explain how to customize the metrics that deepchecks uses to validate and monitor your model
 performance.

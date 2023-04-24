@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. __tabular__mixed_data_types:
+.. _tabular__mixed_data_types:
 
 Mixed Data Types
 ****************

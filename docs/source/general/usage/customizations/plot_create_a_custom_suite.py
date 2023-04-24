@@ -25,8 +25,9 @@ For assistance in understanding which checks are implemented and can be included
 we suggest using any of:
 
 * :doc:`API Reference </api/index>`
-* `Tabular checks demonstration notebooks </examples/index.html#tabular-examples>`__
-* `Computer vision checks demonstration notebooks </examples/index.html#computer-vision-examples>`__
+* :ref:`Tabular checks <tabular__checks_gallery>`
+* :ref:`Vision checks <vision__checks_gallery>
+* :ref:`NLP checks <nlp__checks_gallery>
 * Built-in suites (by printing them to see which checks they include)
 """
 

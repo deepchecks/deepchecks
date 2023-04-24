@@ -40,9 +40,9 @@ import urllib.request
 import zipfile
 
 url = 'https://download.pytorch.org/tutorial/hymenoptera_data.zip'
-urllib.request.urlretrieve(url, '../../vision/tutorials/hymenoptera_data.zip')
+urllib.request.urlretrieve(url, '../../../vision/tutorials/hymenoptera_data.zip')
 
-with zipfile.ZipFile('../../vision/tutorials/hymenoptera_data.zip', 'r') as zip_ref:
+with zipfile.ZipFile('../../../vision/tutorials/hymenoptera_data.zip', 'r') as zip_ref:
     zip_ref.extractall('.')
 #%%
 # Load Data

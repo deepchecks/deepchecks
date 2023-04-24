@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. tabular__class_imbalance:
+.. _tabular__class_imbalance:
 
 Class Imbalance
 ***************

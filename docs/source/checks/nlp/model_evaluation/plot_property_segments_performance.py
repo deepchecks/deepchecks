@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Property Segments Performance
-*************************
+*****************************
 
 This notebook provides an overview for using and understanding the property segment performance check.
 
@@ -14,7 +14,7 @@ This notebook provides an overview for using and understanding the property segm
 * `Define a condition <#define-a-condition>`__
 
 What is the purpose of the check?
-==================================
+=================================
 
 The check is designed to help you easily identify the model's weakest segments based on the provided
 :func:`properties <deepchecks.nlp.text_data.TextData.set_properties>`. In addition,

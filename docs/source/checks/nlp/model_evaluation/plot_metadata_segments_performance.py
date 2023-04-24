@@ -4,7 +4,7 @@
 .. _nlp__metadata_segments_performance:
 
 Metadata Segments Performance
-*************************
+*****************************
 
 This notebook provides an overview for using and understanding the metadata segment performance check.
 
