@@ -5,7 +5,7 @@ NLP Metadata
 =================
 
 Metadata is any additional information about the texts, that can be used to better understand the data and the model's
-behavior. As opposed to the unstructured text, metadata is structured, and is expected to be a pandas DataFrame.
+behavior. In contrast to unstructured text, metadata is structured, and is expected to be a pandas DataFrame.
 Metadata can be anything - from the source of the data, the timestamp of its creation, to the age of the author, and
 any other information that is given about the text.
 
