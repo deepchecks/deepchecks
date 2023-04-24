@@ -93,6 +93,8 @@ In the following example, we will calculate the default properties in order to u
   # Run the check
   TextPropertyOutliers().run(text_data)
 
+Note that any use of the ``TextData.calculate_default_properties`` method will override the existing properties.
+
 Including or Ignoring Properties
 #################################
 
@@ -172,3 +174,5 @@ Pre-Calculated Properties Format
 The properties should be a pandas DataFrame, where each row represents a text sample and each column represents a
 property. The DataFrame must have the same number of rows as the number of samples in the
 :class:`TextData <deepchecks.nlp.TextData>` object, and in the corresponding order.
+Note that if you load the properties from a csv file, all columns will be loaded and considered as properties, so make
+sure not to include any other columns in the csv file such as the index column.
