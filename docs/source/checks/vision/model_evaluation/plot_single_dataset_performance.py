@@ -18,7 +18,7 @@ What Is the Purpose of the Check?
 =================================
 This check returns the results from a dict of metrics, in the format metric name: scorer, calculated for the
 given model dataset. The scorer should be either a sklearn scorer or a custom metric (see
-:doc:`Metrics Guide </user-guide/general/metrics_guide>` for further details).
+:ref:`metrics_user_guide` for further details).
 Use this check to evaluate the performance on a single vision dataset such as a test set.
 
 """
@@ -59,7 +59,7 @@ result.show()
 
 #%%
 # Now we will run a check with a metric different from the defaults- F-1.
-# You can read more about setting metrics in the :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
+# You can read more about setting metrics in the :ref:`Metrics Guide <metrics_user_guide>`.
 
 check = SingleDatasetPerformance(scorers={'f1': 'f1_per_class'})
 result = check.run(train_ds)

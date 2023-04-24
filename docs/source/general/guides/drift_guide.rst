@@ -125,7 +125,7 @@ highly skewed. For example, in a dataset of credit card transactions, the number
 much lower than the number of non-fraudulent transactions, and can be below 1% of the total number of samples.
 
 In such cases, running the :ref:`tabular__label_drift`:
-or :ref:`_tabular__prediction_drift` checks
+or :ref:`tabular__prediction_drift` checks
 with the default parameters will likely lead to a false negative, as for example a change in the percent of fraudulent
 transactions from 0.2% to 0.4% will not be detected, but may in fact be very significant for our business.
 
@@ -187,7 +187,7 @@ Computer Vision Data
 In computer vision we can't measure drift on images directly, as the individual pixel has little
 value when estimating drift. Also, labels in computer vision are sometimes complex structures as well (for example, in
 object detection, an image can have any number of bounding boxes).
-Therefore, the computer vision checks use :ref:`_vision__properties_guide` to estimate
+Therefore, the computer vision checks use :ref:`vision__properties_guide` to estimate
 drift, as image data and labels are not simple one-dimensional variables.
 
 To detect `data <#data-drift>`__ or `concept drift <#concept-drift>`__, deepchecks offers the

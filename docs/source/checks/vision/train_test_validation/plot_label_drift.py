@@ -22,7 +22,7 @@ over time.
 
 Label drift is when drift occurs in the label itself.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
+For more information on drift, please visit our :ref:`drift_user_guide`.
 
 How Deepchecks Detects Label Drift
 ------------------------------------
@@ -33,7 +33,8 @@ on the label properties.
 Using Label Properties to Detect Label Drift
 --------------------------------------------
 In computer vision specifically, our labels may be complex, and measuring their drift
-is not a straightforward task. Therefore, we calculate drift on different :doc:`properties of the label</user-guide/vision/vision_properties>`,
+is not a straightforward task. Therefore, we calculate drift on different
+:ref:`properties of the label<vision__properties_guide>`,
 on which we can directly measure drift.
 
 Which Label Properties Are Used?

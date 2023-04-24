@@ -184,7 +184,7 @@ _ = model.eval()
 # the correct format. Then, we'll create a :class:`deepchecks.vision.vision_data.vision_data.VisionData` object, that will hold the data loader.
 #
 # To learn more about the expected format please visit
-# :ref:`vision__supported_tasks_and_formats`.
+# :ref:`vision__supported_tasks`.
 #
 # First, we will create some functions that transform our batch to the correct format of images, labels and predictions:
 

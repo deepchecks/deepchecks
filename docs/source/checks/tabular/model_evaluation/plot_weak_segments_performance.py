@@ -65,7 +65,7 @@ model = load_fitted_model()
 # segments. It is important to select a metric that is relevant to the data domain and task you are performing.
 # By default, the check uses Neg RMSE for regression tasks and Accuracy for classification tasks.
 # For additional information on scorers and how to use them see
-# :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
+# :ref:`Metrics Guide <metrics_user_guide>`.
 #
 # ``segment_minimum_size_ratio``: Determines the minimum size of segments that are of interest. The check will
 # return data segments that contain at least this fraction of the total data samples. It is recommended to

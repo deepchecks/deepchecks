@@ -41,7 +41,7 @@ our model is not missing on important information.
 #
 # ``feature_importance_threshold``: Controls the threshold over which features are considered important.
 # For additional information on how feature importance is being calculated, see
-# :doc:`Feature Importance </user-guide/tabular/feature_importance>`.
+# :ref:`tabular__feature_importance`.
 #
 # We will run the check on the adult dataset which can be downloaded from the
 # `UCI machine learning repository <http://archive.ics.uci.edu/ml>`_ and is also available in

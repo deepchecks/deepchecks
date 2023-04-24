@@ -12,7 +12,7 @@ to display your own graph using deepchecks' suite.
 
 For implementing custom checks, please refer to:
 
-- :doc:`Tabular Custom Check Guide </user-guide/tabular/auto_tutorials/plot_add_a_custom_check>`
-- :doc:`Vision Custom Check Guide </user-guide/vision/auto_tutorials/plot_custom_checks>`
+- :ref:`Tabular Custom Check Guide <tabular__create_custom_check>`
+- :ref:`Vision Custom Check Guide <vision__custom_check>`
 
 """

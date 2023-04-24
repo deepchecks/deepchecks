@@ -107,7 +107,7 @@ only relevant for classification tasks.
 See more about the :ref:`supported formats here<supported_models__predictions_format>`.
 
 The predictions should be provided for each dataset supplied to the suite / check. For example the
-:doc:`tabular__simple_model_comparison`
+:ref:`tabular__simple_model_comparison`
 check for a regression model
 requires both train and test :ref:`predicted values <supported_models__predictions_format>`
 to be provided via the ``y_pred_train``, ``y_pred_test`` arguments.

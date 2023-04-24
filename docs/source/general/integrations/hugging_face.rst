@@ -32,7 +32,7 @@ conversions in one place.
 
 We can now create :class:`VisionData <deepchecks.vision.vision_data.VisionData>` object. This deepchecks object accepts
 a batch loader, which is an iterator that yields batches of images, labels, predictions and any other required
-information. To read more about it, see the :ref:`_vision__vision_data_class`. In this example
+information. To read more about it, see the :ref:`vision__vision_data_class`. In this example
 our batch loader is a python dataloader, so we'll create a custom collate function that will convert the data to the
 required formats and generate the predictions. We'll then use the :meth:`head <deepchecks.vision.vision_data.VisionData.head>`
 method to make sure the dataset was created successfully.
@@ -64,7 +64,7 @@ to benchmark the results achieved by the DETR model.
     :tab-width: 0
 
 We already loaded the data wrapped with the relevant ``VisionData`` object, so we can just use the
-:ref:`vision__mean_average_precision_report>` check to
+:ref:`vision__mean_average_precision_report` check to
 evaluate the model's performance for various IoU thresholds and bounding box sizes.
 
 .. literalinclude:: ../../../../examples/integrations/hugging_face/deepchecks_hugging_face_tutorial.py
@@ -83,7 +83,7 @@ Benchmarking YOLOv5s Against DETR ResNet
 ------------------------------------------
 
 Now that we have everything in place, we can run the
-:ref:`vision__mean_average_precision_report>` check
+:ref:`vision__mean_average_precision_report` check
 also on the DETR model! Let's run and compare to the YOLO results.
 
 .. literalinclude:: ../../../../examples/integrations/hugging_face/deepchecks_hugging_face_tutorial.py

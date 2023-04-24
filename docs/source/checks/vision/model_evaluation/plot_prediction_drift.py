@@ -25,9 +25,9 @@ Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
 is a direct indication that a change that happened in the data has affected the model's
 predictions. If labels are available, it's also recommended to run the
-:doc:`Label Drift check </checks_gallery/vision/train_test_validation/plot_label_drift>`.
+:ref:`Label Drift check <vision__label_drift>`.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`
+For more information on drift, please visit our :ref:`Drift Guide <drift_user_guide>`
 
 How Deepchecks Detects Prediction Drift
 ---------------------------------------
@@ -39,7 +39,8 @@ Using Prediction Properties to Detect Prediction Drift
 ------------------------------------------------------
 
 In computer vision specifically, our predictions may be complex, and measuring their drift
-is not a straightforward task. Therefore, we calculate drift on different :doc:`properties of the prediction</user-guide/vision/vision_properties>`,
+is not a straightforward task. Therefore, we calculate drift on different
+:ref:`properties of the prediction<vision__properties_guide>`,
 on which we can directly measure drift.
 
 Which Prediction Properties Are Used?

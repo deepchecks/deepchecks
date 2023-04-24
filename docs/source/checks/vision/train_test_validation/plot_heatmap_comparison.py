@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_heatmap_comparison:
+.. _vision__heatmap_comparison:
 
 Heatmap Comparison
 ******************
@@ -43,10 +43,8 @@ Other Methods of Drift Detection
 --------------------------------
 Another, more traditional method to detect such drift would be to use statistical methods.
 Such an approach is covered by several builtin check in the deepchecks.vision package, such as the
-:doc:`Label Drift Check
-</checks_gallery/vision/train_test_validation/plot_label_drift>`
-or the :doc:`Image Dataset Drift Check
-</checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`.
+:ref:`Label Drift Check <vision___label_drift>`
+or the :ref:`Image Dataset Drift Check <vision__image_dataset_drift>`.
 
 
 Run the Check on a Classification Task (MNIST)

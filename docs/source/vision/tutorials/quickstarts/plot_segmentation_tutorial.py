@@ -1,5 +1,5 @@
 """
-.. _vision_segmentation_tutorial:
+.. _vision__segmentation_tutorial:
 
 ===============================
 Semantic Segmentation Tutorial

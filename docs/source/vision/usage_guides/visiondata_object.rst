@@ -3,10 +3,10 @@
 =====================
 The Vision Data Class
 =====================
-The :class:`VisionData <deepchecks.vision.VisionData>` data class is the deepchecks base class for
+The :class:`VisionData` class is the deepchecks base class for
 storing your data for a vision task. It is essentially a wrapper around a batch loader of images, labels,
 and predictions, that allows deepchecks to efficiently calculate different
-:ref:`vision__checks_gallery` on your data, by caching some of the information.
+:ref:`checks <vision__checks_gallery>` on your data, by caching some of the information.
 
 Information about the supported task types and the required formats for each task is available at
 :ref:`vision__supported_tasks`.
@@ -57,7 +57,7 @@ and that it loads the data in a shuffled manner. The following is an example of 
 based on data that is fully stored in memory as numpy arrays.
 
 For an example of a custom generator that loads the data from disk batch by batch see the
-`following section <#pre-calculated-predictions>`__. A full code implementation of this
+:ref:`following section <vision_data__adding_predictions>`. A full code implementation of this
 method for the MNIST dataset can be seen at
 :mod:`deepchecks.vision.datasets.classification.mnist_tensorflow`.
 

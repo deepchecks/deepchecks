@@ -6,7 +6,7 @@ Custom Check Templates
 
 This page supplies templates for the different types of custom checks that you can create using the deepchecks package.
 For more information on custom checks, please see the
-:ref:`vision__custom_checks`
+:ref:`vision__custom_check`
 
 
 Templates:

@@ -36,7 +36,7 @@ Object Detection   `Average Recall <https://manalelaidouni.github.io/Evaluating-
 =================  ====================
 
 In addition to the default metrics, the check supports custom metrics, as detailed in the
-:doc:`Metrics Guide </user-guide/general/metrics_guide>`.
+:ref:`Metrics Guide <metrics_user_guide>`.
 These can be passed as a list using the scorers parameter of the check, which will override the default metrics.
 """
 

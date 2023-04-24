@@ -183,11 +183,11 @@ not validated. There are two ways in which Deepchecks can provide value for thes
 
 The quick option: Run checks that require only the images themselves.
 Few examples for such checks include:
-:ref:`vision__image_property_outliers>`,
-:ref:`vision__image_dataset_drift>` and
-:ref:`vision__image_property_drift>`.
+:ref:`vision__image_property_outliers`,
+:ref:`vision__image_dataset_drift` and
+:ref:`vision__image_property_drift`.
 
 The advanced option: Add custom metrics and properties for the
 predictions and labels provided and run additional checks.
 For more information on how to do so, see the
-:ref:`vision__custom_check>` tutorial.
+:ref:`vision__custom_check` tutorial.

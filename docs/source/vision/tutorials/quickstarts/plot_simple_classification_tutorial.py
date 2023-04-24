@@ -50,9 +50,9 @@ import zipfile
 import numpy as np
 
 url = 'https://figshare.com/ndownloader/files/34912884'
-urllib.request.urlretrieve(url, '../../../vision/tutorials/EuroSAT_data.zip')
+urllib.request.urlretrieve(url, 'EuroSAT_data.zip')
 
-with zipfile.ZipFile('../../../vision/tutorials/EuroSAT_data.zip', 'r') as zip_ref:
+with zipfile.ZipFile('EuroSAT_data.zip', 'r') as zip_ref:
     zip_ref.extractall('EuroSAT')
 
 #%%
@@ -106,7 +106,7 @@ result.show()
 # ===========================
 # Looking at the results we see one check whose condition has failed: Feature Label Correlation.
 #
-# The :ref:`vision__property_label_correlation_change>` check computes various
+# The :ref:`vision__property_label_correlation_change` check computes various
 # :ref:`image properties <vision__properties_guide>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measured by the Predictive Power Score (PPS) and this measure is compared between the training

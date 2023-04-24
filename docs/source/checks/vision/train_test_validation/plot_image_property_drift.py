@@ -24,7 +24,7 @@ over time.
 
 Image drift is a data drift that occurs in images in the dataset.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
+For more information on drift, please visit our :ref:`drift_user_guide`.
 
 How Deepchecks Detects Image Drift
 ------------------------------------
@@ -32,12 +32,13 @@ How Deepchecks Detects Image Drift
 This check detects image property drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
 on each image property separately.
 Another possible method for drift detection is by :ref:`a domain classifier <drift_detection_by_domain_classifier>`
-which is used in the :doc:`Image Dataset Drift check </checks_gallery/vision/train_test_validation/plot_image_dataset_drift>`.
+which is used in the :ref:`Image Dataset Drift check <vision__image_dataset_drift>`.
 
 Using Properties to Detect Image Drift
 --------------------------------------------
 In computer vision specifically, we can't measure drift on images directly, as the individual pixel has little
-value when estimating drift. Therefore, we calculate drift on different :doc:`properties of the image</user-guide/vision/vision_properties>`,
+value when estimating drift. Therefore, we calculate drift on different
+:ref:`properties of the image<vision__properties_guide>`,
 on which we can directly measure drift.
 
 

@@ -1,4 +1,4 @@
-.. _metrics_guide:
+.. _metrics_user_guide:
 
 =============
 Metrics Guide
@@ -316,10 +316,10 @@ inherit from :class:`deepchecks.vision.metrics_utils.CustomMetric` and implement
       labels and predictions of one batch. The method's signature should be ``update(self, output)``, where output is a
       tuple containing first ``y_pred`` which is the model's output and second ``y_true`` is the ground truth, both
       given  as lists of numpy objects, adhering to the
-      :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats>`. For example, an
+      :ref:`deepchecks format <vision__supported_tasks>`. For example, an
       object detection label would be a list where each element is a numpy array of bounding boxes annotations,
       and the prediction would be a list where each element is a numpy array of bounding boxes predictions, both in
-      the :doc:`deepchecks format </user-guide/vision/supported_tasks_and_formats>`.
+      the :ref:`deepchecks format <vision__supported_tasks>`.
     * ``compute`` - Returns the metric's value based on the internal state. Can be either a single number, or a numpy
       array of containing a number for each class. This method is called only once, after all batches have been
       processed.
