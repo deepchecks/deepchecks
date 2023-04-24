@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _tabular__performance_bias:
+
 Performance Bias
 ****************
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_special_chars:
+.. __tabular__special_chars:
 
 Special Characters
 ******************

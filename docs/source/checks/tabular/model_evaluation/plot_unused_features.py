@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_unused_features:
+.. _tabular__unused_features:
 
 Unused Features
 ***************

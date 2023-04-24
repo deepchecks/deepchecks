@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_single_dataset_performance:
+.. _tabular__single_dataset_performance:
 
 Single Dataset Performance
 *****************************

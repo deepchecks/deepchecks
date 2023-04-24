@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_regression_error_distribution:
+.. _tabular__regression_error_distribution:
 
 Regression Error Distribution
 *****************************
