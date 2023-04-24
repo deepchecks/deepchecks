@@ -43,7 +43,7 @@ Other Methods of Drift Detection
 --------------------------------
 Another, more traditional method to detect such drift would be to use statistical methods.
 Such an approach is covered by several builtin check in the deepchecks.vision package, such as the
-:ref:`Label Drift Check <vision___label_drift>`
+:ref:`Label Drift Check <vision__label_drift>`
 or the :ref:`Image Dataset Drift Check <vision__image_dataset_drift>`.
 
 

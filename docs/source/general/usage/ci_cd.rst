@@ -36,13 +36,13 @@ For ML models, CI/CD concepts can be utilized to streamline the process of model
   | Examples of checks that can be used are:
     :ref:`tabular__feature_drift`,
     :ref:`tabular__feature_label_correlation_change`,
-    :doc:`tabular__train_test_samples_mix`,
+    :ref:`tabular__train_test_samples_mix`,
     and more.
 * **Model training**: To automate the model's training on a new (preferrably validated) training dataset.
 * **Model validation**: The trained model is evaluated on test data, testing for performance, weak segments and more
   sophisticated checks such as
-  :doc:`tabular__simple_model_comparison`,
-  :doc:`tabular__calibration_score`,
+  :ref:`tabular__simple_model_comparison`,
+  :ref:`tabular__calibration_score`,
   etc.
 * **Model deployment**: The model is deployed to production if it meets the specified criteria.
 

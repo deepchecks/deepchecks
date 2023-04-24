@@ -31,7 +31,7 @@ How Deepchecks Detects Feature Drift
 This check detects feature drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
 on each feature column separately.
 Another possible method for drift detection is by :ref:`a domain classifier <drift_detection_by_domain_classifier>`
-which is used in the :ref:`Multivariate Drift check <tabular__multivariate_drift`.
+which is used in the :ref:`Multivariate Drift check <tabular__multivariate_drift>`.
 
 """
 

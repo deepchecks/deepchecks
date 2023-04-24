@@ -35,7 +35,7 @@ uniform           Generates predictions uniformly at random from the list of uni
                   class has equal probability.
 ================  ===================================
 
-Similiar to the :ref:`tabular___simple_model_comparison`,
+Similiar to the :ref:`tabular__simple_model_comparison` check,
 there is no simple model which is more "correct" to use, each gives a different baseline
 to compare to, and you may experiment with the different types and see how it performs
 on your data.
