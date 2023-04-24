@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_nlp_train_test_performance:
+.. _nlp__train_test_performance:
 
 Train Test Performance for NLP Models
 **************************************
