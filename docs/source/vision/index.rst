@@ -38,6 +38,7 @@ This section contain in-depth guides on different aspects and components of the 
     usage_guides/supported_tasks_and_formats
     usage_guides/vision_properties
 
+.. _vision__checks_gallery:
 Checks Gallery
 --------------
 

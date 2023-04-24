@@ -1,4 +1,4 @@
-.. _vision_data_class:
+.. _vision__vision_data_class:
 
 =====================
 The Vision Data Class

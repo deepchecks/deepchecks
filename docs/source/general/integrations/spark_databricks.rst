@@ -121,10 +121,10 @@ Training the Model
 Writing a Model Wrapper
 ~~~~~~~~~~~~~~~~~~~~~~~
 We will write a wrapper to our model, that will implement the required API for deepchecks according the the
-:doc:`supported models </user-guide/tabular/supported_models>` guide. Generally the wrapper model will contain 2 functions in
+:ref:`tabular__supported_models` guide. Generally the wrapper model will contain 2 functions in
 case of a classification problem: the ``predict`` and the ``predict_proba`` functions that will be called by
 deepchecks. In addition it is also possible to specify the feature importances of the model. Read more about
-feature importance handling in the :doc:`feature importance </user-guide/tabular/feature_importance>` guide.
+feature importance handling in the :ref:`tabular__feature_importance` guide.
 
 .. code-block:: python
 

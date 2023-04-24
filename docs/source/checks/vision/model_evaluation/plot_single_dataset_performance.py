@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_single_dataset_performance:
+.. _vision__single_dataset_performance:
 
 Single Dataset Performance
 *********************************

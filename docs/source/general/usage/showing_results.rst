@@ -5,7 +5,7 @@ Viewing Deepchecks Results
 This guide demonstrates the different ways you can view a Suite or a Check's results while
 working with deepchecks interactively, whether if you're working in a notebook or an IDE, locally or on the cloud.
 For details about **saving** or **exporting** your results, 
-refer to the :doc:`exporting deepchecks results user guide </user-guide/general/export_save_results>`.
+refer to the :ref:`exporting_deepchecks_results` guide.
 
 Structure:
 
@@ -78,7 +78,7 @@ options to resolve them:
   | For more information and instructions take a look at a plotly `JupeterLab Troubleshooting<https://plotly.com/python/troubleshooting/#jupyterlab-problems>`_ 
   | documentation section.
 
-- Exporting the results (e.g. :doc:`saving them to html </user-guide/general/export_save_results>`) 
+- Exporting the results (e.g. :ref:`saving them to html <export_save_results__save_result_to_html>`)
   and viewing the output file.
 
 .. _show_in_iframe:

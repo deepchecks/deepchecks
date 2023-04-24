@@ -25,24 +25,24 @@ For ML models, CI/CD concepts can be utilized to streamline the process of model
     the data may contain errors and problems we haven't encountered before, either due to a bug in the
     data processing pipeline or due to a change in the data source.
   | Examples of such problems include:
-    :doc:`conflicting labels between similar samples</checks_gallery/tabular/data_integrity/plot_conflicting_labels>`,
-    :doc:`high correlation between features</checks_gallery/tabular/data_integrity/plot_feature_feature_correlation>`,
-    :doc:`spelling errors in categorical features</checks_gallery/tabular/data_integrity/plot_string_mismatch>`,
+    :ref:`tabular__conflicting_labels`,
+    :ref:`tabular__feature_feature_correlation`,
+    :ref:`tabular__string_mismatch`,
     and more.
 * | **Datasets comparison**: In many cases it's useful to make sure that there isn't any leakage or drift between two
     datasets. For example, when doing a time based split of the data there is a risk that the datasets will have
     significant differences, or when doing a periodic model retraining we might want to compare the new dataset
     to the previous one.
   | Examples of checks that can be used are:
-    :doc:`drift between features</checks_gallery/tabular/train_test_validation/plot_feature_drift>`,
-    :doc:`change in correlation between features and label</checks_gallery/tabular/train_test_validation/plot_feature_label_correlation_change>`,
-    :doc:`duplicate samples between the datasets</checks_gallery/tabular/train_test_validation/plot_train_test_samples_mix>`,
+    :ref:`tabular__feature_drift`,
+    :ref:`tabular__feature_label_correlation_change`,
+    :doc:`tabular__train_test_samples_mix`,
     and more.
 * **Model training**: To automate the model's training on a new (preferrably validated) training dataset.
 * **Model validation**: The trained model is evaluated on test data, testing for performance, weak segments and more
   sophisticated checks such as
-  :doc:`performance compared to naive model</checks_gallery/tabular/model_evaluation/plot_simple_model_comparison>`,
-  :doc:`calibration score for each class</checks_gallery/tabular/model_evaluation/plot_calibration_score>`,
+  :doc:`tabular__simple_model_comparison`,
+  :doc:`tabular__calibration_score`,
   etc.
 * **Model deployment**: The model is deployed to production if it meets the specified criteria.
 
@@ -59,9 +59,9 @@ Deepchecks can be used in the CI/CD process at 2 main steps of model development
 In this guide we will show end to end examples of validating both the data and the trained model. In most use cases those
 processes will be separated into two separate pipelines, one for data validation and one for model validation.
 We will use the default suites provided by deepchecks, but it's possible to create a
-:doc:`custom suite</user-guide/general/customizations/examples/plot_create_a_custom_suite>`
+:ref:`create_custom_suite`
 containing hand chosen checks and
-:doc:`conditions</user-guide/general/customizations/examples/plot_configure_check_conditions>`
+:ref:`configure_check_conditions`
 in order to cater to the specific needs of the project.
 
 Airflow Integration

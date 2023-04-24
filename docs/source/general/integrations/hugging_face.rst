@@ -10,7 +10,7 @@ Building a VisionData Object for the DETR Model
 -----------------------------------------------
 
 In order to use the DETR model, we need to translate the image, label and prediction formats to the ones supported by
-deepchecks (see the :doc:`Format Guide </user-guide/vision/supported_tasks_and_formats>`) and define a
+deepchecks (see the :ref:`tabular__supported_models`) and define a
 :class:`deepchecks.vision.vision_data.VisionData` object that will be used to run the checks.
 
 We'll start by loading the DETR ResNet model from the Hugging Face Transformers library:
@@ -32,7 +32,7 @@ conversions in one place.
 
 We can now create :class:`VisionData <deepchecks.vision.vision_data.VisionData>` object. This deepchecks object accepts
 a batch loader, which is an iterator that yields batches of images, labels, predictions and any other required
-information. To read more about it, see the :doc:`Vision Data Guide </user-guide/vision/VisionData>`. In this example
+information. To read more about it, see the :ref:`_vision__vision_data_class`. In this example
 our batch loader is a python dataloader, so we'll create a custom collate function that will convert the data to the
 required formats and generate the predictions. We'll then use the :meth:`head <deepchecks.vision.vision_data.VisionData.head>`
 method to make sure the dataset was created successfully.
@@ -64,7 +64,7 @@ to benchmark the results achieved by the DETR model.
     :tab-width: 0
 
 We already loaded the data wrapped with the relevant ``VisionData`` object, so we can just use the
-:doc:`MeanAveragePrecisionReport </checks_gallery/vision/model_evaluation/plot_mean_average_precision_report>` check to
+:ref:`vision__mean_average_precision_report>` check to
 evaluate the model's performance for various IoU thresholds and bounding box sizes.
 
 .. literalinclude:: ../../../../examples/integrations/hugging_face/deepchecks_hugging_face_tutorial.py
@@ -83,7 +83,7 @@ Benchmarking YOLOv5s Against DETR ResNet
 ------------------------------------------
 
 Now that we have everything in place, we can run the
-:doc:`MeanAveragePrecisionReport </checks_gallery/vision/model_evaluation/plot_mean_average_precision_report>` check
+:ref:`vision__mean_average_precision_report>` check
 also on the DETR model! Let's run and compare to the YOLO results.
 
 .. literalinclude:: ../../../../examples/integrations/hugging_face/deepchecks_hugging_face_tutorial.py
@@ -113,5 +113,5 @@ for the larger objects, with objects of sizes of up to 32^2 squared pixels impro
 0.21 to 0.26.
 
 Of course, now that the VisionData object has been implemented you can use any of the other deepchecks check and suites.
-You can check them out in our :doc:`check gallery </checks_gallery/vision>`, and learn more about
+You can check them out in our :ref:`vision__checks_gallery`, and learn more about
 :ref:`when you should use <when_should_you_use_deepchecks>` each of our built-in suites.

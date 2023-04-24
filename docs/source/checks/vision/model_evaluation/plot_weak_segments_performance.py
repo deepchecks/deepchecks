@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _vision__weak_segments_performance:
+
 Weak Segments Performance
 *************************
 

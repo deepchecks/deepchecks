@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_confusion_matrix:
+.. __vision__confusion_matrix:
 
 Confusion Matrix
 ****************
