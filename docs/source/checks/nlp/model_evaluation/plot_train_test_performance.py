@@ -4,7 +4,7 @@
 
 Train Test Performance for NLP Models
 **************************************
-This notebook provides an overview for using and understanding train test performance check.
+This notebook provides an overview for using and understanding the train test performance check.
 
 **Structure:**
 
@@ -23,7 +23,7 @@ scorers or create your own. For more information about the supported sklearn sco
 to learn how to use metrics for other supported task types, see the
 :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
 
-The default scorers that are used for are F1, Precision, and Recall for Classification,
+The default scorers are F1, Precision, and Recall for Classification,
 and F1 Macro, Recall Macro and Precision Macro for Token Classification. See more about the supported task types at the
 :doc:`Supported Tasks </user-guide/nlp/supported_tasks>` guide.
 """
@@ -43,7 +43,7 @@ train_preds, test_preds = load_precalculated_predictions('predictions')
 # ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
-# the full list of possible scorers can be seen at scorers.py.
+# the full list of possible scorers can be seen at the :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
 
 from deepchecks.nlp.checks import TrainTestPerformance
 

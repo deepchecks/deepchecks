@@ -4,7 +4,7 @@
 
 Single Dataset Performance
 *****************************
-This notebook provides an overview for using and understanding single dataset performance check for NLP tasks.
+This notebook provides an overview for using and understanding the single dataset performance check for NLP tasks.
 
 **Structure:**
 

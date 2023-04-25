@@ -4,7 +4,7 @@
 
 Train Test Performance
 ***********************
-This notebook provides an overview for using and understanding train test performance check.
+This notebook provides an overview for using and understanding the train test performance check.
 
 **Structure:**
 
@@ -41,7 +41,7 @@ model = load_fitted_model()
 # ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
-# the full list of possible scorers can be seen at scorers.py.
+# the full list of possible scorers can be seen at the :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
 
 from deepchecks.tabular.checks import TrainTestPerformance
 
