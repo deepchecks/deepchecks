@@ -60,9 +60,9 @@ import urllib.request
 import zipfile
 
 url = 'https://figshare.com/ndownloader/files/34488599'
-urllib.request.urlretrieve(url, 'tomato-detection.zip')
+urllib.request.urlretrieve(url, './tomato-detection.zip')
 
-with zipfile.ZipFile('tomato-detection.zip', 'r') as zip_ref:
+with zipfile.ZipFile('./tomato-detection.zip', 'r') as zip_ref:
     zip_ref.extractall('.')
 
 class TomatoDataset(Dataset):
@@ -116,8 +116,7 @@ data_transforms = A.Compose([
     ToTensorV2(),
 ], bbox_params=A.BboxParams(format='pascal_voc', label_fields=['class_labels']))
 
-dataset = TomatoDataset(root=os.path.join(os.path.curdir, 'tomato-detection/data'),
-                        transforms=data_transforms)
+dataset = TomatoDataset(root='./tomato-detection/data', transforms=data_transforms)
 train_dataset, test_dataset = torch.utils.data.random_split(dataset,
                                                             [int(len(dataset)*0.9), len(dataset)-int(len(dataset)*0.9)],
                                                             generator=torch.Generator().manual_seed(42))
@@ -165,7 +164,7 @@ _ = model.to(device)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # For this tutorial we will not include the training code itself, but will download and load pre-trained weights.
 
-model.load_state_dict(torch.load('tomato-detection/ssd_model.pth'))
+model.load_state_dict(torch.load('./tomato-detection/ssd_model.pth'))
 _ = model.eval()
 
 #%%
