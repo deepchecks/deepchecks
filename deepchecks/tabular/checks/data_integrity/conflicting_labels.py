@@ -14,10 +14,12 @@ from typing import List, Union
 import pandas as pd
 from typing_extensions import TypedDict
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.strings import format_list, format_percent
+from deepchecks.utils.strings import format_list
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.dataframes import cast_categorical_to_object_dtype
+from deepchecks.utils.abstracts.conflicting_labels import ConflictingLabelsAbstract
 
 __all__ = ['ConflictingLabels']
 
@@ -27,7 +29,7 @@ class ResultValue(TypedDict):
     samples_indices: List[List[int]]
 
 
-class ConflictingLabels(SingleDatasetCheck):
+class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
     """Find samples which have the exact same features' values but different labels.
 
     Parameters
@@ -80,11 +82,10 @@ class ConflictingLabels(SingleDatasetCheck):
         features = dataset.features
         label_name = dataset.label_name
 
-        # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
-        df = dataset.data.copy()
-        category_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
-        if category_columns:
-            df = df.astype({c: 'object' for c in category_columns})
+        # HACK: 
+        # pandas have bug with groupby on category dtypes, 
+        # so until it fixed, change dtypes manually
+        df = cast_categorical_to_object_dtype(dataset.data.copy())
 
         # Get index in order to use in the display
         index_col_name = '_dc_index'
@@ -138,20 +139,3 @@ class ConflictingLabels(SingleDatasetCheck):
                 samples_indices=samples,
             )
         )
-
-    def add_condition_ratio_of_conflicting_labels_less_or_equal(self, max_ratio=0):
-        """Add condition - require ratio of samples with conflicting labels less or equal to max_ratio.
-
-        Parameters
-        ----------
-        max_ratio : float , default: 0
-            Maximum ratio of samples with multiple labels.
-        """
-        def max_ratio_condition(result: ResultValue) -> ConditionResult:
-            percent = result['percent']
-            details = f'Ratio of samples with conflicting labels: {format_percent(percent)}'
-            category = ConditionCategory.PASS if percent <= max_ratio else ConditionCategory.FAIL
-            return ConditionResult(category, details)
-
-        return self.add_condition(f'Ambiguous sample ratio is less or equal to {format_percent(max_ratio)}',
-                                  max_ratio_condition)

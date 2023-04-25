@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of text utils for NLP package."""
+import typing as t
 import string
 import unicodedata
 import pandas as pd
@@ -23,7 +24,9 @@ from nltk.tokenize import word_tokenize
 __all__ = [
     'break_to_lines_and_trim',
     'normalize_text',
-    'hash_text'
+    'hash_text',
+    'normalize_samples',
+    'hash_samples'
 ]
 
 
@@ -90,7 +93,7 @@ def normalize_text(
     normalize_uni: bool = True,
     remove_stops: bool = True,
     ignore_whitespace: bool = False
-):
+) -> str:
     """Normalize given text sample."""
     if ignore_case:
         text_sample = text_sample.lower()
@@ -102,11 +105,36 @@ def normalize_text(
         text_sample = remove_stopwords(text_sample)
     if ignore_whitespace:
         text_sample = ''.join(text_sample.split())
-
     return text_sample
 
 
+def normalize_samples(
+    text_samples: t.Sequence[str],
+    *,
+    ignore_case: bool = True,
+    remove_punct: bool = True,
+    normalize_uni: bool = True,
+    remove_stops: bool = True,
+    ignore_whitespace: bool = False
+) -> t.List[str]:
+    return [
+        normalize_text(
+            it,
+            ignore_case=ignore_case,
+            remove_punct=remove_punct,
+            normalize_uni=normalize_uni,
+            remove_stops=remove_stops,
+            ignore_whitespace=ignore_whitespace
+        ) 
+        for it in text_samples
+    ]
+
+
 def hash_text(text: str) -> int:
-    if not isinstance(text, str):
-        raise ValueError(f"Unexpected parameter type - {type(text)}")
+    assert isinstance(text, str)
     return hash(text)
+
+
+def hash_samples(text: t.Sequence[str]) -> t.List[int]:
+    assert not isinstance(text, str)
+    return [hash_text(it) for it in text]

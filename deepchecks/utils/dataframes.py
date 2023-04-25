@@ -20,7 +20,8 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith',
-           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type', 'is_float_column']
+           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type', 'is_float_column',
+           'cast_categorical_to_object_dtype']
 
 
 def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.Series, t.List]) -> pd.DataFrame:
@@ -223,3 +224,13 @@ def is_float_column(col: pd.Series) -> bool:
         return False
 
     return (col.round() != col).any()
+
+
+def cast_categorical_to_object_dtype(df: pd.DataFrame) -> pd.DataFrame:
+    # NOTE: 
+    # pandas have bug with groupby on category dtypes, 
+    # so until it fixed, change dtypes manually
+    categorical_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
+    if categorical_columns:
+        df = df.astype({c: 'object' for c in categorical_columns})
+    return df

@@ -8,16 +8,20 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module importing all nlp checks."""
+"""module for different utility functions/types."""
+import typing as t
 
-from .property_label_correlation import PropertyLabelCorrelation
-from .text_property_outliers import TextPropertyOutliers
-from .text_duplicates import TextDuplicates
-from .conflicting_labels import ConflictingLabels
+__all__ = ["to_ordional_enumeration"]
 
-__all__ = [
-    'PropertyLabelCorrelation',
-    'TextPropertyOutliers',
-    'TextDuplicates',
-    'ConflictingLabels'
-]
+
+T = t.TypeVar("T")
+
+
+def to_ordional_enumeration(data: t.List[T]) -> t.Dict[T, int]:
+    counter = 0
+    enum = {}
+    for it in data:
+        if it not in enum:
+            enum[it] = counter
+            counter += 1
+    return enum

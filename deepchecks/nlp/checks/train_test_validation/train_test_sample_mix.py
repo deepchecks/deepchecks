@@ -16,11 +16,11 @@ from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
-from deepchecks.nlp.utils.text_utils import normalize_text, hash_text
+from deepchecks.nlp.utils.text_utils import normalize_samples, hash_samples
 from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.checks.data_integrity.text_duplicates import to_ordional_enumeration
+from deepchecks.utils.other import to_ordional_enumeration
 
 __all__ = ['TrainTestSamplesMix']
 
@@ -60,19 +60,16 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.random_state = random_state
-
-    def _prepare_hashes(self, text: t.Iterable[str]) -> t.List[int]:
-        return [
-            hash_text(normalize_text(
-                it,
-                ignore_case=self.ignore_case,
-                ignore_whitespace=self.ignore_whitespace,
-                normalize_uni=self.normalize_unicode,
-                remove_punct=self.remove_punctuation,
-                remove_stops=self.remove_stopwords,
-            ))
-            for it in text
-        ]
+    
+    @property
+    def _text_normalization_kwargs(self):
+        return {
+            'ignore_case': self.ignore_case,
+            'ignore_whitespace': self.ignore_whitespace,
+            'normalize_uni': self.normalize_unicode,
+            'remove_punct': self.remove_punctuation,
+            'remove_stops': self.remove_stopwords,
+        }
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -82,14 +79,15 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         test = t.cast(TextData, test)
         train_samples = t.cast(t.Sequence[str], train.text)
         test_samples = t.cast(t.Sequence[str], test.text)
-
+        
         if len(train_samples) == 0:
             raise DeepchecksValueError("Train dataset cannot be empty")
         if len(test_samples) == 0:
             raise DeepchecksValueError("Test dataset cannot be empty")
 
-        train_sample_hashes = self._prepare_hashes(train_samples)
-        test_sample_hashes = self._prepare_hashes(test_samples)
+        normalization_kwargs = self._text_normalization_kwargs
+        train_sample_hashes = hash_samples(normalize_samples(train_samples, **normalization_kwargs))
+        test_sample_hashes = hash_samples(normalize_samples(test_samples, **normalization_kwargs))
 
         train_df = pd.DataFrame({
             "hash": train_sample_hashes,

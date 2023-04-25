@@ -10,7 +10,7 @@
 #
 """Module importing all nlp checks."""
 
-from deepchecks.nlp.checks.data_integrity import PropertyLabelCorrelation, TextPropertyOutliers, TextDuplicates
+from deepchecks.nlp.checks.data_integrity import PropertyLabelCorrelation, TextPropertyOutliers, TextDuplicates, ConflictingLabels
 from deepchecks.nlp.checks.model_evaluation import (ConfusionMatrixReport, MetadataSegmentsPerformance, PredictionDrift,
                                                     PropertySegmentsPerformance, SingleDatasetPerformance,
                                                     TrainTestPerformance)
@@ -21,6 +21,7 @@ __all__ = [
     'PropertyLabelCorrelation',
     'TextPropertyOutliers',
     'TextDuplicates',
+    'ConflictingLabels',
 
     # Model Evaluation
     'SingleDatasetPerformance',

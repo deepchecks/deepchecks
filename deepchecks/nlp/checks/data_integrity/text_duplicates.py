@@ -19,6 +19,7 @@ from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 from deepchecks.nlp.utils.text_utils import normalize_text, hash_text
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_list, format_percent
+from deepchecks.utils.other import to_ordional_enumeration
 
 __all__ = ['TextDuplicates']
 
@@ -125,16 +126,3 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
                table
             ]
         )
-
-
-T = t.TypeVar("T")
-
-
-def to_ordional_enumeration(data: t.List[T]) -> t.Dict[T, int]:
-    counter = 0
-    enum = {}
-    for it in data:
-        if it not in enum:
-            enum[it] = counter
-            counter += 1
-    return enum
