@@ -85,6 +85,8 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         percent_of_duplicates = 1 - (1.0 * n_of_unique) / (1.0 * n_of_samples)
 
         value = df.sort_values(by=["hash"])
+        
+        # TODO: about 'Sample ID' column, use dataset.get_original_text_index
         value = value.reset_index().rename(columns={"index": "Sample ID", "hash": "Duplicate"})
         duplicates_enumeration = to_ordional_enumeration(value['Duplicate'].to_list())
 

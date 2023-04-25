@@ -8,8 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Data Duplicates check."""
+"""module contains base logic for the data duplicates checks."""
 import typing as t
+import abc
 
 from typing_extensions import Self
 
@@ -19,7 +20,7 @@ from deepchecks.utils.strings import format_percent
 __all__ = ['DataDuplicatesAbstract']
 
 
-class DataDuplicatesAbstract:
+class DataDuplicatesAbstract(abc.ABC):
     """Base data duplicates check."""
 
     n_to_show: int

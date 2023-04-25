@@ -14,11 +14,11 @@ from typing import Any, List
 import pandas as pd
 from pandas.core.dtypes.common import is_integer_dtype
 
-from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 
 pd.options.mode.chained_assignment = None
 
@@ -26,7 +26,7 @@ pd.options.mode.chained_assignment = None
 __all__ = ['TrainTestSamplesMix']
 
 
-class TrainTestSamplesMix(TrainTestCheck):
+class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
     """Detect samples in the test data that appear also in training data.
 
     Parameters
@@ -89,26 +89,6 @@ class TrainTestSamplesMix(TrainTestCheck):
         display = [user_msg, duplicates_df.head(self.n_to_show)] if context.with_display and dup_ratio else None
         result = {'ratio': dup_ratio, 'data': duplicates_df}
         return CheckResult(result, header='Train Test Samples Mix', display=display)
-
-    def add_condition_duplicates_ratio_less_or_equal(self, max_ratio: float = 0.1):
-        """Add condition - require ratio of test data samples that appear in train data to be less or equal to the\
-         threshold.
-
-        Parameters
-        ----------
-        max_ratio : float , default: 0.1
-            Max allowed ratio of test data samples to appear in train data
-        """
-        def condition(result: dict) -> ConditionResult:
-            ratio = result['ratio']
-            details = f'Percent of test data samples that appear in train data: {format_percent(ratio)}' if ratio else \
-                'No samples mix found'
-            category = ConditionCategory.PASS if ratio <= max_ratio else ConditionCategory.FAIL
-            return ConditionResult(category, details)
-
-        return self.add_condition(f'Percentage of test data samples that appear in train data '
-                                  f'is less or equal to {format_percent(max_ratio)}',
-                                  condition)
 
 
 def _create_train_test_joined_duplicate_frame(first: pd.DataFrame, second: pd.DataFrame, columns: List[Hashable]):
