@@ -88,6 +88,7 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
 
         if context.with_display and percent_duplicate > 0:
             # patched for anonymous_series
+            # TODO: reset_index(name=...) can be used instead of this confusing hack
             is_anonymous_series = 0 in group_unique_data.keys().names
             if is_anonymous_series:
                 new_name = str(group_unique_data.keys().names)
