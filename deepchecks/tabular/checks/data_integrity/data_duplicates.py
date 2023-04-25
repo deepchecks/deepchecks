@@ -13,17 +13,18 @@ from typing import List, Union
 
 import numpy as np
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.typing import Hashable
+from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 
 __all__ = ['DataDuplicates']
 
 
-class DataDuplicates(SingleDatasetCheck):
+class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
     """Checks for duplicate samples in the dataset.
 
     Parameters
@@ -70,7 +71,6 @@ class DataDuplicates(SingleDatasetCheck):
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         data_columns = list(df.columns)
-
         n_samples = df.shape[0]
 
         if n_samples == 0:
@@ -117,19 +117,3 @@ class DataDuplicates(SingleDatasetCheck):
             display = None
 
         return CheckResult(value=percent_duplicate, display=display)
-
-    def add_condition_ratio_less_or_equal(self, max_ratio: float = 0):
-        """Add condition - require duplicate ratio to be less or equal to max_ratio.
-
-        Parameters
-        ----------
-        max_ratio : float , default: 0
-            Maximum ratio of duplicates.
-        """
-        def max_ratio_condition(result: float) -> ConditionResult:
-            details = f'Found {format_percent(result)} duplicate data'
-            category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.WARN
-            return ConditionResult(category, details)
-
-        return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
-                                  max_ratio_condition)

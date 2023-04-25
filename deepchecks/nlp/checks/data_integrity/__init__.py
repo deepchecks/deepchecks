@@ -12,5 +12,6 @@
 
 from .property_label_correlation import PropertyLabelCorrelation
 from .text_property_outliers import TextPropertyOutliers
+from .text_duplicates import TextDuplicates
 
-__all__ = ['PropertyLabelCorrelation', 'TextPropertyOutliers']
+__all__ = ['PropertyLabelCorrelation', 'TextPropertyOutliers', 'TextDuplicates']

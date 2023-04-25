@@ -9,8 +9,22 @@
 # ----------------------------------------------------------------------------
 #
 """Module of text utils for NLP package."""
+import string
+import unicodedata
+import pandas as pd
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 
-__all__ = ['break_to_lines_and_trim']
+# TODO: 
+# rename this module just to 'text.py', 
+# no need repeating parent package name in the module name
+
+__all__ = [
+    'break_to_lines_and_trim',
+    'normalize_text',
+    'hash_text'
+]
 
 
 def break_to_lines_and_trim(s, max_lines: int = 10, min_line_length: int = 50, max_line_length: int = 60):
@@ -47,3 +61,52 @@ def break_to_lines_and_trim(s, max_lines: int = 10, min_line_length: int = 50, m
         if len(s) > 0:
             lines[-1] = lines[-1] + '...'
     return '<br>'.join(lines)
+
+
+# TODO: check option to save this list of words as CONST
+nltk.download('stopwords') 
+nltk.download('punkt')
+
+
+def remove_punctuation(text: str) -> str:
+    return text.translate(str.maketrans("", "", string.punctuation))
+
+
+def normalize_unicode(text: str) -> str:
+    return unicodedata.normalize("NFKC", text)
+
+
+def remove_stopwords(text: str) -> str:
+    stop_words = set(stopwords.words('english'))
+    words = word_tokenize(text)
+    return ' '.join([word for word in words if word.lower() not in stop_words])
+
+
+def normalize_text(
+    text_sample: str,
+    *,
+    ignore_case: bool = True,
+    remove_punct: bool = True, 
+    normalize_uni: bool = True, 
+    remove_stops: bool = True, 
+    ignore_whitespace: bool = False
+):
+    """Normalize given text sample."""
+    if ignore_case:
+        text_sample = text_sample.lower()
+    if remove_punct:
+        text_sample = remove_punctuation(text_sample)
+    if normalize_uni:
+        text_sample = normalize_unicode(text_sample)
+    if remove_stops:
+        text_sample = remove_stopwords(text_sample)
+    if ignore_whitespace:
+        text_sample = ''.join(text_sample.split())
+
+    return text_sample
+
+
+def hash_text(text: str) -> int:
+    if not isinstance(text, str):
+        raise ValueError(f"Unexpected parameter type - {type(text)}")
+    return hash(text)
