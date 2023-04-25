@@ -40,9 +40,9 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
     def __init__(
         self,
         ignore_case: bool = True,
-        remove_punctuation: bool = True, 
-        normalize_unicode: bool = True, 
-        remove_stopwords: bool = True, 
+        remove_punctuation: bool = True,
+        normalize_unicode: bool = True,
+        remove_stopwords: bool = True,
         ignore_whitespace: bool = False,
         n_to_show: int = 5,
         n_samples: int = 10_000_000,
@@ -64,7 +64,7 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset = t.cast(TextData, dataset)
         samples = dataset.text
-        
+
         sample_hashes = [
             hash_text(normalize_text(
                 it,
@@ -74,20 +74,24 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
                 remove_punct=self.remove_punctuation,
                 remove_stops=self.remove_stopwords,
             ))
-            for it in samples    
+            for it in samples
         ]
 
-        df = pd.DataFrame({"Text": samples, "hash": sample_hashes})
+        df = pd.DataFrame({
+            "Text": samples,
+            "hash": sample_hashes,
+            "Sample ID": dataset.get_original_text_indexes()
+        })
         grouped_samples = df.groupby(by=["hash"], dropna=False)
-        counted_duplicates = grouped_samples.size()
-        n_of_unique = len(counted_duplicates)
+        counted_samples = grouped_samples['Text'].size()
+        n_of_unique = len(counted_samples)
         n_of_samples = df.shape[0]
         percent_of_duplicates = 1 - (1.0 * n_of_unique) / (1.0 * n_of_samples)
 
-        value = df.sort_values(by=["hash"])
-        
-        # TODO: about 'Sample ID' column, use dataset.get_original_text_index
-        value = value.reset_index().rename(columns={"index": "Sample ID", "hash": "Duplicate"})
+        counted_duplicates = counted_samples[counted_samples > 1]
+        duplicates_hashes = set(counted_duplicates.index)
+        value = df[df['hash'].isin(duplicates_hashes)].sort_values(by=["hash"])
+        value = value.rename(columns={"hash": "Duplicate"})
         duplicates_enumeration = to_ordional_enumeration(value['Duplicate'].to_list())
 
         value['Duplicate'] = value['Duplicate'].apply(lambda x: duplicates_enumeration[x])
@@ -100,11 +104,18 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
 
         if not (context.with_display and percent_of_duplicates > 0):
             return CheckResult(value=result_value)
-        
-        table = grouped_samples.first()
-        table["Number of Samples"] = counted_duplicates
-        table["Instances"] = grouped_samples.aggregate(lambda x: format_list(x.index.to_list()))
-        table = table.reset_index(drop=True).set_index(["Instances", "Number of Samples"])
+
+        first_sample = grouped_samples['Text'].first()
+        instances = grouped_samples['Sample ID'].aggregate(lambda x: format_list(x.to_list()))
+
+        # TODO: refactor
+        table = pd.DataFrame({
+            "Text": first_sample,
+            "Instances": instances,
+            "Number of Samples": counted_duplicates
+        })
+        table = table[table["Number of Samples"] > 1]
+        table = table.set_index(["Instances", "Number of Samples"])
 
         return CheckResult(
             value=result_value,

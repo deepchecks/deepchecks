@@ -37,8 +37,8 @@ class TrainTestSamplesMixAbstract(abc.ABC):
         def condition(result: dict) -> ConditionResult:
             ratio = result['ratio']
             details = (
-                f'Percent of test data samples that appear in train data: {format_percent(ratio)}' 
-                if ratio 
+                f'Percent of test data samples that appear in train data: {format_percent(ratio)}'
+                if ratio
                 else 'No samples mix found'
             )
             category = ConditionCategory.PASS if ratio <= max_ratio else ConditionCategory.FAIL

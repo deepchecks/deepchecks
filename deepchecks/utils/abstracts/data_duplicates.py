@@ -34,7 +34,14 @@ class DataDuplicatesAbstract(abc.ABC):
         max_ratio : float , default: 0
             Maximum ratio of duplicates.
         """
-        def max_ratio_condition(result: float) -> ConditionResult:
+        def max_ratio_condition(result: t.Union[float, t.Dict[str, float]]) -> ConditionResult:
+            if isinstance(result, dict):
+                result = t.cast(float, result['percent_of_duplicates'])
+            elif not isinstance(result, float):
+                raise ValueError(
+                    f"Unexpected check result value type {type(result)}"
+                )
+
             details = f'Found {format_percent(result)} duplicate data'
             category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.WARN
             return ConditionResult(category, details)

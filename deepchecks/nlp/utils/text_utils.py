@@ -16,8 +16,8 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-# TODO: 
-# rename this module just to 'text.py', 
+# TODO:
+# rename this module just to 'text.py',
 # no need repeating parent package name in the module name
 
 __all__ = [
@@ -64,7 +64,7 @@ def break_to_lines_and_trim(s, max_lines: int = 10, min_line_length: int = 50, m
 
 
 # TODO: check option to save this list of words as CONST
-nltk.download('stopwords') 
+nltk.download('stopwords')
 nltk.download('punkt')
 
 
@@ -86,9 +86,9 @@ def normalize_text(
     text_sample: str,
     *,
     ignore_case: bool = True,
-    remove_punct: bool = True, 
-    normalize_uni: bool = True, 
-    remove_stops: bool = True, 
+    remove_punct: bool = True,
+    normalize_uni: bool = True,
+    remove_stops: bool = True,
     ignore_whitespace: bool = False
 ):
     """Normalize given text sample."""

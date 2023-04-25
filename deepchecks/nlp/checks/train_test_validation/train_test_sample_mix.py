@@ -42,9 +42,9 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
     def __init__(
         self,
         ignore_case: bool = True,
-        remove_punctuation: bool = True, 
-        normalize_unicode: bool = True, 
-        remove_stopwords: bool = True, 
+        remove_punctuation: bool = True,
+        normalize_unicode: bool = True,
+        remove_stopwords: bool = True,
         ignore_whitespace: bool = False,
         n_samples: int = 10_000_000,
         n_to_show: int = 10,
@@ -60,7 +60,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.random_state = random_state
-    
+
     def _prepare_hashes(self, text: t.Iterable[str]) -> t.List[int]:
         return [
             hash_text(normalize_text(
@@ -73,7 +73,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
             ))
             for it in text
         ]
-    
+
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
         train = context.train.sample(self.n_samples, random_state=self.random_state)
@@ -92,13 +92,13 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         test_sample_hashes = self._prepare_hashes(test_samples)
 
         train_df = pd.DataFrame({
-            "hash": train_sample_hashes, 
+            "hash": train_sample_hashes,
             "Text": train_samples,
             "Dataset": ["train" for _ in range(len(train_samples))],
             "Sample ID": train.get_original_text_indexes()
         })
         test_df = pd.DataFrame({
-            "hash": test_sample_hashes, 
+            "hash": test_sample_hashes,
             "Text": test_samples,
             "Dataset": ["test" for _ in range(len(test_samples))],
             "Sample ID": test.get_original_text_indexes()
@@ -124,7 +124,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
 
         if not (context.with_display and duplicates_ratio > 0):
             return CheckResult(value=result_value)
-        
+
         train_grouped = df[df['Dataset'] == 'train'].groupby(['hash'], dropna=False)
         train_instances = train_grouped['Sample ID'].aggregate(lambda x: format_list(x.to_list()))
 
@@ -139,12 +139,12 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
             "Test text sample": first_sample_in_group,
             "Number of test duplicates": counted_test_duplicates
         }).reset_index(drop=True).set_index(["Train instances", "Test instances"])
-        
+
         message = (
             f'{format_percent(duplicates_ratio)} ({n_of_test_duplicates} / {n_of_test_samples}) '
             'of test data samples appear in train data'
         )
         return CheckResult(
-            value=result_value, 
+            value=result_value,
             display=[message, display_table]
         )
