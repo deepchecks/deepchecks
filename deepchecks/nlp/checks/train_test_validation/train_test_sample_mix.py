@@ -124,6 +124,8 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         result_value = {
             "ratio": duplicates_ratio,
             "duplicates": result_df,
+            "train": train_df,
+            "test": test_df
         }
 
         if not (context.with_display and duplicates_ratio > 0):

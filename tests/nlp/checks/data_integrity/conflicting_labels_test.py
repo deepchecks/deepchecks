@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Test for the NLP ConflictingLabels check."""
 import typing as t
 
 import pandas as pd
@@ -64,6 +75,8 @@ def dataset_with_conflicts() -> ProblematicDataset:
         ),
         ambiguous_samples_ratio=0.36363636363636365,
         ambiguous_samples=[
+            # NOTE:
+            # tests depend on items order in this list
             AmbiguousDuplicatVariant(
                 labels=['0', '1'],
                 sample_ids=[0, 9],
