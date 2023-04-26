@@ -1,28 +1,29 @@
 import typing as t
 
-import pytest
 import pandas as pd
+import pytest
 from hamcrest import *
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.nlp.checks import TextDuplicates
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
-
 from tests.base.utils import equal_condition_result
 
 
-class DatasetWithDuplicatesInfo(t.NamedTuple):
+class DuplicateVariation(t.NamedTuple):
+    sample_ids: t.Sequence[t.Any]
+    text: t.Sequence[str]
+
+class ProblematicDataset(t.NamedTuple):
     dataset: TextData
-    n_of_duplicates_variations: int
+    duplicates: t.Sequence[DuplicateVariation]
     percent_of_duplicates: float
-    duplicates_ids: t.Sequence[t.Any]
-    duplicates: t.Sequence[str]
 
 
 @pytest.fixture
-def dataset_with_duplicates() -> DatasetWithDuplicatesInfo:
-    return DatasetWithDuplicatesInfo(
+def dataset_with_duplicates() -> ProblematicDataset:
+    return ProblematicDataset(
         dataset=TextData(raw_text=[
             "Explicit is better than implicit.",
             "Simple is better than complex.",
@@ -35,17 +36,23 @@ def dataset_with_duplicates() -> DatasetWithDuplicatesInfo:
             "If the implementation is easy to explain, it may be a good idea.",
             "Explicit, is better than implicit!",
         ]),
-        n_of_duplicates_variations=2,
         percent_of_duplicates=0.19999999999999996,
-        duplicates_ids=(
-            0, 4, 5, 9
-        ),
-        duplicates=(
-            "Explicit is better than implicit.",
-            "Readability counts.",
-            "Readability counts to.",
-            "Explicit, is better than implicit!",
-        )
+        duplicates=[
+            DuplicateVariation(
+                sample_ids=[0, 9],
+                text=[
+                    "Explicit is better than implicit.",
+                    "Explicit, is better than implicit!"
+                ]
+            ),
+            DuplicateVariation(
+                sample_ids=[4, 5],
+                text=[
+                    "Readability counts.",
+                    "Readability counts to.",
+                ]
+            ),
+        ],
     )
 
 
@@ -93,7 +100,7 @@ def test_without_duplicates(dataset_without_duplicates: TextData):
     assert_that(len(duplicates), equal_to(0))
 
 
-def test_with_duplicates(dataset_with_duplicates: DatasetWithDuplicatesInfo):
+def test_with_duplicates(dataset_with_duplicates: ProblematicDataset):
     # Arrange
     dataset = dataset_with_duplicates.dataset
     check = TextDuplicates().add_condition_ratio_less_or_equal()
@@ -117,38 +124,32 @@ def test_with_duplicates(dataset_with_duplicates: DatasetWithDuplicatesInfo):
             details=f'Found {format_percent(dataset_with_duplicates.percent_of_duplicates)} duplicate data'
         )  # type: ignore
     )
-    assert_result_dataframe(
-        result.value['duplicates'],
-        n_of_duplicate_variations=dataset_with_duplicates.n_of_duplicates_variations,
-        samples_ids=dataset_with_duplicates.duplicates_ids,
-        text_samples=dataset_with_duplicates.duplicates
-    )
 
+    duplicates = result.value['duplicates']
+    assert_result_dataframe(duplicates, duplicates_variations=dataset_with_duplicates.duplicates)
     assert_display(display=result.display)
 
 
 def assert_result_dataframe(
     df: pd.DataFrame,
-    n_of_duplicate_variations: int,
-    samples_ids: t.Sequence[t.Any],
-    text_samples: t.Sequence[str]
+    duplicates_variations: t.Optional[t.Sequence[DuplicateVariation]] = None,
 ):
     assert_that(df, instance_of(pd.DataFrame))
     assert_that(df.index.names, equal_to(["Duplicate", "Sample ID"]))
     assert_that(df.columns, equal_to(["Text"]))
 
-    assert_that(
-        len(frozenset(df.index.get_level_values(0))),
-        equal_to(n_of_duplicate_variations)
-    )
-    assert_that(
-        frozenset(df.index.get_level_values(1).to_list()),
-        equal_to(frozenset(samples_ids))
-    )
-    assert_that(
-        frozenset(df['Text'].to_list()),
-        equal_to(frozenset(text_samples))
-    )
+    if len(df) == 0:
+        return
+    if not duplicates_variations:
+        return
+
+    data = df.reset_index().groupby(["Duplicate"])
+    data = data.aggregate(lambda x: x.to_list())
+
+    for idx, variant in enumerate(duplicates_variations):
+        variant_data = dict(data.iloc[idx])
+        assert_that(variant_data["Sample ID"], equal_to(variant.sample_ids))
+        assert_that(variant_data["Text"], equal_to(variant.text))
 
 
 def assert_display(display: t.Sequence[t.Any]):

@@ -97,7 +97,7 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         counted_duplicates = counted_samples[counted_samples > 1]
         duplicates_hashes = set(counted_duplicates.index)
 
-        result_df = df[df['hash'].isin(duplicates_hashes)].sort_values(by=["hash"])
+        result_df = df[df['hash'].isin(duplicates_hashes)]
         result_df = result_df.rename(columns={"hash": "Duplicate"})
         duplicates_enumeration = to_ordional_enumeration(result_df['Duplicate'].to_list())
         result_df['Duplicate'] = result_df['Duplicate'].apply(lambda x: duplicates_enumeration[x])
