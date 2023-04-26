@@ -20,6 +20,10 @@ from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
 from tests.base.utils import equal_condition_result
 
+# ====================
+# ----- Fixtures -----
+# ====================
+
 
 class TrainTestSplit(t.NamedTuple):
     train: TextData
@@ -128,6 +132,11 @@ def train_test_datasets() -> TrainTestSplit:
     return TrainTestSplit(train=train, test=test)
 
 
+# =================
+# ----- Tests -----
+# =================
+
+
 def test_check_execution(train_test_datasets: TrainTestSplit):
     # Arrange
     train = train_test_datasets.train
@@ -196,6 +205,11 @@ def test_check_execution_with_problematic_datasets(problematic_train_test_split:
     duplicates = result.value["duplicates"]
     assert_result_dataframe(duplicates, problematic_train_test_split.duplicates)
     assert_display(result.display)
+
+
+# ===========================
+# ----- Assertion utils -----
+# ===========================
 
 
 def assert_result_dataframe(

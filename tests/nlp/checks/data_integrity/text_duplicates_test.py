@@ -22,6 +22,11 @@ from deepchecks.utils.strings import format_percent
 from tests.base.utils import equal_condition_result
 
 
+# ====================
+# ----- Fixtures -----
+# ====================
+
+
 class DuplicateVariation(t.NamedTuple):
     sample_ids: t.Sequence[t.Any]
     text: t.Sequence[str]
@@ -83,6 +88,11 @@ def dataset_without_duplicates() -> TextData:
     ])
 
 
+# =================
+# ----- Tests -----
+# =================
+
+
 def test_without_duplicates(dataset_without_duplicates: TextData):
     # Arrange
     check = TextDuplicates().add_condition_ratio_less_or_equal()
@@ -141,6 +151,11 @@ def test_with_duplicates(dataset_with_duplicates: ProblematicDataset):
     duplicates = result.value['duplicates']
     assert_result_dataframe(duplicates, duplicates_variations=dataset_with_duplicates.duplicates)
     assert_display(display=result.display)
+
+
+# ===========================
+# ----- Assertion utils -----
+# ===========================
 
 
 def assert_result_dataframe(

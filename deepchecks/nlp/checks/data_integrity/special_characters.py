@@ -106,7 +106,7 @@ class SpecialCharacters(SingleDatasetCheck):
         for char in data.keys():
             data[char]["percent_of_samples"] = len(data[char]['samples_ids']) / n_of_samples
 
-        if context.with_display is False:
+        if context.with_display is False or len(data) == 0:
             return CheckResult(value=data)
 
         display_table = pd.DataFrame(
@@ -163,7 +163,7 @@ class SpecialCharacters(SingleDatasetCheck):
                 )
             return ConditionResult(
                 ConditionCategory.PASS,
-                "" # TODO:
+                "No special characters with ratio above threshold found"
             )
 
         return self.add_condition(name, condition)

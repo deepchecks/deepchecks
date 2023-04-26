@@ -20,6 +20,14 @@ from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
 from tests.base.utils import equal_condition_result
 
+# TODO:
+# consider automating dataset generation
+
+
+# ====================
+# ----- Fixtures -----
+# ====================
+
 
 @pytest.fixture
 def dataset_without_conflicts():
@@ -41,6 +49,29 @@ def dataset_without_conflicts():
     )
 
 
+@pytest.fixture
+def multilabel_dataset_without_conflicts():
+    return TextData(
+        label=[
+            [1, 0, 0],
+            [0, 0, 0],
+            [0, 0, 1],
+            [0, 0, 1],
+            [0, 0, 0],
+            [1, 0, 0],
+        ],
+        task_type="text_classification",
+        raw_text=[
+            "Explicit is better than implicit.",
+            "Simple is better than complex.",
+            "Readability counts.",
+            "Readability counts to.",
+            "Errors should never pass silently.",
+            "Explicit, is better than implicit!",
+        ]
+    )
+
+
 class AmbiguousDuplicatVariant(t.NamedTuple):
     labels: t.Sequence[t.Any]
     sample_ids: t.Sequence[t.Any]
@@ -54,7 +85,8 @@ class ProblematicDataset(t.NamedTuple):
 
 
 @pytest.fixture
-def dataset_with_conflicts() -> ProblematicDataset:
+def classification_dataset_with_conflicts() -> ProblematicDataset:
+    # TODO: refactor, reduce code redundancy
     return ProblematicDataset(
         dataset=TextData(
             label=['0', '0', '0', '1', '1', '1', '2', '0', '0', '1', '0'],
@@ -96,13 +128,60 @@ def dataset_with_conflicts() -> ProblematicDataset:
         ],
     )
 
+@pytest.fixture
+def multilabel_dataset_with_conflicts() -> ProblematicDataset:
+    # TODO: refactor, reduce code redundancy
+    return ProblematicDataset(
+        dataset=TextData(
+            label=[
+                [0, 0, 0],
+                [0, 0, 0],
+                [0, 1, 0],
+                [0, 1, 0],
+                [0, 1, 1],
+            ],
+            task_type="text_classification",
+            raw_text=[
+                "Readability counts.",
+                "Readability counts to.",
+                "Errors should never pass silently.",
+                "There should be one-- and preferably only one --obvious way to do it.",
+                "ERRORS, should never pass silently!!",
+            ]
+        ),
+        ambiguous_samples_ratio=0.4,
+        ambiguous_samples=[
+            # NOTE:
+            # tests depend on items order in this list
+            AmbiguousDuplicatVariant(
+                labels=[(0, 1, 0), (0, 1, 1)],
+                sample_ids=[2, 4],
+                text=[
+                    "Errors should never pass silently.",
+                    "ERRORS, should never pass silently!!",
+                ]
+            )
+        ],
+    )
 
-def test_without_conflicting_labels(dataset_without_conflicts: TextData):
+
+# =================
+# ----- Tests -----
+# =================
+
+
+@pytest.mark.parametrize(
+    "dataset_name",
+    # NOTE: dataset fixtures names
+    ["dataset_without_conflicts", "multilabel_dataset_without_conflicts"]
+)
+def test_without_conflicting_labels(dataset_name, request):
     # Arrange
+    dataset = request.getfixturevalue(dataset_name)
     check = ConflictingLabels().add_condition_ratio_of_conflicting_labels_less_or_equal()
 
     # Act
-    result = check.run(dataset=dataset_without_conflicts)
+    result = check.run(dataset=dataset)
     conditions_decisions = check.conditions_decision(result)
 
     # Assert
@@ -124,10 +203,17 @@ def test_without_conflicting_labels(dataset_without_conflicts: TextData):
     assert_result_dataframe(result.value['ambiguous_samples'])
 
 
-def test_with_conflicting_labels(dataset_with_conflicts: ProblematicDataset):
+@pytest.mark.parametrize(
+    "dataset_name",
+    # NOTE: fixtures names
+    ["classification_dataset_with_conflicts", "multilabel_dataset_with_conflicts"]
+)
+def test_with_conflicting_labels(dataset_name, request):
     # Arrange
-    expected_ratio = dataset_with_conflicts.ambiguous_samples_ratio
-    dataset = dataset_with_conflicts.dataset
+    dataset = request.getfixturevalue(dataset_name)
+    expected_ratio = dataset.ambiguous_samples_ratio
+    expected_ambiguous_samples = dataset.ambiguous_samples
+    dataset = dataset.dataset
     check = ConflictingLabels().add_condition_ratio_of_conflicting_labels_less_or_equal()
 
     # Act
@@ -150,8 +236,13 @@ def test_with_conflicting_labels(dataset_with_conflicts: ProblematicDataset):
     )
 
     ambiguous_samples = result.value["ambiguous_samples"]
-    assert_result_dataframe(ambiguous_samples, dataset_with_conflicts.ambiguous_samples)
+    assert_result_dataframe(ambiguous_samples, expected_ambiguous_samples)
     assert_display_table(result.display)
+
+
+# ===========================
+# ----- Assertion utils -----
+# ===========================
 
 
 def assert_result_dataframe(

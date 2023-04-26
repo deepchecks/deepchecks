@@ -16,6 +16,7 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.conflicting_labels import ConflictingLabelsAbstract
@@ -79,10 +80,6 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        # TODO:
-        context.raise_if_multi_label_task(self)
-        context.raise_if_token_classification_task(self)
-
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset = t.cast(TextData, dataset)
         samples = dataset.text
@@ -95,15 +92,25 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             dataset.text,
             **self._text_normalization_kwargs
         ))
+
+        if dataset.task_type is TaskType.TOKEN_CLASSIFICATION or dataset.is_multi_label_classification():
+            labels = [tuple(t.cast(t.Sequence[t.Any], it)) for it in dataset.label]
+        elif dataset.task_type is TaskType.TEXT_CLASSIFICATION:
+            labels = dataset.label
+        else:
+            raise DeepchecksValueError(f"Unknow task type - {dataset.task_type}")
+
         df = pd.DataFrame({
             "hash": samples_hashes,
             "Sample ID": dataset.get_original_text_indexes(),
-            "Label": dataset.label,
+            "Label": labels,
             "Text": dataset.text,
         })
 
         by_hash = df.loc[:, ["hash", "Label"]].groupby(["hash"], dropna=False)
-        n_of_labels_per_sample = by_hash["Label"].aggregate(lambda x: len(set(x.to_list())))
+        count_labels = lambda x: len(set(x.to_list()))
+        n_of_labels_per_sample = by_hash["Label"].aggregate(count_labels)
+
         ambiguous_samples_hashes = n_of_labels_per_sample[n_of_labels_per_sample > 1]
         ambiguous_samples_hashes = frozenset(ambiguous_samples_hashes.index.to_list())
 
@@ -133,6 +140,11 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
         display_table = (
             pd.DataFrame({
+                # TODO:
+                # for multi-label and token classification
+                # 'Observed Labels' column will look not very nice
+                # need an another way to display observed labels
+                # for those task types
                 "Observed Labels": observed_labels,
                 "Instances": instances,
                 "Text": first_in_group
