@@ -21,6 +21,7 @@ from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list, format_percent
+from deepchecks.utils.strings import get_ellipsis as truncate_string
 
 __all__ = ['TrainTestSamplesMix']
 
@@ -48,6 +49,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         ignore_whitespace: bool = False,
         n_samples: int = 10_000_000,
         n_to_show: int = 10,
+        max_text_length_for_display: int = 30,
         random_state: int = 42,
         **kwargs
     ):
@@ -60,6 +62,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.random_state = random_state
+        self.max_text_length_for_display = max_text_length_for_display
 
     @property
     def _text_normalization_kwargs(self):
@@ -70,6 +73,9 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
             'remove_punct': self.remove_punctuation,
             'remove_stops': self.remove_stopwords,
         }
+
+    def _truncate_text(self, x: str) -> str:
+        return truncate_string(x, self.max_text_length_for_display)
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -134,9 +140,12 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         display_table = pd.DataFrame({
             "Train instances": train_instances,
             "Test instances": test_instances,
-            "Test text sample": first_sample_in_group,
+            "Test text sample": first_sample_in_group.apply(self._truncate_text),
             "Number of test duplicates": counted_test_duplicates
-        }).reset_index(drop=True).set_index(["Train instances", "Test instances"])
+        })
+
+        display_table = display_table.iloc[:self.n_to_show]
+        display_table = display_table.reset_index(drop=True).set_index(["Train instances", "Test instances"])
 
         message = (
             f'{format_percent(duplicates_ratio)} ({n_of_test_duplicates} / {n_of_test_samples}) '

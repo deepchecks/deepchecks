@@ -54,7 +54,7 @@ class SpecialCharacters(SingleDatasetCheck):
         ignore_whitespace: bool = False,
         n_most_common: int = 10,
         n_samples: int = 10_000_000,
-        displayed_text_length: int = 30,
+        max_text_length_for_display: int = 30,
         random_state: int = 42,
         **kwargs
     ):
@@ -73,7 +73,7 @@ class SpecialCharacters(SingleDatasetCheck):
         self.n_most_common = n_most_common
         self.n_samples = n_samples
         self.random_state = random_state
-        self.displayed_text_length = displayed_text_length
+        self.max_text_length_for_display = max_text_length_for_display
 
     @property
     def _text_normalization_kwargs(self):
@@ -116,8 +116,7 @@ class SpecialCharacters(SingleDatasetCheck):
                 [char,
                  values["percent_of_samples"],
                  format_list(values['samples_ids']),
-                 truncate_string(values["text_example"],
-                 self.displayed_text_length)]
+                 truncate_string(values["text_example"], self.max_text_length_for_display)]
                 for char, values in data.items()
             ],
         )

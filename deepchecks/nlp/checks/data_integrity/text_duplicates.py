@@ -16,10 +16,11 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text_utils import hash_text, normalize_text
+from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list, format_percent
+from deepchecks.utils.strings import get_ellipsis as truncate_string
 
 __all__ = ['TextDuplicates']
 
@@ -47,6 +48,7 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         ignore_whitespace: bool = False,
         n_to_show: int = 5,
         n_samples: int = 10_000_000,
+        max_text_length_for_display: int = 30,
         random_state: int = 42,
         **kwargs
     ):
@@ -59,24 +61,27 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         self.n_to_show = n_to_show
         self.n_samples = n_samples
         self.random_state = random_state
+        self.max_text_length_for_display = max_text_length_for_display
+
+    @property
+    def _text_normalization_kwargs(self):
+        return {
+            'ignore_case': self.ignore_case,
+            'ignore_whitespace': self.ignore_whitespace,
+            'normalize_uni': self.normalize_unicode,
+            'remove_punct': self.remove_punctuation,
+            'remove_stops': self.remove_stopwords,
+        }
+
+    def _truncate_text(self, x: str) -> str:
+        return truncate_string(x, self.max_text_length_for_display)
 
     def run_logic(self, context: Context, dataset_kind):
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset = t.cast(TextData, dataset)
         samples = dataset.text
-
-        sample_hashes = [
-            hash_text(normalize_text(
-                it,
-                ignore_case=self.ignore_case,
-                ignore_whitespace=self.ignore_whitespace,
-                normalize_uni=self.normalize_unicode,
-                remove_punct=self.remove_punctuation,
-                remove_stops=self.remove_stopwords,
-            ))
-            for it in samples
-        ]
+        sample_hashes = hash_samples(normalize_samples(samples, **self._text_normalization_kwargs))
 
         df = pd.DataFrame({
             "Text": samples,
@@ -91,31 +96,32 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
 
         counted_duplicates = counted_samples[counted_samples > 1]
         duplicates_hashes = set(counted_duplicates.index)
-        value = df[df['hash'].isin(duplicates_hashes)].sort_values(by=["hash"])
-        value = value.rename(columns={"hash": "Duplicate"})
-        duplicates_enumeration = to_ordional_enumeration(value['Duplicate'].to_list())
 
-        value['Duplicate'] = value['Duplicate'].apply(lambda x: duplicates_enumeration[x])
-        value = value.set_index(["Duplicate", "Sample ID"])
+        result_df = df[df['hash'].isin(duplicates_hashes)].sort_values(by=["hash"])
+        result_df = result_df.rename(columns={"hash": "Duplicate"})
+        duplicates_enumeration = to_ordional_enumeration(result_df['Duplicate'].to_list())
+        result_df['Duplicate'] = result_df['Duplicate'].apply(lambda x: duplicates_enumeration[x])
+        result_df = result_df.set_index(["Duplicate", "Sample ID"])
 
         result_value = {
             "percent_of_duplicates": percent_of_duplicates,
-            "duplicates": value
+            "duplicates": result_df
         }
 
         if not (context.with_display and percent_of_duplicates > 0):
             return CheckResult(value=result_value)
 
+        grouped_samples = df[df['hash'].isin(duplicates_hashes)].groupby(by=["hash"], dropna=False)
         first_sample = grouped_samples['Text'].first()
         instances = grouped_samples['Sample ID'].aggregate(lambda x: format_list(x.to_list()))
 
-        # TODO: refactor
         table = pd.DataFrame({
-            "Text": first_sample,
+            "Text": first_sample.apply(self._truncate_text),
             "Instances": instances,
             "Number of Samples": counted_duplicates
         })
-        table = table[table["Number of Samples"] > 1]
+        table = table.iloc[:self.n_to_show]
+        table = table.sort_values(by=["Number of Samples"], ascending=False)
         table = table.set_index(["Instances", "Number of Samples"])
 
         return CheckResult(

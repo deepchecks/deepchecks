@@ -21,11 +21,12 @@ from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.conflicting_labels import ConflictingLabelsAbstract
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list
+from deepchecks.utils.strings import get_ellipsis as truncate_string
 
 __all__ = ['ConflictingLabels']
 
 
-# TODO: docs, text trim
+# TODO: docs
 class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
     """Find samples which have the exact same features' values but different labels.
 
@@ -48,6 +49,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         ignore_whitespace: bool = False,
         n_to_show: int = 5,
         n_samples: int = 10_000_000,
+        max_text_length_for_display: int = 30,
         random_state: int = 42,
         **kwargs
     ):
@@ -60,6 +62,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         self.n_to_show = n_to_show
         self.n_samples = n_samples
         self.random_state = random_state
+        self.max_text_length_for_display = max_text_length_for_display
 
     @property
     def _text_normalization_kwargs(self):
@@ -70,6 +73,9 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             'remove_punct': self.remove_punctuation,
             'remove_stops': self.remove_stopwords,
         }
+
+    def _truncate_text(self, x: str) -> str:
+        return truncate_string(x, self.max_text_length_for_display)
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -98,7 +104,8 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
         by_hash = df.loc[:, ["hash", "Label"]].groupby(["hash"], dropna=False)
         n_of_labels_per_sample = by_hash["Label"].aggregate(lambda x: len(set(x.to_list())))
-        ambiguous_samples_hashes = set(n_of_labels_per_sample[n_of_labels_per_sample > 1].index.to_list())
+        ambiguous_samples_hashes = n_of_labels_per_sample[n_of_labels_per_sample > 1]
+        ambiguous_samples_hashes = frozenset(ambiguous_samples_hashes.index.to_list())
 
         ambiguous_samples = df[df['hash'].isin(ambiguous_samples_hashes)]
         num_of_ambiguous_samples = ambiguous_samples["Text"].count()
@@ -117,6 +124,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         if context.with_display is False:
             return CheckResult(value=result_value)
 
+        ambiguous_samples["Text"] = ambiguous_samples["Text"].apply(self._truncate_text)
         by_hash = ambiguous_samples.groupby(["hash"], dropna=False)
         fn = lambda x: format_list(x.to_list())
         observed_labels = by_hash["Label"].aggregate(fn)
@@ -146,8 +154,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             display=[
                 table_description,
                 table_note,
-                # slice over first level of the multiindex
-                # in our case it is 'Observed Labels'
+                # slice over first level of the multiindex ('Observed Labels')
                 display_table.iloc[slice(0, self.n_to_show)]
             ]
         )
