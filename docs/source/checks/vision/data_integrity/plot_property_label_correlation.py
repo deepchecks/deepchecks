@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_feature_label_correlation:
+.. _plot_vision_property_label_correlation:
 
 Property Label Correlation
 **************************

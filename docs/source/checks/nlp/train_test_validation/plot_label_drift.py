@@ -38,7 +38,8 @@ from deepchecks.nlp.checks import LabelDrift
 #%%
 # Load Data
 # ==========
-
+# For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
+# happiness, anger, sadness and optimism.
 train_ds, test_ds = tweet_emotion.load_data()
 
 #%%

@@ -46,7 +46,8 @@ np.random.seed(42)
 #%%
 # Get Data and Predictions
 # ========================
-
+# For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
+# happiness, anger, sadness and optimism.
 train_ds, test_ds = tweet_emotion.load_data()
 
 # Load precalculated model predictions:
