@@ -18,6 +18,7 @@ T = t.TypeVar("T")
 
 
 def to_ordional_enumeration(data: t.List[T]) -> t.Dict[T, int]:
+    """Enumarate each unique item."""
     counter = 0
     enum = {}
     for it in data:
