@@ -10,9 +10,8 @@ This notebook provides an overview for using and understanding the NLP predictio
 **Structure:**
 
 * `What Is Prediction Drift? <#what-is-prediction-drift>`__
-* `Generate Data <#generate-data>`__
-* `Build Model <#build-model>`__
-* `Run check <#run-check>`__
+* `Get Data and Predictions <#get-data-and-predictions>`__
+* `Run Check <#run-check>`__
 
 What Is Prediction Drift?
 =========================
@@ -45,13 +44,17 @@ from deepchecks.nlp.datasets.classification import tweet_emotion
 np.random.seed(42)
 
 #%%
-# Get data and model
-# =============
+# Get Data and Predictions
+# ========================
 
 train_ds, test_ds = tweet_emotion.load_data()
 
 # Load precalculated model predictions:
 train_preds, test_preds = tweet_emotion.load_precalculated_predictions(as_train_test=True)
+
+#%%
+# Let's see how our data looks like:
+train_ds.head()
 
 #%%
 # Let's introduce drift into the data by dropping 50% of the "anger" tweets from the train dataset:
@@ -63,7 +66,7 @@ train_ds = train_ds.copy(rows_to_use=indices_to_keep)  # Create new dataset with
 train_preds = train_preds[indices_to_keep]  # Filter the predictions accordingly
 
 #%%
-# Run check
+# Run Check
 # =========
 
 check = PredictionDrift()
