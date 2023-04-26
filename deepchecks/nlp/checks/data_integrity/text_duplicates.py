@@ -92,7 +92,7 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         counted_samples = grouped_samples['Text'].size()
         n_of_unique = len(counted_samples)
         n_of_samples = df.shape[0]
-        percent_of_duplicates = 1 - (1.0 * n_of_unique) / (1.0 * n_of_samples)
+        percent_of_duplicates = 1 - n_of_unique / n_of_samples
 
         counted_duplicates = counted_samples[counted_samples > 1]
         duplicates_hashes = set(counted_duplicates.index)
