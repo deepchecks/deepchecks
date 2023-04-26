@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module of text utils for NLP package."""
-import typing as t
 import string
+import typing as t
 import unicodedata
-import pandas as pd
+
 import nltk
+import pandas as pd
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
@@ -125,7 +126,7 @@ def normalize_samples(
             normalize_uni=normalize_uni,
             remove_stops=remove_stops,
             ignore_whitespace=ignore_whitespace
-        ) 
+        )
         for it in text_samples
     ]
 

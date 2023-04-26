@@ -15,11 +15,11 @@ import pandas as pd
 
 from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, SingleDatasetCheck
-from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
-from deepchecks.nlp.utils.text_utils import normalize_text, hash_text
 from deepchecks.nlp.text_data import TextData
-from deepchecks.utils.strings import format_list, format_percent
+from deepchecks.nlp.utils.text_utils import hash_text, normalize_text
+from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 from deepchecks.utils.other import to_ordional_enumeration
+from deepchecks.utils.strings import format_list, format_percent
 
 __all__ = ['TextDuplicates']
 

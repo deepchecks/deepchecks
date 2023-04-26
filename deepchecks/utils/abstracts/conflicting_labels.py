@@ -10,6 +10,7 @@
 #
 """Module contains an common functionality for conflicting labels checks."""
 import typing as t
+
 from typing_extensions import Self
 
 from deepchecks.core import ConditionCategory, ConditionResult

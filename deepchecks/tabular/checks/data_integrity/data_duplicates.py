@@ -16,10 +16,10 @@ import numpy as np
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 
 __all__ = ['DataDuplicates']
 

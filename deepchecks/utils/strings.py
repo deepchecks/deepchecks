@@ -278,7 +278,7 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def string_baseform(string: Hashable, allow_empty_result: bool = False) -> Hashable:
+def string_baseform(string: str, allow_empty_result: bool = False) -> str:
     """Normalize the string input to a uniform form.
 
     If input is a string containing alphanumeric characters or if allow_empty_result is set to True,

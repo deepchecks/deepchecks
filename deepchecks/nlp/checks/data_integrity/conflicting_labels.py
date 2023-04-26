@@ -18,9 +18,9 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
-from deepchecks.utils.strings import format_list
-from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.abstracts.conflicting_labels import ConflictingLabelsAbstract
+from deepchecks.utils.other import to_ordional_enumeration
+from deepchecks.utils.strings import format_list
 
 __all__ = ['ConflictingLabels']
 
@@ -60,7 +60,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         self.n_to_show = n_to_show
         self.n_samples = n_samples
         self.random_state = random_state
-    
+
     @property
     def _text_normalization_kwargs(self):
         return {
@@ -76,7 +76,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         # TODO:
         context.raise_if_multi_label_task(self)
         context.raise_if_token_classification_task(self)
-        
+
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset = t.cast(TextData, dataset)
         samples = dataset.text
@@ -86,14 +86,14 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             raise DeepchecksValueError("Dataset cannot be empty")
 
         samples_hashes = hash_samples(normalize_samples(
-            dataset.text, 
+            dataset.text,
             **self._text_normalization_kwargs
         ))
         df = pd.DataFrame({
-            "hash": samples_hashes, 
+            "hash": samples_hashes,
             "Sample ID": dataset.get_original_text_indexes(),
             "Label": dataset.label,
-            "Text": dataset.text, 
+            "Text": dataset.text,
         })
 
         by_hash = df.loc[:, ["hash", "Label"]].groupby(["hash"], dropna=False)
@@ -116,7 +116,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
         if context.with_display is False:
             return CheckResult(value=result_value)
-        
+
         by_hash = ambiguous_samples.groupby(["hash"], dropna=False)
         fn = lambda x: format_list(x.to_list())
         observed_labels = by_hash["Label"].aggregate(fn)
@@ -142,7 +142,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             else ''
         )
         return CheckResult(
-            value=result_value, 
+            value=result_value,
             display=[
                 table_description,
                 table_note,
@@ -151,4 +151,3 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
                 display_table.iloc[slice(0, self.n_to_show)]
             ]
         )
-

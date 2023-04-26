@@ -10,14 +10,16 @@
 #
 """Module importing all nlp checks."""
 
-from .property_label_correlation import PropertyLabelCorrelation
-from .text_property_outliers import TextPropertyOutliers
-from .text_duplicates import TextDuplicates
 from .conflicting_labels import ConflictingLabels
+from .property_label_correlation import PropertyLabelCorrelation
+from .special_characters import SpecialCharacters
+from .text_duplicates import TextDuplicates
+from .text_property_outliers import TextPropertyOutliers
 
 __all__ = [
     'PropertyLabelCorrelation',
     'TextPropertyOutliers',
     'TextDuplicates',
-    'ConflictingLabels'
+    'ConflictingLabels',
+    'SpecialCharacters'
 ]

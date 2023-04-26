@@ -9,8 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """module contains base logic for the data duplicates checks."""
-import typing as t
 import abc
+import typing as t
 
 from typing_extensions import Self
 

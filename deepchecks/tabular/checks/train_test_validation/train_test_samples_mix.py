@@ -16,9 +16,9 @@ from pandas.core.dtypes.common import is_integer_dtype
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 
 pd.options.mode.chained_assignment = None
 

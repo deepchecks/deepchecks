@@ -227,8 +227,8 @@ def is_float_column(col: pd.Series) -> bool:
 
 
 def cast_categorical_to_object_dtype(df: pd.DataFrame) -> pd.DataFrame:
-    # NOTE: 
-    # pandas have bug with groupby on category dtypes, 
+    # NOTE:
+    # pandas have bug with groupby on category dtypes,
     # so until it fixed, change dtypes manually
     categorical_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
     if categorical_columns:

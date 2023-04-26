@@ -10,17 +10,17 @@
 #
 """Module contains train-test samples mix check."""
 import typing as t
+
 import pandas as pd
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
-from deepchecks.utils.strings import format_percent
-from deepchecks.nlp.utils.text_utils import normalize_samples, hash_samples
-from deepchecks.utils.strings import format_list, format_percent
-from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 from deepchecks.nlp.text_data import TextData
+from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
+from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 from deepchecks.utils.other import to_ordional_enumeration
+from deepchecks.utils.strings import format_list, format_percent
 
 __all__ = ['TrainTestSamplesMix']
 
@@ -60,7 +60,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.random_state = random_state
-    
+
     @property
     def _text_normalization_kwargs(self):
         return {
@@ -79,7 +79,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         test = t.cast(TextData, test)
         train_samples = t.cast(t.Sequence[str], train.text)
         test_samples = t.cast(t.Sequence[str], test.text)
-        
+
         if len(train_samples) == 0:
             raise DeepchecksValueError("Train dataset cannot be empty")
         if len(test_samples) == 0:

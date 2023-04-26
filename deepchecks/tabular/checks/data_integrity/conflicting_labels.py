@@ -16,10 +16,10 @@ from typing_extensions import TypedDict
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.abstracts.conflicting_labels import ConflictingLabelsAbstract
+from deepchecks.utils.dataframes import cast_categorical_to_object_dtype
 from deepchecks.utils.strings import format_list
 from deepchecks.utils.typing import Hashable
-from deepchecks.utils.dataframes import cast_categorical_to_object_dtype
-from deepchecks.utils.abstracts.conflicting_labels import ConflictingLabelsAbstract
 
 __all__ = ['ConflictingLabels']
 
@@ -82,8 +82,8 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         features = dataset.features
         label_name = dataset.label_name
 
-        # HACK: 
-        # pandas have bug with groupby on category dtypes, 
+        # HACK:
+        # pandas have bug with groupby on category dtypes,
         # so until it fixed, change dtypes manually
         df = cast_categorical_to_object_dtype(dataset.data.copy())
 
