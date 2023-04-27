@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_feature_label_correlation:
+.. _vision__property_label_correlation:
 
 Property Label Correlation
 **************************
@@ -15,7 +15,7 @@ This notebook provides an overview for using and understanding the "Property Lab
 
 What is the purpose of the check?
 =================================
-The check estimates for every :doc:`image property </user-guide/vision/vision_properties>`
+The check estimates for every :ref:`image property <vision__properties_guide>`
 (such as brightness, contrast etc.) its ability to predict the label by itself.
 
 This check can help find a potential bias in the dataset - the labels being strongly correlated with simple image

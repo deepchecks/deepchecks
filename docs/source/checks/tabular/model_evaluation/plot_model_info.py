@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_model_info:
+.. _tabular__model_info:
 
 Model Info
 ***********
