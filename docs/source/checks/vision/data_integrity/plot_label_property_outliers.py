@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_label_property_outliers:
+.. _vision__label_property_outliers:
 
 Label Property Outliers
 =======================
@@ -39,7 +39,7 @@ Which Label Properties Are Used?
 For object detection we have default built-in label properties. For other tasks you have to define your own custom label
 properties.
 For the list of the built-in object detection label properties and explanation about custom properties refer to
-:doc:`vision properties </user-guide/vision/vision_properties>`.
+:ref:`vision properties <vision__properties_guide>`.
 
 """
 

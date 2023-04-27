@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Test functions of the label drift."""
+import pandas as pd
 from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
-import pandas as pd
 from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import PredictionDrift
@@ -161,7 +161,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_data_and_model):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.15 and numerical drift score < 0.15',
+        name='Prediction drift score < 0.15',
         details='Found model prediction PSI drift score of 0.79'
     ))
 
@@ -215,8 +215,7 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     train = remove_label(train)
     test = remove_label(test)
     check = PredictionDrift(categorical_drift_method='PSI', drift_mode='prediction') \
-        .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
-                                             max_allowed_numeric_score=1)
+        .add_condition_drift_score_less_than(max_allowed_drift_score=1)
 
     # Act
     result = check.run(train, test, model)
@@ -226,7 +225,7 @@ def test_drift_max_drift_score_condition_pass_threshold(drifted_data_and_model):
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Found model prediction PSI drift score of 0.79',
-        name='categorical drift score < 1 and numerical drift score < 1'
+        name='Prediction drift score < 1'
     ))
 
 
@@ -271,7 +270,7 @@ def test_binary_proba_condition_fail_threshold(drifted_data_and_model):
 
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.15 and numerical drift score < 0.15',
+        name='Prediction drift score < 0.15',
         details='Found model prediction Earth Mover\'s Distance drift score of 0.23'
     ))
 
@@ -284,7 +283,7 @@ def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
     check = PredictionDrift(categorical_drift_method='PSI', numerical_drift_method='EMD',
                                      max_num_categories=10, min_category_size_ratio=0,
                                      drift_mode='proba', aggregation_method='weighted'
-                                     ).add_condition_drift_score_less_than(max_allowed_numeric_score=0.05)
+                                     ).add_condition_drift_score_less_than(max_allowed_drift_score=0.05)
 
     # Act
     result = check.run(train, test, model)
@@ -315,7 +314,7 @@ def test_multiclass_proba_reduce_aggregations(iris_split_dataset_and_model_rf):
 
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.15 and numerical drift score < 0.05',
+        name='Prediction drift score < 0.05',
         details='Found 2 classes with model predicted probability Earth Mover\'s '
                 'Distance drift score above threshold: 0.05.'
     ))

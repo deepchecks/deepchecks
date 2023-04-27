@@ -17,7 +17,7 @@ from hamcrest import assert_that, instance_of
 from sklearn.base import BaseEstimator
 
 from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, lending_club, phishing
-from deepchecks.tabular.datasets.regression import avocado, wine_quality, airbnb
+from deepchecks.tabular.datasets.regression import airbnb, avocado, wine_quality
 
 
 def assert_sklearn_model_params_equals(model1, model2):

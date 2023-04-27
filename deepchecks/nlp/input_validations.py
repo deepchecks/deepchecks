@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing input validation functions."""
-from typing import Dict, Optional, Sequence
+from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
 
 import numpy as np
 import pandas as pd
@@ -85,30 +85,152 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
     return np.asarray(labels)
 
 
+class ColumnTypes(NamedTuple):
+    """Utility data transfer object."""
+
+    categorical_columns: List[str]
+    numerical_columns: List[str]
+
+
 def validate_length_and_type(data_table: pd.DataFrame, data_table_name: str, expected_size: int):
     if not isinstance(data_table, pd.DataFrame):
-        raise DeepchecksValueError(f'{data_table_name} type {type(data_table)} is not supported, must be a'
-                                   f' pandas DataFrame') #TODO add comment about 'auto' mode...
+        raise DeepchecksValueError(
+            f'{data_table_name} type {type(data_table)} is not supported, '
+            'must be a pandas DataFrame'
+        )
+
     if len(data_table) != expected_size:
-        raise DeepchecksValueError(f'received metadata with {len(data_table)} rows, expected {expected_size}')
+        raise DeepchecksValueError(
+            f'received {data_table_name} with {len(data_table)} rows, '
+            f'expected {expected_size}'
+        )
 
-
-def validate_length_and_calculate_column_types(data_table: pd.DataFrame, data_table_name: str, expected_size: int,
-                                               column_types: Optional[Dict[str, str]] = None) -> \
-        Optional[Dict[str, str]]:
+def validate_length_and_calculate_column_types(
+    data_table: pd.DataFrame,
+    data_table_name: str,
+    expected_size: int,
+    categorical_columns: Optional[Sequence[str]] = None
+) -> ColumnTypes:
     """Validate length of data table and calculate column types."""
-    if data_table is None:
-        return None
-
     validate_length_and_type(data_table, data_table_name, expected_size)
 
-    if column_types is None:  # TODO: Add tests
-        cat_features = infer_categorical_features(data_table)
-        column_types = {data_table.columns[i]: 'categorical' if data_table.columns[i] in cat_features else 'numeric'
-                        for i in range(len(data_table.columns))}
-        get_logger().info('%s types were not provided, auto inferred types are: ', data_table_name)
-        get_logger().info(column_types)
-    elif sorted(list(column_types.keys())) != sorted(list(data_table.columns)):
-        raise DeepchecksValueError(f'{data_table_name} types keys must identical to {data_table_name} table columns')
+    if categorical_columns is None:  # TODO: Add tests
+        categorical_features = infer_categorical_features(data_table)
+        numeric_features = [
+            c for c in data_table.columns
+            if c not in categorical_features
+        ]
 
-    return column_types
+        column_types = ColumnTypes(
+            categorical_columns=categorical_features,
+            numerical_columns=numeric_features
+        )
+
+        get_logger().info(
+            '%s types were not provided, auto inferred types are:\n%s',
+            data_table_name,
+            column_types._asdict()
+        )
+
+        return column_types
+
+    difference = set(categorical_columns).difference(data_table.columns)
+
+    if len(difference) != 0:
+        raise DeepchecksValueError(
+            f'The following columns does not exist in {data_table_name} - {list(difference)}'
+        )
+
+    numeric_features = [
+        c for c in data_table.columns
+        if c not in categorical_columns
+    ]
+    return ColumnTypes(
+        categorical_columns=list(categorical_columns),
+        numerical_columns=numeric_features
+    )
+
+
+class DataframesDifference(NamedTuple):
+    """Facility type for the 'compare_dataframes' function.
+
+    Parameters
+    ==========
+    only_in_train: Tuple[str, ...]
+        set of columns present only in train dataframe.
+    only_in_test: Tuple[str, ...]
+        set of columns present only in test dataframe.
+    types_mismatch: Tuple[str, ...]
+        set of columns that are present in both dataframes
+        but have different types.
+    """
+
+    only_in_train: Tuple[str, ...]
+    only_in_test: Tuple[str, ...]
+    types_mismatch: Tuple[str, ...]
+
+
+class DataframesComparison(NamedTuple):
+    """Facility type for the 'compare_dataframes' function.
+
+    Parameters
+    ==========
+    common: Dict[str, str]
+        set of columns common for both dataframes.
+    difference: Optional[DataframesDifference]
+        difference between two dataframes.
+    """
+
+    common: Dict[str, str]
+    difference: Optional[DataframesDifference]
+
+
+def compare_dataframes(
+    train: pd.DataFrame,
+    test: pd.DataFrame,
+    train_categorical_columns: Optional[Sequence[str]] = None,
+    test_categorical_columns: Optional[Sequence[str]] = None
+) -> DataframesComparison:
+    """Compare two dataframes and return a difference."""
+    train_categorical_columns = train_categorical_columns or []
+    test_categorical_columns = test_categorical_columns or []
+
+    train_columns = cast(Set[str], set(train.columns))
+    test_columns = cast(Set[str], set(test.columns))
+    only_in_train = train_columns.difference(test_columns)
+    only_in_test = test_columns.difference(train_columns)
+    common_columns = train_columns.intersection(test_columns)
+    types_mismatch: Set[str] = set()
+
+    for column in common_columns:
+        is_cat_in_both_dataframes = (
+            column in train_categorical_columns
+            and column in test_categorical_columns
+        )
+
+        if is_cat_in_both_dataframes:
+            continue
+        if not is_cat_in_both_dataframes:
+            continue
+
+        types_mismatch.add(column)
+
+    common = {
+        column: (
+            'categorical'
+            if column in train_categorical_columns
+            else 'numerical'
+        )
+        for column in common_columns.difference(types_mismatch)
+    }
+
+    if only_in_train or only_in_test or types_mismatch:
+        difference = DataframesDifference(
+            only_in_train=tuple(only_in_train),
+            only_in_test=tuple(only_in_test),
+            types_mismatch=tuple(types_mismatch),
+        )
+    else:
+        difference = None
+
+    return DataframesComparison(common, difference)

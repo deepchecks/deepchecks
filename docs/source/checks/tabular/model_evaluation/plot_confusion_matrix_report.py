@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_confusion_matrix_report:
+.. _tabular__confusion_matrix_report:
 
 Confusion Matrix Report
 ***********************
@@ -23,9 +23,8 @@ such as accuracy, precision, recall etc. (`confusion matrix <https://en.wikipedi
 """
 
 #%%
-# Imports
-# =========
-
+# Generate data & model
+# =======================
 import pandas as pd
 from sklearn.datasets import load_iris
 from sklearn.ensemble import AdaBoostClassifier
@@ -33,10 +32,6 @@ from sklearn.model_selection import train_test_split
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import ConfusionMatrixReport
-
-#%%
-# Generate data & model
-# =======================
 
 iris = load_iris(as_frame=True)
 clf = AdaBoostClassifier()
@@ -54,4 +49,7 @@ ds = Dataset(pd.concat([X_test, y_test], axis=1),
 # ===============
 
 check = ConfusionMatrixReport()
-check.run(ds, clf)
+result = check.run(ds, clf)
+result.show()
+
+#%%

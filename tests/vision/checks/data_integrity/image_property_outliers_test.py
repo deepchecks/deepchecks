@@ -10,8 +10,8 @@
 #
 
 import numpy as np
-from hamcrest import (all_of, any_of, assert_that, calling, close_to, has_entries, has_key, has_length,
-                      has_properties, instance_of, is_, raises)
+from hamcrest import (all_of, any_of, assert_that, calling, close_to, has_entries, has_key, has_length, has_properties,
+                      instance_of, is_, raises)
 from hamcrest.core.matcher import Matcher
 
 from deepchecks.core import CheckResult

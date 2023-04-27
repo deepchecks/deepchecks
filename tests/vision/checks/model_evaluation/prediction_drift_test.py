@@ -10,7 +10,7 @@
 #
 """Test functions of the VISION prediction drift."""
 
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, calling, raises
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.vision.checks import PredictionDrift

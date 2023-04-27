@@ -8,9 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=protected-access
 """Test for the TextData object"""
 import pandas as pd
-from hamcrest import assert_that, calling, raises, equal_to, contains_exactly
+from hamcrest import assert_that, calling, contains_exactly, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
@@ -104,18 +105,27 @@ def test_wrong_token_label_format():
     )
 
 
-def test_metadata_format():
+def test_text_data_initialization_with_incorrect_type_of_metadata():
     # Arrange
     text = ['a', 'b b b', 'c c c c']
     metadata = {'first': [1, 2, 3], 'second': [4, 5, 6]}
 
     # Act & Assert
-    _ = TextData(raw_text=text, metadata=pd.DataFrame(metadata),
-                 task_type='text_classification')  # Should pass
+    _ = TextData(
+        raw_text=text,
+        metadata=pd.DataFrame(metadata),
+        task_type='text_classification'
+    )
     assert_that(
-        calling(TextData).with_args(raw_text=text, metadata=metadata, task_type='text_classification'),
-        raises(DeepchecksValueError,
-               r"Metadata type <class 'dict'> is not supported, must be a pandas DataFrame")
+        calling(TextData).with_args(
+            raw_text=text,
+            metadata=metadata,
+            task_type='text_classification'
+        ),
+        raises(
+            DeepchecksValueError,
+            r"Metadata type <class 'dict'> is not supported, must be a pandas DataFrame"
+        )
     )
 
 
@@ -138,19 +148,19 @@ def test_head_functionality():
 
 def test_properties(text_classification_dataset_mock):
     # Arrange
-    dataset = text_classification_dataset_mock.copy()
+    dataset = text_classification_dataset_mock
 
     # Act & Assert
-    assert_that(dataset._properties, equal_to(None))  # pylint: disable=protected-access
+    assert_that(dataset._properties, equal_to(None))
     # TODO: Create test for the heavy properties
     dataset.calculate_default_properties(ignore_properties=['topic'] + LONG_RUN_PROPERTIES)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
-    assert_that(properties.shape[1], equal_to(7))
+    assert_that(properties.shape[1], equal_to(6))
     assert_that(properties.columns,
                 contains_exactly('Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters',
-                                 'Language', 'Sentiment', 'Subjectivity'))
-    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 'en', 0.0, 0.0))
+                                 'Sentiment', 'Subjectivity'))
+    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 0.0, 0.0))
 
 
 def test_set_embeddings(text_classification_dataset_mock):
@@ -168,27 +178,52 @@ def test_set_metadata(text_classification_dataset_mock):
     dataset = text_classification_dataset_mock
     metadata = pd.DataFrame({'first': [1, 2, 3], 'second': [4, 5, 6]})
 
-    assert_that(dataset._metadata, equal_to(None))  # pylint: disable=protected-access
-    assert_that(dataset._metadata_types, equal_to(None))  # pylint: disable=protected-access
+    assert_that(dataset._metadata, equal_to(None))
+    assert_that(dataset._cat_metadata, equal_to(None))
 
     # Act
-    dataset.set_metadata(metadata)
+    dataset.set_metadata(metadata, categorical_metadata=[])
 
     # Assert
     assert_that((dataset.metadata != metadata).sum().sum(), equal_to(0))
-    assert_that(dataset.metadata_types, equal_to({'first': 'categorical', 'second': 'categorical'}))
+    assert_that(dataset.categorical_metadata_columns, equal_to([]))
 
-    dataset._metadata = None  # pylint: disable=protected-access
-    dataset._metadata_types = None  # pylint: disable=protected-access
 
-    dataset.set_metadata(metadata, metadata_types={'first': 'numeric', 'second': 'numeric'})
-    assert_that(dataset.metadata_types, equal_to({'first': 'numeric', 'second': 'numeric'}))
+def test_set_metadata_with_categorical_columns(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    metadata = pd.DataFrame({'first': [1, 2, 3], 'second': [4, 5, 6]})
 
-    dataset._metadata = None  # pylint: disable=protected-access
-    dataset._metadata_types = None  # pylint: disable=protected-access
+    assert_that(dataset._metadata, equal_to(None))
+    assert_that(dataset._cat_metadata, equal_to(None))
 
-    assert_that(calling(dataset.set_metadata).with_args(metadata, metadata_types={'first': 'numeric'}),
-                raises(DeepchecksValueError, 'Metadata types keys must identical to Metadata table columns'))
+    # Act
+    dataset.set_metadata(metadata, categorical_metadata=['second'])
+
+    # Assert
+    assert_that((dataset.metadata != metadata).sum().sum(), equal_to(0))
+    assert_that(dataset.categorical_metadata_columns, equal_to(['second']))
+
+
+def test_set_metadata_with_an_incorrect_list_of_categorical_columns(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    metadata = pd.DataFrame({'first': [1, 2, 3], 'second': [4, 5, 6]})
+
+    assert_that(dataset._metadata, equal_to(None))
+    assert_that(dataset._cat_metadata, equal_to(None))
+
+    # Act/Assert
+    assert_that(
+        calling(dataset.set_metadata).with_args(
+            metadata,
+            categorical_metadata=['foo']
+        ),
+        raises(
+            DeepchecksValueError,
+            r"The following columns does not exist in Metadata - \['foo'\]"
+        )
+    )
 
 
 def test_set_properties(text_classification_dataset_mock):
@@ -196,22 +231,48 @@ def test_set_properties(text_classification_dataset_mock):
     dataset = text_classification_dataset_mock
     properties = pd.DataFrame({'text_length': [1, 2, 3], 'average_word_length': [4, 5, 6]})
 
-    assert_that(dataset._properties, equal_to(None))  # pylint: disable=protected-access
-    assert_that(dataset._properties_types, equal_to(None))  # pylint: disable=protected-access
+    assert_that(dataset._properties, equal_to(None))
+    assert_that(dataset._cat_properties, equal_to(None))
+
+    # Act
+    dataset.set_properties(properties, categorical_properties=[])
+
+    # Assert
+    assert_that(dataset.categorical_properties, equal_to([]))
+    assert_that((dataset.properties != properties).sum().sum(), equal_to(0))
+
+    dataset._properties = None
+    dataset._cat_properties = None
+
+
+def test_set_properties_with_an_incorrect_list_of_categorical_columns(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    properties = pd.DataFrame({'text_length': [1, 2, 3], 'average_word_length': [4, 5, 6]})
+
+    # Act/Assert
+    assert_that(
+        calling(dataset.set_properties).with_args(
+            properties,
+            categorical_properties=['foo']
+        ),
+        raises(
+            DeepchecksValueError,
+            r"The following columns does not exist in Properties - \['foo'\]"
+        )
+    )
+
+
+def test_set_properties_with_categorical_columns(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    properties = pd.DataFrame({'unknown_property': ['foo', 'foo', 'bar']})
+
+    assert_that(dataset._properties, equal_to(None))
+    assert_that(dataset._cat_properties, equal_to(None))
+
     # Act
     dataset.set_properties(properties)
 
     # Assert
-    assert_that((dataset.properties != properties).sum().sum(), equal_to(0))
-
-    dataset._properties = None  # pylint: disable=protected-access
-    dataset._properties_types = None  # pylint: disable=protected-access
-
-    dataset.set_properties(properties, properties_types={'text_length': 'numeric', 'average_word_length': 'numeric'})
-    assert_that(dataset.properties_types, equal_to({'text_length': 'numeric', 'average_word_length': 'numeric'}))
-
-    dataset._properties = None  # pylint: disable=protected-access
-    dataset._properties_types = None  # pylint: disable=protected-access
-
-    assert_that(calling(dataset.set_properties).with_args(properties, properties_types={'text_length': 'numeric'}),
-                raises(DeepchecksValueError, 'Properties types keys must identical to Properties table columns'))
+    assert_that(dataset.categorical_properties, equal_to(['unknown_property']))

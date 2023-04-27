@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_simple_model_comparison:
+.. _vision__simple_model_comparison:
 
 Simple Model Comparison
 ***********************
@@ -35,8 +35,7 @@ uniform           Generates predictions uniformly at random from the list of uni
                   class has equal probability.
 ================  ===================================
 
-Similiar to the :doc:`tabular simple model comparison check
-</checks_gallery/tabular/model_evaluation/plot_simple_model_comparison>`,
+Similiar to the :ref:`tabular__simple_model_comparison` check,
 there is no simple model which is more "correct" to use, each gives a different baseline
 to compare to, and you may experiment with the different types and see how it performs
 on your data.

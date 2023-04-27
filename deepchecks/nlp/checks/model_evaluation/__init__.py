@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the model evaluation checks in the nlp package."""
-from deepchecks.nlp.checks.model_evaluation.confusion_matrix_report import ConfusionMatrixReport
-from deepchecks.nlp.checks.model_evaluation.prediction_drift import PredictionDrift
-from deepchecks.nlp.checks.model_evaluation.single_dataset_performance import SingleDatasetPerformance
-from deepchecks.nlp.checks.model_evaluation.weak_segments_performance import (MetadataSegmentsPerformance,
-                                                                              PropertySegmentsPerformance)
+from .confusion_matrix_report import ConfusionMatrixReport
+from .prediction_drift import PredictionDrift
+from .single_dataset_performance import SingleDatasetPerformance
+from .train_test_performance import TrainTestPerformance
+from .weak_segments_performance import MetadataSegmentsPerformance, PropertySegmentsPerformance
 
 __all__ = ['SingleDatasetPerformance', 'MetadataSegmentsPerformance', 'PropertySegmentsPerformance',
-           'PredictionDrift', 'ConfusionMatrixReport']
+           'PredictionDrift', 'ConfusionMatrixReport', 'TrainTestPerformance']

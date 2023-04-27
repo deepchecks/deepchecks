@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_new_category:
+.. _tabular__new_category:
 
 New Category
 ************

@@ -10,10 +10,12 @@
 #
 """Represents fixtures for unit testing using pytest."""
 import logging
+import random
 # pylint: skip-file
 from typing import Tuple
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pytest
 from sklearn.datasets import load_diabetes, load_iris
@@ -28,6 +30,12 @@ from deepchecks.tabular.datasets.classification import lending_club
 from deepchecks.utils.logger import set_verbosity
 
 set_verbosity(logging.WARNING)
+
+
+@pytest.fixture(scope='function')
+def set_numpy_seed():
+    np.random.seed(42)
+    random.seed(42)
 
 
 @pytest.fixture(scope='session')

@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The dataset module containing the tabular Dataset class and its functions."""
+import contextlib
 import typing as t
 import warnings
 from numbers import Number
@@ -72,14 +73,10 @@ class TextData:
     metadata : t.Optional[pd.DataFrame] , default: None
         Metadata for the samples. If None, no metadata is set. If a DataFrame is given, it must contain
         the same number of samples as the raw_text and identical index.
-    metadata_types : t.Optional[Dict[str, str]] , default: None
-        The types of the metadata columns. If None, the types are inferred from the metadata.
     properties : t.Optional[Union[pd.DataFrame, str]] , default: None
         The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
         using the default properties. If a DataFrame is given, it must contain the properties for each sample as the raw
         text and identical index.
-    properties_types : t.Optional[Dict[str, str]] , default: None
-        The types of the properties columns. If None, the types are inferred from the properties.
     """
 
     _text: np.ndarray
@@ -89,9 +86,9 @@ class TextData:
     name: t.Optional[str] = None
     _embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None
     _metadata: t.Optional[pd.DataFrame] = None
-    _metadata_types: t.Optional[t.Dict[str, str]] = None
-    _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
-    _properties_types: t.Optional[t.Dict[str, str]] = None
+    _properties: t.Optional[pd.DataFrame] = None
+    _cat_properties: t.Optional[t.List[str]] = None
+    _cat_metadata: t.Optional[t.List[str]] = None
     _original_text_index: t.Optional[t.Sequence[int]] = None  # Sequence is np array
 
     def __init__(
@@ -103,10 +100,7 @@ class TextData:
             name: t.Optional[str] = None,
             embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None,
             metadata: t.Optional[pd.DataFrame] = None,
-            metadata_types: t.Optional[t.Dict[str, str]] = None,
-            properties: t.Optional[t.Union[pd.DataFrame, str]] = None, # TODO Make sure 'auto' still exists
-            properties_types: t.Optional[t.Dict[str, str]] = None,
-            device: t.Optional[str] = None
+            properties: t.Optional[pd.DataFrame] = None,
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -124,7 +118,7 @@ class TextData:
             self._task_type = TaskType.TOKEN_CLASSIFICATION
         else:
             raise DeepchecksNotSupportedError(f'task_type {task_type} is not supported, must be one of '
-                                              f'text_classification, token_classification, other')
+                                              'text_classification, token_classification, other')
 
         if raw_text is None:
             if tokenized_text is None:
@@ -142,16 +136,11 @@ class TextData:
             raise DeepchecksNotSupportedError(f'name must be a string, got {type(name)}')
         self.name = name
 
-        self.set_metadata(metadata, metadata_types)
-
-        if isinstance(properties, str) and properties == 'auto':
-            self.calculate_default_properties(device=device)
-        else:
-            self.set_properties(properties, properties_types)
-
-        if isinstance(embeddings, str) and embeddings == 'auto':
-            self.calculate_default_embeddings(device=device)
-        else:
+        if metadata is not None:
+            self.set_metadata(metadata)
+        if properties is not None:
+            self.set_properties(properties)
+        if embeddings is not None:
             self.set_embeddings(embeddings)
 
         # Used for display purposes
@@ -163,6 +152,7 @@ class TextData:
             return is_sequence_not_str(self._label[0])
         return False
 
+    # pylint: disable=protected-access
     def copy(self: TDataset, rows_to_use: t.Optional[t.Sequence[int]] = None) -> TDataset:
         """Create a copy of this Dataset with new data.
 
@@ -172,33 +162,62 @@ class TextData:
             The rows to use in the new copy. If None, the new copy will contain all the rows.
         """
         cls = type(self)
-        logger_state = get_logger().disabled
-        get_logger().disabled = True  # Make sure we won't get the warning for setting class in the non multilabel case
-        if rows_to_use is None:
-            new_copy = cls(raw_text=self._text, tokenized_text=self._tokenized_text, label=self._label,
-                           task_type=self._task_type.value, name=self.name)
-            metadata, properties, embeddings = self._metadata, self._properties, self._embeddings
-            index_kept = self._original_text_index
-        else:
+
+        # NOTE:
+        # Make sure we won't get the warning for setting class in the non multilabel case
+        with disable_deepchecks_logger():
+
+            if rows_to_use is None:
+                new_copy = cls(
+                    raw_text=self._text,
+                    tokenized_text=self._tokenized_text,
+                    label=self._label,
+                    task_type=self._task_type.value,
+                    name=self.name
+                )
+
+                if self._metadata is not None:
+                    new_copy.set_metadata(self._metadata, self._cat_metadata)
+
+                if self._properties is not None:
+                    new_copy.set_properties(self._properties, self._cat_properties)
+
+                if self._embeddings is not None:
+                    new_copy.set_embeddings(self._embeddings)
+
+                new_copy._original_text_index = self._original_text_index
+                return new_copy
+
             if not isinstance(rows_to_use, t.Sequence) or any(not isinstance(x, Number) for x in rows_to_use):
                 raise DeepchecksValueError('rows_to_use must be a list of integers')
-            rows_to_use = sorted(rows_to_use)
-            new_copy = cls(raw_text=self._text[rows_to_use],
-                           tokenized_text=self._tokenized_text[
-                               rows_to_use] if self._tokenized_text is not None else None,
-                           label=self._label[rows_to_use] if self.has_label() else None,
-                           task_type=self._task_type.value, name=self.name)
-            metadata = self._metadata.iloc[rows_to_use, :] if self._metadata is not None else None
-            properties = self._properties.iloc[rows_to_use, :] if self._properties is not None else None
-            embeddings = self._embeddings.iloc[rows_to_use, :] if self._embeddings is not None else None
-            index_kept = self._original_text_index[rows_to_use]
 
-        new_copy.set_metadata(metadata, self._metadata_types)
-        new_copy.set_properties(properties, self._properties_types)
-        new_copy.set_embeddings(embeddings)
-        new_copy._original_text_index = index_kept  # pylint: disable=protected-access
-        get_logger().disabled = logger_state
-        return new_copy
+            rows_to_use = sorted(rows_to_use)
+
+            new_copy = cls(
+                raw_text=self._text[rows_to_use],
+                tokenized_text=(
+                    self._tokenized_text[rows_to_use]
+                    if self._tokenized_text is not None
+                    else None
+                ),
+                label=self._label[rows_to_use] if self.has_label() else None,
+                task_type=self._task_type.value, name=self.name
+            )
+
+            if self._metadata is not None:
+                metadata = self._metadata.iloc[rows_to_use, :]
+                new_copy.set_metadata(metadata, self._cat_metadata)
+
+            if self._properties is not None:
+                properties = self._properties.iloc[rows_to_use, :]
+                new_copy.set_properties(properties, self._cat_properties)
+
+            if self._embeddings is not None:
+                embeddings = self._embeddings.iloc[rows_to_use, :]
+                new_copy.set_embeddings(embeddings)
+
+            new_copy._original_text_index = self._original_text_index[rows_to_use]
+            return new_copy
 
     def sample(self: TDataset, n_samples: int, replace: bool = False, random_state: t.Optional[int] = None,
                drop_na_label: bool = False) -> TDataset:
@@ -271,56 +290,48 @@ class TextData:
     def metadata(self) -> pd.DataFrame:
         """Return the metadata of for the dataset."""
         if self._metadata is None:
-            raise DeepchecksValueError('Metadata does not exist, please set it first using the set_metadata method')
+            raise ValueError(
+                'TextData does not contain metadata, add it by using '
+                '"set_metadata" function'
+            )
         return self._metadata
 
     @property
-    def metadata_types(self) -> t.Dict[str, str]:
-        """Return the metadata types of for the dataset."""
-        if self._metadata_types is None:
-            raise DeepchecksValueError('Metadata does not exist, please set it first using the set_metadata method')
-        return self._metadata_types
+    def categorical_metadata_columns(self) -> t.List[str]:
+        """Return categorical metadata column names."""
+        if self._cat_metadata is None:
+            raise ValueError(
+                'TextData does not contain metadata, add it by using '
+                '"set_metadata" function'
+            )
+        return self._cat_metadata
 
-    def set_metadata(self, metadata: pd.DataFrame, metadata_types: t.Optional[t.Dict[str, str]] = None):
-        """Set metadata for the dataset.
-
-        Parameters
-        ----------
-        metadata : pd.DataFrame
-            Metadata of the provided textual samples.
-        metadata_types : t.Optional[t.Dict[str, str]] , default : None
-            The types of the metadata columns. Can be either 'numeric' or 'categorical'.
-            If not provided, will be inferred automatically.
-        """
+    def set_metadata(
+        self,
+        metadata: pd.DataFrame,
+        categorical_metadata: t.Optional[t.Sequence[str]] = None
+    ):
+        """Set the metadata of the dataset."""
         if self._metadata is not None:
             warnings.warn('Metadata already exist, overwriting it', UserWarning)
 
-        self._metadata_types = validate_length_and_calculate_column_types(metadata, 'Metadata',
-                                                                          len(self), metadata_types)
-        self._metadata = metadata.reset_index(drop=True) if isinstance(metadata, pd.DataFrame) else None
+        column_types = validate_length_and_calculate_column_types(
+            data_table=metadata,
+            data_table_name='Metadata',
+            expected_size=len(self),
+            categorical_columns=categorical_metadata
+        )
 
-    def set_properties(self, properties: pd.DataFrame, properties_types: t.Optional[t.Dict[str, str]] = None):
-        """Set properties for the dataset.
+        self._metadata = metadata.reset_index(drop=True)
+        self._cat_metadata = column_types.categorical_columns
 
-        Parameters
-        ----------
-        properties : pd.DataFrame
-            Properties of the provided textual samples.
-        properties_types : t.Optional[t.Dict[str, str]] , default : None
-            The types of the properties columns. Can be either 'numeric' or 'categorical'.
-            If not provided, will be inferred automatically.
-        """
-        if self._properties is not None:
-            warnings.warn('Properties already exist, overwriting it', UserWarning)
-
-        self._properties_types = validate_length_and_calculate_column_types(properties, 'Properties',
-                                                                            len(self), properties_types)
-        self._properties = properties.reset_index(drop=True) if isinstance(properties, pd.DataFrame) else None
-
-    def calculate_default_properties(self, include_properties: t.List[str] = None,
-                                     ignore_properties: t.List[str] = None,
-                                     include_long_calculation_properties: t.Optional[bool] = False,
-                                     device: t.Optional[str] = None):
+    def calculate_default_properties(
+        self,
+        include_properties: t.Optional[t.List[str]] = None,
+        ignore_properties: t.Optional[t.List[str]] = None,
+        include_long_calculation_properties: bool = False,
+        device: t.Optional[str] = None
+    ):
         """Calculate the default properties of the dataset.
 
         Parameters
@@ -341,25 +352,54 @@ class TextData:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
         properties, properties_types = calculate_default_properties(
-            self.text, include_properties=include_properties, ignore_properties=ignore_properties,
-            include_long_calculation_properties=include_long_calculation_properties, device=device)
+            list(self.text),
+            include_properties=include_properties,
+            ignore_properties=ignore_properties,
+            include_long_calculation_properties=include_long_calculation_properties,
+            device=device
+        )
+
         self._properties = pd.DataFrame(properties, index=self.get_original_text_indexes())
-        self._properties_types = properties_types
+        self._cat_properties = [k for k, v in properties_types.items() if v == 'categorical']
+
+    def set_properties(
+        self,
+        properties: pd.DataFrame,
+        categorical_properties: t.Optional[t.Sequence[str]] = None
+    ):
+        """Set the properties of the dataset."""
+        if self._properties is not None:
+            warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        column_types = validate_length_and_calculate_column_types(
+            data_table=properties,
+            data_table_name='Properties',
+            expected_size=len(self),
+            categorical_columns=categorical_properties
+        )
+
+        self._properties = properties.reset_index(drop=True)
+        self._cat_properties = column_types.categorical_columns
 
     @property
     def properties(self) -> pd.DataFrame:
         """Return the properties of the dataset."""
         if self._properties is None:
-            raise DeepchecksValueError('TextData does not contain properties, add them by using '
-                                       'calculate_default_properties or set_properties functions')
+            raise DeepchecksNotSupportedError(
+                'TextData does not contain properties, add them by using '
+                '"calculate_default_properties" or "set_properties" functions'
+            )
         return self._properties
 
     @property
-    def properties_types(self) -> t.Dict[str, str]:
-        """Return the property types of the dataset."""
-        if self._properties is None:
-            raise DeepchecksValueError('Properties does not exist, please set it first using the set_properties method')
-        return self._properties_types
+    def categorical_properties(self) -> t.List[str]:
+        """Return categorical properties names."""
+        if self._cat_properties is None:
+            raise ValueError(
+                'TextData does not contain properties, add them by using '
+                '"calculate_default_properties" or "set_properties" functions'
+            )
+        return self._cat_properties
 
     @property
     def task_type(self) -> t.Optional[TaskType]:
@@ -442,6 +482,7 @@ class TextData:
         t.Sequence[int]
            Original indexes of the text samples.
         """
+        assert self._original_text_index is not None, 'Internal Error'
         return self._original_text_index
 
     @classmethod
@@ -513,3 +554,13 @@ class TextData:
         if n_samples is None:
             return False
         return self.n_samples > n_samples
+
+
+@contextlib.contextmanager
+def disable_deepchecks_logger():
+    """Disable deepchecks root logger."""
+    logger = get_logger()
+    logger_state = logger.disabled
+    logger.disabled = True
+    yield
+    logger.disabled = logger_state

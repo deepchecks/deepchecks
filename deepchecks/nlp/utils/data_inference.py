@@ -15,6 +15,7 @@ from typing import List, Tuple
 
 import numpy as np
 import pandas as pd
+from seqeval.metrics.sequence_labeling import get_entities
 from sklearn.base import BaseEstimator
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -23,12 +24,16 @@ from deepchecks.nlp.task_type import TaskType
 __all__ = ['infer_observed_and_model_labels']
 
 
-def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model: BaseEstimator = None,
-                                    y_pred_train: np.array = None,  # pylint: disable=unused-argument
-                                    y_pred_test: np.array = None,  # pylint: disable=unused-argument
-                                    model_classes: list = None,
-                                    task_type: TaskType = None) -> \
-        Tuple[List, List]:
+# pylint: disable=unused-argument
+def infer_observed_and_model_labels(
+    train_dataset=None,
+    test_dataset=None,
+    model: BaseEstimator = None,
+    y_pred_train: np.ndarray = None,
+    y_pred_test: np.ndarray = None,
+    model_classes: list = None,
+    task_type: TaskType = None
+) -> Tuple[List, List]:
     """
     Infer the observed labels from the given datasets and predictions.
 
@@ -101,5 +106,6 @@ def infer_observed_and_model_labels(train_dataset=None, test_dataset=None, model
 
     if task_type == TaskType.TOKEN_CLASSIFICATION:
         observed_classes = [c for c in observed_classes if c != 'O']
+        observed_classes = sorted({tag for tag, _, _ in get_entities(observed_classes)})
 
     return observed_classes, model_classes

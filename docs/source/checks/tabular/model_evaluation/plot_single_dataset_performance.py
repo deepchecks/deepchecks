@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_single_dataset_performance:
+.. _tabular__single_dataset_performance:
 
 Single Dataset Performance
 *****************************
@@ -23,7 +23,7 @@ it is a function which accepts (model, X, y_true) and returns a float result whi
 A sklearn convention is that higher scores are better than lower scores. For additional details `see scorers
 documentation <https://scikit-learn.org/stable/modules/model_evaluation.html#scoring>`_.
 
-The default scorers that are used are F1, Percision, and Recall for Classification
+The default scorers that are used are F1, Precision, and Recall for Classification
 and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression.
 """
 
@@ -41,7 +41,7 @@ model = load_fitted_model()
 # ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
-# the full list of possible scorers can be seen at scorers.py.
+# see :ref:`Metrics Guide <metrics_user_guide>` for additional details.
 
 from deepchecks.tabular.checks import SingleDatasetPerformance
 

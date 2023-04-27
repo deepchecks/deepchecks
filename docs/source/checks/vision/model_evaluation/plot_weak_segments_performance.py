@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _vision__weak_segments_performance:
+
 Weak Segments Performance
 *************************
 
@@ -17,7 +20,7 @@ What is the purpose of the check?
 ==================================
 
 The check is designed to easily identify the model's weakest segments.
-The segments are characterized by the :doc:`image properties </user-guide/vision/vision_properties>` such as 
+The segments are characterized by the :ref:`image properties <vision__properties_guide>` such as
 contrast and aspect ratio.
 
 Automatically detecting weak segments
@@ -34,8 +37,9 @@ The check performs several steps:
 #. We train multiple simple tree based models, each one is trained using two
    properties to predict the per sample error calculated before.
 
-#. We convert each of the leafs in each of the trees into a segment and calculate the segment's performance. For the
-   weakest segments detected we also calculate the model's performance on the data segments surrounding them.
+#. We extract the corresponding data samples for each of the leaves in each of the trees (data segments) and calculate
+   the model performance on them. For the weakest data segments detected we also calculate the model's
+   performance on data segments surrounding them.
 """
 
 #%%
@@ -75,10 +79,10 @@ result
 # We see in the results that the check indeed found several segments on which the model performance is below average.
 # In the heatmap display we can see the model's performance on the weakest segments and their environment with respect
 # to the two segmentation features. In order to get the full list of weak segments found we can look at
-# the result.value attribute.
+# the ``result.value`` attribute. Shown below are the 3 segments with the worst performance.
 
 
-result.value['weak_segments_list']
+result.value['weak_segments_list'].head(3)
 
 #%%
 # Now we will run a check with properties and minimum segment size ratio (the minimal fraction of the data to be
@@ -95,8 +99,9 @@ result.show()
 # Define a condition
 # ==================
 #
-# We can define on our check a condition that will validate that the ratio of the model performance on the
-# weakest segment to the average model performance is less than a specified ratio.
+# We can add a condition that will validate the model's performance on the weakest segment detected is above a certain
+# threshold. A scenario where this can be useful is when we want to make sure that the model is not under performing
+# on a subset of the data that is of interest to us.
 
 # Let's add a condition and re-run the check:
 

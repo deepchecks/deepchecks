@@ -18,6 +18,7 @@ import numpy as np
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
+from deepchecks.nlp.input_validations import compare_dataframes
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
@@ -44,7 +45,7 @@ TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Unio
 TClassProba = t.Sequence[t.Sequence[float]]
 TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
 TTextPred = t.Union[TClassPred, TTokenPred]
-TTextProba = t.Union[TClassProba]
+TTextProba = t.Union[TClassProba]  # TODO: incorrect, why union have only one type argument?
 
 
 class _DummyModel(BasicModel):
@@ -216,18 +217,34 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_token_classification_prediction(dataset: TextData, prediction: TTextPred):
         """Validate prediction for given token classification dataset."""
-        if not all(isinstance(pred, collections.abc.Sequence) for pred in prediction):
-            raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence '
-                                  f'of sequences')
+        if not is_sequence_not_str(prediction):
+            raise ValidationError(
+                f'Check requires predictions for {dataset.name} to be a sequence of sequences'
+            )
 
-        for i in range(len(prediction)):  # TODO: Goes over all predictions, fix this
-            if not all(isinstance(pred, str) for pred in prediction[i]) \
-                    and not all(isinstance(pred, int) for pred in prediction[i]):
-                raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence '
-                                      f'of sequences of strings or integers')
-            if len(prediction[i]) != len(dataset.tokenized_text[i]):
-                raise ValidationError(f'Check requires predictions for {dataset.name} to have '
-                                      f'the same number of tokens as the input text')
+        tokenized_text = dataset.tokenized_text
+
+        for idx, sample_predictions in enumerate(prediction):
+            if not is_sequence_not_str(sample_predictions):
+                raise ValidationError(
+                    f'Check requires predictions for {dataset.name} to be a sequence of sequences'
+                )
+
+            predictions_types_counter = collections.defaultdict(int)
+
+            for p in sample_predictions:
+                predictions_types_counter[type(p)] += 1
+
+            if predictions_types_counter[str] > 0 and predictions_types_counter[int] > 0:
+                raise ValidationError(
+                    f'Check requires predictions for {dataset.name} to be a sequence '
+                    'of sequences of strings or integers'
+                )
+            if len(sample_predictions) != len(tokenized_text[idx]):
+                raise ValidationError(
+                    f'Check requires predictions for {dataset.name} to have '
+                    'the same number of tokens as the input text'
+                )
 
     @staticmethod
     def _validate_proba(dataset: TextData, probabilities: TTextProba, n_classes: int,
@@ -287,6 +304,8 @@ class Context(BaseContext):
         A seed to set for pseudo-random functions , primarily sampling.
     """
 
+    _common_datasets_properties: t.Optional[t.Dict[str, str]] = None
+
     def __init__(
             self,
             train_dataset: t.Union[TextData, None] = None,
@@ -310,14 +329,43 @@ class Context(BaseContext):
             test_dataset = TextData.cast_to_dataset(test_dataset)
             if test_dataset.name is None:
                 test_dataset.name = 'Test'
+
         # If both dataset, validate they fit each other
         if train_dataset and test_dataset:
-            if test_dataset.has_label() and train_dataset.has_label() and not \
-                    train_dataset.validate_textdata_compatibility(test_dataset):
+            if (
+                test_dataset.has_label()
+                and train_dataset.has_label()
+                and not train_dataset.validate_textdata_compatibility(test_dataset)
+            ):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
+
+            if (
+                train_dataset._properties is not None
+                and test_dataset._properties is not None
+            ):
+                result = compare_dataframes(
+                    train=train_dataset._properties,
+                    test=test_dataset._properties,
+                    train_categorical_columns=train_dataset._cat_properties,
+                    test_categorical_columns=test_dataset._cat_properties
+                )
+                self._common_datasets_properties = result.common
+                if result.difference is not None:
+                    get_logger().warning(
+                        'Train and Test datasets have different properties, '
+                        'only common properties will be used in train-test checks.\n'
+                        'Properties present only in train dataset: %s\n'
+                        'Properties present only in test dataset: %s\n'
+                        'Properties with different types: %s\n',
+                        result.difference.only_in_train,
+                        result.difference.only_in_test,
+                        result.difference.types_mismatch
+                    )
+
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')
+
         if model_classes is not None:
             if (not is_sequence_not_str(model_classes)) or len(model_classes) == 0:
                 raise DeepchecksValueError('model_classes must be a non-empty sequence')
@@ -347,6 +395,16 @@ class Context(BaseContext):
         self._validated_model = False
         self._with_display = with_display
         self.random_state = random_state
+
+    @property
+    def common_datasets_properties(self) -> t.Dict[str, str]:
+        """Return common for train and test datasets properties."""
+        if self._common_datasets_properties is None:
+            raise DeepchecksNotSupportedError(
+                'Check is irrelevant without providing train and test '
+                'datasets with precalculated properties'
+            )
+        return dict(self._common_datasets_properties)
 
     @property
     def model(self) -> _DummyModel:
@@ -430,8 +488,26 @@ class Context(BaseContext):
                 'set_properties method to set your own properties with a pandas.DataFrame or use '
                 'TextData.calculate_default_properties to add the default deepchecks properties.')
 
+    def raise_if_token_classification_task(self, check=None):
+        """Raise an exception if it is a token classification task."""
+        check_name = type(check).__name__ if check else 'Check'
+        task_type_name = TaskType.TOKEN_CLASSIFICATION.value
+        if self.task_type is TaskType.TOKEN_CLASSIFICATION:
+            raise DeepchecksNotSupportedError(
+                f'"{check_name}" is not supported for the "{task_type_name}" tasks'
+            )
+
+    def raise_if_multi_label_task(self, check=None):
+        """Raise an exception if it is a multi-label classification task."""
+        dataset = t.cast(TextData, self._train if self._train is not None else self._test)
+        check_name = type(check).__name__ if check else 'Check'
+        if dataset.is_multi_label_classification():
+            raise DeepchecksNotSupportedError(
+                f'"{check_name}" is not supported for the multilable classification tasks'
+            )
+
     def get_scorers(self,
-                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
+                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str], None] = None,
                     use_avg_defaults=True) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers if provided or default scorers otherwise.
 
@@ -454,11 +530,11 @@ class Context(BaseContext):
             else:
                 scorers = scorers or get_default_scorers(TabularTaskType.BINARY, use_avg_defaults)
         elif self.task_type == TaskType.TOKEN_CLASSIFICATION:
-            scoring_dict = get_scorer_dict()
             if scorers is None:
                 scorers = get_default_token_scorers(use_avg_defaults)  # Get string names of default scorers
             else:
                 validate_scorers(scorers)  # Validate that use supplied scorer names are OK
+            scoring_dict = get_scorer_dict()
             scorers = {name: scoring_dict[name] for name in scorers}
         else:
             raise DeepchecksValueError(f'Task type must be either {TaskType.TEXT_CLASSIFICATION} or '

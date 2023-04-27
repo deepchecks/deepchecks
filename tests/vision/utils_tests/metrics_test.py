@@ -11,12 +11,11 @@
 from typing import Dict
 
 import numpy as np
-from sklearn.metrics import make_scorer, jaccard_score
-
 from hamcrest import assert_that, close_to, has_items, has_length
 from ignite.engine import Engine
 from ignite.metrics import Metric
 from numpy import nanmean
+from sklearn.metrics import jaccard_score, make_scorer
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.metrics_utils import get_scorers_dict

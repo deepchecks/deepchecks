@@ -9,8 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-
-from hamcrest import assert_that, instance_of, equal_to, is_not
+from hamcrest import assert_that, equal_to, instance_of, is_not
 
 from deepchecks.vision import VisionData
 from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset, load_model

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_date_train_test_validation_leakage_overlap:
+.. _tabular__date_train_test_validation_leakage_overlap:
 
 Date Train Test Leakage Overlap
 ******************************************

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_percent_of_nulls:
+.. _tabular__percent_of_nulls:
 
 Percent Of Nulls
 ****************

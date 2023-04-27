@@ -11,11 +11,11 @@
 """Test functions of the label drift."""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, close_to, equal_to, greater_than, has_entries, has_length, raises, calling
+from hamcrest import assert_that, calling, close_to, equal_to, greater_than, has_entries, has_length, raises
 
+from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.tabular import Dataset
-from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular.checks import LabelDrift
 from tests.base.utils import equal_condition_result
 
@@ -166,7 +166,7 @@ def test_drift_max_drift_score_condition_fail_psi(drifted_classification_label):
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
-        name='categorical drift score < 0.15 and numerical drift score < 0.15 for label drift',
+        name='Label drift score < 0.15',
         details='Label\'s drift score PSI is 0.24'
     ))
 
@@ -184,7 +184,7 @@ def test_drift_max_drift_score_condition_fail_emd(drifted_regression_label):
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         category=ConditionCategory.FAIL,
-        name='categorical drift score < 0.15 and numerical drift score < 0.15 for label drift',
+        name='Label drift score < 0.15',
         details='Label\'s drift score Earth Mover\'s Distance is 0.34'
     ))
 
@@ -193,8 +193,7 @@ def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classificati
     # Arrange
     train, test = non_drifted_classification_label
     check = LabelDrift(categorical_drift_method='PSI') \
-        .add_condition_drift_score_less_than(max_allowed_categorical_score=1,
-                                             max_allowed_numeric_score=1)
+        .add_condition_drift_score_less_than(max_allowed_drift_score=1)
 
     # Act
     result = check.run(train, test)
@@ -204,5 +203,5 @@ def test_drift_max_drift_score_condition_pass_threshold(non_drifted_classificati
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
         details='Label\'s drift score PSI is 3.37E-3',
-        name='categorical drift score < 1 and numerical drift score < 1 for label drift'
+        name='Label drift score < 1'
     ))
