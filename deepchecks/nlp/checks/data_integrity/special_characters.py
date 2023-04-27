@@ -44,7 +44,7 @@ class SpecialCharacters(SingleDatasetCheck):
     Parameters
     ----------
     special_characters_whitelist: Union[str, Sequence[str]] , default ' ' + string.punctuation
-        set of special characters to ignore
+        set of special characters to ignore. Punctuation (string.punctuation) is whitelisted by default.
     {text_normalization_params:1*indent}
     n_most_common : int , default: 2
         Number of most common special-only samples to show in results

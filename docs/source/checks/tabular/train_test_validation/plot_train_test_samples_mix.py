@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_train_test_samples_mix:
+.. _tabular__train_test_samples_mix:
 
 Train Test Samples Mix
 **********************

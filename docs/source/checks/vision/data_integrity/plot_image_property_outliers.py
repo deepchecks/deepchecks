@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_image_property_outliers:
+.. _vision__image_property_outliers:
 
 Image Property Outliers
 =======================
@@ -40,7 +40,7 @@ Which Image Properties Are Used?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 By default the checks use the built-in image properties, and it's also possible to replace the default properties
 with custom ones. For the list of the built-in image properties and explanation about custom properties refer to
-:doc:`vision properties </user-guide/vision/vision_properties>`.
+:ref:`vision properties <vision__properties_guide>`.
 
 """
 

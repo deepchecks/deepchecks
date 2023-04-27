@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_string_mismatch:
+.. _tabular__string_mismatch:
 
 String Mismatch
 ***************

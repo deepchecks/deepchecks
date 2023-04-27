@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_single_dataset_performance:
+.. _nlp__single_dataset_performance:
 
 Single Dataset Performance
 *****************************
@@ -39,7 +39,7 @@ _, test_probas = load_precalculated_predictions(pred_format='probabilities')
 # ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
-# see :doc:`Metrics Guide </user-guide/general/metrics_guide>` for additional details.
+# see :ref:`Metrics Guide <metrics_user_guide>` for additional details.
 
 from deepchecks.nlp.checks import SingleDatasetPerformance
 
