@@ -21,7 +21,7 @@ This check can help find a potential bias in the dataset - the labels being stro
 properties such as percentage of special characters, sentiment, toxicity and more.
 
 This is a critical problem, sometimes referred to as shortcut learning, where the model is likely to learn this property
-instead of the actual linguistic characteristics of each class, as it's easier to do so. In this case, the model will
+instead of the actual textual content relating to each class, as it's easier to do so. In this case, the model will
 show high performance on text taken in similar conditions, but will fail in the wild, where the simple properties
 don't hold true.
 This kind of correlation will likely stay hidden without this check until tested in the wild.
