@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_simple_model_comparison:
+.. _tabular__simple_model_comparison:
 
 Simple Model Comparison
 ***********************

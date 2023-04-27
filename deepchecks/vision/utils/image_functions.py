@@ -136,6 +136,9 @@ def draw_bboxes(
     -------
     PIL.Image.Image : image instance with drawen bboxes on it
     """
+    if bboxes.size == 0:
+        return image
+
     image = ensure_image(image, copy=copy_image)
     draw = pildraw.ImageDraw(image)
 

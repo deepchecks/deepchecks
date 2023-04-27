@@ -1,3 +1,5 @@
+.. _installation_guide:
+
 ============
 Installation
 ============
@@ -87,7 +89,7 @@ Using Pip
 Start Working with the Package
 =================================
 
-Now it's time to :doc:`check out </index>` deepchecks!
+Now it's time to :doc:`check out </general/index>` deepchecks!
 
 
 Latest Version Check

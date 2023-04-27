@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_feature_label_correlation:
+.. _tabular__feature_label_correlation:
 
 Feature Label Correlation
 ***************************

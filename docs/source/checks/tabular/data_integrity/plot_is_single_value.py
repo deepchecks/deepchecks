@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_is_single_value:
+.. _tabular__is_single_value:
 
 Is Single Value
 ***************

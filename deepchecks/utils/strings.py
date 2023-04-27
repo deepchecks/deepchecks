@@ -242,6 +242,7 @@ def generate_check_docs_link(check):
     if not (
         module_path.startswith('deepchecks.tabular.checks')
         or module_path.startswith('deepchecks.vision.checks')
+        or module_path.startswith('deepchecks.nlp.checks')
     ):
         # not builtin check, cannot generate link to the docs
         return ''
@@ -252,15 +253,11 @@ def generate_check_docs_link(check):
     # understand how link is formatted:
     #
     # - deepchecks.tabular.checks.integrity.StringMismatchComparison
-    # - https://docs.deepchecks.com/{version}/checks_gallery/tabular/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
+    # - https://docs.deepchecks.com/{version}/tabular/auto_checks/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
     # Remove 'deepchecks' from the start and 'checks' from the middle
-    module_path = module_path[len('deepchecks.'):]
-    module_parts = module_path.split('.')
-    module_parts.remove('checks')
-    # Add to the check name prefix of 'plot_'
-    module_parts[-1] = f'plot_{module_parts[-1]}'
-    return get_docs_link() + 'checks_gallery/' + '/'.join([*module_parts]) + link_postfix
+    _, subpackage, _, module, file = type(check).__module__.split('.')
+    return f'{get_docs_link()}{subpackage}/auto_checks/{module}/plot_{file}{link_postfix}'
 
 
 def get_random_string(n: int = 5):
