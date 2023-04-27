@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_mixed_nulls:
+.. _tabular__mixed_nulls:
 
 Mixed Nulls
 ***********

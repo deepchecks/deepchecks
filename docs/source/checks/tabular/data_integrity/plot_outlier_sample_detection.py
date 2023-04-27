@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_outlier_sample_detection:
+.. _tabular__outlier_sample_detection:
 
 Outlier Sample Detection
 ************************

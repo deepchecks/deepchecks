@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+
+.. _vision__weak_segments_performance:
+
 Weak Segments Performance
 *************************
 
@@ -17,7 +20,7 @@ What is the purpose of the check?
 ==================================
 
 The check is designed to easily identify the model's weakest segments.
-The segments are characterized by the :doc:`image properties </user-guide/vision/vision_properties>` such as 
+The segments are characterized by the :ref:`image properties <vision__properties_guide>` such as
 contrast and aspect ratio.
 
 Automatically detecting weak segments

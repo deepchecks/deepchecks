@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_segment_performance:
+.. _tabular__segment_performance:
 
 Segment Performance
 *******************

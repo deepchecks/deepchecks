@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Property Segments Performance
-*************************
+*****************************
 
 This notebook provides an overview for using and understanding the property segment performance check.
 
@@ -14,7 +14,7 @@ This notebook provides an overview for using and understanding the property segm
 * `Define a condition <#define-a-condition>`__
 
 What is the purpose of the check?
-==================================
+=================================
 
 The check is designed to help you easily identify the model's weakest segments based on the provided
 :func:`properties <deepchecks.nlp.text_data.TextData.set_properties>`. In addition,
@@ -63,7 +63,7 @@ test_dataset.properties.head(3)
 # ``alternative_scorer``: Determines the metric to be used as the performance measurement of the model on different
 # segments. It is important to select a metric that is relevant to the data domain and task you are performing.
 # For additional information on scorers and how to use them see
-# :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
+# :ref:`Metrics Guide <metrics_user_guide>`.
 #
 # ``segment_minimum_size_ratio``: Determines the minimum size of segments that are of interest. The check will
 # return data segments that contain at least this fraction of the total data samples. It is recommended to

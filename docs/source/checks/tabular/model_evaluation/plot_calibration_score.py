@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_calibration_score:
+.. _tabular__calibration_score:
 
 Calibration Score
 *******************
