@@ -22,7 +22,7 @@ properties such as percentage of special characters, sentiment, toxicity and mor
 
 This is a critical problem, sometimes referred to as shortcut learning, where the model is likely to learn this property
 instead of the actual textual content relating to each class, as it's easier to do so. In this case, the model will
-show high performance on text taken in similar conditions, but will fail in the wild, where the simple properties
+show high performance on text collected from a specific source, but will fail in the wild, where the simple properties
 don't hold true.
 This kind of correlation will likely stay hidden without this check until tested in the wild.
 
