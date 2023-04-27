@@ -10,16 +10,20 @@
 #
 """Module importing all nlp checks."""
 
-from deepchecks.nlp.checks.data_integrity import PropertyLabelCorrelation, TextPropertyOutliers
+from deepchecks.nlp.checks.data_integrity import (ConflictingLabels, PropertyLabelCorrelation, SpecialCharacters,
+                                                  TextDuplicates, TextPropertyOutliers)
 from deepchecks.nlp.checks.model_evaluation import (ConfusionMatrixReport, MetadataSegmentsPerformance, PredictionDrift,
                                                     PropertySegmentsPerformance, SingleDatasetPerformance,
                                                     TrainTestPerformance)
-from deepchecks.nlp.checks.train_test_validation import LabelDrift, PropertyDrift
+from deepchecks.nlp.checks.train_test_validation import LabelDrift, PropertyDrift, TrainTestSamplesMix
 
 __all__ = [
     # Data Integrity
     'PropertyLabelCorrelation',
     'TextPropertyOutliers',
+    'TextDuplicates',
+    'ConflictingLabels',
+    'SpecialCharacters',
 
     # Model Evaluation
     'SingleDatasetPerformance',
@@ -31,5 +35,6 @@ __all__ = [
     # Train Test Validation
     'PredictionDrift',
     'LabelDrift',
-    'PropertyDrift'
+    'PropertyDrift',
+    'TrainTestSamplesMix'
 ]
