@@ -35,7 +35,7 @@ average word length, language etc.) which are much more efficient to compute, an
 * For numeric properties (such as "percent of special characters"), we use
   `Interquartile Range <https://en.wikipedia.org/wiki/Interquartile_range#Outliers>`_ to define our upper and lower
   limit for the properties' values.
-* For categorical properties (such as "language"), we use our own method of "sharp drop" in category distribution to
+* For categorical properties (such as "language"), we look for a "sharp drop" in the category distribution to
   define our lower limit for the properties' values. This method is based on the assumption that the distribution of
   categories in the dataset is "smooth" and differences in the commonality of categories are gradual.
   For example, in a clean dataset, if the distribution of English texts is 80%, the distribution of the next most
