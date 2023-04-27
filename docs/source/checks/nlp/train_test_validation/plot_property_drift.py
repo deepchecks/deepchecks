@@ -29,19 +29,21 @@ For more information on drift, please visit our :doc:`drift guide </user-guide/g
 How Deepchecks Detects Drift in NLP Data
 -----------------------------------------
 
-This check detects drift by in NLP Data by calculating various properties of the text and writing them into a table,
-where each sample has one row per text sample and one column per textual property. Then, drift can be calculated using
-:ref:`univariate measures <drift_detection_by_univariate_measure>` on each text property separately.
+This check detects drift by in NLP Data by calculated
+:ref:`univariate drift measures <drift_detection_by_univariate_measure>` for each of the
+:doc:`text property </user-guide/nlp/nlp_properties>` (such as text length, language etc.) that are present in the
+train and test datasets.
+
+This check is easy to run (once the properties are calculated once per dataset) and is useful for detecting easily
+explainable changes in the data. For example, if you have started to use new data sources that contain
+samples in a new language, this check will detect it and show you a high drift score for the language property.
 
 Which NLP Properties Are Used?
 -------------------------------
 
-The properties used by this check are the ones present in datasets prior to running this check. That's why it's
-important to first run ``calculate_default_properties`` on both the train and test datasets prior to running this
-check. Note also that in order to calculate drift on more complex properties, such as text Toxicity or Fluency,
-you need to pass the ``include_long_calculation_properties=True`` parameter to ``calculate_default_properties``. For
-more information on how to calculate properties, please visit the :doc:`nlp properties guide
-</user-guide/nlp/nlp_properties>`.
+By default the checks use the built-in text properties, and it's also possible to replace the default properties
+with custom ones. For the list of the built-in text properties and explanation about custom properties refer to
+:doc:`NLP properties </user-guide/nlp/nlp_properties>`.
 
 Prepare data
 =============
@@ -64,6 +66,9 @@ check_result = PropertyDrift().run(train_dataset, test_dataset)
 check_result
 
 #%%
+# We can see that there isn't any significant drift in the data. We can see some slight increase in the formality of
+# the text samples in the test dataset.
+#
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  check_result.show_in_window()
