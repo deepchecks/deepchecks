@@ -39,6 +39,7 @@ def clean_dataset():
 class ProblematicDataset(t.NamedTuple):
     dataset: TextData
     special_characters: t.Dict[str, SpecialCharacterInfo]
+    total_ratio_of_samples_with_spec_chars: float
 
 
 @pytest.fixture
@@ -54,6 +55,7 @@ def dataset_with_special_characters() -> ProblematicDataset:
                 "Errors should never pass silently·",
             ]
         ),
+        total_ratio_of_samples_with_spec_chars=0.8,
         special_characters={
             '¶': {
                 'samples_ids': [0],
@@ -88,7 +90,11 @@ def test_check_on_clean_dataset(clean_dataset: TextData):
     conditions_decision = check.conditions_decision(result)
 
     # Assert
-    assert_that(result.value, all_of(instance_of(dict), has_length(0)))
+    assert_that(result.value, has_entries({
+        "special_characters": has_length(0),
+        "total_percent_of_samples_with_spec_chars": equal_to(0)
+    }))
+
     assert_that(result.display, has_length(0))
 
     assert_that(conditions_decision[0], equal_condition_result(
@@ -101,11 +107,12 @@ def test_check_on_clean_dataset(clean_dataset: TextData):
 def test_check_on_samples_with_special_characters(dataset_with_special_characters: ProblematicDataset):
     # Arrange
     condition_threshold = 0.3
-    expected_result = dataset_with_special_characters.special_characters
+    expected_total_ratio = dataset_with_special_characters.total_ratio_of_samples_with_spec_chars
+    expected_chars = dataset_with_special_characters.special_characters
 
     not_passed_chars = {
         k: format_percent(v['percent_of_samples'])
-        for k, v in expected_result.items()
+        for k, v in expected_chars.items()
         if v['percent_of_samples'] > condition_threshold
     }
 
@@ -117,7 +124,10 @@ def test_check_on_samples_with_special_characters(dataset_with_special_character
     conditions_decision = check.conditions_decision(result)
 
     # Assert
-    assert_that(result.value, has_entries(expected_result))
+    assert_that(result.value, has_entries({
+        "special_characters": expected_chars,
+        "total_percent_of_samples_with_spec_chars": expected_total_ratio
+    }))
     assert_display(result.display)
 
     assert_that(conditions_decision[0], equal_condition_result(
@@ -131,8 +141,9 @@ def test_special_characters_whitelisting(dataset_with_special_characters: Proble
     # Arrange
     dataset = dataset_with_special_characters.dataset
     condition_threshold = 0.3
-    expected_result = dataset_with_special_characters.special_characters.copy()
-    expected_result.pop('·')
+    expected_total_ratio = 0.4
+    expected_chars = dataset_with_special_characters.special_characters.copy()
+    expected_chars.pop('·')
 
     check = SpecialCharacters(
         special_characters_whitelist=['·', *SpecialCharacters.DEFAULT_WHILTELIST]
@@ -143,13 +154,42 @@ def test_special_characters_whitelisting(dataset_with_special_characters: Proble
     conditions_decision = check.conditions_decision(result)
 
     # Assert
-    assert_that(result.value, has_entries(expected_result))
+    assert_that(result.value, has_entries({
+        "special_characters": expected_chars,
+        "total_percent_of_samples_with_spec_chars": expected_total_ratio
+    }))
     assert_display(result.display)
 
     assert_that(conditions_decision[0], equal_condition_result(
         is_pass=True,
         details="No special characters with ratio above threshold found",
         name='Ratio of each special character is less or equal to 30%'
+    ))  # type: ignore
+
+
+def test_total_ratio_of_samples_condtion(dataset_with_special_characters: ProblematicDataset):
+    # Arrange
+    dataset = dataset_with_special_characters.dataset
+    expected_chars = dataset_with_special_characters.special_characters.copy()
+    expected_total_ratio = dataset_with_special_characters.total_ratio_of_samples_with_spec_chars
+    condition_threshold = 0.2
+    check = SpecialCharacters().add_condition_ratio_of_samples_with_special_characters_less_or_equal(condition_threshold)
+
+    # Act
+    result = check.run(dataset=dataset)
+    conditions_decision = check.conditions_decision(result)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        "special_characters": expected_chars,
+        "total_percent_of_samples_with_spec_chars": expected_total_ratio
+    }))
+    assert_display(result.display)
+
+    assert_that(conditions_decision[0], equal_condition_result(
+        is_pass=False,
+        details=f'Ratio of samples with special characters is {format_percent(expected_total_ratio)}',
+        name=f'Ratio of samples with special character is less or equal to {format_percent(condition_threshold)}'
     ))  # type: ignore
 
 

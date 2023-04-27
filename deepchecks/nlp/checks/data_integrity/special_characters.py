@@ -32,6 +32,11 @@ class SpecialCharacterInfo(TypedDict):
     percent_of_samples: float
 
 
+class ResultValue(TypedDict):
+    special_characters: t.Dict[str, SpecialCharacterInfo]
+    total_percent_of_samples_with_spec_chars: float
+
+
 @docstrings
 class SpecialCharacters(SingleDatasetCheck):
     """Find samples that contain special characters.
@@ -108,22 +113,30 @@ class SpecialCharacters(SingleDatasetCheck):
 
         special_characters = self.special_characters
         data: t.Dict[str, SpecialCharacterInfo] = {}
+        samples_with_spec_chars = set()
 
         for idx, sample in zip(dataset.get_original_text_indexes(), samples):
-            processed_sample = frozenset(sample)
-            for char in processed_sample.intersection(special_characters):
-                data[char] = data.get(char, {
-                    'samples_ids': [],
-                    'text_example': sample,
-                    'percent_of_samples': 0
-                })
-                data[char]['samples_ids'].append(idx)
+            intersection = frozenset(sample).intersection(special_characters)
+            if intersection:
+                samples_with_spec_chars.add(idx)
+                for char in intersection:
+                    data[char] = data.get(char, {
+                        'samples_ids': [],
+                        'text_example': sample,
+                        'percent_of_samples': 0
+                    })
+                    data[char]['samples_ids'].append(idx)
 
         for char, info in data.items():
             info['percent_of_samples'] = len(info['samples_ids']) / n_of_samples
 
+        result_value = ResultValue(
+            special_characters=data,
+            total_percent_of_samples_with_spec_chars=len(samples_with_spec_chars) / n_of_samples
+        )
+
         if context.with_display is False or len(data) == 0:
-            return CheckResult(value=data)
+            return CheckResult(value=result_value)
 
         display_table = pd.DataFrame(
             index=range(len(data)),
@@ -149,7 +162,7 @@ class SpecialCharacters(SingleDatasetCheck):
                 'you can change it using n_most_common param.'
             )
         return CheckResult(
-            value=data,
+            value=result_value,
             display=[message, display_table.iloc[:self.n_most_common]]
         )
 
@@ -157,7 +170,7 @@ class SpecialCharacters(SingleDatasetCheck):
     # is default max_ratio good?
     # are method and condition names good?
     def add_condition_ratio_of_special_characters_less_or_equal(self: Self, max_ratio: float = 0.05) -> Self:
-        """Add condition - ratio of special character ratio is less or equal to the threshold.
+        """Add condition - each special character ratio is less or equal to the threshold.
 
         Parameters
         ----------
@@ -166,10 +179,10 @@ class SpecialCharacters(SingleDatasetCheck):
         """
         name = f'Ratio of each special character is less or equal to {format_percent(max_ratio)}'
 
-        def condition(result: t.Dict[str, t.Dict[str, t.Any]]):
+        def condition(result: ResultValue):
             not_passed = {
                 k: format_percent(v['percent_of_samples'])
-                for k, v in result.items()
+                for k, v in result['special_characters'].items()
                 if v['percent_of_samples'] > max_ratio
             }
             if not_passed:
@@ -181,5 +194,26 @@ class SpecialCharacters(SingleDatasetCheck):
                 ConditionCategory.PASS,
                 'No special characters with ratio above threshold found'
             )
+
+        return self.add_condition(name, condition)
+
+    def add_condition_ratio_of_samples_with_special_characters_less_or_equal(
+        self: Self,
+        max_ratio: float = 0.05
+    ) -> Self:
+        """Add condition - ratio of samples with special character is less or equal to the threshold.
+
+        Parameters
+        ----------
+        max_ratio : float , default: 0.05
+            Maximum ratio allowed.
+        """
+        name = f'Ratio of samples with special character is less or equal to {format_percent(max_ratio)}'
+
+        def condition(result: ResultValue):
+            ratio = result['total_percent_of_samples_with_spec_chars']
+            details = f'Ratio of samples with special characters is {format_percent(ratio)}'
+            category = ConditionCategory.WARN if ratio > max_ratio else ConditionCategory.PASS
+            return ConditionResult(category, details)
 
         return self.add_condition(name, condition)
