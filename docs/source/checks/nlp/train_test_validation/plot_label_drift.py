@@ -50,6 +50,7 @@ train_ds.head()
 # Run Check
 # ===============================
 
+#%%
 # As there's natural drift in this dataset, we can expect to see some drift in the "optimism" label:
 
 check = LabelDrift()

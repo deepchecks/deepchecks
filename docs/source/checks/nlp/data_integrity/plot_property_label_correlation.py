@@ -65,3 +65,7 @@ result
 # We can see that in our example of tweet emotion dataset, the label is correlated with the "sentiment" property,
 # which makes sense, as the label is the emotion of the tweet, and the sentiment expresses whether the tweet is
 # positive or negative.
+# Also, there's some correlation with the "toxciity" property, which is a measure of how toxic the tweet is.
+# This is also reasonable, as some emotions are more likely to be expressed in a toxic way.
+# However, these correlation may indicate that a model may learn to predict the label by curse words, for instance,
+# instead of the actual content of the tweet, which could lead it to fail on new tweets that don't contain curse words.
