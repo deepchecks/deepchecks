@@ -59,7 +59,8 @@ __all__ = [
 ]
 
 # Creating a translation table for the string.translate() method to be used in string base-form method
-DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
+SPECIAL_CHARACTERS = tuple(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
+DEL_CHARS = ''.join(SPECIAL_CHARACTERS)
 DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
 
@@ -275,7 +276,7 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def string_baseform(string: Hashable, allow_empty_result: bool = False) -> Hashable:
+def string_baseform(string: str, allow_empty_result: bool = False) -> str:
     """Normalize the string input to a uniform form.
 
     If input is a string containing alphanumeric characters or if allow_empty_result is set to True,

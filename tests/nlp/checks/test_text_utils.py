@@ -11,7 +11,7 @@
 """Test for the text utils module"""
 from hamcrest import assert_that, equal_to
 
-from deepchecks.nlp.utils.text_utils import break_to_lines_and_trim
+from deepchecks.nlp.utils.text import break_to_lines_and_trim
 
 
 def test_break_to_lines_and_trim():

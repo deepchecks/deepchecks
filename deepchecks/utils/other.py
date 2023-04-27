@@ -8,9 +8,21 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the train test validation check in the nlp package."""
-from .label_drift import LabelDrift
-from .property_drift import PropertyDrift
-from .train_test_sample_mix import TrainTestSamplesMix
+"""module for different utility functions/types."""
+import typing as t
 
-__all__ = ['LabelDrift', 'PropertyDrift', 'TrainTestSamplesMix']
+__all__ = ["to_ordional_enumeration"]
+
+
+T = t.TypeVar("T")
+
+
+def to_ordional_enumeration(data: t.List[T]) -> t.Dict[T, int]:
+    """Enumarate each unique item."""
+    counter = 0
+    enum = {}
+    for it in data:
+        if it not in enum:
+            enum[it] = counter
+            counter += 1
+    return enum
