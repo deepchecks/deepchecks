@@ -13,7 +13,7 @@ import string
 import typing as t
 
 import pandas as pd
-from typing_extensions import Self
+from typing_extensions import Self, TypedDict
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -29,7 +29,7 @@ __all__ = ['SpecialCharacters']
 SPECIAL_CHARACTERS = frozenset(string.punctuation)
 
 
-class SpecialCharacterInfo(t.TypedDict):
+class SpecialCharacterInfo(TypedDict):
     samples_ids: t.List[t.Any]
     text_example: str
     percent_of_samples: float
