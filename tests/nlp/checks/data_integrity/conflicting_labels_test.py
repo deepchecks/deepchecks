@@ -187,7 +187,7 @@ def test_without_conflicting_labels(dataset_name, request):
     # Assert
     assert_that(result.value, has_entries({
         "percent": equal_to(0),
-        "ambiguous_samples": instance_of(pd.DataFrame),
+        "conflicting_samples": instance_of(pd.DataFrame),
     }))
 
     assert_that(conditions_decisions[0], equal_condition_result(
@@ -196,8 +196,8 @@ def test_without_conflicting_labels(dataset_name, request):
         name='Ambiguous sample ratio is less or equal to 0%',
     ))  # type: ignore
 
-    assert_that(len(result.value['ambiguous_samples']),equal_to(0))
-    assert_result_dataframe(result.value['ambiguous_samples'])
+    assert_that(len(result.value['conflicting_samples']),equal_to(0))
+    assert_result_dataframe(result.value['conflicting_samples'])
 
 
 @pytest.mark.parametrize(
@@ -220,7 +220,7 @@ def test_with_conflicting_labels(dataset_name, request):
     # Assert
     assert_that(result.value, has_entries({
         "percent": equal_to(expected_ratio),
-        "ambiguous_samples": instance_of(pd.DataFrame),
+        "conflicting_samples": instance_of(pd.DataFrame),
     }))
 
     assert_that(conditions_decisions[0], equal_condition_result(
@@ -229,7 +229,7 @@ def test_with_conflicting_labels(dataset_name, request):
         name='Ambiguous sample ratio is less or equal to 0%',
     ))  # type: ignore
 
-    ambiguous_samples = result.value["ambiguous_samples"]
+    ambiguous_samples = result.value["conflicting_samples"]
     assert_result_dataframe(ambiguous_samples, expected_ambiguous_samples)
     assert_display_table(result.display)
 

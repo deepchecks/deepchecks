@@ -17,7 +17,7 @@ from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
+from deepchecks.nlp.utils.text import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list, format_percent
@@ -111,7 +111,7 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
             'duplicates': result_df
         }
 
-        if not (context.with_display and percent_of_duplicates > 0):
+        if context.with_display is False or percent_of_duplicates == 0:
             return CheckResult(value=result_value)
 
         grouped_samples = df[df['hash'].isin(duplicates_hashes)].groupby(by=['hash'], dropna=False)

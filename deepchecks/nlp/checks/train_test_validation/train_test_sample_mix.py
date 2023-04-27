@@ -18,7 +18,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
+from deepchecks.nlp.utils.text import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list, format_percent
@@ -131,7 +131,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
             'test': test_df
         }
 
-        if not (context.with_display and duplicates_ratio > 0):
+        if context.with_display is False or duplicates_ratio == 0:
             return CheckResult(value=result_value)
 
         train_grouped = df[df['Dataset'] == 'train'].groupby(['hash'], dropna=False)

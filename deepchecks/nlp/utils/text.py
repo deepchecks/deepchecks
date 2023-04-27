@@ -17,10 +17,6 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
-# TODO:
-# rename this module just to 'text.py',
-# no need repeating parent package name in the module name
-
 __all__ = [
     'break_to_lines_and_trim',
     'normalize_text',
@@ -66,7 +62,6 @@ def break_to_lines_and_trim(s, max_lines: int = 10, min_line_length: int = 50, m
     return '<br>'.join(lines)
 
 
-# TODO: check option to save this list of words as a constant
 nltk.download('stopwords')
 nltk.download('punkt')
 

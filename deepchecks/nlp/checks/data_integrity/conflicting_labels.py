@@ -19,7 +19,7 @@ from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
+from deepchecks.nlp.utils.text import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.conflicting_labels import ConflictingLabelsAbstract
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list
@@ -128,7 +128,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
         result_value = {
             'percent': percent_of_ambiguous_samples,
-            'ambiguous_samples': result_df,
+            'conflicting_samples': result_df,
         }
 
         if context.with_display is False:
