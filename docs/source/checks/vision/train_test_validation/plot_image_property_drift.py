@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_image_property_drift:
+.. _vision__image_property_drift:
 
 Image Property Drift
 ********************
