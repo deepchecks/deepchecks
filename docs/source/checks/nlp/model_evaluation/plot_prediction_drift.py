@@ -86,7 +86,7 @@ result
 # predicting less "anger" tweets in the test dataset.
 
 #%%
-# The prediction drift check can also calculate drift on each class separately rather than the probabilities.
+# The prediction drift check can also calculate drift on the probability of each class separately rather than the final predicted class.
 # To force this behavior, set the ``drift_mode`` parameter to ``proba``.
 
 # First let's get the probabilities for our data, instead of the predictions:
