@@ -154,7 +154,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
 
         message = (
             f'{format_percent(duplicates_ratio)} ({n_of_test_duplicates} / {n_of_test_samples}) '
-            'of test data samples appear in train data'
+            'of test data samples also appear in train data'
         )
         return CheckResult(
             value=result_value,
