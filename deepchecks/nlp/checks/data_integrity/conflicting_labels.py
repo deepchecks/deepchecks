@@ -127,7 +127,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         result_df = result_df.set_index(['Duplicate', 'Sample ID', 'Label'])
 
         result_value = {
-            'percent': percent_of_ambiguous_samples,
+            'percent_of_conflicting_samples': percent_of_ambiguous_samples,
             'conflicting_samples': result_df,
         }
 

@@ -186,7 +186,7 @@ def test_without_conflicting_labels(dataset_name, request):
 
     # Assert
     assert_that(result.value, has_entries({
-        "percent": equal_to(0),
+        "percent_of_conflicting_samples": equal_to(0),
         "conflicting_samples": instance_of(pd.DataFrame),
     }))
 
@@ -219,7 +219,7 @@ def test_with_conflicting_labels(dataset_name, request):
 
     # Assert
     assert_that(result.value, has_entries({
-        "percent": equal_to(expected_ratio),
+        "percent_of_conflicting_samples": equal_to(expected_ratio),
         "conflicting_samples": instance_of(pd.DataFrame),
     }))
 

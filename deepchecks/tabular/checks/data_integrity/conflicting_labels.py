@@ -25,7 +25,7 @@ __all__ = ['ConflictingLabels']
 
 
 class ResultValue(TypedDict):
-    percent: float
+    percent_of_conflicting_samples: float
     samples_indices: List[List[int]]
 
 
@@ -135,7 +135,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         return CheckResult(
             display=display,
             value=ResultValue(
-                percent=num_ambiguous / dataset.n_samples,
+                percent_of_conflicting_samples=num_ambiguous / dataset.n_samples,
                 samples_indices=samples,
             )
         )

@@ -33,7 +33,7 @@ class ConflictingLabelsAbstract:
             Maximum ratio of samples with multiple labels.
         """
         def max_ratio_condition(result: t.Dict[str, t.Any]) -> ConditionResult:
-            percent = t.cast(float, result['percent'])
+            percent = t.cast(float, result['percent_of_conflicting_samples'])
             details = f'Ratio of samples with conflicting labels: {format_percent(percent)}'
             category = ConditionCategory.PASS if percent <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
