@@ -21,7 +21,6 @@ from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
 from tests.base.utils import equal_condition_result
 
-
 # ====================
 # ----- Fixtures -----
 # ====================

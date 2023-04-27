@@ -16,6 +16,7 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
@@ -26,18 +27,20 @@ from deepchecks.utils.strings import get_ellipsis as truncate_string
 __all__ = ['TrainTestSamplesMix']
 
 
-# TODO: docs
+@docstrings
 class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
     """Detect samples in the test data that appear also in training data.
 
     Parameters
     ----------
+    {text_normalization_params:1*indent}
     n_samples : int , default: 10_000_000
         number of samples to use for this check.
     n_to_show : int , default: 10
         number of samples that appear in test and training data to show.
     random_state : int, default: 42
         random seed for all check internals.
+    {max_text_length_for_display_param:1*indent}
     """
 
     def __init__(
@@ -49,8 +52,8 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         ignore_whitespace: bool = False,
         n_samples: int = 10_000_000,
         n_to_show: int = 10,
-        max_text_length_for_display: int = 30,
         random_state: int = 42,
+        max_text_length_for_display: int = 30,
         **kwargs
     ):
         super().__init__(**kwargs)

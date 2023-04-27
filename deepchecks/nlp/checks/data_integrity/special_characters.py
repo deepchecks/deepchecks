@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module contains SpecialCharacters check."""
+"""Module contains Special Characters check."""
 import string
 import typing as t
 
@@ -18,6 +18,7 @@ from typing_extensions import Self
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.strings import get_ellipsis as truncate_string
@@ -28,20 +29,20 @@ __all__ = ['SpecialCharacters']
 SPECIAL_CHARACTERS = frozenset(string.punctuation)
 
 
-# TODO: docs
+@docstrings
 class SpecialCharacters(SingleDatasetCheck):
-    """Search in column[s] for values that contains only special characters.
+    """Find samples that contain special characters.
 
     Parameters
     ----------
-    columns : Union[Hashable, List[Hashable]] , default: None
-        Columns to check, if none are given checks all columns except ignored ones.
-    ignore_columns : Union[Hashable, List[Hashable]] , default: None
-        Columns to ignore, if none given checks based on columns variable.
+    {text_normalization_params:1*indent}
     n_most_common : int , default: 2
         Number of most common special-only samples to show in results
-    n_samples: int = 10_000_000,
-        random_state: int = 42,
+    n_samples: int, default: 10_000_000
+        number of samples to use for this check.
+    random_state : int, default: 42
+        random seed for all check internals.
+    {max_text_length_for_display_param:1*indent}
     """
 
     def __init__(
@@ -54,8 +55,8 @@ class SpecialCharacters(SingleDatasetCheck):
         ignore_whitespace: bool = False,
         n_most_common: int = 10,
         n_samples: int = 10_000_000,
-        max_text_length_for_display: int = 30,
         random_state: int = 42,
+        max_text_length_for_display: int = 30,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -141,7 +142,7 @@ class SpecialCharacters(SingleDatasetCheck):
     # is default max_ratio good?
     # are method and condition names good?
     def add_condition_ratio_of_special_characters_less_or_equal(self: Self, max_ratio: float = 0.05) -> Self:
-        """Add condition - ratio of special character is less or equal to the threshold.
+        """Add condition - ratio of special character ratio is less or equal to the threshold.
 
         Parameters
         ----------

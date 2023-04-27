@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Data Duplicates check."""
+"""Module contains Conflicting Labels check."""
 import typing as t
 
 import pandas as pd
@@ -16,6 +16,7 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
@@ -27,18 +28,20 @@ from deepchecks.utils.strings import get_ellipsis as truncate_string
 __all__ = ['ConflictingLabels']
 
 
-# TODO: docs
+@docstrings
 class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
-    """Find samples which have the exact same features' values but different labels.
+    """Find identical samples which have different labels.
 
     Parameters
     ----------
+    {text_normalization_params:1*indent}
     n_to_show : int , default: 5
         number of most common ambiguous samples to show.
     n_samples : int , default: 10_000_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
+    {max_text_length_for_display_param:1*indent}
     """
 
     def __init__(
@@ -50,8 +53,8 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         ignore_whitespace: bool = False,
         n_to_show: int = 5,
         n_samples: int = 10_000_000,
-        max_text_length_for_display: int = 30,
         random_state: int = 42,
+        max_text_length_for_display: int = 30,
         **kwargs
     ):
         super().__init__(**kwargs)

@@ -8,13 +8,14 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""module contains Data Duplicates check."""
+"""Module contains Data Duplicates check."""
 import typing as t
 
 import pandas as pd
 
 from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text_utils import hash_samples, normalize_samples
 from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
@@ -25,18 +26,20 @@ from deepchecks.utils.strings import get_ellipsis as truncate_string
 __all__ = ['TextDuplicates']
 
 
-# TODO: docs
+@docstrings
 class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
     """Checks for duplicate samples in the dataset.
 
     Parameters
     ----------
-    n_to_show : int , default: 5
+    {text_normalization_params:1*indent}
+    n_to_show : int, default: 5
         number of most common duplicated samples to show.
-    n_samples : int , default: 10_000_000
+    n_samples : int, default: 10_000_000
         number of samples to use for this check.
     random_state : int, default: 42
         random seed for all check internals.
+    {max_text_length_for_display_param:1*indent}
     """
 
     def __init__(
@@ -48,8 +51,8 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         ignore_whitespace: bool = False,
         n_to_show: int = 5,
         n_samples: int = 10_000_000,
-        max_text_length_for_display: int = 30,
         random_state: int = 42,
+        max_text_length_for_display: int = 30,
         **kwargs
     ):
         super().__init__(**kwargs)
