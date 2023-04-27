@@ -190,7 +190,7 @@ def assert_display(display: t.Sequence[t.Any]):
 
     assert_that(
         table.index.names,
-        equal_to(["Instances", "Number of Samples"])
+        equal_to(["Sample IDs", "Number of Samples"])
     )
     assert_that(
         table.columns,

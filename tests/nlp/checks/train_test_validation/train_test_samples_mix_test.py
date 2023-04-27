@@ -255,5 +255,5 @@ def assert_display(display: t.Sequence[t.Any]):
         instance_of(pd.DataFrame)
     ))
     table = display[1]
-    assert_that(table.index.names, equal_to(["Train instances", "Test instances"]))
-    assert_that(table.columns.to_list(), equal_to(["Test text sample", "Number of test duplicates"]))
+    assert_that(table.index.names, equal_to(["Train Sample IDs", "Test Sample IDs"]))
+    assert_that(table.columns.to_list(), equal_to(["Test Text Sample", "Number of Test Duplicates"]))

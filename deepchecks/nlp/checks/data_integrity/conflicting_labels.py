@@ -138,7 +138,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         by_hash = ambiguous_samples.groupby(['hash'], dropna=False)
         fn = lambda x: format_list(x.to_list())
         observed_labels = by_hash['Label'].aggregate(fn)
-        instances = by_hash['Sample ID'].aggregate(fn)
+        samples_ids = by_hash['Sample ID'].aggregate(fn)
         first_in_group = by_hash['Text'].first()
 
         display_table = (
@@ -149,11 +149,11 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
                 # need an another way to display observed labels
                 # for those task types
                 'Observed Labels': observed_labels,
-                'Instances': instances,
+                'Sample IDs': samples_ids,
                 'Text': first_in_group
             })
             .reset_index(drop=True)
-            .set_index(['Observed Labels', 'Instances'])
+            .set_index(['Observed Labels', 'Sample IDs'])
         )
         table_description = (
             'Each row in the table shows an example of a data sample '

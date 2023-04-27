@@ -56,7 +56,7 @@ class SpecialCharacters(SingleDatasetCheck):
     """
 
     SPECIAL_CHARACTERS = frozenset(SPECIAL_CHARACTERS)
-    DEFAULT_WHILTELIST = frozenset(" " + string.punctuation)
+    DEFAULT_WHILTELIST = frozenset(' ' + string.punctuation)
 
     def __init__(
         self,
@@ -140,7 +140,7 @@ class SpecialCharacters(SingleDatasetCheck):
 
         display_table = pd.DataFrame(
             index=range(len(data)),
-            columns=['Special Character', '% of Samples With Character', 'Instances', 'Text Example'],
+            columns=['Special Character', '% of Samples With Character', 'Sample IDs', 'Text Example'],
             data=[
                 [char,
                  values['percent_of_samples'],
@@ -163,7 +163,11 @@ class SpecialCharacters(SingleDatasetCheck):
             )
         return CheckResult(
             value=result_value,
-            display=[message, display_table.iloc[:self.n_most_common]]
+            display=[
+                f'List of ignored special characters: {self.special_characters_whitelist}',
+                message,
+                display_table.iloc[:self.n_most_common]
+            ]
         )
 
     # TODO:

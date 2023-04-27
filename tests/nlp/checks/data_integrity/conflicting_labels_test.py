@@ -274,6 +274,6 @@ def assert_display_table(display: t.Sequence[t.Any]):
         instance_of(pd.DataFrame)
     ))
     table = display[2]
-    assert_that(table.index.names,equal_to(["Observed Labels", "Instances"]))
+    assert_that(table.index.names,equal_to(["Observed Labels", "Sample IDs"]))
     assert_that(table.columns,equal_to(["Text"]))
 

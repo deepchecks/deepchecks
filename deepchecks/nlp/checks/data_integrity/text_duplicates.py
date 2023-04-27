@@ -116,16 +116,16 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
 
         grouped_samples = df[df['hash'].isin(duplicates_hashes)].groupby(by=['hash'], dropna=False)
         first_sample = grouped_samples['Text'].first()
-        instances = grouped_samples['Sample ID'].aggregate(lambda x: format_list(x.to_list()))
+        sample_ids = grouped_samples['Sample ID'].aggregate(lambda x: format_list(x.to_list()))
 
         table = pd.DataFrame({
             'Text': first_sample.apply(self._truncate_text),
-            'Instances': instances,
+            'Sample IDs': sample_ids,
             'Number of Samples': counted_duplicates
         })
         table = table.iloc[:self.n_to_show]
         table = table.sort_values(by=['Number of Samples'], ascending=False)
-        table = table.set_index(['Instances', 'Number of Samples'])
+        table = table.set_index(['Sample IDs', 'Number of Samples'])
 
         return CheckResult(
             value=result_value,

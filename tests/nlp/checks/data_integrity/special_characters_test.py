@@ -201,8 +201,9 @@ def test_total_ratio_of_samples_condtion(dataset_with_special_characters: Proble
 def assert_display(display: t.Sequence[t.Any]):
     assert_that(display, has_items(
         instance_of(str),
+        instance_of(str),
         instance_of(pd.DataFrame)
     ))
-    table = t.cast(pd.DataFrame, display[1])
+    table = t.cast(pd.DataFrame, display[2])
     assert_that(table.index.names, equal_to(['Special Character']))
-    assert_that(table.columns.to_list(), equal_to(['% of Samples With Character', 'Instances', 'Text Example']))
+    assert_that(table.columns.to_list(), equal_to(['% of Samples With Character', 'Sample IDs', 'Text Example']))

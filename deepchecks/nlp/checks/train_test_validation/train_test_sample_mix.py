@@ -143,14 +143,14 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         first_sample_in_group = test_grouped['Text'].first()
 
         display_table = pd.DataFrame({
-            'Train instances': train_instances,
-            'Test instances': test_instances,
-            'Test text sample': first_sample_in_group.apply(self._truncate_text),
-            'Number of test duplicates': counted_test_duplicates
+            'Train Sample IDs': train_instances,
+            'Test Sample IDs': test_instances,
+            'Test Text Sample': first_sample_in_group.apply(self._truncate_text),
+            'Number of Test Duplicates': counted_test_duplicates
         })
 
         display_table = display_table.iloc[:self.n_to_show]
-        display_table = display_table.reset_index(drop=True).set_index(['Train instances', 'Test instances'])
+        display_table = display_table.reset_index(drop=True).set_index(['Train Sample IDs', 'Test Sample IDs'])
 
         message = (
             f'{format_percent(duplicates_ratio)} ({n_of_test_duplicates} / {n_of_test_samples}) '
