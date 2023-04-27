@@ -157,7 +157,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         )
         table_description = (
             'Each row in the table shows an example of a data sample '
-            'and the its observed labels as found in the dataset.'
+            'and the its observed conflicting labels as found in the dataset.'
         )
         table_note = (
             f'Showing top {self.n_to_show} of {len(display_table)}'
