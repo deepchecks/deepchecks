@@ -25,7 +25,7 @@ Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
 is our only indication that a changed has happened in the data that actually affects model
 predictions. If labels are available, it's also recommended to run the
-:doc:`Label Drift check </checks_gallery/nlp/train_test_validation/plot_label_drift>`.
+:doc:`Label Drift check </nlp/auto_checks/train_test_validation/plot_label_drift>`.
 
 For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
