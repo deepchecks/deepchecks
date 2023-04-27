@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_nlp_text_property_outliers:
+.. _nlp__text_property_outliers:
 
 Text Property Outliers
 =======================

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_nlp_prediction_drift:
+.. _nlp__prediction_drift:
 
 Prediction Drift
 ***************************

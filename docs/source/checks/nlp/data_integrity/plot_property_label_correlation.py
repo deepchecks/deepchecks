@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_nlp_property_label_correlation:
+.. _nlp__property_label_correlation:
 
 Property Label Correlation
 **************************
