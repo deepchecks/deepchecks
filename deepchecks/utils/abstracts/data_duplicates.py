@@ -39,7 +39,7 @@ class DataDuplicatesAbstract(abc.ABC):
                 result = t.cast(float, result['percent_of_duplicates'])
             elif not isinstance(result, float):
                 raise ValueError(
-                    f"Unexpected check result value type {type(result)}"
+                    f'Unexpected check result value type {type(result)}'
                 )
 
             details = f'Found {format_percent(result)} duplicate data'

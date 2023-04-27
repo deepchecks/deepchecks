@@ -90,25 +90,25 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         test_samples = t.cast(t.Sequence[str], test.text)
 
         if len(train_samples) == 0:
-            raise DeepchecksValueError("Train dataset cannot be empty")
+            raise DeepchecksValueError('Train dataset cannot be empty')
         if len(test_samples) == 0:
-            raise DeepchecksValueError("Test dataset cannot be empty")
+            raise DeepchecksValueError('Test dataset cannot be empty')
 
         normalization_kwargs = self._text_normalization_kwargs
         train_sample_hashes = hash_samples(normalize_samples(train_samples, **normalization_kwargs))
         test_sample_hashes = hash_samples(normalize_samples(test_samples, **normalization_kwargs))
 
         train_df = pd.DataFrame({
-            "hash": train_sample_hashes,
-            "Text": train_samples,
-            "Dataset": ["train" for _ in range(len(train_samples))],
-            "Sample ID": train.get_original_text_indexes()
+            'hash': train_sample_hashes,
+            'Text': train_samples,
+            'Dataset': ['train' for _ in range(len(train_samples))],
+            'Sample ID': train.get_original_text_indexes()
         })
         test_df = pd.DataFrame({
-            "hash": test_sample_hashes,
-            "Text": test_samples,
-            "Dataset": ["test" for _ in range(len(test_samples))],
-            "Sample ID": test.get_original_text_indexes()
+            'hash': test_sample_hashes,
+            'Text': test_samples,
+            'Dataset': ['test' for _ in range(len(test_samples))],
+            'Sample ID': test.get_original_text_indexes()
         })
 
         hash_intersection = set(train_sample_hashes).intersection(set(test_sample_hashes))
@@ -125,10 +125,10 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         result_df = result_df.sort_index()
 
         result_value = {
-            "ratio": duplicates_ratio,
-            "duplicates": result_df,
-            "train": train_df,
-            "test": test_df
+            'ratio': duplicates_ratio,
+            'duplicates': result_df,
+            'train': train_df,
+            'test': test_df
         }
 
         if not (context.with_display and duplicates_ratio > 0):
@@ -143,14 +143,14 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         first_sample_in_group = test_grouped['Text'].first()
 
         display_table = pd.DataFrame({
-            "Train instances": train_instances,
-            "Test instances": test_instances,
-            "Test text sample": first_sample_in_group.apply(self._truncate_text),
-            "Number of test duplicates": counted_test_duplicates
+            'Train instances': train_instances,
+            'Test instances': test_instances,
+            'Test text sample': first_sample_in_group.apply(self._truncate_text),
+            'Number of test duplicates': counted_test_duplicates
         })
 
         display_table = display_table.iloc[:self.n_to_show]
-        display_table = display_table.reset_index(drop=True).set_index(["Train instances", "Test instances"])
+        display_table = display_table.reset_index(drop=True).set_index(['Train instances', 'Test instances'])
 
         message = (
             f'{format_percent(duplicates_ratio)} ({n_of_test_duplicates} / {n_of_test_samples}) '

@@ -14,7 +14,6 @@ import typing as t
 import unicodedata
 
 import nltk
-import pandas as pd
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 
@@ -73,11 +72,11 @@ nltk.download('punkt')
 
 
 def remove_punctuation(text: str) -> str:
-    return text.translate(str.maketrans("", "", string.punctuation))
+    return text.translate(str.maketrans('', '', string.punctuation))
 
 
 def normalize_unicode(text: str) -> str:
-    return unicodedata.normalize("NFKC", text)
+    return unicodedata.normalize('NFKC', text)
 
 
 def remove_stopwords(text: str) -> str:

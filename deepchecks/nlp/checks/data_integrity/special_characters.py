@@ -94,40 +94,40 @@ class SpecialCharacters(SingleDatasetCheck):
         n_of_samples = len(samples)
 
         if n_of_samples == 0:
-            raise DeepchecksValueError("Dataset cannot be empty")
+            raise DeepchecksValueError('Dataset cannot be empty')
 
         data = {}
 
         for char in self.special_characters:
             for idx, sample in zip(dataset.get_original_text_indexes(), samples):
                 if char in sample:
-                    data[char] = data.get(char, {"samples_ids": [], "text_example": sample})
+                    data[char] = data.get(char, {'samples_ids': [], 'text_example': sample})
                     data[char]['samples_ids'].append(idx)
 
-        for char in data.keys():
-            data[char]["percent_of_samples"] = len(data[char]['samples_ids']) / n_of_samples
+        for char, info in data.items():
+            info['percent_of_samples'] = len(info['samples_ids']) / n_of_samples
 
         if context.with_display is False or len(data) == 0:
             return CheckResult(value=data)
 
         display_table = pd.DataFrame(
             index=range(len(data)),
-            columns=["Special Character", "% of Samples With Character", "Instances", "Text Example"],
+            columns=['Special Character', '% of Samples With Character', 'Instances', 'Text Example'],
             data=[
                 [char,
-                 values["percent_of_samples"],
+                 values['percent_of_samples'],
                  format_list(values['samples_ids']),
-                 truncate_string(values["text_example"], self.max_text_length_for_display)]
+                 truncate_string(values['text_example'], self.max_text_length_for_display)]
                 for char, values in data.items()
             ],
         )
         display_table = (
-            display_table.sort_values(by=["% of Samples With Character"], ascending=False)
+            display_table.sort_values(by=['% of Samples With Character'], ascending=False)
             .reset_index(drop=True)
-            .set_index(["Special Character"])
+            .set_index(['Special Character'])
         )
         if self.n_most_common > display_table.shape[0]:
-            message = ""
+            message = ''
         else:
             message = (
                 f'Showing only the top {self.n_most_common} most common characters, '
@@ -164,7 +164,7 @@ class SpecialCharacters(SingleDatasetCheck):
                 )
             return ConditionResult(
                 ConditionCategory.PASS,
-                "No special characters with ratio above threshold found"
+                'No special characters with ratio above threshold found'
             )
 
         return self.add_condition(name, condition)

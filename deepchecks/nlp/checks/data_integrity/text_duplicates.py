@@ -87,11 +87,11 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         sample_hashes = hash_samples(normalize_samples(samples, **self._text_normalization_kwargs))
 
         df = pd.DataFrame({
-            "Text": samples,
-            "hash": sample_hashes,
-            "Sample ID": dataset.get_original_text_indexes()
+            'Text': samples,
+            'hash': sample_hashes,
+            'Sample ID': dataset.get_original_text_indexes()
         })
-        grouped_samples = df.groupby(by=["hash"], dropna=False)
+        grouped_samples = df.groupby(by=['hash'], dropna=False)
         counted_samples = grouped_samples['Text'].size()
         n_of_unique = len(counted_samples)
         n_of_samples = df.shape[0]
@@ -101,31 +101,31 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         duplicates_hashes = set(counted_duplicates.index)
 
         result_df = df[df['hash'].isin(duplicates_hashes)]
-        result_df = result_df.rename(columns={"hash": "Duplicate"})
+        result_df = result_df.rename(columns={'hash': 'Duplicate'})
         duplicates_enumeration = to_ordional_enumeration(result_df['Duplicate'].to_list())
         result_df['Duplicate'] = result_df['Duplicate'].apply(lambda x: duplicates_enumeration[x])
-        result_df = result_df.set_index(["Duplicate", "Sample ID"])
+        result_df = result_df.set_index(['Duplicate', 'Sample ID'])
 
         result_value = {
-            "percent_of_duplicates": percent_of_duplicates,
-            "duplicates": result_df
+            'percent_of_duplicates': percent_of_duplicates,
+            'duplicates': result_df
         }
 
         if not (context.with_display and percent_of_duplicates > 0):
             return CheckResult(value=result_value)
 
-        grouped_samples = df[df['hash'].isin(duplicates_hashes)].groupby(by=["hash"], dropna=False)
+        grouped_samples = df[df['hash'].isin(duplicates_hashes)].groupby(by=['hash'], dropna=False)
         first_sample = grouped_samples['Text'].first()
         instances = grouped_samples['Sample ID'].aggregate(lambda x: format_list(x.to_list()))
 
         table = pd.DataFrame({
-            "Text": first_sample.apply(self._truncate_text),
-            "Instances": instances,
-            "Number of Samples": counted_duplicates
+            'Text': first_sample.apply(self._truncate_text),
+            'Instances': instances,
+            'Number of Samples': counted_duplicates
         })
         table = table.iloc[:self.n_to_show]
-        table = table.sort_values(by=["Number of Samples"], ascending=False)
-        table = table.set_index(["Instances", "Number of Samples"])
+        table = table.sort_values(by=['Number of Samples'], ascending=False)
+        table = table.set_index(['Instances', 'Number of Samples'])
 
         return CheckResult(
             value=result_value,
