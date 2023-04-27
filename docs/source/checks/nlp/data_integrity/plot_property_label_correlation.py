@@ -20,11 +20,10 @@ The check estimates for every :doc:`text property </user-guide/nlp/nlp_propertie
 This check can help find a potential bias in the dataset - the labels being strongly correlated with simple text
 properties such as percentage of special characters, sentiment, toxicity and more.
 
-This is a critical problem, sometimes referred to as shortcut learning, where the model is likely to learn this property
-instead of the actual linguistic characteristics of each class, as it's easier to do so. In this case, the model will
-show high performance on text taken in similar conditions, but will fail in the wild, where the simple properties
-don't hold true.
-This kind of correlation will likely stay hidden without this check until tested in the wild.
+This is a critical problem that can result in a phenomenon called "shortcut learning", where the model is likely to
+learn this property instead of the actual linguistic characteristics of each class, as it's easier to do so.
+In this case, the model will show high performance on text taken in similar conditions, but will fail to generalize
+on other data. This kind of correlation will likely stay hidden without this check until tested on other data.
 
 For example, in a classification dataset of true and false statements, if only true facts are written in detail,
 and false facts are written in a short and vague manner, the model might learn to predict the label by the length
