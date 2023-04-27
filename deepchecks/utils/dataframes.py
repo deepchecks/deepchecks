@@ -227,6 +227,7 @@ def is_float_column(col: pd.Series) -> bool:
 
 
 def cast_categorical_to_object_dtype(df: pd.DataFrame) -> pd.DataFrame:
+    """Cast categorical columns to the object dtype."""
     # NOTE:
     # pandas have bug with groupby on category dtypes,
     # so until it fixed, change dtypes manually
