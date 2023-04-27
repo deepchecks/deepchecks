@@ -145,8 +145,8 @@ class SpecialCharacters(SingleDatasetCheck):
             message = ''
         else:
             message = (
-                f'Showing only the top {self.n_most_common} most common characters, '
-                'you can change it using n_most_common param'
+                f'Showing only the top {self.n_most_common} most common special characters, '
+                'you can change it using n_most_common param.'
             )
         return CheckResult(
             value=data,
