@@ -20,13 +20,10 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
-from deepchecks.utils.strings import format_list, format_percent
+from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list, format_percent
 from deepchecks.utils.strings import get_ellipsis as truncate_string
 
 __all__ = ['SpecialCharacters']
-
-
-SPECIAL_CHARACTERS = frozenset(string.punctuation)
 
 
 class SpecialCharacterInfo(TypedDict):
@@ -41,6 +38,8 @@ class SpecialCharacters(SingleDatasetCheck):
 
     Parameters
     ----------
+    special_characters_whitelist: Union[str, Sequence[str]] , default ' ' + string.punctuation
+        set of special characters to ignore
     {text_normalization_params:1*indent}
     n_most_common : int , default: 2
         Number of most common special-only samples to show in results
@@ -50,6 +49,9 @@ class SpecialCharacters(SingleDatasetCheck):
         random seed for all check internals.
     {max_text_length_for_display_param:1*indent}
     """
+
+    SPECIAL_CHARACTERS = frozenset(SPECIAL_CHARACTERS)
+    DEFAULT_WHILTELIST = frozenset(" " + string.punctuation)
 
     def __init__(
         self,
@@ -69,9 +71,11 @@ class SpecialCharacters(SingleDatasetCheck):
         self.special_characters_whitelist = (
             frozenset(special_characters_whitelist)
             if special_characters_whitelist
-            else frozenset()
+            else self.DEFAULT_WHILTELIST
         )
-        self.special_characters = SPECIAL_CHARACTERS.difference(self.special_characters_whitelist)
+        self.special_characters = self.SPECIAL_CHARACTERS.difference(
+            self.special_characters_whitelist
+        )
         self.ignore_case = ignore_case
         self.remove_punctuation = remove_punctuation
         self.normalize_unicode = normalize_unicode
@@ -102,17 +106,18 @@ class SpecialCharacters(SingleDatasetCheck):
         if n_of_samples == 0:
             raise DeepchecksValueError('Dataset cannot be empty')
 
+        special_characters = self.special_characters
         data: t.Dict[str, SpecialCharacterInfo] = {}
 
-        for char in self.special_characters:
-            for idx, sample in zip(dataset.get_original_text_indexes(), samples):
-                if char in sample:
-                    data[char] = data.get(char, {
-                        'samples_ids': [],
-                        'text_example': sample,
-                        'percent_of_samples': 0
-                    })
-                    data[char]['samples_ids'].append(idx)
+        for idx, sample in zip(dataset.get_original_text_indexes(), samples):
+            processed_sample = frozenset(sample)
+            for char in processed_sample.intersection(special_characters):
+                data[char] = data.get(char, {
+                    'samples_ids': [],
+                    'text_example': sample,
+                    'percent_of_samples': 0
+                })
+                data[char]['samples_ids'].append(idx)
 
         for char, info in data.items():
             info['percent_of_samples'] = len(info['samples_ids']) / n_of_samples

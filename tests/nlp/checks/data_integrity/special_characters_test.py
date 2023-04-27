@@ -47,27 +47,27 @@ def dataset_with_special_characters() -> ProblematicDataset:
     return ProblematicDataset(
         dataset=TextData(
             raw_text=[
-                "Hello world!!",
-                "Do not worry, be happy.",
+                "Hello world¶¶",
+                "Do not worry¸ be happy·",
                 "Weather is fine",
-                "Readability counts.",
-                "Errors should never pass silently.",
+                "Readability counts·",
+                "Errors should never pass silently·",
             ]
         ),
         special_characters={
-            '!': {
+            '¶': {
                 'samples_ids': [0],
-                'text_example': "Hello world!!",
+                'text_example': "Hello world¶¶",
                 'percent_of_samples': 0.2
             },
-            ',': {
+            '¸': {
                 'samples_ids': [1],
-                'text_example': "Do not worry, be happy.",
+                'text_example': "Do not worry¸ be happy·",
                 'percent_of_samples': 0.2
             },
-            '.': {
+            '·': {
                 'samples_ids': [1, 3, 4],
-                'text_example': "Do not worry, be happy.",
+                'text_example': "Do not worry¸ be happy·",
                 'percent_of_samples': 0.6
             }
         }
@@ -132,10 +132,10 @@ def test_special_characters_whitelisting(dataset_with_special_characters: Proble
     dataset = dataset_with_special_characters.dataset
     condition_threshold = 0.3
     expected_result = dataset_with_special_characters.special_characters.copy()
-    expected_result.pop('.')
+    expected_result.pop('·')
 
     check = SpecialCharacters(
-        special_characters_whitelist=['.']
+        special_characters_whitelist=['·', *SpecialCharacters.DEFAULT_WHILTELIST]
     ).add_condition_ratio_of_special_characters_less_or_equal(condition_threshold)
 
     # Act
