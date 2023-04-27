@@ -130,8 +130,8 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         return CheckResult(
             value=result_value,
             display=[
-                f'{format_percent(percent_of_duplicates)} of data samples are duplicates. ',
-               'Each row in the table shows an example of a text duplicate and the number of times it appears.',
-               table
+                f'{format_percent(percent_of_duplicates)} of data samples are duplicates.',
+                'Each row in the table shows an example of a text duplicate and the number of times it appears.',
+                table
             ]
         )

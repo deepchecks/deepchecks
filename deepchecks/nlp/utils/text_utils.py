@@ -66,20 +66,23 @@ def break_to_lines_and_trim(s, max_lines: int = 10, min_line_length: int = 50, m
     return '<br>'.join(lines)
 
 
-# TODO: check option to save this list of words as CONST
+# TODO: check option to save this list of words as a constant
 nltk.download('stopwords')
 nltk.download('punkt')
 
 
 def remove_punctuation(text: str) -> str:
+    """Remove punctuation characters from a string."""
     return text.translate(str.maketrans('', '', string.punctuation))
 
 
 def normalize_unicode(text: str) -> str:
+    """Normalize unicode characters."""
     return unicodedata.normalize('NFKC', text)
 
 
 def remove_stopwords(text: str) -> str:
+    """Remove stop words from a string."""
     stop_words = set(stopwords.words('english'))
     words = word_tokenize(text)
     return ' '.join([word for word in words if word.lower() not in stop_words])
@@ -117,6 +120,7 @@ def normalize_samples(
     remove_stops: bool = True,
     ignore_whitespace: bool = False
 ) -> t.List[str]:
+    """Normalize given sequence of text samples."""
     return [
         normalize_text(
             it,
@@ -131,10 +135,12 @@ def normalize_samples(
 
 
 def hash_text(text: str) -> int:
+    """Hash a text sample."""
     assert isinstance(text, str)
     return hash(text)
 
 
 def hash_samples(text: t.Sequence[str]) -> t.List[int]:
+    """Hash a sequence of text samples."""
     assert not isinstance(text, str)
     return [hash_text(it) for it in text]
