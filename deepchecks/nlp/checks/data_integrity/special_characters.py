@@ -29,6 +29,12 @@ __all__ = ['SpecialCharacters']
 SPECIAL_CHARACTERS = frozenset(string.punctuation)
 
 
+class SpecialCharacterInfo(t.TypedDict):
+    samples_ids: t.List[t.Any]
+    text_example: str
+    percent_of_samples: float
+
+
 @docstrings
 class SpecialCharacters(SingleDatasetCheck):
     """Find samples that contain special characters.
@@ -96,12 +102,16 @@ class SpecialCharacters(SingleDatasetCheck):
         if n_of_samples == 0:
             raise DeepchecksValueError('Dataset cannot be empty')
 
-        data = {}
+        data: t.Dict[str, SpecialCharacterInfo] = {}
 
         for char in self.special_characters:
             for idx, sample in zip(dataset.get_original_text_indexes(), samples):
                 if char in sample:
-                    data[char] = data.get(char, {'samples_ids': [], 'text_example': sample})
+                    data[char] = data.get(char, {
+                        'samples_ids': [],
+                        'text_example': sample,
+                        'percent_of_samples': 0
+                    })
                     data[char]['samples_ids'].append(idx)
 
         for char, info in data.items():

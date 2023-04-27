@@ -8,17 +8,21 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Test for the NLP ConflictingLabels check."""
+"""Test for the NLP SpecialCharacters check."""
 import typing as t
 
 import pandas as pd
 import pytest
 from hamcrest import *
 
-from deepchecks.nlp.checks import SpecialCharacters
+from deepchecks.nlp.checks.data_integrity.special_characters import SpecialCharacterInfo, SpecialCharacters
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
 from tests.base.utils import equal_condition_result
+
+# ====================
+# ----- Fixtures -----
+# ====================
 
 
 @pytest.fixture
@@ -30,6 +34,49 @@ def clean_dataset():
             "Weather is fine"
         ]
     )
+
+
+class ProblematicDataset(t.NamedTuple):
+    dataset: TextData
+    special_characters: t.Dict[str, SpecialCharacterInfo]
+
+
+@pytest.fixture
+def dataset_with_special_characters() -> ProblematicDataset:
+    # TODO: refactor, reduce code redundancy
+    return ProblematicDataset(
+        dataset=TextData(
+            raw_text=[
+                "Hello world!!",
+                "Do not worry, be happy.",
+                "Weather is fine",
+                "Readability counts.",
+                "Errors should never pass silently.",
+            ]
+        ),
+        special_characters={
+            '!': {
+                'samples_ids': [0],
+                'text_example': "Hello world!!",
+                'percent_of_samples': 0.2
+            },
+            ',': {
+                'samples_ids': [1],
+                'text_example': "Do not worry, be happy.",
+                'percent_of_samples': 0.2
+            },
+            '.': {
+                'samples_ids': [1, 3, 4],
+                'text_example': "Do not worry, be happy.",
+                'percent_of_samples': 0.6
+            }
+        }
+    )
+
+
+# =================
+# ----- Tests -----
+# =================
 
 
 def test_check_on_clean_dataset(clean_dataset: TextData):
@@ -50,3 +97,72 @@ def test_check_on_clean_dataset(clean_dataset: TextData):
         name='Ratio of each special character is less or equal to 0%'
     ))  # type: ignore
 
+
+def test_check_on_samples_with_special_characters(dataset_with_special_characters: ProblematicDataset):
+    # Arrange
+    condition_threshold = 0.3
+    expected_result = dataset_with_special_characters.special_characters
+
+    not_passed_chars = {
+        k: format_percent(v['percent_of_samples'])
+        for k, v in expected_result.items()
+        if v['percent_of_samples'] > condition_threshold
+    }
+
+    dataset = dataset_with_special_characters.dataset
+    check = SpecialCharacters().add_condition_ratio_of_special_characters_less_or_equal(condition_threshold)
+
+    # Act
+    result = check.run(dataset=dataset)
+    conditions_decision = check.conditions_decision(result)
+
+    # Assert
+    assert_that(result.value, has_entries(expected_result))
+    assert_display(result.display)
+
+    assert_that(conditions_decision[0], equal_condition_result(
+        is_pass=False,
+        details=f'Found {len(not_passed_chars)} special characters with ratio above threshold: {not_passed_chars}',
+        name=f'Ratio of each special character is less or equal to {format_percent(condition_threshold)}'
+    ))  # type: ignore
+
+
+def test_special_characters_whitelisting(dataset_with_special_characters: ProblematicDataset):
+    # Arrange
+    dataset = dataset_with_special_characters.dataset
+    condition_threshold = 0.3
+    expected_result = dataset_with_special_characters.special_characters.copy()
+    expected_result.pop('.')
+
+    check = SpecialCharacters(
+        special_characters_whitelist=['.']
+    ).add_condition_ratio_of_special_characters_less_or_equal(condition_threshold)
+
+    # Act
+    result = check.run(dataset=dataset)
+    conditions_decision = check.conditions_decision(result)
+
+    # Assert
+    assert_that(result.value, has_entries(expected_result))
+    assert_display(result.display)
+
+    assert_that(conditions_decision[0], equal_condition_result(
+        is_pass=True,
+        details="No special characters with ratio above threshold found",
+        name='Ratio of each special character is less or equal to 30%'
+    ))  # type: ignore
+
+
+# ===========================
+# ----- Assertion utils -----
+# ===========================
+
+
+def assert_display(display: t.Sequence[t.Any]):
+    assert_that(display, has_items(
+        instance_of(str),
+        instance_of(pd.DataFrame)
+    ))
+    table = t.cast(pd.DataFrame, display[1])
+    assert_that(table.index.names, equal_to(['Special Character']))
+    assert_that(table.columns.to_list(), equal_to(['% of Samples With Character', 'Instances', 'Text Example']))

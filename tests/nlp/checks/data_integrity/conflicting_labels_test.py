@@ -190,14 +190,11 @@ def test_without_conflicting_labels(dataset_name, request):
         "ambiguous_samples": instance_of(pd.DataFrame),
     }))
 
-    assert_that(
-        conditions_decisions[0],
-        equal_condition_result(
-            is_pass=True,
-            details=f'Ratio of samples with conflicting labels: 0%',
-            name='Ambiguous sample ratio is less or equal to 0%',
-        )  # type: ignore
-    )
+    assert_that(conditions_decisions[0], equal_condition_result(
+        is_pass=True,
+        details=f'Ratio of samples with conflicting labels: 0%',
+        name='Ambiguous sample ratio is less or equal to 0%',
+    ))  # type: ignore
 
     assert_that(len(result.value['ambiguous_samples']),equal_to(0))
     assert_result_dataframe(result.value['ambiguous_samples'])
@@ -226,14 +223,11 @@ def test_with_conflicting_labels(dataset_name, request):
         "ambiguous_samples": instance_of(pd.DataFrame),
     }))
 
-    assert_that(
-        conditions_decisions[0],
-        equal_condition_result(
-            is_pass=False,
-            details=f'Ratio of samples with conflicting labels: {format_percent(expected_ratio)}',
-            name='Ambiguous sample ratio is less or equal to 0%',
-        )  # type: ignore
-    )
+    assert_that(conditions_decisions[0], equal_condition_result(
+        is_pass=False,
+        details=f'Ratio of samples with conflicting labels: {format_percent(expected_ratio)}',
+        name='Ambiguous sample ratio is less or equal to 0%',
+    ))  # type: ignore
 
     ambiguous_samples = result.value["ambiguous_samples"]
     assert_result_dataframe(ambiguous_samples, expected_ambiguous_samples)
