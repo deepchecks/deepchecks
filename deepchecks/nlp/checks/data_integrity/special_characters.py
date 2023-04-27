@@ -170,9 +170,6 @@ class SpecialCharacters(SingleDatasetCheck):
             ]
         )
 
-    # TODO:
-    # is default max_ratio good?
-    # are method and condition names good?
     def add_condition_ratio_of_special_characters_less_or_equal(self: Self, max_ratio: float = 0.05) -> Self:
         """Add condition - each special character ratio is less or equal to the threshold.
 
