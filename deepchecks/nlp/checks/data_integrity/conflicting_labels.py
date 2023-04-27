@@ -136,9 +136,8 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
         ambiguous_samples['Text'] = ambiguous_samples['Text'].apply(self._truncate_text)
         by_hash = ambiguous_samples.groupby(['hash'], dropna=False)
-        fn = lambda x: format_list(x.to_list())
-        observed_labels = by_hash['Label'].aggregate(fn)
-        samples_ids = by_hash['Sample ID'].aggregate(fn)
+        observed_labels = by_hash['Label'].aggregate(lambda x: format_list(x.to_list()))
+        samples_ids = by_hash['Sample ID'].aggregate(lambda x: format_list(x.to_list(), max_string_length=200))
         first_in_group = by_hash['Text'].first()
 
         display_table = (
