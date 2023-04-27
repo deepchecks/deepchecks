@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_mean_average_precision_report:
+.. _vision__mean_average_precision_report:
 
 Mean Average Precision Report
 *****************************

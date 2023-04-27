@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_feature_drift:
+.. _tabular__feature_drift:
 
 Feature Drift
 ************************
@@ -23,7 +23,7 @@ over time.
 
 Feature drift is a data drift that occurs in a single feature in the dataset.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
+For more information on drift, please visit our :ref:`Drift Guide <drift_user_guide>`.
 
 How Deepchecks Detects Feature Drift
 ------------------------------------
@@ -31,7 +31,7 @@ How Deepchecks Detects Feature Drift
 This check detects feature drift by using :ref:`univariate measures <drift_detection_by_univariate_measure>`
 on each feature column separately.
 Another possible method for drift detection is by :ref:`a domain classifier <drift_detection_by_domain_classifier>`
-which is used in the :doc:`Multivariate Drift check </checks_gallery/tabular/train_test_validation/plot_multivariate_drift>`.
+which is used in the :ref:`Multivariate Drift check <tabular__multivariate_drift>`.
 
 """
 

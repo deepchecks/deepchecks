@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_train_test_samples_mix:
+.. _tabular__train_test_samples_mix:
 
 Train Test Samples Mix
 **********************
@@ -23,6 +23,7 @@ Run the check
 =============
 We will run the check on the iris dataset.
 """
+# %%
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import TrainTestSamplesMix

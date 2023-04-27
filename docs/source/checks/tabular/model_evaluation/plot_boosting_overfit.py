@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_boosting_overfit:
+.. _tabular__boosting_overfit:
 
 Boosting Overfit
 ****************

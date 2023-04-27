@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_train_test_performance:
+.. _tabular__train_test_performance:
 
 Train Test Performance
 ***********************
