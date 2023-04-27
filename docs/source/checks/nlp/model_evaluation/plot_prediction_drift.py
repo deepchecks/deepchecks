@@ -25,7 +25,7 @@ Calculating prediction drift is especially useful in cases
 in which labels are not available for the test dataset, and so a drift in the predictions
 is our only indication that a changed has happened in the data that actually affects model
 predictions. If labels are available, it's also recommended to run the
-:doc:`Label Drift check </checks_gallery/nlp/train_test_validation/plot_label_drift>`.
+:doc:`Label Drift check </nlp/auto_checks/train_test_validation/plot_label_drift>`.
 
 For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
 
@@ -86,7 +86,7 @@ result
 # predicting less "anger" tweets in the test dataset.
 
 #%%
-# The prediction drift check can also calculate drift on each class separately rather than the probabilities.
+# The prediction drift check can also calculate drift on the probability of each class separately rather than the final predicted class.
 # To force this behavior, set the ``drift_mode`` parameter to ``proba``.
 
 # First let's get the probabilities for our data, instead of the predictions:

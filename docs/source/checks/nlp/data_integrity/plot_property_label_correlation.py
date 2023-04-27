@@ -21,8 +21,8 @@ This check can help find a potential bias in the dataset - the labels being stro
 properties such as percentage of special characters, sentiment, toxicity and more.
 
 This is a critical problem that can result in a phenomenon called "shortcut learning", where the model is likely to
-learn this property instead of the actual linguistic characteristics of each class, as it's easier to do so.
-In this case, the model will show high performance on text taken in similar conditions, but will fail to generalize
+learn this property instead of the actual textual characteristics of each class, as it's easier to do so.
+In this case, the model will show high performance on text collected under similar conditions (e.g. same source), but will fail to generalize
 on other data. This kind of correlation will likely stay hidden without this check until tested on other data.
 
 For example, in a classification dataset of true and false statements, if only true facts are written in detail,
