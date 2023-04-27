@@ -22,8 +22,9 @@ properties such as percentage of special characters, sentiment, toxicity and mor
 
 This is a critical problem that can result in a phenomenon called "shortcut learning", where the model is likely to
 learn this property instead of the actual textual characteristics of each class, as it's easier to do so.
-In this case, the model will show high performance on text collected under similar conditions (e.g. same source), but will fail to generalize
-on other data. This kind of correlation will likely stay hidden without this check until tested on other data.
+In this case, the model will show high performance on text collected under similar conditions (e.g. same source),
+but will fail to generalize on other data (for example, when production receives new data from another source).
+This kind of correlation will likely stay hidden without this check until tested on the actual problem data.
 
 For example, in a classification dataset of true and false statements, if only true facts are written in detail,
 and false facts are written in a short and vague manner, the model might learn to predict the label by the length
