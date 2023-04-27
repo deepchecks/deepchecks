@@ -20,11 +20,11 @@ This check is designed for evaluating a model's performance on a labeled dataset
 For Text Classification tasks the supported metrics are sklearn scorers. You may use any of the existing sklearn
 scorers or create your own. For more information about the supported sklearn scorers, defining your own metrics and
 to learn how to use metrics for other supported task types, see the
-:doc:`Metrics Guide </user-guide/general/metrics_guide>`.
+:ref:`metrics_user_guide`.
 
 The default scorers that are used for are F1, Precision, and Recall for Classification,
 and F1 Macro, Recall Macro and Precision Macro for Token Classification. See more about the supported task types at the
-:doc:`Supported Tasks </user-guide/nlp/supported_tasks>` guide.
+:ref:`nlp__supported_tasks` guide.
 """
 
 #%%
@@ -41,7 +41,7 @@ _, test_probas = load_precalculated_predictions(pred_format='probabilities')
 # ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
-# see :ref:`Metrics Guide <metrics_user_guide>` for additional details.
+# see :ref:`metrics_user_guide` for additional details.
 
 from deepchecks.nlp.checks import SingleDatasetPerformance
 

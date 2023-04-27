@@ -24,14 +24,14 @@ What is Drift?
 Drift is simply a change in the distribution of data over time,
 and it is also one of the top reasons why machine learning model's performance degrades over time.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
+For more information on drift, please visit our :ref:`drift_user_guide`.
 
 How Deepchecks Detects Drift in NLP Data
 -----------------------------------------
 
 This check detects drift by in NLP Data by calculated
 :ref:`univariate drift measures <drift_detection_by_univariate_measure>` for each of the
-:doc:`text property </user-guide/nlp/nlp_properties>` (such as text length, language etc.) that are present in the
+:ref:`text property <nlp__properties_guide>` (such as text length, language etc.) that are present in the
 train and test datasets.
 
 This check is easy to run (once the properties are calculated once per dataset) and is useful for detecting easily
@@ -43,7 +43,7 @@ Which NLP Properties Are Used?
 
 By default the checks use the built-in text properties, and it's also possible to replace the default properties
 with custom ones. For the list of the built-in text properties and explanation about custom properties refer to
-:doc:`NLP properties </user-guide/nlp/nlp_properties>`.
+:ref:`NLP properties <nlp__properties_guide>`.
 
 Prepare data
 =============
@@ -104,4 +104,4 @@ check_result.show(show_additional_outputs=False)
 #
 # On top of that the Property Drift Check supports several parameters pertaining to the way drift is calculated and
 # displayed. Information about the most relevant of them can be found
-# in the :doc:`drift guide </user-guide/general/drift_guide>`.
+# in the :ref:`drift_user_guide`.

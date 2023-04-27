@@ -21,11 +21,11 @@ This check helps you compare your NLP model's performance between the train and 
 For Text Classification tasks the supported metrics are sklearn scorers. You may use any of the existing sklearn
 scorers or create your own. For more information about the supported sklearn scorers, defining your own metrics and
 to learn how to use metrics for other supported task types, see the
-:doc:`Metrics Guide </user-guide/general/metrics_guide>`.
+:ref:`metrics_user_guide`.
 
 The default scorers are F1, Precision, and Recall for Classification,
 and F1 Macro, Recall Macro and Precision Macro for Token Classification. See more about the supported task types at the
-:doc:`Supported Tasks </user-guide/nlp/supported_tasks>` guide.
+:ref:`nlp__supported_tasks` guide.
 """
 import numpy as np
 
@@ -43,7 +43,7 @@ train_preds, test_preds = load_precalculated_predictions('predictions')
 # ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
-# the full list of possible scorers can be seen at the :doc:`Metrics Guide </user-guide/general/metrics_guide>`.
+# the full list of possible scorers can be seen at the :ref:`metrics_user_guide`.
 
 from deepchecks.nlp.checks import TrainTestPerformance
 
