@@ -46,7 +46,7 @@ Which Text Properties Are Used?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 By default the checks use the built-in text properties, and it's also possible to replace the default properties
 with custom ones. For the list of the built-in text properties and explanation about custom properties refer to
-:doc:`NLP properties </user-guide/nlp/nlp_properties>`.
+:ref:`NLP properties <nlp__properties_guide>`.
 
 """
 

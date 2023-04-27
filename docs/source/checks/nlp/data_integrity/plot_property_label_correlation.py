@@ -14,7 +14,7 @@ This notebook provides an overview for using and understanding the "Property Lab
 
 What Is The Purpose of the Check?
 =================================
-The check estimates for every :doc:`text property </user-guide/nlp/nlp_properties>`
+The check estimates for every :ref:`text property <nlp__properties_guide>`
 (such as text length, language etc.) its ability to predict the label by itself.
 
 This check can help find a potential bias in the dataset - the labels being strongly correlated with simple text
