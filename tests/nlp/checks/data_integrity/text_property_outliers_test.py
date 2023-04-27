@@ -10,6 +10,8 @@
 #
 """Test for the NLP TextPropertyOutliers check"""
 
+import pandas as pd
+
 from hamcrest import assert_that, calling, close_to, equal_to, raises
 
 from deepchecks.core.errors import NotEnoughSamplesError
@@ -38,8 +40,16 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     assert_that(result.value['Language']['upper_limit'], equal_to(None))
 
     # Assert display
-    assert_that(len(result.display), equal_to(9))
-    assert_that(result.display[7], equal_to('<h5><b>Properties With No Outliers Found</h5></b>'))
+    assert_that(len(result.display), equal_to(7))
+    assert_that(result.display[5], equal_to('<h5><b>Properties Not Shown:</h5></b>'))
+
+    # Check the table of properties not shown:
+    expected_series = \
+        pd.Series(('Text Length, Subjectivity, Fluency', '% Special Characters, Language'),
+                  index=('No outliers found.', 'Outliers found but not shown in graphs (n_show_top=5).'))
+    result_series = result.display[6].data['Properties']
+
+    assert_that((expected_series != result_series).sum().sum(), equal_to(0))
 
 
 def test_not_enough_samples(tweet_emotion_train_test_textdata):
@@ -49,4 +59,3 @@ def test_not_enough_samples(tweet_emotion_train_test_textdata):
 
     assert_that(calling(check.run).with_args(test),
                 raises(NotEnoughSamplesError, 'Need at least 6000 non-null samples to calculate outliers.'))
-
