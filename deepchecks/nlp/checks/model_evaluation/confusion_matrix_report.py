@@ -79,7 +79,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
 
         return self.add_condition(
             f'Misclassified cell size lower than {format_number(misclassified_samples_threshold * 100)}% '
-             'of the total samples',
+            'of the total samples',
             misclassified_samples_lower_than_condition,
             misclassified_samples_threshold=misclassified_samples_threshold
         )
