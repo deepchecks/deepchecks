@@ -53,3 +53,18 @@ result = check.run(ds, clf)
 result.show()
 
 #%%
+# Define a condition
+# ==================
+# We can define our check a condition that will validate if all the misclassified
+# cells/samples in the confusion matrix is below a certain threshold. Using the 
+# ``misclassified_samples_threshold`` argument, we can specify what percentage of the total samples
+# our condition should use to validate the misclassified cells.
+
+# Let's add a condition and re-run the check:
+
+check = ConfusionMatrixReport()
+check.add_condition_misclassified_samples_lower_than_condition(misclassified_samples_threshold=0.2)
+result = check.run(ds, clf)
+result.show()
+
+#%%
