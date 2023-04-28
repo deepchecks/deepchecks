@@ -89,7 +89,7 @@ def get_transformer_model(
         model_path = ONNX_MODELS_STORAGE / model_name
 
         if model_path.exists() and redownload_models:
-           shutil.rmtree(model_path)
+            shutil.rmtree(model_path)
         elif model_path.exists():
             return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
 
