@@ -83,9 +83,7 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
 
 def misclassified_samples_lower_than_condition(value: np.ndarray,
                                                misclassified_samples_threshold: float) -> ConditionResult:
-    """
-    Create a condition function that checks if the misclassified cell size/samples
-    are lesser than the threshold based on the `misclassified_samples_threshold` parameter.
+    """Condition function that checks if the misclassified samples in the confusion matrix is below threshold.
 
     Parameters
     ----------
@@ -107,7 +105,6 @@ def misclassified_samples_lower_than_condition(value: np.ndarray,
         - ConditionCategory.FAIL, if the misclassified samples in the confusion matrix
         are more than the `misclassified_samples_threshold` ratio
     """
-
     if misclassified_samples_threshold < 0 or misclassified_samples_threshold > 1:
         raise ValidationError(
            'Condition requires the parameter "misclassified_samples_threshold" '

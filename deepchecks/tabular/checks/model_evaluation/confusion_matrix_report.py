@@ -64,8 +64,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         return run_confusion_matrix_check(y_pred, y_true, context.with_display, self.normalize_display)
 
     def add_condition_misclassified_samples_lower_than_condition(self, misclassified_samples_threshold: float = 0.2):
-        """
-        Add condition - check that the misclassified cell size/samples are lower
+        """Add condition - Misclassified samples lower than threshold.
+
+        Condition validates that the misclassified cell size/samples are lower
         than the threshold based on the `misclassified_samples_threshold` parameter.
 
         Parameters
@@ -73,7 +74,6 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         misclassified_samples_threshold: float, default: 0.20
             Ratio of samples to be used for comparison in the condition (Value should be between 0 - 1 inclusive)
         """
-
         return self.add_condition(
             f'Misclassified cell size lower than {format_number(misclassified_samples_threshold * 100)}% '
             'of the total samples',
