@@ -41,37 +41,6 @@ _CAT_METADATA = ['gender', 'user_region']
 _CAT_PROPERTIES = ['Language']
 
 
-# def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
-#     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
-#
-#     Parameters
-#     ----------
-#     as_train_test : bool, default: True
-#         If True, the returned data is split into train and test exactly like the toy model
-#         was trained. The first return value is the train data and the second is the test data.
-#         In order to get this model, call the load_fitted_model() function.
-#         Otherwise, returns a single object.
-#
-#     Returns
-#     -------
-#     embeddings : np.ndarray
-#         Embeddings for the tweet_emotion dataset.
-#     """
-#     # return pd.read_csv(_EMBEDDINGS_URL, index_col=0).to_numpy()
-#     if (ASSETS_DIR / 'tweet_emotion_embeddings.csv').exists():
-#         embeddings = pd.read_csv(ASSETS_DIR / 'tweet_emotion_embeddings.csv', index_col=0)
-#     else:
-#         embeddings = pd.read_csv(_EMBEDDINGS_URL, index_col='index')
-#         embeddings.to_csv(ASSETS_DIR / 'tweet_emotion_embeddings.csv')
-#
-#     if as_train_test:
-#         train = embeddings[embeddings['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
-#         test = embeddings[embeddings['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
-#         return train, test
-#     else:
-#         return embeddings.drop(columns=['train_test_split']).sort_index()
-
-    # TODO RESOLVE
 def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
 
@@ -87,7 +56,8 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     embeddings : np.ndarray
         Embeddings for the tweet_emotion dataset.
     """
-    all_embeddings = _read_and_save('tweet_emotion_embeddings.csv', _EMBEDDINGS_URL, to_numpy=False).drop(columns=['train_test_split'])
+    all_embeddings = _read_and_save('tweet_emotion_embeddings.csv', _EMBEDDINGS_URL, to_numpy=False).drop(
+        columns=['train_test_split'])
     if as_train_test:
         train_indexes, test_indexes = _get_train_test_indexes()
         return all_embeddings.loc[train_indexes], all_embeddings.loc[test_indexes]
@@ -166,26 +136,11 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         properties = load_properties(as_train_test=False) if include_properties else None
         embeddings = load_embeddings(as_train_test=False) if include_embeddings else None
 
-
         dataset = TextData(data.text, label=data[_target], task_type='text_classification',
                            metadata=metadata, embeddings=embeddings, properties=properties,
                            categorical_metadata=_CAT_METADATA, categorical_properties=_CAT_PROPERTIES)
-        dataset.set_metadata(metadata=data.drop(columns=[_target, 'text']),
-                             categorical_metadata=_CAT_METADATA)
-        if include_properties:
-            properties = load_properties(as_train_test=False)
-            dataset.set_properties(properties=properties, categorical_properties=_CAT_PROPERTIES)
-
-        #TODO: Add embeddings:
-
-        # if data_format.lower() == 'textdata':
-        #     properties = load_properties(as_train_test=False) if include_properties else None
-        #     embeddings = load_embeddings(as_train_test=False) if include_embeddings else None
-        #     dataset = TextData(dataset.text, label=dataset[_target], task_type='text_classification',
-        #                        metadata=dataset.drop(columns=[_target, 'text']),
-        #                        embeddings=embeddings, properties=properties)
-
         return dataset
+
     else:
         # train has more sport and Customer Complains but less Terror and Optimism
         train = data[data['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
@@ -194,31 +149,16 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         if data_format.lower() != 'textdata':
             return train, test
 
-        train_ds = TextData(train.text, label=train[_target], task_type='text_classification')
-        train_ds.set_metadata(metadata=train.drop(columns=[_target, 'text']),
-                              categorical_metadata=_CAT_METADATA)
-        test_ds = TextData(test.text, label=test[_target], task_type='text_classification')
-        test_ds.set_metadata(metadata=test.drop(columns=[_target, 'text']),
-                             categorical_metadata=_CAT_METADATA)
+        train_metadata, test_metadata = train.drop(columns=[_target, 'text']), test.drop(columns=[_target, 'text'])
+        train_properties, test_properties = load_properties(as_train_test=True) if include_properties else (None, None)
+        train_embeddings, test_embeddings = load_embeddings(as_train_test=True) if include_embeddings else (None, None)
 
-        if include_properties:
-            train_properties, test_properties = load_properties(as_train_test=True)
-            train_ds.set_properties(properties=train_properties, categorical_properties=_CAT_PROPERTIES)
-            test_ds.set_properties(properties=test_properties, categorical_properties=_CAT_PROPERTIES)
-
-
-        #TODO: Add embeddings with simpler code
-        # if data_format.lower() == 'textdata':
-        #     train_props, test_props = load_properties(as_train_test=True) if include_properties else (None, None)
-        #     train_embeds, test_embeds = load_embeddings(as_train_test=True) if include_embeddings else (None, None)
-        #
-        #     train = TextData(train.text, label=train[_target], task_type='text_classification',
-        #                      metadata=train.drop(columns=[_target, 'text']),
-        #                      embeddings=train_embeds, properties=train_props)
-        #     test = TextData(test.text, label=test[_target], task_type='text_classification',
-        #                     metadata=test.drop(columns=[_target, 'text']),
-        #                     embeddings=test_embeds, properties=test_props)
-
+        train_ds = TextData(train.text, label=train[_target], task_type='text_classification',
+                            metadata=train_metadata, embeddings=train_embeddings, properties=train_properties,
+                            categorical_metadata=_CAT_METADATA, categorical_properties=_CAT_PROPERTIES)
+        test_ds = TextData(test.text, label=test[_target], task_type='text_classification',
+                           metadata=test_metadata, embeddings=test_embeddings, properties=test_properties,
+                           categorical_metadata=_CAT_METADATA, categorical_properties=_CAT_PROPERTIES)
 
         return train_ds, test_ds
 
