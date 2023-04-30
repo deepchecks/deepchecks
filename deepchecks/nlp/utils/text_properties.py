@@ -195,11 +195,11 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
 
 def lexical_density(raw_text: Sequence[str]) -> List[str]:
     """Return list of floats of lexical density."""
-    return [set(textblob.TextBlob(text).words) * 100 /textblob.TextBlob(text).words for text in raw_text]
+    return [len(set(textblob.TextBlob(text).words)) * 100 / len(textblob.TextBlob(text).words) for text in raw_text]
 
 def noun_count(raw_text: Sequence[str]) -> List[str]:
     """Returns list of integers of number of nouns in the text"""
-    return [word for text in raw_text for (word, tag) in textblob.TextBlob(text).tags if tag.startswith("N")]
+    return [sum(1 for (word, tag) in set(textblob.TextBlob(text).tags) if tag.startswith("N")) for text in raw_text]
 
 DEFAULT_PROPERTIES = (
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},

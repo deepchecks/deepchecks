@@ -38,3 +38,15 @@ def test_calculate_default_properties():
 
     # Assert
     assert_that(result, equal_to({'Toxicity': [0] * 20_000}))
+
+
+def test_skipping_long_calculation_properties():
+    
+    # Arrange
+    raw_text = ['This is a test sentence.'] * 20_000
+
+    result = calculate_default_properties(raw_text, include_properties=['Lexical Density', 'Noun Count'])[0]
+
+    # Assert
+    assert_that(result['Lexical Density'], equal_to([100.0] * 20_000))
+    assert_that(result['Noun Count'], equal_to([2] * 20_000))
