@@ -195,7 +195,7 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
 
 def lexical_density(raw_text: Sequence[str]) -> List[str]:
     """Return list of floats of lexical density."""
-    return [len(set(textblob.TextBlob(text).words)) * 100 / len(textblob.TextBlob(text).words) for text in raw_text]
+    return [round(len(set(textblob.TextBlob(text).words)) * 100 / len(textblob.TextBlob(text).words), 2) for text in raw_text]
 
 def noun_count(raw_text: Sequence[str]) -> List[str]:
     """Returns list of integers of number of nouns in the text"""
@@ -260,7 +260,7 @@ def calculate_default_properties(
         The properties to calculate. If None, all default properties will be calculated. Cannot be used together
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
-        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
+        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Noun Count']
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language'] may take a long time to calculate. If
         include_long_calculation_properties is False, these properties will be ignored, even if they are in the
         include_properties parameter.
