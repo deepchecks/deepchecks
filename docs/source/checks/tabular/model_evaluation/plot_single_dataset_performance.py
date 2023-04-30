@@ -4,7 +4,7 @@
 
 Single Dataset Performance
 *****************************
-This notebook provides an overview for using and understanding single dataset performance check.
+This notebook provides an overview for using and understanding the single dataset performance check.
 
 **Structure:**
 
@@ -41,7 +41,7 @@ model = load_fitted_model()
 # ==============
 #
 # You can select which scorers to use by passing either a list or a dict of scorers to the check,
-# see :ref:`Metrics Guide <metrics_user_guide>` for additional details.
+# see :ref:`metrics_user_guide` for additional details.
 
 from deepchecks.tabular.checks import SingleDatasetPerformance
 

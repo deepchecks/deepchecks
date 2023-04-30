@@ -35,7 +35,7 @@ def test_label_ambiguity():
 
     # Assert
     assert_that(result.value, has_entries({
-        'percent': equal_to(1),
+        'percent_of_conflicting_samples': equal_to(1),
         'samples_indices': instance_of(list)
     }))
     assert_that(result.display[1], has_length(2))
@@ -57,7 +57,7 @@ def test_label_ambiguity_empty():
 
     # Assert
     assert_that(result.value, has_entries({
-        'percent': equal_to(0),
+        'percent_of_conflicting_samples': equal_to(0),
         'samples_indices': has_length(0)
     }))
     assert_that(result.display, has_length(0))
@@ -77,7 +77,7 @@ def test_label_ambiguity_mixed():
     result = check.run(ds)
     # Assert
     assert_that(result.value, has_entries({
-        'percent': close_to(0.5, 0.01),
+        'percent_of_conflicting_samples': close_to(0.5, 0.01),
         'samples_indices': has_length(1)
     }))
     assert_that(
@@ -100,7 +100,7 @@ def test_label_ambiguity_mixed_without_display():
     result = check.run(ds, with_display=False)
     # Assert
     assert_that(result.value, has_entries({
-        'percent': close_to(0.5, 0.01),
+        'percent_of_conflicting_samples': close_to(0.5, 0.01),
         'samples_indices': has_length(1)
     }))
     assert_that(result.display, has_length(0))
@@ -167,6 +167,6 @@ def test_label_ambiguity_single_column():
 
     # Assert
     assert_that(result.value, has_entries({
-        'percent': equal_to(1),
+        'percent_of_conflicting_samples': equal_to(1),
         'samples_indices': instance_of(list)
     }))

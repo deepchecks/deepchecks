@@ -66,17 +66,34 @@ class TextData:
         label is provided.
     name : t.Optional[str] , default: None
         The name of the dataset. If None, the dataset name will be defined when running it within a check.
+    metadata : t.Optional[t.Union[pd.DataFrame, str]] , default: None
+        Metadata for the samples. Metadata must be given as a pandas DataFrame or a path to a pandas
+        DataFrame compatible csv file, with the rows representing each sample
+        and columns representing the different metadata columns. If None, no metadata is set.
+        The number of rows in the metadata DataFrame must be equal to the number of samples in the dataset, and the
+        order of the rows must be the same as the order of the samples in the dataset.
+        For more on metadata, see the `NLP Metadata Guide
+        <https://docs.deepchecks.com/en/latest/nlp/nlp-metadata.html>`_.
+    categorical_metadata : t.Optional[t.List[str]] , default: None
+        The names of the categorical metadata columns. If None, categorical metadata columns are automatically inferred.
+        Only relevant if metadata is not None.
+    properties : t.Optional[t.Union[pd.DataFrame, str]] , default: None
+        The text properties for the samples. Properties must be given as either a pandas DataFrame or a path to a pandas
+        DataFrame compatible csv file, with the rows representing each sample and columns representing the different
+        properties. If None, no properties are set.
+        The number of rows in the properties DataFrame must be equal to the number of samples in the dataset, and the
+        order of the rows must be the same as the order of the samples in the dataset.
+        In order to calculate the default properties, use the `TextData.calculate_default_properties` function after
+        the creation of the TextData object.
+        For more on properties, see the `NLP Properties Guide
+        <https://docs.deepchecks.com/en/latest/nlp/nlp-properties.html>`_.
+    categorical_properties : t.Optional[t.List[str]] , default: None
+        The names of the categorical properties columns. If None, categorical properties columns are automatically
+        inferred. Only relevant if properties is not None.
     embeddings : t.Optional[Union[pd.DataFrame, str]] , default: None
         The text embeddings for the samples (1 embeddings per sample). If None, no embeddings are set. If 'auto', the
         embeddings are calculated using the default embeddings. If a DataFrame is given, it must contain the embeddings
         for each sample as the raw text and identical index.
-    metadata : t.Optional[pd.DataFrame] , default: None
-        Metadata for the samples. If None, no metadata is set. If a DataFrame is given, it must contain
-        the same number of samples as the raw_text and identical index.
-    properties : t.Optional[Union[pd.DataFrame, str]] , default: None
-        The text properties for the samples. If None, no properties are set. If 'auto', the properties are calculated
-        using the default properties. If a DataFrame is given, it must contain the properties for each sample as the raw
-        text and identical index.
     """
 
     _text: np.ndarray
@@ -85,8 +102,8 @@ class TextData:
     _tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None  # Outer sequence is np array
     name: t.Optional[str] = None
     _embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None
-    _metadata: t.Optional[pd.DataFrame] = None
-    _properties: t.Optional[pd.DataFrame] = None
+    _metadata: t.Optional[t.Union[pd.DataFrame, str]] = None
+    _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
     _cat_properties: t.Optional[t.List[str]] = None
     _cat_metadata: t.Optional[t.List[str]] = None
     _original_text_index: t.Optional[t.Sequence[int]] = None  # Sequence is np array
@@ -100,7 +117,9 @@ class TextData:
             name: t.Optional[str] = None,
             embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None,
             metadata: t.Optional[pd.DataFrame] = None,
+            categorical_metadata: t.Optional[t.List[str]] = None,
             properties: t.Optional[pd.DataFrame] = None,
+            categorical_properties: t.Optional[t.List[str]] = None,
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -137,9 +156,9 @@ class TextData:
         self.name = name
 
         if metadata is not None:
-            self.set_metadata(metadata)
+            self.set_metadata(metadata, categorical_metadata)
         if properties is not None:
-            self.set_properties(properties)
+            self.set_properties(properties, categorical_properties)
         if embeddings is not None:
             self.set_embeddings(embeddings)
 
@@ -315,6 +334,9 @@ class TextData:
         if self._metadata is not None:
             warnings.warn('Metadata already exist, overwriting it', UserWarning)
 
+        if isinstance(metadata, str):
+            metadata = pd.read_csv(metadata)
+
         column_types = validate_length_and_calculate_column_types(
             data_table=metadata,
             data_table_name='Metadata',
@@ -371,6 +393,9 @@ class TextData:
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
+        if isinstance(properties, str):
+            properties = pd.read_csv(properties)
+
         column_types = validate_length_and_calculate_column_types(
             data_table=properties,
             data_table_name='Properties',
@@ -380,6 +405,22 @@ class TextData:
 
         self._properties = properties.reset_index(drop=True)
         self._cat_properties = column_types.categorical_columns
+
+    def save_properties(self, path: str):
+        """Save the dataset properties to csv.
+
+        Parameters
+        ----------
+        path : str
+            Path to save the properties to.
+        """
+        if self._properties is None:
+            raise DeepchecksNotSupportedError(
+                'TextData does not contain properties, add them by using '
+                '"calculate_default_properties" or "set_properties" functions'
+            )
+
+        self._properties.to_csv(path, index=False)
 
     @property
     def properties(self) -> pd.DataFrame:
@@ -533,7 +574,7 @@ class TextData:
             n_samples = len(self) - 1
         result = pd.DataFrame({'text': self.text[:n_samples]}, index=self.get_original_text_indexes()[:n_samples])
         if self.has_label():
-            # if self.is_multi_label_classification():
+            # if self.is_multi_label_classification(): #TODO
             #     result['label'] = [np.argwhere(x == 1).flatten().tolist() for x in self.label[:n_samples]]
             # else:
             result['label'] = self.label_for_display[:n_samples]
