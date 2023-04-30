@@ -10,7 +10,7 @@
 #
 """Utils functions for testing."""
 import re
-from typing import Pattern, Union
+from typing import Optional, Pattern, Union
 
 from hamcrest import all_of, has_property, is_in, matches_regexp
 from hamcrest.core.matcher import Matcher
@@ -28,7 +28,7 @@ def equal_condition_result(
     is_pass: bool,
     name: str,
     details: Union[str, Pattern] = '',
-    category: ConditionCategory = None
+    category: Optional[ConditionCategory] = None
 ) -> Matcher[Matcher[object]]:
     if category is None:
         possible_categories = [ConditionCategory.PASS] if is_pass else [ConditionCategory.FAIL, ConditionCategory.WARN]

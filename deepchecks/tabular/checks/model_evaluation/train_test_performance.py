@@ -13,18 +13,12 @@ from numbers import Number
 from typing import Callable, List, Mapping, TypeVar, Union, cast
 
 import pandas as pd
-import plotly.express as px
 
 from deepchecks.core import CheckResult
-from deepchecks.core.check_utils.class_performance_utils import (
-    get_condition_class_performance_imbalance_ratio_less_than, get_condition_test_performance_greater_than,
-    get_condition_train_test_relative_degradation_less_than)
 from deepchecks.core.checks import CheckConfig
 from deepchecks.tabular import Context, TrainTestCheck
-from deepchecks.tabular.metric_utils import MULTICLASS_SCORERS_NON_AVERAGE
+from deepchecks.utils.abstracts.train_test_performace import TrainTestPerformanceAbstract
 from deepchecks.utils.docref import doclink
-from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
-from deepchecks.utils.strings import format_percent
 
 __all__ = ['TrainTestPerformance']
 
@@ -32,7 +26,7 @@ __all__ = ['TrainTestPerformance']
 PR = TypeVar('PR', bound='TrainTestPerformance')
 
 
-class TrainTestPerformance(TrainTestCheck):
+class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
     """Summarize given model performance on the train and test datasets based on selected scorers.
 
     Parameters
@@ -114,36 +108,11 @@ class TrainTestPerformance(TrainTestCheck):
         results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
 
         if context.with_display:
-            results_df_for_display = results_df.copy()
-            results_df_for_display['Dataset']\
-                .replace({DEFAULT_DATASET_NAMES[0]: train_dataset.name, DEFAULT_DATASET_NAMES[1]: test_dataset.name},
-                         inplace=True)
-            figs = []
-            data_scorers_per_class = results_df_for_display[results_df['Class'].notna()]
-            data_scorers_per_dataset = results_df_for_display[results_df['Class'].isna()].drop(columns=['Class'])
-            for data in [data_scorers_per_dataset, data_scorers_per_class]:
-                if data.shape[0] == 0:
-                    continue
-                fig = px.histogram(
-                    data,
-                    x='Class' if 'Class' in data.columns else 'Dataset',
-                    y='Value',
-                    color='Dataset',
-                    barmode='group',
-                    facet_col='Metric',
-                    facet_col_spacing=0.05,
-                    hover_data=['Number of samples'],
-                    color_discrete_map={train_dataset.name: colors[DEFAULT_DATASET_NAMES[0]],
-                                        test_dataset.name: colors[DEFAULT_DATASET_NAMES[1]]},
-                )
-                if 'Class' in data.columns:
-                    fig.update_xaxes(tickprefix='Class ', tickangle=60)
-                fig = (
-                    fig.update_xaxes(title=None, type='category')
-                    .update_yaxes(title=None, matches=None)
-                    .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
-                    .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True)))
-                figs.append(fig)
+            figs = self._prepare_display(
+                results_df,
+                train_dataset.name or 'Train',
+                test_dataset.name or 'Test'
+            )
         else:
             figs = None
 
@@ -168,62 +137,3 @@ class TrainTestPerformance(TrainTestCheck):
                     )
 
         return super().config(include_version=include_version, include_defaults=include_defaults)
-
-    def add_condition_test_performance_greater_than(self: PR, min_score: float) -> PR:
-        """Add condition - metric scores are greater than the threshold.
-
-        Parameters
-        ----------
-        min_score : float
-            Minimum score to pass the check.
-        """
-        condition = get_condition_test_performance_greater_than(min_score=min_score)
-
-        return self.add_condition(f'Scores are greater than {min_score}', condition)
-
-    def add_condition_train_test_relative_degradation_less_than(self: PR, threshold: float = 0.1) -> PR:
-        """Add condition - test performance is not degraded by more than given percentage in train.
-
-        Parameters
-        ----------
-        threshold : float , default: 0.1
-            maximum degradation ratio allowed (value between 0 and 1)
-        """
-        condition = get_condition_train_test_relative_degradation_less_than(threshold=threshold)
-
-        return self.add_condition(f'Train-Test scores relative degradation is less than {threshold}',
-                                  condition)
-
-    def add_condition_class_performance_imbalance_ratio_less_than(
-        self: PR,
-        threshold: float = 0.3,
-        score: str = None
-    ) -> PR:
-        """Add condition - relative ratio difference between highest-class and lowest-class is less than threshold.
-
-        Parameters
-        ----------
-        threshold : float , default: 0.3
-            ratio difference threshold
-        score : str , default: None
-            limit score for condition
-
-        Returns
-        -------
-        Self
-            instance of 'ClassPerformance' or it subtype
-
-        Raises
-        ------
-        DeepchecksValueError
-            if unknown score function name were passed.
-        """
-        if score is None:
-            score = next(iter(MULTICLASS_SCORERS_NON_AVERAGE))
-
-        condition = get_condition_class_performance_imbalance_ratio_less_than(threshold=threshold, score=score)
-
-        return self.add_condition(
-            name=f'Relative ratio difference between labels \'{score}\' score is less than {format_percent(threshold)}',
-            condition_func=condition
-        )

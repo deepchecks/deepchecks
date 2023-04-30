@@ -34,7 +34,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
     Parameters
     ----------
     n_show_top : int , default : 5
-        number of outliers to show from each direction (upper limit and bottom limit)
+        number of graphs to show (ordered from the property with the most outliers to the least)
     iqr_percentiles : Tuple[int, int] , default : (25, 75)
         Two percentiles which define the IQR range
     iqr_scale : float , default : 1.5
@@ -131,34 +131,40 @@ class TextPropertyOutliers(SingleDatasetCheck):
             display = []
             no_outliers = pd.Series([], dtype='object')
 
-            for property_name, info in result.items():
+            sorted_result_items = sorted(result.items(), key=lambda x: len(x[1]['indices']), reverse=True)
+
+            for property_name, info in sorted_result_items:
                 # If info is string it means there was error
                 if isinstance(info, str):
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
                 elif len(info['indices']) == 0:
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
                 else:
-                    dist = df_properties[property_name]
-                    lower_limit = info['lower_limit']
-                    upper_limit = info['upper_limit']
+                    if len(display) < self.n_show_top:
+                        dist = df_properties[property_name]
+                        lower_limit = info['lower_limit']
+                        upper_limit = info['upper_limit']
 
-                    fig = get_text_outliers_graph(
-                        dist=dist,
-                        data=dataset.text,
-                        lower_limit=lower_limit,
-                        upper_limit=upper_limit,
-                        dist_name=property_name,
-                        is_categorical=property_name in cat_properties
-                    )
+                        fig = get_text_outliers_graph(
+                            dist=dist,
+                            data=dataset.text,
+                            lower_limit=lower_limit,
+                            upper_limit=upper_limit,
+                            dist_name=property_name,
+                            is_categorical=property_name in cat_properties
+                        )
 
-                    display.append(fig)
+                        display.append(fig)
+                    else:
+                        no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[
+                            f'Outliers found but not shown in graphs (n_show_top={self.n_show_top}).'])])
 
             if not no_outliers.empty:
                 grouped = no_outliers.groupby(level=0).unique().str.join(', ')
                 grouped_df = pd.DataFrame(grouped, columns=['Properties'])
                 grouped_df['More Info'] = grouped_df.index
                 grouped_df = grouped_df[['More Info', 'Properties']]
-                display.append('<h5><b>Properties With No Outliers Found</h5></b>')
+                display.append('<h5><b>Properties Not Shown:</h5></b>')
                 display.append(grouped_df.style.hide(axis='index') if hasattr(grouped_df.style, 'hide') else
                                grouped_df.style.hide_index())
 

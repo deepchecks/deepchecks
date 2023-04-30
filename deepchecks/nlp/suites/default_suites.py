@@ -16,8 +16,9 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import (LabelDrift, MetadataSegmentsPerformance, PredictionDrift, PropertyLabelCorrelation,
-                                   PropertySegmentsPerformance, SingleDatasetPerformance, TextPropertyOutliers)
+from deepchecks.nlp.checks import (ConflictingLabels, LabelDrift, MetadataSegmentsPerformance, PredictionDrift,
+                                   PropertyLabelCorrelation, PropertySegmentsPerformance, SingleDatasetPerformance,
+                                   SpecialCharacters, TextDuplicates, TextPropertyOutliers, TrainTestSamplesMix)
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -57,7 +58,10 @@ def data_integrity(n_samples: int = None,
     return Suite(
         'Data Integrity Suite',
         PropertyLabelCorrelation().add_condition_property_pps_less_than(),
-        TextPropertyOutliers()
+        TextPropertyOutliers(),
+        TextDuplicates().add_condition_ratio_less_or_equal(),
+        ConflictingLabels().add_condition_ratio_of_conflicting_labels_less_or_equal(),
+        SpecialCharacters().add_condition_ratio_of_samples_with_special_characters_less_or_equal()
     )
 
 
@@ -96,6 +100,7 @@ def train_test_validation(n_samples: int = None,
     return Suite(
         'Train Test Validation Suite',
         LabelDrift().add_condition_drift_score_less_than(),
+        TrainTestSamplesMix().add_condition_duplicates_ratio_less_or_equal()
     )
 
 

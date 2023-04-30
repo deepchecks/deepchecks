@@ -215,6 +215,23 @@ def test_set_metadata_with_an_incorrect_list_of_categorical_columns(text_classif
         )
     )
 
+def test_load_metadata(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    metadata = pd.DataFrame({'first': [1, 2, 3], 'second': [4, 5, 6]})
+
+    assert_that(dataset._metadata, equal_to(None))
+    assert_that(dataset._cat_metadata, equal_to(None))
+
+    metadata.to_csv('metadata.csv', index=False)
+    loaded_metadata = pd.read_csv('metadata.csv')
+
+    assert_that((loaded_metadata != metadata).sum().sum(), equal_to(0))
+
+    dataset.set_metadata(loaded_metadata)
+
+    assert_that((dataset.metadata != metadata).sum().sum(), equal_to(0))
+
 
 def test_set_properties(text_classification_dataset_mock):
     # Arrange
@@ -266,3 +283,29 @@ def test_set_properties_with_categorical_columns(text_classification_dataset_moc
 
     # Assert
     assert_that(dataset.categorical_properties, equal_to(['unknown_property']))
+
+
+def test_save_and_load_properties(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    properties = pd.DataFrame({'text_length': [1, 2, 3], 'average_word_length': [4, 5, 6]})
+
+    assert_that(dataset._properties, equal_to(None))
+    assert_that(dataset._cat_properties, equal_to(None))
+
+    # Act
+    dataset.set_properties(properties, categorical_properties=[])
+    dataset.save_properties('test_properties.csv')
+
+    # Make sure is saved correctly:
+
+    properties_loaded = pd.read_csv('test_properties.csv')
+
+    assert_that((properties_loaded != properties).sum().sum(), equal_to(0))
+
+    # Load into the dataset:
+
+    dataset._properties = None
+    dataset.set_properties('test_properties.csv')
+
+    assert_that((dataset.properties != properties).sum().sum(), equal_to(0))

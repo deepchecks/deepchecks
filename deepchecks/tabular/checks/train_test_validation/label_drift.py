@@ -13,19 +13,16 @@
 
 from typing import Dict
 
-from deepchecks.core import CheckResult, ConditionResult
-from deepchecks.core.condition import ConditionCategory
+from deepchecks.core import CheckResult
 from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.utils.distribution.drift import (SUPPORTED_CATEGORICAL_METHODS, SUPPORTED_NUMERIC_METHODS,
-                                                 calc_drift_and_plot, get_drift_plot_sidenote)
-from deepchecks.utils.strings import format_number
+from deepchecks.utils.abstracts.label_drift import LabelDriftAbstract
 
 __all__ = ['LabelDrift']
 
 
-class LabelDrift(TrainTestCheck, ReduceLabelMixin):
+class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
     """
     Calculate label drift between train dataset and test dataset, using statistical measures.
 
@@ -134,37 +131,10 @@ class LabelDrift(TrainTestCheck, ReduceLabelMixin):
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
-        drift_score, method, display = calc_drift_and_plot(
-            train_column=train_dataset.label_col,
-            test_column=test_dataset.label_col,
-            value_name=train_dataset.label_name,
-            column_type='categorical' if context.task_type != TaskType.REGRESSION else 'numerical',
-            margin_quantile_filter=self.margin_quantile_filter,
-            max_num_categories_for_drift=self.max_num_categories_for_drift,
-            min_category_size_ratio=self.min_category_size_ratio,
-            max_num_categories_for_display=self.max_num_categories_for_display,
-            show_categories_by=self.show_categories_by,
-            numerical_drift_method=self.numerical_drift_method,
-            categorical_drift_method=self.categorical_drift_method,
-            balance_classes=self.balance_classes,
-            ignore_na=self.ignore_na,
-            min_samples=self.min_samples,
-            raise_min_samples_error=True,
-            with_display=context.with_display,
-            dataset_names=(train_dataset.name, test_dataset.name)
-        )
+        column_type = 'categorical' if context.task_type != TaskType.REGRESSION else 'numerical'
 
-        values_dict = {'Drift score': drift_score, 'Method': method}
-
-        if context.with_display:
-            displays = ["""<span>
-                The Drift score is a measure for the difference between two distributions, in this check - the test
-                and train distributions.<br> The check shows the drift score and distributions for the label.
-            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by), display]
-        else:
-            displays = None
-
-        return CheckResult(value=values_dict, display=displays, header='Label Drift')
+        return self._calculate_label_drift(train_dataset.label_col, test_dataset.label_col, train_dataset.label_name,
+                                           column_type, context.with_display, (train_dataset.name, test_dataset.name))
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return label drift score."""
@@ -173,37 +143,3 @@ class LabelDrift(TrainTestCheck, ReduceLabelMixin):
     def greater_is_better(self):
         """Return True if the check reduce_output is better when it is greater."""
         return False
-
-    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
-                                            max_allowed_numeric_score: float = 0.15):
-        """
-        Add condition - require drift score to be less than the threshold.
-
-        The industry standard for PSI limit is above 0.2.
-        There are no common industry standards for other drift methods, such as Cramer's V,
-        Kolmogorov-Smirnov and Earth Mover's Distance.
-
-        Parameters
-        ----------
-        max_allowed_categorical_score: float , default: 0.15
-            the max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.15
-            the max threshold for the numeric variable drift score
-        Returns
-        -------
-        ConditionResult
-            False if any column has passed the max threshold, True otherwise
-        """
-        def condition(result: Dict) -> ConditionResult:
-            drift_score = result['Drift score']
-            method = result['Method']
-            has_failed = (drift_score > max_allowed_categorical_score and method in SUPPORTED_CATEGORICAL_METHODS) or \
-                         (drift_score > max_allowed_numeric_score and method in SUPPORTED_NUMERIC_METHODS)
-
-            details = f'Label\'s drift score {method} is {format_number(drift_score)}'
-            category = ConditionCategory.FAIL if has_failed else ConditionCategory.PASS
-            return ConditionResult(category, details)
-
-        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
-                                  f'numerical drift score < {max_allowed_numeric_score} for label drift',
-                                  condition)

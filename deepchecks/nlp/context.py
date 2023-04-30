@@ -18,6 +18,7 @@ import numpy as np
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError, ValidationError)
+from deepchecks.nlp.input_validations import compare_dataframes
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
@@ -303,6 +304,8 @@ class Context(BaseContext):
         A seed to set for pseudo-random functions , primarily sampling.
     """
 
+    _common_datasets_properties: t.Optional[t.Dict[str, str]] = None
+
     def __init__(
             self,
             train_dataset: t.Union[TextData, None] = None,
@@ -326,14 +329,43 @@ class Context(BaseContext):
             test_dataset = TextData.cast_to_dataset(test_dataset)
             if test_dataset.name is None:
                 test_dataset.name = 'Test'
+
         # If both dataset, validate they fit each other
         if train_dataset and test_dataset:
-            if test_dataset.has_label() and train_dataset.has_label() and not \
-                    train_dataset.validate_textdata_compatibility(test_dataset):
+            if (
+                test_dataset.has_label()
+                and train_dataset.has_label()
+                and not train_dataset.validate_textdata_compatibility(test_dataset)
+            ):
                 raise DatasetValidationError('train_dataset and test_dataset must share the same label and task type')
+
+            if (
+                train_dataset._properties is not None
+                and test_dataset._properties is not None
+            ):
+                result = compare_dataframes(
+                    train=train_dataset._properties,
+                    test=test_dataset._properties,
+                    train_categorical_columns=train_dataset._cat_properties,
+                    test_categorical_columns=test_dataset._cat_properties
+                )
+                self._common_datasets_properties = result.common
+                if result.difference is not None:
+                    get_logger().warning(
+                        'Train and Test datasets have different properties, '
+                        'only common properties will be used in train-test checks.\n'
+                        'Properties present only in train dataset: %s\n'
+                        'Properties present only in test dataset: %s\n'
+                        'Properties with different types: %s\n',
+                        result.difference.only_in_train,
+                        result.difference.only_in_test,
+                        result.difference.types_mismatch
+                    )
+
         if test_dataset and not train_dataset:
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')
+
         if model_classes is not None:
             if (not is_sequence_not_str(model_classes)) or len(model_classes) == 0:
                 raise DeepchecksValueError('model_classes must be a non-empty sequence')
@@ -363,6 +395,16 @@ class Context(BaseContext):
         self._validated_model = False
         self._with_display = with_display
         self.random_state = random_state
+
+    @property
+    def common_datasets_properties(self) -> t.Dict[str, str]:
+        """Return common for train and test datasets properties."""
+        if self._common_datasets_properties is None:
+            raise DeepchecksNotSupportedError(
+                'Check is irrelevant without providing train and test '
+                'datasets with precalculated properties'
+            )
+        return dict(self._common_datasets_properties)
 
     @property
     def model(self) -> _DummyModel:
@@ -465,7 +507,7 @@ class Context(BaseContext):
             )
 
     def get_scorers(self,
-                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
+                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str], None] = None,
                     use_avg_defaults=True) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers if provided or default scorers otherwise.
 

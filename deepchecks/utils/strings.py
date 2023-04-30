@@ -59,7 +59,8 @@ __all__ = [
 ]
 
 # Creating a translation table for the string.translate() method to be used in string base-form method
-DEL_CHARS = ''.join(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
+SPECIAL_CHARACTERS = tuple(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
+DEL_CHARS = ''.join(SPECIAL_CHARACTERS)
 DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
 
@@ -241,6 +242,7 @@ def generate_check_docs_link(check):
     if not (
         module_path.startswith('deepchecks.tabular.checks')
         or module_path.startswith('deepchecks.vision.checks')
+        or module_path.startswith('deepchecks.nlp.checks')
     ):
         # not builtin check, cannot generate link to the docs
         return ''
@@ -251,15 +253,11 @@ def generate_check_docs_link(check):
     # understand how link is formatted:
     #
     # - deepchecks.tabular.checks.integrity.StringMismatchComparison
-    # - https://docs.deepchecks.com/{version}/checks_gallery/tabular/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
+    # - https://docs.deepchecks.com/{version}/tabular/auto_checks/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
     # Remove 'deepchecks' from the start and 'checks' from the middle
-    module_path = module_path[len('deepchecks.'):]
-    module_parts = module_path.split('.')
-    module_parts.remove('checks')
-    # Add to the check name prefix of 'plot_'
-    module_parts[-1] = f'plot_{module_parts[-1]}'
-    return get_docs_link() + 'checks_gallery/' + '/'.join([*module_parts]) + link_postfix
+    _, subpackage, _, module, file = type(check).__module__.split('.')
+    return f'{get_docs_link()}{subpackage}/auto_checks/{module}/plot_{file}{link_postfix}'
 
 
 def get_random_string(n: int = 5):
@@ -278,7 +276,7 @@ def get_random_string(n: int = 5):
     return ''.join(random.choices(ascii_uppercase + digits, k=n))
 
 
-def string_baseform(string: Hashable, allow_empty_result: bool = False) -> Hashable:
+def string_baseform(string: str, allow_empty_result: bool = False) -> str:
     """Normalize the string input to a uniform form.
 
     If input is a string containing alphanumeric characters or if allow_empty_result is set to True,

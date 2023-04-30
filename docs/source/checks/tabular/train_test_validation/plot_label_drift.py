@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_label_drift:
+.. _tabular__label_drift:
 
 Label Drift
 **********************
@@ -22,7 +22,7 @@ over time.
 
 Label drift is when drift occurs in the label itself.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
+For more information on drift, please visit our :ref:`Drift Guide <drift_user_guide>`.
 
 How Deepchecks Detects Label Drift
 ------------------------------------
