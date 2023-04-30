@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_multivariate_drift:
+.. _tabular__multivariate_drift:
 
 Multivariate Drift
 *******************
@@ -27,14 +27,14 @@ and may even affect the relationships between those features, which are undetect
 univariate drift methods.
 The multivariate drift check tries to detect multivariate drift between the two input datasets.
 
-For more information on drift, please visit our :doc:`drift guide </user-guide/general/drift_guide>`.
+For more information on drift, please visit our :ref:`Drift Guide <drift_user_guide>`.
 
 How Deepchecks Detects Dataset Drift
 ------------------------------------
 
 This check detects multivariate drift by using :ref:`a domain classifier <drift_detection_by_domain_classifier>`.
 Other methods to detect drift include :ref:`univariate measures <drift_detection_by_univariate_measure>`
-which is used in other checks, such as :doc:`Feature Drift check </checks_gallery/tabular/train_test_validation/plot_feature_drift>`.
+which is used in other checks, such as :ref:`Feature Drift check <tabular__feature_drift>`.
 """
 
 #%%

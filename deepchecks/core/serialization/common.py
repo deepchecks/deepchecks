@@ -185,7 +185,10 @@ def aggregate_conditions(
 
     with warnings.catch_warnings():
         warnings.simplefilter(action='ignore', category=FutureWarning)
-        return df.style.hide_index()
+        # style.hide_index() was deprecated in the latest versions and new method was added
+        styler = df.style
+        styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
+        return styler
 
 
 def create_results_dataframe(

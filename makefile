@@ -385,7 +385,7 @@ test-release: dist test-upload
 
 docs: requirements doc-requirements dev-requirements develop $(DOCS_SRC)
 	@export WANDB_MODE=offline
-	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS) 2> docs.error.log
+	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 	@echo ""
 	@echo "++++++++++++++++++++++++"
 	@echo "++++ Build Finished ++++"

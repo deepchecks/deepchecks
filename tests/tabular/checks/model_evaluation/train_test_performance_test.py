@@ -275,7 +275,7 @@ def test_condition_degradation_ratio_less_than_not_passed_regression(diabetes_sp
 def test_condition_class_performance_imbalance_ratio_less_than_not_passed(iris_split_dataset_and_model):
     # ArrangeF
     train, test, model = iris_split_dataset_and_model
-    check = TrainTestPerformance().add_condition_class_performance_imbalance_ratio_less_than(0)
+    check = TrainTestPerformance().add_condition_class_performance_imbalance_ratio_less_than(threshold=0, score='F1')
     # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert
@@ -290,7 +290,7 @@ def test_condition_class_performance_imbalance_ratio_less_than_not_passed(iris_s
 def test_condition_class_performance_imbalance_ratio_less_than_passed(iris_split_dataset_and_model):
     # Arrange
     train, test, model = iris_split_dataset_and_model
-    check = TrainTestPerformance().add_condition_class_performance_imbalance_ratio_less_than(1)
+    check = TrainTestPerformance().add_condition_class_performance_imbalance_ratio_less_than(threshold=1, score='F1')
     # Act
     result: List[ConditionResult] = check.conditions_decision(check.run(train, test, model))
     # Assert

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_tabular_conflicting_labels:
+.. _tabular__conflicting_labels:
 
 Conflicting Labels
 ******************

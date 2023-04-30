@@ -64,6 +64,7 @@ class Suite(BaseSuite):
             probabilities on test_dataset dataset
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
+
         {prediction_formats:2*indent}
 
         Returns

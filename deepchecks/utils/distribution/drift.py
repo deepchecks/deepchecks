@@ -376,7 +376,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         column_type: str,
                         plot_title: Optional[str] = None,
                         margin_quantile_filter: float = 0.025,
-                        max_num_categories_for_drift: int = None,
+                        max_num_categories_for_drift: Optional[int] = None,
                         min_category_size_ratio: float = 0.01,
                         max_num_categories_for_display: int = 10,
                         show_categories_by: CategoriesSortingKind = 'largest_difference',
@@ -387,7 +387,7 @@ def calc_drift_and_plot(train_column: pd.Series,
                         min_samples: int = 10,
                         raise_min_samples_error: bool = False,
                         with_display: bool = True,
-                        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+                        dataset_names: Tuple[str, str] = DEFAULT_DATASET_NAMES
                         ) -> Tuple[float, str, Optional[Figure]]:
     """
     Calculate drift score per column.

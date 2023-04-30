@@ -348,5 +348,8 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
-            table = DataFrameHtmlSerializer(df.style.hide_index()).serialize()
+            # style.hide_index() was deprecated in the latest versions and new method was added
+            styler = df.style
+            styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
+            table = DataFrameHtmlSerializer(styler).serialize()
             return f'<h2>Other Checks That Weren\'t Displayed</h2>\n{table}'

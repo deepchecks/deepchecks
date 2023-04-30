@@ -6,7 +6,8 @@ Welcome to Deepchecks!
 ⏩ Getting Started
 ====================
 
-Head over to the :doc:`Getting Started </getting-started/index>` section to learn how to get up and running with deepchecks in 5 minutes.
+Head over to the :doc:`Getting Started </getting-started/index>` section to learn how to
+get up and running with deepchecks in 5 minutes.
 
 .. toctree::
     :maxdepth: 2
@@ -18,25 +19,25 @@ Head over to the :doc:`Getting Started </getting-started/index>` section to lear
     :maxdepth: 3
     :hidden:
 
-    user-guide/index
+    general/index
 
 .. toctree::
     :maxdepth: 3
     :hidden:
 
-    checks_gallery/tabular
+    tabular/index
 
 .. toctree::
     :maxdepth: 3
     :hidden:
 
-    checks_gallery/vision
+    vision/index
 
 .. toctree::
     :maxdepth: 3
     :hidden:
 
-    checks_gallery/nlp
+    nlp/index
 
 .. toctree::
     :maxdepth: 3
