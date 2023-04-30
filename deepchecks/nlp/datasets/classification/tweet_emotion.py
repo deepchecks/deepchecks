@@ -162,7 +162,14 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         if data_format.lower() != 'textdata':
             return data
 
-        dataset = TextData(data.text, label=data[_target], task_type='text_classification')
+        metadata = data.drop(columns=[_target, 'text'])
+        properties = load_properties(as_train_test=False) if include_properties else None
+        embeddings = load_embeddings(as_train_test=False) if include_embeddings else None
+
+
+        dataset = TextData(data.text, label=data[_target], task_type='text_classification',
+                           metadata=metadata, embeddings=embeddings, properties=properties,
+                           categorical_metadata=_CAT_METADATA, categorical_properties=_CAT_PROPERTIES)
         dataset.set_metadata(metadata=data.drop(columns=[_target, 'text']),
                              categorical_metadata=_CAT_METADATA)
         if include_properties:
