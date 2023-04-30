@@ -194,11 +194,25 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
     return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
 
 def lexical_density(raw_text: Sequence[str]) -> List[str]:
-    """Return list of floats of lexical density."""
-    return [round(len(set(textblob.TextBlob(text).words)) * 100 / len(textblob.TextBlob(text).words), 2) for text in raw_text]
+    """
+    Lexical density is the percentage of unique words in a given text. For more 
+    information: https://en.wikipedia.org/wiki/Lexical_density
 
-def noun_count(raw_text: Sequence[str]) -> List[str]:
-    """Returns list of integers of number of nouns in the text"""
+    Returns a list of floats of lexical density.
+    """
+    result = []
+    for text in raw_text:
+        total_words = len(textblob.TextBlob(text).words)
+        total_unique_words = len(set(textblob.TextBlob(text).words))
+        try:
+            lexical_density = round(total_unique_words * 100 / total_words, 2)
+            result.append(lexical_density)
+        except:
+            result.append(np.nan)
+    return result
+
+def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
+    """Returns list of integers of number of unique noun words in the text"""
     return [sum(1 for (word, tag) in set(textblob.TextBlob(text).tags) if tag.startswith("N")) for text in raw_text]
 
 DEFAULT_PROPERTIES = (
@@ -213,7 +227,7 @@ DEFAULT_PROPERTIES = (
     {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
     {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
-    {'name': 'Noun Count', 'method': noun_count, 'output_type': 'numeric'},
+    {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
 )
 
 LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language']

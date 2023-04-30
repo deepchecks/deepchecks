@@ -47,8 +47,8 @@ def test_skipping_long_calculation_properties(tweet_emotion_train_test_textdata)
     test_text = test.text
 
     # Act
-    result = calculate_default_properties(test_text, include_properties=['Lexical Density', 'Noun Count'])[0]
+    result = calculate_default_properties(test_text, include_properties=['Lexical Density', 'Unique Noun Count'])[0]
 
     # Assert
     assert_that(result['Lexical Density'][0: 10], equal_to([94.44, 93.75, 100.0, 91.67, 87.5, 100.0, 100.0, 100.0, 91.67, 91.67]))
-    assert_that(result['Noun Count'][0: 10], equal_to([9, 2, 3, 3, 4, 10, 4, 2, 7, 5]))
+    assert_that(result['Unique Noun Count'][0: 10], equal_to([9, 2, 3, 3, 4, 10, 4, 2, 7, 5]))
