@@ -4,9 +4,9 @@
    :align: center
    :width: 80%
 
-================================
-Welcome to Deepchecks Testing!
-================================
+=========================
+Welcome to Deepchecks!
+=========================
 
 Deepchecks is a holistic tool for testing, validating and monitoring your machine learning models
 and data, throughout the model's lifecycle. It enables you to identify probelems with your
@@ -15,17 +15,17 @@ data quality, distributions, and model's performance with minimal effort.
 See more info in the :ref:`Deepchecks Components for Continuous Validation <welcome__deepchecks_components>`
 section, along with the direct links to the documentation of each component.
 
-.. image:: /_static/images/general/checks-and-conditions.png
-   :alt: Deepchecks Testing Suite of Checks
-   :width: 65%
-   :align: center
-
-|
 
 .. _welcome__start_working:
 
 Get Started with Deepchecks Testing
 ========================================
+
+.. image:: /_static/images/general/checks-and-conditions.png
+   :alt: Deepchecks Testing Suite of Checks
+   :width: 65%
+   :align: center
+
 
 .. grid:: 1
     :gutter: 3
@@ -105,17 +105,17 @@ Get Started with Deepchecks Testing
 .. grid:: 1
     :gutter: 3
 
-    .. grid-item-card:: 🔢 Tabular Quickstarts 🔢
+    .. grid-item-card:: 🔢 Tabular 🔢 
         :link-type: doc
         :link: /tabular/auto_tutorials/quickstarts/index
         :columns: 4
     
-    .. grid-item-card:: 🎦‍ Vision Quickstarts (Beta Release) 🎦‍
+    .. grid-item-card:: 🎦‍ Vision 🎦‍ (in Beta)
         :link-type: doc
         :link: /vision/auto_tutorials/quickstarts/index
         :columns: 4
 
-    .. grid-item-card:: 🔤️ NLP Quickstarts (Alpha Release) 🔤️
+    .. grid-item-card:: 🔤️ NLP 🔤️ (in Alpha)
         :link-type: doc
         :link: /nlp/auto_tutorials/quickstarts/plot_text_classification
         :columns: 4
@@ -127,6 +127,33 @@ Get Started with Deepchecks Testing
 Deepchecks' Components
 =======================
 
+.. grid:: 1
+    :gutter: 3
+
+    .. grid-item-card:: Testing Docs (Here)
+        :link-type: ref
+        :link: welcome__start_working
+        :img-top: /_static/images/welcome/research_title.png
+        :columns: 4
+
+        Tests during research and model development
+    
+    .. grid-item-card:: CI Docs
+        :link-type: doc
+        :link: /general/usage/ci_cd
+        :img-top: /_static/images/welcome/ci_cd_title.png
+        :columns: 4
+        
+        Tests before deploying the model to production
+
+    .. grid-item-card:: Monitoring Docs
+        :link-type: ref
+        :link: deepchecks-mon:welcome__start_with_deepchecks_monitoring
+        :img-top: /_static/images/welcome/monitoring_title.png
+        :columns: 4
+
+        Tests and continuous monitoring during production
+
 Deepchecks accompanies you through various testing needs such as verifying your data's integrity, 
 inspecting its distributions, validating data splits, evaluating your model and comparing between different models,
 throughout the model's lifecycle.
@@ -135,40 +162,12 @@ throughout the model's lifecycle.
    :alt: Phases for Continuous Validation of ML Models and Data
    :align: center
 
+|
+
 Deechecks' continuous validation approach is based on testing the ML models and data throughout the different phases 
 using the exact same checks, enabling a simple, elaborate and seamless experience for configuring and consuming the results.
 Each phase has its relevant interfaces (e.g. visual outputs, output results to json, alert configuration, push notifications, RCA, etc.) for
 interacting with the test results.
-
-Head over to the relevant documentation for more info:
-
-.. grid:: 1
-    :gutter: 3
-
-    .. grid-item-card:: Deepchecks Testing (Here)
-        :link-type: ref
-        :link: welcome__start_working
-        :img-top: /_static/images/welcome/research_title.png
-        :columns: 4
-
-        Tests during research and model development
-    
-    .. grid-item-card:: Deepchecks CI
-        :link-type: doc
-        :link: /general/usage/ci_cd
-        :img-top: /_static/images/welcome/ci_cd_title.png
-        :columns: 4
-        
-        Tests before deploying the model to production
-
-    .. grid-item-card:: Deepchecks Monitoring
-        :link-type: ref
-        :link: deepchecks-mon:welcome__start_with_deepchecks_monitoring
-        :img-top: /_static/images/welcome/monitoring_title.png
-        :columns: 4
-
-        Tests and continuous monitoring during production
-
 
 .. _welcome__get_help:
 
