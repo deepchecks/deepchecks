@@ -38,17 +38,17 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_vision_new_labels`
+           * - :ref:`vision__new_labels`
              - :class:`~deepchecks.vision.checks.train_test_validation.NewLabels`
-           * - :ref:`plot_vision_heatmap_comparison`
+           * - :ref:`vision__heatmap_comparison`
              - :class:`~deepchecks.vision.checks.train_test_validation.HeatmapComparison`
-           * - :ref:`plot_vision_label_drift`
+           * - :ref:`vision__label_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.LabelDrift`
-           * - :ref:`plot_vision_image_property_drift`
+           * - :ref:`vision__image_property_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.ImagePropertyDrift`
-           * - :ref:`plot_vision_image_dataset_drift`
+           * - :ref:`vision__image_dataset_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.ImageDatasetDrift`
-           * - :ref:`_nlp__property_label_correlation `
+           * - :ref:`nlp__property_label_correlation `
              - :class:`~deepchecks.vision.checks.train_test_validation.PropertyLabelCorrelationChange`
 
     Parameters
@@ -95,8 +95,9 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
 
     See Also
     --------
-    :ref:`vision_classification_tutorial`
-    :ref:`vision_detection_tutorial`
+    :ref:`vision__classification_tutorial`
+    :ref:`vision__detection_tutorial`
+    :ref:`vision__segmentation_tutorial`
     """
     args = locals()
     args.pop('kwargs')
@@ -123,17 +124,17 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_vision_class_performance`
+           * - :ref:`vision__class_performance`
              - :class:`~deepchecks.vision.checks.model_evaluation.ClassPerformance`
-           * - :ref:`plot_vision_mean_average_precision_report`
+           * - :ref:`vision__mean_average_precision_report`
              - :class:`~deepchecks.vision.checks.model_evaluation.MeanAveragePrecisionReport`
-           * - :ref:`plot_vision_mean_average_recall_report`
+           * - :ref:`vision__mean_average_recall_report`
              - :class:`~deepchecks.vision.checks.model_evaluation.MeanAverageRecallReport`
-           * - :ref:`plot_vision_prediction_drift`
+           * - :ref:`vision__prediction_drift`
              - :class:`~deepchecks.vision.checks.model_evaluation.PredictionDrift`
-           * - :ref:`plot_vision_simple_model_comparison`
+           * - :ref:`vision__simple_model_comparison`
              - :class:`~deepchecks.vision.checks.model_evaluation.SimpleModelComparison`
-           * - :ref:`plot_weak_segment_performance`
+           * - :ref:`vision__weak_segment_performance`
              - :class:`~deepchecks.vision.checks.model_evaluation.WeakSegmentPerformance`
 
     Parameters
@@ -183,8 +184,9 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
 
     See Also
     --------
-    :ref:`vision_classification_tutorial`
-    :ref:`vision_detection_tutorial`
+    :ref:`vision__classification_tutorial`
+    :ref:`vision__detection_tutorial`
+    :ref:`vision__segmentation_tutorial`
     """
     args = locals()
     args.pop('kwargs')
@@ -212,9 +214,9 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None, label_properti
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_vision_image_property_outliers`
+           * - :ref:`vision__image_property_outliers`
              - :class:`~deepchecks.vision.checks.data_integrity.ImagePropertyOutliers`
-           * - :ref:`plot_vision_label_property_outliers`
+           * - :ref:`vision__label_property_outliers`
              - :class:`~deepchecks.vision.checks.model_evaluation.LabelPropertyOutliers`
 
     Parameters
@@ -259,8 +261,9 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None, label_properti
 
     See Also
     --------
-    :ref:`vision_classification_tutorial`
-    :ref:`vision_detection_tutorial`
+    :ref:`vision__classification_tutorial`
+    :ref:`vision__detection_tutorial`
+    :ref:`vision__segmentation_tutorial`
     """
     args = locals()
     args.pop('kwargs')
