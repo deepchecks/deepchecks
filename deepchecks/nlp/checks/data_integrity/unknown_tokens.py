@@ -124,6 +124,7 @@ class UnknownTokens(SingleDatasetCheck):
         return Counter(all_unknown_words), total_words, unknown_word_indexes
 
     def create_pie_chart(self, all_unknown_words_counter, total_words):
+        """Create pie chart with most common unknown words."""
         most_common_unknown_words = [x[0] for x in all_unknown_words_counter.most_common(self.n_most_common) if
                                      ((x[1] > 1) or (not self.group_singleton_words))]
         other_words = [x for x in all_unknown_words_counter if x not in most_common_unknown_words]
