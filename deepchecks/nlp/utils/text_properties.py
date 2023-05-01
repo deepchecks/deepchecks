@@ -16,6 +16,7 @@ import warnings
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+import pandas as pd
 import textblob
 
 from deepchecks.utils.function import run_available_kwargs
@@ -193,36 +194,37 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
     classifier = get_transformer_pipeline('formality', model_name, device=device)
     return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
 
+
 def lexical_density(raw_text: Sequence[str]) -> List[str]:
-    """
+    """ Return a list of floats of lexical density per text sample.
+    
     Lexical density is the percentage of unique words in a given text. For more 
     information: https://en.wikipedia.org/wiki/Lexical_density
-
-    Returns a list of floats of lexical density.
     """
     result = []
     for text in raw_text:
-        try:
+        if not pd.isna(text):
             total_words = len(textblob.TextBlob(text).words)
             total_unique_words = len(set(textblob.TextBlob(text).words))
-            lexical_density = round(total_unique_words * 100 / total_words, 2)
-            result.append(lexical_density)
-        except:
+            text_lexical_density = round(total_unique_words * 100 / total_words, 2)
+            result.append(text_lexical_density)
+        else:
             result.append(np.nan)
     return result
 
+
 def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
-    """Returns list of integers of number of unique noun words in the text"""
+    """Return a list of integers of number of unique noun words in the text."""
     result = []
     for text in raw_text:
-        try:
+        if not pd.isna(text):
             count = 0
             unique_words_with_tags = set(textblob.TextBlob(text).tags)
-            for (word, tag) in unique_words_with_tags:
-                if tag.startswith("N"):
+            for (_, tag) in unique_words_with_tags:
+                if tag.startswith('N'):
                     count += 1
             result.append(count)
-        except:
+        else:
             result.append(np.nan)
     return result
 
