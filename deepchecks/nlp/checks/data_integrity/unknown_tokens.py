@@ -36,6 +36,8 @@ class UnknownTokens(SingleDatasetCheck):
     tokenizer: t.Any , default: None
         Transformers tokenizer to use for tokenization. If None, BertTokenizer.from_pretrained('bert-base-uncased')
         will be used.
+    group_singleton_words: bool, default: False
+        If True, group all words that appear only once in the data into the "Other" category.
     n_most_common : int , default: 5
         Number of most common words with unknown tokens to show in results
     n_samples: int, default: 1_000_000
@@ -48,6 +50,7 @@ class UnknownTokens(SingleDatasetCheck):
     def __init__(
         self,
         tokenizer: t.Any = None,
+        group_singleton_words: bool = False,
         n_most_common: int = 5,
         n_samples: int = 1_000_000,
         random_state: int = 42,
@@ -60,6 +63,7 @@ class UnknownTokens(SingleDatasetCheck):
             self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         if not hasattr(self.tokenizer, 'tokenize'):
             raise DeepchecksValueError('tokenizer must have a "tokenize" method')
+        self.group_singleton_words = group_singleton_words
         self.n_most_common = n_most_common
         self.n_samples = n_samples
         self.random_state = random_state
@@ -120,10 +124,8 @@ class UnknownTokens(SingleDatasetCheck):
         return Counter(all_unknown_words), total_words, unknown_word_indexes
 
     def create_pie_chart(self, all_unknown_words_counter, total_words):
-        """Create pie chart with unknown words distribution."""
-        # Separate most common unknown words and other unknown words
-        most_common_unknown_words = [x[0] for x in all_unknown_words_counter.most_common(self.n_most_common)
-                                     if x[1] > 1]
+        most_common_unknown_words = [x[0] for x in all_unknown_words_counter.most_common(self.n_most_common) if
+                                     ((x[1] > 1) or (not self.group_singleton_words))]
         other_words = [x for x in all_unknown_words_counter if x not in most_common_unknown_words]
 
         # Calculate percentages for each category
@@ -136,19 +138,17 @@ class UnknownTokens(SingleDatasetCheck):
         if other_words_percentage > 0:
             labels.append('Other Unknown Words')
             percentages.append(other_words_percentage)
-        labels.append('Known Words')
-        percentages.append(100. - sum(percentages))
 
         # Truncate labels for display
         labels = [truncate_string(label, self.max_text_length_for_display) for label in labels]
 
         # Create pie chart with hover text and custom hover template
         fig = go.Figure(data=[go.Pie(
-            labels=labels, values=percentages, textinfo='label+percent',
+            labels=labels, values=percentages, texttemplate='%{label}<br>%{value}%',
             hovertext=[' '.join(other_words[:self.max_text_length_for_display]) if label == 'Other Unknown Words'
                        else label for label in labels],
-            hovertemplate='%{hovertext}<br>%{percent}<extra></extra>',
-            pull=[0.1 if label != 'Known Words' else 0 for label in labels]
+            hovertemplate='%{hovertext}<br>%{value}%<extra></extra>',
+            pull=[0.1 if label == 'Other Unknown Words' else 0 for label in labels]
         )])
 
         # Customize chart appearance
