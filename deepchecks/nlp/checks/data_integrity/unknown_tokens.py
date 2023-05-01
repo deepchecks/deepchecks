@@ -76,56 +76,75 @@ class UnknownTokens(SingleDatasetCheck):
         if len(samples) == 0:
             raise DeepchecksValueError('Dataset cannot be empty')
 
-        all_unknown_words_counter, total_words = self.find_unknown_words(samples)
+        indices = dataset.get_original_text_indexes()
+
+        all_unknown_words_counter, total_words, unknown_word_indexes = self.find_unknown_words(samples, indices)
         if len(all_unknown_words_counter) == 0:
             display = None
+            value = None
         else:
             fig = self.create_pie_chart(all_unknown_words_counter, total_words)
             display = [fig]
 
-        return CheckResult(None, display=display)
+            # The value contains two fields - unknown_word_percent and unknown_word_details.
+            # The latter contains a dict, in which for each word we have its ratio of the data and the list of indexes
+            # of the samples that contain it.
+            unknown_word_details = {}
+            for word, indexes in unknown_word_indexes.items():
+                unknown_word_details[word] = {'ratio': all_unknown_words_counter[word] / total_words,
+                                              'indexes': indexes}
+            value = {'unknown_word_ratio': sum(all_unknown_words_counter.values()) / total_words,
+                     'unknown_word_details': unknown_word_details}
 
-    def find_unknown_words(self, samples):
+        return CheckResult(value, display=display)
+
+    def find_unknown_words(self, samples, indices):
+        """Find words with unknown tokens in samples."""
+        # Choose tokenizer based on availability of nltk
         if nltk.download('punkt'):
             tokenize = nltk.word_tokenize
         else:
             tokenize = str.split
 
+        # Tokenize samples and count unknown words
         words_array = [tokenize(sample) for sample in samples]
-
         all_unknown_words = []
+        unknown_word_indexes = {}
         total_words = 0
-
-        for words in words_array:
+        for idx, words in zip(indices, words_array):
             total_words += len(words)
             for word in words:
                 tokens = self.tokenizer.tokenize(word)
                 if any(self.tokenizer.convert_tokens_to_ids(token) == self.tokenizer.unk_token_id for token in tokens):
                     all_unknown_words.append(word)
+                    unknown_word_indexes.setdefault(word, []).append(idx)
 
-        return Counter(all_unknown_words), total_words
+        return Counter(all_unknown_words), total_words, unknown_word_indexes
 
     def create_pie_chart(self, all_unknown_words_counter, total_words):
-        most_common_unknown_words = [x[0] for x in all_unknown_words_counter.most_common(self.n_most_common) if
-                                     x[1] > 1]
+        """Create pie chart with unknown words distribution."""
+        # Separate most common unknown words and other unknown words
+        most_common_unknown_words = [x[0] for x in all_unknown_words_counter.most_common(self.n_most_common)
+                                     if x[1] > 1]
         other_words = [x for x in all_unknown_words_counter if x not in most_common_unknown_words]
 
+        # Calculate percentages for each category
         other_words_count = sum(all_unknown_words_counter[word] for word in other_words)
-        other_words_percentage = (other_words_count / total_words) * 100
-
+        other_words_percentage = (other_words_count * 1. / total_words) * 100.
         labels = most_common_unknown_words
-        percentages = [all_unknown_words_counter[word] / total_words * 100 for word in most_common_unknown_words]
+        percentages = [all_unknown_words_counter[word] * 1. / total_words * 100. for word in most_common_unknown_words]
 
+        # Add "Other Unknown Words" and "Known Words" categories
         if other_words_percentage > 0:
             labels.append('Other Unknown Words')
             percentages.append(other_words_percentage)
-
-        known_words_percentage = 100 - sum(percentages)
         labels.append('Known Words')
-        percentages.append(known_words_percentage)
+        percentages.append(100. - sum(percentages))
 
+        # Truncate labels for display
         labels = [truncate_string(label, self.max_text_length_for_display) for label in labels]
 
+        # Create pie chart with hover text and custom hover template
         fig = go.Figure(data=[go.Pie(
             labels=labels, values=percentages, textinfo='label+percent',
             hovertext=[' '.join(other_words[:self.max_text_length_for_display]) if label == 'Other Unknown Words'
@@ -134,6 +153,25 @@ class UnknownTokens(SingleDatasetCheck):
             pull=[0.1 if label != 'Known Words' else 0 for label in labels]
         )])
 
-        fig.update_layout(title='Words Containing Unknown Tokens', legend_title='Words')
+        # Customize chart appearance
+        fig.update_layout(title=f'Words containing Unknown Tokens - {self.tokenizer.name_or_path} Tokenizer',
+                          legend_title='Words')
 
         return fig
+
+    def add_condition_ratio_of_unknown_words_less_or_equal(self, ratio: float = 0):
+        """Add condition that checks if the ratio of unknown words is less than a given ratio.
+
+        Parameters
+        ----------
+        ratio : float
+            Maximal allowed ratio of unknown words.
+        """
+        def condition(result):
+            passed = result['unknown_word_ratio'] <= ratio
+            condition_result = ConditionCategory.FAIL if not passed else ConditionCategory.PASS
+            details = f'Ratio was {format_percent(result["unknown_word_ratio"])}'
+            return ConditionResult(condition_result, details)
+
+        return self.add_condition(f'Ratio of unknown words is less than {format_percent(ratio)}',
+                                  condition)
