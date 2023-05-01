@@ -34,3 +34,15 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata, tweet_emoti
 
     assert_that(result.value['Sentiment'], close_to(0.11, 0.01))
     assert_that(result.value['Text Length'], close_to(0.02, 0.01))
+
+
+def test_new_properties(tweet_emotion_train_test_textdata):
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    ...
+
+    # Assert
+    ...

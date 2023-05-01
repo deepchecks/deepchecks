@@ -3,6 +3,7 @@
 =====================
 The Vision Data Class
 =====================
+
 The :class:`VisionData` class is the deepchecks base class for
 storing your data for a vision task. It is essentially a wrapper around a batch loader of images, labels,
 and predictions, that allows deepchecks to efficiently calculate different
@@ -39,6 +40,7 @@ To see all other class parameters, see the :class:`VisionData <deepchecks.vision
 
 Creating a VisionData Object
 ============================
+
 In the sub-sections below we will go over three different ways to create a VisionData object:
 1. `From a Generic Generator <#from-a-generic-generator>`__
 2. `From a PyTorch DataLoader <#from-pytorch-dataloader>`__
@@ -48,7 +50,8 @@ The sub-sections contain simple examples for how to create a VisionData object w
 order to learn how to supply them see the section about :ref:`adding model predictions <vision_data__adding_predictions>`.
 
 From a Generic Generator
-----------------------------
+------------------------
+
 If you are not already using a pytorch DataLoader or a tensorflow Dataset for the project, for example
 if you are using fastai, jax or any autoML framework, this is the most recommended option.
 The custom generator can be implemented in any way you like, as long as it outputs the data in the
@@ -84,6 +87,7 @@ method for the MNIST dataset can be seen at
 
 From Pytorch DataLoader
 -----------------------
+
 In order to create a VisionData object from a
 `PyTorch DataLoader <https://pytorch.org/tutorials/beginner/basics/data_tutorial.html>`_,
 all you need is to replace the default
@@ -122,6 +126,7 @@ A full code implementation of this method for the COCO128 dataset can be seen at
 
 From TensorFlow Dataset
 -----------------------
+
 There are two possible ways to create a deepchecks compatible tensorflow
 `Dataset object <https://www.tensorflow.org/api_docs/python/tf/data/Dataset>`_. You can either create it
 in a way that directly outputs the data in the required format or convert an existing dataset.
@@ -156,6 +161,7 @@ A full code implementation of this method for the COCO128 dataset can be seen at
 .. _vision_data__adding_predictions:
 Adding Model Predictions
 ========================
+
 Some checks, including the :ref:`model evaluation checks and suite <vision__checks_gallery>`,
 require model predictions in
 order to run. Model predictions are supplied via the batch loader in a similar fashion to the images and labels.
@@ -165,6 +171,7 @@ on-demand inference.
 .. _vision_data__precalculated_predictions:
 Pre-calculated Predictions
 --------------------------
+
 It is recommended to use this option if your model object is unavailable locally (for example if
 placed on a separate prediction server) or if the predicting process is computationally expensive or time consuming.
 
@@ -195,6 +202,7 @@ a csv file containing the path to the image, the label and the prediction probab
 
 On-demand Inference
 -------------------
+
 In this case we will need to incorporate the model object in the relevant format transformation function
 (the ``collate`` function for pytorch or the ``map`` function for tensorflow). This can be
 done either by using the model as a global variable, creating a wrapper class for the transformation function or

@@ -93,13 +93,13 @@ Using conda
 
 Check out the following tutorials for a quick start with deepchecks for CV:
 
-- `Image Data Validation in 5 Minutes (for data without model) <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_simple_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Image Data Validation in 5 Minutes (for data without model) <https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/plot_simple_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_detection_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Deepchecks for Object Detection Tutorial <https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/plot_detection_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Deepchecks for Classification Tutorial <https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/plot_classification_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
-- `Deepchecks for Segmentation Tutorial <https://docs.deepchecks.com/stable/user-guide/vision/auto_tutorials/plot_segmentation_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
+- `Deepchecks for Segmentation Tutorial <https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/plot_segmentation_tutorial.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out>`_
 
 
 📊 Check Examples

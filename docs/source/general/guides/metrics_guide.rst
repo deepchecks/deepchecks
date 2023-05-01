@@ -310,6 +310,7 @@ that calculates a metric by accumulating information about the labels and predic
 finalizes the metric computation once all batches have been processed. The metric must
 inherit from :class:`deepchecks.vision.metrics_utils.CustomMetric` and implement the following methods:
 ``reset``, ``update`` and ``compute``:
+
     * ``reset`` - Resets the metric to its initial state, resets any internal variables. Called by deepchecks before
       first call to the ``update`` method.
     * ``update`` - Called once for each batch in the data, this method updates the metric's internal state based on the
