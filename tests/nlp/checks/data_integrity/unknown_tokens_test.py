@@ -9,11 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the NLP UnknownTokens check."""
-import typing as t
-
-import pandas as pd
 import pytest
 from hamcrest import *
+
+from transformers import GPT2Tokenizer
 
 from deepchecks.nlp.checks import UnknownTokens
 from deepchecks.nlp.text_data import TextData
@@ -51,6 +50,21 @@ def dataset_with_unknown_tokens():
         ]
     )
 
+@pytest.fixture
+def dataset_with_reoccurring_unknown_words():
+    return TextData(
+        label=[0, 1, 2, 0, 1, 2],
+        task_type="text_classification",
+        raw_text=[
+            "Explicit is better than ˚implicit.",
+            "Simple is better than ∫complex.",
+            "Complex is better than complicated.",
+            "Explicit is better than ˚implicit.",
+            "Simple is better than ∫complex∫.",
+            "Complex is better than complicated.",
+        ]
+    )
+
 
 # =================
 # ----- Tests -----
@@ -78,6 +92,9 @@ def test_without_unknown_tokens(dataset_without_unknown_tokens):
     ))  # type: ignore
 
     assert_that(len(result.value['unknown_word_details']), equal_to(0))
+
+    # Assert no display
+    assert_that(result.display, equal_to([]))
 
 
 def test_with_unknown_tokens(dataset_with_unknown_tokens):
@@ -111,3 +128,49 @@ def test_with_unknown_tokens(dataset_with_unknown_tokens):
             "indexes": contains_exactly(1)
         }),
     }))
+
+
+def test_group_singleton_words_true(dataset_with_reoccurring_unknown_words):
+    # Arrange
+    check = UnknownTokens(group_singleton_words=True).add_condition_ratio_of_unknown_words_less_or_equal()
+
+    # Act
+    result = check.run(dataset=dataset_with_reoccurring_unknown_words)
+    conditions_decisions = check.conditions_decision(result)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        "unknown_word_ratio": close_to(0.1111, 0.0001),
+        "unknown_word_details": instance_of(dict),
+    }))
+
+    assert_that(conditions_decisions[0], equal_condition_result(
+        is_pass=False,
+        details=f'Ratio was {format_percent(result.value["unknown_word_ratio"])}',
+        name='Ratio of unknown words is less than 0%',
+    ))  # type: ignore
+
+    # Check if the display has a 'Other Unknown Words' label
+    display = result.display
+    assert_that(display, has_length(1))
+    pie_chart = display[0]
+    assert_that(pie_chart['data'][0]['labels'], has_item('Other Unknown Words'))
+
+
+def test_with_more_robust_tokenizer(dataset_with_unknown_tokens):
+    # Arrange
+    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+    check = UnknownTokens(tokenizer=tokenizer)
+
+    # Act
+    result = check.run(dataset=dataset_with_unknown_tokens)
+    conditions_decisions = check.conditions_decision(result)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        "unknown_word_ratio": equal_to(0),
+        "unknown_word_details": instance_of(dict),
+    }))
+
+
+    assert_that(len(result.value['unknown_word_details']), equal_to(0))

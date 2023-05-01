@@ -34,12 +34,12 @@ class UnknownTokens(SingleDatasetCheck):
     Parameters
     ----------
     tokenizer: t.Any , default: None
-        Transformers tokenizer to use for tokenization. If None, BertTokenizer.from_pretrained('bert-base-uncased')
-        will be used.
+        Tokenizer from the HuggingFace transformers library to use for tokenization. If None,
+        BertTokenizer.from_pretrained('bert-base-uncased') will be used.
     group_singleton_words: bool, default: False
-        If True, group all words that appear only once in the data into the "Other" category.
+        If True, group all words that appear only once in the data into the "Other" category in the display.
     n_most_common : int , default: 5
-        Number of most common words with unknown tokens to show in results
+        Number of most common words with unknown tokens to show in the display.
     n_samples: int, default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
