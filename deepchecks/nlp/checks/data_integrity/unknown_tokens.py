@@ -78,7 +78,8 @@ class UnknownTokens(SingleDatasetCheck):
         all_unknown_words_counter, total_words, unknown_word_indexes = self.find_unknown_words(samples, indices)
         if len(all_unknown_words_counter) == 0:
             display = None
-            value = None
+            value = {'unknown_word_ratio': 0,
+                     'unknown_word_details': {}}
         else:
             fig = self.create_pie_chart(all_unknown_words_counter, total_words)
             display = [fig]
