@@ -28,6 +28,7 @@ __all__ = ['UnknownTokens']
 
 OTHER_CAT_NAME = 'Other Unknown Words'
 
+
 @docstrings
 class UnknownTokens(SingleDatasetCheck):
     """Find samples that contain tokens unsupported by your tokenizer.
@@ -96,7 +97,6 @@ class UnknownTokens(SingleDatasetCheck):
                 'Percents shown above are the percent of each word (or group of words) out of all words in the data.'
             )
             display = [fig, percent_explanation]
-
 
             # The value contains two fields - unknown_word_percent and unknown_word_details.
             # The latter contains a dict, in which for each word we have its ratio of the data and the list of indexes
