@@ -9,22 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the Unknown Tokens check."""
-import string
 import typing as t
 from collections import Counter
 
 import nltk
-import pandas as pd
-from transformers import BertTokenizer
-from typing_extensions import Self, TypedDict
 import plotly.graph_objects as go
+from transformers import BertTokenizer
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
-from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list, format_percent
+from deepchecks.utils.strings import format_percent
 from deepchecks.utils.strings import get_ellipsis as truncate_string
 
 __all__ = ['UnknownTokens']
