@@ -197,8 +197,8 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
 
 def lexical_density(raw_text: Sequence[str]) -> List[str]:
     """ Return a list of floats of lexical density per text sample.
-    
-    Lexical density is the percentage of unique words in a given text. For more 
+
+    Lexical density is the percentage of unique words in a given text. For more
     information: https://en.wikipedia.org/wiki/Lexical_density
     """
     result = []
