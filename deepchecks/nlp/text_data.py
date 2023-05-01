@@ -269,20 +269,16 @@ class TextData:
     def metadata(self) -> pd.DataFrame:
         """Return the metadata of for the dataset."""
         if self._metadata is None:
-            raise ValueError(
-                'TextData does not contain metadata, add it by using '
-                '"set_metadata" function'
+            raise DeepchecksValueError(
+                'Functionality requires metadata, but the the TextData object had none. '
+                'To use this functionality, use the '
+                'set_metadata method to set your own metadata with a pandas.DataFrame.'
             )
         return self._metadata
 
     @property
     def categorical_metadata_columns(self) -> t.List[str]:
         """Return categorical metadata column names."""
-        if self._cat_metadata is None:
-            raise ValueError(
-                'TextData does not contain metadata, add it by using '
-                '"set_metadata" function'
-            )
         return self._cat_metadata
 
     def set_metadata(
@@ -387,19 +383,15 @@ class TextData:
         """Return the properties of the dataset."""
         if self._properties is None:
             raise DeepchecksNotSupportedError(
-                'TextData does not contain properties, add them by using '
-                '"calculate_default_properties" or "set_properties" functions'
+                'Functionality requires properties, but the the TextData object had none. To use this functionality, '
+                'use the set_properties method to set your own properties with a pandas.DataFrame or use '
+                'TextData.calculate_default_properties to add the default deepchecks properties.'
             )
         return self._properties
 
     @property
     def categorical_properties(self) -> t.List[str]:
         """Return categorical properties names."""
-        if self._cat_properties is None:
-            raise ValueError(
-                'TextData does not contain properties, add them by using '
-                '"calculate_default_properties" or "set_properties" functions'
-            )
         return self._cat_properties
 
     @property

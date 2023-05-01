@@ -9,8 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of weak segments performance check."""
-import warnings
-from typing import Callable, Dict, List, Union
+from typing import Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -20,10 +19,9 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.nlp import Context, SingleDatasetCheck
-from deepchecks.tabular import Dataset
+from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
-from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['MetadataSegmentsPerformance', 'PropertySegmentsPerformance']
@@ -33,7 +31,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
     """Check the performance of the model on different segments of the data."""
 
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
-                 ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: int,
+                 ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int],
                  segment_minimum_size_ratio: float, alternative_scorer: Dict[str, Callable],
                  loss_per_sample: Union[np.ndarray, pd.Series, None], n_samples: int,
                  categorical_aggregation_threshold: float, n_to_show: int, **kwargs):
@@ -57,21 +55,9 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         text_data = context.get_data_by_kind(dataset_kind)
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
-        if self.segment_by == 'metadata':
-            context.assert_metadata(text_data=text_data)
-            features = select_from_dataframe(text_data.metadata, self.columns, self.ignore_columns)
-            cat_features = [col for col in features.columns if col in text_data.categorical_metadata_columns]
-            features_name = 'metadata'
-
-        elif self.segment_by == 'properties':
-            context.assert_properties(text_data=text_data)
-            features = select_from_dataframe(text_data.properties, self.columns, self.ignore_columns)
-            cat_features = [col for col in features.columns if col in text_data.categorical_properties]
-            features_name = 'properties'
-        else:
-            raise DeepchecksProcessError(f'Unknown segment_by value: {self.segment_by}')
-
-        self._warn_n_top_columns(features.shape[1])
+        features, cat_features = get_relevant_data_table(text_data, data_type=self.segment_by,
+                                                         columns=self.columns, ignore_columns=self.ignore_columns,
+                                                         n_top_features=self.n_top_features, add_label=True)
 
         predictions = context.model.predict(text_data)
 
@@ -90,52 +76,33 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         if features.shape[1] < 2:
             raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
 
-        # label is not used in the check, just here to avoid errors
-        dataset = Dataset(features, label=pd.Series(text_data.label), cat_features=cat_features)
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, list(np.unique(text_data.label)))
-
+        encoded_dataset = self._target_encode_categorical_features_fill_na(features, 'label', cat_features)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),
                                   y_proba_test=proba_values, validate_data_on_predict=False)
         scorer = context.get_single_scorer(self.alternative_scorer)
-        weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, np.asarray(encoded_dataset.features),
-                                                   loss_per_sample, scorer)
+        weak_segments = self._weak_segments_search(data=encoded_dataset.data, loss_per_sample=loss_per_sample,
+                                                   label_col=encoded_dataset.label_col,
+                                                   feature_rank_for_search=np.asarray(encoded_dataset.features),
+                                                   dummy_model=dummy_model, scorer=scorer)
+
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
-                                         f'segments. Try increasing n_samples or supply more {features_name}.')
+                                         f'segments. Try increasing n_samples or supply more {self.segment_by}.')
 
         avg_score = round(scorer(dummy_model, encoded_dataset), 3)
-        display = self._create_heatmap_display(dummy_model, encoded_dataset, weak_segments, avg_score,
-                                               scorer) if context.with_display else []
+        if context.with_display:
+            display = self._create_heatmap_display(data=encoded_dataset.data, weak_segments=weak_segments,
+                                                   loss_per_sample=loss_per_sample,
+                                                   avg_score=avg_score, label_col=encoded_dataset.label_col,
+                                                   dummy_model=dummy_model, scorer=scorer)
+        else:
+            display = []
 
-        for idx, segment in weak_segments.copy().iterrows():
-            for feature in ['Feature1', 'Feature2']:
-                if segment[feature] in encoded_dataset.cat_features:
-                    weak_segments.at[idx, f'{feature} range'] = \
-                        self._format_partition_vec_for_display(segment[f'{feature} range'], segment[feature], None)[0]
-
+        weak_segments = self._generate_check_value_display(weak_segments, cat_features)
         display_msg = 'Showcasing intersections of metadata columns with weakest detected segments.<br> The full ' \
                       'list of weak segments can be observed in the check result value. '
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[display_msg, DisplayMap(display)])
-
-    def _warn_n_top_columns(self, n_columns: int):
-        """Warn if n_top_columns is smaller than the number of segmenting features (metadata or properties)."""
-        if self.n_top_features is not None and self.n_top_features < n_columns:
-            if self.segment_by == 'metadata':
-                features_name = 'metadata columns'
-                n_top_columns_parameter = 'n_top_columns'
-                columns_parameter = 'columns'
-            else:
-                features_name = 'properties'
-                n_top_columns_parameter = 'n_top_properties'
-                columns_parameter = 'properties'
-
-            warnings.warn(
-                f'Parameter {n_top_columns_parameter} is set to {self.n_top_features} to avoid long computation time. '
-                f'This means that the check will run on the first {self.n_top_features} {features_name}. '
-                f'If you want to run on all {features_name}, set {n_top_columns_parameter} to None. '
-                f'Alternatively, you can set parameter {columns_parameter} to a list of the specific {features_name} '
-                f'you want to run on.', UserWarning)
 
 
 class PropertySegmentsPerformance(WeakSegmentsAbstractText):
@@ -158,7 +125,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
         Properties to check, if none are given checks all properties except ignored ones.
     ignore_properties : Union[Hashable, List[Hashable]] , default: None
         Properties to ignore, if none given checks based on properties variable
-    n_top_properties : int , default: 10
+    n_top_properties : Optional[int] , default: 10
         Number of properties to use for segment search. Top properties are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
@@ -181,7 +148,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     def __init__(self,
                  properties: Union[Hashable, List[Hashable], None] = None,
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
-                 n_top_properties: int = 10,
+                 n_top_properties: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
                  alternative_scorer: Dict[str, Callable] = None,
                  loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
@@ -222,7 +189,7 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
         Columns to check, if none are given checks all columns except ignored ones.
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
-    n_top_columns : int , default: 10
+    n_top_columns : Optional[int] , default: 10
         Number of features to use for segment search. Top columns are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
@@ -245,7 +212,7 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
     def __init__(self,
                  columns: Union[Hashable, List[Hashable], None] = None,
                  ignore_columns: Union[Hashable, List[Hashable], None] = None,
-                 n_top_columns: int = 10,
+                 n_top_columns: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
                  alternative_scorer: Dict[str, Callable] = None,
                  loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
