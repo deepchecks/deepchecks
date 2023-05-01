@@ -202,9 +202,9 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     """
     result = []
     for text in raw_text:
-        total_words = len(textblob.TextBlob(text).words)
-        total_unique_words = len(set(textblob.TextBlob(text).words))
         try:
+            total_words = len(textblob.TextBlob(text).words)
+            total_unique_words = len(set(textblob.TextBlob(text).words))
             lexical_density = round(total_unique_words * 100 / total_words, 2)
             result.append(lexical_density)
         except:
@@ -213,7 +213,18 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
 
 def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     """Returns list of integers of number of unique noun words in the text"""
-    return [sum(1 for (word, tag) in set(textblob.TextBlob(text).tags) if tag.startswith("N")) for text in raw_text]
+    result = []
+    for text in raw_text:
+        try:
+            count = 0
+            unique_words_with_tags = set(textblob.TextBlob(text).tags)
+            for (word, tag) in unique_words_with_tags:
+                if tag.startswith("N"):
+                    count += 1
+            result.append(count)
+        except:
+            result.append(np.nan)
+    return result
 
 DEFAULT_PROPERTIES = (
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
