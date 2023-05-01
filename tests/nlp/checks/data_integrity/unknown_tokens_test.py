@@ -14,6 +14,7 @@ from hamcrest import *
 
 from transformers import GPT2Tokenizer
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.checks import UnknownTokens
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
@@ -152,7 +153,7 @@ def test_group_singleton_words_true(dataset_with_reoccurring_unknown_words):
 
     # Check if the display has a 'Other Unknown Words' label
     display = result.display
-    assert_that(display, has_length(1))
+    assert_that(display, has_length(2))
     pie_chart = display[0]
     assert_that(pie_chart['data'][0]['labels'], has_item('Other Unknown Words'))
 
@@ -172,5 +173,13 @@ def test_with_more_robust_tokenizer(dataset_with_unknown_tokens):
         "unknown_word_details": instance_of(dict),
     }))
 
-
     assert_that(len(result.value['unknown_word_details']), equal_to(0))
+
+
+def test_for_illegal_tokenizer(dataset_with_unknown_tokens):
+    # Arrange
+    tokenizer = 'a'
+
+    # Act & Assert
+    assert_that(calling(UnknownTokens).with_args(tokenizer=tokenizer),
+                raises(DeepchecksValueError, r'tokenizer must have a "tokenize" method'))

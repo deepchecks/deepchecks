@@ -21,11 +21,12 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.strings import get_ellipsis as truncate_string
 
 __all__ = ['UnknownTokens']
 
+OTHER_CAT_NAME = 'Other Unknown Words'
 
 @docstrings
 class UnknownTokens(SingleDatasetCheck):
@@ -63,6 +64,10 @@ class UnknownTokens(SingleDatasetCheck):
             self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         if not hasattr(self.tokenizer, 'tokenize'):
             raise DeepchecksValueError('tokenizer must have a "tokenize" method')
+        if not hasattr(self.tokenizer, 'unk_token_id'):
+            raise DeepchecksValueError('tokenizer must have an "unk_token_id" attribute')
+        if not hasattr(self.tokenizer, 'convert_tokens_to_ids'):
+            raise DeepchecksValueError('tokenizer must have an "convert_tokens_to_ids" method')
         self.group_singleton_words = group_singleton_words
         self.n_most_common = n_most_common
         self.n_samples = n_samples
@@ -86,7 +91,12 @@ class UnknownTokens(SingleDatasetCheck):
                      'unknown_word_details': {}}
         else:
             fig = self.create_pie_chart(all_unknown_words_counter, total_words)
-            display = [fig]
+            percent_explanation = (
+                '<p style="font-size:0.9em;line-height:1;"><i>'
+                'Percents shown above are the percent of each word (or group of words) out of all words in the data.'
+            )
+            display = [fig, percent_explanation]
+
 
             # The value contains two fields - unknown_word_percent and unknown_word_details.
             # The latter contains a dict, in which for each word we have its ratio of the data and the list of indexes
@@ -137,7 +147,7 @@ class UnknownTokens(SingleDatasetCheck):
 
         # Add "Other Unknown Words" and "Known Words" categories
         if other_words_percentage > 0:
-            labels.append('Other Unknown Words')
+            labels.append(OTHER_CAT_NAME)
             percentages.append(other_words_percentage)
 
         # Truncate labels for display
@@ -146,15 +156,19 @@ class UnknownTokens(SingleDatasetCheck):
         # Create pie chart with hover text and custom hover template
         fig = go.Figure(data=[go.Pie(
             labels=labels, values=percentages, texttemplate='%{label}<br>%{value}%',
-            hovertext=[' '.join(other_words[:self.max_text_length_for_display]) if label == 'Other Unknown Words'
-                       else label for label in labels],
-            hovertemplate='%{hovertext}<br>%{value}%<extra></extra>',
-            pull=[0.1 if label == 'Other Unknown Words' else 0 for label in labels]
+            hovertext=[format_list(other_words, max_string_length=self.max_text_length_for_display)
+                       if label == OTHER_CAT_NAME else label for label in labels],
+            hovertemplate=['<b>Unknown Word</b>: %{hovertext}<br><b>Percent of All Words</b>: %{value}%<extra></extra>'
+                           if label != OTHER_CAT_NAME else
+                           '<b>Other Unknown Words</b>: %{hovertext}<br>'
+                           '<b>Percent of All Words</b>: %{value}%<extra></extra>'
+                           for label in labels],
+            pull=[0.1 if label == OTHER_CAT_NAME else 0 for label in labels]
         )])
 
         # Customize chart appearance
         fig.update_layout(title=f'Words containing Unknown Tokens - {self.tokenizer.name_or_path} Tokenizer',
-                          legend_title='Words')
+                          legend_title='Words with Unknown Tokens')
 
         return fig
 
