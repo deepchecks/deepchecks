@@ -5,8 +5,8 @@ Tabular
 =======
 
 Deepchecks tabular sub package contain a large variety of checks and suites for different use cases.
-Visit the :ref:`installation_guide` page to set up your environment and than head over to the
-:ref:`tabular__index_tutorials` section.
+Visit the :ref:`installation_guide` page to set up your environment and then head over to the
+Tutorials section.
 
 .. _tabular__index_tutorials:
 
