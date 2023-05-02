@@ -228,6 +228,7 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
             result.append(np.nan)
     return result
 
+
 DEFAULT_PROPERTIES = (
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
