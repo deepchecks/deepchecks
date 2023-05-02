@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains common methods for weak segment performance checks."""
-
+import abc
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union, Callable, Any
 
 import numpy as np
 import pandas as pd
@@ -32,19 +32,16 @@ from deepchecks.utils.performance.partition import (DeepchecksFilter, convert_tr
 from deepchecks.utils.strings import format_number, format_percent
 
 
-class WeakSegmentAbstract:
+class WeakSegmentAbstract(abc.ABC):
     """Abstract class with common methods to be inherited by WeakSegmentsPerformance checks, both vision and tabular."""
 
-    def __init__(self,
-                 n_top_features: int = 5,
-                 n_to_show: int = 3,
-                 categorical_aggregation_threshold: float = 0.05,
-                 segment_minimum_size_ratio: float = 0.05,
-                 ):
-        self.n_top_features = n_top_features
-        self.n_to_show = n_to_show
-        self.categorical_aggregation_threshold = categorical_aggregation_threshold
-        self.segment_minimum_size_ratio = segment_minimum_size_ratio
+    n_top_features: int = 5
+    n_to_show: int = 3
+    categorical_aggregation_threshold: float = 0.05
+    min_category_size_ratio: float = 0.01
+    segment_minimum_size_ratio: float = 0.05
+    random_state: int = 42
+    add_condition: Callable[..., Any]
 
     def _target_encode_categorical_features_fill_na(self, data: pd.DataFrame, label_name: str,
                                                     cat_features: List[str]) -> Dataset:
