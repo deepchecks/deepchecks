@@ -100,25 +100,30 @@ __MACOSX
 *wolves_vs_dogs_mini*
 *hymenoptera_data*
 *tomato-detection*
+tweet_emotion_*.csv
 
 # docs build files
 docs/source/_build
 
 # build folders of sphinx gallery
-docs/source/user-guide/general/customizations/examples/
-docs/source/user-guide/general/exporting_results/examples/
-docs/source/checks_gallery/tabular/
-docs/source/checks_gallery/vision/
+docs/source/general/usage/customizations/auto_examples/
+docs/source/general/usage/exporting_results/auto_examples/
 
-docs/source/user-guide/tabular/auto_tutorials
-docs/source/user-guide/vision/auto_tutorials
+docs/source/tabular/auto_checks
+docs/source/nlp/auto_checks
+docs/source/vision/auto_checks
+
+docs/source/tabular/auto_tutorials
+docs/source/nlp/auto_tutorials
+docs/source/vision/auto_tutorials
 
 docs/source/user-guide/tabular/auto_quickstarts
 docs/source/user-guide/vision/auto_quickstarts
 
-# build artifacts from running docs (vision and wandb export)
-docs/source/user-guide/vision/quickstarts/*.html
-docs/source/user-guide/vision/tutorials/*.html
+# build artificats from running docs (vision, nlp, wandb export)
+docs/source/vision/tutorials/quickstarts/*.html
+
+# (old, update paths for relevant) build artifacts from running docs (vision and wandb export)
 docs/source/tutorials/vision/deepchecks_formatted_image*.jpg
 docs/source/user-guide/general/exporting_results/wandb
 deepchecks/vision/datasets/classification/models/

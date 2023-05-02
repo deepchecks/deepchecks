@@ -9,6 +9,7 @@ Visit the :ref:`installation_guide` page to set up your environment and than hea
 :ref:`tabular__index_tutorials` section.
 
 .. _tabular__index_tutorials:
+
 Tutorials
 ---------
 
@@ -40,6 +41,7 @@ This section contain in-depth guides on different aspects and components of the 
 
 
 .. _tabular__checks_gallery:
+
 Checks Gallery
 --------------
 
