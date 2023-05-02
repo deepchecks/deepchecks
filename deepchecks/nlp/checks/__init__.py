@@ -12,6 +12,8 @@
 
 from deepchecks.nlp.checks.data_integrity import (ConflictingLabels, PropertyLabelCorrelation, SpecialCharacters,
                                                   TextDuplicates, TextPropertyOutliers)
+from deepchecks.nlp.checks.data_integrity.under_annotated_segments import (UnderAnnotatedMetaDataSegments,
+                                                                           UnderAnnotatedPropertySegments)
 from deepchecks.nlp.checks.model_evaluation import (ConfusionMatrixReport, MetadataSegmentsPerformance, PredictionDrift,
                                                     PropertySegmentsPerformance, SingleDatasetPerformance,
                                                     TrainTestPerformance)
@@ -24,6 +26,8 @@ __all__ = [
     'TextDuplicates',
     'ConflictingLabels',
     'SpecialCharacters',
+    'UnderAnnotatedMetaDataSegments',
+    'UnderAnnotatedPropertySegments',
 
     # Model Evaluation
     'SingleDatasetPerformance',

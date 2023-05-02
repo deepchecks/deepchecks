@@ -19,6 +19,7 @@ import plotly.express as px
 import sklearn
 from category_encoders import TargetEncoder
 from packaging import version
+from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import GridSearchCV
 from sklearn.tree import DecisionTreeRegressor
 
@@ -43,10 +44,12 @@ class WeakSegmentAbstract(abc.ABC):
     random_state: int = 42
     add_condition: Callable[..., Any]
 
-    def _target_encode_categorical_features_fill_na(self, data: pd.DataFrame, label_name: str,
+    def _target_encode_categorical_features_fill_na(self, data: pd.DataFrame, label_col: pd.Series,
                                                     cat_features: List[str]) -> Dataset:
         values_mapping = defaultdict(list)  # mapping of per feature of original values to their encoded value
-        df_aggregated = default_fill_na_per_column_type(data.drop(columns=label_name), cat_features)
+        label_col = pd.Series(label_col, index=data.index)
+        df_aggregated = default_fill_na_per_column_type(data, cat_features)
+
         # Merging small categories into Other
         for col in cat_features:
             categories_to_mask = [k for k, v in df_aggregated[col].value_counts().items() if
@@ -56,14 +59,18 @@ class WeakSegmentAbstract(abc.ABC):
         # Target encoding of categorical features based on label col (when unavailable we use loss_per_sample)
         if len(cat_features) > 0:
             t_encoder = TargetEncoder(cols=cat_features)
-            label_as_int = pd.Categorical(data[label_name], categories=sorted(data[label_name].unique())).codes
+            if is_numeric_dtype(label_col):
+                label_as_int = label_col.astype('float64').fillna(label_col.mean())
+            else:
+                label_no_none = label_col.astype('object').fillna('None')
+                label_as_int = pd.Categorical(label_no_none, categories=sorted(label_no_none.unique())).codes
             df_encoded = t_encoder.fit_transform(df_aggregated, pd.Series(label_as_int, dtype=int, index=data.index))
             for col in cat_features:
                 values_mapping[col] = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()
         else:
             df_encoded = df_aggregated
         self.encoder_mapping = values_mapping
-        return Dataset(df_encoded, cat_features=cat_features, label=data[label_name])
+        return Dataset(df_encoded, cat_features=cat_features, label=label_col)
 
     def _create_heatmap_display(self, data: pd.DataFrame,
                                 weak_segments: pd.DataFrame, avg_score: float,

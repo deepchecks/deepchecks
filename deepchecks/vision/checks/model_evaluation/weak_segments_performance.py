@@ -135,15 +135,15 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Find the segments with the worst performance."""
         results_dict = self._properties_results
-        loss_per_sample_col = 'score'
-        results_dict[loss_per_sample_col] = self._sample_scores
         results_df = pd.DataFrame(results_dict)
+        loss_per_sample_col = pd.Series(self._sample_scores, index=results_df.index)
         properties_used = self.image_properties or default_image_properties
         cat_features = [p['name'] for p in properties_used if p['output_type'] == 'categorical']
 
         #  encoding categorical features based on the loss per sample (not smart but a way to gets the job done)
         encoded_dataset = self._target_encode_categorical_features_fill_na(results_df,
-                                                                           loss_per_sample_col, cat_features)
+                                                                           loss_per_sample_col,
+                                                                           cat_features)
 
         weak_segments = self._weak_segments_search(data=encoded_dataset.features_columns,
                                                    loss_per_sample=encoded_dataset.label_col,
@@ -152,7 +152,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
                                          'segments. Try increasing n_samples or supply additional properties.')
 
-        avg_score = round(results_df[loss_per_sample_col].mean(), 3)
+        avg_score = round(loss_per_sample_col.mean(), 3)
 
         if context.with_display:
             display = self._create_heatmap_display(data=encoded_dataset.features_columns, weak_segments=weak_segments,

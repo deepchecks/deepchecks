@@ -13,16 +13,13 @@
 import warnings
 from typing import Hashable, List, Optional, Union
 
-import pandas as pd
-
-from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.nlp import TextData
 from deepchecks.utils.dataframes import select_from_dataframe
 
 
 def get_relevant_data_table(text_data: TextData, data_type: str, columns: Union[Hashable, List[Hashable], None],
-                            ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int],
-                            add_label: bool = True):
+                            ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int]):
     """Get relevant data table from the database."""
     if data_type == 'metadata':
         features = select_from_dataframe(text_data.metadata, columns, ignore_columns)
@@ -34,11 +31,12 @@ def get_relevant_data_table(text_data: TextData, data_type: str, columns: Union[
     else:
         raise DeepchecksProcessError(f'Unknown segment_by value: {data_type}')
 
+    if features.shape[1] < 2:
+        raise DeepchecksNotSupportedError('Check requires to have at least two '
+                                          f'{data_type} columns in order to run.')
+
     if n_top_features is not None and n_top_features < features.shape[1]:
         _warn_n_top_columns(data_type, n_top_features)
-
-    if add_label:  # most commonly used for target encoding
-        features['label'] = pd.Series(text_data.label, index=features.index)
 
     return features, cat_features
 

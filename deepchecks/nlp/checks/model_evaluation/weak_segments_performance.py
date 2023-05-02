@@ -57,7 +57,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
         features, cat_features = get_relevant_data_table(text_data, data_type=self.segment_by,
                                                          columns=self.columns, ignore_columns=self.ignore_columns,
-                                                         n_top_features=self.n_top_features, add_label=True)
+                                                         n_top_features=self.n_top_features)
 
         predictions = context.model.predict(text_data)
 
@@ -73,10 +73,9 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
             loss_per_sample = [log_loss([y_true], [y_proba], labels=sorted(context.model_classes)) for y_true, y_proba
                                in zip(list(text_data.label), proba_values)]
 
-        if features.shape[1] < 2:
-            raise DeepchecksNotSupportedError('Check requires meta data to have at least two columns in order to run.')
 
-        encoded_dataset = self._target_encode_categorical_features_fill_na(features, 'label', cat_features)
+
+        encoded_dataset = self._target_encode_categorical_features_fill_na(features, text_data.label, cat_features)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),
                                   y_proba_test=proba_values, validate_data_on_predict=False)
         scorer = context.get_single_scorer(self.alternative_scorer)
@@ -99,7 +98,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
             display = []
 
         weak_segments = self._generate_check_value_display(weak_segments, cat_features)
-        display_msg = 'Showcasing intersections of metadata columns with weakest detected segments.<br> The full ' \
+        display_msg = f'Showcasing intersections of {self.segment_by} with weakest detected segments.<br> The full ' \
                       'list of weak segments can be observed in the check result value. '
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
                            display=[display_msg, DisplayMap(display)])
