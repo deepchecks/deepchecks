@@ -48,7 +48,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
              - :class:`~deepchecks.vision.checks.train_test_validation.ImagePropertyDrift`
            * - :ref:`vision__image_dataset_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.ImageDatasetDrift`
-           * - :ref:`nlp__property_label_correlation `
+           * - :ref:`vision__property_label_correlation `
              - :class:`~deepchecks.vision.checks.train_test_validation.PropertyLabelCorrelationChange`
 
     Parameters
