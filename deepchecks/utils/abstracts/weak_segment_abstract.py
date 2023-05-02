@@ -11,7 +11,7 @@
 """Module contains common methods for weak segment performance checks."""
 import abc
 from collections import defaultdict
-from typing import Dict, List, Optional, Tuple, Union, Callable, Any
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
