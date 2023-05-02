@@ -35,6 +35,7 @@ This section contain in-depth guides on different aspects and components of the 
     :caption: Usage Guides
 
     usage_guides/supported_tasks
+    usage_guides/text_data_object
 
 .. _nlp__checks_gallery:
 Checks Gallery
