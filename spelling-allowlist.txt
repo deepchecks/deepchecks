@@ -145,3 +145,6 @@ embeddings
 ONNX
 f1
 multiindex
+tokenizer
+nltk
+Tokenize
