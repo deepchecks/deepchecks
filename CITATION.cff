@@ -91,6 +91,7 @@ preferred-citation:
   year: 2022
   volume: 23
   number: 265
-  pages: "1-6"
+  start: 1
+  end: 6
   url: "http://jmlr.org/papers/v23/22-0281.html"
   
