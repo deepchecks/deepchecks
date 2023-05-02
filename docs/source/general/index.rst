@@ -1,4 +1,4 @@
-.. _general_index:
+.. _general__index:
 
 =======
 General
