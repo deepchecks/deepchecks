@@ -50,11 +50,13 @@ class WeakSegmentAbstract:
                                                     cat_features: List[str]) -> Dataset:
         values_mapping = defaultdict(list)  # mapping of per feature of original values to their encoded value
         df_aggregated = default_fill_na_per_column_type(data.drop(columns=label_name), cat_features)
+        # Merging small categories into Other
         for col in cat_features:
             categories_to_mask = [k for k, v in df_aggregated[col].value_counts().items() if
                                   v / data.shape[0] < self.categorical_aggregation_threshold]
             df_aggregated.loc[np.isin(df_aggregated[col], categories_to_mask), col] = 'Other'
 
+        # Target encoding of categorical features based on label col (when unavailable we use loss_per_sample)
         if len(cat_features) > 0:
             t_encoder = TargetEncoder(cols=cat_features)
             label_as_int = pd.Categorical(data[label_name], categories=sorted(data[label_name].unique())).codes
@@ -75,23 +77,26 @@ class WeakSegmentAbstract:
         display_tabs = {}
         scorer_name = scorer_name if scorer_name is not None else 'Average Loss' if scorer is None else scorer.name
         temp_col = 'temp_label_column'
-        if label_col is not None:
+        if label_col is not None:  # add label col to data for filtering purposes
             data[temp_col] = label_col
+
         idx = -1
         while len(display_tabs.keys()) < self.n_to_show and idx + 1 < len(weak_segments):
             idx += 1
             segment = weak_segments.iloc[idx, :]
             feature1 = data[segment['Feature1']]
 
+            # Bin the rest of the data into data segments based on the features used to create the weak segment
             if segment['Feature2'] != '':
                 feature2 = data[segment['Feature2']]
                 segments_f1 = partition_numeric_feature_around_segment(feature1, segment['Feature1 Range'])
                 segments_f2 = partition_numeric_feature_around_segment(feature2, segment['Feature2 Range'])
-            else:
+            else:  # if only one feature is used to create the weak segment
                 feature2 = pd.Series(np.ones(len(feature1)))
                 segments_f1 = partition_numeric_feature_around_segment(feature1, segment['Feature1 Range'], 7)
                 segments_f2 = [0, 2]
 
+            # Calculate the score for each of the bins defined above
             scores = np.empty((len(segments_f2) - 1, len(segments_f1) - 1), dtype=float)
             counts = np.empty((len(segments_f2) - 1, len(segments_f1) - 1), dtype=int)
             for f1_idx in range(len(segments_f1) - 1):
@@ -190,7 +195,16 @@ class WeakSegmentAbstract:
                            label_col: Optional[pd.Series] = None, dummy_model: Optional[_DummyModel] = None,
                            scorer: Optional[DeepcheckScorer] = None) -> \
             Tuple[Optional[float], Optional[DeepchecksFilter]]:
-        """Find weak segment based on scorer for specified features."""
+        """Find weak segment based on scorer for specified features.
+
+        In each iteration build a decision tree with a set of parameters with the goal of grouping samples with
+        similar loss_per_sample values together. Then, the generated tree is values based only on the quality of
+        the worst leaf in the tree (the rest are ignored). The worst leaf score is calculated by the scorer
+        if provided, otherwise by the average loss_per_sample value of the leaf.
+
+        After all the iterations are done, the tree with the best score (the one with the worst leaf) is selected, and
+        the worst leaf of it is extracted and returned as a deepchecks filter.
+        """
         if version.parse(sklearn.__version__) < version.parse('1.0.0'):
             criterion = ['mse', 'mae']
         else:
@@ -202,6 +216,7 @@ class WeakSegmentAbstract:
             'criterion': criterion
         }
 
+        # In a given tree finds the leaf with the worst score (the rest are ignored)
         def get_worst_leaf_filter(tree):
             leaves_filters = convert_tree_leaves_into_filters(tree, features_for_segment)
             min_score, min_score_leaf_filter = np.inf, None
@@ -209,7 +224,7 @@ class WeakSegmentAbstract:
                 if scorer is not None and dummy_model is not None and label_col is not None:
                     leaf_data, leaf_labels = leaf_filter.filter(data, label_col)
                     leaf_score = scorer.run_on_data_and_label(dummy_model, leaf_data, leaf_labels)
-                else:
+                else:  # if no scorer is provided, use the average loss_per_sample of samples in the leaf as the score
                     leaf_score = loss_per_sample[list(leaf_filter.filter(data).index)].mean()
 
                 if leaf_score < min_score:
@@ -229,6 +244,7 @@ class WeakSegmentAbstract:
                                      scoring=neg_worst_segment_score, param_grid=search_space, n_jobs=-1, cv=3)
         try:
             grid_searcher.fit(data[features_for_segment], loss_per_sample)
+            # Get the worst leaf filter out of the selected tree
             segment_score, segment_filter = get_worst_leaf_filter(grid_searcher.best_estimator_.tree_)
         except ValueError:
             return None, None
