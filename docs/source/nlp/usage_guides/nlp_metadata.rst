@@ -9,7 +9,7 @@ behavior. In contrast to unstructured text, metadata is structured, and is expec
 Metadata can be anything - from the source of the data, the timestamp of its creation, to the age of the author, and
 any other information that is given about the text.
 
-Not to be confused with :ref:`text properties <nlp_properties_guide>`, which are features extracted from the text
+Not to be confused with :ref:`text properties <nlp__properties_guide>`, which are features extracted from the text
 itself, such as text length or sentiment.
 
 What Is Metadata Used For?

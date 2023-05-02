@@ -113,5 +113,5 @@ for the larger objects, with objects of sizes of up to 32^2 squared pixels impro
 0.21 to 0.26.
 
 Of course, now that the VisionData object has been implemented you can use any of the other deepchecks check and suites.
-You can check them out in our :ref:`vision__checks_gallery`, and learn more about
+You can check them out in our :ref:`Check Gallery <vision__checks_gallery>`, and learn more about
 :ref:`when you should use <when_should_you_use_deepchecks>` each of our built-in suites.
