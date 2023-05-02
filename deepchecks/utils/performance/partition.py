@@ -11,7 +11,7 @@
 """Module of functions to partition columns into segments."""
 from collections import defaultdict
 from copy import deepcopy
-from typing import Callable, List
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -46,11 +46,18 @@ class DeepchecksFilter:
             self.filter_functions = filter_functions
         self.label = label
 
-    def filter(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+    def filter(self, dataframe: pd.DataFrame, label_col: Optional[pd.Series] = None) -> \
+            Union[Tuple[pd.DataFrame, pd.Series], pd.DataFrame]:
         """Run the filter on given dataframe. Return rows in data frame satisfying the filter properties."""
+        if label_col is not None:
+            dataframe['temp_label_col'] = label_col
         for func in self.filter_functions:
             dataframe = dataframe.loc[func(dataframe)]
-        return dataframe
+
+        if label_col is not None:
+            return dataframe.drop(columns=['temp_label_col']), dataframe['temp_label_col']
+        else:
+            return dataframe
 
 
 class DeepchecksBaseFilter(DeepchecksFilter):
