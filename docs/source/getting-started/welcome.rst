@@ -179,9 +179,12 @@ Get Help & Give Us Feedback
 
    In addition to perusing the documentation, feel free to:
 
-   - Ask questions on our `Slack Community <https://www.deepchecks.com/slack>`__,
+   - Ask questions on the `Slack Community <https://www.deepchecks.com/slack>`__,
    - Post an issue or start a discussion on `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__.
+   - To contribute to the package, check out the 
+     `Contribution Guidelines <https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst>`__ and join the 
+      `contributors-q-and-a Slack channel <https://deepcheckscommunity.slack.com/archives/C030REPARGR>`, 
+      or communicate with us via github issues.
 
    To support us, please give us a star ⭐️ on `Github <https://github.com/deepchecks/deepchecks>`__, it really means a lot for open source projects!
-
 
