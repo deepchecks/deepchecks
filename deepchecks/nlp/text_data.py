@@ -72,7 +72,7 @@ class TextData:
         The number of rows in the metadata DataFrame must be equal to the number of samples in the dataset, and the
         order of the rows must be the same as the order of the samples in the dataset.
         For more on metadata, see the `NLP Metadata Guide
-        <https://docs.deepchecks.com/en/stable/nlp/usage_guides/nlp_metadata.html>`_.
+        <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_metadata.html>`_.
     categorical_metadata : t.Optional[t.List[str]] , default: None
         The names of the categorical metadata columns. If None, categorical metadata columns are automatically inferred.
         Only relevant if metadata is not None.
@@ -85,7 +85,7 @@ class TextData:
         In order to calculate the default properties, use the `TextData.calculate_default_properties` function after
         the creation of the TextData object.
         For more on properties, see the `NLP Properties Guide
-        <https://docs.deepchecks.com/en//stable/nlp/usage_guides/nlp_properties.html>`_.
+        <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
     categorical_properties : t.Optional[t.List[str]] , default: None
         The names of the categorical properties columns. If None, categorical properties columns are automatically
         inferred. Only relevant if properties is not None.

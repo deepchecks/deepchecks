@@ -111,7 +111,7 @@ details about the existing checks and the parameters they can receive
 can be found in our `API Reference`_.
 
 .. _API Reference:
-   https://docs.deepchecks.com/en/stable/
+   https://docs.deepchecks.com/stable/
    api/index.html?
    utm_source=github.com&utm_medium=referral&
    utm_campaign=readme&utm_content=running_a_check
@@ -120,7 +120,7 @@ Model Evaluation Checks
 ------------------------
 
 Evaluation checks help you to validate your model's performance.
-See all evaluation checks `here <https://docs.deepchecks.com/en/stable/api/generated/deepchecks.vision.checks.model_evaluation.html
+See all evaluation checks `here <https://docs.deepchecks.com/stable/api/generated/deepchecks.vision.checks.model_evaluation.html
 ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`_.
 Example for a model evaluation check calculating mAP:
 
@@ -143,7 +143,7 @@ Example for a model evaluation check calculating mAP:
       <h4>Mean Average Precision Report</h4>
       <p>Summarize mean average precision metrics on a dataset
       and model per IoU and area range.</p>
-      <a href="https://docs.deepchecks.com/en/stable/checks_gallery/vision/model_evaluation/plot_mean_average_precision_report.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation" target="_blank">
+      <a href="https://docs.deepchecks.com/stable/vision/auto_checks/model_evaluation/plot_mean_average_precision_report.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation" target="_blank">
       Read More...</a>
       <h5>Additional Outputs</h5>
       <table id="T_908a2_">
@@ -197,7 +197,7 @@ Property Distribution Checks
 
 Image Properties are one-dimension values that are extracted from either the images, labels or predictions. For example, an
 image property is **brightness**, and a label property is **bounding box area** (for detection tasks).
-Deepchecks includes `built-in properties <https://docs.deepchecks.com/en/stable/user-guide/vision/vision_properties.html#deepchecks-built-in-properties \
+Deepchecks includes `built-in properties <https://docs.deepchecks.com/stable/vision/usage_guides/vision_properties.html#deepchecks-built-in-properties \
 ?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation>`_ and supports implementing your own
 properties.
 
@@ -220,7 +220,7 @@ Example of a property distribution check and its output:
       <h4>Image Property Outliers</h4>
          <p>
             Find outliers images with respect to the given properties.
-            <a href="https://docs.deepchecks.com/en/stable/checks_gallery/vision/data_integrity/plot_image_property_outliers.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation" target="_blank">Read More...</a>
+            <a href="https://docs.deepchecks.com/stable/vision/auto_checks/data_integrity/plot_image_property_outliers.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=documentation" target="_blank">Read More...</a>
          </p>
          <h5>Additional Outputs</h5>
       <h3><b>Property "Brightness"</b></h3>

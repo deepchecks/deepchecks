@@ -28,7 +28,7 @@ from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['PropertyLabelCorrelation']
 
-pps_url = 'https://docs.deepchecks.com/en/stable/vision/checks_gallery/' \
+pps_url = 'https://docs.deepchecks.com/stable/vision/auto_checks/' \
           'data_integrity/plot_property_label_correlation.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 

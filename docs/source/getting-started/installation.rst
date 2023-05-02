@@ -67,8 +67,8 @@ Deepchecks For NLP
 ==================
 
 .. note:: 
-   Deepchecks' NLP subpackage is in **beta** release, and is available from PyPi,
-   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are
+   Deepchecks' NLP subpackage is in **beta** release, and is available from PyPI,
+   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__ are
    highly encouraged for feature requests and bug reports.
 
 Installation of deepchecks for NLP should be stated explicitly and it includes
@@ -88,8 +88,8 @@ Deepchecks For Computer Vision
 ===============================
 
 .. note::
-   Deepchecks' Computer Vision subpackage is in **beta** release, and is available from PyPi,
-   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are
+   Deepchecks' Computer Vision subpackage is in **beta** release, and is available from PyPI,
+   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__ are
    highly encouraged for feature requests and bug reports.
 
 Installation of deepchecks for CV should be stated explicitly and it includes

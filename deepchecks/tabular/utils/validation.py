@@ -26,7 +26,7 @@ __all__ = [
     'ensure_predictions_proba',
 ]
 
-supported_models_link = ('https://docs.deepchecks.com/en/stable/tabular/usage_guides/supported_models.html'
+supported_models_link = ('https://docs.deepchecks.com/stable/tabular/usage_guides/supported_models.html'
                          '?utm_source=display_output&utm_medium=referral&utm_campaign=exception_link')
 supported_models_html = f'<a href="{supported_models_link}" target="_blank">supported model types</a>'
 

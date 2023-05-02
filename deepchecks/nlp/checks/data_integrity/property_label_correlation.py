@@ -27,7 +27,7 @@ __all__ = ['PropertyLabelCorrelation']
 
 PLC = t.TypeVar('PLC', bound='PropertyLabelCorrelation')
 
-pps_url = 'https://docs.deepchecks.com/en/stable/tabular/checks_gallery/' \
+pps_url = 'https://docs.deepchecks.com/stable/tabular/auto_checks/' \
           'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 

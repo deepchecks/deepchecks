@@ -196,7 +196,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         extra_info = self.prepare_extra_info()
 
         suite_creation_example_link = (
-            'https://docs.deepchecks.com/en/stable/general/usage/customizations/'
+            'https://docs.deepchecks.com/stable/general/usage/customizations/'
             'auto_examples/plot_create_a_custom_suite.html'
             '?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link'
         )
