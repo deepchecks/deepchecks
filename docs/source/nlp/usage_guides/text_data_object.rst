@@ -4,8 +4,8 @@
 The TextData Object
 ===================
 
-The ``TextData`` is a container for your textual data, labels, and relevant metadata for NLP tasks and is a basic
-building block in the ``deepchecks.nlp`` subpackage.
+The :class:`TextData <deepchecks.nlp.text_data.TextData>` is a container for your textual data, labels, and relevant
+metadata for NLP tasks and is a basic building block in the ``deepchecks.nlp`` subpackage.
 In order to use any functionality of the ``deepchecks.nlp`` subpackage, you need to first create a ``TextData`` object.
 The ``TextData`` object enables easy access to metadata, embeddings and properties relevant for training and validating ML
 models.
@@ -51,18 +51,17 @@ as many checks require the dataset labels in order to run.
 Tokenized Text
 ----------------
 
-If you have tokenized text, you can also create a TextData object from it:
+If you have tokenized text, you can also create a TextData object from it rather than using the ``raw_text`` argument:
 
->>> tokenized_text = [["This", "is", "an", "example."], ["Another", "example", "here."]]
+>>> # A tokenized example with named entities and locations
+>>> tokenized_text = [["Dan", "lives", "in", "New", "York", "."], ["He", "works", "at", "Google", "."]]
+>>> labels = [["B-PER", "O", "O", "B-LOC", "I-LOC", "O"], ["O", "O", "O", "B-ORG", "O"]]
 >>> text_data = TextData(tokenized_text=tokenized_text, label=labels, task_type=task_type)
 
 If you're running deepchecks on a token classification task it is recommended to use that argument instead of the
 ``raw_text`` argument. If you did pass ``raw_text`` to the constructor,
-deepchecks will break the text into tokens for you, using ``.split()`` to split the text into tokens.
-
-- **tokenized_text** - The tokenized text data, a sequence of sequences of strings representing the tokenized text
-  of each sample. Serves as an alternative for the raw text data, and is the recommended way to input your text
-  for token classification tasks.
+deepchecks will break the text into tokens for you, using the default python ``str.split()`` method to split the text
+into tokens.
 
 Useful Functions
 ===================
