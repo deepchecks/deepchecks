@@ -4,10 +4,10 @@
 The TextData Object
 ===================
 
-The ``TextData`` is a container for the your text data, labels, and relevant metadata for NLP tasks and is a basic
-building block in the deepchecks.nlp subpackage.
-In order to use any of the deepchecks.nlp subpackage functionality, you need to create a ``TextData`` object first.
-The TextData object enables easy access to metadata, embeddings and properties relevant for training and validating ML
+The ``TextData`` is a container for your textual data, labels, and relevant metadata for NLP tasks and is a basic
+building block in the ``deepchecks.nlp`` subpackage.
+In order to use any functionality of the ``deepchecks.nlp`` subpackage, you need to first create a ``TextData`` object.
+The ``TextData`` object enables easy access to metadata, embeddings and properties relevant for training and validating ML
 models.
 
 Class Properties
@@ -17,7 +17,7 @@ The main properties are:
 
 - **raw_text** - The raw text data, a list of strings representing the raw text of each sample. Each sample can be a
   sentence, paragraph, or a document, depending on the task.
-- **label** - The labels for the text data.
+- **label** - The labels for the text data samples.
 - **task_type** - The task type, see the :ref:`Supported Tasks Guide <nlp__supported_tasks>` for more information.
 
 TextData API Reference
@@ -34,7 +34,7 @@ Creating a TextData
 =======================
 
 The default ``TextData`` constructor expects to get a sequence of raw text strings or tokenized text.
-The rest of the arguments are optional, but if your data has labels you would want to define them,
+The rest of the arguments are optional, but if you have labels for your data you would want to define them in the constructor,
 as many checks require the dataset labels in order to run.
 
 .. admonition:: Defining task_type
@@ -56,7 +56,7 @@ If you have tokenized text, you can also create a TextData object from it:
 >>> tokenized_text = [["This", "is", "an", "example."], ["Another", "example", "here."]]
 >>> text_data = TextData(tokenized_text=tokenized_text, label=labels, task_type=task_type)
 
-If you're running deepchecks on a token classification task  is is recommended to use that argument instead of the
+If you're running deepchecks on a token classification task it is recommended to use that argument instead of the
 ``raw_text`` argument. If you did pass ``raw_text`` to the constructor,
 deepchecks will break the text into tokens for you, using ``.split()`` to split the text into tokens.
 
