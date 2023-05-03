@@ -100,8 +100,8 @@ integ_suite.run(ds_train)
 # ======================
 # If you want to run a specific check, you can just import it and run it directly.
 #
-# Check out the :ref:`tabular__checks_gallery` in
-# the examples or the :doc:`API Reference </api/index>` for more info about the
+# Check out the :ref:`Check Gallery <tabular__checks_gallery>` or the
+# :doc:`API Reference </api/index>` for more info about the
 # existing checks and their parameters.
 
 from deepchecks.tabular.checks import LabelDrift
