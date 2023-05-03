@@ -35,6 +35,7 @@ This section contain in-depth guides on different aspects and components of the 
     :maxdepth: 0
     :caption: Usage Guides
 
+    usage_guides/text_data_object
     usage_guides/supported_tasks
     usage_guides/nlp_properties
     usage_guides/nlp_metadata
