@@ -10,7 +10,7 @@
 #
 """Module for base nlp suite."""
 # pylint: disable=broad-except
-from typing import Optional, Tuple, Union, List
+from typing import List, Optional, Tuple, Union
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
