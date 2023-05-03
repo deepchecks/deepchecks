@@ -73,8 +73,6 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
             loss_per_sample = [log_loss([y_true], [y_proba], labels=sorted(context.model_classes)) for y_true, y_proba
                                in zip(list(text_data.label), proba_values)]
 
-
-
         encoded_dataset = self._target_encode_categorical_features_fill_na(features, text_data.label, cat_features)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(predictions),
                                   y_proba_test=proba_values, validate_data_on_predict=False)
