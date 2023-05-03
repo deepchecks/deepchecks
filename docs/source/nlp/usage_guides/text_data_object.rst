@@ -4,7 +4,7 @@
 The TextData Object
 ===================
 
-The :class:`TextData <deepchecks.nlp.text_data.TextData>` is a container for your textual data, labels, and relevant
+The :class:`TextData <deepchecks.nlp.TextData>` is a container for your textual data, labels, and relevant
 metadata for NLP tasks and is a basic building block in the ``deepchecks.nlp`` subpackage.
 In order to use any functionality of the ``deepchecks.nlp`` subpackage, you need to first create a ``TextData`` object.
 The ``TextData`` object enables easy access to metadata, embeddings and properties relevant for training and validating ML
