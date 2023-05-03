@@ -64,7 +64,7 @@ def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
         equal_condition_result(
             is_pass=False,
             name='The relative performance of weakest segment is greater than 80% of average model performance.',
-            details='Found a segment with Accuracy score of 0.333 in comparison to an average score of 0.92 in sampled '
+            details='Found a segment with accuracy score of 0.333 in comparison to an average score of 0.92 in sampled '
                     'data.')
     ))
     assert_that(segments, has_length(5))
@@ -73,19 +73,37 @@ def test_segment_performance_iris_with_condition(iris_split_dataset_and_model):
     assert_that(segments.iloc[0, 1], equal_to('petal width (cm)'))
 
 
-def test_segment_performance_iris_with_arguments(iris_split_dataset_and_model):
+def test_segment_performance_iris_score_per_sample(iris_split_dataset_and_model):
     # Arrange
     _, val, model = iris_split_dataset_and_model
-    loss_per_sample = pd.Series(np.arange(0, 1, 1/val.n_samples, dtype=float), index=val.data.index)
-    scorer = {'f1_score': make_scorer(f1_score, average='micro')}
+
+    score_per_sample = list(range(int(np.floor(val.n_samples / 2)))) + [1] * int(np.ceil(val.n_samples / 2))
+    score_per_sample = pd.Series(score_per_sample, index=val.data.index)
 
     # Act
-    result = WeakSegmentsPerformance(loss_per_sample=loss_per_sample, alternative_scorer=scorer).run(val, model)
+    result = WeakSegmentsPerformance(score_per_sample=score_per_sample).run(val, model)
     segments = result.value['weak_segments_list']
 
     # Assert
     assert_that(segments, any_of(has_length(5), has_length(6)))
-    assert_that(segments.iloc[0, 0], close_to(0.4, 0.01))
+    assert_that(segments.iloc[0, 0], close_to(1, 0.01))
+    assert_that(segments.columns[0], equal_to('Average Score Per Sample'))
+
+
+def test_segment_performance_iris_alternative_scorer(iris_split_dataset_and_model):
+    # Arrange
+    _, val, model = iris_split_dataset_and_model
+    scorer = {'F1': make_scorer(f1_score, average='micro')}
+
+    # Act
+    result = WeakSegmentsPerformance(alternative_scorer=scorer).run(val, model)
+    segments = result.value['weak_segments_list']
+
+    # Assert
+    assert_that(segments.columns[0], equal_to('F1 Score'))
+    assert_that(segments, any_of(has_length(5), has_length(6)))
+    assert_that(segments.iloc[0, 0], close_to(0.33, 0.01))
+
 
 
 def test_regression_categorical_features_avocado(avocado_split_dataset_and_model, set_numpy_seed):
@@ -112,7 +130,7 @@ def test_classes_do_not_match_proba(kiss_dataset_and_model):
     assert_that(calling(check.run).with_args(val, model, model_classes=[1, 2, 3, 4, 5, 6, 7]),
                 raises(DeepchecksValueError,
                        r'Predicted probabilities shape \(2, 3\) does not match the number of classes found in the '
-                       r'labels \[1, 2, 3, 4, 5, 6, 7\]\.'))
+                       r'labels: \[1, 2, 3, 4, 5, 6, 7\]\.'))
 
 
 def test_categorical_feat_target(adult_split_dataset_and_model):

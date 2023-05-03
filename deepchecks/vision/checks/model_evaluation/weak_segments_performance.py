@@ -10,15 +10,16 @@
 #
 """Module of weak segments performance check."""
 from collections import defaultdict
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
+import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
-from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
+from deepchecks.utils.single_sample_metrics import calculate_neg_cross_entropy_per_sample
 from deepchecks.vision._shared_docs import docstrings
 from deepchecks.vision.base_checks import SingleDatasetCheck
 from deepchecks.vision.context import Context
@@ -46,11 +47,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
     Parameters
     ----------
-    scorer: Optional[Callable], default: None
-        a scorer (metric) to override the default scorer, callable that accepts (predictions, labels) and returns the
-        score per sample.
-    scorer_name: Optional[str], default: None
-        The scorer name to display in the plots.
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -60,32 +56,26 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image properties, see the guide about :ref:`vision_properties_guide`.
-    number_of_bins: int, default : 5
-        Maximum number of bins to segment a single property into.
-    number_of_samples_to_infer_bins : int, default : 1000
-        Minimum number of samples to use to infer the bounds of the segments' bins
-    n_top_properties: int , default: 10
-        Number of features to use for segment search. Top columns are selected based on feature importance.
-    n_to_show: int , default: 3
-        number of segments with the weakest performance to show.
+        For more on image properties, see the guide about :ref:`vision__properties_guide`.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
+    n_samples : Optional[int] , default: 10_000
+        number of samples to use for this check.
+    n_to_show : int , default: 3
+        number of segments with the weakest performance to show.
+    categorical_aggregation_threshold : float , default: 0.05
+        For each categorical property, categories with frequency below threshold will be merged into "Other" category.
     {additional_check_init_params:2*indent}
     """
 
     def __init__(
             self,
-            scorer: Optional[Callable] = None,
-            scorer_name: Optional[str] = None,
             image_properties: List[Dict[str, Any]] = None,
-            number_of_bins: int = 5,
-            number_of_samples_to_infer_bins: int = 1000,
-            n_top_properties: int = 10,
             n_to_show: int = 3,
             segment_minimum_size_ratio: float = 0.05,
             n_samples: Optional[int] = 10000,
+            categorical_aggregation_threshold: float = 0.05,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -93,34 +83,25 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             raise DeepchecksNotSupportedError('Check requires at least two image properties in order to run.')
         self.image_properties = image_properties
         self.n_samples = n_samples
-        self.n_top_features = n_top_properties
-        self.scorer = scorer
-        self.scorer_name = scorer_name
-        self.number_of_bins = number_of_bins
-        self.number_of_samples_to_infer_bins = number_of_samples_to_infer_bins
         self.n_to_show = n_to_show
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
+        self.categorical_aggregation_threshold = categorical_aggregation_threshold
         self._properties_results = None
         self._sample_scores = None
+        self._scorer_name = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties and sample scores states."""
         task_type = context.get_data_by_kind(dataset_kind).task_type
-        if self.scorer is None:
-            if task_type == TaskType.CLASSIFICATION:
-                def scoring_func(predictions, labels):
-                    return per_sample_cross_entropy(labels, predictions)
+        if task_type == TaskType.CLASSIFICATION:
+            self._scorer_name = 'Cross Entropy'
+        elif task_type == TaskType.OBJECT_DETECTION:
+            self._scorer_name = 'Mean IoU'
+        elif task_type == TaskType.SEMANTIC_SEGMENTATION:
+            self._scorer_name = 'Dice'
+        else:
+            raise DeepchecksValueError(f'Default scorer is not defined for task type {task_type}.')
 
-                self.scorer = scoring_func
-                self.scorer_name = 'cross entropy'
-            elif task_type == TaskType.OBJECT_DETECTION:
-                self.scorer = per_sample_mean_iou
-                self.scorer_name = 'mean IoU'
-            elif task_type == TaskType.SEMANTIC_SEGMENTATION:
-                self.scorer = per_sample_dice
-                self.scorer_name = 'Dice score'
-            else:
-                raise DeepchecksValueError(f'Default scorer is not defined for task type {task_type}.')
         self._properties_results = defaultdict(list)
         self._sample_scores = []
 
@@ -130,40 +111,45 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         for prop_name, prop_value in properties_results.items():
             self._properties_results[prop_name].extend(prop_value)
 
-        self._sample_scores.extend(self.scorer(batch.numpy_predictions, batch.numpy_labels))
+        if self._scorer_name == 'Cross Entropy':
+            batch_per_sample_score = calculate_neg_cross_entropy_per_sample(np.asarray(batch.numpy_labels),
+                                                                            np.asarray(batch.numpy_predictions))
+        elif self._scorer_name == 'Mean IoU':
+            batch_per_sample_score = per_sample_mean_iou(batch.numpy_predictions, batch.numpy_labels)
+        elif self._scorer_name == 'Dice':
+            batch_per_sample_score = per_sample_dice(batch.numpy_predictions, batch.numpy_labels)
+
+        self._sample_scores.extend(list(batch_per_sample_score))
 
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Find the segments with the worst performance."""
-        results_dict = self._properties_results
-        results_df = pd.DataFrame(results_dict)
-        loss_per_sample_col = pd.Series(self._sample_scores, index=results_df.index)
+        results_df = pd.DataFrame(self._properties_results)
+        score_per_sample_col = pd.Series(self._sample_scores, index=results_df.index)
         properties_used = self.image_properties or default_image_properties
         cat_features = [p['name'] for p in properties_used if p['output_type'] == 'categorical']
 
-        #  encoding categorical features based on the loss per sample (not smart but a way to gets the job done)
+        # Encoding categorical properties based on the loss per sample (not smart but a way to gets the job done)
         encoded_dataset = self._target_encode_categorical_features_fill_na(results_df,
-                                                                           loss_per_sample_col,
+                                                                           score_per_sample_col,
                                                                            cat_features)
 
         weak_segments = self._weak_segments_search(data=encoded_dataset.features_columns,
-                                                   loss_per_sample=encoded_dataset.label_col,
-                                                   scorer_name=self.scorer_name)
+                                                   score_per_sample=score_per_sample_col,
+                                                   scorer_name=self._scorer_name)
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
                                          'segments. Try increasing n_samples or supply additional properties.')
-
-        avg_score = round(loss_per_sample_col.mean(), 3)
+        avg_score = round(score_per_sample_col.mean(), 3)
 
         if context.with_display:
             display = self._create_heatmap_display(data=encoded_dataset.features_columns, weak_segments=weak_segments,
-                                                   avg_score=avg_score, loss_per_sample=encoded_dataset.label_col,
-                                                   scorer_name=self.scorer_name)
+                                                   avg_score=avg_score, score_per_sample=score_per_sample_col,
+                                                   scorer_name=self._scorer_name)
         else:
             display = []
 
-        weak_segments = self._generate_check_value_display(weak_segments, cat_features)
+        check_result_value = self._generate_check_result_value(weak_segments, cat_features, avg_score)
         display_msg = 'Showcasing intersections of properties with weakest detected segments.<br> The full list of ' \
                       'weak segments can be observed in the check result value. '
-        return CheckResult(
-            {'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': self.scorer_name},
-            display=[display_msg, DisplayMap(display)])
+        return CheckResult(value=check_result_value,
+                           display=[display_msg, DisplayMap(display)])

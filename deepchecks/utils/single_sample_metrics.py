@@ -9,84 +9,37 @@
 # ----------------------------------------------------------------------------
 #
 """Common metrics to calculate performance on single samples."""
-from typing import Union
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-from sklearn import metrics
-from sklearn.preprocessing import LabelBinarizer
 
-from deepchecks.tabular import Dataset
-from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.core.errors import DeepchecksValueError
 
 
-def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,
-                              classes_index_order: Union[np.array, pd.Series]) -> pd.Series:
-    """Calculate error per sample for a given model and a dataset."""
-    if task_type == TaskType.REGRESSION:
-        return pd.Series([metrics.mean_squared_error([y], [y_pred]) for y, y_pred in
-                          zip(model.predict(dataset.features_columns), dataset.label_col)], index=dataset.data.index)
-    else:
-        proba = model.predict_proba(dataset.features_columns)
-        return pd.Series([metrics.log_loss([y], [y_proba], labels=classes_index_order) for
-                          y_proba, y in zip(proba, dataset.label_col)], index=dataset.data.index)
+def calculate_neg_mse_per_sample(labels, predictions, index=None) -> pd.Series:
+    """Calculate negative mean squared error per sample."""
+    if index is None and isinstance(labels, pd.Series):
+        index = labels.index
+    return pd.Series([-(y - y_pred) ** 2 for y, y_pred in zip(labels, predictions)], index=index)
 
 
-def per_sample_cross_entropy(y_true: np.array, y_pred: np.array, eps=1e-15):
-    """Calculate cross entropy on a single sample.
+def calculate_neg_cross_entropy_per_sample(labels, probas: np.ndarray, model_classes: Optional[List] = None,
+                                           index=None, eps=1e-15) -> pd.Series:
+    """Calculate negative cross entropy per sample."""
+    if index is None and isinstance(labels, pd.Series):
+        index = labels.index
 
-    This code is based on the code for sklearn log_loss metric, without the averaging over all samples. Licence below:
-    BSD 3-Clause License
+    # transform categorical labels into integers
+    if model_classes is not None:
+        if probas.shape[1] != len(model_classes):
+            raise DeepchecksValueError(
+                f'Predicted probabilities shape {probas.shape} does not match the number of classes found in'
+                f' the labels: {model_classes}.')
+        labels = pd.Series(labels).apply(list(model_classes).index)
 
-    Copyright (c) 2007-2021 The scikit-learn developers.
-    All rights reserved.
+    num_samples, num_classes = probas.shape
+    one_hot_labels = np.zeros((num_samples, num_classes))
+    one_hot_labels[list(np.arange(num_samples)), list(labels)] = 1
 
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice, this
-      list of conditions and the following disclaimer.
-
-    * Redistributions in binary form must reproduce the above copyright notice,
-      this list of conditions and the following disclaimer in the documentation
-      and/or other materials provided with the distribution.
-
-    * Neither the name of the copyright holder nor the names of its
-      contributors may be used to endorse or promote products derived from
-      this software without specific prior written permission.
-
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-    FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-    DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-    SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-    CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-    OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-    """
-    y_true, y_pred = np.array(y_true), np.array(y_pred)
-
-    # Make y_true into one-hot
-    # We assume that the integers in y_true correspond to the columns in y_pred, such that if y_true[i] = k, then
-    # the corresponding predicted probability would be y_pred[i, k]
-    lb = LabelBinarizer()
-    lb.fit(list(range(y_pred.shape[1])))
-    transformed_labels = lb.transform(y_true)
-
-    if transformed_labels.shape[1] == 1:
-        transformed_labels = np.append(
-            1 - transformed_labels, transformed_labels, axis=1
-        )
-
-    # clip and renormalization y_pred
-    y_pred = y_pred.astype('float').clip(eps, 1 - eps)
-    y_pred /= y_pred.sum(axis=1)[:, np.newaxis]
-
-    return -(transformed_labels * np.log(y_pred)).sum(axis=1)
-
-
-def per_sample_mse(y_true, y_pred):
-    """Calculate mean square error on a single value."""
-    return (y_true - y_pred) ** 2
+    return pd.Series(np.sum(one_hot_labels * np.log(probas + eps), axis=1), index=index)

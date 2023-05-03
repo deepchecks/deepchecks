@@ -13,6 +13,8 @@
 import warnings
 from typing import Hashable, List, Optional, Union
 
+import numpy as np
+
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.nlp import TextData
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -37,6 +39,7 @@ def get_relevant_data_table(text_data: TextData, data_type: str, columns: Union[
 
     if n_top_features is not None and n_top_features < features.shape[1]:
         _warn_n_top_columns(data_type, n_top_features)
+        features = features.iloc[:, np.random.choice(features.shape[1], n_top_features)]
 
     return features, cat_features
 
@@ -54,7 +57,7 @@ def _warn_n_top_columns(data_type: str, n_top_features: int):
 
     warnings.warn(
         f'Parameter {n_top_columns_parameter} is set to {n_top_features} to avoid long computation time. '
-        f'This means that the check will run on the first {n_top_features} {features_name}. '
+        f'This means that the check will run on {n_top_features} {features_name} selected at random. '
         f'If you want to run on all {features_name}, set {n_top_columns_parameter} to None. '
         f'Alternatively, you can set parameter {columns_parameter} to a list of the specific {features_name} '
         f'you want to run on.', UserWarning)
