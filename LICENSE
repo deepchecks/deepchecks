@@ -19,7 +19,8 @@ also found at <https://www.gnu.org/licenses/>.
 Additional permission under GNU AGPL version 3 section 7
 
   If you modify this Program, or any covered work, by linking or combining it 
-with the sub-library in the Deepchecks Monitoring “**/ee/” sub-directory (or 
+with the sub-library in the Deepchecks Monitoring
+(https://github.com/deepchecks/monitoring) “**/ee/” sub-directory (or 
 a modified version of that library), covered by the Terms & Conditions of the 
 Deepchecks Monitoring sub-library in the “**/ee/” sub-directory, found at 
 https://deepchecks.com/terms-and-conditions (the "Commercial License"), 
