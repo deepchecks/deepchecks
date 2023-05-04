@@ -10,6 +10,7 @@
 #
 """Module contains the Unknown Tokens check."""
 import typing as t
+import warnings
 from collections import Counter
 
 import nltk
@@ -113,9 +114,11 @@ class UnknownTokens(SingleDatasetCheck):
     def find_unknown_words(self, samples, indices):
         """Find words with unknown tokens in samples."""
         # Choose tokenizer based on availability of nltk
-        if nltk.download('punkt'):
+        if nltk.download('punkt', quiet=True):
             tokenize = nltk.word_tokenize
         else:
+            warnings.warn('nltk punkt is not available, using str.split instead to identify individual words. '
+                          'Please check your internet connection.')
             tokenize = str.split
 
         # Tokenize samples and count unknown words
