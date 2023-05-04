@@ -36,7 +36,7 @@ from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.core.suite import BaseSuite, SuiteResult
 from deepchecks.tabular import Dataset
-from deepchecks.tabular.datasets.classification import adult
+from deepchecks.tabular.datasets.classification import adult, phishing
 from deepchecks.tabular.datasets.regression import avocado
 from deepchecks.utils.logger import set_verbosity
 
@@ -253,6 +253,7 @@ def iris_dataset_no_label(iris):
     iris = iris.drop('target', axis=1)
     return Dataset(iris)
 
+
 @pytest.fixture(scope='session')
 def iris_dataset_single_class_labeled(iris):
     """Return Iris dataset modified to a binary label as Dataset object."""
@@ -267,6 +268,14 @@ def adult_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
     """Return Adult train and val datasets and trained RandomForestClassifier model."""
     train_ds, test_ds = adult.load_data(as_train_test=True)
     model = adult.load_fitted_model()
+    return train_ds, test_ds, model
+
+
+@pytest.fixture(scope='session')
+def phishing_split_dataset_and_model() -> Tuple[Dataset, Dataset, Pipeline]:
+    """Return Phishing train and val datasets and trained RandomForestClassifier model."""
+    train_ds, test_ds = phishing.load_data(as_train_test=True)
+    model = phishing.load_fitted_model()
     return train_ds, test_ds, model
 
 
@@ -497,6 +506,7 @@ def drifted_regression_label() -> Tuple[Dataset, Dataset]:
 
     return train_ds, test_ds
 
+
 @pytest.fixture(scope='session')
 def adult_no_split():
     ds = adult.load_data(as_train_test=False)
@@ -514,6 +524,7 @@ def df_with_mixed_datatypes_and_missing_values():
         'target': [0, 1, 0, 1, 0]
     }, index=['a', 'b', 'c', 'd', 'e'])
     return df
+
 
 @pytest.fixture(scope='session')
 def missing_test_classes_binary_dataset_and_model():
