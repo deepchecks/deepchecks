@@ -156,11 +156,11 @@ def test_properties(text_classification_dataset_mock):
     dataset.calculate_default_properties(ignore_properties=['topic'] + LONG_RUN_PROPERTIES)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
-    assert_that(properties.shape[1], equal_to(8))
+    assert_that(properties.shape[1], equal_to(7))
     assert_that(properties.columns,
                 contains_exactly('Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters',
-                                 'Sentiment', 'Subjectivity', 'Lexical Density', 'Unique Noun Count'))
-    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 0.0, 0.0, 80.0, 0.0 ))
+                                 'Sentiment', 'Subjectivity', 'Lexical Density'))
+    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 0.0, 0.0, 80.0 ))
 
 
 def test_set_metadata(text_classification_dataset_mock):
