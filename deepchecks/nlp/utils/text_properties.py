@@ -14,11 +14,11 @@ import pathlib
 import string
 import warnings
 from typing import Dict, List, Optional, Sequence, Tuple
-from nltk import download as nltk_download
 
 import numpy as np
 import pandas as pd
 import textblob
+from nltk import download as nltk_download
 
 from deepchecks.utils.function import run_available_kwargs
 
