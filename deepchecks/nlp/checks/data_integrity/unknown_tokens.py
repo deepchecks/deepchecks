@@ -15,10 +15,9 @@ from collections import Counter
 
 import nltk
 import plotly.graph_objects as go
-from transformers import BertTokenizer
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
@@ -62,19 +61,30 @@ class UnknownTokens(SingleDatasetCheck):
     ):
         super().__init__(**kwargs)
         self.tokenizer = tokenizer
-        if self.tokenizer is None:
+        if tokenizer is None:
+            try:
+                from transformers import BertTokenizer  # pylint: disable=W0611,C0415 # noqa
+            except ImportError:
+                DeepchecksProcessError(
+                    'Tokenizer was not provided. In order to use checks default tokenizer (BertTokenizer),'
+                    'please pip install transformers>=4.27.4. ')
             self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        else:
+            self._validate_tokenizer()
+        self.group_singleton_words = group_singleton_words
+        self.n_most_common = n_most_common
+        self.n_samples = n_samples
+        self.random_state = random_state
+        self.max_text_length_for_display = max_text_length_for_display
+
+    def _validate_tokenizer(self):
+        # TODO: add ability to pass spacy and nltk tokenizers
         if not hasattr(self.tokenizer, 'tokenize'):
             raise DeepchecksValueError('tokenizer must have a "tokenize" method')
         if not hasattr(self.tokenizer, 'unk_token_id'):
             raise DeepchecksValueError('tokenizer must have an "unk_token_id" attribute')
         if not hasattr(self.tokenizer, 'convert_tokens_to_ids'):
             raise DeepchecksValueError('tokenizer must have an "convert_tokens_to_ids" method')
-        self.group_singleton_words = group_singleton_words
-        self.n_most_common = n_most_common
-        self.n_samples = n_samples
-        self.random_state = random_state
-        self.max_text_length_for_display = max_text_length_for_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
