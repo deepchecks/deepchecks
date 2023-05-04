@@ -471,23 +471,6 @@ class Context(BaseContext):
             )
         return True
 
-    @staticmethod
-    def assert_metadata(text_data):
-        """Assert that metadata exists."""
-        if text_data.metadata is None:
-            raise DeepchecksNotSupportedError(
-                'Check requires metadata, but the the TextData object had none. To use this check, use the '
-                'set_metadata method to set your own metadata with a pandas.DataFrame.')
-
-    @staticmethod
-    def assert_properties(text_data):
-        """Assert that properties exists."""
-        if text_data.properties is None:
-            raise DeepchecksNotSupportedError(
-                'Check requires properties, but the the TextData object had none. To use this check, use the'
-                'set_properties method to set your own properties with a pandas.DataFrame or use '
-                'TextData.calculate_default_properties to add the default deepchecks properties.')
-
     def raise_if_token_classification_task(self, check=None):
         """Raise an exception if it is a token classification task."""
         check_name = type(check).__name__ if check else 'Check'

@@ -30,7 +30,7 @@ from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['PropertyLabelCorrelationChange']
 
-pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
+pps_url = 'https://docs.deepchecks.com/stable/vision/auto_checks/' \
           'train_test_validation/plot_feature_label_correlation_change.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
