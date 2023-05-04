@@ -113,14 +113,14 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
         dataset = dataset.sample(self.n_samples, random_state=self.random_state).drop_na_labels()
-        dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
+        dataset_subset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         if len(dataset.features) < 2:
             raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
 
         # Decide which scorer and score_per_sample to use in the algorithm run
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset.features_columns,
+        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset_subset.features_columns,
                                                                            dataset.label_col,
-                                                                           dataset.cat_features,
+                                                                           dataset_subset.cat_features,
                                                                            context.task_type != TaskType.REGRESSION)
         if self.score_per_sample is not None:
             score_per_sample = self.score_per_sample[list(dataset.data.index)]
@@ -130,7 +130,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             predictions = context.model.predict(dataset.features_columns)
             if context.task_type == TaskType.REGRESSION:
                 y_proba = None
-                score_per_sample = calculate_neg_mse_per_sample(dataset.label_col, predictions)
+                score_per_sample = calculate_neg_mse_per_sample(dataset_subset.label_col, predictions)
             elif context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
                 if not hasattr(context.model, 'predict_proba'):
                     raise DeepchecksNotSupportedError(
@@ -147,7 +147,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             avg_score = round(scorer(dummy_model, encoded_dataset), 3)
 
         # Calculating feature rank
-        relevant_features = encoded_dataset.cat_features + encoded_dataset.numerical_features
+        relevant_features = dataset_subset.cat_features + dataset_subset.numerical_features
         if context.feature_importance is not None:
             feature_rank = context.feature_importance.sort_values(ascending=False).keys()
             feature_rank = np.asarray([col for col in feature_rank if col in relevant_features], dtype='object')
@@ -156,7 +156,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
         # Running the logic
         weak_segments = self._weak_segments_search(data=encoded_dataset.data, score_per_sample=score_per_sample,
-                                                   label_col=encoded_dataset.label_col,
+                                                   label_col=dataset_subset.label_col,
                                                    feature_rank_for_search=feature_rank,
                                                    dummy_model=dummy_model, scorer=scorer)
 
@@ -167,12 +167,12 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         if context.with_display:
             display = self._create_heatmap_display(data=encoded_dataset.data, weak_segments=weak_segments,
                                                    score_per_sample=score_per_sample,
-                                                   avg_score=avg_score, label_col=encoded_dataset.label_col,
+                                                   avg_score=avg_score, label_col=dataset_subset.label_col,
                                                    dummy_model=dummy_model, scorer=scorer)
         else:
             display = []
 
-        check_result_value = self._generate_check_result_value(weak_segments, dataset.cat_features, avg_score)
+        check_result_value = self._generate_check_result_value(weak_segments, dataset_subset.cat_features, avg_score)
         display_msg = 'Showcasing intersections of features with weakest detected segments.<br> The full list of ' \
                       'weak segments can be observed in the check result value. '
         return CheckResult(value=check_result_value,

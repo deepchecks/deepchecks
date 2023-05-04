@@ -16,6 +16,8 @@ from sklearn.metrics import f1_score, make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import WeakSegmentsPerformance
+from deepchecks.tabular.datasets.classification.phishing import (
+    load_data, load_fitted_model)
 from tests.base.utils import equal_condition_result
 
 
@@ -147,3 +149,24 @@ def test_categorical_feat_target(adult_split_dataset_and_model):
 
     # Assert
     assert_that(segments, has_length(10))
+
+
+# This test is similar to the one in the plot file
+def test_subset_of_columns(phishing_split_dataset_and_model):
+    # Arrange
+    _, val, model = phishing_split_dataset_and_model
+    scorer = {'f1': make_scorer(f1_score, average='micro')}
+    check = WeakSegmentsPerformance(columns=['urlLength', 'numTitles', 'ext', 'entropy'],
+                                    alternative_scorer=scorer,
+                                    segment_minimum_size_ratio=0.03,
+                                    categorical_aggregation_threshold=0.05)
+
+    # Act
+    result = check.run(val, model)
+    segments = result.value['weak_segments_list']
+
+    # Assert
+    assert_that(segments, has_length(6))
+    assert_that(segments[segments['Feature1'] == 'ext']['Feature1 Range'].iloc[1][0], equal_to('html'))
+    assert_that(segments[segments['Feature1'] == 'ext'].iloc[1, 0], close_to(0.966, 0.01))
+    assert_that(segments.iloc[0, 0], close_to(0.959, 0.01))
