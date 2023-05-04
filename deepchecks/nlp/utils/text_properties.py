@@ -202,7 +202,7 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     Lexical density is the percentage of unique words in a given text. For more
     information: https://en.wikipedia.org/wiki/Lexical_density
     """
-    nltk_download('averaged_perceptron_tagger', quiet=True)
+    nltk_download('punkt', quiet=True)
     result = []
     for text in raw_text:
         if not pd.isna(text):
@@ -218,6 +218,7 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
 
 def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers of number of unique noun words in the text."""
+    nltk_download('averaged_perceptron_tagger', quiet=True)
     result = []
     for text in raw_text:
         if not pd.isna(text):
