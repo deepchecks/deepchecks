@@ -206,8 +206,9 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     result = []
     for text in raw_text:
         if not pd.isna(text):
-            total_words = len(textblob.TextBlob(text).words)
-            total_unique_words = len(set(textblob.TextBlob(text).words))
+            all_words = textblob.TextBlob(text).words
+            total_words = len(all_words)
+            total_unique_words = len(set(all_words))
             text_lexical_density = round(total_unique_words * 100 / total_words, 2)
             result.append(text_lexical_density)
         else:
@@ -220,12 +221,8 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     result = []
     for text in raw_text:
         if not pd.isna(text):
-            count = 0
             unique_words_with_tags = set(textblob.TextBlob(text).tags)
-            for (_, tag) in unique_words_with_tags:
-                if tag.startswith('N'):
-                    count += 1
-            result.append(count)
+            result.append(sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N')))
         else:
             result.append(np.nan)
     return result
