@@ -171,8 +171,8 @@ class TestMultiLabelClassification:
     def test_with_drift(self, dummy_multilabel_textdata_train_test):
         # Arrange
         train, test = dummy_multilabel_textdata_train_test
-        train.calculate_default_properties()
-        test.calculate_default_properties()
+        train.calculate_default_properties(ignore_properties=['Unique Noun Count'])
+        test.calculate_default_properties(ignore_properties=['Unique Noun Count'])
         check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than(max_allowed_numeric_score=0.3,
                                                                                   max_allowed_categorical_score=0.3)
         # Act

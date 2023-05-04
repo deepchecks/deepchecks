@@ -243,7 +243,7 @@ DEFAULT_PROPERTIES = (
     {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
 )
 
-LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language']
+LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count']
 ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
 

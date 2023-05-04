@@ -61,8 +61,10 @@ def test_calculate_unique_noun_count_property(tweet_emotion_train_test_textdata)
     test_text = test.text
 
     # Act
-    result = calculate_default_properties(test_text, include_properties=['Unique Noun Count'])[0]
-    result_none_text = calculate_default_properties([None], include_properties=['Unique Noun Count'])[0]
+    result = calculate_default_properties(test_text, include_properties=['Unique Noun Count'], 
+                                          include_long_calculation_properties=True)[0]
+    result_none_text = calculate_default_properties([None], include_properties=['Unique Noun Count'], 
+                                                    include_long_calculation_properties=True)[0]
 
     # Assert
     assert_that(result['Unique Noun Count'][0: 10], equal_to([9, 2, 3, 3, 4, 10, 4, 2, 7, 5]))
