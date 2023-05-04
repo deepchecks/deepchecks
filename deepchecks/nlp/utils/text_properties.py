@@ -14,6 +14,7 @@ import pathlib
 import string
 import warnings
 from typing import Dict, List, Optional, Sequence, Tuple
+from nltk import download as nltk_download
 
 import numpy as np
 import pandas as pd
@@ -201,6 +202,7 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     Lexical density is the percentage of unique words in a given text. For more
     information: https://en.wikipedia.org/wiki/Lexical_density
     """
+    nltk_download('averaged_perceptron_tagger', quiet=True)
     result = []
     for text in raw_text:
         if not pd.isna(text):
