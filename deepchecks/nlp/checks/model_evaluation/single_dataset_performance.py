@@ -70,6 +70,8 @@ class SingleDatasetPerformance(SingleDatasetCheck, BaseSingleDatasetPerformance)
                 display = [results_df.iloc[:self.max_rows_to_display, :],
                            '<p style="font-size:0.9em;line-height:1;"><i>'
                            f'* Only showing first {self.max_rows_to_display} rows.']
+            else:
+                display = [results_df]
         else:
             display = []
 
