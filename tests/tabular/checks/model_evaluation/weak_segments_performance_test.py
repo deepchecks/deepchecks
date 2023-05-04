@@ -105,7 +105,6 @@ def test_segment_performance_iris_alternative_scorer(iris_split_dataset_and_mode
     assert_that(segments.iloc[0, 0], close_to(0.33, 0.01))
 
 
-
 def test_regression_categorical_features_avocado(avocado_split_dataset_and_model, set_numpy_seed):
     # Arrange
     _, val, model = avocado_split_dataset_and_model

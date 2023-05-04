@@ -19,7 +19,6 @@ import plotly.express as px
 import sklearn
 from category_encoders import TargetEncoder
 from packaging import version
-from pandas.core.dtypes.common import is_numeric_dtype
 from sklearn.model_selection import GridSearchCV
 from sklearn.tree import DecisionTreeRegressor
 
@@ -45,7 +44,7 @@ class WeakSegmentAbstract(abc.ABC):
     add_condition: Callable[..., Any]
 
     def _target_encode_categorical_features_fill_na(self, data: pd.DataFrame, label_col: pd.Series,
-                                                    cat_features: List[str]) -> Dataset:
+                                                    cat_features: List[str], is_cat_label: bool = True) -> Dataset:
         values_mapping = defaultdict(list)  # mapping of per feature of original values to their encoded value
         label_col = pd.Series(label_col, index=data.index)
         df_aggregated = default_fill_na_per_column_type(data, cat_features)
@@ -59,11 +58,11 @@ class WeakSegmentAbstract(abc.ABC):
         # Target encoding of categorical features based on label col (when unavailable we use loss_per_sample)
         if len(cat_features) > 0:
             t_encoder = TargetEncoder(cols=cat_features)
-            if is_numeric_dtype(label_col):
-                label_as_int = label_col.astype('float64').fillna(label_col.mean())
-            else:
+            if is_cat_label:
                 label_no_none = label_col.astype('object').fillna('None')
                 label_as_int = pd.Categorical(label_no_none, categories=sorted(label_no_none.unique())).codes
+            else:
+                label_as_int = pd.cut(label_col.astype('float64').fillna(label_col.mean()), bins=10, labels=False)
             df_encoded = t_encoder.fit_transform(df_aggregated, pd.Series(label_as_int, index=df_aggregated.index))
             for col in cat_features:
                 values_mapping[col] = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()

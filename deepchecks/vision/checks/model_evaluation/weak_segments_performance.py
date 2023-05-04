@@ -131,7 +131,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         # Encoding categorical properties based on the loss per sample (not smart but a way to gets the job done)
         encoded_dataset = self._target_encode_categorical_features_fill_na(results_df,
                                                                            score_per_sample_col,
-                                                                           cat_features)
+                                                                           cat_features,
+                                                                           is_cat_label=False)
 
         weak_segments = self._weak_segments_search(data=encoded_dataset.features_columns,
                                                    score_per_sample=score_per_sample_col,

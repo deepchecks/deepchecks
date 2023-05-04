@@ -92,8 +92,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     ):
         super().__init__(**kwargs)
         if loss_per_sample is not None and score_per_sample is None:
-            warnings.warn(f'{self.__class__.__name__}: alternative_scorers is deprecated. Please use scorers instead.',
-                          DeprecationWarning)
+            warnings.warn(f'{self.__class__.__name__}: loss_per_sample is deprecated. '
+                          f'Please use score_per_sample instead.', DeprecationWarning)
             score_per_sample = - np.asarray(loss_per_sample)
         if score_per_sample is not None and alternative_scorer:
             raise DeepchecksValueError('Cannot use both score_per_sample and alternative_scorer')
@@ -120,11 +120,12 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         # Decide which scorer and score_per_sample to use in the algorithm run
         encoded_dataset = self._target_encode_categorical_features_fill_na(dataset.features_columns,
                                                                            dataset.label_col,
-                                                                           dataset.cat_features)
+                                                                           dataset.cat_features,
+                                                                           context.task_type != TaskType.REGRESSION)
         if self.score_per_sample is not None:
             score_per_sample = self.score_per_sample[list(dataset.data.index)]
             scorer, dummy_model = None, None
-            avg_score = round(score_per_sample.mean())
+            avg_score = round(score_per_sample.mean(), 3)
         else:
             predictions = context.model.predict(dataset.features_columns)
             if context.task_type == TaskType.REGRESSION:

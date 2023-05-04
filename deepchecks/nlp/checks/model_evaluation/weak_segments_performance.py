@@ -61,11 +61,12 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
                                                          n_top_features=self.n_top_features)
 
         # Decide which scorer and score_per_sample to use in the algorithm run
-        encoded_dataset = self._target_encode_categorical_features_fill_na(features, text_data.label, cat_features)
+        encoded_dataset = self._target_encode_categorical_features_fill_na(features, text_data.label,
+                                                                           cat_features, is_cat_label=True)
         if self.score_per_sample is not None:
             score_per_sample = self.score_per_sample[list(features.index)]
             scorer, dummy_model = None, None
-            avg_score = round(score_per_sample.mean())
+            avg_score = round(score_per_sample.mean(), 3)
         else:
             predictions = context.model.predict(text_data)
             if context.task_type == TaskType.TEXT_CLASSIFICATION:
