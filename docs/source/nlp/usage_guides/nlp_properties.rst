@@ -9,7 +9,7 @@ or **sentiment**.
 Deepchecks includes :ref:`built-in properties <Deepchecks' Built-in Properties>` and supports :ref:`using your own
 properties <Using Your Own Properties>`.
 
-Not to be confused with :ref:`metadata <nlp_metadata_guide>`, which is additional data that comes with it organically,
+Not to be confused with :ref:`metadata <nlp__metadata_guide>`, which is additional data that comes with it organically,
 such as the text's author or date of creation.
 
 
