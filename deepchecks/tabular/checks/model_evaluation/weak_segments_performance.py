@@ -125,7 +125,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         if len(dataset.features) < 2:
             raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset, context.observed_classes)
+        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset.data, dataset.label_name,
+                                                                           dataset.cat_features)
         dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                   validate_data_on_predict=False)
 
@@ -137,22 +138,25 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             feature_rank = np.asarray(relevant_features, dtype='object')
 
         scorer = context.get_single_scorer(self.alternative_scorer)
-        weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
-                                                   loss_per_sample, scorer)
+        weak_segments = self._weak_segments_search(data=encoded_dataset.data, loss_per_sample=loss_per_sample,
+                                                   label_col=encoded_dataset.label_col,
+                                                   feature_rank_for_search=feature_rank,
+                                                   dummy_model=dummy_model, scorer=scorer)
+
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
                                          'segments. Try increasing n_samples or supply additional features.')
         avg_score = round(scorer(dummy_model, encoded_dataset), 3)
 
-        display = self._create_heatmap_display(dummy_model, encoded_dataset, weak_segments, avg_score,
-                                               scorer) if context.with_display else []
+        if context.with_display:
+            display = self._create_heatmap_display(data=encoded_dataset.data, weak_segments=weak_segments,
+                                                   loss_per_sample=loss_per_sample,
+                                                   avg_score=avg_score, label_col=encoded_dataset.label_col,
+                                                   dummy_model=dummy_model, scorer=scorer)
+        else:
+            display = []
 
-        for idx, segment in weak_segments.copy().iterrows():
-            for feature in ['Feature1', 'Feature2']:
-                if segment[feature] in encoded_dataset.cat_features:
-                    weak_segments[f'{feature} range'][idx] = \
-                        self._format_partition_vec_for_display(segment[f'{feature} range'], segment[feature], None)[0]
-
+        weak_segments = self._generate_check_value_display(weak_segments, dataset.cat_features)
         display_msg = 'Showcasing intersections of features with weakest detected segments.<br> The full list of ' \
                       'weak segments can be observed in the check result value. '
         return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},

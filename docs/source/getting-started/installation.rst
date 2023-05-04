@@ -63,13 +63,33 @@ Simply run the following command in a notebook cell
     !{sys.executable} -m pip install deepchecks --quiet --upgrade # --user
 
 
+Deepchecks For NLP
+==================
+
+.. note:: 
+   Deepchecks' NLP subpackage is in **beta** release, and is available from PyPI,
+   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__ are
+   highly encouraged for feature requests and bug reports.
+
+Installation of deepchecks for NLP should be stated explicitly and it includes
+both the installation of the tabular version and of the nlp subpackage.
+Example commands from above should be altered to install `deepchecks[nlp]`.
+
+
+Using Pip
+---------
+
+.. code-block:: bash
+
+    pip install "deepchecks[nlp]" --upgrade
+
 
 Deepchecks For Computer Vision
 ===============================
 
-.. note:: 
-   Deepchecks' Computer Vision subpackage is in **beta** release, and is available from PyPi, 
-   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`_ are
+.. note::
+   Deepchecks' Computer Vision subpackage is in **beta** release, and is available from PyPI,
+   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__ are
    highly encouraged for feature requests and bug reports.
 
 Installation of deepchecks for CV should be stated explicitly and it includes
@@ -83,8 +103,6 @@ Using Pip
 .. code-block:: bash
 
     pip install "deepchecks[vision]" --upgrade
-
-
 
 Start Working with the Package
 =================================

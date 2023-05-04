@@ -12,14 +12,11 @@
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional
 
-import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
-from deepchecks.tabular import Dataset
-from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.single_sample_metrics import per_sample_cross_entropy
 from deepchecks.vision._shared_docs import docstrings
@@ -105,7 +102,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
         self._properties_results = None
         self._sample_scores = None
-        self._dummy_scorer = None
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind):
         """Initialize the properties and sample scores states."""
@@ -125,7 +121,6 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
                 self.scorer_name = 'Dice score'
             else:
                 raise DeepchecksValueError(f'Default scorer is not defined for task type {task_type}.')
-        self._dummy_scorer = AvgLossScorer(self.scorer_name)
         self._properties_results = defaultdict(list)
         self._sample_scores = []
 
@@ -140,52 +135,35 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     def compute(self, context: Context, dataset_kind: DatasetKind) -> CheckResult:
         """Find the segments with the worst performance."""
         results_dict = self._properties_results
-        results_dict['score'] = self._sample_scores
+        loss_per_sample_col = 'score'
+        results_dict[loss_per_sample_col] = self._sample_scores
         results_df = pd.DataFrame(results_dict)
         properties_used = self.image_properties or default_image_properties
         cat_features = [p['name'] for p in properties_used if p['output_type'] == 'categorical']
-        num_features = [p['name'] for p in properties_used if p['output_type'] == 'numerical']
-        all_features = cat_features + num_features
 
-        dataset = Dataset(results_df, cat_features=cat_features, features=all_features, label='score')
+        #  encoding categorical features based on the loss per sample (not smart but a way to gets the job done)
+        encoded_dataset = self._target_encode_categorical_features_fill_na(results_df,
+                                                                           loss_per_sample_col, cat_features)
 
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset)
-        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=np.asarray(self._sample_scores),
-                                  y_proba_test=np.asarray(self._sample_scores),
-                                  validate_data_on_predict=False)
-        # the predictions are passed both to pred and proba and each scorer knows which parameter to use.
-        feature_rank = np.asarray(all_features)
-
-        weak_segments = self._weak_segments_search(dummy_model, encoded_dataset, feature_rank,
-                                                   self._sample_scores, self._dummy_scorer)
+        weak_segments = self._weak_segments_search(data=encoded_dataset.features_columns,
+                                                   loss_per_sample=encoded_dataset.label_col,
+                                                   scorer_name=self.scorer_name)
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
                                          'segments. Try increasing n_samples or supply additional properties.')
 
-        avg_score = round(results_df['score'].mean(), 3)
+        avg_score = round(results_df[loss_per_sample_col].mean(), 3)
 
-        display = self._create_heatmap_display(dummy_model, encoded_dataset, weak_segments, avg_score,
-                                               self._dummy_scorer) if context.with_display else []
+        if context.with_display:
+            display = self._create_heatmap_display(data=encoded_dataset.features_columns, weak_segments=weak_segments,
+                                                   avg_score=avg_score, loss_per_sample=encoded_dataset.label_col,
+                                                   scorer_name=self.scorer_name)
+        else:
+            display = []
 
-        for idx, segment in weak_segments.copy().iterrows():
-            for feature in ['Feature1', 'Feature2']:
-                if segment[feature] in encoded_dataset.cat_features:
-                    weak_segments[f'{feature} range'][idx] = \
-                        self._format_partition_vec_for_display(segment[f'{feature} range'], segment[feature], None)[0]
-
+        weak_segments = self._generate_check_value_display(weak_segments, cat_features)
         display_msg = 'Showcasing intersections of properties with weakest detected segments.<br> The full list of ' \
                       'weak segments can be observed in the check result value. '
         return CheckResult(
             {'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': self.scorer_name},
             display=[display_msg, DisplayMap(display)])
-
-
-class AvgLossScorer:
-    """Patch for using the tabular methods from a dataframe of pre-calculated loss."""
-
-    def __init__(self, scorer_name):
-        self.name = scorer_name if scorer_name is not None else 'average_loss'
-
-    def run_on_data_and_label(self, model, data: pd.DataFrame, loss_col: pd.Series):  # pylint: disable=unused-argument
-        """Patch for using the tabular methods from a dataframe of pre-calculated loss."""
-        return loss_col.mean()

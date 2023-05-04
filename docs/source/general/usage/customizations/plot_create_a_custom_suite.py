@@ -55,8 +55,8 @@ new_custom_suite = Suite('Simple Suite For Model Performance',
                                                ).add_condition_gain_greater_than(0.3)
                          )
 
-# The scorers parameter can also be passed to the suite in order to override the scorers of all the checks in the suite.
-# Find more about scorers at https://docs.deepchecks.com/stable/user-guide/general/metrics_guide.html.
+# The scorers' parameter can also be passed to the suite in order to override the scorers of all the checks
+# in the suite. See :ref:`metrics_user_guide` for further details.
 
 #%%
 # Let's see the suite:
