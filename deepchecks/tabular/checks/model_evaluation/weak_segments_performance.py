@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of weak segments performance check."""
-
+import warnings
 from typing import TYPE_CHECKING, Callable, Dict, List, Union
 
 import numpy as np
@@ -23,7 +23,7 @@ from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.docref import doclink
-from deepchecks.utils.single_sample_metrics import calculate_per_sample_loss
+from deepchecks.utils.single_sample_metrics import calculate_neg_cross_entropy_per_sample, calculate_neg_mse_per_sample
 from deepchecks.utils.typing import Hashable
 
 if TYPE_CHECKING:
@@ -57,10 +57,14 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
         Scorer to use as performance measure, either function or sklearn scorer name.
         If None, a default scorer (per the model type) will be used.
+    score_per_sample: Union[np.array, pd.Series, None], default: None
+        Score per sample are required to detect relevant weak segments. Should follow the convention that a sample with
+        a higher score mean better model performance on that sample. If provided, the check will also use provided
+        score per sample as a scoring function for segments.
+        if None the check calculates score per sample by via neg cross entropy for classification and
+        neg MSE for regression.
     loss_per_sample: Union[np.array, pd.Series, None], default: None
-        Loss per sample used to detect relevant weak segments. If pd.Series the indexes should be similar to those in
-        the dataset object provide, if np.array the order should be based on the index order of the dataset object and
-        if None the check calculates loss per sample by via log loss for classification and MSE for regression.
+        Deprecated, please use score_per_sample instead.
     n_samples : int , default: 10_000
         number of samples to use for this check.
     n_to_show : int , default: 3
@@ -79,6 +83,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             segment_minimum_size_ratio: float = 0.05,
             alternative_scorer: Dict[str, Callable] = None,
             loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
+            score_per_sample: Union[np.ndarray, pd.Series, None] = None,
             n_samples: int = 10_000,
             categorical_aggregation_threshold: float = 0.05,
             n_to_show: int = 3,
@@ -86,6 +91,12 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             **kwargs
     ):
         super().__init__(**kwargs)
+        if loss_per_sample is not None and score_per_sample is None:
+            warnings.warn(f'{self.__class__.__name__}: loss_per_sample is deprecated. '
+                          f'Please use score_per_sample instead.', DeprecationWarning)
+            score_per_sample = - np.asarray(loss_per_sample)
+        if score_per_sample is not None and alternative_scorer:
+            raise DeepchecksValueError('Cannot use both score_per_sample and alternative_scorer')
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_features = n_top_features
@@ -93,73 +104,78 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.random_state = random_state
+        self.score_per_sample = score_per_sample
         self.loss_per_sample = loss_per_sample
-        self.alternative_scorer = alternative_scorer if alternative_scorer else None
+        self.alternative_scorer = alternative_scorer
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
-        dataset.assert_features()
         dataset = dataset.sample(self.n_samples, random_state=self.random_state).drop_na_labels()
-        predictions = context.model.predict(dataset.features_columns)
-        if context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
-            if not hasattr(context.model, 'predict_proba'):
-                raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The weak segment checks relies'
-                                                  ' on log loss error that requires predicted probabilities, rather'
-                                                  ' than only predicted classes.')
-            y_proba = context.model.predict_proba(dataset.features_columns)
-            # If proba shape does not match label, raise error
-            if y_proba.shape[1] != len(context.model_classes):
-                raise DeepchecksValueError(
-                    f'Predicted probabilities shape {y_proba.shape} does not match the number of classes found in'
-                    f' the labels {context.model_classes}.')
-        else:
-            y_proba = None
-
-        if self.loss_per_sample is not None:
-            loss_per_sample = self.loss_per_sample[list(dataset.data.index)]
-        else:
-            loss_per_sample = calculate_per_sample_loss(context.model, context.task_type, dataset,
-                                                        context.model_classes)
-        dataset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
+        dataset_subset = dataset.select(self.columns, self.ignore_columns, keep_label=True)
         if len(dataset.features) < 2:
             raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset.data, dataset.label_name,
-                                                                           dataset.cat_features)
-        dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
-                                  validate_data_on_predict=False)
 
-        relevant_features = encoded_dataset.cat_features + encoded_dataset.numerical_features
+        # Decide which scorer and score_per_sample to use in the algorithm run
+        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset_subset.features_columns,
+                                                                           dataset.label_col,
+                                                                           dataset_subset.cat_features,
+                                                                           context.task_type != TaskType.REGRESSION)
+        if self.score_per_sample is not None:
+            score_per_sample = self.score_per_sample[list(dataset.data.index)]
+            scorer, dummy_model = None, None
+            avg_score = round(score_per_sample.mean(), 3)
+        else:
+            predictions = context.model.predict(dataset.features_columns)
+            if context.task_type == TaskType.REGRESSION:
+                y_proba = None
+                score_per_sample = calculate_neg_mse_per_sample(dataset_subset.label_col, predictions)
+            elif context.task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
+                if not hasattr(context.model, 'predict_proba'):
+                    raise DeepchecksNotSupportedError(
+                        'Predicted probabilities not supplied. The weak segment checks relies'
+                        ' on cross entropy error that requires predicted probabilities, '
+                        'rather than only predicted classes.')
+                y_proba = context.model.predict_proba(dataset.features_columns)
+                score_per_sample = calculate_neg_cross_entropy_per_sample(dataset.label_col, y_proba,
+                                                                          context.model_classes)
+
+            dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
+                                      validate_data_on_predict=False)
+            scorer = context.get_single_scorer(self.alternative_scorer)
+            avg_score = round(scorer(dummy_model, encoded_dataset), 3)
+
+        # Calculating feature rank
+        relevant_features = dataset_subset.cat_features + dataset_subset.numerical_features
         if context.feature_importance is not None:
             feature_rank = context.feature_importance.sort_values(ascending=False).keys()
             feature_rank = np.asarray([col for col in feature_rank if col in relevant_features], dtype='object')
         else:
             feature_rank = np.asarray(relevant_features, dtype='object')
 
-        scorer = context.get_single_scorer(self.alternative_scorer)
-        weak_segments = self._weak_segments_search(data=encoded_dataset.data, loss_per_sample=loss_per_sample,
-                                                   label_col=encoded_dataset.label_col,
+        # Running the logic
+        weak_segments = self._weak_segments_search(data=encoded_dataset.data, score_per_sample=score_per_sample,
+                                                   label_col=dataset_subset.label_col,
                                                    feature_rank_for_search=feature_rank,
                                                    dummy_model=dummy_model, scorer=scorer)
 
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
                                          'segments. Try increasing n_samples or supply additional features.')
-        avg_score = round(scorer(dummy_model, encoded_dataset), 3)
 
         if context.with_display:
             display = self._create_heatmap_display(data=encoded_dataset.data, weak_segments=weak_segments,
-                                                   loss_per_sample=loss_per_sample,
-                                                   avg_score=avg_score, label_col=encoded_dataset.label_col,
+                                                   score_per_sample=score_per_sample,
+                                                   avg_score=avg_score, label_col=dataset_subset.label_col,
                                                    dummy_model=dummy_model, scorer=scorer)
         else:
             display = []
 
-        weak_segments = self._generate_check_value_display(weak_segments, dataset.cat_features)
+        check_result_value = self._generate_check_result_value(weak_segments, dataset_subset.cat_features, avg_score)
         display_msg = 'Showcasing intersections of features with weakest detected segments.<br> The full list of ' \
                       'weak segments can be observed in the check result value. '
-        return CheckResult({'weak_segments_list': weak_segments, 'avg_score': avg_score, 'scorer_name': scorer.name},
+        return CheckResult(value=check_result_value,
                            display=[display_msg, DisplayMap(display)])
 
     def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':

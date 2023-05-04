@@ -13,16 +13,15 @@
 import warnings
 from typing import Hashable, List, Optional, Union
 
-import pandas as pd
+import numpy as np
 
-from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.nlp import TextData
 from deepchecks.utils.dataframes import select_from_dataframe
 
 
 def get_relevant_data_table(text_data: TextData, data_type: str, columns: Union[Hashable, List[Hashable], None],
-                            ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int],
-                            add_label: bool = True):
+                            ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int]):
     """Get relevant data table from the database."""
     if data_type == 'metadata':
         features = select_from_dataframe(text_data.metadata, columns, ignore_columns)
@@ -34,11 +33,13 @@ def get_relevant_data_table(text_data: TextData, data_type: str, columns: Union[
     else:
         raise DeepchecksProcessError(f'Unknown segment_by value: {data_type}')
 
+    if features.shape[1] < 2:
+        raise DeepchecksNotSupportedError('Check requires to have at least two '
+                                          f'{data_type} columns in order to run.')
+
     if n_top_features is not None and n_top_features < features.shape[1]:
         _warn_n_top_columns(data_type, n_top_features)
-
-    if add_label:  # most commonly used for target encoding
-        features['label'] = pd.Series(text_data.label, index=features.index)
+        features = features.iloc[:, np.random.choice(features.shape[1], n_top_features)]
 
     return features, cat_features
 
@@ -56,7 +57,7 @@ def _warn_n_top_columns(data_type: str, n_top_features: int):
 
     warnings.warn(
         f'Parameter {n_top_columns_parameter} is set to {n_top_features} to avoid long computation time. '
-        f'This means that the check will run on the first {n_top_features} {features_name}. '
+        f'This means that the check will run on {n_top_features} {features_name} selected at random. '
         f'If you want to run on all {features_name}, set {n_top_columns_parameter} to None. '
         f'Alternatively, you can set parameter {columns_parameter} to a list of the specific {features_name} '
         f'you want to run on.', UserWarning)

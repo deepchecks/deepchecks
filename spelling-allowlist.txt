@@ -98,7 +98,6 @@ qs
 urlobj
 labextension
 PredictionDrift
-PredictionDrift
 nbclassic
 REPL
 ipywidgets
@@ -148,3 +147,5 @@ multiindex
 tokenizer
 nltk
 Tokenize
+spacy
+tokenizers
