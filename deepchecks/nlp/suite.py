@@ -63,7 +63,7 @@ class Suite(BaseSuite):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
-        model_classes: Optional[List, List[List], default: None
+        model_classes: Optional[List], default: None
             For classification: list of classes known to the model
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
