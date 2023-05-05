@@ -67,9 +67,7 @@ def get_transformer_model(
     else:
         if isinstance(models_storage, str):
             models_storage = pathlib.Path(models_storage)
-        elif isinstance(models_storage, pathlib.Path):
-            models_storage = models_storage
-        else:
+        if not isinstance(models_storage, pathlib.Path):
             raise ValueError(
                 f'Unexpected type of the "models_storage" parameter - {type(models_storage)}'
             )
@@ -99,7 +97,7 @@ def get_transformer_model(
     )
 
     if quantize_model is False:
-        model_path = models_storage / "onnx" / model_name
+        model_path = models_storage / 'onnx' / model_name
 
         if model_path.exists():
             return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
@@ -116,7 +114,7 @@ def get_transformer_model(
         model.save_pretrained(model_path)
         return model
 
-    model_path = models_storage / "onnx" / 'quantized' / model_name
+    model_path = models_storage / 'onnx' / 'quantized' / model_name
 
     if model_path.exists():
         return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
