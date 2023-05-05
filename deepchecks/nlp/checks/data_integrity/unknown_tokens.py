@@ -65,7 +65,7 @@ class UnknownTokens(SingleDatasetCheck):
             try:
                 from transformers import BertTokenizer  # pylint: disable=W0611,C0415 # noqa
             except ImportError:
-                DeepchecksProcessError(
+                raise DeepchecksProcessError(
                     'Tokenizer was not provided. In order to use checks default tokenizer (BertTokenizer),'
                     'please pip install transformers>=4.27.4. ')
             self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
