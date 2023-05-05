@@ -11,10 +11,9 @@
 """Module containing the text properties for the NLP module."""
 import importlib
 import pathlib
-import shutil
 import string
 import warnings
-from typing import Dict, List, Optional, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import textblob
@@ -24,7 +23,7 @@ from deepchecks.utils.function import run_available_kwargs
 __all__ = ['calculate_default_properties']
 
 
-ONNX_MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.onnx-nlp-models'
+MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 
 
 def _import_optional_property_dependency(
@@ -57,18 +56,32 @@ def get_transformer_model(
     model_name: str,
     device: Optional[str] = None,
     quantize_model: bool = False,
-    redownload_models: bool = False,
+    models_storage: Union[pathlib.Path, str, None] = None
 ):
     """Get the transformer model and decide if to use optimum.onnxruntime.
 
     optimum.onnxruntime is used to optimize running times on CPU.
     """
+    if models_storage is None:
+        models_storage = MODELS_STORAGE
+    else:
+        if isinstance(models_storage, str):
+            models_storage = pathlib.Path(models_storage)
+        elif isinstance(models_storage, pathlib.Path):
+            models_storage = models_storage
+        else:
+            raise ValueError(
+                f'Unexpected type of the "models_storage" parameter - {type(models_storage)}'
+            )
+        if not models_storage.is_dir():
+            raise ValueError('"model_storage" expected to be a directory')
+
     if device not in (None, 'cpu'):
         transformers = _import_optional_property_dependency('transformers', property_name=property_name)
         # TODO: quantize if 'quantize_model' is True
         return transformers.AutoModelForSequenceClassification.from_pretrained(
             model_name,
-            force_download=redownload_models
+            cache_dir=models_storage
         )
 
     onnx = _import_optional_property_dependency(
@@ -86,17 +99,15 @@ def get_transformer_model(
     )
 
     if quantize_model is False:
-        model_path = ONNX_MODELS_STORAGE / model_name
+        model_path = models_storage / "onnx" / model_name
 
-        if model_path.exists() and redownload_models:
-            shutil.rmtree(model_path)
-        elif model_path.exists():
+        if model_path.exists():
             return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
 
         model = onnx.ORTModelForSequenceClassification.from_pretrained(
             model_name,
             export=True,
-            force_download=redownload_models
+            cache_dir=models_storage
         )
         # NOTE:
         # 'optimum', after exporting/converting a model to the ONNX format,
@@ -105,11 +116,9 @@ def get_transformer_model(
         model.save_pretrained(model_path)
         return model
 
-    model_path = ONNX_MODELS_STORAGE / 'quantized' / model_name
+    model_path = models_storage / "onnx" / 'quantized' / model_name
 
-    if model_path.exists() and redownload_models:
-        shutil.rmtree(model_path)
-    elif model_path.exists():
+    if model_path.exists():
         return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
 
     not_quantized_model = get_transformer_model(
@@ -117,7 +126,7 @@ def get_transformer_model(
         model_name,
         device,
         quantize_model=False,
-        redownload_models=redownload_models
+        models_storage=models_storage
     )
 
     quantizer = onnx.ORTQuantizer.from_pretrained(not_quantized_model)
@@ -137,7 +146,7 @@ def get_transformer_pipeline(
     property_name: str,
     model_name: str,
     device: Optional[str] = None,
-    redownload_models: bool = False
+    models_storage: Union[pathlib.Path, str, None] = None
 ):
     """Return a transformers pipeline for the given model name."""
     transformers = _import_optional_property_dependency('transformers', property_name=property_name)
@@ -146,7 +155,7 @@ def get_transformer_pipeline(
         property_name=property_name,
         model_name=model_name,
         device=device,
-        redownload_models=redownload_models
+        models_storage=models_storage
     )
     return transformers.pipeline(
         'text-classification',
@@ -208,7 +217,7 @@ def subjectivity(raw_text: Sequence[str]) -> List[str]:
 def toxicity(
     raw_text: Sequence[str],
     device: Optional[int] = None,
-    redownload_models: bool = False
+    models_storage: Union[pathlib.Path, str, None] = None
 ) -> List[float]:
     """Return list of floats of toxicity."""
     model_name = 'unitary/toxic-bert'
@@ -216,7 +225,7 @@ def toxicity(
         'toxicity',
         model_name,
         device=device,
-        redownload_models=redownload_models
+        models_storage=models_storage
     )
     return [x['score'] for x in classifier(raw_text)]
 
@@ -224,7 +233,7 @@ def toxicity(
 def fluency(
     raw_text: Sequence[str],
     device: Optional[int] = None,
-    redownload_models: bool = False
+    models_storage: Union[pathlib.Path, str, None] = None
 ) -> List[float]:
     """Return list of floats of fluency."""
     model_name = 'prithivida/parrot_fluency_model'
@@ -232,7 +241,7 @@ def fluency(
         'fluency',
         model_name,
         device=device,
-        redownload_models=redownload_models
+        models_storage=models_storage
     )
     return [x['score'] if x['label'] == 'LABEL_1' else 1 - x['score'] for x in classifier(raw_text)]
 
@@ -240,7 +249,7 @@ def fluency(
 def formality(
     raw_text: Sequence[str],
     device: Optional[int] = None,
-    redownload_models: bool = False
+    models_storage: Union[pathlib.Path, str, None] = None
 ) -> List[float]:
     """Return list of floats of formality."""
     model_name = 's-nlp/roberta-base-formality-ranker'
@@ -248,7 +257,7 @@ def formality(
         'formality',
         model_name,
         device=device,
-        redownload_models=redownload_models
+        models_storage=models_storage
     )
     return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
 
@@ -299,7 +308,7 @@ def calculate_default_properties(
     ignore_properties: Optional[List[str]] = None,
     include_long_calculation_properties: Optional[bool] = False,
     device: Optional[str] = None,
-    redownload_models: bool = False
+    models_storage: Union[pathlib.Path, str, None] = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
 
@@ -323,8 +332,8 @@ def calculate_default_properties(
         ignored, even if they are in the include_properties parameter.
     device : int, default None
         The device to use for the calculation. If None, the default device will be used.
-    redownload_models : bool, default False
-        whether to redownload heavy properties models.
+    models_storage : Union[str, pathlib.Path, None], default None
+        a directory to store the models.
 
     Returns
     -------
@@ -361,7 +370,7 @@ def calculate_default_properties(
                 prop['method'],
                 raw_text=raw_text,
                 device=device,
-                redownload_models=redownload_models
+                models_storage=models_storage
             )
         except ImportError as e:
             warnings.warn(f'Failed to calculate property {prop["name"]}.\nError: {e}')

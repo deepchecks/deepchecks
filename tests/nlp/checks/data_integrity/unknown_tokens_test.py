@@ -11,7 +11,6 @@
 """Test for the NLP UnknownTokens check."""
 import pytest
 from hamcrest import *
-
 from transformers import GPT2Tokenizer
 
 from deepchecks.core.errors import DeepchecksValueError
@@ -19,7 +18,6 @@ from deepchecks.nlp.checks import UnknownTokens
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
 from tests.base.utils import equal_condition_result
-
 
 # ====================
 # ----- Fixtures -----
