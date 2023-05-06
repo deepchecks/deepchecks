@@ -13,6 +13,7 @@ from typing import Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
+from sklearn.decomposition import TruncatedSVD
 
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
@@ -51,7 +52,6 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         context.raise_if_token_classification_task(self)
-        context.raise_if_multi_label_task(self)
 
         text_data = context.get_data_by_kind(dataset_kind)
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
@@ -61,8 +61,15 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
                                                          n_top_features=self.n_top_features)
 
         # Decide which scorer and score_per_sample to use in the algorithm run
-        encoded_dataset = self._target_encode_categorical_features_fill_na(features, text_data.label,
-                                                                           cat_features, is_cat_label=True)
+        is_multilabel = text_data.is_multi_label_classification()
+        if is_multilabel:
+            label = TruncatedSVD(1).fit_transform(text_data.label).squeeze()
+            is_cat_label = False
+        else:
+            label = text_data.label
+            is_cat_label = True
+        encoded_dataset = self._target_encode_categorical_features_fill_na(features, label,
+                                                                           cat_features, is_cat_label=is_cat_label)
         if self.score_per_sample is not None:
             score_per_sample = self.score_per_sample[list(features.index)]
             scorer, dummy_model = None, None
@@ -77,7 +84,8 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
                         'rather than only predicted classes.')
                 y_proba = context.model.predict_proba(text_data)
                 score_per_sample = calculate_neg_cross_entropy_per_sample(text_data.label, np.asarray(y_proba),
-                                                                          context.model_classes)
+                                                                          is_multilabel=is_multilabel,
+                                                                          model_classes=context.model_classes)
             else:
                 raise DeepchecksNotSupportedError('Weak segments performance check is not supported for '
                                                   f'{context.task_type}.')
