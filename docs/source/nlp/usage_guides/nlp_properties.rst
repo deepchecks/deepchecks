@@ -58,7 +58,7 @@ Toxicity*                       Toxicity of the text. Uses the unitary/toxic-ber
 Fluency*                        Fluency of the text. Uses the prithivida/parrot_fluency_model model
 Formality*                      Formality of the text. Uses the s-nlp/roberta-base-formality-ranker model
 Lexical Density                 Percentage of unique words in the text, rounded up to 2 decimal digits
-Unique Nount Count              Number of unique noun words in the text
+Unique Noun Count*              Number of unique noun words in the text
 ==============================  ==========
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass
