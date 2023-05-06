@@ -406,6 +406,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "hjain5164",
+      "name": "Harsh Jain",
+      "avatar_url": "https://avatars.githubusercontent.com/u/20479605?v=4",
+      "profile": "https://github.com/hjain5164",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "projectName": "deepchecks",
