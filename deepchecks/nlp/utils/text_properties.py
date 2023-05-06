@@ -202,7 +202,10 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     Lexical density is the percentage of unique words in a given text. For more
     information: https://en.wikipedia.org/wiki/Lexical_density
     """
-    nltk_download('punkt', quiet=True)
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, lexical density cannot be calculated.'
+                      ' Please check your internet connection.')
+        return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
         if not pd.isna(text):
@@ -218,7 +221,10 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
 
 def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers of number of unique noun words in the text."""
-    nltk_download('averaged_perceptron_tagger', quiet=True)
+    if not nltk_download('averaged_perceptron_tagger', quiet=True):
+        warnings.warn('nltk averaged_perceptron_tagger not found, unique noun count cannot be calculated.'
+                      ' Please check your internet connection.')
+        return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
         if not pd.isna(text):
@@ -288,7 +294,7 @@ def calculate_default_properties(
         The properties to calculate. If None, all default properties will be calculated. Cannot be used together
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
-        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Noun Count']
+        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count']
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language'] may take a long time to calculate. If
         include_long_calculation_properties is False, these properties will be ignored, even if they are in the
         include_properties parameter.
