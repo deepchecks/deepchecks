@@ -59,6 +59,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         features, cat_features = get_relevant_data_table(text_data, data_type=self.segment_by,
                                                          columns=self.columns, ignore_columns=self.ignore_columns,
                                                          n_top_features=self.n_top_features)
+        self.n_top_features = features.shape[1]  # in case of None
 
         # Decide which scorer and score_per_sample to use in the algorithm run
         encoded_dataset = self._target_encode_categorical_features_fill_na(features, text_data.label,
