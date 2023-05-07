@@ -137,7 +137,7 @@ def misclassified_samples_lower_than_condition(value: np.ndarray,
 
                     if n_samples > max_samples_in_cell_above_thresh:
                         max_samples_in_cell_above_thresh = n_samples
-    
+
     # There are misclassified cells in the confusion matrix with samples more than 'thresh_samples'
     if n_cells_above_thresh > 0:
         details = f'The confusion matrix has {n_cells_above_thresh} cells with samples ' \
