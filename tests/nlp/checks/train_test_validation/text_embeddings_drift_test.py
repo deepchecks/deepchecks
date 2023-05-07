@@ -19,11 +19,16 @@ from tests.base.utils import equal_condition_result
 def test_tweet_emotion(tweet_emotion_train_test_textdata):
     # Arrange
     train, test = tweet_emotion_train_test_textdata
+    #TODO for tests only:
+    # train = train.sample(100)
+    # test = test.sample(100)
     check = TextEmbeddingsDrift()
     # Act
     result = check.run(train, test)
 
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.26, 0.01))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.18, 0.01))
+
+# TODO: Add test for reduction_method
 
 
 def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata):

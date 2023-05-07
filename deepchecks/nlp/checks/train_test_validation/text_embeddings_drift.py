@@ -15,7 +15,7 @@ from typing import List
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariable_drift_for_embeddings
+from deepchecks.nlp.checks.multivariate_embeddings_drift_utils import run_multivariable_drift_for_embeddings
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
 
@@ -56,9 +56,20 @@ class TextEmbeddingsDrift(TrainTestCheck):
     random_state : int , default: 42
         Random seed for the check.
     test_size : float , default: 0.3
-        Fraction of the combined datasets to use for the evaluation of the domain classifier.
+        Fraction of the combined datasets to use for the evaluation of the domain classifier
     min_meaningful_drift_score : float , default 0.05
         Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
+    dimension_reduction_method : str , default: 'auto'
+        Dimension reduction method to use for the check. Dimension reduction is used to reduce the number of
+        embeddings dimensions in order for the domain classifier to train more efficiently on the data.
+        The 2 supported methods are PCA and UMAP. While UMAP yields better results (especially visually), it is much
+        slower than PCA.
+        Supported values:
+        - 'auto' (default): Automatically choose the best method for the data. Uses UMAP if with_display is True,
+        otherwise uses PCA for a faster calculation.
+        - 'pca': Use PCA for dimension reduction.
+        - 'umap': Use UMAP for dimension reduction.
+        - 'none': Don't use dimension reduction.
     num_samples_in_display : int , default: 500
         Number of samples to display in the check display scatter plot.
     """
@@ -73,9 +84,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
             random_state: int = 42,
             test_size: float = 0.3,
             min_meaningful_drift_score: float = 0.05,
+            dimension_reduction_method: str = 'auto',
             num_samples_in_display: int = 500,
-            train_indexes_to_highlight: List[int] = [],
-            test_indexes_to_highlight: List[int] = [],
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -88,9 +98,11 @@ class TextEmbeddingsDrift(TrainTestCheck):
         self.random_state = random_state
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
+        if dimension_reduction_method not in ['auto', 'umap', 'pca', 'none']:
+            raise ValueError(f'dimension_reduction_method must be one of "auto", "umap", "pca" or "none". '
+                             f'Got {dimension_reduction_method} instead')
+        self.dimension_reduction_method = dimension_reduction_method
         self.num_samples_in_display = num_samples_in_display
-        self.train_indexes_to_highlight = train_indexes_to_highlight
-        self.test_indexes_to_highlight = test_indexes_to_highlight
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -131,10 +143,9 @@ class TextEmbeddingsDrift(TrainTestCheck):
             min_feature_importance=self.min_feature_importance,
             min_meaningful_drift_score=self.min_meaningful_drift_score,
             num_samples_in_display=self.num_samples_in_display,
+            dimension_reduction_method=self.dimension_reduction_method,
             with_display=context.with_display,
-            dataset_names=(train_dataset.name, test_dataset.name),
-            train_indexes_to_highlight= self.train_indexes_to_highlight,
-            test_indexes_to_highlight= self.test_indexes_to_highlight,
+            dataset_names=(train_dataset.name, test_dataset.name)
         )
 
         if displays:
