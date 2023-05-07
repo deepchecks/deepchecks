@@ -15,7 +15,7 @@ from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.abstracts.confusion_matrix_abstract import (misclassified_samples_lower_than_condition,
                                                                   run_confusion_matrix_check)
-from deepchecks.utils.strings import format_number
+from deepchecks.utils.strings import format_percent
 
 __all__ = ['ConfusionMatrixReport']
 
@@ -75,8 +75,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             Ratio of samples to be used for comparison in the condition (Value should be between 0 - 1 inclusive)
         """
         return self.add_condition(
-            f'Misclassified cell size lower than {format_number(misclassified_samples_threshold * 100)}% '
-            'of the total samples',
+            f'Misclassified cell size lower than {format_percent(misclassified_samples_threshold)} of the total samples',
             misclassified_samples_lower_than_condition,
             misclassified_samples_threshold=misclassified_samples_threshold
         )
