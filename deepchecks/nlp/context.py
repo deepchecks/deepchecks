@@ -191,7 +191,7 @@ class _DummyModel(BasicModel):
     @staticmethod
     def _validate_classification_prediction(dataset: TextData, prediction: TTextPred, n_classes: int):
         """Validate prediction for given text classification dataset."""
-        classification_format_error = f'Check requires classification for {dataset.name} to be ' \
+        classification_format_error = f'Check requires classification predictions for {dataset.name} to be ' \
                                       f'either a sequence that can be cast to a 1D numpy array of shape' \
                                       f' (n_samples,), or a sequence of sequences that can be cast to a 2D ' \
                                       f'numpy array of shape (n_samples, n_classes) for the multilabel case.'
