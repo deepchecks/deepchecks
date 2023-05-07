@@ -115,14 +115,17 @@ def misclassified_samples_lower_than_condition(value: np.ndarray,
     total_samples = np.sum(value)
 
     # Number of threshold samples based on the 'misclassified_samples_threshold' parameter
-    thresh_samples = misclassified_samples_threshold * total_samples
+    thresh_samples = round(np.ceil(misclassified_samples_threshold * total_samples))
 
     # m is the number of rows in the confusion matrix and
     # n is the number of columns in the confusion matrix
     m, n = value.shape[0], value.shape[1]
 
-    # Looping over the confusion matrix and
-    # checking only the misclassified cells
+    # Variables to keep track of cells above 'thresh_samples'
+    n_cells_above_thresh = 0
+    max_samples_in_cell_above_thresh = thresh_samples
+
+    # Looping over the confusion matrix and checking only the misclassified cells
     for i in range(m):
         for j in range(n):
             # omitting the principal axis of the confusion matrix
@@ -130,11 +133,19 @@ def misclassified_samples_lower_than_condition(value: np.ndarray,
                 n_samples = value[i][j]
 
                 if n_samples > thresh_samples:
-                    details = f'Found a cell with {n_samples} misclassified samples ' \
-                              f'which is greater than the threshold ({thresh_samples}) ' \
-                               'based on the given misclassified_samples_threshold ratio'
+                    n_cells_above_thresh += 1
 
-                    return ConditionResult(ConditionCategory.FAIL, details)
+                    if n_samples > max_samples_in_cell_above_thresh:
+                        max_samples_in_cell_above_thresh = n_samples
+    
+    # There are misclassified cells in the confusion matrix with samples more than 'thresh_samples'
+    if n_cells_above_thresh > 0:
+        details = f'The confusion matrix has {n_cells_above_thresh} cells with samples ' \
+                  f'greater than the threshold ({thresh_samples}) based on the ' \
+                  'given misclassified_samples_threshold ratio. The worst performing cell ' \
+                  f'has {max_samples_in_cell_above_thresh} samples'
+
+        return ConditionResult(ConditionCategory.FAIL, details)
 
     # No cell has more than 'thresh_samples' misclassified samples
     details = 'Number of samples in each of the misclassified cells in the ' \
