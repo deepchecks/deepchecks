@@ -10,11 +10,12 @@
 #
 """Test for the nlp SingleDatasetPerformance check"""
 
+import numpy as np
 from hamcrest import assert_that, close_to, equal_to
 
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.nlp.checks.model_evaluation import ConfusionMatrixReport
-from deepchecks.utils.strings import format_number
+from deepchecks.utils.strings import format_number, format_percent
 from tests.base.utils import equal_condition_result
 
 
@@ -105,16 +106,18 @@ def test_condition_misclassified_samples_lower_than_raises_error(tweet_emotion_t
     ))
 
 
-def test_condition_misclassified_samples_lower_than(tweet_emotion_train_test_textdata,
-                                                    tweet_emotion_train_test_predictions):
+def test_condition_misclassified_samples_lower_than_passes(tweet_emotion_train_test_textdata,
+                                                           tweet_emotion_train_test_predictions):
 
     # Arrange
     _, test_ds = tweet_emotion_train_test_textdata
     _, test_preds = tweet_emotion_train_test_predictions
 
+    threshold = 0.1
+    thresh_samples = round(np.ceil(threshold * len(test_ds)))
+
     check = ConfusionMatrixReport() \
-            .add_condition_misclassified_samples_lower_than_condition(misclassified_samples_threshold=0.1) \
-            .add_condition_misclassified_samples_lower_than_condition(misclassified_samples_threshold=0.01)
+            .add_condition_misclassified_samples_lower_than_condition(misclassified_samples_threshold=threshold)
 
     # Act
     result = check.run(test_ds, predictions=test_preds)
@@ -122,15 +125,52 @@ def test_condition_misclassified_samples_lower_than(tweet_emotion_train_test_tex
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
-        name=f'Misclassified cell size lower than {format_number(0.1 * 100)}% of the total samples',
+        name=f'Misclassified cell size lower than {format_percent(threshold)} of the total samples',
         details='Number of samples in each of the misclassified cells in the confusion matrix is '
-                f'lesser than the threshold ({0.1 * len(test_ds)}) based on the ' \
-                'given misclassified_samples_threshold ratio'
+                f'lesser than the threshold ({thresh_samples}) based on the given misclassified_samples_threshold ratio'
     ))
 
-    assert_that(result.conditions_results[1], equal_condition_result(
+
+def test_condition_misclassified_samples_lower_than_fails(tweet_emotion_train_test_textdata,
+                                                          tweet_emotion_train_test_predictions):
+
+    # Arrange
+    _, test_ds = tweet_emotion_train_test_textdata
+    _, test_preds = tweet_emotion_train_test_predictions
+
+    threshold = 0.01
+    thresh_samples = round(np.ceil(threshold * len(test_ds)))
+
+    check = ConfusionMatrixReport() \
+            .add_condition_misclassified_samples_lower_than_condition(misclassified_samples_threshold=threshold)
+
+    # Act
+    result = check.run(test_ds, predictions=test_preds)
+
+    confusion_matrix = result.value
+    m, n = confusion_matrix.shape[0], confusion_matrix.shape[1]
+
+    n_cells_above_thresh = 0
+    max_samples_in_cell_above_thresh = thresh_samples
+
+    # Looping over the confusion matrix and checking only the misclassified cells
+    for i in range(m):
+        for j in range(n):
+            # omitting the principal axis of the confusion matrix
+            if i != j:
+                n_samples = confusion_matrix[i][j]
+
+                if n_samples > thresh_samples:
+                    n_cells_above_thresh += 1
+
+                    if n_samples > max_samples_in_cell_above_thresh:
+                        max_samples_in_cell_above_thresh = n_samples
+
+    # Assert
+    assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
-        name=f'Misclassified cell size lower than {format_number(0.01 * 100)}% of the total samples',
-        details='Found a cell with 23 misclassified samples which is greater than the threshold '
-                f'({0.01 * len(test_ds)}) based on the given misclassified_samples_threshold ratio'
+        name=f'Misclassified cell size lower than {format_percent(threshold)} of the total samples',
+        details = f'The confusion matrix has {n_cells_above_thresh} cells with samples greater than the '
+                   f'threshold ({thresh_samples}) based on the given misclassified_samples_threshold ratio. '
+                   f'The worst performing cell has {max_samples_in_cell_above_thresh} samples'
     ))
