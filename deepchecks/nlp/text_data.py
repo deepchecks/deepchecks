@@ -295,9 +295,17 @@ class TextData:
         self._embeddings = calculate_default_embeddings(text=self.text, index=list(range(len(self))), model=model,
                                                         file_path=file_path, device=device)
 
-    def set_embeddings(self, embeddings: pd.DataFrame):
-        """Set the metadata of the dataset."""
-        if self._embeddings is not None:
+    def set_embeddings(self, embeddings: pd.DataFrame, verbose: bool=True):
+        """Set the metadata of the dataset.
+
+        Parameters
+        ----------
+        embeddings : pd.DataFrame
+            Embeddings to set.
+        verbose : bool, default: True
+            Whether to print information about the process.
+        """
+        if self._embeddings is not None and verbose is True:
             warnings.warn('Embeddings already exist, overwriting it', UserWarning)
 
         if embeddings is not None:

@@ -132,12 +132,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
         """
 
         values_dict, displays = run_multivariable_drift_for_embeddings(
-            train_embeddings=train_dataset.embeddings,
-            test_embeddings=test_dataset.embeddings,
             train_dataset=train_dataset,
             test_dataset=test_dataset,
-            numerical_features=list(train_dataset.embeddings.columns),
-            cat_features=[],
             sample_size=sample_size, random_state=self.random_state,
             test_size=self.test_size, n_top_columns=self.n_top_embeddings,
             min_feature_importance=self.min_feature_importance,
