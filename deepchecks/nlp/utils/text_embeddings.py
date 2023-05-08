@@ -9,33 +9,27 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module for calculating embeddings for text."""
-from typing import Optional, Sequence
+from typing import Optional
 
 import pandas as pd
 from tqdm import tqdm
 
-# TODO: Add tests!
 
-
-def calculate_default_embeddings(text: Sequence[str], index: list, model: str = 'miniLM', file_path: str = 'embeddings.csv',
-                                 device: Optional[str] = None) -> pd.DataFrame:
+def calculate_default_embeddings(text: pd.Series, model: str = 'miniLM',
+                                 file_path: Optional[str] = 'embeddings.csv') -> pd.DataFrame:
     """
     Get default embeddings for the dataset.
 
     Parameters
     ----------
-    text : Sequence[str]
+    text : pd.Series
         The text to get embeddings for.
-    index : list
-        The index of the text.
     model : str, default 'miniLM'
         The type of embeddings to return. Can be either 'miniLM' or 'open_ai'.
         For 'open_ai' option, the model used is 'text-embedding-ada-002' and requires to first set an open ai api key
         by using the command openai.api_key = YOUR_API_KEY
-    file_path : str, default 'embeddings.csv'
+    file_path : Optional[str], default 'embeddings.csv'
         If given, the embeddings will be saved to the given file path.
-    device : str, default None #TODO: Use?
-        The device to use for the calculation. If None, the default device will be used.
 
     Returns
     -------
@@ -76,8 +70,8 @@ def calculate_default_embeddings(text: Sequence[str], index: list, model: str = 
                 embeddings.append(x['embedding'])
     else:
         raise ValueError(f'Unknown model type: {model}')
-    embeddings = pd.DataFrame(embeddings, index=index)
-    if file_path:
+    embeddings = pd.DataFrame(embeddings, index=text.index)
+    if file_path is not None:
         embeddings.to_csv(file_path, index=True)
     return embeddings
 
