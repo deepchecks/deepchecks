@@ -143,7 +143,7 @@ class SpecialCharacters(SingleDatasetCheck):
         return CheckResult(
             value=result_value,
             display=[
-                f'List of ignored special characters: {self.special_characters_whitelist}',
+                f'List of ignored special characters: {list(self.special_characters_whitelist)}',
                 message,
                 display_table.iloc[:self.n_most_common]
             ]

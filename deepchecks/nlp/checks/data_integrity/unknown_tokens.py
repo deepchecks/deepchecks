@@ -186,7 +186,9 @@ class UnknownTokens(SingleDatasetCheck):
         fig.update_layout(title=f'Words containing Unknown Tokens - {self.tokenizer.name_or_path} Tokenizer<br>'
                                 f'({format_percent(sum(percentages) / 100.)} of all words)',
                           title_x=0.5,
-                          legend_title='Words with Unknown Tokens')
+                          title_y=0.95,
+                          legend_title='Words with Unknown Tokens',
+                          margin=dict(l=0, r=0, t=100, b=0))
 
         return fig
 
