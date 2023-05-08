@@ -27,7 +27,7 @@ __all__ = ['calculate_default_properties']
 
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
-FASTTEXT_LANG_MODEL = "https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin"
+FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 
 
 def _import_optional_property_dependency(
@@ -208,7 +208,7 @@ def language(raw_text: Sequence[str],
     """Return list of strings of language."""
     fasttext = _import_optional_property_dependency(module='fasttext', property_name='language')
 
-    model_name = FASTTEXT_LANG_MODEL.split('/')[-1]
+    model_name = FASTTEXT_LANG_MODEL.rsplit('/', maxsplit=1)[-1]
 
     model_path = get_creat_model_storage(models_storage)
     model_path = model_path / 'fasttext'
@@ -221,10 +221,10 @@ def language(raw_text: Sequence[str],
         with open(model_path, 'wb') as f:
             f.write(response.content)
 
-    # This wierd code is to suppress a warning from fasttext about a deprecated function
+    # This weird code is to suppress a warning from fasttext about a deprecated function
     try:
         fasttext.FastText.eprint = lambda *args, **kwargs: None
-        model = fasttext.load_model("lid.176.bin")
+        model = fasttext.load_model(model_path)
     except Exception as exp:
         raise exp
 
@@ -232,7 +232,7 @@ def language(raw_text: Sequence[str],
     predictions = model.predict(list(raw_text), k=1, threshold=lang_certainty_threshold)
 
     # x is empty for detection below threshold
-    language_codes = [x[0].replace("__label__", "") if x else np.nan for x in predictions[0]]
+    language_codes = [x[0].replace('__label__', '') if x else np.nan for x in predictions[0]]
 
     return language_codes
 
