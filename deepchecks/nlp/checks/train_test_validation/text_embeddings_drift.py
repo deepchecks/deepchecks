@@ -11,7 +11,7 @@
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.nlp import Context, TrainTestCheck
-from deepchecks.nlp.checks.multivariate_embeddings_drift_utils import run_multivariable_drift_for_embeddings
+from deepchecks.nlp.utils.multivariate_embeddings_drift_utils import run_multivariable_drift_for_embeddings
 from deepchecks.utils.strings import format_number
 
 __all__ = ['TextEmbeddingsDrift']
@@ -21,11 +21,12 @@ class TextEmbeddingsDrift(TrainTestCheck):
     """
     Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
 
-    Check fits a new model to distinguish between train and test datasets, called a Domain Classifier.
-    Once the Domain Classifier is fitted the check calculates the feature importance for the domain classifier
-    model. The result of the check is based on the AUC of the domain classifier model, and the check displays
-    the change in distribution between train and test for the top features according to the
-    calculated feature importance.
+    This check detects drift between the model embeddings of the train and test data. To do so, the check trains
+    a Domain Classifier, which is a model trained to distinguish between the train and test datasets.
+
+    For optimizing time and improving the model's performance, the check uses dimension reduction to reduce the
+    number of embeddings dimensions. The check uses UMAP for dimension reduction by default, but can also use PCA
+    or no dimension reduction at all.
 
     Parameters
     ----------
@@ -97,12 +98,6 @@ class TextEmbeddingsDrift(TrainTestCheck):
         test_dataset = context.test
 
         sample_size = min(self.sample_size, train_dataset.n_samples, test_dataset.n_samples)
-        headnote = """
-        <span>
-        The shown features are the features that are most important for the domain classifier - the
-        domain_classifier trained to distinguish between the train and test datasets.<br>
-        </span>
-        """
 
         values_dict, displays = run_multivariable_drift_for_embeddings(
             train_dataset=train_dataset,
@@ -113,11 +108,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
             num_samples_in_display=self.num_samples_in_display,
             dimension_reduction_method=self.dimension_reduction_method,
             with_display=context.with_display,
-            dataset_names=(train_dataset.name, test_dataset.name)
         )
-
-        if displays:
-            displays.insert(0, headnote)
 
         return CheckResult(value=values_dict, display=displays, header='Embeddings Drift')
 
