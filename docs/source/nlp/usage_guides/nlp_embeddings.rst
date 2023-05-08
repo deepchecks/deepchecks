@@ -48,7 +48,7 @@ Using Deepchecks to Calculate Embeddings
 ----------------------------------------
 
 If you don't have model embeddings for you text, you can use deepchecks to calculate the embeddings for you.
-deepchecks currently supports using the free-to-use ``sentence-transformers`` library to calculate the embeddings,
+deepchecks currently supports using the open-source ``sentence-transformers`` library to calculate the embeddings,
 or the paid API of ``open-ai``.
 
 Calculating your embeddings is done by calling the ``calculate_default_embeddings`` method of the ``TextData``
