@@ -178,8 +178,9 @@ class WeakSegmentAbstract(abc.ABC):
             feature_rank_for_search = np.asarray(data.columns)
 
         weak_segments = pd.DataFrame(
-            columns=[score_title, 'Feature1', 'Feature1 Range', 'Feature2', 'Feature2 Range', '% of Data'])
-        n_features = min(len(feature_rank_for_search), self.n_top_features) if self.n_top_features is not None\
+            columns=[score_title, 'Feature1', 'Feature1 Range', 'Feature2', 'Feature2 Range',
+                     '% of Data', 'Samples in Segment'])
+        n_features = min(len(feature_rank_for_search), self.n_top_features) if self.n_top_features is not None \
             else len(feature_rank_for_search)
         for i in range(n_features):
             for j in range(i + 1, n_features):
