@@ -28,6 +28,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
     number of embeddings dimensions. The check uses UMAP for dimension reduction by default, but can also use PCA
     or no dimension reduction at all.
 
+    For more information about embeddings in deepchecks, see :ref:`Text Embeddings Guide <nlp__embeddings_guide>`.
+
     Parameters
     ----------
     sample_size : int , default: 10_000

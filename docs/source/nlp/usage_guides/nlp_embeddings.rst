@@ -5,7 +5,7 @@ NLP Embeddings
 =================
 
 Embeddings are a way to represent text as a vector of numbers. The vector is a representation of the text in the latent
-space (or semantic space), in which text with similar meaning is represented by similar vectors.
+space, in which text with similar meaning is represented by similar vectors.
 
 Embeddings are usually extracted from the one of the final layers of a trained neural network model. This model can either be a
 model that was trained on the specific task at hand (e.g. sentiment analysis), or a model that was trained on a

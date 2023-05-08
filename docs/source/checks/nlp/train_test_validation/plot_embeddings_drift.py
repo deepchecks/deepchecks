@@ -25,15 +25,22 @@ In unstructured data such as text, we cannot measure the drift of the data direc
 to measure. In order to measure the drift of the data, we can use the model's embeddings as a proxy for the data
 distribution.
 
-For more on embeddings, see the `NLP Embeddings Guide
-<https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_embeddings.html>`_.
+For more on embeddings, see the :ref:`Text Embeddings Guide <nlp__embeddings_guide>`.
 
-How Deepchecks Detects Dataset Drift
-------------------------------------
+This detects embeddings drift by using :ref:`a domain classifier <drift_detection_by_domain_classifier>`.
+For more information on drift, see the :ref:`Drift Guide <drift_user_guide>`.
 
-This check detects the embeddings drift by using :ref:`a domain classifier <drift_detection_by_domain_classifier>`.
-Other methods to detect drift include :ref:`univariate measures <drift_detection_by_univariate_measure>`
-which is used in other checks, such as :ref:`Feature Drift check <tabular__feature_drift>`.
+How Does This Check Work?
+=========================
+
+This check detects the embeddings drift by using :ref:`a domain classifier <drift_detection_by_domain_classifier>`,
+and uses the AUC score of the classifier as the basis for the measure of drift.
+For efficiency, the check first reduces the dimensionality of the embeddings, and then trains the classifier on the
+reduced embeddings. By default, the check uses UMAP for dimensionality reduction, but you can also use PCA by
+setting the `dimension_reduction_method` parameter to `pca`.
+
+The check also provides a scatter plot of the embeddings, which is a 2D representation of the embeddings space. This
+is achieved by further reducing the dimensionality, using UMAP.
 """
 
 #%%
@@ -46,6 +53,11 @@ from deepchecks.nlp.checks import TextEmbeddingsDrift
 # For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
 # happiness, anger, sadness and optimism.
 train_ds, test_ds = tweet_emotion.load_data()
+train_embeddings, test_embeddings = tweet_emotion.load_embeddings(as_train_test=True)
+
+# Set the embeddings in the datasets:
+train_ds.set_embeddings(train_embeddings)
+test_ds.set_embeddings(test_embeddings)
 
 #%%
 # Let's see how our data looks like:
