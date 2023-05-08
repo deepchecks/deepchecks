@@ -178,10 +178,11 @@ class WeakSegmentAbstract(abc.ABC):
             feature_rank_for_search = np.asarray(data.columns)
 
         weak_segments = pd.DataFrame(
-            columns=[score_title, 'Feature1', 'Feature1 Range', 'Feature2', 'Feature2 Range',
-                     '% of Data', 'Samples in Segment'])
-        for i in range(min(len(feature_rank_for_search), self.n_top_features)):
-            for j in range(i + 1, min(len(feature_rank_for_search), self.n_top_features)):
+            columns=[score_title, 'Feature1', 'Feature1 Range', 'Feature2', 'Feature2 Range', '% of Data'])
+        n_features = min(len(feature_rank_for_search), self.n_top_features) if self.n_top_features is not None\
+            else len(feature_rank_for_search)
+        for i in range(n_features):
+            for j in range(i + 1, n_features):
                 feature1, feature2 = feature_rank_for_search[[i, j]]
                 weak_segment_score, weak_segment_filter = self._find_weak_segment(data, [feature1, feature2],
                                                                                   score_per_sample, label_col,
@@ -265,7 +266,7 @@ class WeakSegmentAbstract(abc.ABC):
         except ValueError:
             return None, None
 
-        return round(segment_score, 3), segment_filter
+        return segment_score, segment_filter
 
     def _format_partition_vec_for_display(self, partition_vec: np.array, feature_name: str,
                                           seperator: Union[str, None] = '<br>') -> List[Union[List, str]]:
