@@ -100,7 +100,7 @@ def test_condition_misclassified_samples_lower_than_raises_error(tweet_emotion_t
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         name=f'Misclassified cell size lower than {format_number(-0.1 * 100)}% of the total samples',
-        details='Exception in condition: ValidationError: Condition requires the parameter "misclassified_samples_threshold" '
+        details='Exception in condition: DeepchecksValueError: Condition requires the parameter "misclassified_samples_threshold" '
                 'to be between 0 and 1 inclusive but got -0.1',
         category=ConditionCategory.ERROR
     ))
@@ -108,7 +108,7 @@ def test_condition_misclassified_samples_lower_than_raises_error(tweet_emotion_t
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=False,
         name=f'Misclassified cell size lower than {format_number(1.1 * 100)}% of the total samples',
-        details='Exception in condition: ValidationError: Condition requires the parameter "misclassified_samples_threshold" '
+        details='Exception in condition: DeepchecksValueError: Condition requires the parameter "misclassified_samples_threshold" '
                 'to be between 0 and 1 inclusive but got 1.1',
         category=ConditionCategory.ERROR
     ))

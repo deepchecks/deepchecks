@@ -18,7 +18,7 @@ from sklearn.metrics import confusion_matrix
 
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult
-from deepchecks.core.errors import ValidationError
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number_if_not_nan, format_percent
 
 __all__ = ['create_confusion_matrix_figure', 'run_confusion_matrix_check']
@@ -98,7 +98,7 @@ def misclassified_samples_lower_than_condition(value: pd.DataFrame,
 
     Raises
     ------
-    ValidationError
+    DeepchecksValueError
         if the value of `misclassified_samples_threshold` parameter is not between 0 - 1 inclusive.
 
     Returns
@@ -110,7 +110,7 @@ def misclassified_samples_lower_than_condition(value: pd.DataFrame,
         are more than the `misclassified_samples_threshold` ratio
     """
     if misclassified_samples_threshold < 0 or misclassified_samples_threshold > 1:
-        raise ValidationError(
+        raise DeepchecksValueError(
            'Condition requires the parameter "misclassified_samples_threshold" '
            f'to be between 0 and 1 inclusive but got {misclassified_samples_threshold}'
         )
