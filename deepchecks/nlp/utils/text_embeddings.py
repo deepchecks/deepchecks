@@ -11,18 +11,19 @@
 """Utils module for calculating embeddings for text."""
 from typing import Optional
 
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
 
-def calculate_default_embeddings(text: pd.Series, model: str = 'miniLM',
+def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
                                  file_path: Optional[str] = 'embeddings.csv') -> pd.DataFrame:
     """
     Get default embeddings for the dataset.
 
     Parameters
     ----------
-    text : pd.Series
+    text : np.array
         The text to get embeddings for.
     model : str, default 'miniLM'
         The type of embeddings to return. Can be either 'miniLM' or 'open_ai'.
@@ -70,9 +71,9 @@ def calculate_default_embeddings(text: pd.Series, model: str = 'miniLM',
                 embeddings.append(x['embedding'])
     else:
         raise ValueError(f'Unknown model type: {model}')
-    embeddings = pd.DataFrame(embeddings, index=text.index)
+    embeddings = pd.DataFrame(embeddings)
     if file_path is not None:
-        embeddings.to_csv(file_path, index=True)
+        embeddings.to_csv(file_path, index=False)
     return embeddings
 
 

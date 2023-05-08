@@ -10,12 +10,12 @@
 #
 """Test for the embeddings module"""
 
-import pandas as pd
+import numpy as np
 from hamcrest import assert_that, equal_to
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 
 
 def test_simple_embeddings():
     text = ['my name is inigo montoya', 'you killed my father', 'prepare to die']
-    embeddings = calculate_default_embeddings(pd.Series(text))
+    embeddings = calculate_default_embeddings(np.array(text))
     assert_that(embeddings.shape, equal_to((3, 384)))

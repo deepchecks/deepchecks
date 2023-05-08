@@ -286,14 +286,12 @@ class TextData:
         """Return the metadata of for the dataset."""
         return self._embeddings
 
-    def calculate_default_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.csv',
-                                     device: t.Optional[str] = None):
+    def calculate_default_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.csv'):
         """Calculate the default properties of the dataset."""
         if self._embeddings is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        self._embeddings = calculate_default_embeddings(text=self.text, index=list(range(len(self))), model=model,
-                                                        file_path=file_path, device=device)
+        self._embeddings = calculate_default_embeddings(text=pd.Series(self.text), model=model, file_path=file_path)
 
     def set_embeddings(self, embeddings: pd.DataFrame, verbose: bool = True):
         """Set the metadata of the dataset.

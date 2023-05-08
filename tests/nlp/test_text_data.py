@@ -163,6 +163,12 @@ def test_properties(text_classification_dataset_mock):
     assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 0.0, 0.0, 80.0 ))
 
 
+def test_embeddings():
+    ds = TextData(['my name is inigo montoya', 'you killed my father', 'prepare to die'])
+    ds.calculate_default_embeddings()
+    assert_that(ds.embeddings.shape, equal_to((3, 384)))
+
+
 def test_set_embeddings(text_classification_dataset_mock):
     # Arrange
     dataset = text_classification_dataset_mock
