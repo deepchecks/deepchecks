@@ -70,6 +70,10 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
             is_cat_label = True
         encoded_dataset = self._target_encode_categorical_features_fill_na(features, label,
                                                                            cat_features, is_cat_label=is_cat_label)
+        # Replacing the label with the original label for multilabel
+        if is_multilabel:
+            listed_label = [list(x) for x in text_data.label]
+            encoded_dataset._data[encoded_dataset.label_name] = listed_label  # pylint: disable=protected-access
         if self.score_per_sample is not None:
             score_per_sample = self.score_per_sample[list(features.index)]
             scorer, dummy_model = None, None
