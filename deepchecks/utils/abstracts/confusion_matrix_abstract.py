@@ -30,13 +30,13 @@ def run_confusion_matrix_check(y_pred: np.ndarray, y_true: np.ndarray, with_disp
     total_classes = sorted([str(x) for x in set(y_pred).union(set(y_true))])
     result = confusion_matrix(y_true, y_pred)
 
-    # For accessing the class names from the condition
-    result = pd.DataFrame(result, index=total_classes, columns=total_classes)
-
     if with_display:
         fig = create_confusion_matrix_figure(result, total_classes, normalize_display)
     else:
         fig = None
+
+    # For accessing the class names from the condition
+    result = pd.DataFrame(result, index=total_classes, columns=total_classes)
 
     return CheckResult(result, display=fig)
 
