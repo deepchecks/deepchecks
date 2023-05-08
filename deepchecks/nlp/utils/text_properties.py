@@ -73,6 +73,8 @@ def get_transformer_model(
             raise ValueError(
                 f'Unexpected type of the "models_storage" parameter - {type(models_storage)}'
             )
+        if not models_storage.exists():
+            models_storage.mkdir(parents=True)
         if not models_storage.is_dir():
             raise ValueError('"model_storage" expected to be a directory')
 
@@ -374,7 +376,9 @@ def calculate_default_properties(
     device : int, default None
         The device to use for the calculation. If None, the default device will be used.
     models_storage : Union[str, pathlib.Path, None], default None
-        a directory to store the models.
+        A directory to store the models.
+        If not provided, models will be stored in `DEEPCHECKS_LIB_PATH/nlp/.nlp-models`.
+        Also, if a folder already contains relevant resources they are not re-downloaded.
 
     Returns
     -------

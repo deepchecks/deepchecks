@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the default suites"""
-from deepchecks.nlp.suites import model_evaluation, full_suite
+from deepchecks.nlp.suites import full_suite, model_evaluation
 from tests.common import get_expected_results_length, validate_suite_result
 
 
