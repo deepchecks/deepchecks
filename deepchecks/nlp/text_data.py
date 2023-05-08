@@ -91,9 +91,13 @@ class TextData:
         The names of the categorical properties columns. If None, categorical properties columns are automatically
         inferred. Only relevant if properties is not None.
     embeddings : t.Optional[Union[pd.DataFrame, str]] , default: None
-        The text embeddings for the samples (1 embeddings per sample). If None, no embeddings are set. If 'auto', the
-        embeddings are calculated using the default embeddings. If a DataFrame is given, it must contain the embeddings
-        for each sample as the raw text and identical index.
+        The text embeddings for the samples. Embeddings must be given as either a pandas DataFrame or a path to a pandas
+        DataFrame compatible csv file, with the rows representing each sample and columns representing the different
+        embeddings dimensions. If None, no embeddings are set.
+        The number of rows in the embeddings DataFrame must be equal to the number of samples in the dataset, and the
+        order of the rows must be the same as the order of the samples in the dataset.
+        In order to calculate the default embeddings, use the `TextData.calculate_default_embeddings` function after
+        the creation of the TextData object.
     """
 
     _text: np.ndarray
