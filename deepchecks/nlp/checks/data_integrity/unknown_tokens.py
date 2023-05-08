@@ -64,10 +64,11 @@ class UnknownTokens(SingleDatasetCheck):
         if tokenizer is None:
             try:
                 from transformers import BertTokenizer  # pylint: disable=W0611,C0415 # noqa
-            except ImportError:
-                DeepchecksProcessError(
-                    'Tokenizer was not provided. In order to use checks default tokenizer (BertTokenizer),'
-                    'please pip install transformers>=4.27.4. ')
+            except ImportError as e:
+                raise DeepchecksProcessError(
+                    'Tokenizer was not provided. In order to use checks default '
+                    'tokenizer (BertTokenizer), please run:\n>> pip install transformers>=4.27.4.'
+                ) from e
             self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         else:
             self._validate_tokenizer()
@@ -165,6 +166,8 @@ class UnknownTokens(SingleDatasetCheck):
 
         # Truncate labels for display
         labels = [truncate_string(label, self.max_text_length_for_display) for label in labels]
+        # round percentages to 2 decimal places after the percent
+        percentages = [round(percent, 2) for percent in percentages]
 
         # Create pie chart with hover text and custom hover template
         fig = go.Figure(data=[go.Pie(
@@ -180,7 +183,9 @@ class UnknownTokens(SingleDatasetCheck):
         )])
 
         # Customize chart appearance
-        fig.update_layout(title=f'Words containing Unknown Tokens - {self.tokenizer.name_or_path} Tokenizer',
+        fig.update_layout(title=f'Words containing Unknown Tokens - {self.tokenizer.name_or_path} Tokenizer<br>'
+                                f'({format_percent(sum(percentages) / 100.)} of all words)',
+                          title_x=0.5,
                           legend_title='Words with Unknown Tokens')
 
         return fig

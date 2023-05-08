@@ -16,7 +16,9 @@ import warnings
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+import pandas as pd
 import textblob
+from nltk import download as nltk_download
 
 from deepchecks.utils.function import run_available_kwargs
 
@@ -194,6 +196,45 @@ def formality(raw_text: Sequence[str], device: Optional[int] = None) -> List[flo
     return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
 
 
+def lexical_density(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of floats of lexical density per text sample.
+
+    Lexical density is the percentage of unique words in a given text. For more
+    information: https://en.wikipedia.org/wiki/Lexical_density
+    """
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, lexical density cannot be calculated.'
+                      ' Please check your internet connection.')
+        return [np.nan] * len(raw_text)
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            all_words = textblob.TextBlob(text).words
+            total_words = len(all_words)
+            total_unique_words = len(set(all_words))
+            text_lexical_density = round(total_unique_words * 100 / total_words, 2)
+            result.append(text_lexical_density)
+        else:
+            result.append(np.nan)
+    return result
+
+
+def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers of number of unique noun words in the text."""
+    if not nltk_download('averaged_perceptron_tagger', quiet=True):
+        warnings.warn('nltk averaged_perceptron_tagger not found, unique noun count cannot be calculated.'
+                      ' Please check your internet connection.')
+        return [np.nan] * len(raw_text)
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            unique_words_with_tags = set(textblob.TextBlob(text).tags)
+            result.append(sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N')))
+        else:
+            result.append(np.nan)
+    return result
+
+
 DEFAULT_PROPERTIES = (
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
@@ -204,10 +245,12 @@ DEFAULT_PROPERTIES = (
     {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
     {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
     {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
-    {'name': 'Formality', 'method': formality, 'output_type': 'numeric'}
+    {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
+    {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
+    {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
 )
 
-LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language']
+LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count']
 ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
 
@@ -251,7 +294,7 @@ def calculate_default_properties(
         The properties to calculate. If None, all default properties will be calculated. Cannot be used together
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
-        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
+        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count']
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language'] may take a long time to calculate. If
         include_long_calculation_properties is False, these properties will be ignored, even if they are in the
         include_properties parameter.

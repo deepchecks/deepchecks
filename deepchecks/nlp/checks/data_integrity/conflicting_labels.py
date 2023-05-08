@@ -131,7 +131,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             'conflicting_samples': result_df,
         }
 
-        if context.with_display is False:
+        if context.with_display is False or num_of_ambiguous_samples == 0:
             return CheckResult(value=result_value)
 
         ambiguous_samples['Text'] = ambiguous_samples['Text'].apply(self._truncate_text)

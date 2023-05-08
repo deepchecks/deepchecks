@@ -13,16 +13,15 @@ from unittest.mock import patch
 
 import pytest
 from hamcrest import assert_that, close_to, equal_to
-
+import numpy as np
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
-
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
     return [0] * 20_000
 
 
 @patch('deepchecks.nlp.utils.text_properties.run_available_kwargs', mock_fn)
-def test_calculate_default_properties():
+def test_calculate_toxicity_property():
     # Arrange
     raw_text = ['This is a test sentence.'] * 20_000
 
@@ -38,3 +37,35 @@ def test_calculate_default_properties():
 
     # Assert
     assert_that(result, equal_to({'Toxicity': [0] * 20_000}))
+
+
+def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
+    
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    result = calculate_default_properties(test_text, include_properties=['Lexical Density'])[0]
+    result_none_text = calculate_default_properties([None], include_properties=['Lexical Density'])[0]
+
+    # Assert
+    assert_that(result['Lexical Density'][0: 10], equal_to([94.44, 93.75, 100.0, 91.67, 87.5, 100.0, 100.0, 100.0, 91.67, 91.67]))
+    assert_that(result_none_text['Lexical Density'], equal_to([np.nan]))
+
+
+def test_calculate_unique_noun_count_property(tweet_emotion_train_test_textdata):
+    
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    result = calculate_default_properties(test_text, include_properties=['Unique Noun Count'], 
+                                          include_long_calculation_properties=True)[0]
+    result_none_text = calculate_default_properties([None], include_properties=['Unique Noun Count'], 
+                                                    include_long_calculation_properties=True)[0]
+
+    # Assert
+    assert_that(result['Unique Noun Count'][0: 10], equal_to([9, 2, 3, 3, 4, 10, 4, 2, 7, 5]))
+    assert_that(result_none_text['Unique Noun Count'], equal_to([np.nan]))
