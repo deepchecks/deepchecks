@@ -16,10 +16,11 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objs as go
 
+from deepchecks.nlp import TextData
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
-from deepchecks.utils.plot import colors, common_and_outlier_colors
+from deepchecks.utils.plot import colors, common_and_outlier_colors, DEFAULT_DATASET_NAMES
 
 __all__ = ['get_text_outliers_graph',
            'two_datasets_scatter_plot']
@@ -234,9 +235,27 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
     return fig
 
 
-def two_datasets_scatter_plot(plot_title, plot_data, test_dataset, train_dataset, dataset_names):
-    """Plot a scatter plot of two datasets."""
+def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_dataset: TextData,
+                              test_dataset: TextData):
+    """Plot a scatter plot of two datasets.
+
+    Parameters
+    ----------
+    plot_title : str
+        The title of the plot.
+    plot_data : pd.DataFrame
+        The data to plot (x and y axes).
+    train_dataset : TextData
+        The train dataset.
+    test_dataset : TextData
+        The test dataset.
+    """
     axes = plot_data.columns
+    if train_dataset.name and test_dataset.name:
+        dataset_names = (train_dataset.name, test_dataset.name)
+    else:
+        dataset_names = DEFAULT_DATASET_NAMES
+
     plot_data['Dataset'] = [dataset_names[0]] * len(train_dataset) + [dataset_names[1]] * len(test_dataset)
     if train_dataset.has_label():
         plot_data['Label'] = np.concatenate([train_dataset.label_for_display, test_dataset.label_for_display])

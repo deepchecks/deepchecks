@@ -11,7 +11,6 @@
 """Test for the NLP TextPropertyOutliers check"""
 
 import pandas as pd
-
 from hamcrest import assert_that, calling, close_to, equal_to, raises
 
 from deepchecks.core.errors import NotEnoughSamplesError

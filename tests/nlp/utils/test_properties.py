@@ -9,12 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the properties module"""
+import os
+import pathlib
+import timeit
 from unittest.mock import patch
 
-import pytest
-from hamcrest import assert_that, close_to, equal_to
 import numpy as np
-from deepchecks.nlp.utils.text_properties import calculate_default_properties
+import pytest
+from hamcrest import *
+
+from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_default_properties, get_transformer_model
+
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
     return [0] * 20_000
@@ -40,7 +45,7 @@ def test_calculate_toxicity_property():
 
 
 def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
-    
+
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -55,17 +60,83 @@ def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
 
 
 def test_calculate_unique_noun_count_property(tweet_emotion_train_test_textdata):
-    
+
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
 
     # Act
-    result = calculate_default_properties(test_text, include_properties=['Unique Noun Count'], 
+    result = calculate_default_properties(test_text, include_properties=['Unique Noun Count'],
                                           include_long_calculation_properties=True)[0]
-    result_none_text = calculate_default_properties([None], include_properties=['Unique Noun Count'], 
+    result_none_text = calculate_default_properties([None], include_properties=['Unique Noun Count'],
                                                     include_long_calculation_properties=True)[0]
 
     # Assert
     assert_that(result['Unique Noun Count'][0: 10], equal_to([9, 2, 3, 3, 4, 10, 4, 2, 7, 5]))
     assert_that(result_none_text['Unique Noun Count'], equal_to([np.nan]))
+
+
+@pytest.mark.skipif(
+    'TEST_NLP_PROPERTIES_MODELS_DOWNLOAD' not in os.environ,
+    reason='The test takes too long to run, provide env var if you want to run it.'
+)
+def test_properties_models_download():
+    # Arrange
+    model_name = 'unitary/toxic-bert'
+    model_path = MODELS_STORAGE / f"models--{model_name.replace('/', '--')}"
+    onnx_model_path = MODELS_STORAGE / 'onnx' / model_name
+    quantized_model_path = MODELS_STORAGE / 'onnx' / 'quantized' / model_name
+
+    # Act
+    model_download_time = timeit.timeit(
+        stmt='fn()',
+        number=1,
+        globals={'fn': lambda: get_transformer_model(
+            property_name='',
+            model_name=model_name
+        )}
+    )
+
+    # Assert
+    assert MODELS_STORAGE.exists() and MODELS_STORAGE.is_dir()
+    assert model_path.exists() and model_path.is_dir()
+    assert onnx_model_path.exists() and onnx_model_path.is_dir()
+
+    # Act
+    get_transformer_model(property_name='', model_name=model_name, quantize_model=True)
+
+    # Assert
+    assert quantized_model_path.exists() and quantized_model_path.is_dir()
+
+    # Act
+    model_creation_time = timeit.timeit(
+        stmt='fn()',
+        number=1,
+        globals={'fn': lambda: get_transformer_model(
+            property_name='',
+            model_name=model_name,
+            quantize_model=True
+        )}
+    )
+
+    # Assert
+    assert model_creation_time <= model_download_time * 0.1
+
+
+@pytest.mark.skipif(
+    'TEST_NLP_PROPERTIES_MODELS_DOWNLOAD' not in os.environ,
+    reason='The test takes too long to run, provide env var if you want to run it.'
+)
+def test_properties_models_download_into_provided_directory():
+    directory = pathlib.Path(__file__).absolute().parent / '.models'
+    model_name = 'unitary/toxic-bert'
+    model_path = MODELS_STORAGE / f"models--{model_name.replace('/', '--')}"
+    onnx_model_path = MODELS_STORAGE / 'onnx' / model_name
+
+    # Act
+    get_transformer_model(property_name='', model_name=model_name, models_storage=directory)
+
+    # Assert
+    assert MODELS_STORAGE.exists() and MODELS_STORAGE.is_dir()
+    assert model_path.exists() and model_path.is_dir()
+    assert onnx_model_path.exists() and onnx_model_path.is_dir()

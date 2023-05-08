@@ -293,11 +293,21 @@ class TextData:
         return self._embeddings
 
     def calculate_default_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.csv'):
-        """Calculate the default properties of the dataset."""
+        """Calculate the default properties of the dataset.
+
+        Parameters
+        ----------
+        model : str, default: 'miniLM'
+            The model to use for calculating the embeddings. Possible values are:
+            'miniLM': using the miniLM model in the sentence-transformers library.
+            'open_ai': using the ADA model in the open_ai library. Requires an API key.
+        file_path : str, default: 'embeddings.csv'
+            The path to save the embeddings to.
+        """
         if self._embeddings is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        self._embeddings = calculate_default_embeddings(text=pd.Series(self.text), model=model, file_path=file_path)
+        self._embeddings = calculate_default_embeddings(text=self.text, model=model, file_path=file_path)
 
     def set_embeddings(self, embeddings: pd.DataFrame, verbose: bool = True):
         """Set the metadata of the dataset.

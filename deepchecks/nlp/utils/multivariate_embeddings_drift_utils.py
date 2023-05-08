@@ -10,8 +10,6 @@
 #
 """Module containing common EmbeddingsDrift Check (domain classifier drift) utils."""
 
-from typing import Tuple
-
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.ensemble import GradientBoostingClassifier
@@ -23,16 +21,15 @@ from deepchecks.core.check_utils.multivariate_drift_utils import auc_to_drift_sc
 from deepchecks.nlp import TextData
 from deepchecks.nlp.utils.nlp_plot import two_datasets_scatter_plot
 from deepchecks.utils.dataframes import floatify_dataframe
-from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 
+# Max number of samples to use for dimensionality reduction fit (to make calculation faster):
 SAMPLES_FOR_REDUCTION_FIT = 1000
 
 
 def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset: TextData,
                                            sample_size: int, random_state: int, test_size: float,
                                            min_meaningful_drift_score: float, num_samples_in_display: int,
-                                           dimension_reduction_method: str, with_display: bool,
-                                           dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES):
+                                           dimension_reduction_method: str, with_display: bool):
     """Calculate multivariable drift on embeddings."""
     # sample train and test datasets equally
     train_sample = train_dataset.sample(sample_size, random_state=random_state)
@@ -47,10 +44,12 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
 
     # reduce dimensionality of embeddings if needed.
     # skips if not required ('none') or if number of features is small enough (< 30) in 'auto' mode.
-    if not (dimension_reduction_method == 'none' or (
-            dimension_reduction_method == 'auto' and domain_class_df.shape[1] < 30)):
+    use_reduction = not (dimension_reduction_method == 'none' or (
+            dimension_reduction_method == 'auto' and domain_class_df.shape[1] < 30))
+    use_umap = (dimension_reduction_method == 'auto' and with_display) or dimension_reduction_method == 'umap'
 
-        if (dimension_reduction_method == 'auto' and with_display) or dimension_reduction_method == 'umap':
+    if use_reduction:
+        if use_umap:
             reducer = UMAP(n_components=10, n_neighbors=5, init='random', random_state=random_state)
         else:  # Faster, but graph will look bad.
             reducer = PCA(n_components=10, random_state=random_state)
@@ -96,7 +95,6 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
         displays = [build_drift_plot(drift_score),
                     display_embeddings(train_dataset=train_dataset_for_display,
                                        test_dataset=test_dataset_for_display,
-                                       dataset_names=dataset_names,
                                        random_state=random_state)]
     else:
         displays = None
@@ -104,7 +102,7 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
     return values_dict, displays
 
 
-def display_embeddings(train_dataset: TextData, test_dataset: TextData, dataset_names: Tuple[str], random_state: int):
+def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_state: int):
     """Display the embeddings with the domain classifier proba as the x-axis and the embeddings as the y-axis."""
     embeddings = pd.concat([train_dataset.embeddings, test_dataset.embeddings])
 
@@ -117,4 +115,4 @@ def display_embeddings(train_dataset: TextData, test_dataset: TextData, dataset_
     plot_data = pd.DataFrame({x_axis_title: reduced_embeddings[:, 0],
                               y_axis_title: reduced_embeddings[:, 1]})
     plot_title = 'Scatter Plot of Embeddings Space (reduced to 2 dimensions)'
-    return two_datasets_scatter_plot(plot_title, plot_data, test_dataset, train_dataset, dataset_names)
+    return two_datasets_scatter_plot(plot_title, plot_data, test_dataset, train_dataset)

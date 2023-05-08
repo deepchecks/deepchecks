@@ -25,6 +25,7 @@ def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata_sampled):
 
     assert_that(result.value['domain_classifier_drift_score'], close_to(0, 0.01))
 
+
 def test_tweet_emotion(tweet_emotion_train_test_textdata_sampled):
     # Arrange
     train, test = tweet_emotion_train_test_textdata_sampled
