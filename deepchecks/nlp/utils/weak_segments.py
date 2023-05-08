@@ -39,7 +39,7 @@ def get_relevant_data_table(text_data: TextData, data_type: str, columns: Union[
 
     if n_top_features is not None and n_top_features < features.shape[1]:
         _warn_n_top_columns(data_type, n_top_features)
-        features = features.iloc[:, np.random.choice(features.shape[1], n_top_features)]
+        features = features.iloc[:, np.random.choice(features.shape[1], n_top_features, replace=False)]
 
     return features, cat_features
 

@@ -179,8 +179,10 @@ class WeakSegmentAbstract(abc.ABC):
 
         weak_segments = pd.DataFrame(
             columns=[score_title, 'Feature1', 'Feature1 Range', 'Feature2', 'Feature2 Range', '% of Data'])
-        for i in range(min(len(feature_rank_for_search), self.n_top_features)):
-            for j in range(i + 1, min(len(feature_rank_for_search), self.n_top_features)):
+        n_features = min(len(feature_rank_for_search), self.n_top_features) if self.n_top_features is not None\
+            else len(feature_rank_for_search)
+        for i in range(n_features):
+            for j in range(i + 1, n_features):
                 feature1, feature2 = feature_rank_for_search[[i, j]]
                 weak_segment_score, weak_segment_filter = self._find_weak_segment(data, [feature1, feature2],
                                                                                   score_per_sample, label_col,
@@ -289,6 +291,7 @@ class WeakSegmentAbstract(abc.ABC):
 
     def _generate_check_result_value(self, weak_segments_df, cat_features: List[str], avg_score: float):
         """Generate a uniform format check result value for the different WeakSegmentsPerformance checks."""
+        pd.set_option('mode.chained_assignment', None)
         weak_segments_output = weak_segments_df.copy()
         for idx, segment in weak_segments_df.iterrows():
             for feature in ['Feature1', 'Feature2']:

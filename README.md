@@ -41,7 +41,7 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-40-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
+[![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 
@@ -385,6 +385,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MichaelMarien"><img src="https://avatars.githubusercontent.com/u/13829139?v=4?s=100" width="100px;" alt="Michael Marien"/><br /><sub><b>Michael Marien</b></sub></a><br /><a href="#doc-MichaelMarien" title="Documentation">📖</a> <a href="#bug-MichaelMarien" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mglowacki100"><img src="https://avatars.githubusercontent.com/u/6077538?v=4?s=100" width="100px;" alt="OrdoAbChao"/><br /><sub><b>OrdoAbChao</b></sub></a><br /><a href="#code-mglowacki100" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/thewchan"><img src="https://avatars.githubusercontent.com/u/49702524?v=4?s=100" width="100px;" alt="Matt Chan"/><br /><sub><b>Matt Chan</b></sub></a><br /><a href="#code-thewchan" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hjain5164"><img src="https://avatars.githubusercontent.com/u/20479605?v=4?s=100" width="100px;" alt="Harsh Jain"/><br /><sub><b>Harsh Jain</b></sub></a><br /><a href="#code-hjain5164" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
