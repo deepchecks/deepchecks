@@ -52,7 +52,7 @@ def test_model_info_object(iris_labeled_dataset, iris_adaboost):
     check = ConfusionMatrixReport()
     # Act X
     result = check.run(iris_labeled_dataset, iris_adaboost)
-    res_val = result.value
+    res_val = result.value.to_numpy()
     # Assert
     for i in range(len(res_val)):
         for j in range(len(res_val[i])):
@@ -65,7 +65,7 @@ def test_model_info_object_without_display(iris_labeled_dataset, iris_adaboost):
     check = ConfusionMatrixReport()
     # Act X
     result = check.run(iris_labeled_dataset, iris_adaboost, with_display=False)
-    res_val = result.value
+    res_val = result.value.to_numpy()
     # Assert
     for i in range(len(res_val)):
         for j in range(len(res_val[i])):
@@ -77,7 +77,7 @@ def test_model_info_object_not_normalize(iris_labeled_dataset, iris_adaboost):
     # Arrange
     check = ConfusionMatrixReport(normalize_display=False)
     # Act X
-    result = check.run(iris_labeled_dataset, iris_adaboost).value
+    result = check.run(iris_labeled_dataset, iris_adaboost).value.to_numpy()
     # Assert
     for i in range(len(result)):
         for j in range(len(result[i])):
@@ -131,9 +131,8 @@ def test_condition_misclassified_samples_lower_than_passes(iris_split_dataset_an
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=True,
         name=f'Misclassified cell size lower than {format_percent(threshold)} of the total samples',
-        details='Number of samples in each of the misclassified cells in the confusion matrix is '
-                f'lesser than the threshold ({thresh_samples}) based on the ' \
-                'given misclassified_samples_threshold ratio'
+        details = 'All misclassified confusion matrix cells contain less than ' \
+                  f'{format_percent(threshold)} of the data.'
     ))
 
 
@@ -150,11 +149,12 @@ def test_condition_misclassified_samples_lower_than_fails(iris_split_dataset_and
 
     result = check.run(test, clf)
 
-    confusion_matrix = result.value
+    class_names = result.value.columns
+    confusion_matrix = result.value.to_numpy()
     m, n = confusion_matrix.shape[0], confusion_matrix.shape[1]
 
     n_cells_above_thresh = 0
-    max_samples_in_cell_above_thresh = thresh_samples
+    max_misclassified_cell_idx = (0, 1)
 
     # Looping over the confusion matrix and checking only the misclassified cells
     for i in range(m):
@@ -166,14 +166,21 @@ def test_condition_misclassified_samples_lower_than_fails(iris_split_dataset_and
                 if n_samples > thresh_samples:
                     n_cells_above_thresh += 1
 
-                    if n_samples > max_samples_in_cell_above_thresh:
-                        max_samples_in_cell_above_thresh = n_samples
+                    x, y = max_misclassified_cell_idx
+                    max_misclassified_samples = confusion_matrix[x][y]
+                    if n_samples > max_misclassified_samples:
+                        max_misclassified_cell_idx = (i, j)
 
     # Assert
+    x, y = max_misclassified_cell_idx
+    max_misclassified_samples = confusion_matrix[x][y]
+    max_misclassified_samples_ratio = max_misclassified_samples / len(test)
+    
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         name=f'Misclassified cell size lower than {format_percent(threshold)} of the total samples',
-        details = f'The confusion matrix has {n_cells_above_thresh} cells with samples greater than the '
-                   f'threshold ({thresh_samples}) based on the given misclassified_samples_threshold ratio. '
-                   f'The worst performing cell has {max_samples_in_cell_above_thresh} samples'
+        details = f'Detected {n_cells_above_thresh} misclassified confusion matrix cell(s) each one ' \
+                  f'containing more than {format_percent(threshold)} of the data. ' \
+                  f'Largest misclassified cell ({format_percent(max_misclassified_samples_ratio)} of the data) ' \
+                  f'is samples with a true value of "{class_names[x]}" and a predicted value of "{class_names[y]}".'
     ))
