@@ -93,6 +93,7 @@ class ColumnTypes(NamedTuple):
 
 
 def validate_length_and_type(data_table: pd.DataFrame, data_table_name: str, expected_size: int):
+    """Validate length of data table and type."""
     if not isinstance(data_table, pd.DataFrame):
         raise DeepchecksValueError(
             f'{data_table_name} type {type(data_table)} is not supported, '
@@ -104,6 +105,7 @@ def validate_length_and_type(data_table: pd.DataFrame, data_table_name: str, exp
             f'received {data_table_name} with {len(data_table)} rows, '
             f'expected {expected_size}'
         )
+
 
 def validate_length_and_calculate_column_types(
     data_table: pd.DataFrame,

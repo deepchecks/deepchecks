@@ -37,6 +37,14 @@ def tweet_emotion_train_test_textdata():
     return train, test
 
 
+@pytest.fixture(scope='function')
+def tweet_emotion_train_test_textdata_sampled(tweet_emotion_train_test_textdata):
+    """Tweet emotion text classification dataset"""
+    train, test = tweet_emotion.load_data(data_format='TextData', as_train_test=True, include_properties=True)
+    sampled_train = train.sample(500, random_state=42)
+    sampled_test = test.sample(500, random_state=42)
+    return sampled_train, sampled_test
+
 @pytest.fixture(scope='session')
 def tweet_emotion_train_test_predictions():
     """Tweet emotion text classification dataset predictions"""

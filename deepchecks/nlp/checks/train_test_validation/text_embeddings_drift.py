@@ -7,16 +7,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
-#
-# TODO: Prototype, go over and make sure code+docs+tests are good
-"""Module contains the domain classifier drift check."""
-from typing import List
-
-import pandas as pd
+"""Module contains the embeddings drift check."""
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.nlp.checks.multivariate_embeddings_drift_utils import run_multivariable_drift_for_embeddings
 from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.nlp.checks.multivariate_embeddings_drift_utils import run_multivariable_drift_for_embeddings
 from deepchecks.utils.strings import format_number
 
 __all__ = ['TextEmbeddingsDrift']
@@ -34,23 +29,6 @@ class TextEmbeddingsDrift(TrainTestCheck):
 
     Parameters
     ----------
-    n_top_columns : int , default: 3
-        Amount of columns to show ordered by domain classifier feature importance. This limit is used together
-        (AND) with min_feature_importance, so less than n_top_columns features can be displayed.
-    min_feature_importance : float , default: 0.05
-        Minimum feature importance to show in the check display. Feature importance
-        sums to 1, so for example the default value of 0.05 means that all features with importance contributing
-        less than 5% to the predictive power of the Domain Classifier won't be displayed. This limit is used
-        together (AND) with n_top_columns, so features more important than min_feature_importance can be
-        hidden.
-    max_num_categories_for_display: int, default: 10
-        Max number of categories to show in plot.
-    show_categories_by: str, default: 'largest_difference'
-        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
-        by max_num_categories_for_display. Possible values:
-        - 'train_largest': Show the largest train categories.
-        - 'test_largest': Show the largest test categories.
-        - 'largest_difference': Show the largest difference between categories.
     sample_size : int , default: 10_000
         Max number of rows to use from each dataset for the training and evaluation of the domain classifier.
     random_state : int , default: 42
@@ -66,7 +44,8 @@ class TextEmbeddingsDrift(TrainTestCheck):
         slower than PCA.
         Supported values:
         - 'auto' (default): Automatically choose the best method for the data. Uses UMAP if with_display is True,
-        otherwise uses PCA for a faster calculation.
+        otherwise uses PCA for a faster calculation. Doesn't use dimension reduction at all if the number of embeddings
+        dimensions is less than 30.
         - 'pca': Use PCA for dimension reduction.
         - 'umap': Use UMAP for dimension reduction.
         - 'none': Don't use dimension reduction.
@@ -76,10 +55,6 @@ class TextEmbeddingsDrift(TrainTestCheck):
 
     def __init__(
             self,
-            n_top_embeddings: int = 10,
-            min_feature_importance: float = 0.05,
-            max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'largest_difference',
             sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3,
@@ -90,18 +65,16 @@ class TextEmbeddingsDrift(TrainTestCheck):
     ):
         super().__init__(**kwargs)
 
-        self.n_top_embeddings = n_top_embeddings
-        self.min_feature_importance = min_feature_importance
-        self.max_num_categories_for_display = max_num_categories_for_display
-        self.show_categories_by = show_categories_by
         self.sample_size = sample_size
         self.random_state = random_state
         self.test_size = test_size
         self.min_meaningful_drift_score = min_meaningful_drift_score
-        if dimension_reduction_method not in ['auto', 'umap', 'pca', 'none']:
+        if dimension_reduction_method is None:
+            dimension_reduction_method = 'none'
+        if dimension_reduction_method.lower() not in ['auto', 'umap', 'pca', 'none']:
             raise ValueError(f'dimension_reduction_method must be one of "auto", "umap", "pca" or "none". '
                              f'Got {dimension_reduction_method} instead')
-        self.dimension_reduction_method = dimension_reduction_method
+        self.dimension_reduction_method = dimension_reduction_method.lower()
         self.num_samples_in_display = num_samples_in_display
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -135,8 +108,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
             train_dataset=train_dataset,
             test_dataset=test_dataset,
             sample_size=sample_size, random_state=self.random_state,
-            test_size=self.test_size, n_top_columns=self.n_top_embeddings,
-            min_feature_importance=self.min_feature_importance,
+            test_size=self.test_size,
             min_meaningful_drift_score=self.min_meaningful_drift_score,
             num_samples_in_display=self.num_samples_in_display,
             dimension_reduction_method=self.dimension_reduction_method,
@@ -147,7 +119,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
         if displays:
             displays.insert(0, headnote)
 
-        return CheckResult(value=values_dict, display=displays, header='Multivariate Drift')
+        return CheckResult(value=values_dict, display=displays, header='Embeddings Drift')
 
     def add_condition_overall_drift_value_less_than(self, max_drift_value: float = 0.25):
         """Add condition.

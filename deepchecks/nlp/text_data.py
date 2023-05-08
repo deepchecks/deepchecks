@@ -18,8 +18,8 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_modify_label,
-                                              validate_raw_text, validate_tokenized_text, validate_length_and_type)
+from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_length_and_type,
+                                              validate_modify_label, validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
@@ -295,7 +295,7 @@ class TextData:
         self._embeddings = calculate_default_embeddings(text=self.text, index=list(range(len(self))), model=model,
                                                         file_path=file_path, device=device)
 
-    def set_embeddings(self, embeddings: pd.DataFrame, verbose: bool=True):
+    def set_embeddings(self, embeddings: pd.DataFrame, verbose: bool = True):
         """Set the metadata of the dataset.
 
         Parameters
@@ -311,7 +311,6 @@ class TextData:
         if embeddings is not None:
             validate_length_and_type(embeddings, 'Embeddings', len(self))
         self._embeddings = embeddings.reset_index(drop=True) if isinstance(embeddings, pd.DataFrame) else None
-
 
     @property
     def metadata(self) -> pd.DataFrame:
@@ -512,7 +511,6 @@ class TextData:
         else:
             return self.label
 
-
     def has_label(self) -> bool:
         """Return True if label was set.
 
@@ -582,9 +580,6 @@ class TextData:
             n_samples = len(self) - 1
         result = pd.DataFrame({'text': self.text[:n_samples]}, index=self.get_original_text_indexes()[:n_samples])
         if self.has_label():
-            # if self.is_multi_label_classification(): #TODO
-            #     result['label'] = [np.argwhere(x == 1).flatten().tolist() for x in self.label[:n_samples]]
-            # else:
             result['label'] = self.label_for_display[:n_samples]
         if self._tokenized_text is not None:
             result['tokenized_text'] = self.tokenized_text[:n_samples]

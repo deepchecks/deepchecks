@@ -11,7 +11,7 @@
 """Module containing the train test validation check in the nlp package."""
 from .label_drift import LabelDrift
 from .property_drift import PropertyDrift
-from .train_test_sample_mix import TrainTestSamplesMix
 from .text_embeddings_drift import TextEmbeddingsDrift
+from .train_test_sample_mix import TrainTestSamplesMix
 
 __all__ = ['LabelDrift', 'PropertyDrift', 'TrainTestSamplesMix', 'TextEmbeddingsDrift']

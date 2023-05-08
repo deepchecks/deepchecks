@@ -10,32 +10,84 @@
 #
 """Test for the NLP TextEmbeddingsDrift check"""
 
-from hamcrest import assert_that, close_to, has_items
+from hamcrest import assert_that, close_to
 
 from deepchecks.nlp.checks import TextEmbeddingsDrift
 from tests.base.utils import equal_condition_result
 
 
-def test_tweet_emotion(tweet_emotion_train_test_textdata):
+def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata_sampled):
     # Arrange
-    train, test = tweet_emotion_train_test_textdata
-    #TODO for tests only:
-    # train = train.sample(100)
-    # test = test.sample(100)
-    check = TextEmbeddingsDrift()
-    # Act
-    result = check.run(train, test)
-
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.18, 0.01))
-
-# TODO: Add test for reduction_method
-
-
-def test_tweet_emotion_no_drift(tweet_emotion_train_test_textdata):
-    # Arrange
-    train, _ = tweet_emotion_train_test_textdata
-    check = TextEmbeddingsDrift()
+    train, _ = tweet_emotion_train_test_textdata_sampled
+    check = TextEmbeddingsDrift(with_display=False)
     # Act
     result = check.run(train, train)
 
     assert_that(result.value['domain_classifier_drift_score'], close_to(0, 0.01))
+
+def test_tweet_emotion(tweet_emotion_train_test_textdata_sampled):
+    # Arrange
+    train, test = tweet_emotion_train_test_textdata_sampled
+    check = TextEmbeddingsDrift()
+    # Act
+    result = check.run(train, test)
+
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.11, 0.01))
+
+
+def test_reduction_method(tweet_emotion_train_test_textdata_sampled):
+    # Arrange
+    train, test = tweet_emotion_train_test_textdata_sampled
+    check = TextEmbeddingsDrift(dimension_reduction_method='PCA')
+    # Act
+    result = check.run(train, test)
+
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.17, 0.01))
+
+    # Make sure uses PCA with auto + with_display false:
+    check = TextEmbeddingsDrift(dimension_reduction_method='auto')
+    # Act
+    result = check.run(train, test, with_display=False)
+
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.17, 0.01))
+
+    # Make sure doesn't use embeddings if none:
+    check = TextEmbeddingsDrift(dimension_reduction_method='none')
+    # Act
+    result = check.run(train, test)
+
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.14, 0.01))
+
+
+def test_max_drift_score_condition_pass(tweet_emotion_train_test_textdata_sampled):
+    # Arrange
+    train, test = tweet_emotion_train_test_textdata_sampled
+    check = TextEmbeddingsDrift().add_condition_overall_drift_value_less_than()
+
+    # Act
+    result = check.run(train, test, with_display=False)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=True,
+        details='Found drift value of: 0.17, corresponding to a domain classifier AUC of: 0.58',
+        name='Drift value is less than 0.25',
+    ))
+
+
+def test_max_drift_score_condition_fail(tweet_emotion_train_test_textdata_sampled):
+    # Arrange
+    train, test = tweet_emotion_train_test_textdata_sampled
+    check = TextEmbeddingsDrift().add_condition_overall_drift_value_less_than(0.15)
+
+    # Act
+    result = check.run(train, test, with_display=False)
+    condition_result, *_ = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, equal_condition_result(
+        is_pass=False,
+        name='Drift value is less than 0.15',
+        details='Found drift value of: 0.17, corresponding to a domain classifier AUC of: 0.58'
+    ))
