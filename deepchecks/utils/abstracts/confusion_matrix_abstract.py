@@ -76,7 +76,7 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
     fig.update_layout(title=plot_title)
     fig.update_layout(height=600)
     fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
-    fig.update_yaxes(title='True value', type='category', constrain='domain', autorange='reversed')
+    fig.update_yaxes(title='True Value', type='category', constrain='domain', autorange='reversed')
 
     return fig
 
