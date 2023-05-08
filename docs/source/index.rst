@@ -31,13 +31,13 @@ get up and running with deepchecks in 5 minutes.
     :maxdepth: 3
     :hidden:
 
-    vision/index
+    nlp/index
 
 .. toctree::
     :maxdepth: 3
     :hidden:
 
-    nlp/index
+    vision/index
 
 .. toctree::
     :maxdepth: 3

@@ -102,7 +102,7 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         for dataset_name, dataset in datasets.items():
 
             if context.task_type is TaskType.TEXT_CLASSIFICATION and dataset.is_multi_label_classification():
-                n_samples_per_class = dict(enumerate(np.array(dataset.label).sum(axis=0)))
+                n_samples_per_class = dict(zip(context.model_classes, np.array(dataset.label).sum(axis=0)))
                 n_of_labels = sum(n_samples_per_class.values())
 
             elif context.task_type is TaskType.TEXT_CLASSIFICATION:

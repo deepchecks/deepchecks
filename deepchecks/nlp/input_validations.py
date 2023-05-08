@@ -61,11 +61,11 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
                 raise DeepchecksValueError('All multilabel entries must be of the same length, which is the number'
                                            ' of possible classes.')
             labels = [[int(x) for x in label_per_sample] for label_per_sample in labels]
-        elif not all(isinstance(x, (str, int)) for x in labels):  # Classic classification
+        elif not all(isinstance(x, (str, int)) or pd.isna(x) for x in labels):  # Classic classification
             raise DeepchecksValueError('label must be a Sequence of strings or ints (multiclass classification) '
                                        'or a Sequence of Sequences of strings or ints (multilabel classification)')
         else:
-            labels = [str(x) for x in labels]
+            labels = [None if pd.isna(x) else str(x) for x in labels]
     elif task_type == TaskType.TOKEN_CLASSIFICATION:
         token_class_error = 'label must be a Sequence of Sequences of either strings or integers.'
         if not is_sequence_not_str(labels):
@@ -73,7 +73,7 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
 
         result = []
         for idx, (tokens, label) in enumerate(zip(tokenized_text, labels)):  # TODO: Runs on all labels, very costly
-            if not is_sequence_not_str(label):
+            if not is_sequence_not_str(label) and not pd.isna(label):
                 raise DeepchecksValueError(token_class_error + f' label at {idx} was of type {type(label)}')
             if not len(tokens) == len(label):
                 raise DeepchecksValueError(f'label must be the same length as tokenized_text. '

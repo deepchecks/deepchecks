@@ -14,6 +14,7 @@ import typing as t
 import pandas as pd
 from hamcrest import *
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.checks import TrainTestPerformance
 from deepchecks.nlp.text_data import TextData
 
@@ -92,6 +93,65 @@ class TestMultilableClassification:
         }
 
         assert n_of_samples_per_class == expected_n_of_samples_per_class
+
+    def test_check_execution_with_model_classes(self):
+        train = TextData(
+            raw_text=['I think therefore I am' for _ in range(20)],
+            label=[
+                *([0, 0, 1] for _ in range(10)),
+                *([0, 1, 1] for _ in range(10))
+            ],
+            task_type='text_classification'
+        )
+        test = train.copy()
+        check = TrainTestPerformance()
+        # Act
+        result = check.run(
+            train_dataset=train,
+            test_dataset=test,
+            train_predictions=list(train.label),
+            test_predictions=list(test.label),
+            model_classes=['a', 'b', 'c']
+        )
+        # Assert
+        assert isinstance(result.value, pd.DataFrame), type(result.value)
+        assert set(result.value["Metric"]) == {"F1", "Precision", "Recall"}
+        assert set(result.value["Dataset"]) == {"Train", "Test"}
+
+        n_of_samples_per_class = (
+            result.value[(result.value["Metric"] == "F1") & (result.value["Dataset"] == "Train")]
+            .loc[:, ['Class', 'Number of samples']]
+            .groupby('Class')
+            .sum()
+            .to_dict()
+        )
+        expected_n_of_samples_per_class = {
+            'Number of samples': {'a': 0, 'b': 10, 'c': 20}
+        }
+
+        assert n_of_samples_per_class == expected_n_of_samples_per_class
+
+    def test_check_execution_with_wrong_model_classes(self):
+        train = TextData(
+            raw_text=['I think therefore I am' for _ in range(20)],
+            label=[
+                *([0, 0, 1] for _ in range(10)),
+                *([0, 1, 1] for _ in range(10))
+            ],
+            task_type='text_classification'
+        )
+        test = train.copy()
+        check = TrainTestPerformance()
+
+        # Act & Assert
+        assert_that(calling(check.run).with_args(
+            train_dataset=train,
+            test_dataset=test,
+            train_predictions=list(train.label),
+            test_predictions=list(test.label),
+            model_classes=['a', 'b', 'c', 'd']),
+            raises(DeepchecksValueError, 'Received model_classes of length 4, but data indicates labels of length 3')
+        )
 
 
 class TestTokenClassification:

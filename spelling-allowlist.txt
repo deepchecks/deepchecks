@@ -98,7 +98,6 @@ qs
 urlobj
 labextension
 PredictionDrift
-PredictionDrift
 nbclassic
 REPL
 ipywidgets
@@ -145,4 +144,10 @@ embeddings
 ONNX
 f1
 multiindex
+tokenizer
+nltk
+Tokenize
+spacy
+tokenizers
+Uncomment
 dimensionality

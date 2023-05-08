@@ -31,16 +31,20 @@ class SingleDatasetPerformance(SingleDatasetCheck, BaseSingleDatasetPerformance)
     scorers : Union[List[str], Dict[str, Union[str, Callable]]], default: None
         List of scorers to use. If None, use default scorers.
         Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
+    max_rows_to_display : int, default: 15
+        Maximum number of rows to display in the check result.
     n_samples : int , default: 10_000
         Maximum number of samples to use for this check.
     """
 
     def __init__(self,
                  scorers: Union[List[str], Dict[str, Union[str, Callable]]] = None,
+                 max_rows_to_display: int = 15,
                  n_samples: int = 10_000,
                  **kwargs):
         super().__init__(**kwargs)
         self.scorers = scorers
+        self.max_rows_to_display = max_rows_to_display
         self.n_samples = n_samples
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
@@ -62,7 +66,12 @@ class SingleDatasetPerformance(SingleDatasetCheck, BaseSingleDatasetPerformance)
         results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
 
         if context.with_display:
-            display = [results_df]
+            if len(results_df) > self.max_rows_to_display:
+                display = [results_df.iloc[:self.max_rows_to_display, :],
+                           '<p style="font-size:0.9em;line-height:1;"><i>'
+                           f'* Only showing first {self.max_rows_to_display} rows.']
+            else:
+                display = [results_df]
         else:
             display = []
 

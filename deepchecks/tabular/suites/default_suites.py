@@ -51,29 +51,29 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_tabular_is_single_value`
+           * - :ref:`tabular__is_single_value`
              - :class:`~deepchecks.tabular.checks.data_integrity.IsSingleValue`
-           * - :ref:`plot_tabular_special_chars`
+           * - :ref:`tabular__special_chars`
              - :class:`~deepchecks.tabular.checks.data_integrity.SpecialCharacters`
-           * - :ref:`plot_tabular_mixed_nulls`
+           * - :ref:`tabular__mixed_nulls`
              - :class:`~deepchecks.tabular.checks.data_integrity.MixedNulls`
-           * - :ref:`plot_tabular_mixed_data_types`
+           * - :ref:`tabular__mixed_data_types`
              - :class:`~deepchecks.tabular.checks.data_integrity.MixedDataTypes`
-           * - :ref:`plot_tabular_string_mismatch`
+           * - :ref:`tabular__string_mismatch`
              - :class:`~deepchecks.tabular.checks.data_integrity.StringMismatch`
-           * - :ref:`plot_tabular_data_duplicates`
+           * - :ref:`tabular__data_duplicates`
              - :class:`~deepchecks.tabular.checks.data_integrity.DataDuplicates`
-           * - :ref:`plot_tabular_string_length_out_of_bounds`
+           * - :ref:`tabular__string_length_out_of_bounds`
              - :class:`~deepchecks.tabular.checks.data_integrity.StringLengthOutOfBounds`
-           * - :ref:`plot_tabular_conflicting_labels`
+           * - :ref:`tabular__conflicting_labels`
              - :class:`~deepchecks.tabular.checks.data_integrity.ConflictingLabels`
-           * - :ref:`plot_tabular_outlier_sample_detection`
+           * - :ref:`tabular__outlier_sample_detection`
              - :class:`~deepchecks.tabular.checks.data_integrity.OutlierSampleDetection`
-           * - :ref:`plot_tabular_feature_label_correlation`
+           * - :ref:`tabular__feature_label_correlation`
              - :class:`~deepchecks.tabular.checks.data_integrity.FeatureLabelCorrelation`
-           * - :ref:`plot_tabular_identifier_label_correlation`
+           * - :ref:`tabular__identifier_label_correlation`
              - :class:`~deepchecks.tabular.checks.data_integrity.IdentifierLabelCorrelation`
-           * - :ref:`plot_tabular_feature_feature_correlation`
+           * - :ref:`tabular__feature_feature_correlation`
              - :class:`~deepchecks.tabular.checks.data_integrity.FeatureFeatureCorrelation`
 
     Parameters
@@ -148,29 +148,29 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_tabular_datasets_size_comparison`
+           * - :ref:`tabular__datasets_size_comparison`
              - :class:`~deepchecks.tabular.checks.train_test_validation.DatasetsSizeComparison`
-           * - :ref:`plot_tabular_new_label`
+           * - :ref:`tabular__new_label`
              - :class:`~deepchecks.tabular.checks.train_test_validation.NewLabelTrainTest`
-           * - :ref:`plot_tabular_new_category`
+           * - :ref:`tabular__new_category`
              - :class:`~deepchecks.tabular.checks.train_test_validation.CategoryMismatchTrainTest`
-           * - :ref:`plot_tabular_string_mismatch_comparison`
+           * - :ref:`tabular__string_mismatch_comparison`
              - :class:`~deepchecks.tabular.checks.train_test_validation.StringMismatchComparison`
-           * - :ref:`plot_tabular_date_train_test_validation_leakage_duplicates`
+           * - :ref:`tabular__date_train_test_validation_leakage_duplicates`
              - :class:`~deepchecks.tabular.checks.train_test_validation.DateTrainTestLeakageDuplicates`
-           * - :ref:`plot_tabular_date_train_test_validation_leakage_overlap`
+           * - :ref:`tabular__date_train_test_validation_leakage_overlap`
              - :class:`~deepchecks.tabular.checks.train_test_validation.DateTrainTestLeakageOverlap`
-           * - :ref:`plot_tabular_index_leakage`
+           * - :ref:`tabular__index_leakage`
              - :class:`~deepchecks.tabular.checks.train_test_validation.IndexTrainTestLeakage`
-           * - :ref:`plot_tabular_train_test_samples_mix`
+           * - :ref:`tabular__train_test_samples_mix`
              - :class:`~deepchecks.tabular.checks.train_test_validation.TrainTestSamplesMix`
-           * - :ref:`plot_tabular_feature_label_correlation_change`
+           * - :ref:`tabular__feature_label_correlation_change`
              - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureLabelCorrelationChange`
-           * - :ref:`plot_tabular_feature_drift`
+           * - :ref:`tabular__feature_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureDrift`
-           * - :ref:`plot_tabular_label_drift`
+           * - :ref:`tabular__label_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.LabelDrift`
-           * - :ref:`plot_tabular_multivariate_drift`
+           * - :ref:`tabular__multivariate_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.MultivariateDrift`
 
     Parameters
@@ -247,29 +247,29 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_tabular_roc_report`
+           * - :ref:`tabular__roc_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RocReport`
-           * - :ref:`plot_tabular_confusion_matrix_report`
+           * - :ref:`tabular__confusion_matrix_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ConfusionMatrixReport`
-           * - :ref:`plot_tabular_weak_segment_performance`
+           * - :ref:`tabular__weak_segment_performance`
              - :class:`~deepchecks.tabular.checks.model_evaluation.WeakSegmentPerformance`
-           * - :ref:`plot_tabular_prediction_drift`
+           * - :ref:`tabular__prediction_drift`
              - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
-           * - :ref:`plot_tabular_simple_model_comparison`
+           * - :ref:`tabular__simple_model_comparison`
              - :class:`~deepchecks.tabular.checks.model_evaluation.SimpleModelComparison`
-           * - :ref:`plot_tabular_calibration_score`
+           * - :ref:`tabular__calibration_score`
              - :class:`~deepchecks.tabular.checks.model_evaluation.CalibrationScore`
-           * - :ref:`plot_tabular_regression_systematic_error`
+           * - :ref:`tabular__regression_systematic_error`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RegressionSystematicError`
-           * - :ref:`plot_tabular_regression_error_distribution`
+           * - :ref:`tabular__regression_error_distribution`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RegressionErrorDistribution`
-           * - :ref:`plot_tabular_unused_features`
+           * - :ref:`tabular__unused_features`
              - :class:`~deepchecks.tabular.checks.model_evaluation.UnusedFeatures`
-           * - :ref:`plot_tabular_boosting_overfit`
+           * - :ref:`tabular__boosting_overfit`
              - :class:`~deepchecks.tabular.checks.model_evaluation.BoostingOverfit`
-           * - :ref:`plot_tabular_model_inference_time`
+           * - :ref:`tabular__model_inference_time`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ModelInferenceTime`
-           * - :ref:`plot_tabular_prediction_drift`
+           * - :ref:`tabular__prediction_drift`
              - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
 
     Parameters
@@ -352,35 +352,35 @@ def production_suite(task_type: str = None,
 
            * - Check Example
              - API Reference
-           * - :ref:`plot_tabular_roc_report`
+           * - :ref:`tabular__roc_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RocReport`
-           * - :ref:`plot_tabular_confusion_matrix_report`
+           * - :ref:`tabular__confusion_matrix_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ConfusionMatrixReport`
-           * - :ref:`plot_tabular_weak_segment_performance`
+           * - :ref:`tabular__weak_segment_performance`
              - :class:`~deepchecks.tabular.checks.model_evaluation.WeakSegmentPerformance`
-           * - :ref:`plot_tabular_regression_error_distribution`
+           * - :ref:`tabular__regression_error_distribution`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RegressionErrorDistribution`
-           * - :ref:`plot_tabular_string_mismatch_comparison`
+           * - :ref:`tabular__string_mismatch_comparison`
              - :class:`~deepchecks.tabular.checks.train_test_validation.StringMismatchComparison`
-           * - :ref:`plot_tabular_feature_label_correlation_change`
+           * - :ref:`tabular__feature_label_correlation_change`
              - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureLabelCorrelationChange`
-           * - :ref:`plot_tabular_feature_drift`
+           * - :ref:`tabular__feature_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.FeatureDrift`
-           * - :ref:`plot_tabular_label_drift`
+           * - :ref:`tabular__label_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.LabelDrift`
-           * - :ref:`plot_tabular_multivariate_drift`
+           * - :ref:`tabular__multivariate_drift`
              - :class:`~deepchecks.tabular.checks.train_test_validation.MultivariateDrift`
-           * - :ref:`plot_tabular_prediction_drift`
+           * - :ref:`tabular__prediction_drift`
              - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
-           * - :ref:`plot_tabular_prediction_drift`
+           * - :ref:`tabular__prediction_drift`
              - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
-           * - :ref:`plot_tabular_string_mismatch`
+           * - :ref:`tabular__string_mismatch`
              - :class:`~deepchecks.tabular.checks.data_integrity.StringMismatch`
-           * - :ref:`plot_tabular_feature_label_correlation`
+           * - :ref:`tabular__feature_label_correlation`
              - :class:`~deepchecks.tabular.checks.data_integrity.FeatureLabelCorrelation`
-           * - :ref:`plot_tabular_feature_feature_correlation`
+           * - :ref:`tabular__feature_feature_correlation`
              - :class:`~deepchecks.tabular.checks.data_integrity.FeatureFeatureCorrelation`
-           * - :ref:`plot_tabular_single_dataset_performance`
+           * - :ref:`tabular__single_dataset_performance`
              - :class:`~deepchecks.tabular.checks.model_evaluation.SingleDatasetPerformance`
 
     Parameters

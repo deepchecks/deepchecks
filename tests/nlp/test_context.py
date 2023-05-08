@@ -15,7 +15,7 @@ from deepchecks.core.errors import ValidationError
 from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import LabelDrift, SingleDatasetPerformance
 
-CLASSIFICATION_ERROR_FORMAT = r'Check requires classification for Train to be ' \
+CLASSIFICATION_ERROR_FORMAT = r'Check requires classification predictions for Train to be ' \
                               r'either a sequence that can be cast to a 1D numpy array of shape' \
                               r' \(n_samples,\), or a sequence of sequences that can be cast to a 2D ' \
                               r'numpy array of shape \(n_samples, n_classes\) for the multilabel case.'

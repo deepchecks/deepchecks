@@ -73,7 +73,7 @@ class TextData:
         The number of rows in the metadata DataFrame must be equal to the number of samples in the dataset, and the
         order of the rows must be the same as the order of the samples in the dataset.
         For more on metadata, see the `NLP Metadata Guide
-        <https://docs.deepchecks.com/en/latest/nlp/nlp-metadata.html>`_.
+        <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_metadata.html>`_.
     categorical_metadata : t.Optional[t.List[str]] , default: None
         The names of the categorical metadata columns. If None, categorical metadata columns are automatically inferred.
         Only relevant if metadata is not None.
@@ -86,7 +86,7 @@ class TextData:
         In order to calculate the default properties, use the `TextData.calculate_default_properties` function after
         the creation of the TextData object.
         For more on properties, see the `NLP Properties Guide
-        <https://docs.deepchecks.com/en/latest/nlp/nlp-properties.html>`_.
+        <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
     categorical_properties : t.Optional[t.List[str]] , default: None
         The names of the categorical properties columns. If None, categorical properties columns are automatically
         inferred. Only relevant if properties is not None.
@@ -316,20 +316,16 @@ class TextData:
     def metadata(self) -> pd.DataFrame:
         """Return the metadata of for the dataset."""
         if self._metadata is None:
-            raise ValueError(
-                'TextData does not contain metadata, add it by using '
-                '"set_metadata" function'
+            raise DeepchecksValueError(
+                'Functionality requires metadata, but the the TextData object had none. '
+                'To use this functionality, use the '
+                'set_metadata method to set your own metadata with a pandas.DataFrame.'
             )
         return self._metadata
 
     @property
     def categorical_metadata_columns(self) -> t.List[str]:
         """Return categorical metadata column names."""
-        if self._cat_metadata is None:
-            raise ValueError(
-                'TextData does not contain metadata, add it by using '
-                '"set_metadata" function'
-            )
         return self._cat_metadata
 
     def set_metadata(
@@ -434,19 +430,15 @@ class TextData:
         """Return the properties of the dataset."""
         if self._properties is None:
             raise DeepchecksNotSupportedError(
-                'TextData does not contain properties, add them by using '
-                '"calculate_default_properties" or "set_properties" functions'
+                'Functionality requires properties, but the the TextData object had none. To use this functionality, '
+                'use the set_properties method to set your own properties with a pandas.DataFrame or use '
+                'TextData.calculate_default_properties to add the default deepchecks properties.'
             )
         return self._properties
 
     @property
     def categorical_properties(self) -> t.List[str]:
         """Return categorical properties names."""
-        if self._cat_properties is None:
-            raise ValueError(
-                'TextData does not contain properties, add them by using '
-                '"calculate_default_properties" or "set_properties" functions'
-            )
         return self._cat_properties
 
     @property

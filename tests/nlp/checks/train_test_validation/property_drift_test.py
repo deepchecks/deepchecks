@@ -171,14 +171,13 @@ class TestMultiLabelClassification:
     def test_with_drift(self, dummy_multilabel_textdata_train_test):
         # Arrange
         train, test = dummy_multilabel_textdata_train_test
-        train.calculate_default_properties()
-        test.calculate_default_properties()
+        train.calculate_default_properties(ignore_properties=['Lexical Density','Unique Noun Count'])
+        test.calculate_default_properties(ignore_properties=['Lexical Density','Unique Noun Count'])
         check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than(max_allowed_numeric_score=0.3,
                                                                                   max_allowed_categorical_score=0.3)
         # Act
         result = check.run(train_dataset=train, test_dataset=test)
         condition_results = check.conditions_decision(result)
-
         assert_that(condition_results, has_items(
             equal_condition_result(is_pass=False,
                                    details="Failed for 1 out of 6 columns.\nFound 1 "

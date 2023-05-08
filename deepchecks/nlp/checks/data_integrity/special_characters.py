@@ -45,8 +45,7 @@ class SpecialCharacters(SingleDatasetCheck):
     ----------
     special_characters_whitelist: Union[str, Sequence[str]] , default ' ' + string.punctuation
         set of special characters to ignore. Punctuation (string.punctuation) is whitelisted by default.
-    {text_normalization_params:1*indent}
-    n_most_common : int , default: 2
+    n_most_common : int , default: 10
         Number of most common special-only samples to show in results
     n_samples: int, default: 10_000_000
         number of samples to use for this check.
@@ -61,11 +60,6 @@ class SpecialCharacters(SingleDatasetCheck):
     def __init__(
         self,
         special_characters_whitelist: t.Union[str, t.Sequence[str], None] = None,
-        ignore_case: bool = True,
-        remove_punctuation: bool = True,
-        normalize_unicode: bool = True,
-        remove_stopwords: bool = True,
-        ignore_whitespace: bool = False,
         n_most_common: int = 10,
         n_samples: int = 10_000_000,
         random_state: int = 42,
@@ -81,25 +75,10 @@ class SpecialCharacters(SingleDatasetCheck):
         self.special_characters = self.SPECIAL_CHARACTERS.difference(
             self.special_characters_whitelist
         )
-        self.ignore_case = ignore_case
-        self.remove_punctuation = remove_punctuation
-        self.normalize_unicode = normalize_unicode
-        self.remove_stopwords = remove_stopwords
-        self.ignore_whitespace = ignore_whitespace
         self.n_most_common = n_most_common
         self.n_samples = n_samples
         self.random_state = random_state
         self.max_text_length_for_display = max_text_length_for_display
-
-    @property
-    def _text_normalization_kwargs(self):
-        return {
-            'ignore_case': self.ignore_case,
-            'ignore_whitespace': self.ignore_whitespace,
-            'normalize_uni': self.normalize_unicode,
-            'remove_punct': self.remove_punctuation,
-            'remove_stops': self.remove_stopwords,
-        }
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -164,7 +143,7 @@ class SpecialCharacters(SingleDatasetCheck):
         return CheckResult(
             value=result_value,
             display=[
-                f'List of ignored special characters: {self.special_characters_whitelist}',
+                f'List of ignored special characters: {list(self.special_characters_whitelist)}',
                 message,
                 display_table.iloc[:self.n_most_common]
             ]
