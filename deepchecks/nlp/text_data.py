@@ -312,9 +312,6 @@ class TextData:
         if self._embeddings is not None and verbose is True:
             warnings.warn('Embeddings already exist, overwriting it', UserWarning)
 
-        if isinstance(embeddings, str):
-            embeddings = pd.read_csv(embeddings)
-
         if embeddings is not None:
             validate_length_and_type(embeddings, 'Embeddings', len(self))
         self._embeddings = embeddings.reset_index(drop=True) if isinstance(embeddings, pd.DataFrame) else None

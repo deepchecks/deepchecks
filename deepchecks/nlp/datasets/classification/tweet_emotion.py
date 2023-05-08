@@ -29,7 +29,7 @@ from deepchecks.nlp import TextData
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
-_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39264332'
+_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39729283'
 _PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39717619'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
