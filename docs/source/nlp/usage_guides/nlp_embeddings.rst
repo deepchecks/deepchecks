@@ -89,7 +89,7 @@ Using Your Own Embeddings
 -------------------------
 
 Whether you saved the deepchecks embeddings for this dataset somewhere to save time, or you used your own model,
-you can set the embeddings of the ``TextData`` object to be your own, by using one of the following methods:
+you can set the embeddings of the ``TextData`` object to use them by using one of the following methods:
 
 #. When initializing the :class:`TextData <deepchecks.nlp.TextData>` object, pass your pre-calculated
    embeddings to the ``embeddings`` parameter.
