@@ -133,3 +133,6 @@ benchmarks/results
 
 # ignore user_id
 .user_id
+
+# nlp models
+deepchecks/nlp/utils/.nlp-models
