@@ -34,7 +34,7 @@ def calculate_neg_cross_entropy_per_sample(labels, probas: np.ndarray, model_cla
     if model_classes is not None:
         if any(x not in model_classes for x in labels):
             raise DeepchecksValueError(
-                f'Label observed values {sorted(labels.unique())} contain values '
+                f'Label observed values {sorted(np.unique(labels))} contain values '
                 f'that are not found in the model classes: {model_classes}.')
         if probas.shape[1] != len(model_classes):
             raise DeepchecksValueError(

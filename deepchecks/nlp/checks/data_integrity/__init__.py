@@ -16,6 +16,7 @@ from .special_characters import SpecialCharacters
 from .text_duplicates import TextDuplicates
 from .text_property_outliers import TextPropertyOutliers
 from .unknown_tokens import UnknownTokens
+from .under_annotated_segments import UnderAnnotatedMetaDataSegments, UnderAnnotatedPropertySegments
 
 __all__ = [
     'PropertyLabelCorrelation',
@@ -24,4 +25,6 @@ __all__ = [
     'ConflictingLabels',
     'SpecialCharacters',
     'UnknownTokens',
+    'UnderAnnotatedMetaDataSegments',
+    'UnderAnnotatedPropertySegments',
 ]

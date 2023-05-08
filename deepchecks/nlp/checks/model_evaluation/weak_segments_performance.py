@@ -54,7 +54,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         context.raise_if_multi_label_task(self)
 
         text_data = context.get_data_by_kind(dataset_kind)
-        text_data = text_data.sample(self.n_samples, random_state=context.random_state)
+        text_data = text_data.sample(self.n_samples, random_state=context.random_state, drop_na_label=True)
 
         features, cat_features = get_relevant_data_table(text_data, data_type=self.segment_by,
                                                          columns=self.columns, ignore_columns=self.ignore_columns,
