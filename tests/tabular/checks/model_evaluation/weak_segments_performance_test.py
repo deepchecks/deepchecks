@@ -16,8 +16,7 @@ from sklearn.metrics import f1_score, make_scorer
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import WeakSegmentsPerformance
-from deepchecks.tabular.datasets.classification.phishing import (
-    load_data, load_fitted_model)
+from deepchecks.tabular.datasets.classification.phishing import load_data, load_fitted_model
 from tests.base.utils import equal_condition_result
 
 
