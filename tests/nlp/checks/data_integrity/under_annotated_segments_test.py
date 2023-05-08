@@ -31,7 +31,7 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details=r'Most under annotated segment has annotation ratio of 31.43%.',
+                               details=r'Most under annotated segment has annotation ratio of 31.4%.',
                                name=r'In all segments annotation ratio should be greater than 50%.')
     ))
 
@@ -54,7 +54,7 @@ def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found a segment with Annotation Ratio score of 0.366 in comparison to an average score of 0.5 in sampled data.',
+                               details='Found a segment with annotation ratio of 0.366 in comparison to an average score of 0.5 in sampled data.',
                                name='The relative performance of weakest segment is greater than 80% of average model performance.')
     ))
 

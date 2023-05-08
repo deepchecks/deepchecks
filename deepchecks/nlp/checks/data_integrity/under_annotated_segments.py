@@ -9,20 +9,25 @@
 # ----------------------------------------------------------------------------
 #
 """Module of weak segments performance check."""
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
+import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
 
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult
+from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
-from deepchecks.utils.strings import format_percent
+from deepchecks.utils.strings import format_number, format_percent
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['UnderAnnotatedMetaDataSegments', 'UnderAnnotatedPropertySegments']
+
+MAX_SAMPLES_IN_FIGURE = 1000
 
 
 class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
@@ -71,7 +76,98 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         check_result_value = self._generate_check_result_value(weak_segments, cat_features, avg_score)
         display_msg = f'Showcasing intersections of {self.segment_by} with most under annotated segments.<br> The ' \
                       'full list of under annotated segments can be observed in the check result value. '
-        return CheckResult(value=check_result_value, display=[display_msg, 'place holder for figure'])
+        display_fig = self._generate_scatter_plot_display(encoded_dataset.features_columns, score_per_sample,
+                                                          text_data.text, weak_segments, cat_features, avg_score)
+        return CheckResult(value=check_result_value, display=[display_msg, display_fig])
+
+    @staticmethod
+    def _get_box_boundaries(feature_data: pd.Series, segment: Tuple[float, float]) -> Tuple[float, float]:
+        lower = segment[0] if segment[0] != -np.inf else np.nanmin(feature_data)
+        upper = segment[1] if segment[1] != np.inf else np.nanmax(feature_data)
+        return lower, upper
+
+    def _generate_scatter_plot_display(self, encoded_data: pd.DataFrame, is_annotated: pd.Series,
+                                       text: np.ndarray, weak_segments: pd.DataFrame,
+                                       cat_features: List[str], avg_score: float) -> DisplayMap:
+        display_tabs = {}
+        if weak_segments.shape[0] > self.n_to_show:
+            weak_segments = weak_segments.iloc[:self.n_to_show, :]
+        encoded_data['text'] = text
+
+        # virtual col is used when we have only one feature controlling the segment
+        jitter = 0.25
+        encoded_data['virtual_col'] = np.random.uniform(-jitter, jitter, len(encoded_data))
+
+        sampled_data = encoded_data.sample(MAX_SAMPLES_IN_FIGURE, random_state=42)
+        annotated_data = sampled_data[is_annotated == 1]
+        not_annotated_data = sampled_data[is_annotated == 0]
+        for _, row in weak_segments.iterrows():
+            fig = go.Figure()
+            feature_1, feature_2 = row['Feature1'], row['Feature2']
+            feature_1_lower, feature_1_upper = self._get_box_boundaries(encoded_data[feature_1], row['Feature1 Range'])
+            if feature_2 != '':  # segment by two features
+                feature_2_lower, feature_2_upper = self._get_box_boundaries(encoded_data[feature_2],
+                                                                            row['Feature2 Range'])
+                hover_template = feature_1 + ': %{x}<br>' + feature_2 + ': %{y}<br>text: %{text}<br>Annotated: '
+                tab_title = f'{feature_1} vs {feature_2}'
+                msg = f'Under annotated segment contains samples with {feature_1} in range ' \
+                      f'{[format_number(feature_1_lower), format_number(feature_1_upper)]} and {feature_2} in range ' \
+                      f'{[format_number(feature_2_lower), format_number(feature_2_upper)]}.'
+            else:  # segment by one feature
+                feature_2 = 'virtual_col'
+                feature_2_lower = encoded_data['virtual_col'].min() * 1.3
+                feature_2_upper = encoded_data['virtual_col'].max() * 1.3
+                hover_template = feature_1 + ': %{x}<br>text: %{text}<br>Annotated: '
+                tab_title = feature_1
+                msg = f'Under annotated segment contains samples with {feature_1} in range ' \
+                      f'{[format_number(feature_1_lower), format_number(feature_1_upper)]}.'
+                fig.update_yaxes(range=[feature_2_lower*1.2, feature_2_upper*1.2], tickvals=[], ticktext=[])
+
+            # Add box trace to the legend using lines
+            fig.add_trace(go.Scatter(
+                x=[feature_1_lower, feature_1_lower, feature_1_upper, feature_1_upper, feature_1_lower],
+                y=[feature_2_lower, feature_2_upper, feature_2_upper, feature_2_lower, feature_2_lower],
+                mode='lines',
+                line=dict(color='rgb(121, 100, 255)', width=3, dash='dot'),
+                name='Under Annotated Segment',
+                fill='toself', fillcolor='rgb(121, 100, 255)', opacity=0.4,
+                legendgroup='box'))
+
+            # Add annotated scatter plot
+            fig.add_trace(go.Scatter(x=annotated_data[feature_1], y=annotated_data[feature_2],
+                                     mode='markers', opacity=0.7,
+                                     marker=dict(symbol='circle', color='lightgreen', size=10,
+                                                 line=dict(color='black', width=1)),
+                                     hovertemplate=hover_template + 'True',
+                                     text=annotated_data['text'],
+                                     name='Annotated Samples'))
+
+            # Add not annotated scatter plot
+            fig.add_trace(go.Scatter(x=not_annotated_data[feature_1], y=not_annotated_data[feature_2],
+                                     mode='markers', opacity=0.7,
+                                     marker=dict(symbol='x', color='red', size=10, line=dict(color='black', width=1)),
+                                     hovertemplate=hover_template + 'False',
+                                     text=not_annotated_data['text'],
+                                     name='Not Annotated Samples'))
+
+            # Update figure layout
+            fig.update_layout(title=dict(
+                text=f'Under Annotated Segment ({row["% of Data"]}% of Data)<br><sub>Annotation ratio in segment ' \
+                     f'is {format_percent(row["Annotation Ratio"])} (vs. {format_percent(avg_score)}'
+                     f' in whole data)</sub>',
+                font=dict(size=24)),
+                xaxis_title=feature_1, yaxis_title=feature_2 if feature_2 != 'virtual_col' else '',
+                autosize=False, width=1000, height=600,
+                font=dict(size=14),
+                plot_bgcolor='rgba(245, 245, 245, 1)',
+                xaxis=dict(gridcolor='rgba(200, 200, 200, 0.5)',
+                           zerolinecolor='rgba(200, 200, 200, 0.5)'),
+                yaxis=dict(gridcolor='rgba(200, 200, 200, 0.5)',
+                           zerolinecolor='rgba(200, 200, 200, 0.5)'))
+
+            display_tabs[tab_title] = [fig, f'Check ran on {encoded_data.shape[0]} data samples.<br>{msg}']
+
+        return DisplayMap(display_tabs)
 
     def add_condition_segments_annotation_ratio_greater_than(self, threshold: float = 0.70):
         """Add condition - check that the in all segments annotation ratio is above the provided threshold.

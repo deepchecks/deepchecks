@@ -145,11 +145,11 @@ class WeakSegmentAbstract(abc.ABC):
             fig = px.imshow(scores, x=f1_labels, y=f2_labels, labels=labels, color_continuous_scale='rdylgn')
             fig.update_traces(text=scores_text, texttemplate='%{text}')
             if segment['Feature2']:
-                title = f'{score_title} (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}'
+                title = f'{score_title} (percent of data)'
                 tab_name = f'{segment["Feature1"]} vs {segment["Feature2"]}'
             else:
-                title = f'{score_title} (percent of data) {segment["Feature1"]}'
-                tab_name = f'{segment["Feature1"]}'
+                title = f'{score_title} (percent of data)'
+                tab_name = segment['Feature1']
             fig.update_layout(
                 title=title,
                 height=600,
@@ -201,7 +201,11 @@ class WeakSegmentAbstract(abc.ABC):
                                                              tuple(filters[feature2]), data_size,
                                                              list(data_of_segment.index)]
 
-        return weak_segments.sort_values(score_title).reset_index(drop=True)
+        # Drop duplicates without considering column 'Samples in Segment'
+        result_no_duplicates = weak_segments.drop(columns='Samples in Segment').drop_duplicates()
+        result_no_duplicates['Samples in Segment'] = weak_segments.loc[result_no_duplicates.index, 'Samples in Segment']
+
+        return result_no_duplicates.sort_values(score_title).reset_index(drop=True)
 
     def _find_weak_segment(self, data: pd.DataFrame, features_for_segment: List[str], score_per_sample: pd.Series,
                            label_col: Optional[pd.Series] = None, dummy_model: Optional[_DummyModel] = None,
