@@ -15,7 +15,7 @@ different task, but is known to be good at extracting embeddings (e.g. BERT).
 What Are Embeddings Used For?
 =============================
 
-Embeddings are used by some of the Deepchecks' checks, in order to extract meaningful
+Embeddings are used by some of the Deepchecks' checks to produce a meaningful representation of the data, 
 insights on the data, since some computations cannot be computed directly on the text (for example, drift).
 Inspecting the distribution of the embeddings, or the distance between the embeddings of different texts,
 can help uncover potential problems in the way that the datasets were built, or hint about the model's expected
