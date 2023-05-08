@@ -119,7 +119,6 @@ def test_condition_misclassified_samples_lower_than_passes(iris_split_dataset_an
     _, test, clf = iris_split_dataset_and_model
 
     threshold = 0.1
-    thresh_samples = round(np.ceil(threshold * len(test)))
 
     # Act
     check = ConfusionMatrixReport() \

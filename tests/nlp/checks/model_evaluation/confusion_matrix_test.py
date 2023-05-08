@@ -122,7 +122,6 @@ def test_condition_misclassified_samples_lower_than_passes(tweet_emotion_train_t
     _, test_preds = tweet_emotion_train_test_predictions
 
     threshold = 0.1
-    thresh_samples = round(np.ceil(threshold * len(test_ds)))
 
     check = ConfusionMatrixReport() \
             .add_condition_misclassified_samples_lower_than_condition(misclassified_samples_threshold=threshold)
