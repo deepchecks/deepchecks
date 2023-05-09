@@ -90,7 +90,7 @@ class TextData:
     categorical_properties : t.Optional[t.List[str]] , default: None
         The names of the categorical properties columns. If None, categorical properties columns are automatically
         inferred. Only relevant if properties is not None.
-    embeddings : t.Optional[Union[pd.DataFrame, str]] , default: None
+    embeddings : t.Optional[Union[pd.DataFrame, np.ndarray, str]] , default: None
         The text embeddings for the samples. Embeddings must be given as either a pandas DataFrame or a path to a pandas
         DataFrame compatible csv file, with the rows representing each sample and columns representing the different
         embeddings dimensions. If None, no embeddings are set.
@@ -121,7 +121,7 @@ class TextData:
             label: t.Optional[TTextLabel] = None,
             task_type: t.Optional[str] = None,
             name: t.Optional[str] = None,
-            embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None,
+            embeddings: t.Optional[t.Union[pd.DataFrame, np.ndarray, str]] = None,
             metadata: t.Optional[pd.DataFrame] = None,
             categorical_metadata: t.Optional[t.List[str]] = None,
             properties: t.Optional[pd.DataFrame] = None,
@@ -321,6 +321,9 @@ class TextData:
         """
         if self._embeddings is not None and verbose is True:
             warnings.warn('Embeddings already exist, overwriting it', UserWarning)
+
+        if isinstance(embeddings, np.ndarray):
+            embeddings = pd.DataFrame(embeddings)
 
         if embeddings is not None:
             validate_length_and_type(embeddings, 'Embeddings', len(self))

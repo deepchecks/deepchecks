@@ -10,6 +10,7 @@
 #
 # pylint: disable=protected-access
 """Test for the TextData object"""
+import numpy as np
 import pandas as pd
 from hamcrest import assert_that, calling, contains_exactly, equal_to, raises
 
@@ -174,6 +175,14 @@ def test_set_embeddings(text_classification_dataset_mock):
     dataset = text_classification_dataset_mock
     embeddings = pd.DataFrame({'0': [1, 2, 3], '1': [4, 5, 6]})
     assert_that(dataset._embeddings, equal_to(None))  # pylint: disable=protected-access
+
+    dataset.set_embeddings(embeddings)
+    assert_that((dataset.embeddings != embeddings).sum().sum(), equal_to(0))
+
+    # Check that works for np.array:
+    dataset._embeddings = None  # pylint: disable=protected-access
+
+    embeddings = np.array({'0': [1, 2, 3], '1': [4, 5, 6]})
 
     dataset.set_embeddings(embeddings)
     assert_that((dataset.embeddings != embeddings).sum().sum(), equal_to(0))

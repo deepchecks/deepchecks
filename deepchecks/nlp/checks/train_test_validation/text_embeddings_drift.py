@@ -19,8 +19,8 @@ __all__ = ['TextEmbeddingsDrift']
 
 class TextEmbeddingsDrift(TrainTestCheck):
     """
-    Calculate drift between the entire train and test datasets using a model trained to distinguish between them.
-
+    Calculate drift between the train and test datasets using a model trained to distinguish between their embeddings.
+    
     This check detects drift between the model embeddings of the train and test data. To do so, the check trains
     a Domain Classifier, which is a model trained to distinguish between the train and test datasets.
 
