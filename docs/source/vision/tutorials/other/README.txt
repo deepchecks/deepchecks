@@ -1,4 +1,4 @@
-.. _vision_tutorials_other:
+.. _vision__tutorials_other:
 
 Other Tutorials
 ===============
