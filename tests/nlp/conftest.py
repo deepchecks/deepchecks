@@ -33,7 +33,8 @@ def text_classification_dataset_mock():
 @pytest.fixture(scope='function')
 def tweet_emotion_train_test_textdata():
     """Tweet emotion text classification dataset"""
-    train, test = tweet_emotion.load_data(data_format='TextData', as_train_test=True, include_properties=True)
+    train, test = tweet_emotion.load_data(data_format='TextData', as_train_test=True, include_properties=True,
+                                          include_embeddings=True)
     return train, test
 
 

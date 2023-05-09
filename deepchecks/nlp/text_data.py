@@ -98,6 +98,7 @@ class TextData:
         order of the rows must be the same as the order of the samples in the dataset.
         In order to calculate the default embeddings, use the `TextData.calculate_default_embeddings` function after
         the creation of the TextData object.
+        For more on embeddings, see the :ref:`Text Embeddings Guide <nlp__embeddings_guide>`
     """
 
     _text: np.ndarray
