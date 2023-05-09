@@ -119,11 +119,11 @@ redirects = {
     "checks_gallery/vision/train_test_validation/plot_train_test_label_drift": "../../../tabular/auto_checks/train_test_validation/plot_label_drift.html",
     "checks_gallery/vision/model_evaluation/plot_train_test_prediction_drift": "../../../tabular/auto_checks/model_evaluation/plot_prediction_drift.html",
     "user-guide/tabular/supported_models": "../../tabular/usage_guides/supported_models.html",
-    "user-guide/tabular/auto_quickstart/index": "../../../tabular/auto_tutorials/quickstarts/index.html",
-    "user-guide/tabular/auto_quickstart/plot_quick_data_integrity": "../../../tabular/auto_tutorials/quickstarts/plot_quick_data_integrity.html",
-    "user-guide/tabular/auto_quickstart/plot_quick_train_test_validation": "../../../tabular/auto_tutorials/quickstarts/plot_quick_train_test_validation.html",
-    "user-guide/tabular/auto_quickstart/plot_quickstart_in_5_minutes": "../../../tabular/auto_tutorials/quickstarts/plot_quickstart_in_5_minutes.html",
-    "user-guide/tabular/auto_quickstart/plot_quick_model_evaluation": "../../../tabular/auto_tutorials/quickstarts/plot_quick_model_evaluation.html",
+    "user-guide/tabular/auto_quickstarts/index": "../../../tabular/auto_tutorials/quickstarts/index.html",
+    "user-guide/tabular/auto_quickstarts/plot_quick_data_integrity": "../../../tabular/auto_tutorials/quickstarts/plot_quick_data_integrity.html",
+    "user-guide/tabular/auto_quickstarts/plot_quick_train_test_validation": "../../../tabular/auto_tutorials/quickstarts/plot_quick_train_test_validation.html",
+    "user-guide/tabular/auto_quickstarts/plot_quickstart_in_5_minutes": "../../../tabular/auto_tutorials/quickstarts/plot_quickstart_in_5_minutes.html",
+    "user-guide/tabular/auto_quickstarts/plot_quick_model_evaluation": "../../../tabular/auto_tutorials/quickstarts/plot_quick_model_evaluation.html",
     "user-guide/general/drift_guide": "../../general/guides/drift_guide.html",
     "user-guide/general/showing_results": "../../general/usage/showing_results.html",
     "user-guide/tabular/auto_tutorials/plot_add_a_custom_check": "../../../tabular/auto_tutorials/plot_add_a_custom_check.html",
@@ -134,10 +134,9 @@ redirects = {
     "user-guide/general/deepchecks_hierarchy": "../../general/concepts/deepchecks_hierarchy.html",
     "user-guide/nlp/auto_quickstarts/index": "../../../nlp/auto_tutorials/quickstarts/index.html",
     "user-guide/general/metrics_guide": "../../general/guides/metrics_guide.html",
-    "user-guide/general/export_save_results": "../../general/usage/export_save_results.html"
-
-
-
+    "user-guide/general/export_save_results": "../../general/usage/export_save_results.html",
+    "checks_gallery/tabular": "../../tabular/index.html",
+    "checks_gallery/vision": "../../vision/index.html"
 }
 imgmath_image_format = 'svg'
 
@@ -456,7 +455,6 @@ html_copy_source = True
 html_theme_options = {
     "collapse_navigation": False,
     "navigation_depth": 3,
-    "show_nav_level": 3,
     "navbar_end": ["version-switcher", "navbar-icon-links", "menu-dropdown", ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
     "page_sidebar_items": ["page-toc", ],
