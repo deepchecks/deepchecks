@@ -48,7 +48,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
              - :class:`~deepchecks.vision.checks.train_test_validation.ImagePropertyDrift`
            * - :ref:`vision__image_dataset_drift`
              - :class:`~deepchecks.vision.checks.train_test_validation.ImageDatasetDrift`
-           * - :ref:`vision__property_label_correlation `
+           * - :ref:`vision__property_label_correlation_change`
              - :class:`~deepchecks.vision.checks.train_test_validation.PropertyLabelCorrelationChange`
 
     Parameters
@@ -134,7 +134,7 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
              - :class:`~deepchecks.vision.checks.model_evaluation.PredictionDrift`
            * - :ref:`vision__simple_model_comparison`
              - :class:`~deepchecks.vision.checks.model_evaluation.SimpleModelComparison`
-           * - :ref:`vision__weak_segment_performance`
+           * - :ref:`vision__weak_segments_performance`
              - :class:`~deepchecks.vision.checks.model_evaluation.WeakSegmentPerformance`
 
     Parameters

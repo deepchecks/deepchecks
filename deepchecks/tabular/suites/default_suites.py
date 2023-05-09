@@ -251,7 +251,7 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
              - :class:`~deepchecks.tabular.checks.model_evaluation.RocReport`
            * - :ref:`tabular__confusion_matrix_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ConfusionMatrixReport`
-           * - :ref:`tabular__weak_segment_performance`
+           * - :ref:`tabular__weak_segments_performance`
              - :class:`~deepchecks.tabular.checks.model_evaluation.WeakSegmentPerformance`
            * - :ref:`tabular__prediction_drift`
              - :class:`~deepchecks.tabular.checks.model_evaluation.PredictionDrift`
@@ -356,7 +356,7 @@ def production_suite(task_type: str = None,
              - :class:`~deepchecks.tabular.checks.model_evaluation.RocReport`
            * - :ref:`tabular__confusion_matrix_report`
              - :class:`~deepchecks.tabular.checks.model_evaluation.ConfusionMatrixReport`
-           * - :ref:`tabular__weak_segment_performance`
+           * - :ref:`tabular__weak_segments_performance`
              - :class:`~deepchecks.tabular.checks.model_evaluation.WeakSegmentPerformance`
            * - :ref:`tabular__regression_error_distribution`
              - :class:`~deepchecks.tabular.checks.model_evaluation.RegressionErrorDistribution`
