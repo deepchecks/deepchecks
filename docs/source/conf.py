@@ -49,7 +49,9 @@ if os.environ.get("GITHUB_REF_NAME"):
         version = 'dev'
     else:
         # Taking the major and minor version from the branch name
-        version = re.search(r'\d+(?:\.\d+)', os.environ.get("GITHUB_REF_NAME")).string
+        version_match = re.search(r'\d+(?:\.\d+)', os.environ.get("GITHUB_REF_NAME"))
+        if version_match is not None:
+            version = version_match.string
 
 version = version or VERSION
 language = os.environ.get("READTHEDOCS_LANGUAGE")
