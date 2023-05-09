@@ -71,7 +71,8 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
             label = text_data.label
             original_label = text_data.label
         encoded_dataset = self._target_encode_categorical_features_fill_na(features, label,
-                                                                           cat_features, is_cat_label=is_multilabel)
+                                                                           cat_features,
+                                                                           is_cat_label=not is_multilabel)
 
         if self.score_per_sample is not None:
             score_per_sample = self.score_per_sample[list(features.index)]
@@ -95,7 +96,8 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
             dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                       validate_data_on_predict=False)
             scorer = context.get_single_scorer(self.alternative_scorer)
-            avg_score = round(scorer(dummy_model, encoded_dataset), 3)
+            avg_score = round(scorer.run_on_data_and_label(dummy_model, encoded_dataset.features_columns,
+                                                           original_label), 3)
 
         # Running the logic
         weak_segments = self._weak_segments_search(data=encoded_dataset.data, score_per_sample=score_per_sample,
