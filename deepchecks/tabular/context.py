@@ -63,32 +63,38 @@ class _DummyModel:
     predictions: pd.DataFrame
     proba: pd.DataFrame
 
-    def __init__(self,
-                 test: Dataset,
-                 y_proba_test: t.Optional[np.ndarray] = None,
-                 y_pred_test: t.Optional[np.ndarray] = None,
-                 train: t.Union[Dataset, None] = None,
-                 y_pred_train: t.Optional[np.ndarray] = None,
-                 y_proba_train: t.Optional[np.ndarray] = None,
-                 validate_data_on_predict: bool = True,
-                 model_classes: t.Optional[t.List] = None):
-
+    def __init__(
+        self,
+        test: Dataset,
+        y_proba_test: t.Optional[np.ndarray] = None,
+        y_pred_test: t.Optional[np.ndarray] = None,
+        train: t.Optional[Dataset] = None,
+        y_pred_train: t.Optional[np.ndarray] = None,
+        y_proba_train: t.Optional[np.ndarray] = None,
+        validate_data_on_predict: bool = True,
+        model_classes: t.Optional[t.List[t.Any]] = None
+    ):
         if train is not None and test is not None:
             # check if datasets have same indexes
-            if set(train.data.index) & set(test.data.index):
-                train.data.index = map(lambda x: f'train-{x}', list(train.data.index))
-                test.data.index = map(lambda x: f'test-{x}', list(test.data.index))
-                get_logger().warning('train and test datasets have common index - adding "train"/"test"'
-                                     ' prefixes. To avoid that provide datasets with no common indexes '
-                                     'or pass the model object instead of the predictions.')
+            train_index = train.data.index
+            test_index = test.data.index
+            if set(train_index) & set(test_index):
+                train.data.index = [f'train-{it}' for it in train_index]
+                test.data.index = [f'test-{it}' for it in test_index]
+                get_logger().warning(
+                    'train and test datasets have common index - adding "train"/"test" '
+                    'prefixes. To avoid that provide datasets with no common indexes '
+                    'or pass the model object instead of the predictions.'
+                )
 
         feature_df_list = []
         predictions = []
         probas = []
 
-        for dataset, y_pred, y_proba in zip([train, test],
-                                            [y_pred_train, y_pred_test],
-                                            [y_proba_train, y_proba_test]):
+        for dataset, y_pred, y_proba in (
+            (train, y_pred_train, y_proba_train),
+            (test, y_pred_test, y_proba_test),
+        ):
             if y_pred is not None and not isinstance(y_pred, np.ndarray):
                 y_pred = np.array(y_pred)
             if y_proba is not None and not isinstance(y_proba, np.ndarray):
@@ -103,7 +109,7 @@ class _DummyModel:
                     if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
                         y_pred = y_pred[:, 0]
                     ensure_predictions_shape(y_pred, dataset.data)
-                    y_pred_ser = pd.Series(y_pred, index=dataset.data.index)
+                    y_pred_ser = pd.Series(list(y_pred), index=dataset.data.index)
                     predictions.append(y_pred_ser)
                     if y_proba is not None:
                         ensure_predictions_proba(y_proba, y_pred)
