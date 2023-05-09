@@ -107,7 +107,7 @@ result.show()
 # Looking at the results we see one check whose condition has failed: Feature Label Correlation.
 #
 # The :ref:`vision__property_label_correlation_change` check computes various
-# :ref:`image properties <vision__properties_guide>` and checks if the image label can be inferred using a
+# :ref:`image properties <vision_properties_guide>` and checks if the image label can be inferred using a
 # simple model (for example, a Classification Tree) using the property values. The ability to predict the label using
 # these properties is measured by the Predictive Power Score (PPS) and this measure is compared between the training
 # and test dataset. In this case, the condition alerts us to the fact that the PPS for the "RMS Contrast" property was

@@ -15,7 +15,7 @@ tasks have a base implementation, meaning you will have to create your own task.
 When creating your own task you will be limited to run checks which are agnostic to the specific task type.
 For example performance checks that uses IOU works only on object detection tasks, since they need to know
 the exact bounding box format in order to run, while other checks that uses
-:ref:`vision__properties_guide` or custom metrics are agnostic to the task type.
+:ref:`vision_properties_guide` or custom metrics are agnostic to the task type.
 
 In this guide we will implement a custom instance segmentation task and run checks on it.
 Note that instance segmentation is different from semantic segmentation, which is currently supported in Deepchecks.
@@ -238,7 +238,7 @@ result.show()
 # ---------------------------
 #
 # In order to run checks that are using label or prediction properties we'll have to implement
-# a custom :ref:`property <vision__properties_guide>`. We'll write label properties and run the label drift
+# a custom :ref:`property <vision_properties_guide>`. We'll write label properties and run the label drift
 # check.
 
 from deepchecks.vision.checks import LabelDrift

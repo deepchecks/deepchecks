@@ -41,7 +41,7 @@ Using Properties to Detect Image Drift
 --------------------------------------
 In computer vision specifically, we can't measure drift on the images directly, as the individual pixel has little
 value when estimating drift. Therefore, we calculate drift on different
-:ref:`properties of the image<vision__properties_guide>`,
+:ref:`properties of the image<vision_properties_guide>`,
 on which we can directly measure drift.
 
 Which Image Properties Are Used?

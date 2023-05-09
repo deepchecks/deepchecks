@@ -16,7 +16,7 @@ This notebook provides an overview for using and understanding the "Property Lab
 
 What is the purpose of the check?
 =================================
-The check estimates for every image :ref:` property <vision__properties_guide>`
+The check estimates for every image :ref:` property <vision_properties_guide>`
 (such as brightness, contrast etc.) its ability to predict the label by itself. This check can help find:
 
 * A potential bias in one or both datasets, that leads to the labels being
