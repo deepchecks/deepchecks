@@ -46,7 +46,7 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
     # skips if not required ('none') or if number of features is small enough (< 30) in 'auto' mode.
     use_reduction = not (dimension_reduction_method == 'none' or (
             dimension_reduction_method == 'auto' and domain_class_df.shape[1] < 30))
-    use_umap = (dimension_reduction_method == 'auto' and with_display) or dimension_reduction_method == 'umap'
+    use_umap = dimension_reduction_method == 'umap' or (dimension_reduction_method == 'auto' and with_display)
 
     if use_reduction:
         if use_umap:
@@ -115,4 +115,5 @@ def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_s
     plot_data = pd.DataFrame({x_axis_title: reduced_embeddings[:, 0],
                               y_axis_title: reduced_embeddings[:, 1]})
     plot_title = 'Scatter Plot of Embeddings Space (reduced to 2 dimensions)'
-    return two_datasets_scatter_plot(plot_title, plot_data, test_dataset, train_dataset)
+    return two_datasets_scatter_plot(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
+                                     test_dataset=test_dataset)

@@ -20,7 +20,7 @@ from deepchecks.nlp import TextData
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
-from deepchecks.utils.plot import colors, common_and_outlier_colors, DEFAULT_DATASET_NAMES
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors, common_and_outlier_colors
 
 __all__ = ['get_text_outliers_graph',
            'two_datasets_scatter_plot']
