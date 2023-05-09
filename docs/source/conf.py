@@ -505,9 +505,9 @@ for line in open('nitpick-exceptions'):
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if not (
-        filepath.startswith("checks_gallery/tabular/")
-        or filepath.startswith("checks_gallery/vision/")
-        or filepath.startswith("checks_gallery/nlp/")
+        filepath.startswith("checks/tabular/")
+        or filepath.startswith("checks/vision/")
+        or filepath.startswith("checks/nlp/")
     ):
         return ''
 
@@ -518,10 +518,10 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
             .replace(".py", "")
     )
 
-    if filepath.startswith("checks_gallery/tabular/"):
+    if filepath.startswith("checks/tabular/"):
         import deepchecks.tabular.checks
         check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
-    elif filepath.startswith("checks_gallery/vision/"):
+    elif filepath.startswith("checks/vision/"):
         import deepchecks.vision.checks
         check_clazz = getattr(deepchecks.vision.checks, notebook_name, None)
     else:

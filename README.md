@@ -230,7 +230,7 @@ covering all kinds of common issues, such as:
 - Conflicting Labels 
 
 and [many more
-checks](https://docs.deepchecks.com/stable/checks_gallery/tabular.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
+checks](https://docs.deepchecks.com/stable/tabular/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
 
 
 Each check can have two types of

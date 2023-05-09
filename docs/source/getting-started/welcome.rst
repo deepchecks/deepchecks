@@ -100,7 +100,7 @@ Get Started with Deepchecks Testing
 .. _welcome__quickstarts:
 
 🏃‍♀️ Testing Quickstarts 🏃‍♀️
-==========================
+==============================
 
 .. grid:: 1
     :gutter: 3
