@@ -24,9 +24,9 @@ def calculate_neg_mse_per_sample(labels, predictions, index=None) -> pd.Series:
     return pd.Series([-(y - y_pred) ** 2 for y, y_pred in zip(labels, predictions)], index=index)
 
 
-def calculate_neg_cross_entropy_per_sample(labels, probas: np.ndarray, is_multilabel: bool = False,
+def calculate_neg_cross_entropy_per_sample(labels, probas: np.ndarray,
                                            model_classes: Optional[List] = None,
-                                           index=None, eps=1e-15) -> pd.Series:
+                                           index=None, is_multilabel: bool = False, eps=1e-15) -> pd.Series:
     """Calculate negative cross entropy per sample."""
     if not is_multilabel:
         if index is None and isinstance(labels, pd.Series):
