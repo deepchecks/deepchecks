@@ -13,7 +13,9 @@ import numpy as np
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.abstracts.confusion_matrix_abstract import run_confusion_matrix_check
+from deepchecks.utils.abstracts.confusion_matrix_abstract import (misclassified_samples_lower_than_condition,
+                                                                  run_confusion_matrix_check)
+from deepchecks.utils.strings import format_percent
 
 __all__ = ['ConfusionMatrixReport']
 
@@ -60,3 +62,21 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         y_pred = np.array(context.model.predict(dataset.features_columns)).reshape(len(y_true), )
 
         return run_confusion_matrix_check(y_pred, y_true, context.with_display, self.normalize_display)
+
+    def add_condition_misclassified_samples_lower_than_condition(self, misclassified_samples_threshold: float = 0.2):
+        """Add condition - Misclassified samples lower than threshold.
+
+        Condition validates if the misclassified cell size/samples are lower than the threshold based on the
+        `misclassified_samples_threshold` parameter.
+
+        Parameters
+        ----------
+        misclassified_samples_threshold: float, default: 0.20
+            Ratio of samples to be used for comparison in the condition (Value should be between 0 - 1 inclusive)
+        """
+        return self.add_condition(
+            f'Misclassified cell size lower than {format_percent(misclassified_samples_threshold)} '
+            'of the total samples',
+            misclassified_samples_lower_than_condition,
+            misclassified_samples_threshold=misclassified_samples_threshold
+        )
