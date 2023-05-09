@@ -12,9 +12,10 @@
 from typing import Union
 
 import numpy as np
+import pandas as pd
 from sklearn.metrics._scorer import _BaseScorer
 
-__all__ = ['get_gain', 'get_scorer_name', 'averaging_mechanism']
+__all__ = ['get_gain', 'get_scorer_name', 'averaging_mechanism', 'is_label_none']
 
 from deepchecks.core.errors import DeepchecksValueError
 
@@ -85,3 +86,11 @@ def averaging_mechanism(averaging_method: str, scores_per_class, weights=None) -
         return np.multiply(scores_per_class, weights).sum() / sum(weights)
     else:
         raise DeepchecksValueError(f'Unknown averaging {averaging_method}')
+
+
+def is_label_none(label):
+    """Check if label (single label of a sample) is None."""
+    result = pd.isnull(label)
+    if isinstance(result, bool):
+        return result
+    return any(result)
