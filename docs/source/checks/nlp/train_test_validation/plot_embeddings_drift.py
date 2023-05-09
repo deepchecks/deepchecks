@@ -10,9 +10,9 @@ drift check.
 
 **Structure:**
 
-* `What Is Embeddings Drift? <#what-is-a-embeddings-drift>`__
-* `Loading the Data <#loading-the-data>`__
-* `Run the Check <#run-the-check>`__
+* `What Is Embeddings Drift? <#what-is-embeddings-drift>`__
+* `Loading the Data <#load-data>`__
+* `Run the Check <#run-check>`__
 
 What Is Embeddings Drift?
 ==============================

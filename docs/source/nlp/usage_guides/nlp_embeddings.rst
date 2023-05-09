@@ -27,13 +27,13 @@ Example for specific scenarios in which using embeddings may come in handy:
    from the distribution of the embeddings of the test data, it may indicate that the test data is not
    representative of the training data, and that the model's performance on the test data may be lower than expected.
 #. **Investigating low test performance** - By comparing similar texts on which the model doesn't perform well,
-    we can try to understand what is the model missing.
-    For example, if the model performs well on news articles, but performs poorly on scientific articles,
-    it may indicate that the model was trained on a dataset that is biased towards
-    the news articles, and that the model is not generalizing well to the scientific articles.
+   we can try to understand what is the model missing.
+   For example, if the model performs well on news articles, but performs poorly on scientific articles,
+   it may indicate that the model was trained on a dataset that is biased towards
+   the news articles, and that the model is not generalizing well to the scientific articles.
 #. **Find conflicting annotations** - Clean data is critical for training a good model. Mistakes in annotations
-    (labeling) of the data can lead to a model that is not performing well. By finding similar texts (using embeddings)
-    with different annotations, we can find potential annotation mistakes and fix them.
+   (labeling) of the data can lead to a model that is not performing well. By finding similar texts (using embeddings)
+   with different annotations, we can find potential annotation mistakes and fix them.
 
 
 .. _using_nlp_embeddings_in_checks:
@@ -72,7 +72,7 @@ In the following example, we will calculate the default embeddings in order to u
   # Run the check
   TextEmbeddingsDrift().run(text_data)
 
-Note that any use of the ``TextData.calculate_default_embeddings`` method will override the existing embeddings.
+Note that any use of the :func:`deepchecks.nlp.TextData.calculate_default_embeddings` method will override the existing embeddings.
 
 Currently, deepchecks supports either using the ``all-MiniLM-L6-v2`` (default) model from the ``sentence-transformers`` library,
 or Open AI's ``text-embedding-ada-002`` model. You can choose which model to use by setting the ``model`` parameter
