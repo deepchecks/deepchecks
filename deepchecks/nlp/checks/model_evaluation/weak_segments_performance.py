@@ -63,17 +63,16 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         # Decide which scorer and score_per_sample to use in the algorithm run
         is_multilabel = text_data.is_multi_label_classification()
         if is_multilabel:
+            # For multilabel, we reduce the label to a single dimension using TruncatedSVD, which is better in handling
+            # dimensionality reduction of sparse matrices
             label = TruncatedSVD(1).fit_transform(text_data.label).squeeze()
-            is_cat_label = False
+            original_label = [list(x) for x in text_data.label]
         else:
             label = text_data.label
-            is_cat_label = True
+            original_label = text_data.label
         encoded_dataset = self._target_encode_categorical_features_fill_na(features, label,
-                                                                           cat_features, is_cat_label=is_cat_label)
-        # Replacing the label with the original label for multilabel
-        if is_multilabel:
-            listed_label = [list(x) for x in text_data.label]
-            encoded_dataset._data[encoded_dataset.label_name] = listed_label  # pylint: disable=protected-access
+                                                                           cat_features, is_cat_label=is_multilabel)
+
         if self.score_per_sample is not None:
             score_per_sample = self.score_per_sample[list(features.index)]
             scorer, dummy_model = None, None
@@ -100,7 +99,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
         # Running the logic
         weak_segments = self._weak_segments_search(data=encoded_dataset.data, score_per_sample=score_per_sample,
-                                                   label_col=encoded_dataset.label_col,
+                                                   label_col=original_label,
                                                    feature_rank_for_search=np.asarray(encoded_dataset.features),
                                                    dummy_model=dummy_model, scorer=scorer)
 
@@ -111,7 +110,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         if context.with_display:
             display = self._create_heatmap_display(data=encoded_dataset.data, weak_segments=weak_segments,
                                                    score_per_sample=score_per_sample,
-                                                   avg_score=avg_score, label_col=encoded_dataset.label_col,
+                                                   avg_score=avg_score, label_col=original_label,
                                                    dummy_model=dummy_model, scorer=scorer)
         else:
             display = []

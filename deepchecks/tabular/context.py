@@ -74,9 +74,6 @@ class _DummyModel:
         validate_data_on_predict: bool = True,
         model_classes: t.Optional[t.List[t.Any]] = None
     ):
-        # TODO:
-        # constructor signature says that test cannot be `None`
-        # why do we check it then?
         if train is not None and test is not None:
             # check if datasets have same indexes
             train_index = train.data.index
