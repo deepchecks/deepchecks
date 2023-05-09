@@ -10,7 +10,7 @@
 #
 """Module containing input validation functions."""
 import collections
-from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast, Any, Type, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, Type, cast
 
 import numpy as np
 import pandas as pd
@@ -267,7 +267,7 @@ def _validate_text_classification(
         else:
             if predictions.ndim != 1:
                 raise ValidationError(format_error_message)
-    
+
     if probabilities is not None:
         format_error_message = (
             f'Check requires classification probabilities for the "{dataset.name}" '
@@ -300,6 +300,7 @@ def _validate_text_classification(
                     f'Check requires classification probabilities for the "{dataset.name}" '
                     f'dataset to be probabilities and sum to 1 for each row'
                 )
+
 
 def _validate_multilabel(
     *,
@@ -376,6 +377,7 @@ def _validate_multilabel(
                 # TODO: better message
                 raise ValidationError(format_error_message)
 
+
 def _validate_token_classification(
     *,
     dataset: 'TextData',
@@ -401,7 +403,7 @@ def _validate_token_classification(
                 f'the "{dataset.name}" dataset to have {dataset.n_samples} rows, '
                 'same as dataset'
             )
-        
+
         for idx, sample_predictions in enumerate(predictions):
             if not is_sequence_not_str(sample_predictions):
                 raise ValidationError(format_error_message)
@@ -411,13 +413,13 @@ def _validate_token_classification(
 
             if all(criterias) or not any(criterias):
                 raise ValidationError(format_error_message)
-            
+
             tokenized_text = dataset.tokenized_text
 
             if len(sample_predictions) != len(tokenized_text[idx]):
                 raise ValidationError(
                     'Check requires token-classification predictions for '
-                    f'the {dataset.name} to have the same number of tokens '
+                    f'the "{dataset.name}" dataset to have the same number of tokens '
                     'as the input text'
                 )
 

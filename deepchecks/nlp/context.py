@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base nlp context."""
-import collections
 import typing as t
 from operator import itemgetter
 
@@ -17,21 +16,21 @@ import numpy as np
 
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
-                                    ModelValidationError, ValidationError)
-from deepchecks.nlp.input_validations import compare_dataframes
+                                    ModelValidationError)
+from deepchecks.nlp.input_validations import (_validate_multilabel, _validate_text_classification,
+                                              _validate_token_classification, compare_dataframes)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.data_inference import infer_observed_and_model_labels
-from deepchecks.nlp.input_validations import _validate_multilabel, _validate_text_classification, _validate_token_classification
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
-from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
+from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = [
     'Context',
@@ -40,13 +39,14 @@ __all__ = [
     'TTokenPred'
 ]
 
-from deepchecks.utils.validation import is_sequence_not_str
 
 TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Union[str, int]]]]
 TClassProba = t.Sequence[t.Sequence[float]]
+# TODO: is it correct, why tuple?
 TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
 TTextPred = t.Union[TClassPred, TTokenPred]
-TTextProba = t.Union[TClassProba]  # TODO: incorrect, why union have only one type argument?
+# TODO: incorrect, why union have only one type argument?
+TTextProba = t.Union[TClassProba]
 
 
 class _DummyModel(BasicModel):
@@ -115,34 +115,34 @@ class _DummyModel(BasicModel):
                     dataset=dataset,
                     predictions=y_pred,
                     probabilities=y_proba,
-                    n_of_classes=len(model_classes) 
+                    n_of_classes=len(model_classes)
                 )
                 if y_pred is not None:
                     y_pred = np.array(y_pred, dtype='float')
                 elif y_proba is not None:
                     y_pred = (np.array(y_proba) > multilabel_proba_threshold)
                     y_pred = [np.array(model_classes)[pred] for pred in y_pred]
-            
+
             elif dataset.task_type is TaskType.TEXT_CLASSIFICATION:
                 _validate_text_classification(
                     dataset=dataset,
                     predictions=y_pred,
                     probabilities=y_proba,
-                    n_of_classes=len(model_classes) 
+                    n_of_classes=len(model_classes)
                 )
                 if y_pred is not None:
                     y_pred = np.array(y_pred, dtype='str')
                 elif y_proba is not None:
                     y_pred = np.argmax(np.array(y_proba), axis=-1)
                     y_pred = np.array(model_classes, dtype='str')[y_pred]
-            
+
             elif dataset.task_type is TaskType.TOKEN_CLASSIFICATION:
                 _validate_token_classification(
                     dataset=dataset,
                     predictions=y_pred,
                     probabilities=y_proba,
                 )
-            
+
             else:
                 raise ValueError(f'Unknown task type - {type(dataset.task_type)}')
 
@@ -161,13 +161,13 @@ class _DummyModel(BasicModel):
         if self.predictions:
             self.predict = self._predict
             self._prediction_indices = {
-                name: set(data_preds.keys()) 
+                name: set(data_preds.keys())
                 for name, data_preds in self.predictions.items()
             }
         if self.probas:
             self.predict_proba = self._predict_proba
             self._proba_indices = {
-                name: set(data_proba.keys()) 
+                name: set(data_proba.keys())
                 for name, data_proba in self.probas.items()
             }
 

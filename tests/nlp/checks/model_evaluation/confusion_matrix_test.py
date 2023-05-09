@@ -26,7 +26,7 @@ def test_defaults(text_classification_dataset_mock):
     # Act
     result = check.run(text_classification_dataset_mock,
                        predictions=['0', '1', '1'])
-    
+
     confusion_matrix = result.value.to_numpy()
 
     # Assert
@@ -58,7 +58,7 @@ def test_run_default_scorer_string_class_new_cats_in_model_classes(text_classifi
     # Act
     result = check.run(text_classification_string_class_dataset_mock,
                        predictions=['wise', 'new', 'meh'])
-    
+
     confusion_matrix = result.value.to_numpy()
 
     # Assert
@@ -179,7 +179,7 @@ def test_condition_misclassified_samples_lower_than_fails(tweet_emotion_train_te
     x, y = max_misclassified_cell_idx
     max_misclassified_samples = confusion_matrix[x][y]
     max_misclassified_samples_ratio = max_misclassified_samples / len(test_ds)
-    
+
     # Assert
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,

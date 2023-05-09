@@ -8,10 +8,10 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+# pylint: disable=invalid-hash-returned,invalid-name,unnecessary-ellipsis
 """Type definitions."""
 from typing import List
 
-# pylint: disable=invalid-hash-returned,invalid-name
 from typing_extensions import Protocol, runtime_checkable
 
 __all__ = ['Hashable', 'BasicModel', 'ClassificationModel']

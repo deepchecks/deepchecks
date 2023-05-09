@@ -26,44 +26,58 @@ def test_wrong_prediction_format(text_classification_dataset_mock):
     emtpy_suite = Suite('Empty Suite')
 
     # Act & Assert
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_classification_dataset_mock,
-        train_predictions=[0, 0, 1, 1]),
-        raises(ValidationError, 'Check requires predictions for Train to have 3 rows, same as dataset')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_classification_dataset_mock,
+            train_predictions=[0, 0, 1, 1]),
+        raises(
+            ValidationError,
+            'Check requires predictions for the "Train" dataset '
+            'to have 3 rows, same as dataset')
     )
-
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_classification_dataset_mock,
-        train_predictions=[[0, 1], [1, 1], [0, 0]]),
-        raises(ValidationError, CLASSIFICATION_ERROR_FORMAT)
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_classification_dataset_mock,
+            train_predictions=[[0, 1], [1, 1], [0, 0]]),
+        raises(
+            ValidationError,
+            r'Check requires predictions for the "Train" dataset to '
+            r'be of a type sequence\[str\] \| sequence\[int\]')
     )
-
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_classification_dataset_mock,
-        train_probabilities=[[0.3, 0.5, 0.2], [0.3, 0.5, 0.2]]),
-        raises(ValidationError, 'Check requires classification probabilities for Train dataset to have 3 rows,'
-                                ' same as dataset')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_classification_dataset_mock,
+            train_probabilities=[[0.3, 0.5, 0.2], [0.3, 0.5, 0.2]]),
+        raises(
+            ValidationError,
+            'Check requires classification probabilities for the "Train" '
+            'dataset to have 3 rows, same as dataset')
     )
-
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_classification_dataset_mock,
-        train_probabilities=[[1, 1, 1], [0, 0, 0], [0.5, 0.5, 0.5]]),
-        raises(ValidationError, 'Check requires classification probabilities for Train dataset to have 2 columns, '
-                                'same as the number of classes')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_classification_dataset_mock,
+            train_probabilities=[[1, 1, 1], [0, 0, 0], [0.5, 0.5, 0.5]]),
+        raises(
+            ValidationError,
+            'Check requires classification probabilities for the "Train" '
+            'dataset to have 2 columns, same as the number of classes')
     )
-
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_classification_dataset_mock,
-        train_probabilities=[[1, 1], [0, 0], [0.5, 0.2]]),
-        raises(ValidationError, 'Check requires classification probabilities for Train dataset to be probabilities and'
-                                ' sum to 1 for each row')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_classification_dataset_mock,
+            train_probabilities=[[1, 1], [0, 0], [0.5, 0.2]]),
+        raises(
+            ValidationError,
+            'Check requires classification probabilities for the "Train" '
+            'dataset to be probabilities and sum to 1 for each row')
     )
 
     # Run with no error
     emtpy_suite.run(
         train_dataset=text_classification_dataset_mock,
         train_predictions=[1, 1, 1],
-        train_probabilities=[[0.9, 0.1], [1, 0], [0.5, 0.5]])
+        train_probabilities=[[0.9, 0.1], [1, 0], [0.5, 0.5]]
+    )
 
 
 def test_wrong_multilabel_prediction_format(text_multilabel_classification_dataset_mock):
@@ -76,66 +90,70 @@ def test_wrong_multilabel_prediction_format(text_multilabel_classification_datas
             train_dataset=text_multilabel_classification_dataset_mock,
             train_predictions=[
                 [0, 0, 0],
-                [0, 0, 0], 
-                [0, 0, 0],  
+                [0, 0, 0],
+                [0, 0, 0],
                 [0, 0, 0],]),
         raises(
-            ValidationError, 
-            'Check requires predictions for Train to have 3 rows, same as dataset')
+            ValidationError,
+            'Check requires multi-label classification predictions for '
+            'the "Train" dataset to have 3 rows, same as dataset')
     )
-
     assert_that(
         calling(emtpy_suite.run).with_args(
             train_dataset=text_multilabel_classification_dataset_mock,
             train_predictions=[0, 1, 1]),
-        raises(ValidationError, 'Check requires predictions for Train to be a 2D array')
+        raises(
+            ValidationError,
+            r'Check requires multi-label classification predictions for '
+            r'the "Train" dataset to be of a type sequence\[sequence\[int\]\] that can '
+            r'be cast to a 2D numpy array of a shape \(n_samples, n_classes\)')
     )
-
     assert_that(
         calling(emtpy_suite.run).with_args(
             train_dataset=text_multilabel_classification_dataset_mock,
             train_predictions=[[0], [0, 1], 1]),
         raises(
-            ValidationError, 
-            r'Check requires multi-label probabilities for Train to '
-            r'be a a 2D array of shape \(n_samples, n_classes\)')
+            ValidationError,
+            r'Check requires multi-label classification predictions for '
+            r'the "Train" dataset to be of a type sequence\[sequence\[int\]\] that can '
+            r'be cast to a 2D numpy array of a shape \(n_samples, n_classes\)')
     )
-
     assert_that(
         calling(emtpy_suite.run).with_args(
             train_dataset=text_multilabel_classification_dataset_mock,
             train_probabilities=[[0.3, 0.5, 0.2], [0.3, 0.5, 0.2]]),
         raises(
-            ValidationError, 
+            ValidationError,
             'Check requires multi-label classification probabilities for '
-            'Train dataset to have 3 rows, same as dataset')
+            'the "Train" dataset to have 3 rows, same as dataset')
     )
-
     assert_that(
         calling(emtpy_suite.run).with_args(
             train_dataset=text_multilabel_classification_dataset_mock,
             train_probabilities=[[1, 1], [0, 0], [0.5, 0.5]]),
         raises(
-            ValidationError, 
-            'Check requires multi-label classification probabilities for Train dataset '
-            'to have 3 columns, same as the number of classes')
+            ValidationError,
+            'Check requires multi-label classification probabilities for '
+            'the "Train" dataset to have 3 columns, same as the number of classes')
     )
-
     assert_that(
         calling(emtpy_suite.run).with_args(
             train_dataset=text_multilabel_classification_dataset_mock,
             train_probabilities=[[1, 1.2, 1], [0, 0, 0.3], [0.5, 0.2, 0.9]]),
         raises(
-            ValidationError, 
-            'Check requires multi-label classification probabilities values '
-            'for Train dataset to be between 0 and 1')
+            ValidationError,
+            r'Check requires multi-label classification probabilities for the "Train" '
+            r'to be of a type sequence\[sequences\[float\]\] that can be cast to a 2D numpy '
+            r'array of a shape \(n_samples, n_classes\). Each label probability value '
+            r'must lay between 0 and 1')
     )
 
     # Run with no error
     emtpy_suite.run(
         train_dataset=text_multilabel_classification_dataset_mock,
         train_predictions=[[1, 1, 0], [0, 0, 1], [1, 1, 1]],
-        train_probabilities=[[0.9, 0.8, 0.3], [0.9, 0.8, 0.3], [0.9, 0.8, 0.3]])
+        train_probabilities=[[0.9, 0.8, 0.3], [0.9, 0.8, 0.3], [0.9, 0.8, 0.3]]
+    )
 
 
 def test_wrong_token_prediction_format(text_token_classification_dataset_mock):
@@ -145,47 +163,69 @@ def test_wrong_token_prediction_format(text_token_classification_dataset_mock):
     # Act & Assert
 
     # Length of predictions does not match length of dataset:
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[[1, 2], [3, 4]]
-    ),
-        raises(ValidationError, 'Check requires predictions for Train to have 3 rows, same as dataset')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_token_classification_dataset_mock,
+            train_predictions=[[1, 2], [3, 4]]),
+        raises(
+            ValidationError,
+            'Check requires token-classification predictions for the "Train" '
+            'dataset to have 3 rows, same as dataset')
     )
 
     # Not a list:
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_token_classification_dataset_mock,
-        train_predictions='PER'
-    ),
-        raises(ValidationError, 'Check requires predictions for Train to be a sequence')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_token_classification_dataset_mock,
+            train_predictions='PER'),
+        raises(
+            ValidationError,
+            r'Check requires token-classification predictions for '
+            r'the "Train" dataset to be of a type sequence\[sequence\[str\]\] or '
+            r'sequence\[sequence\[int\]\]')
     )
 
     # Not a list of lists:
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[3, 3, 3]
-    ),
-        raises(ValidationError, 'Check requires predictions for Train to be a sequence of sequences')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_token_classification_dataset_mock,
+            train_predictions=[3, 3, 3]),
+        raises(
+            ValidationError,
+            r'Check requires token-classification predictions for the '
+            r'"Train" dataset to be of a type sequence\[sequence\[str\]\] or '
+            r'sequence\[sequence\[int\]\]')
     )
 
     # Mixed strings and integers:
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[['B-PER', 'O', 1, 'O', 'O'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
-                           ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
-    ),
-        raises(ValidationError,
-               'Check requires predictions for Train to be a sequence of sequences of strings or integers')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_token_classification_dataset_mock,
+            train_predictions=[
+                ['B-PER', 'O', 1, 'O', 'O'],
+                ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
+                ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']
+            ]),
+        raises(
+            ValidationError,
+            r'Check requires token-classification predictions for '
+            r'the "Train" dataset to be of a type sequence\[sequence\[str\]\] '
+            r'or sequence\[sequence\[int\]\]')
     )
 
     # Length of predictions does not match length of tokenized text:
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_token_classification_dataset_mock,
-        train_predictions=[['B-PER'], ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
-                           ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
-    ),
-        raises(ValidationError,
-               'Check requires predictions for Train to have the same number of tokens as the input text')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_token_classification_dataset_mock,
+            train_predictions=[
+                ['B-PER'],
+                ['B-PER', 'O', 'O', 'B-GEO', 'O', 'B-GEO'],
+                ['O', 'O', 'O', 'O', 'O', 'O', 'O', 'O']
+            ]),
+        raises(
+            ValidationError,
+            'Check requires token-classification predictions for the "Train" dataset '
+            'to have the same number of tokens as the input text')
     )
 
 
