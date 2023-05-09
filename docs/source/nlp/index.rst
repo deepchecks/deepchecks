@@ -4,9 +4,10 @@
 NLP
 ===
 
-Deepchecks for NLP is currently in alpha stage.
-Visit the :ref:`installation_guide` page to set up your environment and then head over to the
-Tutorials section.
+Deepchecks for NLP is currently in alpha.
+Jump over to the :ref:`nlp__quickstarts` in the Tutorials section to get started, 
+or visit the :ref:`getting-started__installation` for a full 
+guide about how to set up your environment.
 
 This is an alpha release and you can help us develop it further! You can provide feedback and suggestions as issues on
 `GitHub <https://github.com/deepchecks/deepchecks/issues>`__, or by joining our

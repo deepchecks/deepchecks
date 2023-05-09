@@ -22,10 +22,10 @@ Examples
 
 .. only:: html
 
- .. figure:: /checks_gallery/{{ submoduletype }}/{{ checktype}}/images/thumb/sphx_glr_plot_{{ to_snake_case(objname).lower() }}_thumb.png
+ .. figure:: /{{ submoduletype }}/auto_checks/{{ checktype}}/images/thumb/sphx_glr_plot_{{ to_snake_case(objname).lower() }}_thumb.png
      :alt: {{ objname }}
 
-     :ref:`sphx_glr_checks_gallery_{{submoduletype}}_{{ checktype }}_plot_{{ to_snake_case(objname).lower() }}.py`
+     :ref:`sphx_glr_{{submoduletype}}_auto_checks_{{ checktype }}_plot_{{ to_snake_case(objname).lower() }}.py`
 
 .. raw:: html
 

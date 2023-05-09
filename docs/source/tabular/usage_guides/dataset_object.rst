@@ -162,5 +162,5 @@ will run on the columns to determine which are classified as categorical:
 
    - If (`number of unique values in column` <= `max_categories_allowed_per_column_type`)
 
-Check the API Reference for :doc:`infer_categorical_features </api/generated/deepchecks.tabular.utils.feature_inference.infer_categorical_features>`
+Check the API Reference for :func:`deepchecks.utils.type_inference.infer_categorical_features`
 for more details.

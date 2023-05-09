@@ -119,7 +119,7 @@ Head over to one of our following quickstart tutorials, and have deepchecks runn
 - [Data Integrity Quickstart (avocado sales data)](
    https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/plot_quick_data_integrity.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
 - [Model Evaluation Quickstart (wine quality data)](
-   https://docs.deepchecks.com/en/stable/user-guide/tabular/auto_quickstarts/plot_quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
+   https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/plot_quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
 
 > **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
 
@@ -230,7 +230,7 @@ covering all kinds of common issues, such as:
 - Conflicting Labels 
 
 and [many more
-checks](https://docs.deepchecks.com/stable/checks_gallery/tabular.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
+checks](https://docs.deepchecks.com/stable/tabular/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
 
 
 Each check can have two types of
