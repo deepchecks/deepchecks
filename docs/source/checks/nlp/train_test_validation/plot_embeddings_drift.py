@@ -41,6 +41,11 @@ setting the `dimension_reduction_method` parameter to `pca`.
 
 The check also provides a scatter plot of the embeddings, which is a 2D representation of the embeddings space. This
 is achieved by further reducing the dimensionality, using UMAP.
+
+How To Use Embeddings in Deepchecks?
+====================================
+See how to calculate default embeddings or setting your own embeddings in the
+:ref:`Embeddings Guide <using_nlp_embeddings_in_checks>`.
 """
 
 #%%
@@ -50,6 +55,7 @@ from deepchecks.nlp.checks import TextEmbeddingsDrift
 #%%
 # Load Data
 # ==========
+#
 # For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
 # happiness, anger, sadness and optimism.
 train_ds, test_ds = tweet_emotion.load_data()

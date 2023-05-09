@@ -9,7 +9,7 @@ space, in which text with similar meaning is represented by similar vectors.
 
 Embeddings are usually extracted from the one of the final layers of a trained neural network model. This model can either be a
 model that was trained on the specific task at hand (e.g. sentiment analysis), or a model that was trained on a
-different task, but is known to be good at extracting embeddings (e.g. BERT).
+different task, but is known to be good at extracting embeddings (e.g. GPT).
 
 
 What Are Embeddings Used For?
@@ -36,6 +36,7 @@ Example for specific scenarios in which using embeddings may come in handy:
     with different annotations, we can find potential annotation mistakes and fix them.
 
 
+.. _using_nlp_embeddings_in_checks:
 Using Embeddings in Checks
 ==========================
 
@@ -122,8 +123,8 @@ TextPropertyOutliers check:
 Pre-Calculated Embeddings Format
 ################################
 
-The embeddings should be a pandas DataFrame, where each row represents a text sample and each column represents an
-embedding dimension. The DataFrame must have the same number of rows as the number of samples in the
-:class:`TextData <deepchecks.nlp.TextData>` object, and in the corresponding order.
-Note that if you load the embeddings from a csv file, all columns will be loaded and considered as embeddings, so make
-sure not to include any other columns in the csv file such as the index column.
+The embeddings should be a numpy.ndarray of shape (N, E), where N is the number of samples in the
+:class:`TextData <deepchecks.nlp.TextData>` object and E is the number of embeddings dimensions.
+The numpy.ndarray must be in the same order as the samples in the TextData object.
+Note that if you load the embeddings from a csv file, all columns (embedding dimensions) will be loaded and considered
+as embeddings, so make sure not to include any other columns in the csv file such as the index column.
