@@ -71,42 +71,64 @@ def test_wrong_multilabel_prediction_format(text_multilabel_classification_datas
     emtpy_suite = Suite('Empty Suite')
 
     # Act & Assert
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_multilabel_classification_dataset_mock,
-        train_predictions=[0, 0, 1, 1]),
-        raises(ValidationError, 'Check requires predictions for Train to have 3 rows, same as dataset')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_multilabel_classification_dataset_mock,
+            train_predictions=[
+                [0, 0, 0],
+                [0, 0, 0], 
+                [0, 0, 0],  
+                [0, 0, 0],]),
+        raises(
+            ValidationError, 
+            'Check requires predictions for Train to have 3 rows, same as dataset')
     )
 
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_multilabel_classification_dataset_mock,
-        train_predictions=[0, 1, 1]),
-        raises(ValidationError, CLASSIFICATION_ERROR_FORMAT)
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_multilabel_classification_dataset_mock,
+            train_predictions=[0, 1, 1]),
+        raises(ValidationError, 'Check requires predictions for Train to be a 2D array')
     )
 
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_multilabel_classification_dataset_mock,
-        train_predictions=[[0], [0, 1], 1]),
-        raises(ValidationError, CLASSIFICATION_ERROR_FORMAT)
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_multilabel_classification_dataset_mock,
+            train_predictions=[[0], [0, 1], 1]),
+        raises(
+            ValidationError, 
+            r'Check requires multi-label probabilities for Train to '
+            r'be a a 2D array of shape \(n_samples, n_classes\)')
     )
 
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_multilabel_classification_dataset_mock,
-        train_probabilities=[[0.3, 0.5, 0.2], [0.3, 0.5, 0.2]]),
-        raises(ValidationError, 'Check requires classification probabilities for Train dataset to have 3 rows,'
-                                ' same as dataset')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_multilabel_classification_dataset_mock,
+            train_probabilities=[[0.3, 0.5, 0.2], [0.3, 0.5, 0.2]]),
+        raises(
+            ValidationError, 
+            'Check requires multi-label classification probabilities for '
+            'Train dataset to have 3 rows, same as dataset')
     )
 
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_multilabel_classification_dataset_mock,
-        train_probabilities=[[1, 1], [0, 0], [0.5, 0.5]]),
-        raises(ValidationError, 'heck requires classification probabilities for Train dataset to have 3 columns, '
-                                'same as the number of classes')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_multilabel_classification_dataset_mock,
+            train_probabilities=[[1, 1], [0, 0], [0.5, 0.5]]),
+        raises(
+            ValidationError, 
+            'Check requires multi-label classification probabilities for Train dataset '
+            'to have 3 columns, same as the number of classes')
     )
 
-    assert_that(calling(emtpy_suite.run).with_args(
-        train_dataset=text_multilabel_classification_dataset_mock,
-        train_probabilities=[[1, 1.2, 1], [0, 0, 0.3], [0.5, 0.2, 0.9]]),
-        raises(ValidationError, 'Check requires classification probabilities for Train dataset to be between 0 and 1')
+    assert_that(
+        calling(emtpy_suite.run).with_args(
+            train_dataset=text_multilabel_classification_dataset_mock,
+            train_probabilities=[[1, 1.2, 1], [0, 0, 0.3], [0.5, 0.2, 0.9]]),
+        raises(
+            ValidationError, 
+            'Check requires multi-label classification probabilities values '
+            'for Train dataset to be between 0 and 1')
     )
 
     # Run with no error
