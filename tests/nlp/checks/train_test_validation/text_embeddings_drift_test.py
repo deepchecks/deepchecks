@@ -10,6 +10,7 @@
 #
 """Test for the NLP TextEmbeddingsDrift check"""
 
+from sys import platform
 from hamcrest import assert_that, close_to
 
 from deepchecks.nlp.checks import TextEmbeddingsDrift
@@ -33,7 +34,12 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata_sampled):
     # Act
     result = check.run(train, test)
 
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.11, 0.01))
+    # UMAP uses numba, which uses different random seeds on different OSes. And that can't be changed ATM.
+    # For more, see https://github.com/lmcinnes/umap/issues/183
+    if platform.startswith('win'):
+        assert_that(result.value['domain_classifier_drift_score'], close_to(0.11, 0.01))
+    else:
+        assert_that(result.value['domain_classifier_drift_score'], close_to(0.24, 0.01))
 
 
 def test_reduction_method(tweet_emotion_train_test_textdata_sampled):
