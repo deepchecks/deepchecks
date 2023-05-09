@@ -20,7 +20,7 @@ What is the purpose of the check?
 ==================================
 
 The check is designed to easily identify the model's weakest segments.
-The segments are characterized by the :ref:`image properties <vision_properties_guide>` such as
+The segments are characterized by the :ref:`image properties <vision__properties_guide>` such as
 contrast and aspect ratio.
 
 Automatically detecting weak segments

@@ -1,4 +1,4 @@
-.. _vision_properties_guide:
+.. _vision__properties_guide:
 
 =================
 Vision Properties

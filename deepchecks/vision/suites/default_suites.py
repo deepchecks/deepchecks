@@ -64,7 +64,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
 
     image_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
@@ -75,7 +75,7 @@ def train_test_validation(label_properties: List[Dict[str, Any]] = None, image_p
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     **kwargs : dict
         additional arguments to pass to the checks.
 
@@ -153,7 +153,7 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     prediction_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -165,7 +165,7 @@ def model_evaluation(scorers: Union[Dict[str, Union[Callable, str]], List[Any]] 
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     **kwargs : dict
         additional arguments to pass to the checks.
 
@@ -230,7 +230,7 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None, label_properti
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -242,7 +242,7 @@ def data_integrity(image_properties: List[Dict[str, Any]] = None, label_properti
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     **kwargs : dict
         additional arguments to pass to the checks.
 
@@ -293,7 +293,7 @@ def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str,
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     label_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -305,7 +305,7 @@ def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str,
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
 
     scorers: Union[Dict[str, Union[Callable, str]], List[Any]], default: None
         Scorers to override the default scorers (metrics), find more about the supported formats at
@@ -321,7 +321,7 @@ def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str,
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     prediction_properties : List[Dict[str, Any]], default: None
         List of properties. Replaces the default deepchecks properties.
         Each property is a dictionary with keys ``'name'`` (str), ``method`` (Callable) and ``'output_type'`` (str),
@@ -333,7 +333,7 @@ def full_suite(n_samples: Optional[int] = 5000, image_properties: List[Dict[str,
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     Returns
     -------
     Suite
