@@ -12,11 +12,14 @@
 from typing import List
 
 import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
 from sklearn.metrics import confusion_matrix
 
+from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult
-from deepchecks.utils.strings import format_number_if_not_nan
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.strings import format_number_if_not_nan, format_percent
 
 __all__ = ['create_confusion_matrix_figure', 'run_confusion_matrix_check']
 
@@ -31,6 +34,9 @@ def run_confusion_matrix_check(y_pred: np.ndarray, y_true: np.ndarray, with_disp
         fig = create_confusion_matrix_figure(result, total_classes, normalize_display)
     else:
         fig = None
+
+    # For accessing the class names from the condition
+    result = pd.DataFrame(result, index=total_classes, columns=total_classes)
 
     return CheckResult(result, display=fig)
 
@@ -74,6 +80,91 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
     fig.update_layout(title=plot_title)
     fig.update_layout(height=600)
     fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
-    fig.update_yaxes(title='True value', type='category', constrain='domain', autorange='reversed')
+    fig.update_yaxes(title='True Value', type='category', constrain='domain', autorange='reversed')
 
     return fig
+
+
+def misclassified_samples_lower_than_condition(value: pd.DataFrame,
+                                               misclassified_samples_threshold: float) -> ConditionResult:
+    """Condition function that checks if the misclassified samples in the confusion matrix is below threshold.
+
+    Parameters
+    ----------
+    value: pd.DataFrame
+        Dataframe containing the confusion matrix
+    misclassified_samples_threshold: float
+        Ratio of samples to be used for comparison in the condition (Value should be between 0 - 1 inclusive)
+
+    Raises
+    ------
+    DeepchecksValueError
+        if the value of `misclassified_samples_threshold` parameter is not between 0 - 1 inclusive.
+
+    Returns
+    -------
+    ConditionResult
+        - ConditionCategory.PASS, if all the misclassified samples in the confusion
+        matrix are less than `misclassified_samples_threshold` ratio
+        - ConditionCategory.FAIL, if the misclassified samples in the confusion matrix
+        are more than the `misclassified_samples_threshold` ratio
+    """
+    if misclassified_samples_threshold < 0 or misclassified_samples_threshold > 1:
+        raise DeepchecksValueError(
+           'Condition requires the parameter "misclassified_samples_threshold" '
+           f'to be between 0 and 1 inclusive but got {misclassified_samples_threshold}'
+        )
+
+    # Getting the class names from the confusion matrix
+    class_names = value.columns
+
+    # Converting the confusion matrix to a numpy array for numeric indexing
+    value = value.to_numpy()
+
+    # Computing the total number of samples from the confusion matrix
+    total_samples = np.sum(value)
+
+    # Number of threshold samples based on the 'misclassified_samples_threshold' parameter
+    thresh_samples = round(np.ceil(misclassified_samples_threshold * total_samples))
+
+    # m is the number of rows in the confusion matrix and
+    # n is the number of columns in the confusion matrix
+    m, n = value.shape[0], value.shape[1]
+
+    # Variables to keep track of the misclassified cells above 'thresh_samples'
+    n_cells_above_thresh = 0
+    max_misclassified_cell_idx = (0, 1)
+
+    # Looping over the confusion matrix and checking only the misclassified cells
+    for i in range(m):
+        for j in range(n):
+            # omitting the principal axis of the confusion matrix
+            if i != j:
+                n_samples = value[i][j]
+
+                if n_samples > thresh_samples:
+                    n_cells_above_thresh += 1
+
+                    x, y = max_misclassified_cell_idx
+                    max_misclassified_samples = value[x][y]
+                    if n_samples > max_misclassified_samples:
+                        max_misclassified_cell_idx = (i, j)
+
+    # There are misclassified cells in the confusion matrix with samples more than 'thresh_samples'
+    if n_cells_above_thresh > 0:
+        x, y = max_misclassified_cell_idx
+        max_misclassified_samples = value[x][y]
+        max_misclassified_samples_ratio = max_misclassified_samples / total_samples
+
+        details = f'Detected {n_cells_above_thresh} misclassified confusion matrix cell(s) each one ' \
+                  f'containing more than {format_percent(misclassified_samples_threshold)} of the data. ' \
+                  f'Largest misclassified cell ({format_percent(max_misclassified_samples_ratio)} of the data) ' \
+                  f'is samples with a true value of "{class_names[x]}" and a predicted value of "{class_names[y]}".'
+
+        return ConditionResult(ConditionCategory.FAIL, details)
+
+    # No cell has more than 'thresh_samples' misclassified samples
+    details = 'All misclassified confusion matrix cells contain less than ' \
+              f'{format_percent(misclassified_samples_threshold)} of the data.'
+
+    return ConditionResult(ConditionCategory.PASS, details)

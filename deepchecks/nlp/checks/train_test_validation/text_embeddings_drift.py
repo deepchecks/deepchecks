@@ -38,8 +38,6 @@ class TextEmbeddingsDrift(TrainTestCheck):
         Random seed for the check.
     test_size : float , default: 0.3
         Fraction of the combined datasets to use for the evaluation of the domain classifier
-    min_meaningful_drift_score : float , default 0.05
-        Minimum drift score for displaying drift in check. Under that score, check will display "nothing found".
     dimension_reduction_method : str , default: 'auto'
         Dimension reduction method to use for the check. Dimension reduction is used to reduce the number of
         embeddings dimensions in order for the domain classifier to train more efficiently on the data.
@@ -61,7 +59,6 @@ class TextEmbeddingsDrift(TrainTestCheck):
             sample_size: int = 10_000,
             random_state: int = 42,
             test_size: float = 0.3,
-            min_meaningful_drift_score: float = 0.05,
             dimension_reduction_method: str = 'auto',
             num_samples_in_display: int = 500,
             **kwargs
@@ -71,7 +68,6 @@ class TextEmbeddingsDrift(TrainTestCheck):
         self.sample_size = sample_size
         self.random_state = random_state
         self.test_size = test_size
-        self.min_meaningful_drift_score = min_meaningful_drift_score
         if dimension_reduction_method is None:
             dimension_reduction_method = 'none'
         if dimension_reduction_method.lower() not in ['auto', 'umap', 'pca', 'none']:
@@ -106,7 +102,6 @@ class TextEmbeddingsDrift(TrainTestCheck):
             test_dataset=test_dataset,
             sample_size=sample_size, random_state=self.random_state,
             test_size=self.test_size,
-            min_meaningful_drift_score=self.min_meaningful_drift_score,
             num_samples_in_display=self.num_samples_in_display,
             dimension_reduction_method=self.dimension_reduction_method,
             with_display=context.with_display,
