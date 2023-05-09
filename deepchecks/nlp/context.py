@@ -94,9 +94,11 @@ class _DummyModel(BasicModel):
             if set(train.get_original_text_indexes()) & set(test.get_original_text_indexes()):
                 train._original_text_index = np.asarray([f'train-{i}' for i in train.get_original_text_indexes()])
                 test._original_text_index = np.asarray([f'test-{i}' for i in test.get_original_text_indexes()])
-                get_logger().warning('train and test datasets have common index - adding "train"/"test"'
-                                     ' prefixes. To avoid that provide datasets with no common indexes '
-                                     'or pass the model object instead of the predictions.')
+                # # This is commented out as currently text data indices are len(range(len(data)))
+                # # TODO: Uncomment when text data indices are not len(range(len(data)))
+                # get_logger().warning('train and test datasets have common index - adding "train"/"test"'
+                #                      ' prefixes. To avoid that provide datasets with no common indexes '
+                #                      'or pass the model object instead of the predictions.')
 
         for dataset, y_pred, y_proba in zip([train, test],
                                             [y_pred_train, y_pred_test],
