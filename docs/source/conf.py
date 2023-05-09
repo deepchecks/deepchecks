@@ -9,6 +9,7 @@ import os
 import pathlib
 import sys
 import typing as t
+import re
 from subprocess import check_output
 
 import plotly.io as pio
@@ -48,7 +49,7 @@ if os.environ.get("GITHUB_REF_NAME"):
         version = 'dev'
     else:
         # Taking the major and minor version from the branch name
-        version = os.environ.get("GITHUB_REF_NAME")[:3]
+        version = re.search(r'\d+(?:\.\d+)', os.environ.get("GITHUB_REF_NAME")).string
 
 version = version or VERSION
 language = os.environ.get("READTHEDOCS_LANGUAGE")
