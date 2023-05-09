@@ -167,6 +167,7 @@ vision-torch-tf-setup: env
 		$(PIP) install -q "tensorflow==2.11.0"; \
 	else \
 		$(PIP) install -q torch "torchvision==0.11.3"; \
+		$(PIP) install -q "tensorflow==2.11.0"; \
 	fi;
 
 	@$(PIP) install -q "tensorflow-hub==0.12.0";
