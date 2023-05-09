@@ -212,7 +212,8 @@ def language(raw_text: Sequence[str],
 
     model_path = get_creat_model_storage(models_storage)
     model_path = model_path / 'fasttext'
-    model_path = get_creat_model_storage(model_path)
+    if not model_path.exists():
+        model_path.mkdir(parents=True)
     model_path = model_path / model_name
 
     # Save the model to a file
