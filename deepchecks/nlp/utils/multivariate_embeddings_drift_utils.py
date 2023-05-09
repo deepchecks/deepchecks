@@ -28,8 +28,8 @@ SAMPLES_FOR_REDUCTION_FIT = 1000
 
 def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset: TextData,
                                            sample_size: int, random_state: int, test_size: float,
-                                           min_meaningful_drift_score: float, num_samples_in_display: int,
-                                           dimension_reduction_method: str, with_display: bool):
+                                           num_samples_in_display: int, dimension_reduction_method: str,
+                                           with_display: bool):
     """Calculate multivariable drift on embeddings."""
     # sample train and test datasets equally
     train_sample = train_dataset.sample(sample_size, random_state=random_state)
@@ -78,7 +78,7 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
 
     values_dict = {'domain_classifier_auc': domain_classifier_auc, 'domain_classifier_drift_score': drift_score}
 
-    if with_display and drift_score > min_meaningful_drift_score:
+    if with_display:
         relevant_index_train = list(x_test[y_test == 0].index)
         relevant_index_test = [x - len(train_sample_df) for x in x_test[y_test == 1].index]
 
