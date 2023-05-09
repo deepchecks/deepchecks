@@ -64,8 +64,12 @@ class WeakSegmentAbstract(abc.ABC):
             else:
                 label_as_int = pd.cut(label_col.astype('float64').fillna(label_col.mean()), bins=10, labels=False)
             df_encoded = t_encoder.fit_transform(df_aggregated, pd.Series(label_as_int, index=df_aggregated.index))
+            # Convert categorical features to ordinal based on their encoded values and store the mapping
             for col in cat_features:
-                values_mapping[col] = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()
+                df_encoded[col] = df_encoded[col].apply(sorted(df_encoded[col].unique()).index)
+                mapping = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()
+                mapping.columns = ['encoded_value', 'original_category']
+                values_mapping[col] = mapping.sort_values(by='encoded_value')
         else:
             df_encoded = df_aggregated
         self.encoder_mapping = values_mapping
@@ -274,6 +278,8 @@ class WeakSegmentAbstract(abc.ABC):
         """Format partition vector for display. If seperator is None returns a list instead of a string."""
         if feature_name == '':
             return ['']
+        if not isinstance(partition_vec, np.ndarray):
+            partition_vec = np.asarray(partition_vec)
 
         result = []
         if feature_name in self.encoder_mapping.keys():
@@ -298,6 +304,7 @@ class WeakSegmentAbstract(abc.ABC):
 
     def _generate_check_result_value(self, weak_segments_df, cat_features: List[str], avg_score: float):
         """Generate a uniform format check result value for the different WeakSegmentsPerformance checks."""
+        pd.set_option('mode.chained_assignment', None)
         weak_segments_output = weak_segments_df.copy()
         for idx, segment in weak_segments_df.iterrows():
             for feature in ['Feature1', 'Feature2']:

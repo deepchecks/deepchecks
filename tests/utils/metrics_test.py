@@ -127,8 +127,8 @@ def test_cross_entropy_lending_club(lending_club_split_dataset_and_model):
     score_sklearn = log_loss(test_ds.label_col, probas, eps=eps)
 
     # Assert
-    assert_that(score.mean(), close_to(-0.524, 0.01))
-    assert_that(score.mean(), close_to(-score_sklearn, 0.01))
+    assert_that(score.mean(), close_to(-1 * 0.524, 0.01))
+    assert_that(score.mean(), close_to(-1 * score_sklearn, 0.01))
 
 
 def test_iris_true_negative_rate_scorer_multiclass(iris_split_dataset_and_model):
@@ -228,5 +228,5 @@ def test_mse_diabetes(diabetes_split_dataset_and_model):
     score_sklearn = mean_squared_error(test_ds.label_col, preds)
 
     # Assert
-    assert_that(score.mean(), close_to(-3296, 1))
-    assert_that(score.mean(), close_to(-score_sklearn, 0.01))
+    assert_that(score.mean(), close_to(-1 * 3296, 1))
+    assert_that(score.mean(), close_to(-1 * score_sklearn, 0.01))

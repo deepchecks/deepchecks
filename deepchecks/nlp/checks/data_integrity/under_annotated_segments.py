@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module of weak segments performance check."""
+"""Module of the under annotated segments check."""
 from typing import Dict, List, Tuple, Union
 
 import numpy as np
@@ -22,7 +22,7 @@ from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
-from deepchecks.utils.strings import format_number, format_percent
+from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['UnderAnnotatedMetaDataSegments', 'UnderAnnotatedPropertySegments']
@@ -59,10 +59,10 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                                                          columns=self.columns, ignore_columns=self.ignore_columns,
                                                          n_top_features=self.n_top_features)
 
-        encoded_dataset = self._target_encode_categorical_features_fill_na(features, text_data.label,
+        score_per_sample = pd.Series([1 - pd.isna(x) for x in text_data.label], index=features.index)
+        encoded_dataset = self._target_encode_categorical_features_fill_na(features, score_per_sample,
                                                                            cat_features)
 
-        score_per_sample = pd.Series([1 - pd.isna(x) for x in text_data.label], index=encoded_dataset.data.index)
         avg_score = round(score_per_sample.mean(), 3)
         weak_segments = self._weak_segments_search(data=encoded_dataset.features_columns,
                                                    score_per_sample=score_per_sample,
@@ -74,28 +74,32 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                                          f'n_samples or supply more {self.segment_by}.')
 
         check_result_value = self._generate_check_result_value(weak_segments, cat_features, avg_score)
-        display_msg = f'Showcasing intersections of {self.segment_by} with most under annotated segments.<br> The ' \
+        display_msg = f'Showcasing intersections of {self.segment_by} that result in the most ' \
+                      f'under annotated segments.<br> The ' \
                       'full list of under annotated segments can be observed in the check result value. '
         display_fig = self._generate_scatter_plot_display(encoded_dataset.features_columns, score_per_sample,
-                                                          text_data.text, weak_segments, cat_features, avg_score)
+                                                          text_data.text, weak_segments, avg_score)
         return CheckResult(value=check_result_value, display=[display_msg, display_fig])
 
     @staticmethod
     def _get_box_boundaries(feature_data: pd.Series, segment: Tuple[float, float]) -> Tuple[float, float]:
-        lower = segment[0] if segment[0] != -np.inf else np.nanmin(feature_data)
-        upper = segment[1] if segment[1] != np.inf else np.nanmax(feature_data)
+        lower = segment[0] if np.isfinite(segment[0]) else np.nanmin(feature_data)
+        upper = segment[1] if np.isfinite(segment[1]) else np.nanmax(feature_data)
         return lower, upper
 
     def _generate_scatter_plot_display(self, encoded_data: pd.DataFrame, is_annotated: pd.Series,
-                                       text: np.ndarray, weak_segments: pd.DataFrame,
-                                       cat_features: List[str], avg_score: float) -> DisplayMap:
+                                       text: np.ndarray, weak_segments: pd.DataFrame, avg_score: float) -> DisplayMap:
         display_tabs = {}
         if weak_segments.shape[0] > self.n_to_show:
             weak_segments = weak_segments.iloc[:self.n_to_show, :]
         encoded_data['text'] = text
 
-        # virtual col is used when we have only one feature controlling the segment
+        # Handle categorical features
         jitter = 0.25
+        for feature in self.encoder_mapping.keys():
+            encoded_data[feature] = encoded_data[feature] + np.random.uniform(-jitter, jitter, len(encoded_data))
+
+        # virtual col is used when we have only one feature controlling the segment
         encoded_data['virtual_col'] = np.random.uniform(-jitter, jitter, len(encoded_data))
 
         sampled_data = encoded_data.sample(MAX_SAMPLES_IN_FIGURE, random_state=42)
@@ -108,20 +112,22 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
             if feature_2 != '':  # segment by two features
                 feature_2_lower, feature_2_upper = self._get_box_boundaries(encoded_data[feature_2],
                                                                             row['Feature2 Range'])
-                hover_template = feature_1 + ': %{x}<br>' + feature_2 + ': %{y}<br>text: %{text}<br>Annotated: '
+                hover_template = '<b>' + feature_1 + '<b>: %{x}<br><b>' + feature_2 + \
+                                 '<b>: %{y}<br><b>text<b>: %{text}<br><b>Annotated<b>: '
                 tab_title = f'{feature_1} vs {feature_2}'
-                msg = f'Under annotated segment contains samples with {feature_1} in range ' \
-                      f'{[format_number(feature_1_lower), format_number(feature_1_upper)]} and {feature_2} in range ' \
-                      f'{[format_number(feature_2_lower), format_number(feature_2_upper)]}.'
+                range_f1 = self._format_partition_vec_for_display([feature_1_lower, feature_1_upper], feature_1, ', ')
+                range_f2 = self._format_partition_vec_for_display([feature_2_lower, feature_2_upper], feature_2, ', ')
+                msg = f'Under annotated segment contains samples with {feature_1} in ' \
+                      f'{range_f1[0]} and {feature_2} in {range_f2[0]}.'
             else:  # segment by one feature
                 feature_2 = 'virtual_col'
                 feature_2_lower = encoded_data['virtual_col'].min() * 1.3
                 feature_2_upper = encoded_data['virtual_col'].max() * 1.3
-                hover_template = feature_1 + ': %{x}<br>text: %{text}<br>Annotated: '
+                hover_template = '<b>' + feature_1 + '<b>: %{x}<br><b>text<b>: %{text}<br><b>Annotated<b>: '
                 tab_title = feature_1
-                msg = f'Under annotated segment contains samples with {feature_1} in range ' \
-                      f'{[format_number(feature_1_lower), format_number(feature_1_upper)]}.'
-                fig.update_yaxes(range=[feature_2_lower*1.2, feature_2_upper*1.2], tickvals=[], ticktext=[])
+                range_f1 = self._format_partition_vec_for_display([feature_1_lower, feature_1_upper], feature_1, ', ')
+                msg = f'Under annotated segment contains samples with {feature_1} in {range_f1[0]}.'
+                fig.update_yaxes(range=[feature_2_lower * 1.2, feature_2_upper * 1.2], tickvals=[], ticktext=[])
 
             # Add box trace to the legend using lines
             fig.add_trace(go.Scatter(
@@ -152,7 +158,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
 
             # Update figure layout
             fig.update_layout(title=dict(
-                text=f'Under Annotated Segment ({row["% of Data"]}% of Data)<br><sub>Annotation ratio in segment ' \
+                text=f'Under Annotated Segment ({row["% of Data"]}% of Data)<br><sub>Annotation ratio in segment '
                      f'is {format_percent(row["Annotation Ratio"])} (vs. {format_percent(avg_score)}'
                      f' in whole data)</sub>',
                 font=dict(size=24)),
@@ -164,6 +170,16 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                            zerolinecolor='rgba(200, 200, 200, 0.5)'),
                 yaxis=dict(gridcolor='rgba(200, 200, 200, 0.5)',
                            zerolinecolor='rgba(200, 200, 200, 0.5)'))
+
+            # Use original categorical values in the axis ticks
+            if feature_1 in self.encoder_mapping.keys():
+                mapping = self.encoder_mapping[feature_1]
+                fig.update_xaxes(title=feature_1, tickvals=mapping['encoded_value'].to_list(),
+                                 ticktext=mapping['original_category'].to_list())
+            if feature_2 in self.encoder_mapping.keys():
+                mapping = self.encoder_mapping[feature_2]
+                fig.update_yaxes(title=feature_2, tickvals=mapping['encoded_value'].to_list(),
+                                 ticktext=mapping['original_category'].to_list())
 
             display_tabs[tab_title] = [fig, f'Check ran on {encoded_data.shape[0]} data samples.<br>{msg}']
 
@@ -195,10 +211,11 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
 
     The check is designed to help you easily identify under annotated segments of your data. The segments are
     based on the text properties - which are features extracted from the text, such as "language" and
-    "number of words".
+    "number of words". For more on properties, see the `NLP Properties Guide
+    <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
 
-    In order to achieve this, the check trains several simple tree based models which try to predict the error of the
-    user provided model on the dataset. The relevant segments are detected by analyzing the different
+    In order to achieve this, the check trains several simple tree based models which try to predict given a sample
+    properties whether it will have a label. The relevant segments are detected by analyzing the different
     leafs of the trained trees.
 
     Parameters
@@ -245,10 +262,11 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
 
     The check is designed to help you easily identify under annotated segments of your data. The segments are
     based on the metadata - which is data that is not part of the text, but is related to it,
-    such as "user_id" and "user_age".
+    such as "user_id" and "user_age". For more on metadata, see the `NLP Metadata Guide
+    <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_metadata.html>`_.
 
-    In order to achieve this, the check trains several simple tree based models which try to predict the error of the
-    user provided model on the dataset. The relevant segments are detected by analyzing the different
+    In order to achieve this, the check trains several simple tree based models which try to predict given a sample
+    metadata whether it will have a label. The relevant segments are detected by analyzing the different
     leafs of the trained trees.
 
     Parameters

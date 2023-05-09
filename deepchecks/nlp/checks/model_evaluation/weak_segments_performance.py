@@ -119,7 +119,8 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     weakest segments in the data distribution for further improvement and visibility purposes.
 
     The segments are based on the text properties - which are features extracted from the text, such as "language" and
-    "number of words".
+    "number of words". For more on properties, see the `NLP Properties Guide
+    <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
 
     In order to achieve this, the check trains several simple tree based models which try to predict the error of the
     user provided model on the dataset. The relevant segments are detected by analyzing the different
@@ -184,7 +185,8 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
     weakest segments in the data distribution for further improvement and visibility purposes.
 
     The segments are based on the metadata - which is data that is not part of the text, but is related to it,
-    such as "user_id" and "user_age".
+    such as "user_id" and "user_age". For more on metadata, see the `NLP Metadata Guide
+    <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_metadata.html>`_.
 
     In order to achieve this, the check trains several simple tree based models which try to predict the error of the
     user provided model on the dataset. The relevant segments are detected by analyzing the different
