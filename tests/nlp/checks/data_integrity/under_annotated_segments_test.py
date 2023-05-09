@@ -64,6 +64,25 @@ def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
     assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_age'))
 
 
+def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_textdata):
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+
+    idx_to_change = test.metadata[(test.metadata['user_age'] > 30) & (test.metadata['user_region'] == 'Europe')].index
+    label = test._label.copy().astype(object)
+    label[idx_to_change] = None
+    test._label = label
+
+    # Act
+    result = UnderAnnotatedMetaDataSegments().run(test)
+
+    # Assert
+    assert_that(result.value['avg_score'], close_to(0.844, 0.001))
+    assert_that(len(result.value['weak_segments_list']), equal_to(6))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0, 0.01))
+    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_age'))
+
+
 def test_tweet_emotion_metadata_fully_annotated(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
