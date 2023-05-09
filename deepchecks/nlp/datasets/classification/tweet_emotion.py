@@ -96,7 +96,7 @@ def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
 
 
 def load_data(data_format: str = 'TextData', as_train_test: bool = True,
-              include_embeddings: bool = True, include_properties: bool = True) -> \
+              include_properties: bool = True, include_embeddings: bool = False) -> \
         t.Union[t.Tuple, t.Union[TextData, pd.DataFrame]]:
     """Load and returns the Tweet Emotion dataset (classification).
 
