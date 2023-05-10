@@ -1,4 +1,4 @@
-.. _installation_guide:
+.. _getting-started__installation:
 
 ============
 Installation
