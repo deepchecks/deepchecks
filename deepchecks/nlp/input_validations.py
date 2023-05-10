@@ -18,6 +18,7 @@ import pandas as pd
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.utils.logger import get_logger
+from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.type_inference import infer_categorical_features
 from deepchecks.utils.validation import is_sequence_not_str
 
@@ -57,14 +58,15 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
         raise DeepchecksValueError(f'Label length ({len(labels)}) does not match expected length ({expected_size})')
 
     if task_type == TaskType.TEXT_CLASSIFICATION:
-        if all(is_sequence_not_str(x) for x in labels):  # Multilabel
+        if all(is_sequence_not_str(x) or is_label_none(x) for x in labels):  # Multilabel
             multilabel_error = 'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.'
-            if not all(all(y in (0, 1) for y in x) for x in labels):
+            if not all(all(y in (0, 1) for y in x) for x in labels if not is_label_none(x)):
                 raise DeepchecksValueError(multilabel_error)
-            if any(len(labels[0]) != len(labels[i]) for i in range(len(labels))):
+            if any(len(labels[0]) != len(labels[i]) for i in range(len(labels)) if not is_label_none(labels[i])):
                 raise DeepchecksValueError('All multilabel entries must be of the same length, which is the number'
                                            ' of possible classes.')
-            labels = [[int(x) for x in label_per_sample] for label_per_sample in labels]
+            labels = [[None]*len(labels[0]) if is_label_none(label_per_sample) else [int(x) for x in label_per_sample]
+                      for label_per_sample in labels]
         elif not all(isinstance(x, (str, int)) or pd.isna(x) for x in labels):  # Classic classification
             raise DeepchecksValueError('label must be a Sequence of strings or ints (multiclass classification) '
                                        'or a Sequence of Sequences of strings or ints (multilabel classification)')
@@ -77,16 +79,19 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
 
         result = []
         for idx, (tokens, label) in enumerate(zip(tokenized_text, labels)):  # TODO: Runs on all labels, very costly
-            if not is_sequence_not_str(label) and not pd.isna(label):
-                raise DeepchecksValueError(token_class_error + f' label at {idx} was of type {type(label)}')
-            if not len(tokens) == len(label):
-                raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
-                                           f'However, for sample index {idx} received token list of length '
-                                           f'{len(tokens)} and label list of length {len(label)}')
-            result.append([str(x) for x in label])
-        labels = np.asarray(result, dtype=object)
+            if is_label_none(label):
+                result.append([None]*len(tokens))
+            else:
+                if not is_sequence_not_str(label):
+                    raise DeepchecksValueError(token_class_error + f' label at {idx} was of type {type(label)}')
+                if len(tokens) != len(label):
+                    raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
+                                               f'However, for sample index {idx} received token list of length '
+                                               f'{len(tokens)} and label list of length {len(label)}')
+                result.append([str(x) for x in label])
+        labels = result
 
-    return np.asarray(labels)
+    return np.asarray(labels, dtype=object)
 
 
 class ColumnTypes(NamedTuple):
@@ -266,7 +271,7 @@ def _validate_text_classification(
                 f'to have {dataset.n_samples} rows, same as dataset'
             )
         try:
-            predictions = np.array(predictions, dtype='str')
+            predictions = np.array(predictions, dtype='object')
         except ValueError as e:
             raise ValidationError(
                 'Failed to cast predictions to a numpy array. '

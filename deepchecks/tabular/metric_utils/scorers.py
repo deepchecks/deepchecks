@@ -240,7 +240,7 @@ class DeepcheckScorer:
         """Run sklearn scorer on the labels and the pred/proba according to scorer type."""
         # pylint: disable=protected-access
         if isinstance(self.scorer, _BaseScorer):
-            if y_proba and isinstance(self.scorer, _ProbaScorer):
+            if y_proba is not None and isinstance(self.scorer, _ProbaScorer):
                 pred_to_use = y_proba
             else:
                 pred_to_use = y_pred

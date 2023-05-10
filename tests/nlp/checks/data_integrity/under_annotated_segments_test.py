@@ -20,6 +20,7 @@ from tests.base.utils import equal_condition_result
 def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
+    test = test.copy()
     test._label = np.asarray(list(test._label[:round(len(test._label) / 2)]) + [None] * round(len(test._label) / 2),
                              dtype=object)
 
@@ -43,7 +44,7 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
 def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
-
+    test = test.copy()
     test._label = np.asarray(list(test._label[:round(len(test._label) / 2)]) + [None] * round(len(test._label) / 2),
                              dtype=object)
     check = UnderAnnotatedMetaDataSegments().add_condition_segments_relative_performance_greater_than()
@@ -67,7 +68,7 @@ def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
 def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
-
+    test = test.copy()
     idx_to_change = test.metadata[(test.metadata['user_age'] > 30) & (test.metadata['user_region'] == 'Europe')].index
     label = test._label.copy().astype(object)
     label[idx_to_change] = None
@@ -95,3 +96,56 @@ def test_tweet_emotion_metadata_fully_annotated(tweet_emotion_train_test_textdat
                                        'your data is well annotated. If this is not the case, try increasing '
                                        'n_samples or supply more metadata.')
     )
+
+
+def test_token_classification_dataset(small_wikiann_train_test_text_data):
+    # Arrange
+    data, _ = small_wikiann_train_test_text_data
+    data = data.copy()
+    data._label = np.asarray(list(data._label[:40]) + [None] * 10, dtype=object)
+    data.calculate_default_properties(include_long_calculation_properties=False)
+    check = UnderAnnotatedPropertySegments().add_condition_segments_relative_performance_greater_than()
+
+    # Act
+    result = check.run(data)
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found a segment with annotation ratio of 0.375 in comparison to an '
+                                       'average score of 0.8 in sampled data.',
+                               name='The relative performance of weakest segment is greater than 80% of average model '
+                                    'performance.')
+    ))
+
+    assert_that(result.value['avg_score'], close_to(0.8, 0.001))
+    assert_that(len(result.value['weak_segments_list']), equal_to(15))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.375, 0.01))
+
+
+def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
+    # Arrange
+    data, _ = multilabel_mock_dataset_and_probabilities
+    data = data.copy()
+    assert_that(data.is_multi_label_classification(), equal_to(True))
+    data._label = np.asarray(list(data._label[:round(len(data._label) / 2)]) + [None] * round(len(data._label) / 2),
+                             dtype=object)
+    check = UnderAnnotatedMetaDataSegments().add_condition_segments_relative_performance_greater_than()
+
+    # Act
+    result = check.run(data)
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found a segment with annotation ratio of 0.326 in comparison to an average '
+                                       'score of 0.5 in sampled data.',
+                               name='The relative performance of weakest segment is greater than 80% of average model '
+                                    'performance.')
+    ))
+
+    assert_that(result.value['avg_score'], close_to(0.5, 0.001))
+    assert_that(len(result.value['weak_segments_list']), equal_to(5))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.326, 0.01))

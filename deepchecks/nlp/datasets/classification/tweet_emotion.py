@@ -197,7 +197,7 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
 
 
 def _read_and_save(file_name, url_to_file, to_numpy=True):
-    """Read a file from a url and save it to the assets directory."""
+    """Read a file from a url and save it to the assets' directory."""
     os.makedirs(ASSETS_DIR, exist_ok=True)
     if (ASSETS_DIR / file_name).exists():
         data = pd.read_csv(ASSETS_DIR / file_name, index_col=0)

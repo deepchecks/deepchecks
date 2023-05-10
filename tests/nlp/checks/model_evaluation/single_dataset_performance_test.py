@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the nlp SingleDatasetPerformance check"""
+import numpy as np
 from hamcrest import assert_that, calling, close_to, equal_to, has_items, raises
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
@@ -120,6 +121,22 @@ def test_run_with_scorer_multilabel(text_multilabel_classification_dataset_mock)
     assert_that(result.value.values[0][-1], close_to(0.777, 0.001))
 
 
+def test_run_with_scorer_multilabel_w_none(multilabel_mock_dataset_and_probabilities):
+    # Arrange
+    data, probas = multilabel_mock_dataset_and_probabilities
+    data = data.copy()
+    assert_that(data.is_multi_label_classification(), equal_to(True))
+    data._label = np.asarray(list(data._label[:round(len(data._label) / 2)]) + [None] * round(len(data._label) / 2),
+                             dtype=object)
+    check = SingleDatasetPerformance(scorers=['f1_macro'])
+
+    # Act
+    result = check.run(data, probabilities=probas)
+
+    # Assert
+    assert_that(result.value.values[0][-1], close_to(0.831, 0.001))
+
+
 def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_dataset_mock):
     # Arrange
     text_multilabel_classification_dataset_mock_copy = text_multilabel_classification_dataset_mock.copy()
@@ -135,12 +152,31 @@ def test_run_with_scorer_multilabel_class_names(text_multilabel_classification_d
     assert_that(result.value.values[0][0], equal_to('a'))
 
 
-def test_wikiann_data(wikiann):
+def test_wikiann_data(small_wikiann_train_test_text_data):
     """Temp to test wikiann dataset loads correctly"""
-    dataset = wikiann
+    _, dataset = small_wikiann_train_test_text_data
     check = SingleDatasetPerformance(scorers=['f1_macro'])
     result = check.run(dataset, predictions=list(dataset.label))
     assert_that(result.value.values[0][-1], equal_to(1))
+
+
+def test_token_classification_with_none(text_token_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['f1_macro'])
+
+    pred_none_specific_token = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'O', 'O', 'B-GEO'],
+                                [None, 'O', 'O', 'O', 'O', 'O', 'O', 'O']]
+    # Act
+    result1 = check.run(text_token_classification_dataset_mock,
+                        predictions=pred_none_specific_token)
+    # Assert
+    assert_that(result1.value.values[0][-1], close_to(0.833, 0.001))
+
+    # TODO: Currently adding None in the predictions list is not supported
+    # pred_none_whole_label = [['B-PER', 'O', 'O', 'O', 'O'], ['B-PER', 'O', 'O', 'O', 'O', 'B-GEO'], None]
+    # result2 = check.run(text_token_classification_dataset_mock,
+    #                     predictions=pred_none_whole_label)
+    # assert_that(result1.value.values[0][-1], result2.value.values[0][-1])
 
 
 def test_run_with_scorer_token(text_token_classification_dataset_mock):
