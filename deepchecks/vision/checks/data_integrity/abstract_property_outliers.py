@@ -54,7 +54,7 @@ class AbstractPropertyOutliers(SingleDatasetCheck):
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     property_input_type : PropertiesInputType , default: PropertiesInputType.IMAGES
         The type of input to the properties, required for caching the results after first calculation.
     n_show_top : int , default: 3
