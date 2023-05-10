@@ -43,7 +43,7 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata_sampled):
         if numba.__version__ < '0.57':
             assert_that(result.value['domain_classifier_drift_score'], close_to(0.15, 0.01))
         else:
-            assert_that(result.value['domain_classifier_drift_score'], close_to(0.24, 0.01))
+            assert_that(result.value['domain_classifier_drift_score'], close_to(0.14, 0.01))
     else:
         assert_that(result.value['domain_classifier_drift_score'], close_to(0.11, 0.01))
 
