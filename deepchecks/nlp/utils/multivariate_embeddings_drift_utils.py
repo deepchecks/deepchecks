@@ -10,6 +10,7 @@
 #
 """Module containing common EmbeddingsDrift Check (domain classifier drift) utils."""
 
+import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
 from sklearn.ensemble import GradientBoostingClassifier
@@ -50,7 +51,8 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
 
     if use_reduction:
         if use_umap:
-            reducer = UMAP(n_components=10, n_neighbors=5, init='random', random_state=random_state)
+            reducer = UMAP(n_components=10, n_neighbors=5, init='random',
+                           random_state=np.random.RandomState(random_state))
         else:  # Faster, but graph will look bad.
             reducer = PCA(n_components=10, random_state=random_state)
 
