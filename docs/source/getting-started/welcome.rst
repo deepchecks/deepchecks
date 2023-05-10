@@ -184,7 +184,7 @@ Get Help & Give Us Feedback
    - To contribute to the package, check out the 
      `Contribution Guidelines <https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst>`__ and join the 
      `contributors-q-and-a channel <https://deepcheckscommunity.slack.com/archives/C030REPARGR>`__ on Slack, 
-      or communicate with us via github issues.
+     or communicate with us via github issues.
 
    To support us, please give us a star on ⭐️ `Github <https://github.com/deepchecks/deepchecks>`__ ⭐️, 
    it really means a lot for open source projects!
