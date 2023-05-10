@@ -16,7 +16,8 @@ from deepchecks.nlp.checks.data_integrity import (ConflictingLabels, PropertyLab
 from deepchecks.nlp.checks.model_evaluation import (ConfusionMatrixReport, MetadataSegmentsPerformance, PredictionDrift,
                                                     PropertySegmentsPerformance, SingleDatasetPerformance,
                                                     TrainTestPerformance)
-from deepchecks.nlp.checks.train_test_validation import LabelDrift, PropertyDrift, TrainTestSamplesMix
+from deepchecks.nlp.checks.train_test_validation import (LabelDrift, PropertyDrift, TextEmbeddingsDrift,
+                                                         TrainTestSamplesMix)
 
 __all__ = [
     # Data Integrity
@@ -35,10 +36,11 @@ __all__ = [
     'PropertySegmentsPerformance',
     'ConfusionMatrixReport',
     'TrainTestPerformance',
+    'PredictionDrift',
 
     # Train Test Validation
-    'PredictionDrift',
     'LabelDrift',
     'PropertyDrift',
+    'TextEmbeddingsDrift',
     'TrainTestSamplesMix'
 ]
