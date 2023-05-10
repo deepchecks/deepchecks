@@ -18,6 +18,7 @@ from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.metric_utils.scorers import _transform_to_multi_label_format
+from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.typing import ClassificationModel
 
 __all__ = [
@@ -54,17 +55,24 @@ def init_validate_scorers(scorers: t.Union[t.Mapping[str, t.Union[str, t.Callabl
     return scorers
 
 
-def infer_on_text_data(scorer: DeepcheckScorer, model: ClassificationModel, data: TextData):
+def infer_on_text_data(scorer: DeepcheckScorer, model: ClassificationModel, data: TextData, drop_na: bool = True):
     """Infer using DeepcheckScorer on NLP TextData using an NLP context _DummyModel."""
     y_pred = model.predict(data)
     y_true = data.label
 
+    if drop_na:
+        idx_to_keep = [not(is_label_none(pred) or is_label_none(label)) for pred, label in zip(y_pred, y_true)]
+        y_pred = np.asarray(y_pred, dtype='object')[idx_to_keep]
+        y_true = y_true[idx_to_keep]
+
     if data.task_type == TaskType.TEXT_CLASSIFICATION:
-        y_pred = _transform_to_multi_label_format(np.array(y_pred), scorer.model_classes)
-        y_true = _transform_to_multi_label_format(np.array(y_true), scorer.model_classes)
+        y_pred = _transform_to_multi_label_format(y_pred, scorer.model_classes).astype(int)
+        y_true = _transform_to_multi_label_format(y_true, scorer.model_classes).astype(int)
 
     if hasattr(model, 'predict_proba'):
         y_proba = model.predict_proba(data)
+        if drop_na and y_proba is not None:
+            y_proba = np.asarray(y_proba, 'object')[idx_to_keep].astype(float)
     else:
         y_proba = None
     results = scorer.run_on_pred(y_true, y_pred, y_proba)

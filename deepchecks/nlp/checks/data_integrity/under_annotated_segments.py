@@ -22,6 +22,7 @@ from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
+from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
@@ -49,8 +50,8 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        context.raise_if_token_classification_task(self)
-        context.raise_if_multi_label_task(self)
+        # context.raise_if_token_classification_task(self)
+        # context.raise_if_multi_label_task(self)
 
         text_data = context.get_data_by_kind(dataset_kind)
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
@@ -59,7 +60,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                                                          columns=self.columns, ignore_columns=self.ignore_columns,
                                                          n_top_features=self.n_top_features)
 
-        score_per_sample = pd.Series([1 - pd.isna(x) for x in text_data.label], index=features.index)
+        score_per_sample = pd.Series([1 - is_label_none(x) for x in text_data.label], index=features.index)
         encoded_dataset = self._target_encode_categorical_features_fill_na(features, score_per_sample,
                                                                            cat_features)
 
@@ -102,7 +103,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         # virtual col is used when we have only one feature controlling the segment
         encoded_data['virtual_col'] = np.random.uniform(-jitter, jitter, len(encoded_data))
 
-        sampled_data = encoded_data.sample(MAX_SAMPLES_IN_FIGURE, random_state=42)
+        sampled_data = encoded_data.sample(min(MAX_SAMPLES_IN_FIGURE, len(encoded_data)), random_state=42)
         annotated_data = sampled_data[is_annotated == 1]
         not_annotated_data = sampled_data[is_annotated == 0]
         for _, row in weak_segments.iterrows():
