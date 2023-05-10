@@ -11,6 +11,7 @@
 """Module containing the text properties for the NLP module."""
 import importlib
 import pathlib
+import re
 import string
 import warnings
 from typing import Dict, List, Optional, Sequence, Tuple, Union
@@ -20,7 +21,9 @@ import pandas as pd
 import requests
 import textblob
 from nltk import download as nltk_download
+from nltk import sent_tokenize, word_tokenize
 
+from deepchecks.nlp.utils.text import remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 
 __all__ = ['calculate_default_properties']
@@ -304,7 +307,7 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     """
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, lexical density cannot be calculated.'
-                      ' Please check your internet connection.')
+                      ' Please check your internet connection.', UserWarning)
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
@@ -323,13 +326,64 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers of number of unique noun words in the text."""
     if not nltk_download('averaged_perceptron_tagger', quiet=True):
         warnings.warn('nltk averaged_perceptron_tagger not found, unique noun count cannot be calculated.'
-                      ' Please check your internet connection.')
+                      ' Please check your internet connection.', UserWarning)
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
         if not pd.isna(text):
             unique_words_with_tags = set(textblob.TextBlob(text).tags)
             result.append(sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N')))
+        else:
+            result.append(np.nan)
+    return result
+
+
+def automated_readability_index(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of floats of Automated Readability Index (ARI) per text sample.
+
+    The Automated Readability Index (ARI) is a formula that uses the number of characters, 
+    words, and sentences in a text to calculate a score that represents the grade level required 
+    to understand the text. The resulting score is a whole number that represents a U.S. grade level.
+    For more information: https://en.wikipedia.org/wiki/Automated_readability_index
+    """
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, automated readability index cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            sentence_count = len(sent_tokenize(text))
+            word_count = len(re.findall(r'\w+', text))
+            char_count = len(re.sub(r'\s', '', text))
+            try:
+                a = float(char_count) / float(word_count)
+                b = float(word_count) / float(sentence_count)
+                ari = ((4.71 * round(a, 2)) + (0.5 * round(b, 2)) - 21.43)
+                result.append(round(ari, 0))
+            except ZeroDivisionError:
+                result.append(np.nan)
+        else:
+            result.append(np.nan)
+    return result
+
+
+def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of floats denoting the average sentence length per text sample."""
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, average sentence length cannot be calculated.'
+                    ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            sentences = [remove_punctuation(sent) for sent in sent_tokenize(text)]
+            total_words = sum([len(word_tokenize(sentence)) for sentence in sentences])
+            try:
+                asl = round(total_words / len(sentences))
+                result.append(round(asl, 0))
+            except ZeroDivisionError:
+                result.append(np.nan)
         else:
             result.append(np.nan)
     return result
@@ -348,6 +402,8 @@ DEFAULT_PROPERTIES = (
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
     {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
     {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
+    {'name': 'Automated Readability Index', 'method': automated_readability_index, 'output_type': 'numeric'},
+    {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
 )
 
 LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Unique Noun Count']
@@ -395,8 +451,9 @@ def calculate_default_properties(
         The properties to calculate. If None, all default properties will be calculated. Cannot be used together
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
-        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count']
-        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language'] may take a long time to calculate. If
+        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
+        'Automated Readability Index', 'Average Sentence Length']
+        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may take a long time to calculate. If
         include_long_calculation_properties is False, these properties will be ignored, even if they are in the
         include_properties parameter.
     ignore_properties : List[str], default None

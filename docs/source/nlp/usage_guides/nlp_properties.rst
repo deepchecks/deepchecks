@@ -59,6 +59,8 @@ Fluency*                        Fluency of the text. Uses the prithivida/parrot_
 Formality*                      Formality of the text. Uses the s-nlp/roberta-base-formality-ranker model
 Lexical Density                 Percentage of unique words in the text, rounded up to 2 decimal digits
 Unique Noun Count*              Number of unique noun words in the text
+Automated Readability Index     A score that represents the grade level required to understand the text.
+Average Sentence Length         Average number of words per sentence in the text
 ==============================  ==========
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass
