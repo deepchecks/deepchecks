@@ -40,13 +40,18 @@ __all__ = [
 ]
 
 
-TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Union[str, int]]]]
-TClassProba = t.Sequence[t.Sequence[float]]
-# TODO: is it correct, why tuple?
-TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
+TClassPred = t.Union[
+    t.Sequence[int],
+    t.Sequence[str],
+    t.Sequence[t.Sequence[int]]
+]
+TTokenPred = t.Union[
+    t.Sequence[t.Sequence[int]],
+    t.Sequence[t.Sequence[str]],
+]
+
 TTextPred = t.Union[TClassPred, TTokenPred]
-# TODO: incorrect, why union have only one type argument?
-TTextProba = t.Union[TClassProba]
+TTextProba = t.Sequence[t.Sequence[float]]
 
 
 class _DummyModel(BasicModel):
@@ -121,7 +126,7 @@ class _DummyModel(BasicModel):
                     y_pred = np.array(y_pred, dtype='float')
                 elif y_proba is not None:
                     y_pred = (np.array(y_proba) > multilabel_proba_threshold)
-                    y_pred = [np.array(model_classes)[pred] for pred in y_pred]
+                    y_pred = y_pred.astype(int)
 
             elif dataset.task_type is TaskType.TEXT_CLASSIFICATION:
                 _validate_text_classification(
