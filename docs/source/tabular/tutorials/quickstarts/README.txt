@@ -1,3 +1,5 @@
+.. _tabular__quickstarts:
+
 Quickstarts
 ===========
 

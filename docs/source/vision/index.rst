@@ -6,8 +6,9 @@ Vision
 
 Deepchecks vision sub package contain a large variety of checks and suites for different use cases.
 It provides build-in support for PyTorch, TensorFlow, and custom frameworks.
-Visit the :ref:`installation_guide` page to set up your environment and then head over to the
-Tutorials section.
+Jump over to the :ref:`vision__quickstarts` in the Tutorials section to get started, 
+or visit the :ref:`getting-started__installation` for a full 
+guide about how to set up your environment.
 
 .. _vision__index_tutorials:
 

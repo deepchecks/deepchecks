@@ -42,7 +42,7 @@ class LabelPropertyOutliers(AbstractPropertyOutliers):
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     n_show_top : int , default: 3
         number of outliers to show from each direction (upper limit and bottom limit)
     iqr_percentiles: Tuple[int, int], default: (25, 75)

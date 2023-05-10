@@ -159,6 +159,7 @@ A full code implementation of this method for the COCO128 dataset can be seen at
     vision_data.head()
 
 .. _vision_data__adding_predictions:
+
 Adding Model Predictions
 ========================
 
@@ -169,6 +170,7 @@ There are several ways to supply them which can be roughly divide into two categ
 on-demand inference.
 
 .. _vision_data__precalculated_predictions:
+
 Pre-calculated Predictions
 --------------------------
 

@@ -18,9 +18,10 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_modify_label,
-                                              validate_raw_text, validate_tokenized_text)
+from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_length_and_type,
+                                              validate_modify_label, validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
+from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
@@ -90,6 +91,15 @@ class TextData:
     categorical_properties : t.Optional[t.List[str]] , default: None
         The names of the categorical properties columns. If None, categorical properties columns are automatically
         inferred. Only relevant if properties is not None.
+    embeddings : t.Optional[Union[pd.DataFrame, np.ndarray, str]] , default: None
+        The text embeddings for the samples. Embeddings must be given as either a pandas DataFrame or a path to a pandas
+        DataFrame compatible csv file, with the rows representing each sample and columns representing the different
+        embeddings dimensions. If None, no embeddings are set.
+        The number of rows in the embeddings DataFrame must be equal to the number of samples in the dataset, and the
+        order of the rows must be the same as the order of the samples in the dataset.
+        In order to calculate the default embeddings, use the `TextData.calculate_default_embeddings` function after
+        the creation of the TextData object.
+        For more on embeddings, see the :ref:`Text Embeddings Guide <nlp__embeddings_guide>`
     """
 
     _text: np.ndarray
@@ -97,6 +107,7 @@ class TextData:
     task_type: t.Optional[TaskType]
     _tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None  # Outer sequence is np array
     name: t.Optional[str] = None
+    _embeddings: t.Optional[t.Union[pd.DataFrame, str]] = None
     _metadata: t.Optional[t.Union[pd.DataFrame, str]] = None
     _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
     _cat_properties: t.Optional[t.List[str]] = None
@@ -108,8 +119,9 @@ class TextData:
             raw_text: t.Optional[t.Sequence[str]] = None,
             tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
             label: t.Optional[TTextLabel] = None,
-            task_type: str = 'other',
+            task_type: t.Optional[str] = None,
             name: t.Optional[str] = None,
+            embeddings: t.Optional[t.Union[pd.DataFrame, np.ndarray, str]] = None,
             metadata: t.Optional[pd.DataFrame] = None,
             categorical_metadata: t.Optional[t.List[str]] = None,
             properties: t.Optional[pd.DataFrame] = None,
@@ -153,6 +165,8 @@ class TextData:
             self.set_metadata(metadata, categorical_metadata)
         if properties is not None:
             self.set_properties(properties, categorical_properties)
+        if embeddings is not None:
+            self.set_embeddings(embeddings)
 
         # Used for display purposes
         self._original_text_index = np.arange(len(self))
@@ -193,6 +207,9 @@ class TextData:
                 if self._properties is not None:
                     new_copy.set_properties(self._properties, self._cat_properties)
 
+                if self._embeddings is not None:
+                    new_copy.set_embeddings(self._embeddings)
+
                 new_copy._original_text_index = self._original_text_index
                 return new_copy
 
@@ -219,6 +236,10 @@ class TextData:
             if self._properties is not None:
                 properties = self._properties.iloc[rows_to_use, :]
                 new_copy.set_properties(properties, self._cat_properties)
+
+            if self._embeddings is not None:
+                embeddings = self._embeddings.iloc[rows_to_use, :]
+                new_copy.set_embeddings(embeddings)
 
             new_copy._original_text_index = self._original_text_index[rows_to_use]
             return new_copy
@@ -265,6 +286,48 @@ class TextData:
             return len(self._label)
         else:
             return 0
+
+    @property
+    def embeddings(self) -> pd.DataFrame:
+        """Return the metadata of for the dataset."""
+        return self._embeddings
+
+    def calculate_default_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.csv'):
+        """Calculate the default properties of the dataset.
+
+        Parameters
+        ----------
+        model : str, default: 'miniLM'
+            The model to use for calculating the embeddings. Possible values are:
+            'miniLM': using the miniLM model in the sentence-transformers library.
+            'open_ai': using the ADA model in the open_ai library. Requires an API key.
+        file_path : str, default: 'embeddings.csv'
+            The path to save the embeddings to.
+        """
+        if self._embeddings is not None:
+            warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        self._embeddings = calculate_default_embeddings(text=self.text, model=model, file_path=file_path)
+
+    def set_embeddings(self, embeddings: pd.DataFrame, verbose: bool = True):
+        """Set the metadata of the dataset.
+
+        Parameters
+        ----------
+        embeddings : pd.DataFrame
+            Embeddings to set.
+        verbose : bool, default: True
+            Whether to print information about the process.
+        """
+        if self._embeddings is not None and verbose is True:
+            warnings.warn('Embeddings already exist, overwriting it', UserWarning)
+
+        if isinstance(embeddings, np.ndarray):
+            embeddings = pd.DataFrame(embeddings)
+
+        if embeddings is not None:
+            validate_length_and_type(embeddings, 'Embeddings', len(self))
+        self._embeddings = embeddings.reset_index(drop=True) if isinstance(embeddings, pd.DataFrame) else None
 
     @property
     def metadata(self) -> pd.DataFrame:
@@ -444,6 +507,19 @@ class TextData:
                                        'to run the requested functionalities')
         return self._label
 
+    @property
+    def label_for_display(self) -> TTextLabel:
+        """Return the label defined in the dataset.
+
+        Returns
+        -------
+        TTextLabel
+        """
+        if self.is_multi_label_classification():
+            return [np.argwhere(x == 1).flatten().tolist() for x in self.label]
+        else:
+            return self.label
+
     def has_label(self) -> bool:
         """Return True if label was set.
 
@@ -513,7 +589,7 @@ class TextData:
             n_samples = len(self) - 1
         result = pd.DataFrame({'text': self.text[:n_samples]}, index=self.get_original_text_indexes()[:n_samples])
         if self.has_label():
-            result['label'] = self.label[:n_samples]
+            result['label'] = self.label_for_display[:n_samples]
         if self._tokenized_text is not None:
             result['tokenized_text'] = self.tokenized_text[:n_samples]
         if self._metadata is not None:
