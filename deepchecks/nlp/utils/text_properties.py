@@ -453,8 +453,8 @@ def calculate_default_properties(
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
         'Automated Readability Index', 'Average Sentence Length']
-        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may 
-        take a long time to calculate. If include_long_calculation_properties is False, these properties will be 
+        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
+        take a long time to calculate. If include_long_calculation_properties is False, these properties will be
         ignored, even if they are in the include_properties parameter.
     ignore_properties : List[str], default None
         The properties to ignore. If None, no properties will be ignored. Cannot be used together with
