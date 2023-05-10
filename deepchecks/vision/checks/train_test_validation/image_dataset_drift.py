@@ -51,7 +51,7 @@ class ImageDatasetDrift(TrainTestCheck):
         - 'categorical' - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :doc:`/user-guide/vision/vision_properties`
+        For more on image / label properties, see the guide about :doc:`/vision/usage_guides/vision_properties`
     n_top_properties : int , default: 3
         Amount of properties to show ordered by domain classifier feature importance. This limit is used together
         (AND) with min_feature_importance, so less than n_top_columns features can be displayed.

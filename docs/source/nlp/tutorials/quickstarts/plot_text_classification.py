@@ -61,7 +61,7 @@ train.head()
 # explicitly set the index.
 #
 # .. note::
-
+#
 #    The label column is optional, but if provided you must also pass the ``task_type`` argument, so that deepchecks
 #    will know how to interpret the label column.
 #

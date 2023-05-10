@@ -169,7 +169,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     def __init__(self,
                  properties: Union[Hashable, List[Hashable], None] = None,
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
-                 n_top_properties: Optional[int] = 10,
+                 n_top_properties: Optional[int] = 15,
                  segment_minimum_size_ratio: float = 0.05,
                  alternative_scorer: Dict[str, Callable] = None,
                  score_per_sample: Union[np.ndarray, pd.Series, None] = None,
