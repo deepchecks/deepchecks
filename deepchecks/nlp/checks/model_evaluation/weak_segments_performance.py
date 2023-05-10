@@ -54,7 +54,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         context.raise_if_token_classification_task(self)
 
         text_data = context.get_data_by_kind(dataset_kind)
-        text_data = text_data.sample(self.n_samples, random_state=context.random_state)
+        text_data = text_data.sample(self.n_samples, random_state=context.random_state, drop_na_label=True)
 
         features, cat_features = get_relevant_data_table(text_data, data_type=self.segment_by,
                                                          columns=self.columns, ignore_columns=self.ignore_columns,
@@ -132,7 +132,8 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     weakest segments in the data distribution for further improvement and visibility purposes.
 
     The segments are based on the text properties - which are features extracted from the text, such as "language" and
-    "number of words".
+    "number of words". For more on properties, see the `NLP Properties Guide
+    <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
 
     In order to achieve this, the check trains several simple tree based models which try to predict the error of the
     user provided model on the dataset. The relevant segments are detected by analyzing the different
@@ -168,7 +169,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     def __init__(self,
                  properties: Union[Hashable, List[Hashable], None] = None,
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
-                 n_top_properties: Optional[int] = 10,
+                 n_top_properties: Optional[int] = 15,
                  segment_minimum_size_ratio: float = 0.05,
                  alternative_scorer: Dict[str, Callable] = None,
                  score_per_sample: Union[np.ndarray, pd.Series, None] = None,
@@ -197,7 +198,8 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
     weakest segments in the data distribution for further improvement and visibility purposes.
 
     The segments are based on the metadata - which is data that is not part of the text, but is related to it,
-    such as "user_id" and "user_age".
+    such as "user_id" and "user_age". For more on metadata, see the `NLP Metadata Guide
+    <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_metadata.html>`_.
 
     In order to achieve this, the check trains several simple tree based models which try to predict the error of the
     user provided model on the dataset. The relevant segments are detected by analyzing the different
