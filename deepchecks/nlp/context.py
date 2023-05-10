@@ -116,28 +116,24 @@ class _DummyModel(BasicModel):
                 continue
 
             if dataset.is_multi_label_classification():
-                _validate_multilabel(
+                y_pred, y_proba = _validate_multilabel(
                     dataset=dataset,
                     predictions=y_pred,
                     probabilities=y_proba,
                     n_of_classes=len(model_classes)
                 )
-                if y_pred is not None:
-                    y_pred = np.array(y_pred, dtype='float')
-                elif y_proba is not None:
+                if y_pred is None and y_proba is not None:
                     y_pred = (np.array(y_proba) > multilabel_proba_threshold)
                     y_pred = y_pred.astype(int)
 
             elif dataset.task_type is TaskType.TEXT_CLASSIFICATION:
-                _validate_text_classification(
+                y_pred, y_proba = _validate_text_classification(
                     dataset=dataset,
                     predictions=y_pred,
                     probabilities=y_proba,
                     n_of_classes=len(model_classes)
                 )
-                if y_pred is not None:
-                    y_pred = np.array(y_pred, dtype='str')
-                elif y_proba is not None:
+                if y_pred is None and y_proba is not None:
                     y_pred = np.argmax(np.array(y_proba), axis=-1)
                     y_pred = np.array(model_classes, dtype='str')[y_pred]
 

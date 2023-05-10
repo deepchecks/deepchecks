@@ -11,7 +11,7 @@
 """Test metrics utils"""
 import pandas as pd
 from hamcrest import assert_that, calling, close_to, has_entries, is_, raises
-from sklearn.metrics import make_scorer, log_loss, mean_squared_error
+from sklearn.metrics import log_loss, make_scorer, mean_squared_error
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Dataset

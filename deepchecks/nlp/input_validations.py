@@ -249,7 +249,10 @@ def _validate_text_classification(
     probabilities: Any = None,
     n_of_classes: Optional[int] = None,
     eps: float = 1e-3
-):
+) -> Tuple[
+    Optional[np.ndarray],  # predictions
+    Optional[np.ndarray],  # probabilities
+]:
     if predictions is not None:
         format_error_message = (
             f'Check requires predictions for the "{dataset.name}" dataset '
@@ -263,13 +266,15 @@ def _validate_text_classification(
                 f'to have {dataset.n_samples} rows, same as dataset'
             )
         try:
-            predictions = np.array(predictions)
+            predictions = np.array(predictions, dtype='str')
         except ValueError as e:
             raise ValidationError(
                 'Failed to cast predictions to a numpy array. '
                 f'{format_error_message}'
             ) from e
         else:
+            if predictions.ndim == 2 and predictions.shape[1] == 1:
+                predictions = predictions[:, 0]
             if predictions.ndim != 1:
                 raise ValidationError(format_error_message)
 
@@ -306,6 +311,8 @@ def _validate_text_classification(
                     f'dataset to be probabilities and sum to 1 for each row'
                 )
 
+    return predictions, probabilities
+
 
 def _validate_multilabel(
     *,
@@ -313,7 +320,10 @@ def _validate_multilabel(
     predictions: Any = None,
     probabilities: Any = None,
     n_of_classes: Optional[int] = None,
-):
+) -> Tuple[
+    Optional[np.ndarray],  # predictions
+    Optional[np.ndarray],  # probabilities
+]:
     if predictions is not None:
         format_error_message = (
             'Check requires multi-label classification predictions for '
@@ -381,6 +391,8 @@ def _validate_multilabel(
             if (probabilities > 1).any() or (probabilities < 0).any():
                 # TODO: better message
                 raise ValidationError(format_error_message)
+
+    return predictions, probabilities
 
 
 def _validate_token_classification(
