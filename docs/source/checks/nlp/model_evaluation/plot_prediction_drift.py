@@ -2,8 +2,9 @@
 """
 .. _nlp__prediction_drift:
 
+================
 Prediction Drift
-****************
+================
 
 This notebook provides an overview for using and understanding the NLP prediction drift check.
 
@@ -43,7 +44,6 @@ on the prediction output.
 #
 # For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
 # happiness, anger, sadness and optimism.
-#%%
 
 import numpy as np
 from deepchecks.nlp.checks import PredictionDrift
@@ -57,6 +57,7 @@ train_preds, test_preds = tweet_emotion.load_precalculated_predictions(as_train_
 
 #%%
 # Let's see how our data looks like:
+
 train_ds.head()
 
 #%%

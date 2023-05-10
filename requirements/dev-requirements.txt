@@ -50,3 +50,4 @@ datasets
 langdetect
 textblob
 transformers
+sentence-transformers

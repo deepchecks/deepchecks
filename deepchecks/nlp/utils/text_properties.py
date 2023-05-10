@@ -17,6 +17,7 @@ from typing import Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import requests
 import textblob
 from nltk import download as nltk_download
 
@@ -26,6 +27,7 @@ __all__ = ['calculate_default_properties']
 
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
+FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 
 
 def _import_optional_property_dependency(
@@ -53,17 +55,8 @@ def _import_optional_property_dependency(
         return lib
 
 
-def get_transformer_model(
-    property_name: str,
-    model_name: str,
-    device: Optional[str] = None,
-    quantize_model: bool = False,
-    models_storage: Union[pathlib.Path, str, None] = None
-):
-    """Get the transformer model and decide if to use optimum.onnxruntime.
-
-    optimum.onnxruntime is used to optimize running times on CPU.
-    """
+def get_creat_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
+    """Get the models storage directory and create it if needed."""
     if models_storage is None:
         models_storage = MODELS_STORAGE
     else:
@@ -77,6 +70,22 @@ def get_transformer_model(
             models_storage.mkdir(parents=True)
         if not models_storage.is_dir():
             raise ValueError('"model_storage" expected to be a directory')
+
+    return models_storage
+
+
+def get_transformer_model(
+    property_name: str,
+    model_name: str,
+    device: Optional[str] = None,
+    quantize_model: bool = False,
+    models_storage: Union[pathlib.Path, str, None] = None
+):
+    """Get the transformer model and decide if to use optimum.onnxruntime.
+
+    optimum.onnxruntime is used to optimize running times on CPU.
+    """
+    models_storage = get_creat_model_storage(models_storage)
 
     if device not in (None, 'cpu'):
         transformers = _import_optional_property_dependency('transformers', property_name=property_name)
@@ -192,18 +201,41 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
     return [max([len(word) for word in text.split()]) for text in raw_text]
 
 
-def language(raw_text: Sequence[str]) -> List[str]:
+def language(raw_text: Sequence[str],
+             models_storage: Union[pathlib.Path, str, None] = None,
+             lang_certainty_threshold: float = 0.8
+             ) -> List[str]:
     """Return list of strings of language."""
-    langdetect = _import_optional_property_dependency(module='langdetect', property_name='language')
-    langdetect.DetectorFactory.seed = 42
+    fasttext = _import_optional_property_dependency(module='fasttext', property_name='language')
 
-    result = []
-    for text in raw_text:
-        try:
-            result.append(langdetect.detect(text))
-        except langdetect.lang_detect_exception.LangDetectException:
-            result.append(np.nan)
-    return result
+    model_name = FASTTEXT_LANG_MODEL.rsplit('/', maxsplit=1)[-1]
+
+    model_path = get_creat_model_storage(models_storage)
+    model_path = model_path / 'fasttext'
+    if not model_path.exists():
+        model_path.mkdir(parents=True)
+    model_path = model_path / model_name
+
+    # Save the model to a file
+    if not model_path.exists():
+        response = requests.get(FASTTEXT_LANG_MODEL)
+        with open(model_path, 'wb') as f:
+            f.write(response.content)
+
+    # This weird code is to suppress a warning from fasttext about a deprecated function
+    try:
+        fasttext.FastText.eprint = lambda *args, **kwargs: None
+        model = fasttext.load_model(model_path)
+    except Exception as exp:
+        raise exp
+
+    # Predictions are the first prediction (k=1), only if the probability is above the threshold
+    predictions = model.predict(list(raw_text), k=1, threshold=lang_certainty_threshold)
+
+    # x is empty for detection below threshold
+    language_codes = [x[0].replace('__label__', '') if x else np.nan for x in predictions[0]]
+
+    return language_codes
 
 
 def sentiment(raw_text: Sequence[str]) -> List[str]:
@@ -318,7 +350,7 @@ DEFAULT_PROPERTIES = (
     {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
 )
 
-LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count']
+LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Unique Noun Count']
 ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
 

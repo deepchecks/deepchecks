@@ -113,7 +113,6 @@ class _DummyModel(BasicModel):
                     if (y_pred is None) and (y_proba is not None):
                         if dataset.is_multi_label_classification():
                             y_pred = (np.array(y_proba) > 0.5)  # TODO: Replace with user-configurable threshold
-                            y_pred = [np.array(model_classes)[pred] for pred in y_pred]
                         else:
                             y_pred = np.argmax(np.array(y_proba), axis=-1)
                             y_pred = np.array(model_classes, dtype='str')[y_pred]

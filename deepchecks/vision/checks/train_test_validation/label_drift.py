@@ -79,7 +79,7 @@ class LabelDrift(TrainTestCheck, ReducePropertyMixin, ReduceLabelMixin):
         - ``'class_id'`` - for properties that return the class_id. This is used because these
           properties are later matched with the ``VisionData.label_map``, if one was given.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     margin_quantile_filter : float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation

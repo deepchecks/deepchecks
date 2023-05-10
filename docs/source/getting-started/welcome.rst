@@ -9,7 +9,7 @@ Welcome to Deepchecks!
 =========================
 
 Deepchecks is a holistic tool for testing, validating and monitoring your machine learning models
-and data, throughout the model's lifecycle. It enables you to identify probelems with your
+and data, throughout the model's lifecycle. It enables you to identify problems with your
 data quality, distributions, and model's performance with minimal effort.
 
 See more info in the :ref:`Deepchecks Components for Continuous Validation <welcome__deepchecks_components>`
@@ -100,7 +100,7 @@ Get Started with Deepchecks Testing
 .. _welcome__quickstarts:
 
 🏃‍♀️ Testing Quickstarts 🏃‍♀️
-==========================
+==============================
 
 .. grid:: 1
     :gutter: 3

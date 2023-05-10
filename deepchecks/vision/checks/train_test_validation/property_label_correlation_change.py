@@ -73,7 +73,7 @@ class PropertyLabelCorrelationChange(TrainTestCheck):
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     per_class : bool, default: True
         boolean that indicates whether the results of this check should be calculated for all classes or per class in
         label. If True, the conditions will be run per class as well.
