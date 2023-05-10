@@ -35,17 +35,8 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata_sampled):
     check = TextEmbeddingsDrift()
     # Act
     result = check.run(train, test)
-
-    # UMAP uses numba, which uses different random seeds on different OSes. And that can't be changed ATM.
-    # For more, see https://github.com/lmcinnes/umap/issues/183
-    if platform.startswith('linux'):
-        # Also depends on numba version, for less than 0.57 the value changes
-        if numba.__version__ < '0.57':
-            assert_that(result.value['domain_classifier_drift_score'], close_to(0.15, 0.01))
-        else:
-            assert_that(result.value['domain_classifier_drift_score'], close_to(0.24, 0.01))
-    else:
-        assert_that(result.value['domain_classifier_drift_score'], close_to(0.11, 0.01))
+    # Assert
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.2, 0.1))
 
 
 def test_reduction_method(tweet_emotion_train_test_textdata_sampled):
