@@ -372,7 +372,7 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
     """Return a list of floats denoting the average sentence length per text sample."""
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, average sentence length cannot be calculated.'
-                    ' Please check your internet connection.', UserWarning)
+                      ' Please check your internet connection.', UserWarning)
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
