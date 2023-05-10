@@ -19,8 +19,8 @@ from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import (ConflictingLabels, LabelDrift, MetadataSegmentsPerformance, PredictionDrift,
                                    PropertyDrift, PropertyLabelCorrelation, PropertySegmentsPerformance,
                                    SpecialCharacters, TextDuplicates, TextPropertyOutliers, TrainTestPerformance,
-                                   TrainTestSamplesMix, UnknownTokens, UnderAnnotatedMetaDataSegments,
-                                   UnderAnnotatedPropertySegments)
+                                   TrainTestSamplesMix, UnderAnnotatedMetaDataSegments, UnderAnnotatedPropertySegments,
+                                   UnknownTokens)
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
