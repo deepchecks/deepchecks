@@ -11,7 +11,6 @@
 """Module containing the text properties for the NLP module."""
 import importlib
 import pathlib
-import re
 import string
 import warnings
 from typing import Dict, List, Optional, Sequence, Tuple, Union
@@ -20,6 +19,7 @@ import numpy as np
 import pandas as pd
 import requests
 import textblob
+from nltk import corpus
 from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
 
@@ -338,33 +338,39 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def automated_readability_index(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of floats of Automated Readability Index (ARI) per text sample.
+def readability_score(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of floats of Flesch Reading-Ease score per text sample.
 
-    The Automated Readability Index (ARI) is a formula that uses the number of characters,
-    words, and sentences in a text to calculate a score that represents the grade level required
-    to understand the text. The resulting score is a whole number that represents a U.S. grade level.
-    For more information: https://en.wikipedia.org/wiki/Automated_readability_index
+    In the Flesch reading-ease test, higher scores indicate material that is easier to read
+    whereas lower numbers mark texts that are more difficult to read. For more information:
+    https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
     """
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, automated readability index cannot be calculated.'
+        warnings.warn('nltk punkt not found, readability score cannot be calculated.'
                       ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
+        return [0] * len(raw_text)
+    if not nltk_download('cmudict', quiet=True):
+        warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [0] * len(raw_text)
     result = []
+    cmudict_corpus = corpus.cmudict.dict()
     for text in raw_text:
-        if not pd.isna(text):
-            sentence_count = len(sent_tokenize(text))
-            word_count = len(re.findall(r'\w+', text))
-            char_count = len(re.sub(r'\s', '', text))
-            try:
-                a = float(char_count) / float(word_count)
-                b = float(word_count) / float(sentence_count)
-                ari = ((4.71 * round(a, 2)) + (0.5 * round(b, 2)) - 21.43)
-                result.append(round(ari, 0))
-            except ZeroDivisionError:
-                result.append(np.nan)
+        if text is None:
+            result.append(0.0)
+            continue
+        sentence_count = len(sent_tokenize(text))
+        text = remove_punctuation(text)
+        words = word_tokenize(text)
+        word_count = len(words)
+        syllable_count = sum([len(cmudict_corpus[word.lower()]) for word in words if word.lower() in cmudict_corpus])
+        if word_count != 0 and sentence_count != 0 and syllable_count != 0:
+            avg_syllables_per_word = syllable_count / word_count
+            avg_words_per_sentence = word_count / sentence_count
+            flesch_reading_ease = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
+            result.append(round(flesch_reading_ease, 1))
         else:
-            result.append(np.nan)
+            result.append(0.0)
     return result
 
 
@@ -379,13 +385,13 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
         if not pd.isna(text):
             sentences = [remove_punctuation(sent) for sent in sent_tokenize(text)]
             total_words = sum([len(word_tokenize(sentence)) for sentence in sentences])
-            try:
+            if len(sentences) != 0:
                 asl = round(total_words / len(sentences))
                 result.append(round(asl, 0))
-            except ZeroDivisionError:
-                result.append(np.nan)
+            else:
+                result.append(0.0)
         else:
-            result.append(np.nan)
+            result.append(0.0)
     return result
 
 
@@ -402,7 +408,7 @@ DEFAULT_PROPERTIES = (
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
     {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
     {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-    {'name': 'Automated Readability Index', 'method': automated_readability_index, 'output_type': 'numeric'},
+    {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
     {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
 )
 
@@ -452,7 +458,7 @@ def calculate_default_properties(
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Automated Readability Index', 'Average Sentence Length']
+        'Readability Score', 'Average Sentence Length']
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
         take a long time to calculate. If include_long_calculation_properties is False, these properties will be
         ignored, even if they are in the include_properties parameter.
