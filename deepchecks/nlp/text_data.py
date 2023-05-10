@@ -23,6 +23,7 @@ from deepchecks.nlp.input_validations import (validate_length_and_calculate_colu
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
 from deepchecks.utils.logger import get_logger
+from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = ['TextData']
@@ -244,7 +245,7 @@ class TextData:
         """
         samples = np.arange(len(self))
         if drop_na_label and self.has_label():
-            samples = samples[pd.notnull(self._label)]
+            samples = samples[[not is_label_none(x) for x in self._label]]
         n_samples = min(n_samples, len(samples))
 
         np.random.seed(random_state)

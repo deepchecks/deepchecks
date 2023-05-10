@@ -19,7 +19,8 @@ from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import (ConflictingLabels, LabelDrift, MetadataSegmentsPerformance, PredictionDrift,
                                    PropertyDrift, PropertyLabelCorrelation, PropertySegmentsPerformance,
                                    SpecialCharacters, TextDuplicates, TextPropertyOutliers, TrainTestPerformance,
-                                   TrainTestSamplesMix, UnknownTokens)
+                                   TrainTestSamplesMix, UnderAnnotatedMetaDataSegments, UnderAnnotatedPropertySegments,
+                                   UnknownTokens)
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -63,7 +64,9 @@ def data_integrity(n_samples: int = None,
         TextDuplicates(**kwargs).add_condition_ratio_less_or_equal(),
         ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
         SpecialCharacters(**kwargs).add_condition_ratio_of_samples_with_special_characters_less_or_equal(),
-        UnknownTokens(**kwargs).add_condition_ratio_of_unknown_words_less_or_equal()
+        UnknownTokens(**kwargs).add_condition_ratio_of_unknown_words_less_or_equal(),
+        UnderAnnotatedPropertySegments(**kwargs).add_condition_segments_relative_performance_greater_than(),
+        UnderAnnotatedMetaDataSegments(**kwargs).add_condition_segments_relative_performance_greater_than(),
     )
 
 
