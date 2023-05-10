@@ -93,9 +93,9 @@ class TestTextClassification:
 
 class TestTokenClassification:
 
-    def test_without_drift(self, small_wikiann: t.Tuple[TextData, TextData]):
+    def test_without_drift(self, small_wikiann_train_test_text_data):
         # Arrange
-        train, _ = small_wikiann
+        train, _ = small_wikiann_train_test_text_data
         train.calculate_default_properties()
         check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
         # Act
@@ -114,9 +114,9 @@ class TestTokenClassification:
             'Max Word Length': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'})
         }))  # type: ignore
 
-    def test_with_drift(self, small_wikiann: t.Tuple[TextData, TextData]):
+    def test_with_drift(self, small_wikiann_train_test_text_data):
         # Arrange
-        train, test = small_wikiann
+        train, test = small_wikiann_train_test_text_data
 
         train.calculate_default_properties(
             include_long_calculation_properties=False

@@ -156,9 +156,9 @@ class TestMultilableClassification:
 
 class TestTokenClassification:
 
-    def test_check_execution(self, small_wikiann: t.Tuple[TextData, TextData]):
+    def test_check_execution(self, small_wikiann_train_test_text_data):
         # Arrange
-        train, test = small_wikiann
+        train, test = small_wikiann_train_test_text_data
         scorers = ["recall_macro", "f1_macro"]
         check = TrainTestPerformance(scorers=scorers)
         # Act

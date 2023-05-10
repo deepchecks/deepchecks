@@ -89,7 +89,7 @@ def infer_observed_and_model_labels(
                 '"O" label was removed from model_classes as it is ignored by metrics for token classification',
                 UserWarning)
 
-    observed_classes = np.array(test_labels + train_labels)
+    observed_classes = np.array(test_labels + train_labels, dtype=object)
     if len(observed_classes.shape) == 2:  # For the multi-label case
         len_observed_label = observed_classes.shape[1]
         if not model_classes:

@@ -13,6 +13,7 @@
 import random
 import typing as t
 
+import numpy as np
 import pytest
 from datasets import load_dataset
 from nltk import download as nltk_download
@@ -46,6 +47,7 @@ def tweet_emotion_train_test_textdata_sampled():
     sampled_train = train.sample(500, random_state=42)
     sampled_test = test.sample(500, random_state=42)
     return sampled_train, sampled_test
+
 
 @pytest.fixture(scope='session')
 def tweet_emotion_train_test_predictions():
@@ -138,33 +140,37 @@ def text_token_classification_dataset_mock():
                     task_type='token_classification')
 
 
+@pytest.fixture(scope='function')
+def multilabel_mock_dataset_and_probabilities(tweet_emotion_train_test_textdata):
+    """Mock dataset and probabilities for multilabel classification"""
+    from sklearn.datasets import make_multilabel_classification
+    from sklearn.model_selection import train_test_split
+    from sklearn.linear_model import LogisticRegression
+
+    X, y = make_multilabel_classification(n_samples=3_000, n_features=10, n_classes=3, n_labels=2,
+                                          random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+    probabilities = np.zeros(y_test.shape)
+    for label_dim in range(y.shape[1]):
+        clf = LogisticRegression(random_state=42).fit(X_train, y_train[:, label_dim])
+        probabilities[:, label_dim] = clf.predict_proba(X_test)[:, 1]
+    data = tweet_emotion_train_test_textdata[1].sample(len(probabilities), random_state=42)
+    data._label = y_test
+    return data, probabilities
+
+
+# Token Classification
 @pytest.fixture(scope='session')
 def original_wikiann():
     return t.cast(t.Any, load_dataset('wikiann', name='en'))
 
 
 @pytest.fixture(scope='function')
-def wikiann(original_wikiann):
-    """Wikiann dataset for token classification"""
-    train = original_wikiann["train"]
-    return _wikiann_to_text_data(train)
-
-
-class SmallWikiannSplit(t.NamedTuple):
-    train: TextData
-    test: TextData
-
-
-# TODO: refactore, code redundancy
-@pytest.fixture(scope='function')
-def small_wikiann(original_wikiann) -> SmallWikiannSplit:
+def small_wikiann_train_test_text_data(original_wikiann):
     """Wikiann dataset for token classification"""
     train = original_wikiann["train"][:50]
     test = original_wikiann["test"][:50]
-    return SmallWikiannSplit(
-        _wikiann_to_text_data(train),
-        _wikiann_to_text_data(test),
-    )
+    return _wikiann_to_text_data(train), _wikiann_to_text_data(test)
 
 
 def _wikiann_to_text_data(wikiann):
