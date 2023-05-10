@@ -85,6 +85,7 @@ Image identifiers need to be provided as an iterable of strings.
     ['s3://my_images/dogs/1.jpg', 's3://my_images/cats/2.jpg', ...]
 
 .. _supported_tasks__classification:
+
 Classification
 ==============
 
@@ -114,6 +115,7 @@ classes may look like this:
 
 
 .. _supported_tasks__object_detection:
+
 Object Detection
 ================
 
@@ -158,6 +160,7 @@ the second one has no predicted bounding boxes, should be provided as follows:
     ]
 
 .. _supported_tasks__segmentation:
+
 Semantic Segmentation
 =====================
 

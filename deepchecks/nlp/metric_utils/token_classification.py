@@ -31,15 +31,15 @@ def get_scorer_dict(
 ) -> t.Dict[str, t.Callable[[t.List[str], t.List[str]], float]]:
     """Return a dict of scorers for token classification.
 
-    Parameters:
+    Parameters
     -----------
-        mode: str, [None (default), `strict`].
-            if ``None``, the score is compatible with conlleval.pl. Otherwise,
-            the score is calculated strictly.
-        scheme: Token, [IOB2, IOE2, IOBES]
-        suffix: bool, False by default.
+    mode: str, [None (default), `strict`].
+        if ``None``, the score is compatible with conlleval.pl. Otherwise,
+        the score is calculated strictly.
+    scheme: Token, [IOB2, IOE2, IOBES]
+    suffix: bool, False by default.
 
-    Returns:
+    Returns
     --------
         A dict of scorers.
     """

@@ -8,14 +8,20 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils package for nlp functionality."""
+"""Test for the embeddings module"""
 
-from deepchecks.nlp.utils.llm_utils import call_open_ai_completion_api
+import numpy as np
+from hamcrest import assert_that, equal_to
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
-from deepchecks.nlp.utils.text_properties import calculate_default_properties
 
-__all__ = [
-    'calculate_default_properties',
-    'calculate_default_embeddings',
-    'call_open_ai_completion_api'
-]
+
+def test_simple_embeddings():
+    text = ['my name is inigo montoya', 'you killed my father', 'prepare to die']
+    embeddings = calculate_default_embeddings(np.array(text))
+    assert_that(embeddings.shape, equal_to((3, 384)))
+
+
+def test_edge_cases():
+    text = ['!@$', '', None]
+    embeddings = calculate_default_embeddings(np.array(text))
+    assert_that(embeddings.shape, equal_to((3, 384)))

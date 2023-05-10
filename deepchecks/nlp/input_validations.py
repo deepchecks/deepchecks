@@ -96,13 +96,8 @@ class ColumnTypes(NamedTuple):
     numerical_columns: List[str]
 
 
-def validate_length_and_calculate_column_types(
-    data_table: pd.DataFrame,
-    data_table_name: str,
-    expected_size: int,
-    categorical_columns: Optional[Sequence[str]] = None
-) -> ColumnTypes:
-    """Validate length of data table and calculate column types."""
+def validate_length_and_type(data_table: pd.DataFrame, data_table_name: str, expected_size: int):
+    """Validate length of data table and type."""
     if not isinstance(data_table, pd.DataFrame):
         raise DeepchecksValueError(
             f'{data_table_name} type {type(data_table)} is not supported, '
@@ -114,6 +109,16 @@ def validate_length_and_calculate_column_types(
             f'received {data_table_name} with {len(data_table)} rows, '
             f'expected {expected_size}'
         )
+
+
+def validate_length_and_calculate_column_types(
+    data_table: pd.DataFrame,
+    data_table_name: str,
+    expected_size: int,
+    categorical_columns: Optional[Sequence[str]] = None
+) -> ColumnTypes:
+    """Validate length of data table and calculate column types."""
+    validate_length_and_type(data_table, data_table_name, expected_size)
 
     if categorical_columns is None:  # TODO: Add tests
         categorical_features = infer_categorical_features(data_table)

@@ -27,6 +27,7 @@ __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'gener
 
 def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.Series, t.List]) -> pd.DataFrame:
     """Fill NaN values per column type."""
+    pd.set_option('mode.chained_assignment', None)
     for col_name in df.columns:
         df[col_name] = default_fill_na_series(df[col_name], col_name in cat_features)
     return df
