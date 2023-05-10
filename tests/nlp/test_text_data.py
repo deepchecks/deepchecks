@@ -182,7 +182,7 @@ def test_set_embeddings(text_classification_dataset_mock):
     # Check that works for np.array:
     dataset._embeddings = None  # pylint: disable=protected-access
 
-    embeddings = np.array({'0': [1, 2, 3], '1': [4, 5, 6]})
+    embeddings = np.array([[1, 2, 3], [4, 5, 6]]).T
 
     dataset.set_embeddings(embeddings)
     assert_that((dataset.embeddings != embeddings).sum().sum(), equal_to(0))
