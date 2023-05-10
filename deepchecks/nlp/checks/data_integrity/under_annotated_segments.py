@@ -50,9 +50,6 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        # context.raise_if_token_classification_task(self)
-        # context.raise_if_multi_label_task(self)
-
         text_data = context.get_data_by_kind(dataset_kind)
         text_data = text_data.sample(self.n_samples, random_state=context.random_state)
 
