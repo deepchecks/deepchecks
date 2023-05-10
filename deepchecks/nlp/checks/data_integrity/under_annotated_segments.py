@@ -101,8 +101,9 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         encoded_data['virtual_col'] = np.random.uniform(-jitter, jitter, len(encoded_data))
 
         sampled_data = encoded_data.sample(min(MAX_SAMPLES_IN_FIGURE, len(encoded_data)), random_state=42)
-        annotated_data = sampled_data[is_annotated == 1]
-        not_annotated_data = sampled_data[is_annotated == 0]
+        is_annotated_sampled = is_annotated.loc[sampled_data.index]  # Get the corresponding boolean series
+        annotated_data = sampled_data.loc[is_annotated_sampled == 1]
+        not_annotated_data = sampled_data.loc[is_annotated_sampled == 0]
         for _, row in weak_segments.iterrows():
             fig = go.Figure()
             feature_1, feature_2 = row['Feature1'], row['Feature2']
@@ -148,7 +149,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
 
             # Add not annotated scatter plot
             fig.add_trace(go.Scatter(x=not_annotated_data[feature_1], y=not_annotated_data[feature_2],
-                                     mode='markers', opacity=0.7,
+                                     mode='markers', opacity=0.5,
                                      marker=dict(symbol='x', color='red', size=10, line=dict(color='black', width=1)),
                                      hovertemplate=hover_template + 'False',
                                      text=not_annotated_data['text'],
@@ -238,7 +239,7 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
     def __init__(self,
                  properties: Union[Hashable, List[Hashable], None] = None,
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
-                 n_top_properties: int = 10,
+                 n_top_properties: int = 15,
                  segment_minimum_size_ratio: float = 0.05,
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
