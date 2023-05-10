@@ -341,8 +341,8 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
 def automated_readability_index(raw_text: Sequence[str]) -> List[str]:
     """Return a list of floats of Automated Readability Index (ARI) per text sample.
 
-    The Automated Readability Index (ARI) is a formula that uses the number of characters, 
-    words, and sentences in a text to calculate a score that represents the grade level required 
+    The Automated Readability Index (ARI) is a formula that uses the number of characters,
+    words, and sentences in a text to calculate a score that represents the grade level required
     to understand the text. The resulting score is a whole number that represents a U.S. grade level.
     For more information: https://en.wikipedia.org/wiki/Automated_readability_index
     """
@@ -453,9 +453,9 @@ def calculate_default_properties(
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
         'Automated Readability Index', 'Average Sentence Length']
-        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may take a long time to calculate. If
-        include_long_calculation_properties is False, these properties will be ignored, even if they are in the
-        include_properties parameter.
+        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may 
+        take a long time to calculate. If include_long_calculation_properties is False, these properties will be 
+        ignored, even if they are in the include_properties parameter.
     ignore_properties : List[str], default None
         The properties to ignore. If None, no properties will be ignored. Cannot be used together with
         properties parameter.
