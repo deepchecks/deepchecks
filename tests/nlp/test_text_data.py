@@ -10,6 +10,7 @@
 #
 # pylint: disable=protected-access
 """Test for the TextData object"""
+import numpy as np
 import pandas as pd
 from hamcrest import assert_that, calling, contains_exactly, equal_to, raises
 
@@ -162,6 +163,30 @@ def test_properties(text_classification_dataset_mock):
                                  'Sentiment', 'Subjectivity', 'Lexical Density', 'Automated Readability Index', 
                                  'Average Sentence Length'))
     assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 0.0, 0.0, 80.0, -2.0, 5))
+
+
+def test_embeddings():
+    ds = TextData(['my name is inigo montoya', 'you killed my father', 'prepare to die'])
+    ds.calculate_default_embeddings()
+    assert_that(ds.embeddings.shape, equal_to((3, 384)))
+
+
+def test_set_embeddings(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    embeddings = pd.DataFrame({'0': [1, 2, 3], '1': [4, 5, 6]})
+    assert_that(dataset._embeddings, equal_to(None))  # pylint: disable=protected-access
+
+    dataset.set_embeddings(embeddings)
+    assert_that((dataset.embeddings != embeddings).sum().sum(), equal_to(0))
+
+    # Check that works for np.array:
+    dataset._embeddings = None  # pylint: disable=protected-access
+
+    embeddings = np.array([[1, 2, 3], [4, 5, 6]]).T
+
+    dataset.set_embeddings(embeddings)
+    assert_that((dataset.embeddings != embeddings).sum().sum(), equal_to(0))
 
 
 def test_set_metadata(text_classification_dataset_mock):

@@ -40,6 +40,7 @@ This section contain in-depth guides on different aspects and components of the 
     usage_guides/supported_tasks
     usage_guides/nlp_properties
     usage_guides/nlp_metadata
+    usage_guides/nlp_embeddings
 
 .. _nlp__checks_gallery:
 
