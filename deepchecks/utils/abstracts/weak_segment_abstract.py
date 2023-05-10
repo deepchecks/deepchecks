@@ -64,8 +64,12 @@ class WeakSegmentAbstract(abc.ABC):
             else:
                 label_as_int = pd.cut(label_col.astype('float64').fillna(label_col.mean()), bins=10, labels=False)
             df_encoded = t_encoder.fit_transform(df_aggregated, pd.Series(label_as_int, index=df_aggregated.index))
+            # Convert categorical features to ordinal based on their encoded values and store the mapping
             for col in cat_features:
-                values_mapping[col] = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()
+                df_encoded[col] = df_encoded[col].apply(sorted(df_encoded[col].unique()).index)
+                mapping = pd.concat([df_encoded[col], df_aggregated[col]], axis=1).drop_duplicates()
+                mapping.columns = ['encoded_value', 'original_category']
+                values_mapping[col] = mapping.sort_values(by='encoded_value')
         else:
             df_encoded = df_aggregated
         self.encoder_mapping = values_mapping
@@ -145,11 +149,11 @@ class WeakSegmentAbstract(abc.ABC):
             fig = px.imshow(scores, x=f1_labels, y=f2_labels, labels=labels, color_continuous_scale='rdylgn')
             fig.update_traces(text=scores_text, texttemplate='%{text}')
             if segment['Feature2']:
-                title = f'{score_title} (percent of data) {segment["Feature1"]} vs {segment["Feature2"]}'
+                title = f'{score_title} (percent of data)'
                 tab_name = f'{segment["Feature1"]} vs {segment["Feature2"]}'
             else:
-                title = f'{score_title} (percent of data) {segment["Feature1"]}'
-                tab_name = f'{segment["Feature1"]}'
+                title = f'{score_title} (percent of data)'
+                tab_name = segment['Feature1']
             fig.update_layout(
                 title=title,
                 height=600,
@@ -178,8 +182,9 @@ class WeakSegmentAbstract(abc.ABC):
             feature_rank_for_search = np.asarray(data.columns)
 
         weak_segments = pd.DataFrame(
-            columns=[score_title, 'Feature1', 'Feature1 Range', 'Feature2', 'Feature2 Range', '% of Data'])
-        n_features = min(len(feature_rank_for_search), self.n_top_features) if self.n_top_features is not None\
+            columns=[score_title, 'Feature1', 'Feature1 Range', 'Feature2', 'Feature2 Range',
+                     '% of Data', 'Samples in Segment'])
+        n_features = min(len(feature_rank_for_search), self.n_top_features) if self.n_top_features is not None \
             else len(feature_rank_for_search)
         for i in range(n_features):
             for j in range(i + 1, n_features):
@@ -189,18 +194,24 @@ class WeakSegmentAbstract(abc.ABC):
                                                                                   dummy_model, scorer)
                 if weak_segment_score is None or len(weak_segment_filter.filters) == 0:
                     continue
-                data_size = 100 * weak_segment_filter.filter(data).shape[0] / data.shape[0]
+                data_of_segment = weak_segment_filter.filter(data)
+                data_size = round(100 * data_of_segment.shape[0] / data.shape[0], 2)
                 filters = weak_segment_filter.filters
                 if len(filters.keys()) == 1:
                     weak_segments.loc[len(weak_segments)] = [weak_segment_score, list(filters.keys())[0],
                                                              tuple(list(filters.values())[0]), '',
-                                                             None, data_size]
+                                                             None, data_size, list(data_of_segment.index)]
                 else:
                     weak_segments.loc[len(weak_segments)] = [weak_segment_score, feature1,
                                                              tuple(filters[feature1]), feature2,
-                                                             tuple(filters[feature2]), data_size]
+                                                             tuple(filters[feature2]), data_size,
+                                                             list(data_of_segment.index)]
 
-        return weak_segments.drop_duplicates().sort_values(score_title).reset_index(drop=True)
+        # Drop duplicates without considering column 'Samples in Segment'
+        result_no_duplicates = weak_segments.drop(columns='Samples in Segment').drop_duplicates()
+        result_no_duplicates['Samples in Segment'] = weak_segments.loc[result_no_duplicates.index, 'Samples in Segment']
+
+        return result_no_duplicates.sort_values(score_title).reset_index(drop=True)
 
     def _find_weak_segment(self, data: pd.DataFrame, features_for_segment: List[str], score_per_sample: pd.Series,
                            label_col: Optional[pd.Series] = None, dummy_model: Optional[_DummyModel] = None,
@@ -267,6 +278,8 @@ class WeakSegmentAbstract(abc.ABC):
         """Format partition vector for display. If seperator is None returns a list instead of a string."""
         if feature_name == '':
             return ['']
+        if not isinstance(partition_vec, np.ndarray):
+            partition_vec = np.asarray(partition_vec)
 
         result = []
         if feature_name in self.encoder_mapping.keys():
