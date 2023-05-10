@@ -1,4 +1,4 @@
-.. _vision_tutorials:
+.. _vision__quickstarts:
 
 Quickstarts
 ===========

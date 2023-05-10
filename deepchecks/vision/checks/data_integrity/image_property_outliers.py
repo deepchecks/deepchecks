@@ -38,7 +38,7 @@ class ImagePropertyOutliers(AbstractPropertyOutliers):
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     n_show_top : int , default: 3
         number of outliers to show from each direction (upper limit and bottom limit)
     iqr_percentiles: Tuple[int, int], default: (25, 75)
