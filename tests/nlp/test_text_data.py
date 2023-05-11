@@ -147,6 +147,35 @@ def test_head_functionality():
     assert_that(list(result.index), contains_exactly(0, 1))
 
 
+def test_label_for_display():
+    # Arrange
+    text = ['a', 'b b b', 'c c c c']
+    single_label = ['PER', 'ORG', 'GEO']
+    multi_label = np.array([[1, 0, 1], [0, 1, 0], [1, 1, 1]])
+
+    # Act
+    dataset = TextData(raw_text=text, task_type='text_classification', label=single_label)
+    result = dataset.label_for_display()
+
+    # Assert
+    assert_that(len(result), equal_to(3))
+    assert_that(result, contains_exactly('PER', 'ORG', 'GEO'))
+
+    # Act
+    dataset = TextData(raw_text=text, task_type='text_classification', label=multi_label)
+    result = dataset.label_for_display()
+
+    # Assert
+    assert_that(len(result), equal_to(3))
+    assert_that(result[0], contains_exactly(0, 2))
+
+    # Act
+    result = dataset.label_for_display(model_classes=['PER', 'ORG', 'GEO'])
+
+    # Assert
+    assert_that(len(result), equal_to(3))
+    assert_that(result[0], contains_exactly('PER', 'GEO'))
+
 def test_properties(text_classification_dataset_mock):
     # Arrange
     dataset = text_classification_dataset_mock

@@ -507,16 +507,18 @@ class TextData:
                                        'to run the requested functionalities')
         return self._label
 
-    @property
-    def label_for_display(self) -> TTextLabel:
-        """Return the label defined in the dataset.
+    def label_for_display(self, model_classes: list = None) -> TTextLabel:
+        """Return the label defined in the dataset in a format that can be displayed.
 
         Returns
         -------
         TTextLabel
         """
         if self.is_multi_label_classification():
-            return [np.argwhere(x == 1).flatten().tolist() for x in self.label]
+            ret_labels = [np.argwhere(x == 1).flatten().tolist() for x in self.label]
+            if model_classes:
+                ret_labels = [[model_classes[i] for i in x] for x in ret_labels]
+            return ret_labels
         else:
             return self.label
 
