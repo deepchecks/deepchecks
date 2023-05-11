@@ -21,9 +21,10 @@ What is the purpose of the check?
 
 The Under-Annotated Property Segments check is designed to help you easily identify segments in your data which are
 under-annotated compared to the rest of your dataset, based on the provided :ref:`properties <nlp__properties_guide>`.
-The check could be very useful for example for identifying a specific data samples for which there was
-a problem in the annotation process. The check can be guided to run only on a specific list of metadata columns,
-enabling you to focus on columns where you know a problem exists, or on important business segments.
+The check could be very useful in identifying a specific data samples (for example less fluent or less formal samples)
+for which there was a problem in the annotation process.
+The check can be guided to run only on a specific list of properties,
+enabling you to focus on properties where you know an issue exists, or on important business segments.
 
 Automatically detecting under annotated segments
 ================================================
