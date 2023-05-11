@@ -594,7 +594,7 @@ def calculate_default_properties(
                 idx = 0
                 for mask in english_samples_mask:
                     result.append(values[idx] if mask else None)
-                    idx =+ 1
+                    idx += 1
                 calculated_properties[prop['name']] = result
                 properties_types[prop['name']] = prop['output_type']
 
