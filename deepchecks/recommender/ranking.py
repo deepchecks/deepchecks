@@ -80,13 +80,16 @@ def precision_k(relevant_items: Union[List[int], set, None],
     Returns:
     float: The Precision@k score for the set of recommendations.
     """
-    if relevant_items is None or len(relevant_items) == 0:
+    if not relevant_items:
         return 0.0
-    rec_set = set(recommendation[:k])
-
-    hits = sum(1 for (i,p) in enumerate(rec_set) if p in relevant_items)
-
-    return hits / min(len(relevant_items),k)
+      
+    relevant_set = set(relevant_items)
+    
+    hits = [1.0 if p in relevant_set else 0.0 for i, p in enumerate(recommandation)]
+    score = sum([hits[i] / (i+1.0) for i in range(len(hits))])
+    
+    
+    return score / min(len(actual), k)
 
 
 
