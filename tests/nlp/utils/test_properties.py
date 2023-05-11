@@ -88,7 +88,7 @@ def test_calculate_average_sentence_length_property(tweet_emotion_train_test_tex
 
     # Assert
     assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
-    assert_that(result_none_text['Average Sentence Length'], equal_to([np.nan]))
+    assert_that(result_none_text['Average Sentence Length'], equal_to([0.0]))
 
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):

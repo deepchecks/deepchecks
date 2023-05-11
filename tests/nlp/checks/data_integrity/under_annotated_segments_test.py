@@ -113,7 +113,7 @@ def test_token_classification_dataset(small_wikiann_train_test_text_data):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found a segment with annotation ratio of 0.375 in comparison to an '
+                               details='Found a segment with annotation ratio of 0.333 in comparison to an '
                                        'average score of 0.8 in sampled data.',
                                name='The relative performance of weakest segment is greater than 80% of average model '
                                     'performance.')
