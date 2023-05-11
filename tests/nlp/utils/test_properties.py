@@ -88,7 +88,7 @@ def test_calculate_average_sentence_length_property(tweet_emotion_train_test_tex
 
     # Assert
     assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
-    assert_that(result_none_text['Average Sentence Length'], equal_to([0.0]))
+    assert_that(result_none_text['Average Sentence Length'], equal_to([np.nan]))
 
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):
@@ -103,7 +103,7 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
 
     # Assert
     assert_that(result['Readability Score'][0: 10], equal_to([102.0, 97.0, 80.3, 67.8, 77.1, 71.8, 91.0, 75.5, 70.1, 95.6]))
-    assert_that(result_none_text['Readability Score'], equal_to([0.0]))
+    assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
 
 
 @pytest.mark.skipif(
