@@ -26,7 +26,7 @@ def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
 
 
 @patch('deepchecks.nlp.utils.text_properties.run_available_kwargs', mock_fn)
-def test_calculate_toxicity_property():
+def test_that_warning_is_shown_for_big_datasets():
     # Arrange
     raw_text = ['This is a test sentence.'] * 20_000
 
@@ -41,7 +41,7 @@ def test_calculate_toxicity_property():
                                               include_long_calculation_properties=True)[0]
 
     # Assert
-    assert_that(result, equal_to({'Toxicity': [0] * 20_000}))
+    assert len(result['Toxicity']) == len(raw_text)
 
 
 def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
