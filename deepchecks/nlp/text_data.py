@@ -18,7 +18,8 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_length_and_type,
+from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types,
+                                              validate_length_and_type_numpy_array,
                                               validate_modify_label, validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
@@ -91,13 +92,14 @@ class TextData:
     categorical_properties : t.Optional[t.List[str]] , default: None
         The names of the categorical properties columns. If None, categorical properties columns are automatically
         inferred. Only relevant if properties is not None.
-    embeddings : t.Optional[Union[pd.DataFrame, np.ndarray, str]] , default: None
-        The text embeddings for the samples. Embeddings must be given as either a pandas DataFrame or a path to a pandas
-        DataFrame compatible csv file, with the rows representing each sample and columns representing the different
-        embeddings dimensions. If None, no embeddings are set.
-        The number of rows in the embeddings DataFrame must be equal to the number of samples in the dataset, and the
-        order of the rows must be the same as the order of the samples in the dataset.
-        In order to calculate the default embeddings, use the `TextData.calculate_default_embeddings` function after
+    embeddings : t.Optional[Union[np.ndarray, pd.DataFrame, str]], default: None
+        The text embeddings for the samples. Embeddings must be given as either a numpy array (or a path to an .npy
+        file containing a numpy array) of shape (N, E), where N is the number of samples in the TextData object and E
+        is the number of embeddings dimensions.
+        The numpy array must be in the same order as the samples in the TextData.
+        If None, no embeddings are set.
+
+        In order to use the default embeddings, use the `TextData.calculate_default_embeddings` function after
         the creation of the TextData object.
         For more on embeddings, see the :ref:`Text Embeddings Guide <nlp__embeddings_guide>`
     """
@@ -238,7 +240,7 @@ class TextData:
                 new_copy.set_properties(properties, self._cat_properties)
 
             if self._embeddings is not None:
-                embeddings = self._embeddings.iloc[rows_to_use, :]
+                embeddings = self._embeddings[rows_to_use]
                 new_copy.set_embeddings(embeddings)
 
             new_copy._original_text_index = self._original_text_index[rows_to_use]
@@ -305,11 +307,11 @@ class TextData:
             The path to save the embeddings to.
         """
         if self._embeddings is not None:
-            warnings.warn('Properties already exist, overwriting them', UserWarning)
+            warnings.warn('Embeddings already exist, overwriting them', UserWarning)
 
         self._embeddings = calculate_default_embeddings(text=self.text, model=model, file_path=file_path)
 
-    def set_embeddings(self, embeddings: pd.DataFrame, verbose: bool = True):
+    def set_embeddings(self, embeddings: np.ndarray, verbose: bool = True):
         """Set the metadata of the dataset.
 
         Parameters
@@ -322,12 +324,15 @@ class TextData:
         if self._embeddings is not None and verbose is True:
             warnings.warn('Embeddings already exist, overwriting it', UserWarning)
 
-        if isinstance(embeddings, np.ndarray):
-            embeddings = pd.DataFrame(embeddings)
+        if isinstance(embeddings, pd.DataFrame):
+            embeddings = embeddings.to_numpy()
+
+        if isinstance(embeddings, str):
+            embeddings = np.load(embeddings)
 
         if embeddings is not None:
-            validate_length_and_type(embeddings, 'Embeddings', len(self))
-        self._embeddings = embeddings.reset_index(drop=True) if isinstance(embeddings, pd.DataFrame) else None
+            validate_length_and_type_numpy_array(embeddings, 'Embeddings', len(self))
+        self._embeddings = embeddings
 
     @property
     def metadata(self) -> pd.DataFrame:

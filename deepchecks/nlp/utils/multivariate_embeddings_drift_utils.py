@@ -32,21 +32,23 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
                                            num_samples_in_display: int, dimension_reduction_method: str,
                                            with_display: bool):
     """Calculate multivariable drift on embeddings."""
+    np.random.seed(random_state)
+
     # sample train and test datasets equally
     train_sample = train_dataset.sample(sample_size, random_state=random_state)
     test_sample = test_dataset.sample(sample_size, random_state=random_state)
 
-    train_sample_df = train_sample.embeddings
-    test_sample_df = test_sample.embeddings
+    train_sample_embeddings = train_sample.embeddings
+    test_sample_embeddings = test_sample.embeddings
 
     # create new dataset, with label denoting whether sample belongs to test dataset
-    domain_class_df = pd.concat([train_sample_df, test_sample_df]).reset_index(drop=True)
-    domain_class_labels = pd.Series([0] * len(train_sample_df) + [1] * len(test_sample_df))
+    domain_class_array = np.concatenate([train_sample_embeddings, test_sample_embeddings])
+    domain_class_labels = pd.Series([0] * len(train_sample_embeddings) + [1] * len(test_sample_embeddings))
 
     # reduce dimensionality of embeddings if needed.
     # skips if not required ('none') or if number of features is small enough (< 30) in 'auto' mode.
     use_reduction = not (dimension_reduction_method == 'none' or (
-            dimension_reduction_method == 'auto' and domain_class_df.shape[1] < 30))
+            dimension_reduction_method == 'auto' and domain_class_array.shape[1] < 30))
     use_umap = dimension_reduction_method == 'umap' or (dimension_reduction_method == 'auto' and with_display)
 
     if use_reduction:
@@ -56,17 +58,18 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
         else:  # Faster, but graph will look bad.
             reducer = PCA(n_components=10, random_state=random_state)
 
-        samples_for_reducer = min(SAMPLES_FOR_REDUCTION_FIT, len(domain_class_df))
-        reducer.fit(domain_class_df.sample(samples_for_reducer, random_state=random_state))
-        domain_class_df = pd.DataFrame(reducer.transform(domain_class_df), index=domain_class_df.index)
+        samples_for_reducer = min(SAMPLES_FOR_REDUCTION_FIT, len(domain_class_array))
+        samples = np.random.choice(len(domain_class_array), samples_for_reducer, replace=False)
+        reducer.fit(domain_class_array[samples])
+        domain_class_array = reducer.transform(domain_class_array)
 
         # update train and test samples with new reduced embeddings (used later in display)
-        new_embeddings_train = domain_class_df.iloc[:len(train_sample_df)]
-        new_embeddings_test = domain_class_df.iloc[len(train_sample_df):]
+        new_embeddings_train = domain_class_array[:len(train_sample_embeddings)]
+        new_embeddings_test = domain_class_array[len(train_sample_embeddings):]
         train_sample.set_embeddings(new_embeddings_train, verbose=False)
         test_sample.set_embeddings(new_embeddings_test, verbose=False)
 
-    x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(domain_class_df), domain_class_labels,
+    x_train, x_test, y_train, y_test = train_test_split(domain_class_array, domain_class_labels,
                                                         stratify=domain_class_labels, random_state=random_state,
                                                         test_size=test_size)
 
@@ -81,8 +84,8 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
     values_dict = {'domain_classifier_auc': domain_classifier_auc, 'domain_classifier_drift_score': drift_score}
 
     if with_display:
-        relevant_index_train = list(x_test[y_test == 0].index)
-        relevant_index_test = [x - len(train_sample_df) for x in x_test[y_test == 1].index]
+        relevant_index_train = list(y_test[y_test == 0].index)
+        relevant_index_test = [x - len(train_sample_embeddings) for x in y_test[y_test == 1].index]
 
         train_sample = train_sample.copy(rows_to_use=relevant_index_train)
         test_sample = test_sample.copy(rows_to_use=relevant_index_test)
@@ -106,7 +109,7 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
 
 def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_state: int):
     """Display the embeddings with the domain classifier proba as the x-axis and the embeddings as the y-axis."""
-    embeddings = pd.concat([train_dataset.embeddings, test_dataset.embeddings])
+    embeddings = np.concatenate([train_dataset.embeddings, test_dataset.embeddings])
 
     reducer = UMAP(n_components=2, n_neighbors=5, init='random', min_dist=1, random_state=random_state)
     reduced_embeddings = reducer.fit_transform(embeddings)
