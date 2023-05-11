@@ -10,7 +10,7 @@
 #
 """Test for the NLP UnderAnnotatedSegments check"""
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, has_items, calling, raises
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, raises
 
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.nlp.checks import UnderAnnotatedMetaDataSegments, UnderAnnotatedPropertySegments
