@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 
 
 def validate_class_list(class_list: Sequence[str], parameter_name: str):
-    """Validates model_classes argument."""
+    """Validate list of label classes."""
     if class_list is not None:
         if (not is_sequence_not_str(class_list)) or len(class_list) == 0:
             raise DeepchecksValueError(f'{parameter_name} must be a non-empty sequence')
