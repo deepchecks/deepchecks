@@ -87,7 +87,7 @@ def precision_k(relevant_items: Union[List[int], set, None],
 
     hits = sum(1/(i+1.0) for (i,p) in enumerate(rec_set) if p in relevant_set)
 
-    return hits / k
+    return hits / min(len(relevant_items),k)
 
 
 
