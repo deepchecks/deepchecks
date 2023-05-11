@@ -283,6 +283,11 @@ def _validate_text_classification(
             if predictions.ndim != 1:
                 raise ValidationError(format_error_message)
 
+            predictions = np.array([
+                str(it) if it is not None else None
+                for it in predictions
+            ], dtype='object')
+
     if probabilities is not None:
         format_error_message = (
             f'Check requires classification probabilities for the "{dataset.name}" '
