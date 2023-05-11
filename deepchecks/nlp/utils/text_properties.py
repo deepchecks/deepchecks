@@ -19,8 +19,11 @@ import numpy as np
 import pandas as pd
 import requests
 import textblob
+from nltk import corpus
 from nltk import download as nltk_download
+from nltk import sent_tokenize, word_tokenize
 
+from deepchecks.nlp.utils.text import remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 
 __all__ = ['calculate_default_properties']
@@ -304,7 +307,7 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     """
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, lexical density cannot be calculated.'
-                      ' Please check your internet connection.')
+                      ' Please check your internet connection.', UserWarning)
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
@@ -323,13 +326,70 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers of number of unique noun words in the text."""
     if not nltk_download('averaged_perceptron_tagger', quiet=True):
         warnings.warn('nltk averaged_perceptron_tagger not found, unique noun count cannot be calculated.'
-                      ' Please check your internet connection.')
+                      ' Please check your internet connection.', UserWarning)
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
         if not pd.isna(text):
             unique_words_with_tags = set(textblob.TextBlob(text).tags)
             result.append(sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N')))
+        else:
+            result.append(np.nan)
+    return result
+
+
+def readability_score(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of floats of Flesch Reading-Ease score per text sample.
+
+    In the Flesch reading-ease test, higher scores indicate material that is easier to read
+    whereas lower numbers mark texts that are more difficult to read. For more information:
+    https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
+    """
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, readability score cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    if not nltk_download('cmudict', quiet=True):
+        warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    result = []
+    cmudict_dict = corpus.cmudict.dict()
+    for text in raw_text:
+        if not pd.isna(text):
+            sentence_count = len(sent_tokenize(text))
+            text = remove_punctuation(text)
+            words = word_tokenize(text)
+            word_count = len(words)
+            syllable_count = sum([len(cmudict_dict[word.lower()]) for word in words if word.lower() in cmudict_dict])
+            if word_count != 0 and sentence_count != 0 and syllable_count != 0:
+                avg_syllables_per_word = syllable_count / word_count
+                avg_words_per_sentence = word_count / sentence_count
+                flesch_reading_ease = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
+                result.append(round(flesch_reading_ease, 3))
+            else:
+                result.append(np.nan)
+        else:
+            result.append(np.nan)
+    return result
+
+
+def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of floats denoting the average sentence length per text sample."""
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, average sentence length cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            sentences = [remove_punctuation(sent) for sent in sent_tokenize(text)]
+            total_words = sum([len(word_tokenize(sentence)) for sentence in sentences])
+            if len(sentences) != 0:
+                asl = total_words / len(sentences)
+                result.append(round(asl, 0))
+            else:
+                result.append(np.nan)
         else:
             result.append(np.nan)
     return result
@@ -348,6 +408,8 @@ DEFAULT_PROPERTIES = (
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
     {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
     {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
+    {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
+    {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
 )
 
 LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Unique Noun Count']
@@ -395,10 +457,11 @@ def calculate_default_properties(
         The properties to calculate. If None, all default properties will be calculated. Cannot be used together
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
-        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count']
-        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language'] may take a long time to calculate. If
-        include_long_calculation_properties is False, these properties will be ignored, even if they are in the
-        include_properties parameter.
+        'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
+        'Readability Score', 'Average Sentence Length']
+        Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
+        take a long time to calculate. If include_long_calculation_properties is False, these properties will be
+        ignored, even if they are in the include_properties parameter.
     ignore_properties : List[str], default None
         The properties to ignore. If None, no properties will be ignored. Cannot be used together with
         properties parameter.
