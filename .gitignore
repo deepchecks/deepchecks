@@ -136,3 +136,6 @@ benchmarks/results
 
 # nlp models
 deepchecks/nlp/utils/.nlp-models
+
+# embedding files
+tests/nlp/utils/embeddings.csv
