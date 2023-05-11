@@ -17,6 +17,7 @@ import pandas as pd
 
 from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.nlp.task_type import TaskType, TTextLabel
+from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.type_inference import infer_categorical_features
@@ -24,6 +25,18 @@ from deepchecks.utils.validation import is_sequence_not_str
 
 if TYPE_CHECKING:
     from deepchecks.nlp.text_data import TextData
+
+
+def validate_class_list(class_list: Sequence[str], parameter_name: str):
+    """Validates model_classes argument."""
+    if class_list is not None:
+        if (not is_sequence_not_str(class_list)) or len(class_list) == 0:
+            raise DeepchecksValueError(f'{parameter_name} must be a non-empty sequence')
+        if sorted(class_list) != class_list:
+            supported_models_link = doclink(
+                'nlp-supported-predictions-format',
+                template='For more information please refer to the Supported Tasks guide {link}')
+            raise DeepchecksValueError(f'Received unsorted {parameter_name}. {supported_models_link}')
 
 
 def validate_tokenized_text(tokenized_text: Optional[Sequence[Sequence[str]]]):

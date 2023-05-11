@@ -19,7 +19,8 @@ import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_length_and_type,
-                                              validate_modify_label, validate_raw_text, validate_tokenized_text)
+                                              validate_modify_label, validate_raw_text, validate_tokenized_text,
+                                              validate_class_list)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_default_properties
@@ -62,6 +63,11 @@ class TextData:
         - token_classification label - For token classification the accepted label format is the IOB format or similar
           to it. The Label must be a sequence of sequences of strings or integers, with each sequence corresponding to
           a sample in the tokenized text, and exactly the length of the corresponding tokenized text.
+    label_classes : t.Optional[t.Sequence[str]], default: None
+        The label classes for the text data. Used to translate the classification multilabel vector to a list of
+        existing labels for display purposes (e.g. instead of displaying "[0, 1, 1]", checks would present
+        "[class1_name, class2_name]").
+        Only used if label is provided, task is text_classification, and label is multilabel.
     task_type : str, default: None
         The task type for the text data. Can be either 'text_classification' or 'token_classification'. Must be set if
         label is provided.
@@ -119,6 +125,7 @@ class TextData:
             raw_text: t.Optional[t.Sequence[str]] = None,
             tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
             label: t.Optional[TTextLabel] = None,
+            label_classes: t.Optional[t.Sequence[str]] = None,
             task_type: t.Optional[str] = None,
             name: t.Optional[str] = None,
             embeddings: t.Optional[t.Union[pd.DataFrame, np.ndarray, str]] = None,
@@ -170,6 +177,7 @@ class TextData:
 
         # Used for display purposes
         self._original_text_index = np.arange(len(self))
+        self.set_label_classes(label_classes)
 
     def is_multi_label_classification(self) -> bool:
         """Check if the dataset is multi-label."""
@@ -197,6 +205,7 @@ class TextData:
                     raw_text=self._text,
                     tokenized_text=self._tokenized_text,
                     label=self._label,
+                    label_classes=self.label_classes,
                     task_type=self._task_type.value,
                     name=self.name
                 )
@@ -225,6 +234,7 @@ class TextData:
                     if self._tokenized_text is not None
                     else None
                 ),
+                label_classes=self.label_classes,
                 label=self._label[rows_to_use] if self.has_label() else None,
                 task_type=self._task_type.value, name=self.name
             )
@@ -507,7 +517,8 @@ class TextData:
                                        'to run the requested functionalities')
         return self._label
 
-    def label_for_display(self, model_classes: list = None) -> TTextLabel:
+    @property
+    def label_for_display(self) -> TTextLabel:
         """Return the label defined in the dataset in a format that can be displayed.
 
         Returns
@@ -516,8 +527,8 @@ class TextData:
         """
         if self.is_multi_label_classification():
             ret_labels = [np.argwhere(x == 1).flatten().tolist() for x in self.label]
-            if model_classes:
-                ret_labels = [[model_classes[i] for i in x] for x in ret_labels]
+            if self.label_classes:
+                ret_labels = [[self.label_classes[i] for i in x] for x in ret_labels]
             return ret_labels
         else:
             return self.label
@@ -531,6 +542,29 @@ class TextData:
            True if label was set.
         """
         return self._label is not None
+
+    @property
+    def label_classes(self) -> t.Optional[t.Sequence[str]]:
+        """Return the label classes.
+
+        Returns
+        -------
+        t.Optional[t.Sequence[str]]
+           Label classes.
+        """
+        return self._label_classes
+
+    def set_label_classes(self, label_classes: t.Sequence[str]):
+        """Set the label classes.
+
+        Parameters
+        ----------
+        label_classes : t.Sequence[str]
+            Label classes.
+        """
+        if label_classes is not None:
+            validate_class_list(label_classes, 'label_classes')
+        self._label_classes = label_classes
 
     def get_original_text_indexes(self) -> t.Sequence[int]:
         """Return the original indexes of the text samples.

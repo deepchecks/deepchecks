@@ -18,7 +18,7 @@ from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
                                     ModelValidationError)
 from deepchecks.nlp.input_validations import (_validate_multilabel, _validate_text_classification,
-                                              _validate_token_classification, compare_dataframes)
+                                              _validate_token_classification, compare_dataframes, validate_class_list)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
@@ -284,21 +284,23 @@ class Context(BaseContext):
             raise DatasetValidationError('Can\'t initialize context with only test_dataset. if you have single '
                                          'dataset, initialize it as train_dataset')
 
-        if model_classes is not None:
-            if (not is_sequence_not_str(model_classes)) or len(model_classes) == 0:
-                raise DeepchecksValueError('model_classes must be a non-empty sequence')
-            if sorted(model_classes) != model_classes:
-                supported_models_link = doclink(
-                    'nlp-supported-predictions-format',
-                    template='For more information please refer to the Supported Tasks guide {link}')
-                raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
+        label_classes = train_dataset.label_classes or (test_dataset.label_classes if test_dataset else None)
+        if model_classes is None:
+            model_classes = label_classes
+        else:
+            validate_class_list(model_classes, 'model_classes')
 
         self._task_type = self.infer_task_type(train_dataset, test_dataset)
-
         self._observed_classes, self._model_classes = \
             infer_observed_and_model_labels(train_dataset=train_dataset, test_dataset=test_dataset,
                                             model=None, y_pred_train=train_pred, y_pred_test=test_pred,
                                             model_classes=model_classes, task_type=self.task_type)
+
+        # Temporary fix, remove when context + model_classes is better sorted out:
+        if label_classes is None and self.model_classes is not None:
+            train_dataset.set_label_classes(self.model_classes)
+            if test_dataset:
+                test_dataset.set_label_classes(self.model_classes)
 
         if any(x is not None for x in (train_pred, test_pred, train_proba, test_proba)):
             self._model = _DummyModel(train=train_dataset, test=test_dataset,

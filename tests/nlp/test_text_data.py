@@ -155,7 +155,7 @@ def test_label_for_display():
 
     # Act
     dataset = TextData(raw_text=text, task_type='text_classification', label=single_label)
-    result = dataset.label_for_display()
+    result = dataset.label_for_display
 
     # Assert
     assert_that(len(result), equal_to(3))
@@ -163,18 +163,20 @@ def test_label_for_display():
 
     # Act
     dataset = TextData(raw_text=text, task_type='text_classification', label=multi_label)
-    result = dataset.label_for_display()
+    result = dataset.label_for_display
 
     # Assert
     assert_that(len(result), equal_to(3))
     assert_that(result[0], contains_exactly(0, 2))
 
     # Act
-    result = dataset.label_for_display(model_classes=['PER', 'ORG', 'GEO'])
+    dataset.set_label_classes(['PER', 'ORG', 'GEO'])
+    result = dataset.label_for_display
 
     # Assert
     assert_that(len(result), equal_to(3))
     assert_that(result[0], contains_exactly('PER', 'GEO'))
+
 
 def test_properties(text_classification_dataset_mock):
     # Arrange
