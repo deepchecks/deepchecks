@@ -18,9 +18,9 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_length_and_type,
-                                              validate_modify_label, validate_raw_text, validate_tokenized_text,
-                                              validate_class_list)
+from deepchecks.nlp.input_validations import (validate_class_list, validate_length_and_calculate_column_types,
+                                              validate_length_and_type, validate_modify_label, validate_raw_text,
+                                              validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_default_properties

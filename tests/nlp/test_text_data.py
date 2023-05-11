@@ -170,12 +170,12 @@ def test_label_for_display():
     assert_that(result[0], contains_exactly(0, 2))
 
     # Act
-    dataset.set_label_classes(['PER', 'ORG', 'GEO'])
+    dataset.set_label_classes(['GEO', 'ORG', 'PER'])
     result = dataset.label_for_display
 
     # Assert
     assert_that(len(result), equal_to(3))
-    assert_that(result[0], contains_exactly('PER', 'GEO'))
+    assert_that(result[0], contains_exactly('GEO', 'PER'))
 
 
 def test_properties(text_classification_dataset_mock):
