@@ -277,7 +277,8 @@ def popularity_based_novelty(recommendations: Union[List[list], np.array],
     Calculate the popularity-based novelty metric for a list of recommendations.
     Parameters:
         recommendations (Union[List[list], np.array]): List of recommendations for each user.
-        items_popularity (Union[dict, None]): Item popularity scores.
+        items_popularity (Union[dict, None]): measure the popularity of an item based on its frequency of interactions with users. 
+        It is usually calculated as the number of times the item has been interacted with.
         num_users (int): Total number of users.
         k (int): The number of top items to consider for novelty. Default is 20.
 
