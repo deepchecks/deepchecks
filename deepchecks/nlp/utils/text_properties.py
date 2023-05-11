@@ -366,7 +366,7 @@ def readability_score(raw_text: Sequence[str]) -> List[str]:
                 avg_syllables_per_word = syllable_count / word_count
                 avg_words_per_sentence = word_count / sentence_count
                 flesch_reading_ease = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
-                result.append(round(flesch_reading_ease, 1))
+                result.append(round(flesch_reading_ease, 3))
             else:
                 result.append(np.nan)
         else:
