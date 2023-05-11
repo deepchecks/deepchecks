@@ -102,7 +102,7 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     result_none_text = calculate_default_properties([None], include_properties=['Readability Score'])[0]
 
     # Assert
-    assert_that(result['Readability Score'][0: 10], equal_to([102.0, 97.0, 80.3, 67.8, 77.1, 71.8, 91.0, 75.5, 70.1, 95.6]))
+    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103, 71.782, 90.99, 75.5, 70.102, 95.564]))
     assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
 
 
