@@ -37,9 +37,9 @@ def recall_k(relevant_items: Union[List[int], np.array, None],
         return 0.0
     relevant_set = set(relevant_items)
     rec_set = set(recommendation[:k])
-    hits = list((i in relevant_set) for i in recommendation if i in rec_set)
-    score = np.cumsum(hits) / (1 + np.arange(len(hits)))
-    return np.sum(score * hits) / len(relevant_items)
+    hits = [1 for p in rec_set if p in relevant_set]
+    score = np.sum(hits)
+    return score / min(len(relevant_items), k)
 
 
 def mean_average_recall_at_k(relevant_items: Union[List[List[int]], np.array],
@@ -83,9 +83,9 @@ def precision_k(relevant_items: Union[List[int], set, None],
     if relevant_items is None or len(relevant_items) == 0:
         return 0.0
     relevant_set = set(relevant_items)
-    rec_set = set(recommendation[:k])
+    rec_set = recommendation[:k]
 
-    hits = sum(1 for i in rec_set if i in relevant_set)
+    hits = sum(1/(i+1.0) for (i,p) in enumerate(rec_set) if p in relevant_set)
 
     return hits / k
 
