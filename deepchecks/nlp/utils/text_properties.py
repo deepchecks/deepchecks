@@ -21,8 +21,8 @@ import requests
 import textblob
 from nltk import corpus
 from nltk import download as nltk_download
-from typing_extensions import TypedDict
 from nltk import sent_tokenize, word_tokenize
+from typing_extensions import TypedDict
 
 from deepchecks.nlp.utils.text import remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
