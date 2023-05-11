@@ -12,6 +12,7 @@
 
 import numpy as np
 from hamcrest import assert_that, equal_to
+
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
 
 

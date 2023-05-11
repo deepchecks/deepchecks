@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base nlp context."""
-import collections
 import typing as t
 from operator import itemgetter
 
@@ -17,8 +16,9 @@ import numpy as np
 
 from deepchecks.core.context import BaseContext
 from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
-                                    ModelValidationError, ValidationError)
-from deepchecks.nlp.input_validations import compare_dataframes
+                                    ModelValidationError)
+from deepchecks.nlp.input_validations import (_validate_multilabel, _validate_text_classification,
+                                              _validate_token_classification, compare_dataframes)
 from deepchecks.nlp.metric_utils.scorers import init_validate_scorers
 from deepchecks.nlp.metric_utils.token_classification import (get_default_token_scorers, get_scorer_dict,
                                                               validate_scorers)
@@ -27,10 +27,10 @@ from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.data_inference import infer_observed_and_model_labels
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
-from deepchecks.tabular.utils.validation import ensure_predictions_proba, ensure_predictions_shape
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import BasicModel
+from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = [
     'Context',
@@ -39,13 +39,19 @@ __all__ = [
     'TTokenPred'
 ]
 
-from deepchecks.utils.validation import is_sequence_not_str
 
-TClassPred = t.Union[t.Sequence[t.Union[str, int]], t.Sequence[t.Sequence[t.Union[str, int]]]]
-TClassProba = t.Sequence[t.Sequence[float]]
-TTokenPred = t.Sequence[t.Sequence[t.Tuple[str, int, int, float]]]
+TClassPred = t.Union[
+    t.Sequence[int],
+    t.Sequence[str],
+    t.Sequence[t.Sequence[int]]
+]
+TTokenPred = t.Union[
+    t.Sequence[t.Sequence[int]],
+    t.Sequence[t.Sequence[str]],
+]
+
 TTextPred = t.Union[TClassPred, TTokenPred]
-TTextProba = t.Union[TClassProba]  # TODO: incorrect, why union have only one type argument?
+TTextProba = t.Sequence[t.Sequence[float]]
 
 
 class _DummyModel(BasicModel):
@@ -72,68 +78,81 @@ class _DummyModel(BasicModel):
     predictions: t.Dict[str, t.Dict[int, TTextPred]]
     proba: t.Dict[str, t.Dict[int, TTextProba]]
 
-    def __init__(self,
-                 test: TextData,
-                 y_pred_test: TTextPred,
-                 y_proba_test: TTextProba,
-                 train: t.Union[TextData, None] = None,
-                 y_pred_train: TTextPred = None,
-                 y_proba_train: TTextProba = None,
-                 model_classes: list = None,
-                 validate_data_on_predict: bool = True):
+    def __init__(
+        self,
+        *,
+        test: TextData,
+        y_pred_test: TTextPred,
+        y_proba_test: TTextProba,
+        model_classes: t.List[t.Any],
+        train: t.Optional[TextData] = None,
+        y_pred_train: t.Optional[TTextPred] = None,
+        y_proba_train: t.Optional[TTextProba] = None,
+        validate_data_on_predict: bool = True,
+        multilabel_proba_threshold: float = 0.5
+    ):
         """Initialize dummy model."""
         predictions = {}
         probas = {}
 
-        if ((y_proba_train is not None) or (y_proba_test is not None)) and \
-                (train.task_type == TaskType.TOKEN_CLASSIFICATION):
-            raise DeepchecksNotSupportedError('For token classification probabilities are not supported')
-
         if train is not None and test is not None:
             # check if datasets have same indexes
-            if set(train.get_original_text_indexes()) & set(test.get_original_text_indexes()):
-                train._original_text_index = np.asarray([f'train-{i}' for i in train.get_original_text_indexes()])
-                test._original_text_index = np.asarray([f'test-{i}' for i in test.get_original_text_indexes()])
+            train_index = train.get_original_text_indexes()
+            test_index = test.get_original_text_indexes()
+            if set(train_index) & set(test_index):
+                train._original_text_index = np.asarray([f'train-{i}' for i in train_index])
+                test._original_text_index = np.asarray([f'test-{i}' for i in test_index])
                 # # This is commented out as currently text data indices are len(range(len(data)))
                 # # TODO: Uncomment when text data indices are not len(range(len(data)))
                 # get_logger().warning('train and test datasets have common index - adding "train"/"test"'
                 #                      ' prefixes. To avoid that provide datasets with no common indexes '
                 #                      'or pass the model object instead of the predictions.')
 
-        for dataset, y_pred, y_proba in zip([train, test],
-                                            [y_pred_train, y_pred_test],
-                                            [y_proba_train, y_proba_test]):
-            if dataset is not None:
-                if y_pred is not None:
-                    self._validate_prediction(dataset, y_pred, len(model_classes))
-                if y_proba is not None:
-                    self._validate_proba(dataset, y_proba, len(model_classes))
+        for dataset, y_pred, y_proba in (
+            (train, y_pred_train, y_proba_train),
+            (test, y_pred_test, y_proba_test),
+        ):
+            if dataset is None:
+                continue
 
-                if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
-                    if (y_pred is None) and (y_proba is not None):
-                        if dataset.is_multi_label_classification():
-                            y_pred = (np.array(y_proba) > 0.5)  # TODO: Replace with user-configurable threshold
-                        else:
-                            y_pred = np.argmax(np.array(y_proba), axis=-1)
-                            y_pred = np.array(model_classes, dtype='str')[y_pred]
+            if dataset.is_multi_label_classification():
+                y_pred, y_proba = _validate_multilabel(
+                    dataset=dataset,
+                    predictions=y_pred,
+                    probabilities=y_proba,
+                    n_of_classes=len(model_classes)
+                )
+                if y_pred is None and y_proba is not None:
+                    y_pred = (np.array(y_proba) > multilabel_proba_threshold)
+                    y_pred = y_pred.astype(int)
 
-                    if y_pred is not None:
-                        if dataset.is_multi_label_classification():
-                            y_pred = np.array(y_pred)
-                        else:
-                            y_pred = np.array(y_pred, dtype='str')
-                        if len(y_pred.shape) > 1 and y_pred.shape[1] == 1:
-                            y_pred = y_pred[:, 0]
-                        ensure_predictions_shape(y_pred, dataset.text)
+            elif dataset.task_type is TaskType.TEXT_CLASSIFICATION:
+                y_pred, y_proba = _validate_text_classification(
+                    dataset=dataset,
+                    predictions=y_pred,
+                    probabilities=y_proba,
+                    n_of_classes=len(model_classes)
+                )
+                if y_pred is None and y_proba is not None:
+                    y_pred = np.argmax(np.array(y_proba), axis=-1)
+                    y_pred = np.array(model_classes, dtype='str')[y_pred]
 
-                    if y_proba is not None:
-                        ensure_predictions_proba(y_proba, y_pred)
-                        y_proba_dict = dict(zip(dataset.get_original_text_indexes(), y_proba))
-                        probas.update({dataset.name: y_proba_dict})
+            elif dataset.task_type is TaskType.TOKEN_CLASSIFICATION:
+                _validate_token_classification(
+                    dataset=dataset,
+                    predictions=y_pred,
+                    probabilities=y_proba,
+                )
 
-                if y_pred is not None:
-                    y_pred_dict = dict(zip(dataset.get_original_text_indexes(), y_pred))
-                    predictions.update({dataset.name: y_pred_dict})
+            else:
+                raise ValueError(f'Unknown task type - {type(dataset.task_type)}')
+
+            if y_pred is not None:
+                y_pred_dict = dict(zip(dataset.get_original_text_indexes(), y_pred))
+                predictions.update({dataset.name: y_pred_dict})
+            if y_proba is not None:
+                y_proba_dict = dict(zip(dataset.get_original_text_indexes(), y_proba))
+                probas.update({dataset.name: y_proba_dict})
 
         self.predictions = predictions
         self.probas = probas
@@ -142,13 +161,16 @@ class _DummyModel(BasicModel):
 
         if self.predictions:
             self.predict = self._predict
-            self._prediction_indices = \
-                {name: set(data_preds.keys()) for name, data_preds in self.predictions.items()}
-
+            self._prediction_indices = {
+                name: set(data_preds.keys())
+                for name, data_preds in self.predictions.items()
+            }
         if self.probas:
             self.predict_proba = self._predict_proba
-            self._proba_indices = \
-                {name: set(data_proba.keys()) for name, data_proba in self.probas.items()}
+            self._proba_indices = {
+                name: set(data_proba.keys())
+                for name, data_proba in self.probas.items()
+            }
 
     def _predict(self, data: TextData) -> TTextPred:  # TODO: Needs to receive list of strings, not TextData
         """Predict on given data by the data indexes."""
@@ -173,111 +195,6 @@ class _DummyModel(BasicModel):
     def fit(self, *args, **kwargs):
         """Just for python 3.6 (sklearn validates fit method)."""
         pass
-
-    @staticmethod
-    def _validate_prediction(dataset: TextData, prediction: TTextPred, n_classes: int):
-        """Validate prediction for given dataset."""
-        if not (is_sequence_not_str(prediction)
-                or (isinstance(prediction, np.ndarray) and prediction.ndim == 1)):
-            raise ValidationError(f'Check requires predictions for {dataset.name} to be a sequence')
-        if len(prediction) != dataset.n_samples:
-            raise ValidationError(f'Check requires predictions for {dataset.name} to have '
-                                  f'{dataset.n_samples} rows, same as dataset')
-
-        if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
-            _DummyModel._validate_classification_prediction(dataset, prediction, n_classes)
-        elif dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
-            _DummyModel._validate_token_classification_prediction(dataset, prediction)
-
-    @staticmethod
-    def _validate_classification_prediction(dataset: TextData, prediction: TTextPred, n_classes: int):
-        """Validate prediction for given text classification dataset."""
-        classification_format_error = f'Check requires classification predictions for {dataset.name} to be ' \
-                                      f'either a sequence that can be cast to a 1D numpy array of shape' \
-                                      f' (n_samples,), or a sequence of sequences that can be cast to a 2D ' \
-                                      f'numpy array of shape (n_samples, n_classes) for the multilabel case.'
-
-        try:
-            prediction = np.array(prediction)
-            if dataset.is_multi_label_classification():
-                prediction = prediction.astype(float)  # Multilabel prediction is a binary matrix
-            else:
-                prediction = prediction.reshape((-1, 1))  # Multiclass (not multilabel) Prediction can be a string
-                if prediction.shape[0] != dataset.n_samples:
-                    raise ValidationError(classification_format_error)
-        except ValueError as e:
-            raise ValidationError(classification_format_error) from e
-        pred_shape = prediction.shape
-        if dataset.is_multi_label_classification():
-            if len(pred_shape) == 1 or pred_shape[1] != n_classes:
-                raise ValidationError(classification_format_error)
-            if not np.array_equal(prediction, prediction.astype(bool)):
-                raise ValidationError(f'Check requires classification predictions for {dataset.name} dataset '
-                                      f'to be either 0 or 1')
-
-    @staticmethod
-    def _validate_token_classification_prediction(dataset: TextData, prediction: TTextPred):
-        """Validate prediction for given token classification dataset."""
-        if not is_sequence_not_str(prediction):
-            raise ValidationError(
-                f'Check requires predictions for {dataset.name} to be a sequence of sequences'
-            )
-
-        tokenized_text = dataset.tokenized_text
-
-        for idx, sample_predictions in enumerate(prediction):
-            if not is_sequence_not_str(sample_predictions):
-                raise ValidationError(
-                    f'Check requires predictions for {dataset.name} to be a sequence of sequences'
-                )
-
-            predictions_types_counter = collections.defaultdict(int)
-
-            for p in sample_predictions:
-                predictions_types_counter[type(p)] += 1
-
-            if predictions_types_counter[str] > 0 and predictions_types_counter[int] > 0:
-                raise ValidationError(
-                    f'Check requires predictions for {dataset.name} to be a sequence '
-                    'of sequences of strings or integers'
-                )
-            if len(sample_predictions) != len(tokenized_text[idx]):
-                raise ValidationError(
-                    f'Check requires predictions for {dataset.name} to have '
-                    'the same number of tokens as the input text'
-                )
-
-    @staticmethod
-    def _validate_proba(dataset: TextData, probabilities: TTextProba, n_classes: int,
-                        eps: float = 1e-3):
-        """Validate predicted probabilities for given dataset."""
-        classification_format_error = f'Check requires classification probabilities for {dataset.name} to be a ' \
-                                      f'sequence of sequences that can be cast to a 2D numpy array of shape' \
-                                      f' (n_samples, n_classes)'
-
-        if len(probabilities) != dataset.n_samples:
-            raise ValidationError(f'Check requires classification probabilities for {dataset.name} dataset '
-                                  f'to have {dataset.n_samples} rows, same as dataset')
-
-        if dataset.task_type == TaskType.TEXT_CLASSIFICATION:
-            try:
-                probabilities = np.array(probabilities, dtype='float')
-            except ValueError as e:
-                raise ValidationError(classification_format_error) from e
-            proba_shape = probabilities.shape
-            if len(proba_shape) != 2:
-                raise ValidationError(classification_format_error)
-            if proba_shape[1] != n_classes:
-                raise ValidationError(f'Check requires classification probabilities for {dataset.name} dataset '
-                                      f'to have {n_classes} columns, same as the number of classes')
-            if dataset.is_multi_label_classification():
-                if (probabilities > 1).any() or (probabilities < 0).any():
-                    raise ValidationError(f'Check requires classification probabilities for {dataset.name} '
-                                          f'dataset to be between 0 and 1')
-            else:
-                if any(abs(probabilities.sum(axis=1) - 1) > eps):
-                    raise ValidationError(f'Check requires classification probabilities for {dataset.name} '
-                                          f'dataset to be probabilities and sum to 1 for each row')
 
 
 class Context(BaseContext):

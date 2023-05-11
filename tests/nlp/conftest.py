@@ -144,8 +144,8 @@ def text_token_classification_dataset_mock():
 def multilabel_mock_dataset_and_probabilities(tweet_emotion_train_test_textdata):
     """Mock dataset and probabilities for multilabel classification"""
     from sklearn.datasets import make_multilabel_classification
-    from sklearn.model_selection import train_test_split
     from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import train_test_split
 
     X, y = make_multilabel_classification(n_samples=3_000, n_features=10, n_classes=3, n_labels=2,
                                           random_state=42)

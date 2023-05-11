@@ -174,7 +174,7 @@ def test_condition_misclassified_samples_lower_than_fails(iris_split_dataset_and
     x, y = max_misclassified_cell_idx
     max_misclassified_samples = confusion_matrix[x][y]
     max_misclassified_samples_ratio = max_misclassified_samples / len(test)
-    
+
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         name=f'Misclassified cell size lower than {format_percent(threshold)} of the total samples',
