@@ -64,47 +64,6 @@ containing hand chosen checks and
 :ref:`configure_check_conditions`
 in order to cater to the specific needs of the project.
 
-Airflow Integration
-===================
-
-.. image:: /_static/images/cicd/airflow.png
-   :alt: Airflow DAG example
-   :align: center
-
-Airflow Quickstart
--------------------
-
-Apache Airflow is an open-source workflow management system which is commonly used to automate data processing
-pipelines.
-
-If you are new to Airflow, you can get it up and running quickly with the following simplified steps:
-
-1. Run ``pip install apache-airflow``
-2. Run ``airflow standalone``. This will bootstrap a local Airflow deployment which is good for testing, but not intended for production
-3. Under your home directory, insert your DAG (python file) inside the directory ``~/airflow/dags``
-
-For a more elaborate explanation about installing and operating airflow see their
-`docs <https://airflow.apache.org/docs/apache-airflow/stable/start.html>`__.
-
-Airflow With Deepchecks
------------------------
-
-In the following example we will use S3 object storage to load the training data and to store our suite results. We define the first
-2 tasks as short circuit tasks, which means the rest of the downstream tasks will be skipped if the return value of
-them is false. This is useful in cases where we want to stop the pipeline if the data validation failed.
-We can also add an additional step of deploying the model after the last validation has passed.
-
-.. literalinclude:: ../../../../examples/cicd/airflow.py
-    :language: python
-    :tab-width: 0
-
-We can access the result of the pipeline in our S3 bucket:
-
-.. image:: /_static/images/cicd/s3_suites.png
-   :alt: Airflow DAG example
-   :align: center
-
-
 GitHub Actions Integration
 ==========================
 
@@ -180,3 +139,45 @@ The yaml file for the GitHub Actions workflow is as follows:
             with:
               name: deepchecks results
               path: *_validation.html
+
+
+
+Airflow Integration
+===================
+
+.. image:: /_static/images/cicd/airflow.png
+   :alt: Airflow DAG example
+   :align: center
+
+Airflow Quickstart
+-------------------
+
+Apache Airflow is an open-source workflow management system which is commonly used to automate data processing
+pipelines.
+
+If you are new to Airflow, you can get it up and running quickly with the following simplified steps:
+
+1. Run ``pip install apache-airflow``
+2. Run ``airflow standalone``. This will bootstrap a local Airflow deployment which is good for testing, but not intended for production
+3. Under your home directory, insert your DAG (python file) inside the directory ``~/airflow/dags``
+
+For a more elaborate explanation about installing and operating airflow see their
+`docs <https://airflow.apache.org/docs/apache-airflow/stable/start.html>`__.
+
+Airflow With Deepchecks
+-----------------------
+
+In the following example we will use S3 object storage to load the training data and to store our suite results. We define the first
+2 tasks as short circuit tasks, which means the rest of the downstream tasks will be skipped if the return value of
+them is false. This is useful in cases where we want to stop the pipeline if the data validation failed.
+We can also add an additional step of deploying the model after the last validation has passed.
+
+.. literalinclude:: ../../../../examples/cicd/airflow.py
+    :language: python
+    :tab-width: 0
+
+We can access the result of the pipeline in our S3 bucket:
+
+.. image:: /_static/images/cicd/s3_suites.png
+   :alt: Airflow DAG example
+   :align: center
