@@ -205,7 +205,8 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
     result = []
     for text in raw_text:
         words = text.split()
-        if not words: continue
+        if not words:
+            continue
         result.append(max(len(w) for w in words))
     return result
 
@@ -231,7 +232,7 @@ def language(
     if not model_path.exists():
         response = requests.get(FASTTEXT_LANG_MODEL, timeout=240)
         if response.status_code != 200:
-            raise RuntimeError("Failed to donwload fasttext model")
+            raise RuntimeError('Failed to donwload fasttext model')
         model_path.write_bytes(response.content)
 
     # This weird code is to suppress a warning from fasttext about a deprecated function
