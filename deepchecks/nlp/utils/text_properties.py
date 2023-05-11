@@ -354,14 +354,14 @@ def readability_score(raw_text: Sequence[str]) -> List[str]:
                       ' Please check your internet connection.', UserWarning)
         return [np.nan] * len(raw_text)
     result = []
-    cmudict_corpus = corpus.cmudict.dict()
+    cmudict_dict = corpus.cmudict.dict()
     for text in raw_text:
         if not pd.isna(text):
             sentence_count = len(sent_tokenize(text))
             text = remove_punctuation(text)
             words = word_tokenize(text)
             word_count = len(words)
-            syllable_count = sum([len(cmudict_corpus[word.lower()]) for word in words if word.lower() in cmudict_corpus])
+            syllable_count = sum([len(cmudict_dict[word.lower()]) for word in words if word.lower() in cmudict_dict])
             if word_count != 0 and sentence_count != 0 and syllable_count != 0:
                 avg_syllables_per_word = syllable_count / word_count
                 avg_words_per_sentence = word_count / sentence_count
