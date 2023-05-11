@@ -386,7 +386,7 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
             sentences = [remove_punctuation(sent) for sent in sent_tokenize(text)]
             total_words = sum([len(word_tokenize(sentence)) for sentence in sentences])
             if len(sentences) != 0:
-                asl = round(total_words / len(sentences))
+                asl = total_words / len(sentences)
                 result.append(round(asl, 0))
             else:
                 result.append(np.nan)
