@@ -228,7 +228,7 @@ def language(raw_text: Sequence[str],
     # This weird code is to suppress a warning from fasttext about a deprecated function
     try:
         fasttext.FastText.eprint = lambda *args, **kwargs: None
-        model = fasttext.load_model(model_path)
+        model = fasttext.load_model(str(model_path))
     except Exception as exp:
         raise exp
 
