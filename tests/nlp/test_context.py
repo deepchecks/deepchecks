@@ -255,3 +255,13 @@ def test_same_dataset(tweet_emotion_train_test_textdata):
 
     # Assert
     assert_that(result.value['Drift score'], close_to(0.0, 0.001))
+
+
+def test_check_execution_with_none_value_in_predictions_sequence(text_classification_dataset_mock):
+    # Arrange
+    check = SingleDatasetPerformance(scorers=['recall_macro'])
+    # Act
+    result = check.run(text_classification_dataset_mock, predictions=[1, None, 1])
+    # Assert
+    assert_that(result.value['Value'], close_to(0.5, 0.001))
+
