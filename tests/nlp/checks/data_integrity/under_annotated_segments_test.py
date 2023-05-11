@@ -120,8 +120,8 @@ def test_token_classification_dataset(small_wikiann_train_test_text_data):
     ))
 
     assert_that(result.value['avg_score'], close_to(0.8, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(15))
-    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.375, 0.01))
+    assert_that(len(result.value['weak_segments_list']), equal_to(28))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.333, 0.01))
 
 
 def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
