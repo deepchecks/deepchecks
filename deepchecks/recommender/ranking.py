@@ -195,15 +195,15 @@ def mean_reciprocal_rank(relevant_items: List, recommendations: List[List]) -> f
 
     return np.mean(reciprocal_ranks)
 
-def dcg(y_true : np.ndarray,
-        y_pred : np.ndarray,
+def dcg(relevant_items : np.ndarray,
+        recommendations : np.ndarray,
         k : int) -> float:
     """
     Compute discounted cumulative gain (DCG).
     
     Parameters:
-        y_true (numpy.ndarray): Array of true relevance labels.
-        y_pred (numpy.ndarray): Array of predicted relevance scores.
+        relevant_items (numpy.ndarray): Array of true relevance labels.
+        recommendations (numpy.ndarray): Array of predicted relevance scores.
         k (int): Number of top items to consider. If None, use all items.
     
     Returns:
@@ -211,37 +211,37 @@ def dcg(y_true : np.ndarray,
     """
     dcg_value = 0
     if k is None:
-        k = len(y_true)
+        k = len(relevant_items)
     # Sort the true labels and predicted scores by the scores
-    idx =  np.argsort(y_pred)[::-1]
-    y_true = y_true[idx]
+    idx =  np.argsort(recommendations)[::-1]
+    relevant_items = relevant_items[idx]
     # Compute the DCG
     log2 = np.log2(np.arange(2, k+2))
-    dcg_value = np.sum(y_true / log2)
+    dcg_value = np.sum(relevant_items / log2)
     return dcg_value
 
-def ndcg_k(y_true : np.ndarray,
+def ndcg_k(relevant_items : np.ndarray,
            y_pred : np.ndarray,
            k : int) -> float:
     """
     Compute normalized discounted cumulative gain (NDCG).
     
     Parameters:
-        y_true (numpy.ndarray): Array of true relevance labels.
-        y_pred (numpy.ndarray): Array of predicted relevance scores.
+        relevant_items (numpy.ndarray): Array of true relevance labels.
+        recommendations (numpy.ndarray): Array of predicted relevance scores.
         k (int): Number of top items to consider. If None, use all items.
     
     Returns:
         float: NDCG score.
     """
     if k is None:
-        k = len(y_true)
+        k = len(relevant_items)
     # Compute the ideal DCG by sorting the true labels in decreasing order
-    idx = np.argsort(y_true)[::-1]
+    idx = np.argsort(relevant_items)[::-1]
     #idx = np.argpartition(y_pred, -k)[-k:]
-    ideal_dcg = dcg(y_true[idx], y_true[idx], k)
+    ideal_dcg = dcg(relevant_items[idx], relevant_items[idx], k)
     # Compute the actual DCG using the predicted scores
-    dcg_score = dcg(y_true, y_pred, k)
+    dcg_score = dcg(relevant_items, recommendations, k)
     # Compute the NDCG
     ndcg_score = dcg_score / ideal_dcg if ideal_dcg > 0 else 0
     return ndcg_score
