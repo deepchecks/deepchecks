@@ -233,7 +233,7 @@ test-win:
 	$(PIP_WIN) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
 			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
-	@$(PIP_WIN) install -q "langdetect>=1.0.9" "textblob>=0.17.1";
+	@$(PIP_WIN) install -q "langdetect>=1.0.9" "textblob>=0.17.1" "fasttext>=0.8.0";
 	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
 	@$(PIP_WIN) install -q "tensorflow==2.11.0";
 	@$(PIP_WIN) install -U pip
