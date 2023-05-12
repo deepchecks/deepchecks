@@ -243,12 +243,16 @@ def language(
         raise exp
 
     # Predictions are the first prediction (k=1), only if the probability is above the threshold
-    predictions = model.predict(list(raw_text), k=1, threshold=lang_certainty_threshold)
-
-    # x is empty for detection below threshold
+    predictions = [
+        model.predict(it, k=1, threshold=lang_certainty_threshold)
+        if it is not None
+        else (None, None)
+        for it in raw_text
+    ]
+    # labels is empty for detection below threshold
     language_codes = [
-        x[0].replace('__label__', '') if x else None
-        for x in predictions[0]
+        labels[0].replace('__label__', '') if labels else None
+        for labels, _ in predictions
     ]
 
     return language_codes
@@ -433,8 +437,13 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
 
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
-ENGLISH_ONLY_PROPERTIES = ('Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality')
 LARGE_SAMPLE_SIZE = 10_000
+
+ENGLISH_ONLY_PROPERTIES = (
+    'Sentiment', 'Subjectivity', 'Toxicity',
+    'Fluency', 'Formality', 'Readability Score',
+    'Unique Noun Count'
+)
 
 
 def _select_properties(
@@ -533,6 +542,10 @@ def calculate_default_properties(
         include_long_calculation_properties=include_long_calculation_properties,
         n_of_samples=len(raw_text)
     )
+    properties_types = {
+        it['name']: it['output_type']
+        for it in text_properties
+    }
 
     kwargs = dict(device=device, models_storage=models_storage)
     english_properties_names = set(ENGLISH_ONLY_PROPERTIES)
@@ -541,7 +554,6 @@ def calculate_default_properties(
     english_samples = []
     english_samples_mask = []
     calculated_properties = {}
-    properties_types = {}
 
     if english_properties_names & text_properties_names:
         samples_language = run_available_kwargs(
@@ -562,7 +574,6 @@ def calculate_default_properties(
         for prop in text_properties:
             if prop['name'] == 'Language':
                 calculated_properties['Language'] = samples_language
-                properties_types['Language'] = prop['output_type']
             else:
                 new_text_properties.append(prop)
 
@@ -583,7 +594,6 @@ def calculate_default_properties(
                 continue
             else:
                 calculated_properties[prop['name']] = values
-                properties_types[prop['name']] = prop['output_type']
         else:
             try:
                 values = run_available_kwargs(prop['method'], raw_text=english_samples, **kwargs)
@@ -593,16 +603,22 @@ def calculate_default_properties(
             else:
                 result = []
                 idx = 0
+                fill_value = np.nan if prop['output_type'] == 'numeric' else None
                 for mask in english_samples_mask:
                     if mask:
                         result.append(values[idx])
                         idx += 1
                     else:
-                        result.append(None)
+                        result.append(fill_value)
                 calculated_properties[prop['name']] = result
-                properties_types[prop['name']] = prop['output_type']
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
+
+    properties_types = {
+        k: v
+        for k, v in properties_types.items()
+        if k in calculated_properties
+    }
 
     return calculated_properties, properties_types

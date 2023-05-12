@@ -73,12 +73,11 @@ def test_calculate_unique_noun_count_property(tweet_emotion_train_test_textdata)
                                                     include_long_calculation_properties=True)[0]
 
     # Assert
-    assert_that(result['Unique Noun Count'][0: 10], equal_to([9, 2, 3, 3, 4, 10, 4, 2, 7, 5]))
+    assert_that(result['Unique Noun Count'][0: 10], equal_to([9, 2, 3, 3, 4, 10, np.nan, 2, 7, 5]))
     assert_that(result_none_text['Unique Noun Count'], equal_to([np.nan]))
 
 
 def test_calculate_average_sentence_length_property(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -93,7 +92,6 @@ def test_calculate_average_sentence_length_property(tweet_emotion_train_test_tex
 
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -103,7 +101,9 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     result_none_text = calculate_default_properties([None], include_properties=['Readability Score'])[0]
 
     # Assert
-    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103, 71.782, 90.99, 75.5, 70.102, 95.564]))
+    assert_that(result['Readability Score'][0: 10], equal_to([
+        102.045, 97.001, 80.306, 67.755, 77.103, 71.782, np.nan, 75.5, 70.102, 95.564
+    ]))
     assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
 
 
@@ -174,17 +174,20 @@ def test_properties_models_download_into_provided_directory():
 
 
 def test_english_only_properties_calculation_with_not_english_samples():
+    # Arrange
     text = [
         'Explicit is better than implicit',
         'Сьогодні чудова погода',
         'London is the capital of Great Britain'
     ]
+    # Act
     properties, properties_types = calculate_default_properties(
         raw_text=text,
         include_properties=['Sentiment', 'Language', 'Text Length']
     )
+    # Assert
     assert_that(properties, has_entries({
-        'Sentiment': contains_exactly(close_to(0.5, 0.01), None, close_to(0.8, 0.01)),
+        'Sentiment': contains_exactly(close_to(0.5, 0.01), same_instance(np.nan), close_to(0.8, 0.01)),
         'Language': contains_exactly('en', 'uk', 'en'),
         'Text Length': contains_exactly(*[len(it) for it in text]),
     }))  # type: ignore
