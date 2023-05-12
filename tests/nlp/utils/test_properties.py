@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 from hamcrest import *
 
+from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_default_properties, get_transformer_model
 
 
@@ -170,3 +171,27 @@ def test_properties_models_download_into_provided_directory():
     assert MODELS_STORAGE.exists() and MODELS_STORAGE.is_dir()
     assert model_path.exists() and model_path.is_dir()
     assert onnx_model_path.exists() and onnx_model_path.is_dir()
+
+
+def test_english_only_properties_calculation_with_not_english_samples():
+    text = [
+        'Explicit is better than implicit',
+        'Сьогодні чудова погода',
+        'London is the capital of Great Britain'
+    ]
+    properties, properties_types = calculate_default_properties(
+        raw_text=text,
+        include_properties=['Sentiment', 'Language', 'Text Length']
+    )
+    assert_that(properties, has_entries({
+        'Sentiment': contains_exactly(close_to(0.5, 0.01), None, close_to(0.8, 0.01)),
+        'Language': contains_exactly('en', 'uk', 'en'),
+        'Text Length': contains_exactly(*[len(it) for it in text]),
+    }))  # type: ignore
+    assert_that(properties_types, has_entries({
+        'Sentiment': 'numeric',
+        'Language': 'categorical',
+        'Text Length': 'numeric',
+    }))  # type: ignore
+
+

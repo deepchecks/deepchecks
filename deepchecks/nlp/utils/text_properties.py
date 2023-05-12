@@ -246,8 +246,10 @@ def language(
     predictions = model.predict(list(raw_text), k=1, threshold=lang_certainty_threshold)
 
     # x is empty for detection below threshold
-    # TODO: why nan and not None?
-    language_codes = [x[0].replace('__label__', '') if x else np.nan for x in predictions[0]]
+    language_codes = [
+        x[0].replace('__label__', '') if x else None
+        for x in predictions[0]
+    ]
 
     return language_codes
 
@@ -571,7 +573,6 @@ def calculate_default_properties(
         'Dependencies required by property are not installed. '
         'Error:\n{1}'
     )
-
     # TODO: refactor
     for prop in text_properties:
         if prop['name'] not in english_properties_names:
@@ -593,8 +594,11 @@ def calculate_default_properties(
                 result = []
                 idx = 0
                 for mask in english_samples_mask:
-                    result.append(values[idx] if mask else None)
-                    idx += 1
+                    if mask:
+                        result.append(values[idx])
+                        idx += 1
+                    else:
+                        result.append(None)
                 calculated_properties[prop['name']] = result
                 properties_types[prop['name']] = prop['output_type']
 

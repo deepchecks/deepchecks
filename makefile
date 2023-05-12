@@ -174,7 +174,7 @@ vision-torch-tf-setup: env
 
 nlp-tests-setup: env
 	@echo "####  installing nlp properties packages #### "
-	$(PIP) install -q "langdetect>=1.0.9" "textblob>=0.17.1";
+	$(PIP) install -q "langdetect>=1.0.9" "textblob>=0.17.1" "fasttext>=0.8.0"
 
 requirements: vision-torch-tf-setup nlp-tests-setup
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
