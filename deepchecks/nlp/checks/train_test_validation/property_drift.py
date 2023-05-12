@@ -22,8 +22,6 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['PropertyDrift']
 
 
-# TODO:
-# refactor, separate general drift logic into separate class/module and use it with drift checks
 class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
     """
     Calculate drift between train dataset and test dataset per feature, using statistical measures.
