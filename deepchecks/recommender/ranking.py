@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------------
 # Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
-# #
+#
 # This file is part of Deepchecks.
 # Deepchecks is distributed under the terms of the GNU Affero General
 # Public License (version 3 or later).
@@ -272,6 +272,7 @@ def mean_average_ndcg_k(relevant_items: Union[List, np.array],
 def popularity_based_novelty(recommendations: Union[List[list], np.array],
                              items_popularity: Union[dict, None],
                              num_users: int,
+                             popK_pct : 0.05,
                              k: int = 20) -> Tuple[float, float]:
     """
     Calculate the popularity-based novelty metric for a list of recommendations.
@@ -280,6 +281,8 @@ def popularity_based_novelty(recommendations: Union[List[list], np.array],
         items_popularity (Union[dict, None]): measure the popularity of an item based on its frequency of interactions with users. 
         It is usually calculated as the number of times the item has been interacted with.
         num_users (int): Total number of users.
+        popK_pct (float): represents the percentage of the K most popular items in a dataset.
+        It quantifies the relative frequency of these top K items out of the total number of items in the dataset, presented as a percentage.
         k (int): The number of top items to consider for novelty. Default is 20.
 
     Returns:
@@ -288,7 +291,7 @@ def popularity_based_novelty(recommendations: Union[List[list], np.array],
     #epsilon = 1e-10
     # Calculate the mean surprisal/self-information of the top K popular head items
     top_information_mean = 0
-    most_popular_item_catalog = round(0.05 * len(items_popularity))
+    most_popular_item_catalog = round(popK_pct * len(items_popularity))
     popularity_topk_items = sorted(items_popularity)[-most_popular_item_catalog:]
     for item_ in popularity_topk_items:
         top_information_mean += -np.log2(( item_ + 1e-10) / num_users)
@@ -308,24 +311,25 @@ def popularity_based_novelty(recommendations: Union[List[list], np.array],
     normalized_novelty = novelty / top_information_mean
     return novelty, normalized_novelty
 
-def diversity_score(predictions: List, target_vectors: Union[List, np.array],
+def diversity_score(recommandations: List,
+                    item_features: Union[List, np.array],
                     top_n: int = 10) -> float:
     """
     Compute the diversity score of a set of recommendations.
     Parameters:
-    predictions (List): List of predicted item indices for each user.
-    target_vectors (Union[List, np.array]): List or array of item feature vectors.
+    recommandations (List): List of predicted item indices for each user.
+    item_features (Union[List, np.array]): List or array of item feature vectors.
     top_n (int): The number of top recommended items to consider.
 
     Returns:
         float: Diversity score.
     """
     # If there are no predictions, return 0.
-    if len(predictions) == 0:
+    if len(recommandations) == 0:
         return 0.0
 
     # Compute the cosine similarity matrix between the target vectors.
-    sim_matrix = cosine_similarity(target_vectors[:top_n])
+    sim_matrix = cosine_similarity(item_features[:top_n])
 
     # We only consider the upper or lower matrix triangle and ignore the diagonal as well.
     sim_avg = sim_matrix[np.tril_indices(len(sim_matrix), -1)].mean()
