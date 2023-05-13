@@ -21,7 +21,6 @@ from umap import UMAP
 from deepchecks.core.check_utils.multivariate_drift_utils import auc_to_drift_score, build_drift_plot
 from deepchecks.nlp import TextData
 from deepchecks.nlp.utils.nlp_plot import two_datasets_scatter_plot
-from deepchecks.utils.dataframes import floatify_dataframe
 
 # Max number of samples to use for dimensionality reduction fit (to make calculation faster):
 SAMPLES_FOR_REDUCTION_FIT = 1000
