@@ -515,7 +515,6 @@ class TextData:
     def label_for_display(self, model_classes: list = None) -> TTextLabel:
         """Return the label defined in the dataset in a format that can be displayed.
 
-
         Parameters
         ----------
         model_classes : list, default None
