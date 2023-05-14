@@ -38,5 +38,8 @@ def read_and_save_data(assets_dir, file_name, url_to_file, file_type='csv', to_n
             raise ValueError('file_type must be either "csv" or "npy"')
 
     if to_numpy:
-        data = data.to_numpy()
+        if isinstance(data, pd.DataFrame):
+            data = data.to_numpy()
+        elif not isinstance(data, np.ndarray):
+            raise ValueError(f'Unknown data type - {type(data)}. Must be either pandas.DataFrame or numpy.ndarray')
     return data
