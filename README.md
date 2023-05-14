@@ -70,7 +70,7 @@ data integrity, distribution mismatches, and more.
 **This README refers to the Tabular version** of deepchecks.
 
 - Check out the [Deepchecks for Computer Vision & Images subpackage](deepchecks/vision) for more details about deepchecks for CV, currently in *beta release*.
-- Check out the [Deepchecks for NLP subpackage](deepchecks/nlp) for more details about deepchecks for NLP, currently in *alpha release*.
+- Check out the [Deepchecks for NLP subpackage](deepchecks/nlp) for more details about deepchecks for NLP, currently in *beta release*.
 
 
 ## 💻 Installation
