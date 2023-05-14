@@ -12,7 +12,6 @@
 from typing import Optional
 
 import numpy as np
-import pandas as pd
 from tqdm import tqdm
 
 
@@ -34,7 +33,7 @@ def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
 
     Returns
     -------
-        pd.DataFrame
+        np.array
             The embeddings for the dataset.
     """
     if model == 'miniLM':
