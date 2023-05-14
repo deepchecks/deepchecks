@@ -16,11 +16,12 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
 from umap import UMAP
 
 from deepchecks.core.check_utils.multivariate_drift_utils import auc_to_drift_score, build_drift_plot
 from deepchecks.nlp import TextData
-from deepchecks.nlp.utils.nlp_plot import two_datasets_scatter_plot
+from deepchecks.nlp.utils.nlp_plot import two_datasets_scatter_plot, plot_clusters
 
 # Max number of samples to use for dimensionality reduction fit (to make calculation faster):
 SAMPLES_FOR_REDUCTION_FIT = 1000
@@ -97,7 +98,7 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
         test_dataset_for_display = test_sample.sample(num_samples_in_display_test, random_state=random_state)
 
         displays = [build_drift_plot(drift_score),
-                    display_embeddings(train_dataset=train_dataset_for_display,
+                    *display_embeddings(train_dataset=train_dataset_for_display,
                                        test_dataset=test_dataset_for_display,
                                        random_state=random_state)]
     else:
@@ -119,5 +120,38 @@ def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_s
     plot_data = pd.DataFrame({x_axis_title: reduced_embeddings[:, 0],
                               y_axis_title: reduced_embeddings[:, 1]})
     plot_title = 'Scatter Plot of Embeddings Space (reduced to 2 dimensions)'
-    return two_datasets_scatter_plot(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
+    domain_class_labels = [0] * len(train_dataset) + [1] * len(test_dataset)
+    node_per_sample, _ = get_interesting_nodes(data=plot_data, domain_class_labels=domain_class_labels)
+
+    fig1 = two_datasets_scatter_plot(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
                                      test_dataset=test_dataset)
+
+    fig2 = plot_clusters(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
+                                     test_dataset=test_dataset, node_per_sample=node_per_sample)
+
+    return [fig1, fig2]
+    # return two_datasets_scatter_plot(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
+    #                                  test_dataset=test_dataset)
+
+
+def get_interesting_nodes(data, domain_class_labels):
+    train, test, train_labels, test_labels = train_test_split(data, domain_class_labels,
+                                                              test_size=0.2, random_state=42)
+    min_cluster_size = max(50, int(len(train) * 0.04))
+    classifier = DecisionTreeClassifier(max_depth=30, min_samples_leaf=min_cluster_size, random_state=42,
+                                        criterion='entropy')
+    classifier.fit(train, train_labels)
+    classifier_auc = roc_auc_score(test_labels, classifier.predict_proba(test)[:, 1])
+    print(f'Classifier AUC: {classifier_auc}')
+
+    tree_node_values = pd.Series(test_labels).groupby(classifier.apply(test)).mean()
+    interesting_nodes = tree_node_values[tree_node_values < 0.4].index.tolist() + tree_node_values[
+        tree_node_values > 0.6].index.tolist()
+    print(f'Number of interesting nodes: {len(interesting_nodes)}')
+
+    train_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(train)),
+                               index=train.index)
+    test_node_ids = pd.Series((x if x in interesting_nodes else -1 for x in classifier.apply(test)), index=test.index)
+    node_per_sample = pd.concat([train_node_ids, test_node_ids])
+
+    return node_per_sample, tree_node_values

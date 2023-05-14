@@ -269,3 +269,22 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
                      opacity=0.4)
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
     return fig
+
+
+def plot_clusters(plot_title: str, plot_data: pd.DataFrame, train_dataset: TextData,
+                  test_dataset: TextData, node_per_sample: pd.Series):
+    axes = plot_data.columns
+
+    plot_data['Clusters'] = node_per_sample.values
+    if train_dataset.has_label():
+        plot_data['Label'] = np.concatenate([train_dataset.label_for_display, test_dataset.label_for_display])
+    else:
+        plot_data['Label'] = None
+    plot_data['Sample'] = np.concatenate([train_dataset.text, test_dataset.text])
+    # plot_data['Sample'] = plot_data['Sample'].apply(break_to_lines_and_trim)
+
+    fig = px.scatter(plot_data, x=axes[0], y=axes[1], color='Clusters',
+                     hover_data=['Label', 'Sample'], hover_name='Dataset', title=plot_title, height=600, width=1000,
+                     opacity=0.4)
+    fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
+    return fig
