@@ -510,6 +510,12 @@ class TextData:
     def label_for_display(self, model_classes: list = None) -> TTextLabel:
         """Return the label defined in the dataset in a format that can be displayed.
 
+
+        Parameters
+        ----------
+        model_classes : list, default None
+            List of classes names to use for multi-label display. Only used if the dataset is multi-label.
+
         Returns
         -------
         TTextLabel
@@ -517,7 +523,7 @@ class TextData:
         if self.is_multi_label_classification():
             ret_labels = [np.argwhere(x == 1).flatten().tolist() for x in self.label]
             if model_classes:
-                ret_labels = [[model_classes[i] for i in x] for x in ret_labels]
+                ret_labels = [str([model_classes[i] for i in x]) for x in ret_labels]
             return ret_labels
         else:
             return self.label
@@ -585,13 +591,26 @@ class TextData:
 
         return True
 
-    def head(self, n_samples: int = 5) -> pd.DataFrame:
-        """Return a copy of the dataset as a pandas Dataframe with the first n_samples samples."""
+    def head(self, n_samples: int = 5, model_classes: list = None) -> pd.DataFrame:
+        """Return a copy of the dataset as a pandas Dataframe with the first n_samples samples.
+
+        Parameters
+        ----------
+        n_samples : int, default 5
+            Number of samples to return.
+        model_classes : list, default None
+            List of classes names to use for multi-label display. Only used if the dataset is multi-label.
+
+        Returns
+        -------
+        pd.DataFrame
+            A copy of the dataset as a pandas Dataframe with the first n_samples samples.
+        """
         if n_samples > len(self):
             n_samples = len(self) - 1
         result = pd.DataFrame({'text': self.text[:n_samples]}, index=self.get_original_text_indexes()[:n_samples])
         if self.has_label():
-            result['label'] = self.label_for_display[:n_samples]
+            result['label'] = self.label_for_display(model_classes=model_classes)[:n_samples]
         if self._tokenized_text is not None:
             result['tokenized_text'] = self.tokenized_text[:n_samples]
         if self._metadata is not None:
