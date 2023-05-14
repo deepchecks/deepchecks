@@ -22,6 +22,8 @@ header:
     - 'deepchecks/VERSION'
     - 'deepchecks.egg-info/PKG-INFO'
     - 'makefile'
+    - 'makefile_linux'
+    - 'makefile_windows'
     - 'examples/'
     - 'docs/'
     - 'deepchecks/ppscore.py'
