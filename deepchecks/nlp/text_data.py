@@ -93,7 +93,7 @@ class TextData:
         The names of the categorical properties columns. If None, categorical properties columns are automatically
         inferred. Only relevant if properties is not None.
     embeddings : t.Optional[Union[np.ndarray, pd.DataFrame, str]], default: None
-        The text embeddings for the samples. Embeddings must be given as either a numpy array (or a path to an .npy
+        The text embeddings for the samples. Embeddings must be given as a numpy array (or a path to an .npy
         file containing a numpy array) of shape (N, E), where N is the number of samples in the TextData object and E
         is the number of embeddings dimensions.
         The numpy array must be in the same order as the samples in the TextData.
