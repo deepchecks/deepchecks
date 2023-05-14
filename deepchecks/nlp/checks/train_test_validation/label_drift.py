@@ -10,10 +10,12 @@
 #
 
 """Module contains Label Drift check."""
+import numpy as np
 
 from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.utils.abstracts.label_drift import LabelDriftAbstract
+from deepchecks.utils.metrics import is_label_none
 
 __all__ = ['LabelDrift']
 
@@ -113,5 +115,16 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract):
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
-        return self._calculate_label_drift(train_dataset.label.flatten(), test_dataset.label.flatten(), 'Label',
+        if context.is_multi_label_task():
+            # from the label 2d binary matrix - extract from each row the indices of the 1s
+            train_labels_per_sample = [np.where(row == 1)[0] for row in train_dataset.label if not is_label_none(row)]
+            train_labels = [item for sublist in train_labels_per_sample for item in sublist]
+
+            test_labels_per_sample = [np.where(row == 1)[0] for row in test_dataset.label if not is_label_none(row)]
+            test_labels = [item for sublist in test_labels_per_sample for item in sublist]
+        else:
+            train_labels = train_dataset.label
+            test_labels = test_dataset.label
+
+        return self._calculate_label_drift(train_labels, test_labels, 'Label',
                                            'categorical', context.with_display, (train_dataset.name, test_dataset.name))

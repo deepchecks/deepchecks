@@ -154,7 +154,7 @@ def multilabel_dataset_with_conflicts() -> ProblematicDataset:
             # NOTE:
             # tests depend on items order in this list
             AmbiguousDuplicatVariant(
-                labels=[(0, 1, 0), (0, 1, 1)],
+                labels=[(1,), (1, 2)],
                 sample_ids=[2, 4],
                 text=[
                     "Errors should never pass silently.",

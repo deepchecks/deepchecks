@@ -12,7 +12,7 @@
 import numpy as np
 from hamcrest import assert_that, contains_exactly, equal_to
 
-from deepchecks.nlp.datasets.classification import tweet_emotion
+from deepchecks.nlp.datasets.classification import tweet_emotion, just_dance_comment_analysis
 
 
 def test_tweet_emotion():
@@ -48,3 +48,17 @@ def test_tweet_emotion():
     assert_that(train_embeddings.columns, contains_exactly(*[str(x) for x in range(1536)]))
     assert_that(test_embeddings.columns, contains_exactly(*[str(x) for x in range(1536)]))
 
+
+
+def test_just_dance_comment_analysis():
+    # Arrange
+    train, test = just_dance_comment_analysis.load_data(data_format='Dataframe', as_train_test=True)
+    full = just_dance_comment_analysis.load_data(data_format='Dataframe', as_train_test=False)
+    full_ds = just_dance_comment_analysis.load_data(data_format='TextData', as_train_test=False)
+
+    # Act & Assert
+    assert_that(len(train) + len(test), equal_to(len(full)))
+    assert_that(train.columns, contains_exactly(*test.columns))
+    assert_that(train.columns, contains_exactly(*full.columns))
+
+    assert_that(len(full_ds.text), equal_to(len(full)))

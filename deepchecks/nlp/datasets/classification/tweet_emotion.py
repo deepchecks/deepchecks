@@ -17,7 +17,6 @@ For additional details about the dataset, please refer to the original source: h
 Dataset originally published in "Semeval-2018 task 1: Affect in tweets" by Mohammad et al. (2018):
 https://aclanthology.org/S18-1001/.
 """
-import os
 import pathlib
 import typing as t
 
@@ -25,8 +24,10 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.nlp import TextData
+from deepchecks.utils.builtin_datasets_utils import read_and_save_data
 
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
+
 
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
 _EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39729283'
@@ -56,8 +57,8 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     embeddings : np.ndarray
         Embeddings for the tweet_emotion dataset.
     """
-    all_embeddings = _read_and_save('tweet_emotion_embeddings.csv', _EMBEDDINGS_URL, to_numpy=False).drop(
-        columns=['train_test_split'])
+    all_embeddings = read_and_save_data(ASSETS_DIR, 'tweet_emotion_embeddings.csv', _EMBEDDINGS_URL,
+                                        to_numpy=False).drop(columns=['train_test_split'])
     if as_train_test:
         train_indexes, test_indexes = _get_train_test_indexes()
         return all_embeddings.loc[train_indexes], all_embeddings.loc[test_indexes]
@@ -126,7 +127,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
     if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')
 
-    data = _read_and_save('tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
+    data = read_and_save_data(ASSETS_DIR, 'tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
     if not as_train_test:
         data.drop(columns=['train_test_split'], inplace=True)
         if data_format.lower() != 'textdata':
@@ -183,7 +184,7 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
         The prediction of the data elements in the dataset.
 
     """
-    all_preds = _read_and_save('tweet_emotion_probabilities.csv', _PREDICTIONS_URL)
+    all_preds = read_and_save_data(ASSETS_DIR, 'tweet_emotion_probabilities.csv', _PREDICTIONS_URL)
     if pred_format == 'predictions':
         all_preds = np.array([_LABEL_MAP[x] for x in np.argmax(all_preds, axis=1)])
     elif pred_format != 'probabilities':
@@ -195,19 +196,6 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
     else:
         return all_preds
 
-
-def _read_and_save(file_name, url_to_file, to_numpy=True):
-    """Read a file from a url and save it to the assets' directory."""
-    os.makedirs(ASSETS_DIR, exist_ok=True)
-    if (ASSETS_DIR / file_name).exists():
-        data = pd.read_csv(ASSETS_DIR / file_name, index_col=0)
-    else:
-        data = pd.read_csv(url_to_file, index_col=0)
-        data.to_csv(ASSETS_DIR / file_name)
-
-    if to_numpy:
-        data = data.to_numpy()
-    return data
 
 
 def _get_train_test_indexes() -> t.Tuple[np.array, np.array]:

@@ -150,13 +150,26 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
         # Flag for computing drift on the probabilities rather than the predicted labels
         proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
                       (self.drift_mode == 'proba')
+        model_classes = context.model_classes
 
         if proba_drift:
+            if context.is_multi_label_task():
+                raise DeepchecksValueError('Cannot use proba drift mode for multi-label tasks')
             train_prediction = np.array(model.predict_proba(train_dataset))
             test_prediction = np.array(model.predict_proba(test_dataset))
+        elif context.is_multi_label_task():
+            train_prediction = _convert_multi_label(model.predict(train_dataset), model_classes)
+            test_prediction = _convert_multi_label(model.predict(test_dataset), model_classes)
         else:
             train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
             test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
 
         return self._prediction_drift(train_prediction, test_prediction, context.model_classes, context.with_display,
                                       proba_drift, not proba_drift)
+
+
+def _convert_multi_label(predictions, model_classes):
+    """Convert multi-label predictions to multi class format like predictions"""
+    samples_per_class = np.asarray(predictions).sum(axis=0)
+    predictions = [[cls] * int(num_samples) for cls, num_samples in zip(model_classes, samples_per_class)]
+    return np.asarray([item for sublist in predictions for item in sublist]).reshape((-1, 1))
