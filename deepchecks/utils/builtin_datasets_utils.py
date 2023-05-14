@@ -10,18 +10,32 @@
 #
 """utils for loading saving and utilizing deepchecks built in datasets."""
 import os
+from io import BytesIO
 
+import numpy as np
 import pandas as pd
+import requests
 
 
-def read_and_save_data(assets_dir, file_name, url_to_file, to_numpy=True):
-    """ If the file exsist reads it from the assets' directory, otherwise reads it from the url and saves it."""
+def read_and_save_data(assets_dir, file_name, url_to_file, file_type='csv', to_numpy=False):
+    """If the file exist reads it from the assets' directory, otherwise reads it from the url and saves it."""
     os.makedirs(assets_dir, exist_ok=True)
     if (assets_dir / file_name).exists():
-        data = pd.read_csv(assets_dir / file_name, index_col=0)
+        if file_type == 'csv':
+            data = pd.read_csv(assets_dir / file_name, index_col=0)
+        elif file_type == 'npy':
+            data = np.load(assets_dir / file_name)
+        else:
+            raise ValueError('file_type must be either "csv" or "npy"')
     else:
-        data = pd.read_csv(url_to_file, index_col=0)
-        data.to_csv(assets_dir / file_name)
+        if file_type == 'csv':
+            data = pd.read_csv(url_to_file, index_col=0)
+            data.to_csv(assets_dir / file_name)
+        elif file_type == 'npy':
+            data = np.load(BytesIO(requests.get(url_to_file).content))
+            np.save(assets_dir / file_name, data)
+        else:
+            raise ValueError('file_type must be either "csv" or "npy"')
 
     if to_numpy:
         data = data.to_numpy()

@@ -215,3 +215,11 @@ def value_frequency(x: Union[List, np.ndarray, pd.Series]) -> List[float]:
     total_occurrences = len(x)
     values_probabilities = list(map(lambda n: n / total_occurrences, x_values_counter.values()))
     return values_probabilities
+
+
+def convert_multi_label_to_multi_class(predictions: np.ndarray, model_classes: List[str]) -> np.ndarray:
+    """Convert multi-label predictions to multi class format like predictions."""
+    # TODO: add mechanism to handle multi-label predictions rows containing None
+    samples_per_class = np.asarray(predictions).sum(axis=0)
+    predictions = [[cls] * int(num_samples) for cls, num_samples in zip(model_classes, samples_per_class)]
+    return np.asarray([item for sublist in predictions for item in sublist]).reshape((-1, 1))

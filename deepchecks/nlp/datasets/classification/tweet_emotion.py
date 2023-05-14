@@ -17,7 +17,6 @@ For additional details about the dataset, please refer to the original source: h
 Dataset originally published in "Semeval-2018 task 1: Affect in tweets" by Mohammad et al. (2018):
 https://aclanthology.org/S18-1001/.
 """
-import os
 import pathlib
 import typing as t
 
@@ -57,7 +56,8 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[np.array, t.Tuple[np.
     embeddings : np.ndarray
         Embeddings for the tweet_emotion dataset.
     """
-    all_embeddings = _read_and_save('tweet_emotion_embeddings.npy', _EMBEDDINGS_URL, file_type='npy')
+    all_embeddings = read_and_save_data(ASSETS_DIR, 'tweet_emotion_embeddings.npy', _EMBEDDINGS_URL,
+                                        file_type='npy', to_numpy=True)
 
     if as_train_test:
         train_indexes, test_indexes = _get_train_test_indexes()
@@ -82,12 +82,7 @@ def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     properties : pd.DataFrame
         Properties for the tweet_emotion dataset.
     """
-    if (ASSETS_DIR / 'tweet_emotion_properties.csv').exists():
-        properties = pd.read_csv(ASSETS_DIR / 'tweet_emotion_properties.csv', index_col=0)
-    else:
-        properties = pd.read_csv(_PROPERTIES_URL, index_col=0)
-        properties.to_csv(ASSETS_DIR / 'tweet_emotion_properties.csv')
-
+    properties = read_and_save_data(ASSETS_DIR, 'tweet_emotion_properties.csv', _PROPERTIES_URL, to_numpy=False)
     if as_train_test:
         train = properties[properties['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
         test = properties[properties['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
@@ -164,7 +159,8 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         return train_ds, test_ds
 
 
-def load_precalculated_predictions(pred_format: str = 'predictions', as_train_test: bool = True) -> np.array:
+def load_precalculated_predictions(pred_format: str = 'predictions', as_train_test: bool = True) -> \
+        t.Union[np.array, t.Tuple[np.array, np.array]]:
     """Load and return a precalculated predictions for the dataset.
 
     Parameters
@@ -184,7 +180,7 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
         The prediction of the data elements in the dataset.
 
     """
-    all_preds = read_and_save_data(ASSETS_DIR, 'tweet_emotion_probabilities.csv', _PREDICTIONS_URL)
+    all_preds = read_and_save_data(ASSETS_DIR, 'tweet_emotion_probabilities.csv', _PREDICTIONS_URL, to_numpy=True)
     if pred_format == 'predictions':
         all_preds = np.array([_LABEL_MAP[x] for x in np.argmax(all_preds, axis=1)])
     elif pred_format != 'probabilities':
@@ -195,7 +191,6 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
         return all_preds[train_indexes], all_preds[test_indexes]
     else:
         return all_preds
-
 
 
 def _get_train_test_indexes() -> t.Tuple[np.array, np.array]:
