@@ -101,17 +101,17 @@ class ColumnTypes(NamedTuple):
     numerical_columns: List[str]
 
 
-def validate_length_and_type(data_table: pd.DataFrame, data_table_name: str, expected_size: int):
-    """Validate length of data table and type."""
-    if not isinstance(data_table, pd.DataFrame):
+def validate_length_and_type_numpy_array(data: np.ndarray, data_name: str, expected_size: int):
+    """Validate length of numpy array and type."""
+    if not isinstance(data, np.ndarray):
         raise DeepchecksValueError(
-            f'{data_table_name} type {type(data_table)} is not supported, '
-            'must be a pandas DataFrame'
+            f'{data_name} type {type(data)} is not supported, '
+            'must be a numpy array'
         )
 
-    if len(data_table) != expected_size:
+    if len(data) != expected_size:
         raise DeepchecksValueError(
-            f'received {data_table_name} with {len(data_table)} rows, '
+            f'received {data_name} with {len(data)} rows, '
             f'expected {expected_size}'
         )
 
@@ -123,7 +123,17 @@ def validate_length_and_calculate_column_types(
     categorical_columns: Optional[Sequence[str]] = None
 ) -> ColumnTypes:
     """Validate length of data table and calculate column types."""
-    validate_length_and_type(data_table, data_table_name, expected_size)
+    if not isinstance(data_table, pd.DataFrame):
+        raise DeepchecksValueError(
+            f'{data_table_name} type {type(data_table)} is not supported, '
+            'must be a pandas DataFrame'
+        )
+
+    if len(data_table) != expected_size:
+        raise DeepchecksValueError(
+            f'received {data_table_name} with {len(data_table)} rows, '
+            f'expected {expected_size}'
+        )
 
     if categorical_columns is None:  # TODO: Add tests
         categorical_features = infer_categorical_features(data_table)

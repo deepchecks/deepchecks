@@ -17,6 +17,7 @@ For additional details about the dataset, please refer to the original source: h
 Dataset originally published in "Semeval-2018 task 1: Affect in tweets" by Mohammad et al. (2018):
 https://aclanthology.org/S18-1001/.
 """
+import os
 import pathlib
 import typing as t
 
@@ -28,9 +29,8 @@ from deepchecks.utils.builtin_datasets_utils import read_and_save_data
 
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
-
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
-_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39729283'
+_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/40564880'
 _PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39717619'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
@@ -42,7 +42,7 @@ _CAT_METADATA = ['gender', 'user_region']
 _CAT_PROPERTIES = ['Language']
 
 
-def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
+def load_embeddings(as_train_test: bool = True) -> t.Union[np.array, t.Tuple[np.array, np.array]]:
     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
 
     Parameters
@@ -57,11 +57,11 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     embeddings : np.ndarray
         Embeddings for the tweet_emotion dataset.
     """
-    all_embeddings = read_and_save_data(ASSETS_DIR, 'tweet_emotion_embeddings.csv', _EMBEDDINGS_URL,
-                                        to_numpy=False).drop(columns=['train_test_split'])
+    all_embeddings = _read_and_save('tweet_emotion_embeddings.npy', _EMBEDDINGS_URL, file_type='npy')
+
     if as_train_test:
         train_indexes, test_indexes = _get_train_test_indexes()
-        return all_embeddings.loc[train_indexes], all_embeddings.loc[test_indexes]
+        return all_embeddings[train_indexes], all_embeddings[test_indexes]
     else:
         return all_embeddings
 
