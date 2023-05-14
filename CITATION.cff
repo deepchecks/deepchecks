@@ -68,6 +68,3 @@ preferred-citation:
   - family-names: "Marina M.-C."
     given-names: "Höhne"
     orcid: "https://orcid.org/0000-0000-0000-0000"
-  doi: "10.48550/ARXIV.2202.06861"
-  title: "Quantus: An Explainable AI Toolkit for Responsible Evaluation of Neural Network Explanations"
-  year: 2022
