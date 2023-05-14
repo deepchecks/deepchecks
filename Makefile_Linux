@@ -22,6 +22,10 @@ TESTDIR = $(shell realpath tests)
 ENV = $(shell realpath venv)
 repo = pypi
 
+WIN_ENV := venv
+WIN_TESTDIR := tests
+WIN_BIN := $(WIN_ENV)/bin
+
 # System Envs
 BIN := $(ENV)/bin
 pythonpath := PYTHONPATH=.
