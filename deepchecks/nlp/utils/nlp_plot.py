@@ -260,8 +260,8 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
 
     plot_data['Dataset'] = [dataset_names[0]] * len(train_dataset) + [dataset_names[1]] * len(test_dataset)
     if train_dataset.has_label():
-        plot_data['Label'] = np.concatenate([train_dataset.label_for_display(model_classes=model_classes),
-                                             test_dataset.label_for_display(model_classes=model_classes)])
+        plot_data['Label'] = list(train_dataset.label_for_display(model_classes=model_classes)) + \
+                             list(test_dataset.label_for_display(model_classes=model_classes))
     else:
         plot_data['Label'] = None
     plot_data['Sample'] = np.concatenate([train_dataset.text, test_dataset.text])

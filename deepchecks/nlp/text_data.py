@@ -527,7 +527,7 @@ class TextData:
         if self.is_multi_label_classification():
             ret_labels = [np.argwhere(x == 1).flatten().tolist() for x in self.label]
             if model_classes:
-                ret_labels = [str([model_classes[i] for i in x]) for x in ret_labels]
+                ret_labels = [[model_classes[i] for i in x] for x in ret_labels]
             return ret_labels
         else:
             return self.label
