@@ -41,7 +41,7 @@ authors:
   affiliation: Deepchecks Ltd.
 - family-names: Rokach
   given-names: Lior
-  email: liorrk@bgu.ac.ail
+  email: liorrk@bgu.ac.il
   affiliation: Deepchecks Ltd. and Department of Software and Info. Sys. Eng. Ben-Gurion University of the Negev
 url: "https://github.com/deepchecks/deepchecks"
 preferred-citation:
@@ -85,5 +85,13 @@ preferred-citation:
     affiliation: Deepchecks Ltd.
   - family-names: Rokach
     given-names: Lior
-    email: liorrk@bgu.ac.ail
+    email: liorrk@bgu.ac.il
     affiliation: Deepchecks Ltd. and Department of Software and Info. Sys. Eng. Ben-Gurion University of the Negev
+  journal: Journal of Machine Learning Research
+  year: 2022
+  volume: 23
+  number: 265
+  start: 1
+  end: 6
+  url: "http://jmlr.org/papers/v23/22-0281.html"
+
