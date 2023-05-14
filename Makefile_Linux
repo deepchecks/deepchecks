@@ -5,22 +5,6 @@
 
 # Package = Source code Directory
 PACKAGE = deepchecks
-logging:
-	@echo windows file
-	@echo $(PACKAGE)
-	@echo $(REQUIRE_DIR)
-	@echo $(REQUIRE_FILE)
-	@echo $(ext_py)
-	@echo $(python)
-	@echo $(TESTDIR)
-	@echo $(ENV)
-	@echo $(repo)
-	@echo $(WIN_ENV)
-	@echo $(WIN_TESTDIR)
-	@echo $(WIN_BIN)
-	@echo $(SOURCES)
-
-
 
 # Requirements dir & requirements suffix file
 REQUIRE_DIR = ./requirements
@@ -33,15 +17,10 @@ REQUIRE_FILE = requirements.txt
 # override using ext_python=XXX and it'll propagate into python variable, too
 ext_py := $(shell which python3 || which python)
 
-# Override by putting in commandline python=XXX when needed.
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
 TESTDIR = $(shell realpath tests)
 ENV = $(shell realpath venv)
 repo = pypi
-
-WIN_ENV := venv
-WIN_TESTDIR := tests
-WIN_BIN := $(WIN_ENV)/bin
 
 # System Envs
 BIN := $(ENV)/bin
@@ -84,7 +63,7 @@ COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
 
 
 # Documentation
-#
+
 DOCS         := $(shell realpath ./docs)
 DOCS_SRC     := $(DOCS)/source
 DOCS_BUILD   := $(DOCS)/build
@@ -241,25 +220,6 @@ test: requirements dev-requirements
 	else \
 		$(PYTEST) $(TESTDIR); \
 	fi;
-
-
-test-win:
-	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
-	@$(WIN_ENV)\Scripts\activate.bat
-	$(PIP_WIN) install -q\
-			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
-			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
-	@$(PIP_WIN) install -q "langdetect>=1.0.9" "textblob>=0.17.1";
-	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
-	@$(PIP_WIN) install -q "tensorflow==2.11.0";
-	@$(PIP_WIN) install -U pip
-	@$(PIP_WIN) install -q \
-		-r $(REQUIRE_DIR)/$(REQUIRE_FILE)  \
-		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE)  \
-		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)  \
-		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
-	@$(PIP_WIN) install -e .
-	python -m pytest -vvv $(WIN_TESTDIR)
 
 
 test-tabular-only: env

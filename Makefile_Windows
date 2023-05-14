@@ -54,16 +54,16 @@ TEST_CODE := tests/
 PYLINT_LOG = .pylint.log
 
 # Coverage vars
-# COVERAGE_LOG = .cover.log
-# COVERAGE_FILE = default.coveragerc
-# COVERAGE_RC := $(wildcard $(COVERAGE_FILE))
-# COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
-# 	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
+COVERAGE_LOG = .cover.log
+COVERAGE_FILE = default.coveragerc
+COVERAGE_RC := $(wildcard $(COVERAGE_FILE))
+COVER_ARG := --cov-report term-missing --cov=$(PKGDIR) \
+	$(if $(COVERAGE_RC), --cov-config $(COVERAGE_RC))
 
 
 # Documentation
 
-DOCS         := $(shell cd docs && echo $(CURDIR)/docs)
+DOCS         := $(shell echo $(CURDIR)/docs)
 DOCS_SRC     := $(DOCS)/source
 DOCS_BUILD   := $(DOCS)/build
 DOCS_REQUIRE := $(DOCS)/$(REQUIRE_FILE)
@@ -174,12 +174,12 @@ requirements: vision-torch-tf-setup nlp-tests-setup
 
 doc-requirements: $(ENV)
 	@echo "####  installing documentation dependencies, it could take some time, please wait! #### "
-	@$(PIP) install -r ./docs/requirements.txt
+	@$(PIP) install -q -r ./docs/requirements.txt
 
 
 dev-requirements: $(ENV)
 	@echo "####  installing development dependencies, it could take some time, please wait! ####"
-	@$(PIP) install -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
+	@$(PIP) install -q -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 
 ### Static Analysis ######################################################
 
@@ -189,7 +189,7 @@ dev-requirements: $(ENV)
 validate: pylint docstring
 
 
-pylint: 
+pylint: dev-requirements
 	$(ANALIZE) $(SOURCES)
 	$(ANALIZE) $(TEST_CODE) --ignore-paths ".*\\checks\\.*$"
 	$(FLAKE8) $(SOURCES)
@@ -220,7 +220,7 @@ test-nlp: nlp-tests-setup
 	)
 
 
-test-win: vision-torch-tf-setup
+test-win:
 	@if not exist $(ENV) $(ext_py) -m venv $(ENV)
 	@$(ENV)\Scripts\activate.bat
 	$(PIP) install -q\
