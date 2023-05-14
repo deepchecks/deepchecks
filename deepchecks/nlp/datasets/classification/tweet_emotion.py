@@ -20,16 +20,18 @@ https://aclanthology.org/S18-1001/.
 import os
 import pathlib
 import typing as t
+from io import BytesIO
 
 import numpy as np
 import pandas as pd
+import requests
 
 from deepchecks.nlp import TextData
 
 __all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
 
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
-_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39729283'
+_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/40564880'
 _PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39717619'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
@@ -41,7 +43,7 @@ _CAT_METADATA = ['gender', 'user_region']
 _CAT_PROPERTIES = ['Language']
 
 
-def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
+def load_embeddings(as_train_test: bool = True) -> t.Union[np.array, t.Tuple[np.array, np.array]]:
     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
 
     Parameters
@@ -56,11 +58,11 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     embeddings : np.ndarray
         Embeddings for the tweet_emotion dataset.
     """
-    all_embeddings = _read_and_save('tweet_emotion_embeddings.csv', _EMBEDDINGS_URL, to_numpy=False).drop(
-        columns=['train_test_split'])
+    all_embeddings = _read_and_save('tweet_emotion_embeddings.npy', _EMBEDDINGS_URL, file_type='npy')
+
     if as_train_test:
         train_indexes, test_indexes = _get_train_test_indexes()
-        return all_embeddings.loc[train_indexes], all_embeddings.loc[test_indexes]
+        return all_embeddings[train_indexes], all_embeddings[test_indexes]
     else:
         return all_embeddings
 
@@ -126,7 +128,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
     if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')
 
-    data = _read_and_save('tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
+    data = _read_and_save('tweet_emotion_data.csv', _FULL_DATA_URL)
     if not as_train_test:
         data.drop(columns=['train_test_split'], inplace=True)
         if data_format.lower() != 'textdata':
@@ -183,7 +185,7 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
         The prediction of the data elements in the dataset.
 
     """
-    all_preds = _read_and_save('tweet_emotion_probabilities.csv', _PREDICTIONS_URL)
+    all_preds = _read_and_save('tweet_emotion_probabilities.csv', _PREDICTIONS_URL, to_numpy=True)
     if pred_format == 'predictions':
         all_preds = np.array([_LABEL_MAP[x] for x in np.argmax(all_preds, axis=1)])
     elif pred_format != 'probabilities':
@@ -196,14 +198,25 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
         return all_preds
 
 
-def _read_and_save(file_name, url_to_file, to_numpy=True):
+def _read_and_save(file_name, url_to_file, file_type='csv', to_numpy=False):
     """Read a file from a url and save it to the assets' directory."""
     os.makedirs(ASSETS_DIR, exist_ok=True)
     if (ASSETS_DIR / file_name).exists():
-        data = pd.read_csv(ASSETS_DIR / file_name, index_col=0)
+        if file_type == 'csv':
+            data = pd.read_csv(ASSETS_DIR / file_name, index_col=0)
+        elif file_type == 'npy':
+            data = np.load(ASSETS_DIR / file_name)
+        else:
+            raise ValueError('file_type must be either "csv" or "npy"')
     else:
-        data = pd.read_csv(url_to_file, index_col=0)
-        data.to_csv(ASSETS_DIR / file_name)
+        if file_type == 'csv':
+            data = pd.read_csv(url_to_file, index_col=0)
+            data.to_csv(ASSETS_DIR / file_name)
+        elif file_type == 'npy':
+            data = np.load(BytesIO(requests.get(url_to_file).content))
+            np.save(ASSETS_DIR / file_name, data)
+        else:
+            raise ValueError('file_type must be either "csv" or "npy"')
 
     if to_numpy:
         data = data.to_numpy()

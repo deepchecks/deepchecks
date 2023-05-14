@@ -60,7 +60,7 @@ def test_reduction_method(tweet_emotion_train_test_textdata_sampled):
     # Act
     result = check.run(train, test)
 
-    assert_that(result.value['domain_classifier_drift_score'], close_to(0.14, 0.01))
+    assert_that(result.value['domain_classifier_drift_score'], close_to(0.18, 0.01))
 
 
 def test_max_drift_score_condition_pass(tweet_emotion_train_test_textdata_sampled):
@@ -75,7 +75,7 @@ def test_max_drift_score_condition_pass(tweet_emotion_train_test_textdata_sample
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='Found drift value of: 0.11, corresponding to a domain classifier AUC of: 0.55',
+        details='Found drift value of: 0.12, corresponding to a domain classifier AUC of: 0.56',
         name='Drift value is less than 0.25',
     ))
 
@@ -93,5 +93,5 @@ def test_max_drift_score_condition_fail(tweet_emotion_train_test_textdata_sample
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='Drift value is less than 0.1',
-        details='Found drift value of: 0.11, corresponding to a domain classifier AUC of: 0.55'
+        details='Found drift value of: 0.12, corresponding to a domain classifier AUC of: 0.56'
     ))
