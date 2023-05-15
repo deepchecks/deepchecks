@@ -397,11 +397,12 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
             result.append(np.nan)
     return result
 
+
 def count_unique_urls(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of unique URLS per text sample."""
     url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
 
-    return [ len(set(re.findall(url_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+    return [len(set(re.findall(url_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
 
 
 def count_unique_email_addresses(raw_text: Sequence[str]) -> List[str]:
