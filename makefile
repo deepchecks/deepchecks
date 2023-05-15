@@ -183,6 +183,15 @@ requirements: vision-torch-tf-setup
 		-r $(REQUIRE_DIR)/nlp-prop-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 
+vision-requirements: vision-torch-tf-setup
+	@echo "####  installing dependencies, it could take some time, please wait! #### "
+	@$(PIP) install -U pip
+	@$(PIP) install wheel setuptools setuptools_scm
+	@$(PIP) install -q \
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
+	@$(PIP) install --no-deps -e .
+
 doc-requirements: $(ENV)
 	@echo "####  installing documentation dependencies, it could take some time, please wait! #### "
 	@$(PIP) install -q -r ./docs/requirements.txt
@@ -222,6 +231,10 @@ test: requirements dev-requirements
 	else \
 		$(PYTEST) $(TESTDIR); \
 	fi;
+
+
+vision-gpu-tests: vision-requirements dev-requirements
+	$(PYTEST) tests/vision/gpu_tests
 
 
 test-win:
