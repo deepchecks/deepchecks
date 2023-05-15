@@ -10,7 +10,8 @@
 #
 """Test for the NLP PredictionDrift check"""
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, has_items
+import pytest
+from hamcrest import assert_that, close_to, equal_to, has_items, has_length
 
 from deepchecks.nlp import TextData
 from deepchecks.nlp.checks import PredictionDrift
@@ -125,3 +126,23 @@ def test_token_classification_with_nones(small_wikiann_train_test_text_data):
 
     # Assert
     assert_that(result.value['Drift score'], close_to(0, 0.01))
+
+
+def test_drift_mode_proba_warnings(small_wikiann_train_test_text_data):
+    # Arrange
+    train, test = small_wikiann_train_test_text_data
+    check = PredictionDrift(drift_mode='proba')
+
+    # Act
+    with pytest.warns(UserWarning,
+                      match='Cannot use drift_mode="proba" for multi-label text classification tasks or token '
+                            'classification tasks. Using drift_mode="prediction" instead.'):
+        check.run(train, test, train_predictions=np.asarray(train.label), test_predictions=np.asarray(test.label))
+
+    check = PredictionDrift()
+
+    with pytest.warns(None) as record:
+        check.run(train, test, train_predictions=np.asarray(train.label), test_predictions=np.asarray(test.label))
+
+    assert_that(record, has_length(0))
+

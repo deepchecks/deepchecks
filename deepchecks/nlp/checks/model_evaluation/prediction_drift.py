@@ -9,6 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Prediction Drift check."""
+import warnings
+
 import numpy as np
 
 from deepchecks.core import CheckResult
@@ -148,6 +150,11 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
         test_dataset = context.test.sample(self.n_samples, random_state=context.random_state)
         model = context.model
 
+        if self.drift_mode == 'proba' and \
+                (context.task_type == TaskType.TOKEN_CLASSIFICATION or context.is_multi_label_task()):
+            warnings.warn('Cannot use drift_mode="proba" for multi-label text classification tasks or token '
+                          'classification tasks. Using drift_mode="prediction" instead.', UserWarning)
+
         if context.task_type == TaskType.TOKEN_CLASSIFICATION:
             train_prediction = np.concatenate(model.predict(train_dataset)).reshape(-1, 1)
             test_prediction = np.concatenate(model.predict(test_dataset)).reshape(-1, 1)
@@ -158,8 +165,6 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
                           (self.drift_mode == 'proba')
 
             if proba_drift:
-                if context.is_multi_label_task():
-                    raise DeepchecksValueError('Cannot use proba drift mode for multi-label tasks')
                 train_prediction = np.array(model.predict_proba(train_dataset))
                 test_prediction = np.array(model.predict_proba(test_dataset))
             elif context.is_multi_label_task():
