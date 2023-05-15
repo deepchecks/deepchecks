@@ -93,12 +93,12 @@ def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found a segment with accuracy score of 0.395 in comparison to an average '
-                                       'score of 0.624 in sampled data.',
+                               details='Found a segment with precision macro score of 0.662 in comparison to an'
+                                       ' average score of 0.848 in sampled data.',
                                name='The relative performance of weakest segment is greater than 80% of average model '
                                     'performance.')
     ))
 
-    assert_that(result.value['avg_score'], close_to(0.624, 0.001))
+    assert_that(result.value['avg_score'], close_to(0.848, 0.001))
     assert_that(len(result.value['weak_segments_list']), is_in([5, 6]))  # TODO: check why it's not always 5
-    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.395, 0.01))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.662, 0.01))
