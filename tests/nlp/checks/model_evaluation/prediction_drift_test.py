@@ -108,3 +108,20 @@ def test_token_classification(small_wikiann_train_test_text_data):
 
     # Assert
     assert_that(result.value['Drift score'], close_to(0, 0.01))
+
+
+def test_token_classification_with_nones(small_wikiann_train_test_text_data):
+    # Arrange
+    train, test = small_wikiann_train_test_text_data
+    train_label = train.label
+    train_label[0][0] = None
+    train = TextData(train.text, tokenized_text=train.tokenized_text,
+                     task_type='token_classification')
+    check = PredictionDrift()
+
+    # Act
+    result = check.run(train, test, train_predictions=np.asarray(train_label),
+                       test_predictions=np.asarray(test.label))
+
+    # Assert
+    assert_that(result.value['Drift score'], close_to(0, 0.01))
