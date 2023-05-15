@@ -18,9 +18,9 @@ It is possible to customize these suites by editing the checks and conditions in
 from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import (ConflictingLabels, LabelDrift, MetadataSegmentsPerformance, PredictionDrift,
                                    PropertyDrift, PropertyLabelCorrelation, PropertySegmentsPerformance,
-                                   SpecialCharacters, TextDuplicates, TextPropertyOutliers, TrainTestPerformance,
-                                   TrainTestSamplesMix, UnderAnnotatedMetaDataSegments, UnderAnnotatedPropertySegments,
-                                   UnknownTokens)
+                                   SpecialCharacters, TextDuplicates, TextEmbeddingsDrift, TextPropertyOutliers,
+                                   TrainTestPerformance, TrainTestSamplesMix, UnderAnnotatedMetaDataSegments,
+                                   UnderAnnotatedPropertySegments, UnknownTokens)
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -148,6 +148,7 @@ def model_evaluation(n_samples: int = None,
         PredictionDrift(**kwargs).add_condition_drift_score_less_than(),
         PropertySegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         MetadataSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
+        TextEmbeddingsDrift().add_condition_overall_drift_value_less_than()
     )
 
 
