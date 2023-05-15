@@ -26,6 +26,7 @@ from typing_extensions import TypedDict
 
 from deepchecks.nlp.utils.text import remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
+from deepchecks.utils.ipython import create_progress_bar
 
 __all__ = ['calculate_default_properties']
 
@@ -271,7 +272,7 @@ def subjectivity(raw_text: Sequence[str]) -> List[str]:
 def _predict(text, classifier, kind):
     try:
         v = classifier(text)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         return np.nan
     else:
         if not v:
@@ -374,7 +375,7 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
+def unique_noun_count(raw_text: Sequence[str]) -> List[float]:
     """Return a list of integers of number of unique noun words in the text."""
     if not nltk_download('averaged_perceptron_tagger', quiet=True):
         warnings.warn('nltk averaged_perceptron_tagger not found, unique noun count cannot be calculated.'
@@ -390,7 +391,7 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def readability_score(raw_text: Sequence[str]) -> List[str]:
+def readability_score(raw_text: Sequence[str]) -> List[float]:
     """Return a list of floats of Flesch Reading-Ease score per text sample.
 
     In the Flesch reading-ease test, higher scores indicate material that is easier to read
@@ -426,7 +427,7 @@ def readability_score(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
+def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
     """Return a list of floats denoting the average sentence length per text sample."""
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, average sentence length cannot be calculated.'
@@ -619,8 +620,19 @@ def calculate_default_properties(
         'Dependencies required by property are not installed. '
         'Error:\n{1}'
     )
+
+    progress_bar = create_progress_bar(
+        iterable=list(text_properties),
+        name='Text Properties Calculation',
+        unit='Text Property'
+    )
+
     # TODO: refactor
-    for prop in text_properties:
+    for prop in progress_bar:
+        progress_bar.set_postfix(
+            {'Property': prop['name']},
+            refresh=False
+        )
         if prop['name'] not in english_properties_names:
             try:
                 values = run_available_kwargs(prop['method'], raw_text=raw_text, **kwargs)
