@@ -1,10 +1,6 @@
 cff-version: 1.2.0
-title: >-
-  Deepchecks: A Library for Testing and Validating
-  Machine Learning Models and Data
-message: >-
-  If you use this software, please cite it using the
-  metadata from this file.
+title: "Deepchecks: A Library for Testing and Validating Machine Learning Models and Data"
+message: "If you use this software, please cite it using the metadata from this file."
 type: software
 authors:
   - given-names: Shir
