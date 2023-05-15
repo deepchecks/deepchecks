@@ -9,12 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Prediction Drift check."""
+import itertools
 
 import numpy as np
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.utils.abstracts.prediction_drift import PredictionDriftAbstract
 
 __all__ = ['PredictionDrift']
@@ -141,22 +143,27 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
             value: drift score.
             display: prediction distribution graph, comparing the train and test distributions.
         """
-        context.raise_if_token_classification_task(self)
+        # context.raise_if_token_classification_task(self)
 
         train_dataset = context.train.sample(self.n_samples, random_state=context.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=context.random_state)
         model = context.model
 
-        # Flag for computing drift on the probabilities rather than the predicted labels
-        proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
-                      (self.drift_mode == 'proba')
-
-        if proba_drift:
-            train_prediction = np.array(model.predict_proba(train_dataset))
-            test_prediction = np.array(model.predict_proba(test_dataset))
+        if context.task_type == TaskType.TOKEN_CLASSIFICATION:
+            train_prediction = list(itertools.chain(*model.predict(train_dataset)))
+            test_prediction = list(itertools.chain(*model.predict(test_dataset)))
+            proba_drift = False
         else:
-            train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
-            test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
+            # Flag for computing drift on the probabilities rather than the predicted labels
+            proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
+                          (self.drift_mode == 'proba')
+
+            if proba_drift:
+                train_prediction = np.array(model.predict_proba(train_dataset))
+                test_prediction = np.array(model.predict_proba(test_dataset))
+            else:
+                train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
+                test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
 
         return self._prediction_drift(train_prediction, test_prediction, context.model_classes, context.with_display,
                                       proba_drift, not proba_drift)

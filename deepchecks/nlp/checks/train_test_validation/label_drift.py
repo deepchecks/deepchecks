@@ -10,9 +10,11 @@
 #
 
 """Module contains Label Drift check."""
+import itertools
 
 from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.utils.abstracts.label_drift import LabelDriftAbstract
 
 __all__ = ['LabelDrift']
@@ -113,5 +115,12 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract):
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
-        return self._calculate_label_drift(train_dataset.label.flatten(), test_dataset.label.flatten(), 'Label',
-                                           'categorical', context.with_display, (train_dataset.name, test_dataset.name))
+        if context.task_type == TaskType.TOKEN_CLASSIFICATION:
+            train_labels = list(itertools.chain(*train_dataset.label))
+            test_labels = list(itertools.chain(*test_dataset.label))
+        else:
+            train_labels = train_dataset.label
+            test_labels = test_dataset.label
+
+        return self._calculate_label_drift(train_labels, test_labels, 'Label', 'categorical', context.with_display,
+                                           (train_dataset.name, test_dataset.name))
