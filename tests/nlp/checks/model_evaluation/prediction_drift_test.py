@@ -139,6 +139,7 @@ def test_drift_mode_proba_warnings(small_wikiann_train_test_text_data):
                             'classification tasks. Using drift_mode="prediction" instead.'):
         check.run(train, test, train_predictions=np.asarray(train.label), test_predictions=np.asarray(test.label))
 
+    # Make sure doesn't raise alert regularly:
     check = PredictionDrift()
 
     with pytest.warns(None) as record:
