@@ -181,7 +181,7 @@ class TestMultiLabelClassification:
         condition_results = check.conditions_decision(result)
         assert_that(condition_results, has_items(
             equal_condition_result(is_pass=False,
-                                   details="Failed for 1 out of 6 columns.\nFound 1 "
+                                   details="Failed for 1 out of 7 columns.\nFound 1 "
                                            "numeric columns with Kolmogorov-Smirnov above threshold: "
                                            "{'Text Length': '0.33'}",
                                    name='categorical drift score < 0.3 and numerical drift score < 0.3')
