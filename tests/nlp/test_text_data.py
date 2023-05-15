@@ -176,6 +176,7 @@ def test_label_for_display():
     assert_that(len(result), equal_to(3))
     assert_that(result[0], contains_exactly('PER', 'GEO'))
 
+
 def test_properties(text_classification_dataset_mock):
     # Arrange
     dataset = text_classification_dataset_mock
@@ -186,12 +187,12 @@ def test_properties(text_classification_dataset_mock):
     dataset.calculate_default_properties(ignore_properties=['topic'] + LONG_RUN_PROPERTIES)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
-    assert_that(properties.shape[1], equal_to(10))
+    assert_that(properties.shape[1], equal_to(9))
     assert_that(properties.columns,
                 contains_exactly('Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters',
-                                 'Language', 'Sentiment', 'Subjectivity', 'Lexical Density', 'Readability Score',
+                                 'Sentiment', 'Subjectivity', 'Lexical Density', 'Readability Score',
                                  'Average Sentence Length'))
-    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 'en', 0.0, 0.0, 80.0, 100.24, 5))
+    assert_that(properties.iloc[0].values, contains_exactly(22, 3.6, 9, 0.0, 0.0, 0.0, 80.0, 100.24, 5))
 
 
 def test_embeddings():
