@@ -10,7 +10,8 @@
 #
 """Test for the NLP PredictionDrift check"""
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, has_items
+import pytest
+from hamcrest import assert_that, close_to, equal_to, has_items, has_length
 
 from deepchecks.nlp import TextData
 from deepchecks.nlp.checks import PredictionDrift
@@ -95,3 +96,54 @@ def test_just_dance_small_drift(just_dance_train_test_textdata_sampled):
     ))
 
     assert_that(result.value['Drift score'], close_to(0.05, 0.01))
+
+
+def test_token_classification(small_wikiann_train_test_text_data):
+    # Arrange
+    train, test = small_wikiann_train_test_text_data
+    check = PredictionDrift()
+
+    # Act
+    result = check.run(train, test, train_predictions=np.asarray(train.label),
+                       test_predictions=np.asarray(test.label))
+
+    # Assert
+    assert_that(result.value['Drift score'], close_to(0, 0.01))
+
+
+def test_token_classification_with_nones(small_wikiann_train_test_text_data):
+    # Arrange
+    train, test = small_wikiann_train_test_text_data
+    train_label_with_nones = train.label
+    train_label_with_nones[0][0] = None
+    train = TextData(train.text, tokenized_text=train.tokenized_text,
+                     task_type='token_classification')
+    check = PredictionDrift()
+
+    # Act
+    result = check.run(train, test, train_predictions=np.asarray(train_label_with_nones),
+                       test_predictions=np.asarray(test.label))
+
+    # Assert
+    assert_that(result.value['Drift score'], close_to(0, 0.01))
+
+
+def test_drift_mode_proba_warnings(small_wikiann_train_test_text_data):
+    # Arrange
+    train, test = small_wikiann_train_test_text_data
+    check = PredictionDrift(drift_mode='proba')
+
+    # Act
+    with pytest.warns(UserWarning,
+                      match='Cannot use drift_mode="proba" for multi-label text classification tasks or token '
+                            'classification tasks. Using drift_mode="prediction" instead.'):
+        check.run(train, test, train_predictions=np.asarray(train.label), test_predictions=np.asarray(test.label))
+
+    # Make sure doesn't raise alert regularly:
+    check = PredictionDrift()
+
+    with pytest.warns(None) as record:
+        check.run(train, test, train_predictions=np.asarray(train.label), test_predictions=np.asarray(test.label))
+
+    assert_that(record, has_length(0))
+
