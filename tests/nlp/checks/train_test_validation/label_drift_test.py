@@ -16,6 +16,24 @@ from deepchecks.nlp.checks import LabelDrift
 from tests.base.utils import equal_condition_result
 
 
+def test_just_dance_small_drift(just_dance_train_test_textdata_sampled):
+    # Arrange
+    train, test = just_dance_train_test_textdata_sampled
+    check = LabelDrift().add_condition_drift_score_less_than(0.1)
+    # Act
+    result = check.run(train, test)
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=True,
+                               details="Label's drift score Cramer's V is 0.05",
+                               name='Label drift score < 0.1')
+    ))
+
+    assert_that(result.value['Drift score'], close_to(0.05, 0.01))
+
+
 def test_tweet_emotion(tweet_emotion_train_test_textdata):
     # Arrange
     train, test = tweet_emotion_train_test_textdata
@@ -63,10 +81,10 @@ def test_multi_label_without_drift(dummy_multilabel_textdata_train_test):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
-                               details="Label's drift score Cramer's V is 0",
+                               details="Label's drift score Cramer's V is 0.02",
                                name='Label drift score < 0.15')
     ))
-    assert_that(result.value['Drift score'], close_to(0, 0.01))
+    assert_that(result.value['Drift score'], close_to(0.02, 0.01))
 
 
 def test_token_classification(small_wikiann_train_test_text_data):
