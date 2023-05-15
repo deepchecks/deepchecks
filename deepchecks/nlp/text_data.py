@@ -497,6 +497,15 @@ class TextData:
         if n_samples is None:
             return False
         return self.n_samples > n_samples
+    @classmethod
+    def from_hugging_face(cls, obj:t.Any) -> 'TextData':
+
+        if set(['tokens', 'ner_tags']).issubset(obj.column_names):
+            return cls(tokenized_text=obj['tokens'], label=obj['ner_tags'], task_type='token_classification')
+        if set(['text', 'label']).issubset(obj.column_names):
+            return cls(raw_text=obj['text'], label=obj['label'], task_type='text_classification')
+        else:
+            raise DeepchecksValueError(f'{obj} does not contain valid dataset columns')
 
 
 @contextlib.contextmanager

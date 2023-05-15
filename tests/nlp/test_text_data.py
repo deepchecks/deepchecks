@@ -16,7 +16,7 @@ from hamcrest import assert_that, calling, contains_exactly, equal_to, raises
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text_properties import LONG_RUN_PROPERTIES
-
+from datasets import load_dataset
 
 def test_text_data_init():
     """Test the TextData object initialization"""
@@ -266,3 +266,16 @@ def test_set_properties_with_categorical_columns(text_classification_dataset_moc
 
     # Assert
     assert_that(dataset.categorical_properties, equal_to(['unknown_property']))
+
+def test_from_hugging_Face():
+
+    dataset = load_dataset('wikiann', name='en', split='train')
+    textData = TextData.from_hugging_face(dataset)
+    textData.calculate_default_properties()
+    properties = textData.properties
+    assert_that(properties.shape[0], equal_to(20000))
+    assert_that(properties.shape[1], equal_to(6))
+    assert_that(properties.columns,
+                contains_exactly('Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters',
+                                 'Sentiment', 'Subjectivity'))
+    assert_that(properties.iloc[0].values, contains_exactly(47, 3.3636363636363638, 8, 0.14893617021276595, 0.0, 0.0))
