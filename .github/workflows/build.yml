@@ -154,6 +154,8 @@ jobs:
         uses: actions/setup-python@v3
         with:
           python-version: '3.7'
+      - name: Upgrade g++
+        run: apt install g++-9
       - name: Set Up Env
         run: make env
       - name: Run Tests
