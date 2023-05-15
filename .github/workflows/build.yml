@@ -155,7 +155,7 @@ jobs:
         with:
           python-version: '3.7'
       - name: Upgrade g++
-        run: sudo apt install g++-9
+        run: sudo apt install -y g++-9
       - name: Set Up Env
         run: make env
       - name: Run Tests
