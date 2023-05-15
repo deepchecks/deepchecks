@@ -14,6 +14,7 @@
 from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.utils.abstracts.label_drift import LabelDriftAbstract
+from deepchecks.utils.distribution.preprocessing import convert_multi_label_to_multi_class
 
 __all__ = ['LabelDrift']
 
@@ -113,5 +114,12 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract):
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
-        return self._calculate_label_drift(train_dataset.label.flatten(), test_dataset.label.flatten(), 'Label',
+        if context.is_multi_label_task():
+            train_labels = convert_multi_label_to_multi_class(train_dataset.label, context.model_classes).flatten()
+            test_labels = convert_multi_label_to_multi_class(test_dataset.label, context.model_classes).flatten()
+        else:
+            train_labels = train_dataset.label
+            test_labels = test_dataset.label
+
+        return self._calculate_label_drift(train_labels, test_labels, 'Label',
                                            'categorical', context.with_display, (train_dataset.name, test_dataset.name))

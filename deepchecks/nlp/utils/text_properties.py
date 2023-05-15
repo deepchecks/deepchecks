@@ -366,10 +366,12 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     for text in raw_text:
         if not pd.isna(text):
             all_words = textblob.TextBlob(text).words
-            total_words = len(all_words)
-            total_unique_words = len(set(all_words))
-            text_lexical_density = round(total_unique_words * 100 / total_words, 2)
-            result.append(text_lexical_density)
+            if len(all_words) == 0:
+                result.append(np.nan)
+            else:
+                total_unique_words = len(set(all_words))
+                text_lexical_density = round(total_unique_words * 100 / len(all_words), 2)
+                result.append(text_lexical_density)
         else:
             result.append(np.nan)
     return result
