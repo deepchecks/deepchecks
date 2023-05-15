@@ -206,7 +206,7 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
     for text in raw_text:
         words = text.split()
         if not words:
-            continue
+            result.append(np.nan)
         result.append(max(len(w) for w in words))
     return result
 
