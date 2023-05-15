@@ -113,14 +113,14 @@ def test_token_classification(small_wikiann_train_test_text_data):
 def test_token_classification_with_nones(small_wikiann_train_test_text_data):
     # Arrange
     train, test = small_wikiann_train_test_text_data
-    train_label = train.label
-    train_label[0][0] = None
+    train_label_with_nones = train.label
+    train_label_with_nones[0][0] = None
     train = TextData(train.text, tokenized_text=train.tokenized_text,
                      task_type='token_classification')
     check = PredictionDrift()
 
     # Act
-    result = check.run(train, test, train_predictions=np.asarray(train_label),
+    result = check.run(train, test, train_predictions=np.asarray(train_label_with_nones),
                        test_predictions=np.asarray(test.label))
 
     # Assert

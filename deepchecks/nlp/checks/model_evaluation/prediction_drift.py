@@ -57,6 +57,8 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
         the predicted probability of the positive class if binary. Set to 'proba' to force drift on the predicted
         probabilities, and 'prediction' to force drift on the predicted classes. If set to 'proba', on a multiclass
         task, drift would be calculated on each class independently.
+        For token classification tasks, drift is always calculated on the predictions and not on the probabilities.
+        Setting this parameter to 'proba' for token classification tasks will raise an error.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -149,6 +151,8 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
         model = context.model
 
         if context.task_type == TaskType.TOKEN_CLASSIFICATION:
+            if self.drift_mode == 'proba':
+                raise DeepchecksValueError('Cannot use drift_mode="proba" for token classification tasks')
             train_prediction = np.concatenate(model.predict(train_dataset)).reshape(-1, 1)
             test_prediction = np.concatenate(model.predict(test_dataset)).reshape(-1, 1)
             proba_drift = False
