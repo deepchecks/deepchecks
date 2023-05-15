@@ -280,19 +280,16 @@ def _predict(text, classifier, kind):
         if kind == 'toxicity':
             return v['score']
         elif kind == 'fluency':
-            return (
-                v['score']
-                if v['label'] == 'LABEL_1'
-                else 1 - v['score']
-            )
+            label_value = 'LABEL_1'
         elif kind == 'fluency':
-            return (
-                v['score']
-                if v['label'] == 'formal'
-                else 1 - v['score']
-            )
+            label_value = 'formal'
         else:
             raise ValueError('Unssuported value for "kind" parameter')
+        return (
+            v['score']
+            if v['label'] == label_value
+            else 1 - v['score']
+        )
 
 
 def toxicity(
