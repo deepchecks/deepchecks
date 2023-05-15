@@ -234,7 +234,7 @@ test: requirements dev-requirements
 
 
 vision-gpu-tests: vision-requirements dev-requirements
-	$(PYTEST) tests/vision/gpu_tests
+	$(PYTEST) $(TESTDIR)/vision/gpu_tests
 
 
 test-win:
