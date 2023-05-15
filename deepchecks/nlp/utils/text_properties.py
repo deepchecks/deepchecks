@@ -268,6 +268,33 @@ def subjectivity(raw_text: Sequence[str]) -> List[str]:
     return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
 
 
+def _predict(text, classifier, kind):
+    try:
+        v = classifier(text)
+    except Exception:
+        return np.nan
+    else:
+        if not v:
+            return np.nan
+        v = v[0]
+        if kind == 'toxicity':
+            return v['score']
+        elif kind == 'fluency':
+            return (
+                v['score']
+                if v['label'] == 'LABEL_1'
+                else 1 - v['score']
+            )
+        elif kind == 'fluency':
+            return (
+                v['score']
+                if v['label'] == 'formal'
+                else 1 - v['score']
+            )
+        else:
+            raise ValueError('Unssuported value for "kind" parameter')
+
+
 def toxicity(
     raw_text: Sequence[str],
     device: Optional[int] = None,
@@ -281,7 +308,10 @@ def toxicity(
         device=device,
         models_storage=models_storage
     )
-    return [x['score'] for x in classifier(raw_text)]
+    return [
+        _predict(text, classifier, 'toxicity')
+        for text in raw_text
+    ]
 
 
 def fluency(
@@ -297,7 +327,10 @@ def fluency(
         device=device,
         models_storage=models_storage
     )
-    return [x['score'] if x['label'] == 'LABEL_1' else 1 - x['score'] for x in classifier(raw_text)]
+    return [
+        _predict(text, classifier, 'fluency')
+        for text in raw_text
+    ]
 
 
 def formality(
@@ -313,7 +346,10 @@ def formality(
         device=device,
         models_storage=models_storage
     )
-    return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
+    return [
+        _predict(text, classifier, 'formality')
+        for text in raw_text
+    ]
 
 
 def lexical_density(raw_text: Sequence[str]) -> List[str]:
