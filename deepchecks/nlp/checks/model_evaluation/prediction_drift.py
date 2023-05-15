@@ -9,8 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Prediction Drift check."""
-import itertools
-
 import numpy as np
 
 from deepchecks.core import CheckResult
