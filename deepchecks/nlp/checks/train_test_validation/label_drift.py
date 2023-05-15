@@ -126,5 +126,5 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract):
             train_labels = train_dataset.label
             test_labels = test_dataset.label
 
-        return self._calculate_label_drift(train_labels, test_labels, 'Label',
-                                           'categorical', context.with_display, (train_dataset.name, test_dataset.name))
+        return self._calculate_label_drift(train_labels, test_labels, 'Label', 'categorical', context.with_display,
+                                           (train_dataset.name, test_dataset.name))

@@ -30,7 +30,8 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins', 'value_frequency']
+__all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins', 'value_frequency',
+           'convert_multi_label_to_multi_class']
 
 OTHER_CATEGORY_NAME = 'Other rare categories'
 

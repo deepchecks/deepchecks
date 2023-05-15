@@ -95,3 +95,16 @@ def test_just_dance_small_drift(just_dance_train_test_textdata_sampled):
     ))
 
     assert_that(result.value['Drift score'], close_to(0.05, 0.01))
+
+
+def test_token_classification(small_wikiann_train_test_text_data):
+    # Arrange
+    train, test = small_wikiann_train_test_text_data
+    check = PredictionDrift()
+
+    # Act
+    result = check.run(train, test, train_predictions=np.asarray(train.label),
+                       test_predictions=np.asarray(test.label))
+
+    # Assert
+    assert_that(result.value['Drift score'], close_to(0, 0.01))
