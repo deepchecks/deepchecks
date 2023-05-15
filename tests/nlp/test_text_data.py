@@ -16,7 +16,6 @@ from hamcrest import assert_that, calling, contains_exactly, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text_properties import LONG_RUN_PROPERTIES
 
 
 def test_text_data_init():
