@@ -13,14 +13,17 @@ from typing import List, Sequence
 
 import numpy as np
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objs as go
 
+from deepchecks.nlp import TextData
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
-from deepchecks.utils.plot import common_and_outlier_colors
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors, common_and_outlier_colors
 
-__all__ = ['get_text_outliers_graph']
+__all__ = ['get_text_outliers_graph',
+           'two_datasets_scatter_plot']
 
 
 def clean_x_axis_non_existent_values(x_axis, distribution):
@@ -229,4 +232,43 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
         hovermode='closest',
         hoverdistance=-1)
 
+    return fig
+
+
+def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_dataset: TextData,
+                              test_dataset: TextData, model_classes: list):
+    """Plot a scatter plot of two datasets.
+
+    Parameters
+    ----------
+    plot_title : str
+        The title of the plot.
+    plot_data : pd.DataFrame
+        The data to plot (x and y axes).
+    train_dataset : TextData
+        The train dataset.
+    test_dataset : TextData
+        The test dataset.
+    model_classes : list
+        The names of the model classes (relevant only if the datasets are multi-label).
+    """
+    axes = plot_data.columns
+    if train_dataset.name and test_dataset.name:
+        dataset_names = (train_dataset.name, test_dataset.name)
+    else:
+        dataset_names = DEFAULT_DATASET_NAMES
+
+    plot_data['Dataset'] = [dataset_names[0]] * len(train_dataset) + [dataset_names[1]] * len(test_dataset)
+    if train_dataset.has_label():
+        plot_data['Label'] = list(train_dataset.label_for_display(model_classes=model_classes)) + \
+                             list(test_dataset.label_for_display(model_classes=model_classes))
+    else:
+        plot_data['Label'] = None
+    plot_data['Sample'] = np.concatenate([train_dataset.text, test_dataset.text])
+    plot_data['Sample'] = plot_data['Sample'].apply(break_to_lines_and_trim)
+
+    fig = px.scatter(plot_data, x=axes[0], y=axes[1], color='Dataset', color_discrete_map=colors,
+                     hover_data=['Label', 'Sample'], hover_name='Dataset', title=plot_title, height=600, width=1000,
+                     opacity=0.4)
+    fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
     return fig

@@ -61,7 +61,7 @@ train.head()
 # explicitly set the index.
 #
 # .. note::
-
+#
 #    The label column is optional, but if provided you must also pass the ``task_type`` argument, so that deepchecks
 #    will know how to interpret the label column.
 #
@@ -175,12 +175,13 @@ result.show()
 #
 # .. note::
 #
-#    Some of the default properties require additional packages to be installed. If you want to use them, you can
+#    Some default properties require additional packages to be installed. If you want to use them, you can
 #    install them by running ``pip install deepchecks[nlp-properties]``.
 #    Additionally, some properties that use the ``transformers`` package are computationally expensive, and may take
 #    a long time to calculate. If you have a GPU or a similar device you can use it by installing the appropriate
 #    package versions and passing a ``device`` argument to the ``TextData`` constructor or to the
 #    ``calculate_default_properties`` method.
+#
 #
 
 # Calculate properties

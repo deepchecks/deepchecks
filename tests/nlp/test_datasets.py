@@ -12,7 +12,7 @@
 import numpy as np
 from hamcrest import assert_that, contains_exactly, equal_to
 
-from deepchecks.nlp.datasets.classification import tweet_emotion
+from deepchecks.nlp.datasets.classification import just_dance_comment_analysis, tweet_emotion
 
 
 def test_tweet_emotion():
@@ -24,6 +24,8 @@ def test_tweet_emotion():
     probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities', as_train_test=False)
     properties = tweet_emotion.load_properties(as_train_test=False)
     train_props, test_props = tweet_emotion.load_properties(as_train_test=True)
+    embeddings = tweet_emotion.load_embeddings(as_train_test=False)
+    train_embeddings, test_embeddings = tweet_emotion.load_embeddings(as_train_test=True)
 
     # Act & Assert
     assert_that(len(train) + len(test), equal_to(len(full)))
@@ -38,3 +40,24 @@ def test_tweet_emotion():
     assert_that(len(properties), equal_to(len(full)))
     assert_that(len(train_props) + len(test_props), equal_to(len(full)))
     assert_that(len(train_props), equal_to(len(train)))
+
+    assert_that(len(embeddings), equal_to(len(full)))
+    assert_that(len(train_embeddings) + len(test_embeddings), equal_to(len(full)))
+    assert_that(len(train_embeddings), equal_to(len(train)))
+    assert_that(embeddings.shape, contains_exactly(4653, 1536))
+    assert_that(train_embeddings.shape, contains_exactly(2675, 1536))
+    assert_that(test_embeddings.shape, contains_exactly(1978, 1536))
+
+
+def test_just_dance_comment_analysis():
+    # Arrange
+    train, test = just_dance_comment_analysis.load_data(data_format='Dataframe', as_train_test=True)
+    full = just_dance_comment_analysis.load_data(data_format='Dataframe', as_train_test=False)
+    full_ds = just_dance_comment_analysis.load_data(data_format='TextData', as_train_test=False)
+
+    # Act & Assert
+    assert_that(len(train) + len(test), equal_to(len(full)))
+    assert_that(train.columns, contains_exactly(*test.columns))
+    assert_that(train.columns, contains_exactly(*full.columns))
+
+    assert_that(len(full_ds.text), equal_to(len(full)))

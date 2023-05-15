@@ -10,6 +10,7 @@
 #
 """Module for computing Intersection over Unions."""
 from collections import defaultdict
+from typing import List
 
 import numpy as np
 
@@ -77,7 +78,7 @@ def compute_bounding_box_class_ious(detected: np.ndarray, ground_truth: np.ndarr
             for class_id, info in bb_info.items()}
 
 
-def per_sample_mean_iou(predictions: np.ndarray, labels: np.ndarray):
+def per_sample_mean_iou(predictions: np.ndarray, labels: np.ndarray) -> List[float]:
     """Calculate mean iou for a single sample."""
     mean_ious = []
     for detected, ground_truth in zip(predictions, labels):

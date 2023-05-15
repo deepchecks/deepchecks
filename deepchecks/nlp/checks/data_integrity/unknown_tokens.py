@@ -10,14 +10,14 @@
 #
 """Module contains the Unknown Tokens check."""
 import typing as t
+import warnings
 from collections import Counter
 
 import nltk
 import plotly.graph_objects as go
-from transformers import BertTokenizer
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
@@ -61,19 +61,31 @@ class UnknownTokens(SingleDatasetCheck):
     ):
         super().__init__(**kwargs)
         self.tokenizer = tokenizer
-        if self.tokenizer is None:
+        if tokenizer is None:
+            try:
+                from transformers import BertTokenizer  # pylint: disable=W0611,C0415 # noqa
+            except ImportError as e:
+                raise DeepchecksProcessError(
+                    'Tokenizer was not provided. In order to use checks default '
+                    'tokenizer (BertTokenizer), please run:\n>> pip install transformers>=4.27.4.'
+                ) from e
             self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+        else:
+            self._validate_tokenizer()
+        self.group_singleton_words = group_singleton_words
+        self.n_most_common = n_most_common
+        self.n_samples = n_samples
+        self.random_state = random_state
+        self.max_text_length_for_display = max_text_length_for_display
+
+    def _validate_tokenizer(self):
+        # TODO: add ability to pass spacy and nltk tokenizers
         if not hasattr(self.tokenizer, 'tokenize'):
             raise DeepchecksValueError('tokenizer must have a "tokenize" method')
         if not hasattr(self.tokenizer, 'unk_token_id'):
             raise DeepchecksValueError('tokenizer must have an "unk_token_id" attribute')
         if not hasattr(self.tokenizer, 'convert_tokens_to_ids'):
             raise DeepchecksValueError('tokenizer must have an "convert_tokens_to_ids" method')
-        self.group_singleton_words = group_singleton_words
-        self.n_most_common = n_most_common
-        self.n_samples = n_samples
-        self.random_state = random_state
-        self.max_text_length_for_display = max_text_length_for_display
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -113,9 +125,11 @@ class UnknownTokens(SingleDatasetCheck):
     def find_unknown_words(self, samples, indices):
         """Find words with unknown tokens in samples."""
         # Choose tokenizer based on availability of nltk
-        if nltk.download('punkt'):
+        if nltk.download('punkt', quiet=True):
             tokenize = nltk.word_tokenize
         else:
+            warnings.warn('nltk punkt is not available, using str.split instead to identify individual words. '
+                          'Please check your internet connection.')
             tokenize = str.split
 
         # Tokenize samples and count unknown words
@@ -152,6 +166,8 @@ class UnknownTokens(SingleDatasetCheck):
 
         # Truncate labels for display
         labels = [truncate_string(label, self.max_text_length_for_display) for label in labels]
+        # round percentages to 2 decimal places after the percent
+        percentages = [round(percent, 2) for percent in percentages]
 
         # Create pie chart with hover text and custom hover template
         fig = go.Figure(data=[go.Pie(
@@ -167,8 +183,12 @@ class UnknownTokens(SingleDatasetCheck):
         )])
 
         # Customize chart appearance
-        fig.update_layout(title=f'Words containing Unknown Tokens - {self.tokenizer.name_or_path} Tokenizer',
-                          legend_title='Words with Unknown Tokens')
+        fig.update_layout(title=f'Words containing Unknown Tokens - {self.tokenizer.name_or_path} Tokenizer<br>'
+                                f'({format_percent(sum(percentages) / 100.)} of all words)',
+                          title_x=0.5,
+                          title_y=0.95,
+                          legend_title='Words with Unknown Tokens',
+                          margin=dict(l=0, r=0, t=100, b=0))
 
         return fig
 

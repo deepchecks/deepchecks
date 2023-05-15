@@ -9,16 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing input validation functions."""
-from typing import Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, cast
+import collections
+from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Sequence, Set, Tuple, Type, cast
 
 import numpy as np
 import pandas as pd
 
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.utils.logger import get_logger
+from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.type_inference import infer_categorical_features
 from deepchecks.utils.validation import is_sequence_not_str
+
+if TYPE_CHECKING:
+    from deepchecks.nlp.text_data import TextData
 
 
 def validate_tokenized_text(tokenized_text: Optional[Sequence[Sequence[str]]]):
@@ -53,19 +58,20 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
         raise DeepchecksValueError(f'Label length ({len(labels)}) does not match expected length ({expected_size})')
 
     if task_type == TaskType.TEXT_CLASSIFICATION:
-        if all(is_sequence_not_str(x) for x in labels):  # Multilabel
+        if all(is_sequence_not_str(x) or is_label_none(x) for x in labels):  # Multilabel
             multilabel_error = 'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.'
-            if not all(all(y in (0, 1) for y in x) for x in labels):
+            if not all(all(y in (0, 1) for y in x) for x in labels if not is_label_none(x)):
                 raise DeepchecksValueError(multilabel_error)
-            if any(len(labels[0]) != len(labels[i]) for i in range(len(labels))):
+            if any(len(labels[0]) != len(labels[i]) for i in range(len(labels)) if not is_label_none(labels[i])):
                 raise DeepchecksValueError('All multilabel entries must be of the same length, which is the number'
                                            ' of possible classes.')
-            labels = [[int(x) for x in label_per_sample] for label_per_sample in labels]
-        elif not all(isinstance(x, (str, int)) for x in labels):  # Classic classification
+            labels = [[None]*len(labels[0]) if is_label_none(label_per_sample) else [int(x) for x in label_per_sample]
+                      for label_per_sample in labels]
+        elif not all(isinstance(x, (str, int)) or pd.isna(x) for x in labels):  # Classic classification
             raise DeepchecksValueError('label must be a Sequence of strings or ints (multiclass classification) '
                                        'or a Sequence of Sequences of strings or ints (multilabel classification)')
         else:
-            labels = [str(x) for x in labels]
+            labels = [None if pd.isna(x) else str(x) for x in labels]
     elif task_type == TaskType.TOKEN_CLASSIFICATION:
         token_class_error = 'label must be a Sequence of Sequences of either strings or integers.'
         if not is_sequence_not_str(labels):
@@ -73,16 +79,19 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
 
         result = []
         for idx, (tokens, label) in enumerate(zip(tokenized_text, labels)):  # TODO: Runs on all labels, very costly
-            if not is_sequence_not_str(label):
-                raise DeepchecksValueError(token_class_error + f' label at {idx} was of type {type(label)}')
-            if not len(tokens) == len(label):
-                raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
-                                           f'However, for sample index {idx} received token list of length '
-                                           f'{len(tokens)} and label list of length {len(label)}')
-            result.append([str(x) for x in label])
-        labels = np.asarray(result, dtype=object)
+            if is_label_none(label):
+                result.append([None]*len(tokens))
+            else:
+                if not is_sequence_not_str(label):
+                    raise DeepchecksValueError(token_class_error + f' label at {idx} was of type {type(label)}')
+                if len(tokens) != len(label):
+                    raise DeepchecksValueError(f'label must be the same length as tokenized_text. '
+                                               f'However, for sample index {idx} received token list of length '
+                                               f'{len(tokens)} and label list of length {len(label)}')
+                result.append([str(x) for x in label])
+        labels = result
 
-    return np.asarray(labels)
+    return np.asarray(labels, dtype=object)
 
 
 class ColumnTypes(NamedTuple):
@@ -90,6 +99,21 @@ class ColumnTypes(NamedTuple):
 
     categorical_columns: List[str]
     numerical_columns: List[str]
+
+
+def validate_length_and_type_numpy_array(data: np.ndarray, data_name: str, expected_size: int):
+    """Validate length of numpy array and type."""
+    if not isinstance(data, np.ndarray):
+        raise DeepchecksValueError(
+            f'{data_name} type {type(data)} is not supported, '
+            'must be a numpy array'
+        )
+
+    if len(data) != expected_size:
+        raise DeepchecksValueError(
+            f'received {data_name} with {len(data)} rows, '
+            f'expected {expected_size}'
+        )
 
 
 def validate_length_and_calculate_column_types(
@@ -231,3 +255,214 @@ def compare_dataframes(
         difference = None
 
     return DataframesComparison(common, difference)
+
+
+def _validate_text_classification(
+    *,
+    dataset: 'TextData',
+    predictions: Any = None,
+    probabilities: Any = None,
+    n_of_classes: Optional[int] = None,
+    eps: float = 1e-3
+) -> Tuple[
+    Optional[np.ndarray],  # predictions
+    Optional[np.ndarray],  # probabilities
+]:
+    if predictions is not None:
+        format_error_message = (
+            f'Check requires predictions for the "{dataset.name}" dataset '
+            'to be of a type sequence[str] | sequence[int]'
+        )
+        if not is_sequence_not_str(predictions):
+            raise ValidationError(format_error_message)
+        if len(predictions) != dataset.n_samples:
+            raise ValidationError(
+                f'Check requires predictions for the "{dataset.name}" dataset '
+                f'to have {dataset.n_samples} rows, same as dataset'
+            )
+        try:
+            predictions = np.array(predictions, dtype='object')
+        except ValueError as e:
+            raise ValidationError(
+                'Failed to cast predictions to a numpy array. '
+                f'{format_error_message}'
+            ) from e
+        else:
+            if predictions.ndim == 2 and predictions.shape[1] == 1:
+                predictions = predictions[:, 0]
+            if predictions.ndim != 1:
+                raise ValidationError(format_error_message)
+
+            predictions = np.array([
+                str(it) if it is not None else None
+                for it in predictions
+            ], dtype='object')
+
+    if probabilities is not None:
+        format_error_message = (
+            f'Check requires classification probabilities for the "{dataset.name}" '
+            'dataset to be of a type sequence[sequence[float]] that can be cast to '
+            'a 2D numpy array of shape (n_samples, n_classes)'
+        )
+        if len(probabilities) != dataset.n_samples:
+            raise ValidationError(
+                f'Check requires classification probabilities for the "{dataset.name}" '
+                f'dataset to have {dataset.n_samples} rows, same as dataset'
+            )
+        try:
+            probabilities = np.array(probabilities, dtype='float')
+        except ValueError as e:
+            raise ValidationError(
+                'Failed to cast probabilities to a numpy array. '
+                f'{format_error_message}'
+            ) from e
+        else:
+            if len(probabilities.shape) != 2:
+                raise ValidationError(format_error_message)
+            if n_of_classes is not None and probabilities.shape[1] != n_of_classes:
+                raise ValidationError(
+                    f'Check requires classification probabilities for the "{dataset.name}" dataset '
+                    f'to have {n_of_classes} columns, same as the number of classes'
+                )
+            if any(abs(probabilities.sum(axis=1) - 1) > eps):
+                # TODO: better message
+                raise ValidationError(
+                    f'Check requires classification probabilities for the "{dataset.name}" '
+                    f'dataset to be probabilities and sum to 1 for each row'
+                )
+
+    return predictions, probabilities
+
+
+def _validate_multilabel(
+    *,
+    dataset: 'TextData',
+    predictions: Any = None,
+    probabilities: Any = None,
+    n_of_classes: Optional[int] = None,
+) -> Tuple[
+    Optional[np.ndarray],  # predictions
+    Optional[np.ndarray],  # probabilities
+]:
+    if predictions is not None:
+        format_error_message = (
+            'Check requires multi-label classification predictions for '
+            f'the "{dataset.name}" dataset to be of a type sequence[sequence[int]] '
+            'that can be cast to a 2D numpy array of a shape (n_samples, n_classes)'
+        )
+        if not is_sequence_not_str(predictions):
+            raise ValidationError(format_error_message)
+        if len(predictions) != dataset.n_samples:
+            raise ValidationError(
+                'Check requires multi-label classification predictions '
+                f'for the "{dataset.name}" dataset to have {dataset.n_samples} rows, '
+                'same as dataset'
+            )
+        try:
+            predictions = np.array(predictions).astype(float)
+        except ValueError as e:
+            raise ValidationError(
+                'Failed to cast multi-label predictions to a numpy array. '
+                f'{format_error_message}'
+            ) from e
+        else:
+            if predictions.ndim != 2:
+                raise ValidationError(format_error_message)
+            if n_of_classes is not None and predictions.shape[1] != n_of_classes:
+                raise ValidationError(
+                    'Check requires multi-label classification predictions '
+                    f'for the "{dataset.name}" dataset to have {n_of_classes} columns, '
+                    'same as the number of classes'
+                )
+            if not np.array_equal(predictions, predictions.astype(bool)):
+                raise ValidationError(
+                    'Check requires multi-label classification predictions '
+                    f'for the "{dataset.name}" dataset to be either 0 or 1'
+                )
+    if probabilities is not None:
+        format_error_message = (
+            'Check requires multi-label classification probabilities '
+            f'for the "{dataset.name}" to be of a type sequence[sequences[float]] '
+            'that can be cast to a 2D numpy array of a shape (n_samples, n_classes). '
+            'Each label probability value must lay between 0 and 1'
+        )
+        if len(probabilities) != dataset.n_samples:
+            raise ValidationError(
+                'Check requires multi-label classification probabilities '
+                f'for the "{dataset.name}" dataset to have {dataset.n_samples} rows, '
+                'same as dataset'
+            )
+        try:
+            probabilities = np.array(probabilities, dtype='float')
+        except ValueError as e:
+            raise ValidationError(
+                'Failed to cast multi-label probabilities to a numpy '
+                f'array. {format_error_message}'
+            ) from e
+        else:
+            if probabilities.ndim != 2:
+                raise ValidationError(format_error_message)
+            if n_of_classes is not None and probabilities.shape[1] != n_of_classes:
+                raise ValidationError(
+                    f'Check requires multi-label classification probabilities '
+                    f'for the "{dataset.name}" dataset to have {n_of_classes} columns, '
+                    'same as the number of classes'
+                )
+            if (probabilities > 1).any() or (probabilities < 0).any():
+                # TODO: better message
+                raise ValidationError(format_error_message)
+
+    return predictions, probabilities
+
+
+def _validate_token_classification(
+    *,
+    dataset: 'TextData',
+    predictions: Any = None,
+    probabilities: Any = None,
+):
+    if probabilities is not None:
+        raise ValidationError(
+            'For token classification probabilities are not supported'
+        )
+
+    if predictions is not None:
+        format_error_message = (
+            'Check requires token-classification predictions for '
+            f'the "{dataset.name}" dataset to be of a type '
+            'sequence[sequence[str]] or sequence[sequence[int]]'
+        )
+        if not is_sequence_not_str(predictions):
+            raise ValidationError(format_error_message)
+        if len(predictions) != dataset.n_samples:
+            raise ValidationError(
+                'Check requires token-classification predictions for '
+                f'the "{dataset.name}" dataset to have {dataset.n_samples} rows, '
+                'same as dataset'
+            )
+
+        for idx, sample_predictions in enumerate(predictions):
+            if not is_sequence_not_str(sample_predictions):
+                raise ValidationError(format_error_message)
+
+            predictions_types_counter = _count_types(sample_predictions)
+            criterias = (str in predictions_types_counter, int in predictions_types_counter)
+
+            if all(criterias) or not any(criterias):
+                raise ValidationError(format_error_message)
+
+            tokenized_text = dataset.tokenized_text
+
+            if len(sample_predictions) != len(tokenized_text[idx]):
+                raise ValidationError(
+                    'Check requires token-classification predictions for '
+                    f'the "{dataset.name}" dataset to have the same number of tokens '
+                    'as the input text'
+                )
+
+
+def _count_types(sequence: Sequence[Any]) -> Dict[Type, int]:
+    counter = collections.defaultdict(int)
+    for it in sequence:
+        counter[type(it)] += 1
+    return counter

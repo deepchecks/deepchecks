@@ -11,7 +11,7 @@
 """Test metrics utils"""
 import pandas as pd
 from hamcrest import assert_that, calling, close_to, has_entries, is_, raises
-from sklearn.metrics import make_scorer
+from sklearn.metrics import log_loss, make_scorer, mean_squared_error
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Dataset
@@ -20,6 +20,7 @@ from deepchecks.tabular.metric_utils.additional_classification_metrics import (f
                                                                                false_positive_rate_metric,
                                                                                true_negative_rate_metric)
 from deepchecks.tabular.utils.task_inference import get_all_labels, infer_classes_from_model
+from deepchecks.utils.single_sample_metrics import calculate_neg_cross_entropy_per_sample, calculate_neg_mse_per_sample
 from tests.common import is_nan
 
 
@@ -115,6 +116,21 @@ def test_lending_club_true_negative_rate_scorer_binary(lending_club_split_datase
     assert_that(score, close_to(0.767, 0.01))
 
 
+def test_cross_entropy_lending_club(lending_club_split_dataset_and_model):
+    # Arrange
+    _, test_ds, clf = lending_club_split_dataset_and_model
+    probas = clf.predict_proba(test_ds.features_columns)
+    eps = 1e-15
+
+    # Act
+    score = calculate_neg_cross_entropy_per_sample(test_ds.label_col, probas, eps=eps)
+    score_sklearn = log_loss(test_ds.label_col, probas, eps=eps)
+
+    # Assert
+    assert_that(score.mean(), close_to(-1 * 0.524, 0.01))
+    assert_that(score.mean(), close_to(-1 * score_sklearn, 0.01))
+
+
 def test_iris_true_negative_rate_scorer_multiclass(iris_split_dataset_and_model):
     # Arrange
     _, test_ds, clf = iris_split_dataset_and_model
@@ -200,3 +216,17 @@ def test_scorer_with_only_new_labels_in_data(iris: pd.DataFrame, iris_adaboost):
     assert_that(score, has_entries({
         0: is_(0), 1: is_(0), 2: is_(0), 19: is_nan(), 20: is_nan()
     }))
+
+
+def test_mse_diabetes(diabetes_split_dataset_and_model):
+    # Arrange
+    _, test_ds, clf = diabetes_split_dataset_and_model
+    preds = clf.predict(test_ds.features_columns)
+
+    # Act
+    score = calculate_neg_mse_per_sample(test_ds.label_col, preds)
+    score_sklearn = mean_squared_error(test_ds.label_col, preds)
+
+    # Assert
+    assert_that(score.mean(), close_to(-1 * 3296, 1))
+    assert_that(score.mean(), close_to(-1 * score_sklearn, 0.01))

@@ -20,20 +20,27 @@ from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
 __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith',
-           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type', 'is_float_column',
+           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type',
+           'is_float_column', 'default_fill_na_series',
            'cast_categorical_to_object_dtype']
 
 
 def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.Series, t.List]) -> pd.DataFrame:
     """Fill NaN values per column type."""
+    pd.set_option('mode.chained_assignment', None)
     for col_name in df.columns:
-        if col_name in cat_features:
-            df[col_name] = df[col_name].astype('object').fillna('None')
-        elif is_numeric_dtype(df[col_name]):
-            df[col_name] = df[col_name].astype('float64').fillna(df[col_name].mean())
-        else:
-            df[col_name].fillna(df[col_name].mode(), inplace=True)
+        df[col_name] = default_fill_na_series(df[col_name], col_name in cat_features)
     return df
+
+
+def default_fill_na_series(col: pd.Series, is_categorical: t.Optional[bool] = None) -> pd.Series:
+    """Fill NaN values based on column type."""
+    if is_categorical:
+        return col.astype('object').fillna('None')
+    elif is_numeric_dtype(col):
+        return col.astype('float64').fillna(col.mean())
+    else:
+        return col.fillna(col.mode(), inplace=True)
 
 
 def floatify_dataframe(df: pd.DataFrame):
@@ -96,9 +103,9 @@ def un_numpy(val):
 
 
 def validate_columns_exist(
-    df: pd.DataFrame,
-    columns: t.Union[Hashable, t.List[Hashable]],
-    raise_error: bool = True
+        df: pd.DataFrame,
+        columns: t.Union[Hashable, t.List[Hashable]],
+        raise_error: bool = True
 ) -> bool:
     """Validate given columns exist in dataframe.
 
@@ -139,9 +146,9 @@ def validate_columns_exist(
 
 
 def select_from_dataframe(
-    df: pd.DataFrame,
-    columns: t.Union[Hashable, t.List[Hashable], None] = None,
-    ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
+        df: pd.DataFrame,
+        columns: t.Union[Hashable, t.List[Hashable], None] = None,
+        ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
 ) -> pd.DataFrame:
     """Filter DataFrame columns by given params.
 

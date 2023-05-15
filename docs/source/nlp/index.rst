@@ -4,15 +4,17 @@
 NLP
 ===
 
-Deepchecks for NLP is currently in alpha stage.
-Visit the :ref:`installation_guide` page to set up your environment and than head over to the
-:ref:`nlp__index_tutorials` section.
+Deepchecks for NLP is currently in alpha.
+Jump over to the :ref:`nlp__quickstarts` in the Tutorials section to get started, 
+or visit the :ref:`getting-started__installation` for a full 
+guide about how to set up your environment.
 
 This is an alpha release and you can help us develop it further! You can provide feedback and suggestions as issues on
 `GitHub <https://github.com/deepchecks/deepchecks/issues>`__, or by joining our
 `Community Slack <https://www.deepchecks.com/slack>`__.
 
 .. _nlp__index_tutorials:
+
 Tutorials
 ---------
 
@@ -34,9 +36,14 @@ This section contain in-depth guides on different aspects and components of the 
     :maxdepth: 0
     :caption: Usage Guides
 
+    usage_guides/text_data_object
     usage_guides/supported_tasks
+    usage_guides/nlp_properties
+    usage_guides/nlp_metadata
+    usage_guides/nlp_embeddings
 
 .. _nlp__checks_gallery:
+
 Checks Gallery
 --------------
 

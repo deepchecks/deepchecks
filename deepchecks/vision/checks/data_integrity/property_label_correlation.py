@@ -28,7 +28,7 @@ from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
 __all__ = ['PropertyLabelCorrelation']
 
-pps_url = 'https://docs.deepchecks.com/en/stable/checks_gallery/vision/' \
+pps_url = 'https://docs.deepchecks.com/stable/vision/auto_checks/' \
           'data_integrity/plot_property_label_correlation.html'
 pps_html = f'<a href={pps_url} target="_blank">Predictive Power Score</a>'
 
@@ -67,7 +67,7 @@ class PropertyLabelCorrelation(SingleDatasetCheck):
         - ``'categorical'`` - for discrete, non-ordinal outputs. These can still be numbers,
           but these numbers do not have inherent value.
 
-        For more on image / label properties, see the guide about :ref:`vision_properties_guide`.
+        For more on image / label properties, see the guide about :ref:`vision__properties_guide`.
     n_top_properties: int, default: 5
         Number of features to show, sorted by the magnitude of difference in PPS
     min_pps_to_show: float, default 0.05

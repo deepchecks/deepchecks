@@ -41,7 +41,7 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-40-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
+[![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 
@@ -70,7 +70,7 @@ data integrity, distribution mismatches, and more.
 **This README refers to the Tabular version** of deepchecks.
 
 - Check out the [Deepchecks for Computer Vision & Images subpackage](deepchecks/vision) for more details about deepchecks for CV, currently in *beta release*.
-- Check out the [Deepchecks for NLP subpackage](deepchecks/nlp) for more details about deepchecks for NLP, currently in *alpha release*.
+- Check out the [Deepchecks for NLP subpackage](deepchecks/nlp) for more details about deepchecks for NLP, currently in *beta release*.
 
 
 ## 💻 Installation
@@ -119,7 +119,7 @@ Head over to one of our following quickstart tutorials, and have deepchecks runn
 - [Data Integrity Quickstart (avocado sales data)](
    https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/plot_quick_data_integrity.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
 - [Model Evaluation Quickstart (wine quality data)](
-   https://docs.deepchecks.com/en/stable/user-guide/tabular/auto_quickstarts/plot_quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
+   https://docs.deepchecks.com/stable/user-guide/tabular/auto_quickstarts/plot_quickstart_in_5_minutes.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=try_it_out)
 
 > **Recommended - download the code and run it locally** on the built-in dataset and (optional) model, or **replace them with your own**.
 
@@ -230,7 +230,7 @@ covering all kinds of common issues, such as:
 - Conflicting Labels 
 
 and [many more
-checks](https://docs.deepchecks.com/stable/checks_gallery/tabular.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
+checks](https://docs.deepchecks.com/stable/tabular/index.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=key_concepts__check).
 
 
 Each check can have two types of
@@ -385,6 +385,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/MichaelMarien"><img src="https://avatars.githubusercontent.com/u/13829139?v=4?s=100" width="100px;" alt="Michael Marien"/><br /><sub><b>Michael Marien</b></sub></a><br /><a href="#doc-MichaelMarien" title="Documentation">📖</a> <a href="#bug-MichaelMarien" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/mglowacki100"><img src="https://avatars.githubusercontent.com/u/6077538?v=4?s=100" width="100px;" alt="OrdoAbChao"/><br /><sub><b>OrdoAbChao</b></sub></a><br /><a href="#code-mglowacki100" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/thewchan"><img src="https://avatars.githubusercontent.com/u/49702524?v=4?s=100" width="100px;" alt="Matt Chan"/><br /><sub><b>Matt Chan</b></sub></a><br /><a href="#code-thewchan" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/hjain5164"><img src="https://avatars.githubusercontent.com/u/20479605?v=4?s=100" width="100px;" alt="Harsh Jain"/><br /><sub><b>Harsh Jain</b></sub></a><br /><a href="#code-hjain5164" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

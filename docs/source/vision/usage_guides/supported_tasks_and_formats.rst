@@ -85,6 +85,7 @@ Image identifiers need to be provided as an iterable of strings.
     ['s3://my_images/dogs/1.jpg', 's3://my_images/cats/2.jpg', ...]
 
 .. _supported_tasks__classification:
+
 Classification
 ==============
 
@@ -114,11 +115,13 @@ classes may look like this:
 
 
 .. _supported_tasks__object_detection:
+
 Object Detection
 ================
 
 Label Format
 ------------
+
 Object detection label per sample should be an iterable of bounding boxes. Each bounding box should be an iterable
 of 5 elements in the following order: ``(class_id, x_min, y_min, w, h)``.
 
@@ -137,6 +140,7 @@ sample has 2 bounding boxes, should be provided as follows:
 
 Prediction Format
 -----------------
+
 Object detection prediction per sample should be an iterable of predicted bounding boxes and their corresponding
 confidence scores provided by the model. Each bounding box should be an iterable of 6 elements in the following order:
 ``(x_min, y_min, w, h, confidence, class_id)``.
@@ -156,11 +160,13 @@ the second one has no predicted bounding boxes, should be provided as follows:
     ]
 
 .. _supported_tasks__segmentation:
+
 Semantic Segmentation
 =====================
 
 Label Format
 ------------
+
 Semantic segmentation label per sample should be an array of shape ``[H, W]`` where ``H`` and ``W`` are the
 height and width of the corresponding image, and its values are the true class_ids of
 the corresponding pixels in that image.
@@ -168,6 +174,7 @@ Note that the array should be 2D, as the number of channels on the original imag
 
 Prediction Format
 -----------------
+
 Semantic segmentation prediction per sample should be **predicted probabilities** per class per pixel. Specifically,
 the prediction per sample format is an array of shape ``[C, H, W]`` where ``H`` and ``W`` are the height
 and width of the corresponding image, and ``C`` is the number of possible classes
@@ -178,6 +185,7 @@ probabilities should be 1.
 
 Other Tasks
 ===========
+
 For other tasks, there is no specific format required for the labels and predictions and their format is
 not validated. There are two ways in which Deepchecks can provide value for these sort of tasks:
 
@@ -191,3 +199,4 @@ The advanced option: Add custom metrics and properties for the
 predictions and labels provided and run additional checks.
 For more information on how to do so, see the
 :ref:`vision__custom_check` tutorial.
+

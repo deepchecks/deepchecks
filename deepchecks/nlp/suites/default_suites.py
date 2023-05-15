@@ -17,9 +17,10 @@ It is possible to customize these suites by editing the checks and conditions in
 
 from deepchecks.nlp import Suite
 from deepchecks.nlp.checks import (ConflictingLabels, LabelDrift, MetadataSegmentsPerformance, PredictionDrift,
-                                   PropertyLabelCorrelation, PropertySegmentsPerformance, SingleDatasetPerformance,
-                                   SpecialCharacters, TextDuplicates, TextPropertyOutliers, TrainTestSamplesMix,
-                                   UnknownTokens)
+                                   PropertyDrift, PropertyLabelCorrelation, PropertySegmentsPerformance,
+                                   SpecialCharacters, TextDuplicates, TextEmbeddingsDrift, TextPropertyOutliers,
+                                   TrainTestPerformance, TrainTestSamplesMix, UnderAnnotatedMetaDataSegments,
+                                   UnderAnnotatedPropertySegments, UnknownTokens)
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -58,12 +59,14 @@ def data_integrity(n_samples: int = None,
     kwargs = {**non_none_args, **kwargs}
     return Suite(
         'Data Integrity Suite',
-        PropertyLabelCorrelation().add_condition_property_pps_less_than(),
-        TextPropertyOutliers(),
-        TextDuplicates().add_condition_ratio_less_or_equal(),
-        ConflictingLabels().add_condition_ratio_of_conflicting_labels_less_or_equal(),
-        SpecialCharacters().add_condition_ratio_of_samples_with_special_characters_less_or_equal(),
-        UnknownTokens().add_condition_ratio_of_unknown_words_less_or_equal()
+        PropertyLabelCorrelation(**kwargs).add_condition_property_pps_less_than(),
+        TextPropertyOutliers(**kwargs),
+        TextDuplicates(**kwargs).add_condition_ratio_less_or_equal(),
+        ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
+        SpecialCharacters(**kwargs).add_condition_ratio_of_samples_with_special_characters_less_or_equal(),
+        UnknownTokens(**kwargs).add_condition_ratio_of_unknown_words_less_or_equal(),
+        UnderAnnotatedPropertySegments(**kwargs).add_condition_segments_relative_performance_greater_than(),
+        UnderAnnotatedMetaDataSegments(**kwargs).add_condition_segments_relative_performance_greater_than(),
     )
 
 
@@ -101,8 +104,9 @@ def train_test_validation(n_samples: int = None,
     kwargs = {**non_none_args, **kwargs}
     return Suite(
         'Train Test Validation Suite',
-        LabelDrift().add_condition_drift_score_less_than(),
-        TrainTestSamplesMix().add_condition_duplicates_ratio_less_or_equal()
+        PropertyDrift(**kwargs).add_condition_drift_score_less_than(),
+        LabelDrift(**kwargs).add_condition_drift_score_less_than(),
+        TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal()
     )
 
 
@@ -140,10 +144,11 @@ def model_evaluation(n_samples: int = None,
 
     return Suite(
         'Model Evaluation Suite',
-        SingleDatasetPerformance(),
-        PredictionDrift().add_condition_drift_score_less_than(),
-        PropertySegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
-        MetadataSegmentsPerformance().add_condition_segments_relative_performance_greater_than(),
+        TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
+        PredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+        PropertySegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
+        MetadataSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
+        TextEmbeddingsDrift().add_condition_overall_drift_value_less_than()
     )
 
 

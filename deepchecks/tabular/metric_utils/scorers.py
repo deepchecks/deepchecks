@@ -41,6 +41,7 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import get_scorer_name
 from deepchecks.utils.simple_models import PerfectModel
 from deepchecks.utils.typing import BasicModel
+from deepchecks.utils.validation import is_sequence_not_str
 
 if TYPE_CHECKING:
     from deepchecks import tabular  # pylint: disable=unused-import; it is used for type annotations
@@ -239,7 +240,7 @@ class DeepcheckScorer:
         """Run sklearn scorer on the labels and the pred/proba according to scorer type."""
         # pylint: disable=protected-access
         if isinstance(self.scorer, _BaseScorer):
-            if y_proba and isinstance(self.scorer, _ProbaScorer):
+            if y_proba is not None and isinstance(self.scorer, _ProbaScorer):
                 pred_to_use = y_proba
             else:
                 pred_to_use = y_pred
@@ -267,6 +268,9 @@ class DeepcheckScorer:
                     predictions = transfer_func(predictions)
                 # In case of multiclass with single label, convert into multi-label
                 elif self.model_classes:
+                    # if multilabel convert from numpy array of lists to 2d numpy array
+                    if (len(predictions) != 0) and is_sequence_not_str(next(iter(predictions))):
+                        predictions = np.array([np.array(x) for x in predictions])
                     predictions = _transform_to_multi_label_format(predictions, self.model_classes)
                 return predictions
 
@@ -309,6 +313,9 @@ class DeepcheckScorer:
                                                       f'{label_col.unique()}')
                 label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
             else:
+                # if multilabel convert from series of lists to 2d numpy array
+                if (len(label_col) != 0) and is_sequence_not_str(next(iter(label_col))):
+                    label_col = np.array([np.array(x) for x in label_col])
                 label_col = _transform_to_multi_label_format(np.array(label_col), self.model_classes)
 
         try:

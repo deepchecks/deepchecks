@@ -8,9 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for base tabular abstractions."""
+"""Module for base nlp suite."""
 # pylint: disable=broad-except
-from typing import Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
@@ -42,6 +42,7 @@ class Suite(BaseSuite):
         test_predictions: Optional[TTextPred] = None,
         train_probabilities: Optional[TTextProba] = None,
         test_probabilities: Optional[TTextProba] = None,
+        model_classes: Optional[List] = None,
         random_state: int = 42,
     ) -> SuiteResult:
         """Run all checks.
@@ -62,6 +63,8 @@ class Suite(BaseSuite):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
+        model_classes: Optional[List], default: None
+            For classification: list of classes known to the model
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
 
@@ -79,6 +82,7 @@ class Suite(BaseSuite):
             test_pred=test_predictions,
             train_proba=train_probabilities,
             test_proba=test_probabilities,
+            model_classes=model_classes,
             with_display=with_display,
             random_state=random_state
         )

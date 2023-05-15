@@ -1,4 +1,3 @@
-"""utils for testing."""
 # ----------------------------------------------------------------------------
 # Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
 #
@@ -9,6 +8,8 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+"""utils for testing."""
+
 import random
 from copy import copy
 from hashlib import md5

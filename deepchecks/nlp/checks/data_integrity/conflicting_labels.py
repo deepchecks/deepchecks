@@ -11,6 +11,7 @@
 """Module contains Conflicting Labels check."""
 import typing as t
 
+import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult
@@ -83,7 +84,8 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
+        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         dataset = t.cast(TextData, dataset)
         samples = dataset.text
         n_of_samples = len(samples)
@@ -96,12 +98,14 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             **self._text_normalization_kwargs
         ))
 
-        if dataset.task_type is TaskType.TOKEN_CLASSIFICATION or dataset.is_multi_label_classification():
+        if dataset.task_type is TaskType.TOKEN_CLASSIFICATION:
             labels = [tuple(t.cast(t.Sequence[t.Any], it)) for it in dataset.label]
+        elif dataset.is_multi_label_classification():
+            labels = [tuple(np.where(row == 1)[0]) for row in dataset.label]
         elif dataset.task_type is TaskType.TEXT_CLASSIFICATION:
             labels = dataset.label
         else:
-            raise DeepchecksValueError(f'Unknow task type - {dataset.task_type}')
+            raise DeepchecksValueError(f'Unknown task type - {dataset.task_type}')
 
         df = pd.DataFrame({
             'hash': samples_hashes,
@@ -131,7 +135,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             'conflicting_samples': result_df,
         }
 
-        if context.with_display is False:
+        if context.with_display is False or num_of_ambiguous_samples == 0:
             return CheckResult(value=result_value)
 
         ambiguous_samples['Text'] = ambiguous_samples['Text'].apply(self._truncate_text)

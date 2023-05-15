@@ -10,7 +10,7 @@
 #
 """Test for the NLP WeakSegmentsPerformance check"""
 import pytest
-from hamcrest import assert_that, close_to, equal_to, has_items
+from hamcrest import assert_that, close_to, equal_to, has_items, is_in
 
 from deepchecks.nlp.checks import MetadataSegmentsPerformance, PropertySegmentsPerformance
 from tests.base.utils import equal_condition_result
@@ -28,7 +28,7 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata, tweet_emotion_train_te
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found a segment with Accuracy score of 0.305 in comparison to an average score of 0.708 in sampled data.',
+                               details='Found a segment with accuracy score of 0.305 in comparison to an average score of 0.708 in sampled data.',
                                name='The relative performance of weakest segment is greater than 80% of average model performance.')
     ))
 
@@ -49,7 +49,7 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata, tweet_emoti
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Found a segment with Accuracy score of 0.525 in comparison to an average score of 0.708 in sampled data.',
+                               details='Found a segment with accuracy score of 0.525 in comparison to an average score of 0.708 in sampled data.',
                                name='The relative performance of weakest segment is greater than 70% of average model performance.')
     ))
 
@@ -65,12 +65,12 @@ def test_warning_of_n_top_columns(tweet_emotion_train_test_textdata, tweet_emoti
     metadata_check = MetadataSegmentsPerformance(n_top_columns=2)
 
     property_warning = 'Parameter n_top_properties is set to 3 to avoid long computation time. This means that the ' \
-                       'check will run on the first 3 properties. If you want to run on all properties, set ' \
+                       'check will run on 3 properties selected at random. If you want to run on all properties, set ' \
                        'n_top_properties to None. Alternatively, you can set parameter properties to a list of the ' \
                        'specific properties you want to run on.'
 
     metadata_warning = 'Parameter n_top_columns is set to 2 to avoid long computation time. This means that the check ' \
-                       'will run on the first 2 metadata columns. If you want to run on all metadata columns, set ' \
+                       'will run on 2 metadata columns selected at random. If you want to run on all metadata columns, set ' \
                        'n_top_columns to None. Alternatively, you can set parameter columns to a list of the specific ' \
                        'metadata columns you want to run on.'
 
@@ -79,3 +79,26 @@ def test_warning_of_n_top_columns(tweet_emotion_train_test_textdata, tweet_emoti
         _ = property_check.run(test, probabilities=test_probas)
     with pytest.warns(UserWarning, match=metadata_warning):
         _ = metadata_check.run(test, probabilities=test_probas)
+
+
+def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
+    # Arrange
+    data, probabilities = multilabel_mock_dataset_and_probabilities
+    assert_that(data.is_multi_label_classification(), equal_to(True))
+    check = MetadataSegmentsPerformance().add_condition_segments_relative_performance_greater_than()
+    # Act
+    result = check.run(data, probabilities=probabilities)
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=False,
+                               details='Found a segment with accuracy score of 0.395 in comparison to an average '
+                                       'score of 0.624 in sampled data.',
+                               name='The relative performance of weakest segment is greater than 80% of average model '
+                                    'performance.')
+    ))
+
+    assert_that(result.value['avg_score'], close_to(0.624, 0.001))
+    assert_that(len(result.value['weak_segments_list']), is_in([5, 6]))  # TODO: check why it's not always 5
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.395, 0.01))

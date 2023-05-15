@@ -20,7 +20,7 @@ What is the purpose of the check?
 ==================================
 
 The check is designed to help you easily identify the model's weakest segments based on the provided
-:func:`metadata <deepchecks.nlp.text_data.TextData.set_metadata>`. In addition,
+:ref:`metadata <nlp__metadata_guide>`. In addition,
 it enables to provide a sublist of the metadata columns, thus limiting the check to search in
 interesting subspaces.
 
@@ -32,11 +32,8 @@ The check contains several steps:
 #. We calculate loss for each sample in the dataset using the provided model via either log-loss or MSE according
    to the task type.
 
-#. Select a subset of features for the weak segment search. This is done by selecting the features with the
-   highest feature importance to the model provided (within the features selected for check, if limited).
-
 #. We train multiple simple tree based models, each one is trained using exactly two
-   features (out of the ones selected above) to predict the per sample error calculated before.
+   metadata columns (out of the ones selected above) to predict the per sample error calculated before.
 
 #. We extract the corresponding data samples for each of the leaves in each of the trees (data segments) and calculate
    the model performance on them. For the weakest data segments detected we also calculate the model's

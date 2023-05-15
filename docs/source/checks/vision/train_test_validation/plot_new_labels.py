@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _plot_vision_new_labels:
+.. _vision__new_labels:
 
 New Labels
 ==========

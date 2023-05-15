@@ -9,7 +9,7 @@ or **sentiment**.
 Deepchecks includes :ref:`built-in properties <Deepchecks' Built-in Properties>` and supports :ref:`using your own
 properties <Using Your Own Properties>`.
 
-Not to be confused with :ref:`metadata <nlp_metadata_guide>`, which is additional data that comes with it organically,
+Not to be confused with :ref:`metadata <nlp__metadata_guide>`, which is additional data that comes with it organically,
 such as the text's author or date of creation.
 
 
@@ -57,6 +57,10 @@ Subjectivity                    Subjectivity of the text. Uses the textblob libr
 Toxicity*                       Toxicity of the text. Uses the unitary/toxic-bert model
 Fluency*                        Fluency of the text. Uses the prithivida/parrot_fluency_model model
 Formality*                      Formality of the text. Uses the s-nlp/roberta-base-formality-ranker model
+Lexical Density                 Percentage of unique words in the text, rounded up to 2 decimal digits
+Unique Noun Count*              Number of unique noun words in the text
+Readability Score               A score calculated based on Flesch reading-ease per text sample. For more information: https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
+Average Sentence Length         Average number of words per sentence in the text
 ==============================  ==========
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass

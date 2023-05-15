@@ -54,7 +54,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             predictions on dataset
         probabilities: Union[TTextProba, None] , default: None
             probabilities on dataset
-        model_classes: Optional[List, List[List], default: None
+        model_classes: Optional[List], default: None
             For classification: list of classes known to the model
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
@@ -99,6 +99,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             test_predictions: Optional[TTextPred] = None,
             train_probabilities: Optional[TTextProba] = None,
             test_probabilities: Optional[TTextProba] = None,
+            model_classes: Optional[List] = None,
             random_state: int = 42,
     ) -> CheckResult:
         """Run check.
@@ -121,6 +122,8 @@ class TrainTestCheck(TrainTestBaseCheck):
             probabilities on train dataset
         test_probabilities: Union[TTextProba, None] , default: None
             probabilities on test_dataset dataset
+        model_classes: Optional[List], default: None
+            For classification: list of classes known to the model
         random_state : int, default 42
             A seed to set for pseudo-random functions, primarily sampling.
 
@@ -134,6 +137,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             test_pred=test_predictions,
             train_proba=train_probabilities,
             test_proba=test_probabilities,
+            model_classes=model_classes,
             random_state=random_state,
             with_display=with_display,
         )

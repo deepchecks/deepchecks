@@ -2,8 +2,9 @@
 """
 .. _nlp__prediction_drift:
 
+================
 Prediction Drift
-***************************
+================
 
 This notebook provides an overview for using and understanding the NLP prediction drift check.
 
@@ -40,9 +41,9 @@ on the prediction output.
 #%%
 # Get Data and Predictions
 # ========================
+#
 # For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
 # happiness, anger, sadness and optimism.
-#%%
 
 import numpy as np
 from deepchecks.nlp.checks import PredictionDrift
@@ -56,6 +57,7 @@ train_preds, test_preds = tweet_emotion.load_precalculated_predictions(as_train_
 
 #%%
 # Let's see how our data looks like:
+
 train_ds.head()
 
 #%%
@@ -73,6 +75,7 @@ train_preds = train_preds[indices_to_keep]
 #%%
 # Run Check
 # =========
+#
 
 check = PredictionDrift()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds,
@@ -84,9 +87,9 @@ result
 # We can see that we found drift in the distribution of the predictions, and that the drift is mainly in the "anger"
 # class. This makes sense, as we dropped 50% of the "anger" tweets from the train dataset, and so the model is now
 # predicting less "anger" tweets in the test dataset.
-
-#%%
-# The prediction drift check can also calculate drift on the probability of each class separately rather than the final predicted class.
+#
+# The prediction drift check can also calculate drift on the probability of each class separately
+# rather than the final predicted class.
 # To force this behavior, set the ``drift_mode`` parameter to ``proba``.
 
 # First let's get the probabilities for our data, instead of the predictions:
@@ -98,6 +101,7 @@ result = check.run(train_dataset=train_ds, test_dataset=test_ds,
                    train_probabilities=train_probas, test_probabilities=test_probas)
 
 result
+
 #%%
 # This time, we can see there's small drift in each class. The "anger" class drift is actually probably caused by low
 # sample size, and not by drift in the data itself, as we did not change the data within the class, but only changed
