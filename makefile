@@ -189,7 +189,7 @@ vision-requirements: vision-torch-tf-setup
 	@$(PIP) install wheel setuptools setuptools_scm
 	@$(PIP) install -q \
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
-		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 
 doc-requirements: $(ENV)
