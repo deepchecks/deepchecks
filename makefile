@@ -172,18 +172,15 @@ vision-torch-tf-setup: env
 
 	@$(PIP) install -q "tensorflow-hub==0.12.0";
 
-nlp-tests-setup: env
-	@echo "####  installing nlp properties packages #### "
-	$(PIP) install -q "langdetect>=1.0.9" "textblob>=0.17.1" "fasttext>=0.8.0"
-
-requirements: vision-torch-tf-setup nlp-tests-setup
+requirements: vision-torch-tf-setup
 	@echo "####  installing dependencies, it could take some time, please wait! #### "
 	@$(PIP) install -U pip
 	@$(PIP) install wheel setuptools setuptools_scm
 	@$(PIP) install -q \
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE) \
-		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)
+		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/nlp-prop-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 
 doc-requirements: $(ENV)
