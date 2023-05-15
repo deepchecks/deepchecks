@@ -168,7 +168,7 @@ result.show()
 # 1. Calculated automatically by deepchecks. Deepchecks has a set of predefined properties that can be calculated
 #    automatically. They can be added to the TextData object either by passing ``properties='auto'`` to the TextData
 #    constructor, or by calling the
-#    :meth:`calculate_default_properties <deepchecks.nlp.TextData.calculate_default_properties>` method anytime later.
+#    :meth:`calculate_builtin_properties <deepchecks.nlp.TextData.calculate_builtin_properties>` method anytime later.
 # 2. You can calculate your own properties and then add them to the TextData object. This can be done by passing a
 #    DataFrame of properties to the TextData `properties` argument, or by calling the
 #    :meth:`set_properties <deepchecks.nlp.TextData.set_properties>` method anytime later with such a DataFrame. You
@@ -180,13 +180,13 @@ result.show()
 #    Additionally, some properties that use the ``transformers`` package are computationally expensive, and may take
 #    a long time to calculate. If you have a GPU or a similar device you can use it by installing the appropriate
 #    package versions and passing a ``device`` argument to the ``TextData`` constructor or to the
-#    ``calculate_default_properties`` method.
+#    ``calculate_builtin_properties`` method.
 #
 #
 
 # Calculate properties
-train.calculate_default_properties()
-test.calculate_default_properties()
+train.calculate_builtin_properties()
+test.calculate_builtin_properties()
 
 # Run the check
 from deepchecks.nlp.checks import PropertySegmentsPerformance

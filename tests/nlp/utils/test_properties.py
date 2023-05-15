@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 from hamcrest import *
 
-from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_default_properties, get_transformer_model
+from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_builtin_properties, get_transformer_model
 
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
@@ -37,7 +37,7 @@ def test_calculate_toxicity_property():
     # Act
     with pytest.warns(UserWarning,
                       match=match_text):
-        result = calculate_default_properties(raw_text, include_properties=['Toxicity'],
+        result = calculate_builtin_properties(raw_text, include_properties=['Toxicity'],
                                               include_long_calculation_properties=True)[0]
 
     # Assert
@@ -51,11 +51,12 @@ def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
     test_text = test.text
 
     # Act
-    result = calculate_default_properties(test_text, include_properties=['Lexical Density'])[0]
-    result_none_text = calculate_default_properties([None], include_properties=['Lexical Density'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Lexical Density'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Lexical Density'])[0]
 
     # Assert
-    assert_that(result['Lexical Density'][0: 10], equal_to([94.44, 93.75, 100.0, 91.67, 87.5, 100.0, 100.0, 100.0, 91.67, 91.67]))
+    assert_that(result['Lexical Density'][0: 10], equal_to([94.44, 93.75, 100.0, 91.67,
+                                                            87.5, 100.0, 100.0, 100.0, 91.67, 91.67]))
     assert_that(result_none_text['Lexical Density'], equal_to([np.nan]))
 
 
@@ -66,9 +67,9 @@ def test_calculate_unique_noun_count_property(tweet_emotion_train_test_textdata)
     test_text = test.text
 
     # Act
-    result = calculate_default_properties(test_text, include_properties=['Unique Noun Count'],
+    result = calculate_builtin_properties(test_text, include_properties=['Unique Noun Count'],
                                           include_long_calculation_properties=True)[0]
-    result_none_text = calculate_default_properties([None], include_properties=['Unique Noun Count'],
+    result_none_text = calculate_builtin_properties([None], include_properties=['Unique Noun Count'],
                                                     include_long_calculation_properties=True)[0]
 
     # Assert
@@ -83,8 +84,8 @@ def test_calculate_average_sentence_length_property(tweet_emotion_train_test_tex
     test_text = test.text
 
     # Act
-    result = calculate_default_properties(test_text, include_properties=['Average Sentence Length'])[0]
-    result_none_text = calculate_default_properties([None], include_properties=['Average Sentence Length'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Average Sentence Length'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Average Sentence Length'])[0]
 
     # Assert
     assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
@@ -98,12 +99,27 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     test_text = test.text
 
     # Act
-    result = calculate_default_properties(test_text, include_properties=['Readability Score'])[0]
-    result_none_text = calculate_default_properties([None], include_properties=['Readability Score'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Readability Score'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Readability Score'])[0]
 
     # Assert
-    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103, 71.782, 90.99, 75.5, 70.102, 95.564]))
+    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103,
+                                                              71.782, 90.99, 75.5, 70.102, 95.564]))
     assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
+
+
+def test_calculate_count_unique_urls(tweet_emotion_train_test_textdata):
+        # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    result = calculate_builtin_properties(test_text, include_properties=['Count Unique URLs'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique URLs'])[0]
+
+    # Assert
+    assert_that(result['Count Unique URLs'][0: 10], equal_to([0] * 10))
+    assert_that(result_none_text['Count Unique URLs'], equal_to([0]))
 
 
 @pytest.mark.skipif(

@@ -77,7 +77,7 @@ In order to use the properties of your text in a check, the properties should al
 Calculating The Built-in Properties
 -----------------------------------
 
-In order to use the built-in properties, you must call the ``calculate_default_properties`` method of the ``TextData``
+In order to use the built-in properties, you must call the ``calculate_builtin_properties`` method of the ``TextData``
 object. This method will calculate the properties and add them to the :class:`TextData <deepchecks.nlp.TextData>` object.
 
 Example of calculating the built-in properties in order to use the TextPropertyOutliers check:
@@ -92,18 +92,18 @@ In the following example, we will calculate the default properties in order to u
   text_data = TextData(text)
 
   # Calculate the default properties
-  text_data.calculate_default_properties()
+  text_data.calculate_builtin_properties()
 
   # Run the check
   TextPropertyOutliers().run(text_data)
 
-Note that any use of the ``TextData.calculate_default_properties`` method will override the existing properties.
+Note that any use of the ``TextData.calculate_builtin_properties`` method will override the existing properties.
 
 Including or Ignoring Properties
 #################################
 
 When calculating the properties, you can choose to include or exclude specific properties, by passing the
-``include_properties`` or ``ignore_properties`` parameters to the ``calculate_default_properties`` method.
+``include_properties`` or ``ignore_properties`` parameters to the ``calculate_builtin_properties`` method.
 The parameters should be a list of the names of the properties to include or ignore. Note that only one of the
 parameters can be passed to the method.
 
@@ -111,17 +111,17 @@ In the following example, we will calculate the built-in properties and ignore t
 
 .. code-block:: python
 
-  text_data.calculate_default_properties(ignore_properties=['Text Length'])
+  text_data.calculate_builtin_properties(ignore_properties=['Text Length'])
 
 
 Moreover, some properties are not calculated by default, as they may take a long time to calculate. In order to
-use them, pass ``include_long_calculation_properties`` to the ``calculate_default_properties`` method.
+use them, pass ``include_long_calculation_properties`` to the ``calculate_builtin_properties`` method.
 
 In the following example, we will calculate the properties and include only the long calculation property "Toxicity":
 
 .. code-block:: python
 
-  text_data.calculate_default_properties(include_long_calculation_properties=True, include_properties=['Toxicity'])
+  text_data.calculate_builtin_properties(include_long_calculation_properties=True, include_properties=['Toxicity'])
 
 Saving The Calculated Properties
 ################################

@@ -71,7 +71,7 @@ Calculate Default Properties
 
 You can calculate the default text properties for the TextData object:
 
->>> text_data.calculate_default_properties()
+>>> text_data.calculate_builtin_properties()
 
 To learn more about how deepchecks uses properties and how you can calculate or set them yourself, see
 the :ref:`Text Properties Guide <nlp__properties_guide>`.

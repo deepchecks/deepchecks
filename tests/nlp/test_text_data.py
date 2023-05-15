@@ -154,7 +154,7 @@ def test_properties(text_classification_dataset_mock):
     # Act & Assert
     assert_that(dataset._properties, equal_to(None))
     # TODO: Create test for the heavy properties
-    dataset.calculate_default_properties(ignore_properties=['topic'] + LONG_RUN_PROPERTIES)
+    dataset.calculate_builtin_properties(include_long_calculation_properties = False)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
     assert_that(properties.shape[1], equal_to(9))

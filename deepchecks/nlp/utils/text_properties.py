@@ -11,6 +11,7 @@
 """Module containing the text properties for the NLP module."""
 import importlib
 import pathlib
+import re
 import string
 import warnings
 from typing import Dict, List, Optional, Sequence, Tuple, Union
@@ -26,7 +27,7 @@ from nltk import sent_tokenize, word_tokenize
 from deepchecks.nlp.utils.text import remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 
-__all__ = ['calculate_default_properties']
+__all__ = ['calculate_builtin_properties']
 
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
@@ -396,6 +397,18 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
             result.append(np.nan)
     return result
 
+def count_unique_urls(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of unique URLS per text sample."""
+    url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
+
+    return [ len(set(re.findall(url_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+
+
+def count_unique_email_addresses(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of unique email addresses per text sample."""
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    return [len(set(re.findall(email_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+
 
 DEFAULT_PROPERTIES = (
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
@@ -414,12 +427,19 @@ DEFAULT_PROPERTIES = (
     {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
 )
 
+ALL_PROPERTIES = (
+    {'name': 'Count Unique URLs', 'method': count_unique_urls, 'output_type': 'numeric'},
+    {'name': 'Count Unique Email Address', 'method': count_unique_email_addresses, 'output_type': 'numeric'},
+    # {'name': 'Count Unique Syllables', 'method': count_unique_syllables, 'output_type': 'numeric'},
+    # {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
+) + DEFAULT_PROPERTIES
+
 LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Unique Noun Count']
 ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
 LARGE_SAMPLE_SIZE = 10_000
 
 
-def _get_default_properties(
+def _get_text_properties(
     include_properties: Optional[List[str]] = None,
     ignore_properties: Optional[List[str]] = None
 ):
@@ -428,20 +448,22 @@ def _get_default_properties(
     Default properties are defined here and not outside the function so not to import all the packages
     if they are not needed.
     """
-    properties = DEFAULT_PROPERTIES
+    all_properties = ALL_PROPERTIES
 
     # Filter by properties or ignore_properties:
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
     elif include_properties is not None:
-        properties = [prop for prop in properties if prop['name'] in include_properties]
+        properties = [prop for prop in all_properties if prop['name'] in include_properties]
     elif ignore_properties is not None:
-        properties = [prop for prop in properties if prop['name'] not in ignore_properties]
+        properties = [prop for prop in all_properties if prop['name'] not in ignore_properties]
+    else:
+        properties = DEFAULT_PROPERTIES
 
     return properties
 
 
-def calculate_default_properties(
+def calculate_builtin_properties(
     raw_text: Sequence[str],
     include_properties: Optional[List[str]] = None,
     ignore_properties: Optional[List[str]] = None,
@@ -485,18 +507,19 @@ def calculate_default_properties(
         A dictionary with the property name as key and the property's type as value.
     """
     raw_text = list(raw_text)
-    default_text_properties = _get_default_properties(
+    text_properties = _get_text_properties(
         include_properties=include_properties,
         ignore_properties=ignore_properties
     )
+    print(text_properties)
 
     if not include_long_calculation_properties:
-        default_text_properties = [
-            prop for prop in default_text_properties
+        text_properties = [
+            prop for prop in text_properties
             if prop['name'] not in LONG_RUN_PROPERTIES
         ]
     else:  # Check if the run may take a long time and warn
-        heavy_properties = [prop for prop in default_text_properties if prop['name'] in LONG_RUN_PROPERTIES]
+        heavy_properties = [prop for prop in text_properties if prop['name'] in LONG_RUN_PROPERTIES]
         if heavy_properties and len(raw_text) > LARGE_SAMPLE_SIZE:
             h_prop_names = [prop['name'] for prop in heavy_properties]
             warning_message = f'Calculating the properties {h_prop_names} on a large dataset may take a long time.' \
@@ -507,7 +530,7 @@ def calculate_default_properties(
             warnings.warn(warning_message, UserWarning)
 
     calculated_properties = {}
-    for prop in default_text_properties:
+    for prop in text_properties:
         try:
             calculated_properties[prop['name']] = run_available_kwargs(
                 prop['method'],
@@ -524,7 +547,7 @@ def calculate_default_properties(
     # TODO: Add tests
     properties_types = {
         prop['name']: prop['output_type']
-        for prop in default_text_properties
+        for prop in text_properties
         if prop['name'] in calculated_properties
     }
 
