@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the NLP PredictionDrift check"""
-
+import numpy as np
 from hamcrest import assert_that, close_to, equal_to, has_items
 
 from deepchecks.nlp import TextData
@@ -75,3 +75,23 @@ def test_tweet_emotion_no_drift_no_label(tweet_emotion_train_test_textdata, twee
     ))
 
     assert_that(result.value['Drift score'], equal_to(0))
+
+
+def test_just_dance_small_drift(just_dance_train_test_textdata_sampled):
+    # Arrange
+    train, test = just_dance_train_test_textdata_sampled
+    check = PredictionDrift().add_condition_drift_score_less_than(0.1)
+
+    # Act
+    result = check.run(train, test, train_predictions=np.asarray(train.label),
+                       test_predictions=np.asarray(test.label))
+    condition_result = check.conditions_decision(result)
+
+    # Assert
+    assert_that(condition_result, has_items(
+        equal_condition_result(is_pass=True,
+                               details="Found model prediction Cramer's V drift score of 0.05",
+                               name='Prediction drift score < 0.1')
+    ))
+
+    assert_that(result.value['Drift score'], close_to(0.05, 0.01))
