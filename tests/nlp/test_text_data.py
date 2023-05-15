@@ -267,7 +267,7 @@ def test_set_properties_with_categorical_columns(text_classification_dataset_moc
     # Assert
     assert_that(dataset.categorical_properties, equal_to(['unknown_property']))
 
-def test_from_hugging_Face():
+def test_from_hugging_face():
 
     dataset = load_dataset('wikiann', name='en', split='train')
     textData = TextData.from_hugging_face(dataset)
