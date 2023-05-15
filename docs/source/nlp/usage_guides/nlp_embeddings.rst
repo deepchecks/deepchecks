@@ -97,7 +97,7 @@ you can set the embeddings of the ``TextData`` object to use them by using one o
 #. After the initialization, call the ``set_embeddings`` method of the :class:`TextData <deepchecks.nlp.TextData>`
    object.
 
-In both methods, you can pass the embeddings as a pandas DataFrame, or as a path to a csv file. For the correct format
+In both methods, you can pass the embeddings as a numpy array, or as a path to an .npy file. For the correct format
 of the embeddings, see the :ref:`Pre-Calculated Embeddings Format` section.
 
 In the following example, we will pass pre-calculated embeddings to the ``TextData`` object in order to use the
@@ -126,5 +126,3 @@ Pre-Calculated Embeddings Format
 The embeddings should be a numpy.ndarray of shape (N, E), where N is the number of samples in the
 :class:`TextData <deepchecks.nlp.TextData>` object and E is the number of embeddings dimensions.
 The numpy.ndarray must be in the same order as the samples in the TextData object.
-Note that if you load the embeddings from a csv file, all columns (embedding dimensions) will be loaded and considered
-as embeddings, so make sure not to include any other columns in the csv file such as the index column.

@@ -44,7 +44,6 @@ def test_tweet_emotion():
     assert_that(len(embeddings), equal_to(len(full)))
     assert_that(len(train_embeddings) + len(test_embeddings), equal_to(len(full)))
     assert_that(len(train_embeddings), equal_to(len(train)))
-    assert_that(embeddings.columns, contains_exactly(*[str(x) for x in range(1536)]))
-    assert_that(train_embeddings.columns, contains_exactly(*[str(x) for x in range(1536)]))
-    assert_that(test_embeddings.columns, contains_exactly(*[str(x) for x in range(1536)]))
-
+    assert_that(embeddings.shape, contains_exactly(4653, 1536))
+    assert_that(train_embeddings.shape, contains_exactly(2675, 1536))
+    assert_that(test_embeddings.shape, contains_exactly(1978, 1536))
