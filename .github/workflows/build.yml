@@ -150,12 +150,14 @@ jobs:
     runs-on: [self-hosted, gpu]
     steps:
       - uses: actions/checkout@v3
+      - name: Upgrade g++
+        run: |
+          sudo apt install -y g++-9
+          g++ --version
       - name: Set up Python
         uses: actions/setup-python@v3
         with:
           python-version: '3.7'
-      - name: Upgrade g++
-        run: sudo apt install -y g++-9
       - name: Set Up Env
         run: make env
       - name: Run Tests
