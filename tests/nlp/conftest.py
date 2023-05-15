@@ -19,7 +19,7 @@ from datasets import load_dataset
 from nltk import download as nltk_download
 from nltk.corpus import movie_reviews
 
-from deepchecks.nlp.datasets.classification import tweet_emotion, just_dance_comment_analysis
+from deepchecks.nlp.datasets.classification import just_dance_comment_analysis, tweet_emotion
 from deepchecks.nlp.text_data import TextData
 
 

@@ -13,7 +13,7 @@ import importlib
 import pathlib
 import string
 import warnings
-from typing import Dict, List, Optional, Sequence, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -22,9 +22,11 @@ import textblob
 from nltk import corpus
 from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
+from typing_extensions import TypedDict
 
 from deepchecks.nlp.utils.text import remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
+from deepchecks.utils.ipython import create_progress_bar
 
 __all__ = ['calculate_default_properties']
 
@@ -201,29 +203,38 @@ def percentage_special_characters(raw_text: Sequence[str]) -> List[float]:
 
 def max_word_length(raw_text: Sequence[str]) -> List[int]:
     """Return list of integers of max word length."""
-    return [max([len(word) for word in text.split()]) for text in raw_text]
+    result = []
+    for text in raw_text:
+        words = text.split()
+        if not words:
+            result.append(np.nan)
+        result.append(max(len(w) for w in words))
+    return result
 
 
-def language(raw_text: Sequence[str],
-             models_storage: Union[pathlib.Path, str, None] = None,
-             lang_certainty_threshold: float = 0.8
-             ) -> List[str]:
+def language(
+    raw_text: Sequence[str],
+    models_storage: Union[pathlib.Path, str, None] = None,
+    lang_certainty_threshold: float = 0.8
+) -> List[str]:
     """Return list of strings of language."""
     fasttext = _import_optional_property_dependency(module='fasttext', property_name='language')
 
     model_name = FASTTEXT_LANG_MODEL.rsplit('/', maxsplit=1)[-1]
-
     model_path = get_creat_model_storage(models_storage)
     model_path = model_path / 'fasttext'
+
     if not model_path.exists():
         model_path.mkdir(parents=True)
+
     model_path = model_path / model_name
 
     # Save the model to a file
     if not model_path.exists():
-        response = requests.get(FASTTEXT_LANG_MODEL)
-        with open(model_path, 'wb') as f:
-            f.write(response.content)
+        response = requests.get(FASTTEXT_LANG_MODEL, timeout=240)
+        if response.status_code != 200:
+            raise RuntimeError('Failed to donwload fasttext model')
+        model_path.write_bytes(response.content)
 
     # This weird code is to suppress a warning from fasttext about a deprecated function
     try:
@@ -233,10 +244,17 @@ def language(raw_text: Sequence[str],
         raise exp
 
     # Predictions are the first prediction (k=1), only if the probability is above the threshold
-    predictions = model.predict(list(raw_text), k=1, threshold=lang_certainty_threshold)
-
-    # x is empty for detection below threshold
-    language_codes = [x[0].replace('__label__', '') if x else np.nan for x in predictions[0]]
+    predictions = [
+        model.predict(it.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)
+        if it is not None
+        else (None, None)
+        for it in raw_text
+    ]
+    # labels is empty for detection below threshold
+    language_codes = [
+        labels[0].replace('__label__', '') if labels else None
+        for labels, _ in predictions
+    ]
 
     return language_codes
 
@@ -249,6 +267,30 @@ def sentiment(raw_text: Sequence[str]) -> List[str]:
 def subjectivity(raw_text: Sequence[str]) -> List[str]:
     """Return list of floats of subjectivity."""
     return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
+
+
+def _predict(text, classifier, kind):
+    try:
+        v = classifier(text)
+    except Exception:  # pylint: disable=broad-except
+        return np.nan
+    else:
+        if not v:
+            return np.nan
+        v = v[0]
+        if kind == 'toxicity':
+            return v['score']
+        elif kind == 'fluency':
+            label_value = 'LABEL_1'
+        elif kind == 'fluency':
+            label_value = 'formal'
+        else:
+            raise ValueError('Unssuported value for "kind" parameter')
+        return (
+            v['score']
+            if v['label'] == label_value
+            else 1 - v['score']
+        )
 
 
 def toxicity(
@@ -264,7 +306,10 @@ def toxicity(
         device=device,
         models_storage=models_storage
     )
-    return [x['score'] for x in classifier(raw_text)]
+    return [
+        _predict(text, classifier, 'toxicity')
+        for text in raw_text
+    ]
 
 
 def fluency(
@@ -280,7 +325,10 @@ def fluency(
         device=device,
         models_storage=models_storage
     )
-    return [x['score'] if x['label'] == 'LABEL_1' else 1 - x['score'] for x in classifier(raw_text)]
+    return [
+        _predict(text, classifier, 'fluency')
+        for text in raw_text
+    ]
 
 
 def formality(
@@ -296,7 +344,10 @@ def formality(
         device=device,
         models_storage=models_storage
     )
-    return [x['score'] if x['label'] == 'formal' else 1 - x['score'] for x in classifier(raw_text)]
+    return [
+        _predict(text, classifier, 'formality')
+        for text in raw_text
+    ]
 
 
 def lexical_density(raw_text: Sequence[str]) -> List[str]:
@@ -324,7 +375,7 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
+def unique_noun_count(raw_text: Sequence[str]) -> List[float]:
     """Return a list of integers of number of unique noun words in the text."""
     if not nltk_download('averaged_perceptron_tagger', quiet=True):
         warnings.warn('nltk averaged_perceptron_tagger not found, unique noun count cannot be calculated.'
@@ -340,7 +391,7 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def readability_score(raw_text: Sequence[str]) -> List[str]:
+def readability_score(raw_text: Sequence[str]) -> List[float]:
     """Return a list of floats of Flesch Reading-Ease score per text sample.
 
     In the Flesch reading-ease test, higher scores indicate material that is easier to read
@@ -376,7 +427,7 @@ def readability_score(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
+def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
     """Return a list of floats denoting the average sentence length per text sample."""
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, average sentence length cannot be calculated.'
@@ -397,7 +448,13 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-DEFAULT_PROPERTIES = (
+class TextProperty(TypedDict):
+    name: str
+    method: Callable[..., Sequence[Any]]
+    output_type: str
+
+
+DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
     {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
     {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
     {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
@@ -414,29 +471,59 @@ DEFAULT_PROPERTIES = (
     {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
 )
 
-LONG_RUN_PROPERTIES = ['Toxicity', 'Fluency', 'Formality', 'Unique Noun Count']
-ENGLISH_ONLY_PROPERTIES = ['Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality']
+
+LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 LARGE_SAMPLE_SIZE = 10_000
 
+ENGLISH_ONLY_PROPERTIES = (
+    'Sentiment', 'Subjectivity', 'Toxicity',
+    'Fluency', 'Formality', 'Readability Score',
+    'Unique Noun Count'
+)
 
-def _get_default_properties(
+
+def _select_properties(
+    *,
+    n_of_samples: int,
     include_properties: Optional[List[str]] = None,
-    ignore_properties: Optional[List[str]] = None
-):
-    """Return the default properties.
-
-    Default properties are defined here and not outside the function so not to import all the packages
-    if they are not needed.
-    """
+    ignore_properties: Optional[List[str]] = None,
+    include_long_calculation_properties: bool = False,
+    device: Optional[str] = None,
+) -> Sequence[TextProperty]:
+    """Select properties."""
     properties = DEFAULT_PROPERTIES
 
-    # Filter by properties or ignore_properties:
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
-    elif include_properties is not None:
+
+    if include_properties is not None:
         properties = [prop for prop in properties if prop['name'] in include_properties]
     elif ignore_properties is not None:
         properties = [prop for prop in properties if prop['name'] not in ignore_properties]
+
+    if not include_long_calculation_properties:
+        return [
+            prop for prop in properties
+            if prop['name'] not in LONG_RUN_PROPERTIES
+        ]
+
+    heavy_properties = [
+        prop for prop in properties
+        if prop['name'] in LONG_RUN_PROPERTIES
+    ]
+
+    if heavy_properties and n_of_samples > LARGE_SAMPLE_SIZE:
+        h_prop_names = [
+            prop['name']
+            for prop in heavy_properties
+        ]
+        warning_message = (
+            f'Calculating the properties {h_prop_names} on a large dataset may take a long time. '
+            'Consider using a smaller sample size or running this code on better hardware.'
+        )
+        if device is None or device == 'cpu':
+            warning_message += ' Consider using a GPU or a similar device to run these properties.'
+        warnings.warn(warning_message, UserWarning)
 
     return properties
 
@@ -445,7 +532,7 @@ def calculate_default_properties(
     raw_text: Sequence[str],
     include_properties: Optional[List[str]] = None,
     ignore_properties: Optional[List[str]] = None,
-    include_long_calculation_properties: Optional[bool] = False,
+    include_long_calculation_properties: bool = False,
     device: Optional[str] = None,
     models_storage: Union[pathlib.Path, str, None] = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
@@ -484,48 +571,101 @@ def calculate_default_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
-    raw_text = list(raw_text)
-    default_text_properties = _get_default_properties(
+    text_properties = _select_properties(
         include_properties=include_properties,
-        ignore_properties=ignore_properties
+        ignore_properties=ignore_properties,
+        device=device,
+        include_long_calculation_properties=include_long_calculation_properties,
+        n_of_samples=len(raw_text)
+    )
+    properties_types = {
+        it['name']: it['output_type']
+        for it in text_properties
+    }
+
+    kwargs = dict(device=device, models_storage=models_storage)
+    english_properties_names = set(ENGLISH_ONLY_PROPERTIES)
+    text_properties_names = {it['name'] for it in text_properties}
+    samples_language = None
+    english_samples = []
+    english_samples_mask = []
+    calculated_properties = {}
+
+    if english_properties_names & text_properties_names:
+        samples_language = run_available_kwargs(
+            language,
+            raw_text=raw_text,
+            **kwargs
+        )
+
+        for lang, text in zip(samples_language, raw_text):
+            if lang == 'en':
+                english_samples.append(text)
+                english_samples_mask.append(True)
+            else:
+                english_samples_mask.append(False)
+
+        new_text_properties = []
+
+        for prop in text_properties:
+            if prop['name'] == 'Language':
+                calculated_properties['Language'] = samples_language
+            else:
+                new_text_properties.append(prop)
+
+        text_properties = new_text_properties
+
+    warning_message = (
+        'Failed to calculate property {0}. '
+        'Dependencies required by property are not installed. '
+        'Error:\n{1}'
     )
 
-    if not include_long_calculation_properties:
-        default_text_properties = [
-            prop for prop in default_text_properties
-            if prop['name'] not in LONG_RUN_PROPERTIES
-        ]
-    else:  # Check if the run may take a long time and warn
-        heavy_properties = [prop for prop in default_text_properties if prop['name'] in LONG_RUN_PROPERTIES]
-        if heavy_properties and len(raw_text) > LARGE_SAMPLE_SIZE:
-            h_prop_names = [prop['name'] for prop in heavy_properties]
-            warning_message = f'Calculating the properties {h_prop_names} on a large dataset may take a long time.' \
-                              f' Consider using a smaller sample size or running this code on better hardware.'
-            if device is None or device == 'cpu':
-                warning_message += ' Consider using a GPU or a similar device to run these properties.'
+    progress_bar = create_progress_bar(
+        iterable=list(text_properties),
+        name='Text Properties Calculation',
+        unit='Text Property'
+    )
 
-            warnings.warn(warning_message, UserWarning)
-
-    calculated_properties = {}
-    for prop in default_text_properties:
-        try:
-            calculated_properties[prop['name']] = run_available_kwargs(
-                prop['method'],
-                raw_text=raw_text,
-                device=device,
-                models_storage=models_storage
-            )
-        except ImportError as e:
-            warnings.warn(f'Failed to calculate property {prop["name"]}.\nError: {e}')
+    # TODO: refactor
+    for prop in progress_bar:
+        progress_bar.set_postfix(
+            {'Property': prop['name']},
+            refresh=False
+        )
+        if prop['name'] not in english_properties_names:
+            try:
+                values = run_available_kwargs(prop['method'], raw_text=raw_text, **kwargs)
+            except ImportError as e:
+                warnings.warn(warning_message.format(prop['name'], str(e)))
+                continue
+            else:
+                calculated_properties[prop['name']] = values
+        else:
+            try:
+                values = run_available_kwargs(prop['method'], raw_text=english_samples, **kwargs)
+            except ImportError as e:
+                warnings.warn(warning_message.format(prop['name'], str(e)))
+                continue
+            else:
+                result = []
+                idx = 0
+                fill_value = np.nan if prop['output_type'] == 'numeric' else None
+                for mask in english_samples_mask:
+                    if mask:
+                        result.append(values[idx])
+                        idx += 1
+                    else:
+                        result.append(fill_value)
+                calculated_properties[prop['name']] = result
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 
-    # TODO: Add tests
     properties_types = {
-        prop['name']: prop['output_type']
-        for prop in default_text_properties
-        if prop['name'] in calculated_properties
+        k: v
+        for k, v in properties_types.items()
+        if k in calculated_properties
     }
 
     return calculated_properties, properties_types
