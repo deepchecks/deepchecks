@@ -245,7 +245,7 @@ def language(
 
     # Predictions are the first prediction (k=1), only if the probability is above the threshold
     predictions = [
-        model.predict(it, k=1, threshold=lang_certainty_threshold)
+        model.predict(it.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)
         if it is not None
         else (None, None)
         for it in raw_text
