@@ -19,6 +19,8 @@ from deepchecks.utils.abstracts.prediction_drift import PredictionDriftAbstract
 
 __all__ = ['PredictionDrift']
 
+from deepchecks.utils.distribution.preprocessing import convert_multi_label_to_multi_class
+
 
 class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
     """
@@ -150,10 +152,16 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
         # Flag for computing drift on the probabilities rather than the predicted labels
         proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
                       (self.drift_mode == 'proba')
+        model_classes = context.model_classes
 
         if proba_drift:
+            if context.is_multi_label_task():
+                raise DeepchecksValueError('Cannot use proba drift mode for multi-label tasks')
             train_prediction = np.array(model.predict_proba(train_dataset))
             test_prediction = np.array(model.predict_proba(test_dataset))
+        elif context.is_multi_label_task():
+            train_prediction = convert_multi_label_to_multi_class(model.predict(train_dataset), model_classes)
+            test_prediction = convert_multi_label_to_multi_class(model.predict(test_dataset), model_classes)
         else:
             train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
             test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
