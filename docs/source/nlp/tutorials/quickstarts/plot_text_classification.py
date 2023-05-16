@@ -4,15 +4,16 @@ Test NLP Classification Tasks - Quickstart
 ******************************************
 
 In this quickstart guide, we will go over using the deepchecks NLP package to analyze and evaluate text
-classification tasks. We will cover the following:
+classification tasks. We will cover the following steps:
 
-1. Creating a TextData object and auto calculating properties
-2. Running the built-in suites
-3. Check spotlight - Embeddings drift and Under-Annotated Segments
+1. `Creating a TextData object and auto calculating properties <#setting-up>`__
+2. `Running the built-in suites and inspecting the results <#running-the-deepchecks-default-suites>`__
+3. `We'll spotlight two interesting checks - Embeddings drift and Under-Annotated Segments <#running-individual-checks>`__
 
 To run deepchecks for NLP, you need the following for both your train and test data:
 
-1. Your text data - a list of strings, each string is a single sample (can be a sentence, paragraph, document, etc.).
+1. Your :ref:`text data <nlp__textdata_object>` - a list of strings, each string is a single sample
+   (can be a sentence, paragraph, document, etc.).
 2. Your labels - either a :ref:`Text Classification <nlp_supported_text_classification>` label or a
    :ref:`Token Classification <nlp_supported_token_classification>` label.
 3. Your models predictions (see :ref:`nlp__supported_tasks` for info on supported formats).
@@ -49,8 +50,8 @@ train, test = tweet_emotion.load_data(data_format='DataFrame')
 train.head()
 
 # %%
-# Create TextData Objects
-# ------------------------
+# Create a TextData Objects
+# -------------------------
 #
 # Deepchecks' TextData object contains the text samples, labels, and possibly also properties and metadata. It stores
 # cache to save time between repeated computations and contains functionalities for input validations and sampling.
@@ -68,6 +69,7 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 # Some of deepchecks' checks use properties of the text samples for various calculations. Deepcheck has a wide variety
 # of such properties, some simple and some that rely on external models and are more heavy to run. In order for
 # deepchecks' checks to be able to access the properties, they must be stored within the TextData object.
+# You can read more about properties in the :ref:`Property Guide <nlp__properties_guide>`.
 
 # properties can be either calculated directly by Deepchecks or imported for other sources in appropriate format
 
@@ -83,7 +85,7 @@ test.set_properties(test_properties, categorical_properties=['Language'])
 train.properties.head(2)
 
 # %%
-# Running the deepchecks default suites
+# Running the Deepchecks Default Suites
 # =====================================
 #
 # Data Integrity
@@ -102,17 +104,17 @@ data_integrity_suite.run(train, test)
 # Integrity #1: Unknown Tokens
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# First up (in the “Didn’t Pass” tab) we see that the Unknown Tokens check
+# First up (in the “Didn't Pass” tab) we see that the Unknown Tokens check
 # has returned a problem.
 #
 # Looking at the result, we can see that it assumed (by default) that
 # we’re going to use the bert-base-uncased tokenizer for our NLP model,
 # and that if that’s the case there are many words in the dataset that
-# contain characters (such as emojies, or Korean characters) that are
+# contain characters (such as emojis, or Korean characters) that are
 # unrecognized by the tokenizer. This is an important insight, as bert
 # tokenizers are very common.
 #
-# Integrity #2: Text outliers
+# Integrity #2: Text Outliers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Looking at the Text Outlier check result (in the “Other” tab) we can
@@ -121,7 +123,7 @@ data_integrity_suite.run(train, test)
 # before feeding the tweet to a model 2. In some instances users
 # deliberately misspell words, for example ‘!’ instead of the letter ‘l’
 # or ‘okayyyyyyyyyy’ 3. The majority of the data is in English but not
-# all. If we want a classifier that is multi lingual we should collect
+# all. If we want a classifier that is multilingual we should collect
 # more data, otherwise we may consider dropping tweets in other languages
 # from our dataset before training our model.
 #
@@ -158,6 +160,7 @@ train_test_validation().run(train, test)
 # %%
 # Model Evaluation
 # ----------------
+#
 # The suite below is designed to be run after a model has been trained and requires model predictions which can be
 # supplied via the relevant arguments in the ``run`` function.
 
@@ -172,13 +175,12 @@ result = model_evaluation().run(train, test, train_predictions=train_preds, test
 result.show()
 
 # %%
-# OK! We have many important issues being surfaced by this suite. Let’s
-# dive into the individual checks:
+# OK! We have many important issues being surfaced by this suite. Let’s dive into the individual checks:
 #
 # Model Eval #1: Train Test Performance
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# On the most superficial level, we can immediately see (in the "Did’t
+# On the most superficial level, we can immediately see (in the "Didn't
 # Pass" tab) that there has been significant degradation in the Recall on
 # class “optimism”. This follows from the severe label drift we saw after
 # running the previous suite.
@@ -192,13 +194,16 @@ result.show()
 # detect significant data segments on which our model performs badly.
 #
 # In this case we can see that both checks have found issues in the test
-# dataset: 1. The Property Segment Performance check has found that we’re
-# getting very poor results on low toxicity samples. That probably means
-# that our model is using the toxicity of the text to infer the “anger”
-# label, and is having a harder problem with other, more benign text
-# samples. 2. The Metadata Segment Performance check has found that we
-# have predicting correct results on new users from the Americas. That’s
-# 5% of our dataset so we better investigate that further.
+# dataset:
+#
+# 1. The Property Segment Performance check has found that we’re
+#    getting very poor results on low toxicity samples. That probably means
+#    that our model is using the toxicity of the text to infer the “anger”
+#    label, and is having a harder problem with other, more benign text
+#    samples.
+# 2. The Metadata Segment Performance check has found that we
+#    have predicting correct results on new users from the Americas. That’s
+#    5% of our dataset so we better investigate that further.
 #
 # Model Eval #3: Prediction Drift
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -207,7 +212,8 @@ result.show()
 # issue. Given that we already know that there is significant Label Drift,
 # this means we have Concept Drift - the labels corresponding to our
 # samples have changed, while the model continues to predict the same
-# labels.
+# labels. You can learn more about the different types of drift and how deepchecks detects them in our
+# :ref:`Drift Guide <drift_user_guide>`.
 
 # %%
 # Running Individual Checks
@@ -218,6 +224,13 @@ result.show()
 #
 # Embeddings Drift
 # ----------------
+#
+# In order to run the embedding drift check you must have text embeddings
+# loaded to both datasets. You can read more about using embeddings in deepchecks NLP in our
+# :ref:`Embeddings Guide <nlp__embeddings_guide>`.
+#
+# In this example, we have the embeddings already
+# pre-calculated:
 
 from deepchecks.nlp.datasets.classification.tweet_emotion import load_embeddings
 
@@ -225,6 +238,16 @@ train_embeddings, test_embeddings = load_embeddings()
 
 train.set_embeddings(train_embeddings)
 test.set_embeddings(test_embeddings)
+
+# %%
+# You can also calculate the embeddings using deepchecks, either using an
+# open-source sentence-transformer or using Open AI’s embedding API.
+
+# train.calculate_default_embeddings()
+# test.calculate_default_embeddings()
+
+# %%
+#
 
 from deepchecks.nlp.checks import TextEmbeddingsDrift
 
@@ -235,15 +258,12 @@ res.show()
 # %%
 # Here we can see some distinct segments that distinctly contain more
 # samples from train or more sample for test. For example, if we look at
-# the cluster in the top-left corner we see it’s full of inspirational
+# the greenish cluster in the middle we see it’s full of inspirational
 # quotes and saying, and belongs mostly to the test dataset. That is the
 # source of the drastic increase in optimistic labels!
 #
-# There are some other note-worthy segments, such as the “tail” segment in
-# the middle left that contains tweets about a terror attack in Bangladesh
-# (and belongs solely to the test data), or a cluster on the bottom right
-# that discusses a sports event that probably happened strictly in the
-# training dataset.
+# There are of course also other note-worthy segments, such as the greenish cluster on the right that contains tweets
+# about a terror attack in Bangladesh, which belongs solely to the test data.
 
 # %%
 # Under Annotated Segments
@@ -257,8 +277,11 @@ res.show()
 
 from deepchecks.nlp.checks import UnderAnnotatedPropertySegments
 test_under = tweet_emotion.load_under_annotated_data()
-check = UnderAnnotatedPropertySegments(segment_minimum_size_ratio=0.1
-                                       ).add_condition_segments_relative_performance_greater_than()
+
+check = UnderAnnotatedPropertySegments(
+    segment_minimum_size_ratio=0.1
+).add_condition_segments_relative_performance_greater_than()
+
 check.run(test_under)
 
 # %%

@@ -26,7 +26,7 @@ import pandas as pd
 from deepchecks.nlp import TextData
 from deepchecks.utils.builtin_datasets_utils import read_and_save_data
 
-__all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
+__all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions', 'load_under_annotated_data']
 
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
 _EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/40564880'
@@ -198,18 +198,19 @@ def load_under_annotated_data():
     _, test = load_data()
     test_copy = test.copy()
 
+    # randomly remove 5% of the labels
     np.random.seed(42)
     idx_to_fillna = np.random.choice(range(len(test)), int(len(test) * 0.05), replace=False)
-    test_copy._label = test_copy._label.astype(dtype=object)
-    test_copy._label[idx_to_fillna] = None
+    test_copy._label = test_copy._label.astype(dtype=object)  # pylint: disable=protected-access
+    test_copy._label[idx_to_fillna] = None  # pylint: disable=protected-access
 
-    under_unnotated_segment_idx = test_copy.properties[
-        (test_copy.properties.Fluency < 0.4) & (test_copy.properties.Formality < 0.2)].index
-
+    # randomly remove 40% of the under annotated segments
     np.random.seed(42)
-    idx_to_fillna = np.random.choice(under_unnotated_segment_idx, int(len(under_unnotated_segment_idx) * 0.4),
+    under_annotated_segment_idx = test_copy.properties[
+        (test_copy.properties.Fluency < 0.4) & (test_copy.properties.Formality < 0.2)].index
+    idx_to_fillna = np.random.choice(under_annotated_segment_idx, int(len(under_annotated_segment_idx) * 0.4),
                                      replace=False)
-    test_copy._label[idx_to_fillna] = None
+    test_copy._label[idx_to_fillna] = None  # pylint: disable=protected-access
     return test_copy
 
 
