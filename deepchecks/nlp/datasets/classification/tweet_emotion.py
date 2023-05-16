@@ -210,6 +210,7 @@ def load_under_annotated_data():
     idx_to_fillna = np.random.choice(under_unnotated_segment_idx, int(len(under_unnotated_segment_idx) * 0.4),
                                      replace=False)
     test_copy._label[idx_to_fillna] = None
+    return test_copy
 
 
 def _get_train_test_indexes() -> t.Tuple[np.array, np.array]:
