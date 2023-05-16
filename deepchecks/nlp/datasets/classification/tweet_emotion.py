@@ -193,6 +193,25 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
         return all_preds
 
 
+def load_under_annotated_data():
+    """Load and return the test data, modified to have under annotated segment."""
+    _, test = load_data()
+    test_copy = test.copy()
+
+    np.random.seed(42)
+    idx_to_fillna = np.random.choice(range(len(test)), int(len(test) * 0.05), replace=False)
+    test_copy._label = test_copy._label.astype(dtype=object)
+    test_copy._label[idx_to_fillna] = None
+
+    under_unnotated_segment_idx = test_copy.properties[
+        (test_copy.properties.Fluency < 0.4) & (test_copy.properties.Formality < 0.2)].index
+
+    np.random.seed(42)
+    idx_to_fillna = np.random.choice(under_unnotated_segment_idx, int(len(under_unnotated_segment_idx) * 0.4),
+                                     replace=False)
+    test_copy._label[idx_to_fillna] = None
+
+
 def _get_train_test_indexes() -> t.Tuple[np.array, np.array]:
     """Get the indexes of the train and test sets."""
     if (ASSETS_DIR / 'tweet_emotion_data.csv').exists():
