@@ -9,31 +9,28 @@ This notebook provides an overview for using and understanding the text data dup
 
 **Structure:**
 
-* `Why text data duplicates? <#why-text-data-duplicates>`__
-* `Create Data <#create-data>`__
+* `Why check for text data duplicates? <#why-check-for-text-data-duplicates>`__
+* `Create TextData <#create-textdata>`__
 * `Run the Check <#run-the-check>`__
 * `Define a Condition <#define-a-condition>`__
-"""
 
-#%%
+Why check for text data duplicates?
+===================================
+The ``TextDuplicates`` check finds multiple instances of identical or very similar samples in the
+Dataset. Duplicate samples increase the weight the model gives to those samples.
+If these duplicates are there intentionally (e.g. as a result of intentional
+oversampling, or due to the dataset's nature it has identical-looking samples)
+this may be valid, however if this is a hidden issue we're not expecting to occur,
+it may be an indicator for a problem in the data pipeline that requires attention.
+
+Create TextData
+===============
+
+Let's create a simple dataset with some duplicate and similar text samples.
+"""
 
 from deepchecks.nlp.checks import TextDuplicates
 from deepchecks.nlp import TextData
-
-#%%
-# Why text data duplicates?
-# =========================
-# The ``TextDuplicates`` check finds multiple instances of identical or very similar samples in the
-# Dataset. Duplicate samples increase the weight the model gives to those samples.
-# If these duplicates are there intentionally (e.g. as a result of intentional
-# oversampling, or due to the dataset's nature it has identical-looking samples)
-# this may be valid, however if this is a hidden issue we're not expecting to occur,
-# it may be an indicator for a problem in the data pipeline that requires attention.
-#
-# Create Data
-# ===========
-#
-# Let's create a simple dataset with some duplicate and similar text samples.
 
 texts = [
     "Deep learning is a subset of machine learning.",
