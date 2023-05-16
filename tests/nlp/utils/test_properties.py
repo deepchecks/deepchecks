@@ -18,7 +18,7 @@ import numpy as np
 import pytest
 from hamcrest import *
 
-from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_default_properties, get_transformer_model
+from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_builtin_properties, get_transformer_model
 
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
@@ -193,7 +193,7 @@ def test_english_only_properties_calculation_with_not_english_samples():
         'London is the capital of Great Britain'
     ]
     # Act
-    properties, properties_types = calculate_default_properties(
+    properties, properties_types = calculate_builtin_properties(
         raw_text=text,
         include_properties=['Sentiment', 'Language', 'Text Length']
     )
