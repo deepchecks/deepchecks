@@ -39,7 +39,7 @@ Load Data
 ---------
 For the purpose of this guide, we'll use a small subset of the
 `just dance <https://www.kaggle.com/datasets/renatojmsantos/just-dance-on-youtube>`__ comment analysis dataset.
-Dataset containing comments and metadata information for multilabel predictions for different properties of comments.
+Dataset containing comments, metadata and labels for multilabel category classification of the comments.
 
 """
 
@@ -183,9 +183,6 @@ result = suite.run(train_ds, test_ds, train_predictions=train_preds, test_predic
 result.show()
 
 # %%
-# OK! We have many important issues being surfaced by this suite. Let’s
-# dive into the individual checks:
-#
 # Model Eval #1: Train Test Performance
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
