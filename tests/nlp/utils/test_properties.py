@@ -101,7 +101,8 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     result_none_text = calculate_builtin_properties([None], include_properties=['Readability Score'])[0]
 
     # Assert
-    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103, 71.782, 90.99, 75.5, 70.102, 95.564]))
+    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103, 
+                                                            71.782, np.nan, 75.5, 70.102, 95.564]))
     assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
 
 
@@ -117,6 +118,20 @@ def test_calculate_count_unique_urls(tweet_emotion_train_test_textdata):
     # Assert
     assert_that(result['Count Unique URLs'][0: 10], equal_to([0] * 10))
     assert_that(result_none_text['Count Unique URLs'], equal_to([0]))
+
+
+def test_calculate_count_unique_email_addresses(tweet_emotion_train_test_textdata):
+        # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    result = calculate_builtin_properties(test_text, include_properties=['Count Unique Email Address'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique Email Address'])[0]
+
+    # Assert
+    assert_that(result['Count Unique Email Address'][0: 10], equal_to([0] * 10))
+    assert_that(result_none_text['Count Unique Email Address'], equal_to([0]))
 
 
 @pytest.mark.skipif(
