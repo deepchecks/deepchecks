@@ -19,7 +19,7 @@ from datasets import load_dataset
 from nltk import download as nltk_download
 from nltk.corpus import movie_reviews
 
-from deepchecks.nlp.datasets.classification import tweet_emotion, just_dance_comment_analysis
+from deepchecks.nlp.datasets.classification import just_dance_comment_analysis, tweet_emotion
 from deepchecks.nlp.text_data import TextData
 
 
@@ -38,10 +38,12 @@ def tweet_emotion_train_test_textdata():
                                           include_embeddings=True)
     return train, test
 
+
 @pytest.fixture(scope='session')
 def just_dance_train_test_textdata_sampled():
     """Just Dance text multilabel classification dataset"""
-    train, test = just_dance_comment_analysis.load_data(data_format='TextData', as_train_test=True)
+    train, test = just_dance_comment_analysis.load_data(data_format='TextData', as_train_test=True,
+                                                        include_embeddings=True)
     sampled_train = train.sample(500, random_state=42)
     sampled_test = test.sample(500, random_state=42)
     return sampled_train, sampled_test

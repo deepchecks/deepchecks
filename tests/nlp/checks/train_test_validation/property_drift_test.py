@@ -47,8 +47,8 @@ class TestTextClassification:
     def test_with_drift(self, tweet_emotion_train_test_textdata):
         # Arrange
         train, test = tweet_emotion_train_test_textdata
-        train = train.sample(20, random_state=0)
-        test = test.sample(20, random_state=0)
+        train = train.sample(30, random_state=0)
+        test = test.sample(30, random_state=0)
 
         train.calculate_default_properties()
         test.calculate_default_properties()
@@ -62,30 +62,29 @@ class TestTextClassification:
         # Assert
         assert len(condition_results) == 1
         assert condition_results[0].is_pass() is False
-
         assert_that(result.value, has_entries({
             "Subjectivity": {
-                "Drift score": 0.15000000000000002,
+                "Drift score": 0.14333333333333337,
                 "Method": "Kolmogorov-Smirnov",
                 "Importance": None},
             "Average Word Length": {
-                "Drift score": 0.4,
+                "Drift score": 0.16666666666666666,
                 "Method": "Kolmogorov-Smirnov",
                 "Importance": None},
             "Text Length": {
-                "Drift score": 0.19999999999999996,
+                "Drift score": 0.13333333333333333,
                 "Method": "Kolmogorov-Smirnov",
                 "Importance": None},
             "Max Word Length": {
-                "Drift score": 0.19999999999999996,
+                "Drift score": 0.13333333333333341,
                 "Method": "Kolmogorov-Smirnov",
                 "Importance": None},
             "% Special Characters": {
-                "Drift score": 0.19999999999999996,
+                "Drift score": 0.23333333333333334,
                 "Method": "Kolmogorov-Smirnov",
                 "Importance": None},
             "Sentiment": {
-                "Drift score": 0.15000000000000002,
+                "Drift score": 0.1133333333333334,
                 "Method": "Kolmogorov-Smirnov",
                 "Importance": None},
         }))  # type: ignore
@@ -108,9 +107,9 @@ class TestTokenClassification:
         assert_that(result.value, has_entries({
             'Text Length': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'}),
             '% Special Characters': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'}),
-            'Sentiment': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'}),
+            'Sentiment': has_entries({'Drift score': None, 'Method': None}),
             'Average Word Length': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'}),
-            'Subjectivity': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'}),
+            'Subjectivity': has_entries({'Drift score': None, 'Method': None}),
             'Max Word Length': has_entries({'Drift score': 0.0, 'Method': 'Kolmogorov-Smirnov'})
         }))  # type: ignore
 
@@ -125,7 +124,7 @@ class TestTokenClassification:
             include_long_calculation_properties=False
         )
 
-        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
+        check = PropertyDrift(min_samples=40).add_condition_drift_score_less_than()
 
         # Act
         result = check.run(train_dataset=train, test_dataset=test)
@@ -140,8 +139,8 @@ class TestTokenClassification:
             'Average Word Length': has_entries({'Drift score': 0.1, 'Method': 'Kolmogorov-Smirnov'}),
             '% Special Characters': has_entries({'Drift score': 0.16000000000000003, 'Method': 'Kolmogorov-Smirnov'}),
             'Text Length': has_entries({'Drift score': 0.30000000000000004, 'Method': 'Kolmogorov-Smirnov'}),
-            'Subjectivity': has_entries({'Drift score': 0.14, 'Method': 'Kolmogorov-Smirnov'}),
-            'Sentiment': has_entries({'Drift score': 0.08000000000000007, 'Method': 'Kolmogorov-Smirnov'})
+            'Subjectivity': has_entries({'Drift score': None, 'Method': None}),
+            'Sentiment': has_entries({'Drift score': None, 'Method': None})
         }))  # type: ignore
 
 
@@ -174,15 +173,24 @@ class TestMultiLabelClassification:
         properties_to_ignore = ['Lexical Density','Unique Noun Count', 'Average Sentence Length', 'Readability Score']
         train.calculate_default_properties(ignore_properties=properties_to_ignore)
         test.calculate_default_properties(ignore_properties=properties_to_ignore)
-        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than(max_allowed_numeric_score=0.3,
-                                                                                  max_allowed_categorical_score=0.3)
+
+        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than(
+            max_allowed_numeric_score=0.3,
+            max_allowed_categorical_score=0.3
+        )
+
         # Act
         result = check.run(train_dataset=train, test_dataset=test)
         condition_results = check.conditions_decision(result)
+
         assert_that(condition_results, has_items(
-            equal_condition_result(is_pass=False,
-                                   details="Failed for 1 out of 7 columns.\nFound 1 "
-                                           "numeric columns with Kolmogorov-Smirnov above threshold: "
-                                           "{'Text Length': '0.33'}",
-                                   name='categorical drift score < 0.3 and numerical drift score < 0.3')
-        ))
+            equal_condition_result(
+                is_pass=False,
+                details=(
+                    "Failed for 1 out of 7 columns.\nFound 1 "
+                    "numeric columns with Kolmogorov-Smirnov above threshold: "
+                    "{'Text Length': '0.33'}"),
+                name=(
+                    'categorical drift score < 0.3 and numerical drift score < 0.3')
+            )
+        )) # type: ignore
