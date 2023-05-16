@@ -283,7 +283,7 @@ def _predict(text, classifier, kind):
             return v['score']
         elif kind == 'fluency':
             label_value = 'LABEL_1'
-        elif kind == 'fluency':
+        elif kind == 'formality':
             label_value = 'formal'
         else:
             raise ValueError('Unssuported value for "kind" parameter')
