@@ -38,12 +38,22 @@ def tweet_emotion_train_test_textdata():
                                           include_embeddings=True)
     return train, test
 
+@pytest.fixture(scope='session')
+def just_dance_train_test_textdata():
+    """Just Dance text multilabel classification dataset"""
+    return just_dance_comment_analysis.load_data(data_format='TextData', as_train_test=True,
+                                                 include_embeddings=True)
 
 @pytest.fixture(scope='session')
-def just_dance_train_test_textdata_sampled():
+def just_dance_train_test_textdata_probas():
     """Just Dance text multilabel classification dataset"""
-    train, test = just_dance_comment_analysis.load_data(data_format='TextData', as_train_test=True,
-                                                        include_embeddings=True)
+    return just_dance_comment_analysis.load_precalculated_predictions(pred_format='probabilities', as_train_test=True)
+
+
+@pytest.fixture(scope='session')
+def just_dance_train_test_textdata_sampled(just_dance_train_test_textdata):
+    """Just Dance text multilabel classification dataset"""
+    train, test = just_dance_train_test_textdata
     sampled_train = train.sample(500, random_state=42)
     sampled_test = test.sample(500, random_state=42)
     return sampled_train, sampled_test
