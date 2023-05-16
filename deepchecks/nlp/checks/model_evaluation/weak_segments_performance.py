@@ -19,7 +19,6 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
 from deepchecks.nlp import Context, SingleDatasetCheck
-from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
@@ -34,7 +33,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
                  ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int],
-                 segment_minimum_size_ratio: float, alternative_scorer: Dict[str, Callable],
+                 segment_minimum_size_ratio: float, alternative_scorer: Dict[str, Union[str, Callable]],
                  score_per_sample: Union[np.ndarray, pd.Series, None], n_samples: int,
                  categorical_aggregation_threshold: float, n_to_show: int, **kwargs):
         super().__init__(**kwargs)
@@ -63,6 +62,10 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         # Decide which scorer and score_per_sample to use in the algorithm run
         is_multilabel = text_data.is_multi_label_classification()
         if is_multilabel:
+            if self.alternative_scorer is None:
+                self.alternative_scorer = {'F1 Macro': 'f1_macro'}
+
+            # TODO: make weak segments work with multilabel directly without reducing to single dimension
             # For multilabel, we reduce the label to a single dimension using TruncatedSVD, which is better in handling
             # dimensionality reduction of sparse matrices
             label = TruncatedSVD(1).fit_transform(text_data.label).squeeze()
@@ -80,19 +83,15 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
             avg_score = round(score_per_sample.mean(), 3)
         else:
             predictions = context.model.predict(text_data)
-            if context.task_type == TaskType.TEXT_CLASSIFICATION:
-                if not hasattr(context.model, 'predict_proba'):
-                    raise DeepchecksNotSupportedError(
-                        'Predicted probabilities not supplied. The weak segment checks relies'
-                        ' on cross entropy error that requires predicted probabilities, '
-                        'rather than only predicted classes.')
-                y_proba = context.model.predict_proba(text_data)
-                score_per_sample = calculate_neg_cross_entropy_per_sample(text_data.label, np.asarray(y_proba),
-                                                                          is_multilabel=is_multilabel,
-                                                                          model_classes=context.model_classes)
-            else:
-                raise DeepchecksNotSupportedError('Weak segments performance check is not supported for '
-                                                  f'{context.task_type}.')
+            if not hasattr(context.model, 'predict_proba'):
+                raise DeepchecksNotSupportedError(
+                    'Predicted probabilities not supplied. The weak segment checks relies'
+                    ' on cross entropy error that requires predicted probabilities, '
+                    'rather than only predicted classes.')
+            y_proba = context.model.predict_proba(text_data)
+            score_per_sample = calculate_neg_cross_entropy_per_sample(text_data.label, np.asarray(y_proba),
+                                                                      is_multilabel=is_multilabel,
+                                                                      model_classes=context.model_classes)
             dummy_model = _DummyModel(test=encoded_dataset, y_pred_test=predictions, y_proba_test=y_proba,
                                       validate_data_on_predict=False)
             scorer = context.get_single_scorer(self.alternative_scorer)
@@ -150,7 +149,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
-    alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
+    alternative_scorer : Dict[str, Union[str, Callable]] , default: None
         Scorer to use as performance measure, either function or sklearn scorer name.
         If None, a default scorer (per the model type) will be used.
     score_per_sample: Optional[np.array, pd.Series, None], default: None
@@ -158,7 +157,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
         a higher score mean better model performance on that sample. If provided, the check will also use provided
         score per sample as a scoring function for segments.
         if None the check calculates score per sample by via neg cross entropy for classification.
-    n_samples : int , default: 10_000
+    n_samples : int , default: 5_000
         Maximum number of samples to use for this check.
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
@@ -171,9 +170,9 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
                  n_top_properties: Optional[int] = 15,
                  segment_minimum_size_ratio: float = 0.05,
-                 alternative_scorer: Dict[str, Callable] = None,
+                 alternative_scorer: Dict[str, Union[str, Callable]] = None,
                  score_per_sample: Union[np.ndarray, pd.Series, None] = None,
-                 n_samples: int = 10_000,
+                 n_samples: int = 5_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
                  **kwargs):
@@ -216,7 +215,7 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
-    alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
+    alternative_scorer : Dict[str, Union[str, Callable]] , default: None
         Scorer to use as performance measure, either function or sklearn scorer name.
         If None, a default scorer (per the model type) will be used.
     score_per_sample: Union[np.array, pd.Series, None], default: None
@@ -224,7 +223,7 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
         a higher score mean better model performance on that sample. If provided, the check will also use provided
         score per sample as a scoring function for segments.
         if None the check calculates score per sample by via neg cross entropy for classification.
-    n_samples : int , default: 10_000
+    n_samples : int , default: 5_000
         Maximum number of samples to use for this check.
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
@@ -237,9 +236,9 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
                  ignore_columns: Union[Hashable, List[Hashable], None] = None,
                  n_top_columns: Optional[int] = 15,
                  segment_minimum_size_ratio: float = 0.05,
-                 alternative_scorer: Dict[str, Callable] = None,
+                 alternative_scorer: Dict[str, Union[str, Callable]] = None,
                  score_per_sample: Union[np.ndarray, pd.Series, None] = None,
-                 n_samples: int = 10_000,
+                 n_samples: int = 5_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
                  **kwargs):
