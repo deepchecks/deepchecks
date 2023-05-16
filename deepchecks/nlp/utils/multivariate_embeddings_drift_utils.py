@@ -29,7 +29,7 @@ SAMPLES_FOR_REDUCTION_FIT = 1000
 def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset: TextData,
                                            sample_size: int, random_state: int, test_size: float,
                                            num_samples_in_display: int, dimension_reduction_method: str,
-                                           with_display: bool):
+                                           model_classes: list, with_display: bool):
     """Calculate multivariable drift on embeddings."""
     np.random.seed(random_state)
 
@@ -99,14 +99,15 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
         displays = [build_drift_plot(drift_score),
                     display_embeddings(train_dataset=train_dataset_for_display,
                                        test_dataset=test_dataset_for_display,
-                                       random_state=random_state)]
+                                       random_state=random_state,
+                                       model_classes=model_classes)]
     else:
         displays = None
 
     return values_dict, displays
 
 
-def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_state: int):
+def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_state: int, model_classes: list):
     """Display the embeddings with the domain classifier proba as the x-axis and the embeddings as the y-axis."""
     embeddings = np.concatenate([train_dataset.embeddings, test_dataset.embeddings])
 
@@ -120,4 +121,4 @@ def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_s
                               y_axis_title: reduced_embeddings[:, 1]})
     plot_title = 'Scatter Plot of Embeddings Space (reduced to 2 dimensions)'
     return two_datasets_scatter_plot(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
-                                     test_dataset=test_dataset)
+                                     test_dataset=test_dataset, model_classes=model_classes)

@@ -12,7 +12,7 @@
 import numpy as np
 from hamcrest import assert_that, contains_exactly, equal_to
 
-from deepchecks.nlp.datasets.classification import tweet_emotion, just_dance_comment_analysis
+from deepchecks.nlp.datasets.classification import just_dance_comment_analysis, tweet_emotion
 
 
 def test_tweet_emotion():
