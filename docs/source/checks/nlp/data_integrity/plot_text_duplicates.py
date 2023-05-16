@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-.. _text__data_duplicates:
+.. _nlp__data_duplicates:
 
 Text Data Duplicates
 ********************
