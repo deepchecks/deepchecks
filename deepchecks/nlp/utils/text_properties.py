@@ -514,7 +514,7 @@ def _select_properties(
 ) -> Sequence[TextProperty]:
     """Select properties."""
     all_properties = ALL_PROPERTIES
-    
+
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
 
