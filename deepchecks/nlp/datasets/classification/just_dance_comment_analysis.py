@@ -51,6 +51,7 @@ _TEXT_COL = 'originalText'
 _TIME_COL = 'dateComment'
 _DATE_TO_SPLIT_BY = '2015-01-01'
 
+
 def load_precalculated_predictions(pred_format: str = 'predictions', as_train_test: bool = True,
                                    use_full_size: bool = False) -> \
         t.Union[np.array, t.Tuple[np.array, np.array]]:
@@ -108,7 +109,7 @@ def load_embeddings(as_train_test: bool = True, use_full_size: bool = False) -> 
     Returns
     -------
     embeddings : np.ndarray
-        Embeddings for the tweet_emotion dataset.
+        Embeddings for the just dance dataset.
     """
     if use_full_size:
         raise NotImplementedError('Embeddings for the full dataset are not yet available.')
@@ -139,7 +140,7 @@ def load_properties(as_train_test: bool = True, use_full_size: bool = False) -> 
     Returns
     -------
     properties : pd.DataFrame
-        Properties for the tweet_emotion dataset.
+        Properties for the just dance dataset.
     """
     if use_full_size:
         raise NotImplementedError('Properties for the full dataset are not yet available.')
@@ -171,9 +172,9 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
     use_full_size : bool, default: False
         If True, the returned data will be the full dataset, otherwise returns a subset of the data.
     include_properties : bool, default: True
-        If True, the returned data will include the properties of the tweets. Incompatible with data_format='DataFrame'
+        If True, the returned data will include properties of the comments. Incompatible with data_format='DataFrame'
     include_embeddings : bool, default: True
-        If True, the returned data will include the embeddings of the tweets. Incompatible with data_format='DataFrame'
+        If True, the returned data will include embeddings of the comments. Incompatible with data_format='DataFrame'
 
     Returns
     -------
@@ -205,8 +206,8 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
         return dataset
 
     else:
-        train = data[data[_TIME_COL] < _DATE_TO_SPLIT_BY]
-        test = data[data[_TIME_COL] >= _DATE_TO_SPLIT_BY]
+        train_indexes, test_indexes = _get_train_test_indexes(use_full_size)
+        train, test = data.loc[train_indexes], data.loc[test_indexes]
 
         if data_format.lower() != 'textdata':
             return train, test
@@ -220,7 +221,8 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
         else:
             train_properties, test_properties = None, None
         if include_embeddings:
-            train_embeddings, test_embeddings = embeddings[train.index], embeddings[test.index] # pylint: disable=unsubscriptable-object
+            train_embeddings = embeddings[train.index]  # pylint: disable=unsubscriptable-object
+            test_embeddings = embeddings[test.index]  # pylint: disable=unsubscriptable-object
         else:
             train_embeddings, test_embeddings = None, None
 
@@ -239,8 +241,9 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
 def _get_train_test_indexes(use_full_size: bool = False) -> t.Tuple[np.array, np.array]:
     """Get the indexes of the train and test sets."""
     if use_full_size:
-        raise NotImplementedError('Functionality for the full dataset are not yet available.')
-    dataset = pd.read_csv(ASSETS_DIR / 'just_dance_shorted_data.csv', usecols=[_TIME_COL])
+        dataset = pd.read_csv(ASSETS_DIR / 'just_dance_data.csv', usecols=[_TIME_COL])
+    else:
+        dataset = pd.read_csv(ASSETS_DIR / 'just_dance_shorted_data.csv', usecols=[_TIME_COL])
     train_indexes = dataset[dataset[_TIME_COL] < _DATE_TO_SPLIT_BY].index
     test_indexes = dataset[dataset[_TIME_COL] >= _DATE_TO_SPLIT_BY].index
     return train_indexes, test_indexes

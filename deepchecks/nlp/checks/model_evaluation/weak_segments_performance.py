@@ -63,7 +63,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         is_multilabel = text_data.is_multi_label_classification()
         if is_multilabel:
             if self.alternative_scorer is None:
-                self.alternative_scorer = {'Precision Macro': 'precision_macro'}
+                self.alternative_scorer = {'F1 Macro': 'f1_macro'}
 
             # TODO: make weak segments work with multilabel directly without reducing to single dimension
             # For multilabel, we reduce the label to a single dimension using TruncatedSVD, which is better in handling
