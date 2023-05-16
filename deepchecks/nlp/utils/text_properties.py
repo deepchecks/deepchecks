@@ -412,10 +412,10 @@ def readability_score(raw_text: Sequence[str]) -> List[float]:
     for text in raw_text:
         if not pd.isna(text):
             sentence_count = len(sent_tokenize(text))
-            text = remove_punctuation(text)
+            text = remove_punctuation(text.lower())
             words = word_tokenize(text)
             word_count = len(words)
-            syllable_count = sum([len(cmudict_dict[word.lower()]) for word in words if word.lower() in cmudict_dict])
+            syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
             if word_count != 0 and sentence_count != 0 and syllable_count != 0:
                 avg_syllables_per_word = syllable_count / word_count
                 avg_words_per_sentence = word_count / sentence_count
@@ -462,6 +462,29 @@ def count_unique_email_addresses(raw_text: Sequence[str]) -> List[str]:
     return [len(set(re.findall(email_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
 
 
+def count_unique_syllables(raw_text: Sequence[str]) -> List[srt]:
+    """Return a list of integers denoting the number of unique unique syllables per text sample."""
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, readability score cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [0] * len(raw_text)
+    if not nltk_download('cmudict', quiet=True):
+        warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [0] * len(raw_text)
+    result = []
+    cmudict_dict = corpus.cmudict.dict()
+    for text in raw_text:
+        if not pd.isna(text):
+            text = remove_punctuation(text.lower())
+            words = word_tokenize(text)
+            syllables = {word: True for word in words if word in cmudict_dict}
+            result.append(len(syllables))
+        else:
+            result.append(0)
+    return result
+
+
 class TextProperty(TypedDict):
     name: str
     method: Callable[..., Sequence[Any]]
@@ -489,7 +512,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
 ALL_PROPERTIES: Tuple[TextProperty, ...] = (
     {'name': 'Count Unique URLs', 'method': count_unique_urls, 'output_type': 'numeric'},
     {'name': 'Count Unique Email Address', 'method': count_unique_email_addresses, 'output_type': 'numeric'},
-    # {'name': 'Count Unique Syllables', 'method': count_unique_syllables, 'output_type': 'numeric'},
+    {'name': 'Count Unique Syllables', 'method': count_unique_syllables, 'output_type': 'numeric'},
     # {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
 ) + DEFAULT_PROPERTIES
 
