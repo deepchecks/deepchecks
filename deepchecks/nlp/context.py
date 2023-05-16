@@ -449,16 +449,16 @@ class Context(BaseContext):
         return init_validate_scorers(scorers, self.model_classes, self._observed_classes)
 
     def get_single_scorer(self,
-                          scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                          scorer: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str], None] = None,
                           use_avg_defaults=True) -> DeepcheckScorer:
         """Return initialized & validated scorer if provided or a default scorer otherwise.
 
         Parameters
         ----------
-        scorer : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+        scorer : t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str], None], default: None
             List of scorers to use. If None, use default scorers.
             Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
-        use_avg_defaults : bool, default True
+        use_avg_defaults : bool, default: True
             If no scorers were provided, for classification, determines whether to use default scorers that return
             an averaged metric, or default scorers that return a metric per class.
         Returns
@@ -466,7 +466,4 @@ class Context(BaseContext):
         List[DeepcheckScorer]
             An initialized & validated scorer.
         """
-        if scorer is not None:
-            scorer_name = next(iter(scorer))
-            scorer = {scorer_name: scorer[scorer_name]}
         return self.get_scorers(scorer, use_avg_defaults)[0]

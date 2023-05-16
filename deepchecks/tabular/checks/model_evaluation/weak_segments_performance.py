@@ -54,7 +54,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
-    alternative_scorer : Tuple[str, Union[str, Callable]] , default: None
+    alternative_scorer : Dict[str, Union[str, Callable]] , default: None
         Scorer to use as performance measure, either function or sklearn scorer name.
         If None, a default scorer (per the model type) will be used.
     score_per_sample: Union[np.array, pd.Series, None], default: None
@@ -81,7 +81,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             n_top_features: int = 5,
             segment_minimum_size_ratio: float = 0.05,
-            alternative_scorer: Dict[str, Callable] = None,
+            alternative_scorer: Dict[str, Union[str, Callable]] = None,
             loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
             score_per_sample: Union[np.ndarray, pd.Series, None] = None,
             n_samples: int = 10_000,
