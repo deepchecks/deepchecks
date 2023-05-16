@@ -70,7 +70,7 @@ def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
                 embeddings.append(x['embedding'])
     else:
         raise ValueError(f'Unknown model type: {model}')
-    embeddings = np.array(embeddings)
+    embeddings = np.array(embeddings).astype(np.float16)
     if file_path is not None:
         np.save(file_path, embeddings)
     return embeddings

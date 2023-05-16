@@ -91,11 +91,11 @@ def test_just_dance_small_drift(just_dance_train_test_textdata_sampled):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
-                               details="Found model prediction Cramer's V drift score of 0.05",
+                               details="Found model prediction Cramer's V drift score of 0.07",
                                name='Prediction drift score < 0.1')
     ))
 
-    assert_that(result.value['Drift score'], close_to(0.05, 0.01))
+    assert_that(result.value['Drift score'], close_to(0.07, 0.01))
 
 
 def test_token_classification(small_wikiann_train_test_text_data):
