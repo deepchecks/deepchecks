@@ -17,14 +17,15 @@ This notebook provides an overview for using and understanding the Conflicting L
 Why check for conflicting labels?
 ==================================
 
-The ``ConflictingLabels`` check finds identical or very similar samples in the dataset that have different labels.
-Conflicting labels can lead to inconsistencies and confusion for the model during training. Identifying such samples
-can help in cleaning the data and improving the model's performance.
+The ``ConflictingLabels`` check finds identical or nearly identical (see
+`text normalization <#with-text-normalization>`__) samples in the dataset that have different labels. Conflicting labels
+can lead to inconsistencies and confusion for the model during training. Identifying such samples can help in cleaning
+the data and improving the model's performance.
 
 Create TextData
 ===============
 
-Let's create a simple dataset with some samples having conflicting labels.
+Lets create a simple dataset with some samples having conflicting labels.
 """
 
 from deepchecks.nlp import TextData

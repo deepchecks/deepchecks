@@ -16,7 +16,9 @@ This notebook provides an overview for using and understanding the text data dup
 
 Why check for text data duplicates?
 ===================================
-The ``TextDuplicates`` check finds multiple instances of identical or very similar samples in the
+
+The ``TextDuplicates`` check finds multiple instances of identical or nearly identical (see
+`text normalization <#with-text-normalization>`__) samples in the
 Dataset. Duplicate samples increase the weight the model gives to those samples.
 If these duplicates are there intentionally (e.g. as a result of intentional
 oversampling, or due to the dataset's nature it has identical-looking samples)

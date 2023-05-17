@@ -16,7 +16,8 @@ This notebook provides an overview for using and understanding the train-test sa
 
 Why check for train-test samples mix?
 ======================================
-The ``TrainTestSamplesMix`` check finds instances of identical or very similar samples in both the
+The ``TrainTestSamplesMix`` check finds instances of identical or nearly identical (see
+`text normalization <#with-text-normalization>`__) samples in both the
 train and test datasets. If such samples are present unintentionally, it may lead to data leakage, which
 can result in overly optimistic model performance estimates during evaluation. Identifying and addressing
 such issues is crucial to ensure the model performs well on unseen data.
