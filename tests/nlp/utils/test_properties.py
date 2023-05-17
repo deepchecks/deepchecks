@@ -90,8 +90,13 @@ def test_calculate_average_sentence_length_property(tweet_emotion_train_test_tex
     assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
     assert_that(result_none_text['Average Sentence Length'], equal_to([np.nan]))
 
+    # Assert
+    assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
+    assert_that(result_none_text['Average Sentence Length'], equal_to([np.nan]))
+
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):
+
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -107,7 +112,8 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
 
 
 def test_calculate_count_unique_urls(tweet_emotion_train_test_textdata):
-        # Arrange
+
+    # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
 
@@ -121,7 +127,8 @@ def test_calculate_count_unique_urls(tweet_emotion_train_test_textdata):
 
 
 def test_calculate_count_unique_email_addresses(tweet_emotion_train_test_textdata):
-        # Arrange
+
+    # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
 
@@ -132,6 +139,37 @@ def test_calculate_count_unique_email_addresses(tweet_emotion_train_test_textdat
     # Assert
     assert_that(result['Count Unique Email Address'][0: 10], equal_to([0] * 10))
     assert_that(result_none_text['Count Unique Email Address'], equal_to([0]))
+
+
+def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
+
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    result = calculate_builtin_properties(test_text, include_properties=['Count Unique Syllables'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique Syllables'])[0]
+
+    # Assert
+    assert_that(result['Count Unique Syllables'][0: 10], equal_to([15, 11, 9, 21, 13, 17, 6, 8, 20, 18]))
+    assert_that(result_none_text['Count Unique Syllables'], equal_to([0]))
+
+
+def test_calculate_reading_time(tweet_emotion_train_test_textdata):
+
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    result = calculate_builtin_properties(test_text, include_properties=['Reading Time'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Reading Time'])[0]
+
+    # Assert
+    assert_that(result['Reading Time'][0: 10], equal_to([1.26, 1.25, 0.81, 1.35, 1.44, 
+                                                         1.88, 0.48, 0.71, 1.53, 1.56]))
+    assert_that(result_none_text['Reading Time'], equal_to([0.00]))
 
 
 @pytest.mark.skipif(

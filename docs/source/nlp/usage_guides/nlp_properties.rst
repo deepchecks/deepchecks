@@ -61,6 +61,10 @@ Lexical Density                 Percentage of unique words in the text, rounded 
 Unique Noun Count*              Number of unique noun words in the text
 Readability Score               A score calculated based on Flesch reading-ease per text sample. For more information: https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
 Average Sentence Length         Average number of words per sentence in the text
+Count Unique URLs               Number of unique URLS per text sample.
+Count Unique Email Address      Number of unique email addresses per text sample.
+Count Unique Syllables          Number of unique syllables per text sample.
+Reading Time                    Time taken in seconds to read a text sample.
 ==============================  ==========
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass

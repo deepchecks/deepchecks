@@ -462,8 +462,8 @@ def count_unique_email_addresses(raw_text: Sequence[str]) -> List[str]:
     return [len(set(re.findall(email_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
 
 
-def count_unique_syllables(raw_text: Sequence[str]) -> List[srt]:
-    """Return a list of integers denoting the number of unique unique syllables per text sample."""
+def count_unique_syllables(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of unique syllables per text sample."""
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, readability score cannot be calculated.'
                       ' Please check your internet connection.', UserWarning)
@@ -482,6 +482,26 @@ def count_unique_syllables(raw_text: Sequence[str]) -> List[srt]:
             result.append(len(syllables))
         else:
             result.append(0)
+    return result
+
+
+def reading_time(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting time in seconds to read each text sample.
+
+    The formula is based on Demberg & Keller, 2008 where it is assumed that
+    reading a character taken 14.69 milliseconds on average.
+    """
+    ms_per_char = 14.69
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            words = text.split()
+            nchars = map(len, words)
+            rt_per_word = map(lambda nchar: nchar * ms_per_char, nchars)
+            reading_time = sum(list(rt_per_word))
+            result.append(round(reading_time/1000, 2))
+        else:
+            result.append(0.00)
     return result
 
 
@@ -513,7 +533,7 @@ ALL_PROPERTIES: Tuple[TextProperty, ...] = (
     {'name': 'Count Unique URLs', 'method': count_unique_urls, 'output_type': 'numeric'},
     {'name': 'Count Unique Email Address', 'method': count_unique_email_addresses, 'output_type': 'numeric'},
     {'name': 'Count Unique Syllables', 'method': count_unique_syllables, 'output_type': 'numeric'},
-    # {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
+    {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
 ) + DEFAULT_PROPERTIES
 
 
@@ -523,7 +543,7 @@ LARGE_SAMPLE_SIZE = 10_000
 ENGLISH_ONLY_PROPERTIES = (
     'Sentiment', 'Subjectivity', 'Toxicity',
     'Fluency', 'Formality', 'Readability Score',
-    'Unique Noun Count'
+    'Unique Noun Count', 'Count Unique Syllables'
 )
 
 
@@ -594,7 +614,11 @@ def calculate_builtin_properties(
         with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Readability Score', 'Average Sentence Length']
+        'Readability Score', 'Average Sentence Length', 'Count Unique URLs', 'Count Unique Email Address',
+        'Count Unique Syllables', 'Reading Time']
+        List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
+        '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
+        'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Sentence Length']
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
         take a long time to calculate. If include_long_calculation_properties is False, these properties will be
         ignored, even if they are in the include_properties parameter.
