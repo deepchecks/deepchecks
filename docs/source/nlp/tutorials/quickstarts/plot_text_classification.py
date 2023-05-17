@@ -50,11 +50,19 @@ train, test = tweet_emotion.load_data(data_format='DataFrame')
 train.head()
 
 # %%
+#
+# We can see that we have the tweet text itself, the label (the emotion) and then some additional metadata columns.
+#
 # Create a TextData Objects
 # -------------------------
 #
-# Deepchecks' TextData object contains the text samples, labels, and possibly also properties and metadata. It stores
-# cache to save time between repeated computations and contains functionalities for input validations and sampling.
+# We can now create a :class:`TextData <deepchecks.nlp.TextData>` object for the train and test dataframes.
+# This object is used to pass your data to the deepchecks checks.
+#
+# To create a TextData object, the only required argument is the text itself, but passing only the text
+# will prevent multiple checks from running. In this example we'll pass the label and define the task type and finally
+# define the :ref:`metadata columns <nlp__metadata_guide>` (the other columns in the dataframe) which we'll use later
+# on in the guide.
 
 
 train = TextData(train.text, label=train['label'], task_type='text_classification',
@@ -66,16 +74,22 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 # Calculating Properties
 # ----------------------
 #
-# Some of deepchecks' checks use properties of the text samples for various calculations. Deepcheck has a wide variety
-# of such properties, some simple and some that rely on external models and are more heavy to run. In order for
-# deepchecks' checks to be able to access the properties, they must be stored within the TextData object.
-# You can read more about properties in the :ref:`Property Guide <nlp__properties_guide>`.
+# Some of deepchecks' checks use properties of the text samples for various calculations. Deepcheck has a wide
+# variety of such properties, some simple and some that rely on external models and are more heavy to run. In order
+# for deepchecks' checks to be able to access the properties, they must be stored within the
+# :class:`TextData <deepchecks.nlp.TextData>` object. You can read more about properties in the
+# :ref:`Property Guide <nlp__properties_guide>`.
 
-# properties can be either calculated directly by Deepchecks or imported for other sources in appropriate format
+# properties can be either calculated directly by Deepchecks
+# or imported from other sources in appropriate format
 
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# train.calculate_default_properties(include_long_calculation_properties=True, device=device)
-# test.calculate_default_properties(include_long_calculation_properties=True,  device=device)
+# train.calculate_default_properties(
+#   include_long_calculation_properties=True, device=device
+# )
+# test.calculate_default_properties(
+#   include_long_calculation_properties=True,  device=device
+# )
 
 train_properties, test_properties = tweet_emotion.load_properties()
 
@@ -88,12 +102,16 @@ train.properties.head(2)
 # Running the Deepchecks Default Suites
 # =====================================
 #
+# Deepchecks comes with a set of pre-built suites that can be used to run a set of checks on your data, alongside
+# with their default conditions and thresholds. You can read more about customizing and creating your own suites in the
+# :doc:`Customizations Guide </general/usage/customizations>`.
+#
 # Data Integrity
 # --------------
 # We will start by doing preliminary integrity check to validate the text formatting. It is recommended to do this step
 # before model training as it may imply additional data engineering is required.
 #
-# We'll do that using the data_integrity pre-built suite.
+# We'll do that using the :mod:`data_integrity <deepchecks.nlp.suites>` pre-built suite.
 
 from deepchecks.nlp.suites import data_integrity
 
@@ -112,25 +130,32 @@ data_integrity_suite.run(train, test)
 # and that if that’s the case there are many words in the dataset that
 # contain characters (such as emojis, or Korean characters) that are
 # unrecognized by the tokenizer. This is an important insight, as bert
-# tokenizers are very common.
+# tokenizers are very common. You can configure the tokenizer used by
+# this check by passing the tokenizer to the check’s constructor, and can
+# also configure the threshold for the percent of unknown tokens allowed by
+# modifying the checks condition.
 #
 # Integrity #2: Text Outliers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# Looking at the Text Outlier check result (in the “Other” tab) we can
-# derive several insights: 1. hashtags (‘#…’) are usually several words
-# written together without spaces - we might consider splitting them
-# before feeding the tweet to a model 2. In some instances users
-# deliberately misspell words, for example ‘!’ instead of the letter ‘l’
-# or ‘okayyyyyyyyyy’ 3. The majority of the data is in English but not
-# all. If we want a classifier that is multilingual we should collect
-# more data, otherwise we may consider dropping tweets in other languages
-# from our dataset before training our model.
+# In the “Other” tab, Looking at the Text Outlier check result we can
+# derive several insights by hovering over the different values and inspecting the outlier texts:
+#
+# 1. hashtags (‘#…’) are usually several words
+#    written together without spaces - we might consider splitting them
+#    before feeding the tweet to a model
+# 2. In some instances users
+#    deliberately misspell words, for example ‘!’ instead of the letter ‘l’
+#    or ‘okayyyyyyyyyy’.
+# 3. The majority of the data is in English but not
+#    all. If we want a classifier that is multilingual we should collect
+#    more data, otherwise we may consider dropping tweets in other languages
+#    from our dataset before training our model.
 #
 # Integrity #3: Property-Label Correlation (Shortcut Learning)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# The Property-Label Correlation check verifies the data does not contain
+# In the "Passed" tab we can see tha Property-Label Correlation check, that verifies the data does not contain
 # any shortcuts the model can fixate on during the learning process. In
 # our case we can see no indication that this problem exists in our
 # dataset. For more information about shortcut learning see:
@@ -139,8 +164,11 @@ data_integrity_suite.run(train, test)
 # %%
 # Train Test Validation
 # ---------------------
-# The next suite serves to validate our split and compare the two dataset. This suite is useful for when you already
-# decided about your train and test/validation splits, but before training the model itself.
+#
+# The next suite, the :mod:`train_test_validation <deepchecks.nlp.suites>` suite serves to validate our split and
+# compare the two dataset. These splits can be either you training and val / test sets, in which case you'd want to run
+# this suite after the split was made but before training, or for example your training and inference data, in which
+# case the suite is useful for validating that the inference data is similar enough to the training data.
 
 from deepchecks.nlp.suites import train_test_validation
 
@@ -150,28 +178,30 @@ train_test_validation().run(train, test)
 # Label Drift
 # ~~~~~~~~~~~
 #
-# We can see that we have some significant change in the distribution of
-# the label - the label “optimism” is suddenly way more common in the test
-# dataset, while other labels declined. This happened because we split on
-# time, so the topics covered by the tweets in the test dataset may
-# correspond to specific trends or events that happened later in time.
-# Let’s investigate!
+# This check, appearing in the "Didn't Pass" tab, lets us see that we have some significant change in the
+# distribution of the label - the label “optimism” is suddenly way more common in the test dataset, while other
+# labels declined. This happened because we split on time, so the topics covered by the tweets in the test dataset
+# may correspond to specific trends or events that happened later in time. Let’s investigate!
 
 # %%
 # Model Evaluation
 # ----------------
 #
-# The suite below is designed to be run after a model has been trained and requires model predictions which can be
-# supplied via the relevant arguments in the ``run`` function.
+# The suite below, the :mod:`model_evaluation <deepchecks.nlp.suites>` suite, is designed to be run after a model has
+# been trained and requires model predictions which can be supplied via the relevant arguments in the ``run`` function.
 
-train_preds, test_preds = tweet_emotion.load_precalculated_predictions(pred_format='predictions', as_train_test=True)
-train_probas, test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities',
-                                                                         as_train_test=True)
+train_preds, test_preds = tweet_emotion.load_precalculated_predictions(
+    pred_format='predictions', as_train_test=True)
+train_probas, test_probas = tweet_emotion.load_precalculated_predictions(
+    pred_format='probabilities', as_train_test=True)
 
 from deepchecks.nlp.suites import model_evaluation
 
-result = model_evaluation().run(train, test, train_predictions=train_preds, test_predictions=test_preds,
-                                train_probabilities=train_probas, test_probabilities=test_probas)
+result = model_evaluation().run(train, test,
+                                train_predictions=train_preds,
+                                test_predictions=test_preds,
+                                train_probabilities=train_probas,
+                                test_probabilities=test_probas)
 result.show()
 
 # %%
@@ -180,17 +210,15 @@ result.show()
 # Model Eval #1: Train Test Performance
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# On the most superficial level, we can immediately see (in the "Didn't
-# Pass" tab) that there has been significant degradation in the Recall on
-# class “optimism”. This follows from the severe label drift we saw after
-# running the previous suite.
+# We can immediately see in the "Didn't Pass" tab that there has been significant degradation in the Recall on
+# class “optimism”. This is very likely a result of the severe label drift we saw after running the previous suite.
 #
 # Model Eval #2: Segment Performance
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# The two segment performance checks - Property Segment Performance and
-# Metadata Segment Performance, use the metadata columns of user related
-# information OR our calculated properties to try and **automatically**
+# Also in the "Didn't Pass" tab we can see the two segment performance checks - Property Segment Performance and
+# Metadata Segment Performance. These use the :ref:`metadata columns <nlp__metadata_guide>` of user related
+# information OR our :ref:`calculated properties <nlp__properties_guide>` to try and **automatically**
 # detect significant data segments on which our model performs badly.
 #
 # In this case we can see that both checks have found issues in the test
@@ -204,6 +232,9 @@ result.show()
 # 2. The Metadata Segment Performance check has found that we
 #    have predicting correct results on new users from the Americas. That’s
 #    5% of our dataset so we better investigate that further.
+#
+# You'll note that these two issues occur only in the test data, and so the results of these checks for the
+# training data appear in the "Passed" tab.
 #
 # Model Eval #3: Prediction Drift
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -220,14 +251,15 @@ result.show()
 # =========================
 #
 # Checks can also be run individually. In this section, we'll show two of the more interesting checks and how you can
-# run them stand-alone.
+# run them stand-alone and add conditions to them. You can learn more about customizing suites, checks and conditions
+# in our :doc:`Customizations Guide </general/usage/customizations/auto_examples>`.
 #
 # Embeddings Drift
 # ----------------
 #
-# In order to run the embedding drift check you must have text embeddings
-# loaded to both datasets. You can read more about using embeddings in deepchecks NLP in our
-# :ref:`Embeddings Guide <nlp__embeddings_guide>`.
+# In order to run the :ref:`Embeddings Drift <nlp__embeddings_drift>` check
+# you must have text embeddings loaded to both datasets. You can read more about using embeddings in deepchecks NLP in
+# our :ref:`Embeddings Guide <nlp__embeddings_guide>`.
 #
 # In this example, we have the embeddings already
 # pre-calculated:
@@ -256,21 +288,22 @@ res = check.run(train, test)
 res.show()
 
 # %%
-# Here we can see some distinct segments that distinctly contain more
+# Here we can see some clusters that distinctly contain more
 # samples from train or more sample for test. For example, if we look at
-# the greenish cluster in the middle we see it’s full of inspirational
-# quotes and saying, and belongs mostly to the test dataset. That is the
+# the greenish cluster in the middle (by hovering on the samples and reading the tweets) we see it’s full of
+# inspirational quotes and sayings, and belongs mostly to the test dataset. That is the
 # source of the drastic increase in optimistic labels!
 #
-# There are of course also other note-worthy segments, such as the greenish cluster on the right that contains tweets
+# There are of course also other note-worthy clusters, such as the greenish cluster on the right that contains tweets
 # about a terror attack in Bangladesh, which belongs solely to the test data.
 
 # %%
 # Under Annotated Segments
 # ------------------------
 #
-# Another note-worth segment is the Under Annotated Segment check, which
-# explores our data and automatically identifies segments where the data
+# Another note-worthy segment is the
+# :ref:`Under Annotated Segments <nlp__under_annotated_property_segments>` check,
+# which explores our data and automatically identifies segments where the data
 # is under-annotated - meaning that the ratio of missing labels is higher.
 # To this check we’ll also add a condition that will fail in case that
 # an under-annotated segment of significant size is found.
