@@ -498,8 +498,8 @@ def reading_time(raw_text: Sequence[str]) -> List[str]:
             words = text.split()
             nchars = map(len, words)
             rt_per_word = map(lambda nchar: nchar * ms_per_char, nchars)
-            reading_time = sum(list(rt_per_word))
-            result.append(round(reading_time/1000, 2))
+            ms_reading_time = sum(list(rt_per_word))
+            result.append(round(ms_reading_time/1000, 2))
         else:
             result.append(0.00)
     return result
