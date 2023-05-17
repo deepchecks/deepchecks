@@ -15,8 +15,11 @@ To run deepchecks for NLP, you need the following for both your train and test d
 1. Your :ref:`text data <nlp__textdata_object>` - a list of strings, each string is a single sample
    (can be a sentence, paragraph, document, etc.).
 2. Your labels - either a :ref:`Text Classification <nlp_supported_text_classification>` label or a
-   :ref:`Token Classification <nlp_supported_token_classification>` label.
-3. Your model's predictions (see :ref:`nlp__supported_tasks` for info on supported formats).
+   :ref:`Token Classification <nlp_supported_token_classification>` label. These are not needed for checks that
+   don't require labels (such as the Embeddings Drift check or most data integrity checks), but are needed for
+   many other checks.
+3. Your model's predictions (see :ref:`nlp__supported_tasks` for info on supported formats). These are needed only for
+   the model related checks, shown in the `Model Evaluation <#model-evaluation>`__ section of this guide.
 
 If you don't have deepchecks installed yet:
 
