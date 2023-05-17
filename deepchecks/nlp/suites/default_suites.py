@@ -135,7 +135,7 @@ def model_evaluation(n_samples: int = None,
     >>> from deepchecks.nlp.suites import model_evaluation
     >>> suite = model_evaluation(n_samples=10_000)
     >>> result = suite.run(test_data, test_data, train_predictions=train_preds, test_predictions=test_preds,
-    >>>                    train_probabilities=train_probas, test_probabilities=test_probas))
+    >>>                    train_probabilities=train_probas, test_probabilities=test_probas)
     >>> result.show()
     """
     args = locals()
