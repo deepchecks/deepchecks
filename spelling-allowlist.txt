@@ -154,10 +154,3 @@ fasttext
 misclassified
 Uncomment
 dimensionality
-data
-train_data
-test_data
-train_preds
-test_preds
-train_probas
-test_probas
