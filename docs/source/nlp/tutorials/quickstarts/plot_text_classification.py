@@ -16,7 +16,7 @@ To run deepchecks for NLP, you need the following for both your train and test d
    (can be a sentence, paragraph, document, etc.).
 2. Your labels - either a :ref:`Text Classification <nlp_supported_text_classification>` label or a
    :ref:`Token Classification <nlp_supported_token_classification>` label.
-3. Your models predictions (see :ref:`nlp__supported_tasks` for info on supported formats).
+3. Your model's predictions (see :ref:`nlp__supported_tasks` for info on supported formats).
 
 If you don't have deepchecks installed yet:
 
@@ -133,7 +133,7 @@ data_integrity_suite.run(train, test)
 # The Property-Label Correlation check verifies the data does not contain
 # any shortcuts the model can fixate on during the learning process. In
 # our case we can see no indication that this problem exists in our
-# dataset For more information about shortcut learning see:
+# dataset. For more information about shortcut learning see:
 # https://towardsdatascience.com/shortcut-learning-how-and-why-models-cheat-1b37575a159
 
 # %%
@@ -272,8 +272,8 @@ res.show()
 # Another note-worth segment is the Under Annotated Segment check, which
 # explores our data and automatically identifies segments where the data
 # is under-annotated - meaning that the ratio of missing labels is higher.
-# To this check we’ll also add a condition that will alert us in case that
-# a significant under-annotated segment is found.
+# To this check we’ll also add a condition that will fail in case that
+# an under-annotated segment of significant size is found.
 
 from deepchecks.nlp.checks import UnderAnnotatedPropertySegments
 test_under = tweet_emotion.load_under_annotated_data()
