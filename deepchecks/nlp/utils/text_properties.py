@@ -509,7 +509,7 @@ def sentence_length(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of sentences per text sample."""
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
-                    ' Please check your internet connection.', UserWarning)
+                      ' Please check your internet connection.', UserWarning)
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
@@ -525,7 +525,7 @@ def average_syllable_length(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the average number of syllables per sentences per text sample."""
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
-                    ' Please check your internet connection.', UserWarning)
+                      ' Please check your internet connection.', UserWarning)
         return [np.nan] * len(raw_text)
     if not nltk_download('cmudict', quiet=True):
         warnings.warn('nltk cmudict not found, average syllable length cannot be calculated.'
