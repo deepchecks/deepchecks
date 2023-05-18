@@ -121,7 +121,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         ambiguous_samples_hashes = n_of_labels_per_sample[n_of_labels_per_sample > 1]
         ambiguous_samples_hashes = frozenset(ambiguous_samples_hashes.index.to_list())
 
-        ambiguous_samples = df[df['hash'].isin(ambiguous_samples_hashes)]
+        ambiguous_samples = df[df['hash'].isin(ambiguous_samples_hashes)].copy()
         num_of_ambiguous_samples = ambiguous_samples['Text'].count()
         percent_of_ambiguous_samples = num_of_ambiguous_samples / n_of_samples
 
@@ -138,7 +138,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         if context.with_display is False or num_of_ambiguous_samples == 0:
             return CheckResult(value=result_value)
 
-        ambiguous_samples['Text'] = ambiguous_samples['Text'].apply(self._truncate_text)
+        ambiguous_samples.loc[:, 'Text'] = ambiguous_samples['Text'].apply(self._truncate_text)
         by_hash = ambiguous_samples.groupby(['hash'], dropna=False)
         observed_labels = by_hash['Label'].aggregate(lambda x: format_list(x.to_list()))
         samples_ids = by_hash['Sample ID'].aggregate(lambda x: format_list(x.to_list(), max_string_length=200))
