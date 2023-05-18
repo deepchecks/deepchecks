@@ -236,7 +236,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
 
 
 def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_dataset: TextData,
-                              test_dataset: TextData):
+                              test_dataset: TextData, model_classes: list):
     """Plot a scatter plot of two datasets.
 
     Parameters
@@ -249,6 +249,8 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
         The train dataset.
     test_dataset : TextData
         The test dataset.
+    model_classes : list
+        The names of the model classes (relevant only if the datasets are multi-label).
     """
     axes = plot_data.columns
     if train_dataset.name and test_dataset.name:
@@ -258,14 +260,14 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
 
     plot_data['Dataset'] = [dataset_names[0]] * len(train_dataset) + [dataset_names[1]] * len(test_dataset)
     if train_dataset.has_label():
-        plot_data['Label'] = np.concatenate([train_dataset.label_for_display, test_dataset.label_for_display])
+        plot_data['Label'] = list(train_dataset.label_for_display(model_classes=model_classes)) + \
+                             list(test_dataset.label_for_display(model_classes=model_classes))
     else:
         plot_data['Label'] = None
     plot_data['Sample'] = np.concatenate([train_dataset.text, test_dataset.text])
     plot_data['Sample'] = plot_data['Sample'].apply(break_to_lines_and_trim)
 
     fig = px.scatter(plot_data, x=axes[0], y=axes[1], color='Dataset', color_discrete_map=colors,
-                     hover_data=['Label', 'Sample'], hover_name='Dataset', title=plot_title, height=600, width=1000,
-                     opacity=0.4)
+                     hover_data=['Label', 'Sample'], hover_name='Dataset', title=plot_title, opacity=0.4)
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
     return fig

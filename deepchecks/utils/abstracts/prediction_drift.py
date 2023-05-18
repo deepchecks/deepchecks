@@ -51,8 +51,8 @@ class PredictionDriftAbstract(abc.ABC):
                 train prediction or probabilities
             test_prediction : np.ndarray
                 test prediction or probabilities
-            model_classes : list
-                list of model classes
+            model_classes : List[str]
+                List of model classes names
             with_display : bool
                 flag for displaying the prediction distribution graph
             proba_drift : bool

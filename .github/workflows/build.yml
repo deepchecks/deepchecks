@@ -157,7 +157,7 @@ jobs:
       - name: Set Up Env
         run: make env
       - name: Run Tests
-        run: make test args=tests/vision/gpu_tests
+        run: make vision-gpu-tests
 
 
 #  documentation-check:
