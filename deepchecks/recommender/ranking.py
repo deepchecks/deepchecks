@@ -7,6 +7,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
+#
 """Used for rec metrics."""
 from typing import List, Union,Tuple
 import numpy as np
@@ -18,25 +19,25 @@ from sklearn.preprocessing import StandardScaler
 
 
 def recall_k(relevant_items: Union[List[int], np.array, None],
-             recommendation: Union[List, np.array, None],
+             recommendations: Union[List, np.array, None],
              k: int = 5) -> float:
     """
-    Compute the Recall@k score for a recommendation.
+    Compute the Recall@k score for a recommendations.
 
     Args:
         relevant_items (Union[List[int], np.array, None]): The set of relevant items for the user.
-        recommendation (Union[List, np.array, None]): The recommendation list to be evaluated.
+        recommendations (Union[List, np.array, None]): The recommendations list to be evaluated.
         k (int): The number of top items to consider.
 
     Returns:
-        float: The Recall@k score for the recommendation.
+        float: The Recall@k score for the recommendations.
     """
     if relevant_items is None or len(relevant_items) == 0:
         return 0.0
-    if recommendation is None or len(recommendation) == 0:
+    if recommendations is None or len(recommendations) == 0:
         return 0.0
     relevant_set = set(relevant_items)
-    rec_set = set(recommendation[:k])
+    rec_set = set(recommendations[:k])
     hits = [1 for p in rec_set if p in relevant_set]
     score = np.sum(hits)
     return score / min(len(relevant_items), k)
@@ -58,8 +59,8 @@ def mean_average_recall_at_k(relevant_items: Union[List[List[int]], np.array],
     """
     recall_k_list = []
     for i,items in enumerate(relevant_items):
-        recommendation = recommendations[i]
-        recall_i = recall_k(items, recommendation, k)
+        recommendations = recommendations[i]
+        recall_i = recall_k(items, recommendations, k)
         recall_k_list.append(recall_i)
 
     return np.mean(recall_k_list)
@@ -67,14 +68,14 @@ def mean_average_recall_at_k(relevant_items: Union[List[List[int]], np.array],
 
 
 def precision_k(relevant_items: Union[List[int], set, None],
-             recommendation: Union[List, set, None],
+             recommendations: Union[List, set, None],
              k: int = 5) -> float:
     """
     Compute the Precision@k score for a set of recommendations.
 
     Args:
     relevant_items (Union[List[int], set, None]): The set of relevant items.
-    recommendation (Union[List, set, None]): The set of recommendations.
+    recommendations (Union[List, set, None]): The set of recommendations.
     k (int): The number of top items to consider.
 
     Returns:
@@ -83,7 +84,7 @@ def precision_k(relevant_items: Union[List[int], set, None],
     if relevant_items is None or len(relevant_items) == 0:
         return 0.0
     relevant_set = set(relevant_items)
-    rec_set = recommendation[:k]
+    rec_set = recommendations[:k]
 
     hits = sum(1/(i+1.0) for (i,p) in enumerate(rec_set) if p in relevant_set)
 
@@ -107,8 +108,8 @@ def mean_average_precision_at_k(relevant_items: Union[List[List[int]], np.array]
     """
     precision_k_list = []
     for i,items in enumerate(relevant_items):
-        recommendation = recommendations[i]
-        precision_i = precision_k(items, recommendation, k)
+        recommendations = recommendations[i]
+        precision_i = precision_k(items, recommendations, k)
         precision_k_list.append(precision_i)
 
     return np.mean(precision_k_list)
@@ -116,22 +117,22 @@ def mean_average_precision_at_k(relevant_items: Union[List[List[int]], np.array]
 
 
 def f1_k(relevant_items: Union[List[int], np.array, None],
-         recommendation: Union[List, np.array, None],
+         recommendations: Union[List, np.array, None],
          k: int = 5) -> float:
     """
     Compute the F1 score for the recommendations up to the top k items.
 
     Args:
     relevant_items (Union[List[int], np.array, None]): relevant items for each user.
-    recommendation (Union[List, np.array, None]): recommended items for each user..
-    k (int): The top k items to consider in the recommendation. Default is 5.
+    recommendations (Union[List, np.array, None]): recommended items for each user..
+    k (int): The top k items to consider in the recommendations. Default is 5.
 
     Returns:
     float:  F1 score up to the top k items.
     """
 
-    precision = precision_k(relevant_items, recommendation, k)
-    recall = recall_k(relevant_items, recommendation, k)
+    precision = precision_k(relevant_items, recommendations, k)
+    recall = recall_k(relevant_items, recommendations, k)
 
     return 2 * (precision * recall) / (precision + recall)
 
@@ -152,27 +153,27 @@ def mean_average_f1_at_k(relevant_items: Union[List[List[int]], np.array],
     """
     f1_list = []
     for i,items in enumerate(relevant_items):
-        recommendation = recommendations[i]
-        f1_i = f1_k(items, recommendation, k)
+        recommendations = recommendations[i]
+        f1_i = f1_k(items, recommendations, k)
         f1_list.append(f1_i)
 
     return np.mean(f1_list)
 
 
-def reciprocal_rank(relevant_item,recommendation: Union[List, np.array, None]) -> float:
+def reciprocal_rank(relevant_item,recommendations: Union[List, np.array, None]) -> float:
     """
-    Calculates the reciprocal rank for a given recommendation.
+    Calculates the reciprocal rank for a given recommendations.
 
     Args:
     - relevant_item: integer representing the relevant item
-    - recommendation: list or numpy array of recommended items
+    - recommendations: list or numpy array of recommended items
 
     Returns:
-    - float: reciprocal rank of the relevant item in the recommendation
+    - float: reciprocal rank of the relevant item in the recommendations
     """
-    if relevant_item is None or len(recommendation) == 0:
+    if relevant_item is None or len(recommendations) == 0:
         return 0.0
-    for rank, rec_item in enumerate(recommendation):
+    for rank, rec_item in enumerate(recommendations):
         if relevant_item == rec_item:
             return 1/(rank+1)
         return 0
@@ -189,8 +190,8 @@ def mean_reciprocal_rank(relevant_items: List, recommendations: List[List]) -> f
     Returns:
         float: The mean reciprocal rank (MRR) of the recommendations.
     """
-    reciprocal_ranks = [reciprocal_rank(item, recommendation) \
-                        for item, recommendation \
+    reciprocal_ranks = [reciprocal_rank(item, recommendations) \
+                        for item, recommendations \
                         in zip(relevant_items, recommendations)]
 
     return np.mean(reciprocal_ranks)
@@ -263,8 +264,8 @@ def mean_average_ndcg_k(relevant_items: Union[List, np.array],
     num_items = relevant_items.shape[0]
 
     # Compute the NDCG@k for each query/user and add to mean_ndcg
-    for item, recommendation in zip(relevant_items, recommendations):
-        mean_ndcg += ndcg_k(item, recommendation, k)
+    for item, recommendations in zip(relevant_items, recommendations):
+        mean_ndcg += ndcg_k(item, recommendations, k)
 
     # Compute the mean NDCG@k and return
     return mean_ndcg / num_items
@@ -367,7 +368,7 @@ def mean_diversity_score(predictions: List[List],
     and is calculated based on the cosine similarity between the item features.
 
     Args:
-        predictions (List[List]): A list of recommendation lists for multiple users..
+        predictions (List[List]): A list of recommendations lists for multiple users..
 
         top_n (int): The number of top items to consider when computing the diversity score.
 
