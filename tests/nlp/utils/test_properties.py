@@ -152,8 +152,8 @@ def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
     result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique Syllables'])[0]
 
     # Assert
-    assert_that(result['Count Unique Syllables'][0: 10], equal_to([15, 11, 9, 21, 13, 17, 6, 8, 20, 18]))
-    assert_that(result_none_text['Count Unique Syllables'], equal_to([0]))
+    assert_that(result['Count Unique Syllables'][0: 10], equal_to([15, 11, 9, 21, 13, 17, np.nan, 8, 20, 18]))
+    assert_that(result_none_text['Count Unique Syllables'], equal_to([np.nan]))
 
 
 def test_calculate_reading_time(tweet_emotion_train_test_textdata):
@@ -167,9 +167,40 @@ def test_calculate_reading_time(tweet_emotion_train_test_textdata):
     result_none_text = calculate_builtin_properties([None], include_properties=['Reading Time'])[0]
 
     # Assert
-    assert_that(result['Reading Time'][0: 10], equal_to([1.26, 1.25, 0.81, 1.35, 1.44, 
+    assert_that(result['Reading Time'][0: 10], equal_to([1.26, 1.25, 0.81, 1.35, 1.44,
                                                          1.88, 0.48, 0.71, 1.53, 1.56]))
     assert_that(result_none_text['Reading Time'], equal_to([0.00]))
+
+
+def test_calculate_sentence_length(tweet_emotion_train_test_textdata):
+
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    result = calculate_builtin_properties(test_text, include_properties=['Sentence Length'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Sentence Length'])[0]
+
+    # Assert
+    assert_that(result['Sentence Length'][0: 10], equal_to([3, 2, 1, 2, 2, 1, np.nan, 1, 2, 3]))
+    assert_that(result_none_text['Sentence Length'], equal_to([np.nan]))
+
+
+def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
+
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test_text = test.text
+
+    # Act
+    result = calculate_builtin_properties(test_text, include_properties=['Average Syllable Length'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Average Syllable Length'])[0]
+
+    # Assert
+    assert_that(result['Average Syllable Length'][0: 10], equal_to([7.0, 8.5, 15.0, 18.0, 11.5,
+                                                                    26.0, np.nan, 13.0, 17.0, 9.0]))
+    assert_that(result_none_text['Average Syllable Length'], equal_to([np.nan]))
 
 
 @pytest.mark.skipif(

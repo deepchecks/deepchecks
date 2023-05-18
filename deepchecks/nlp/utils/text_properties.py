@@ -467,11 +467,11 @@ def count_unique_syllables(raw_text: Sequence[str]) -> List[str]:
     if not nltk_download('punkt', quiet=True):
         warnings.warn('nltk punkt not found, readability score cannot be calculated.'
                       ' Please check your internet connection.', UserWarning)
-        return [0] * len(raw_text)
+        return [np.nan] * len(raw_text)
     if not nltk_download('cmudict', quiet=True):
         warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
                       ' Please check your internet connection.', UserWarning)
-        return [0] * len(raw_text)
+        return [np.nan] * len(raw_text)
     result = []
     cmudict_dict = corpus.cmudict.dict()
     for text in raw_text:
@@ -481,7 +481,7 @@ def count_unique_syllables(raw_text: Sequence[str]) -> List[str]:
             syllables = {word: True for word in words if word in cmudict_dict}
             result.append(len(syllables))
         else:
-            result.append(0)
+            result.append(np.nan)
     return result
 
 
@@ -502,6 +502,46 @@ def reading_time(raw_text: Sequence[str]) -> List[str]:
             result.append(round(ms_reading_time/1000, 2))
         else:
             result.append(0.00)
+    return result
+
+
+def sentence_length(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of sentences per text sample."""
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
+                    ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            sentence_count = len(sent_tokenize(text))
+            result.append(sentence_count)
+        else:
+            result.append(np.nan)
+    return result
+
+
+def average_syllable_length(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the average number of syllables per sentences per text sample."""
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
+                    ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    if not nltk_download('cmudict', quiet=True):
+        warnings.warn('nltk cmudict not found, average syllable length cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    cmudict_dict = corpus.cmudict.dict()
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            sentence_count = len(sent_tokenize(text))
+            text = remove_punctuation(text.lower())
+            words = word_tokenize(text)
+            syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
+            result.append(round(syllable_count/sentence_count, 2))
+        else:
+            result.append(np.nan)
     return result
 
 
@@ -534,6 +574,8 @@ ALL_PROPERTIES: Tuple[TextProperty, ...] = (
     {'name': 'Count Unique Email Address', 'method': count_unique_email_addresses, 'output_type': 'numeric'},
     {'name': 'Count Unique Syllables', 'method': count_unique_syllables, 'output_type': 'numeric'},
     {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
+    {'name': 'Sentence Length', 'method': sentence_length, 'output_type': 'numeric'},
+    {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
 ) + DEFAULT_PROPERTIES
 
 
@@ -541,9 +583,8 @@ LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 LARGE_SAMPLE_SIZE = 10_000
 
 ENGLISH_ONLY_PROPERTIES = (
-    'Sentiment', 'Subjectivity', 'Toxicity',
-    'Fluency', 'Formality', 'Readability Score',
-    'Unique Noun Count', 'Count Unique Syllables'
+    'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Readability Score',
+    'Unique Noun Count', 'Count Unique Syllables', 'Sentence Length', 'Average Syllable Length'
 )
 
 
@@ -615,7 +656,7 @@ def calculate_builtin_properties(
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
         'Readability Score', 'Average Sentence Length', 'Count Unique URLs', 'Count Unique Email Address',
-        'Count Unique Syllables', 'Reading Time']
+        'Count Unique Syllables', 'Reading Time', 'Sentence Length', 'Average Syllable Length']
         List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
         '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
         'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Sentence Length']

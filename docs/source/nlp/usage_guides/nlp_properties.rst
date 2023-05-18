@@ -65,6 +65,8 @@ Count Unique URLs               Number of unique URLS per text sample.
 Count Unique Email Address      Number of unique email addresses per text sample.
 Count Unique Syllables          Number of unique syllables per text sample.
 Reading Time                    Time taken in seconds to read a text sample.
+Sentence Length                 Number of sentences per text sample.
+Average Syllable Length         Average number of syllables per sentence per text sample.
 ==============================  ==========
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass
