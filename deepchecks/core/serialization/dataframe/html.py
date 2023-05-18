@@ -14,6 +14,7 @@ import warnings
 
 import pandas as pd
 from pandas.io.formats.style import Styler
+from pkg_resources import parse_version
 
 from deepchecks.core.serialization.abc import HtmlSerializer
 
@@ -49,7 +50,11 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
             # Using deprecated pandas method so hiding the warning
             with warnings.catch_warnings():
                 warnings.simplefilter(action='ignore', category=FutureWarning)
-                df_styler.set_precision(2)
+                # Set precision is deprecated after pandas 1.3.0
+                if parse_version(pd.__version__) < parse_version('1.3.0'):
+                    df_styler.set_precision(2)
+                else:
+                    df_styler.format(precision=2)
                 table_css_props = [
                     ('text-align', 'left'),  # Align everything to the left
                     ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
