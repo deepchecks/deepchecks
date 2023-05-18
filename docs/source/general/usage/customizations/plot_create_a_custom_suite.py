@@ -26,8 +26,8 @@ we suggest using any of:
 
 * :doc:`API Reference </api/index>`
 * :ref:`Tabular checks <tabular__checks_gallery>`
-* :ref:`Vision checks <vision__checks_gallery>
-* :ref:`NLP checks <nlp__checks_gallery>
+* :ref:`Vision checks <vision__checks_gallery>`
+* :ref:`NLP checks <nlp__checks_gallery>`
 * Built-in suites (by printing them to see which checks they include)
 """
 
@@ -67,9 +67,9 @@ new_custom_suite
 # to use the auto-complete to see the arguments a check receive or the built-in conditions
 # it has, try doing it outside of the suite's initialization.*
 #
-# *For example, to see a check's built-in conditions, type in a new cell:
-# ``NameOfDesiredCheck().add_condition_`` and then check the auto-complete suggestions
-# (using Shift + Tab), to discover the built-in checks.*
+# * For example, to see a check's built-in conditions, type in a new cell:
+#   ``NameOfDesiredCheck().add_condition_`` and then check the auto-complete suggestions
+#   (using Shift + Tab), to discover the built-in checks.*
 #
 # Additional Notes about Conditions in a Suite
 # --------------------------------------------
