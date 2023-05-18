@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """
+.. _nlp__multilabel_quickstart:
+
 NLP Multi Label Classification Quickstart
 *****************************************
 
 In this quickstart guide, we will go over using the deepchecks NLP package to analyze and evaluate a text
-multi label classification task. We will cover the following:
+multi label classification task. If you are interested in a regular multiclass classification task, you can
+refer to our :ref:`Multiclass Quickstart <nlp__multiclass_quickstart>`. We will cover the following:
 
 1. `Creating a TextData object and auto calculating properties <#setting-up>`__
 2. `Running the built-in suites <#running-the-deepchecks-default-suites>`__
@@ -46,7 +49,8 @@ A dataset containing comments, metadata and labels for a multilabel category cla
 from deepchecks.nlp import TextData
 from deepchecks.nlp.datasets.classification import just_dance_comment_analysis
 
-data = just_dance_comment_analysis.load_data(data_format='DataFrame', as_train_test=False)
+data = just_dance_comment_analysis.load_data(data_format='DataFrame',
+                                             as_train_test=False)
 metadata_cols = ['likes', 'dateComment']
 data.head(2)
 
@@ -61,21 +65,24 @@ data.head(2)
 label_cols = data.drop(columns=['originalText'] + metadata_cols)
 class_names = label_cols.columns.to_list()
 dataset = TextData(data['originalText'], label=label_cols.to_numpy().astype(int),
-                   task_type='text_classification', metadata=data[metadata_cols], categorical_metadata=[])
+                   task_type='text_classification',
+                   metadata=data[metadata_cols], categorical_metadata=[])
 
 # %%
 # Calculating Properties
 # ----------------------
 #
-# Some of deepchecks' checks use properties of the text samples for various calculations. Deepcheck has a wide variety
-# of such properties, some simple and some that rely on external models and are more heavy to run. In order for
-# deepchecks' checks to be able to access the properties, they must be stored within the TextData object.
+# Some of deepchecks' checks use properties of the text samples for various calculations. Deepcheck has a wide
+# variety of such properties, some simple and some that rely on external models and are more heavy to run. In order
+# for deepchecks' checks to be able to access the properties, they must be stored within the
+# :ref:`TextData <nlp__textdata_object>` object. You can read more about properties in the
+# :ref:`Property Guide <nlp__properties_guide>`.
 
-# properties can be either calculated directly by Deepchecks or
-# imported from other sources in an :ref:`appropriate format <nlp__properties_guide>.
+# properties can be either calculated directly by Deepchecks
+# or imported from other sources in appropriate format
 
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# dataset.calculate_default_properties(include_long_calculation_properties=True, device=device)
+# dataset.calculate_builtin_properties(include_long_calculation_properties=True, device=device)
 
 properties = just_dance_comment_analysis.load_properties(as_train_test=False)
 dataset.set_properties(properties, categorical_properties=['Language'])
@@ -85,14 +92,18 @@ dataset.properties.head(2)
 # Running the deepchecks default suites
 # =====================================
 #
+# Deepchecks comes with a set of pre-built suites that can be used to run a set of checks on your data, alongside
+# with their default conditions and thresholds. You can read more about customizing and creating your own suites in the
+# :ref:`Customizations Guide <general__customizations>`.
+#
 # Data Integrity
 # --------------
 # We will start by doing preliminary integrity check to validate the text formatting. It is recommended to do this step
 # before your train and test/validation splits and model training as it may imply additional data
 # engineering is required.
 #
-# We'll do that using the data_integrity pre-built suite. Note that we are limiting the number of samples to 1000
-# in order to get quick high level overview of potential issues.
+# We'll do that using the :mod:`data_integrity <deepchecks.nlp.suites>` pre-built suite. Note that we are limiting
+# the number of samples to 1000 in order to get quick high level overview of potential issues.
 
 from deepchecks.nlp.suites import data_integrity
 
@@ -124,18 +135,22 @@ data_integrity_suite.run(dataset, model_classes=class_names)
 # %%
 # Train Test Validation
 # ---------------------
-# The next suite serves to validate our split and compare the two dataset. This suite is useful for when you already
-# decided about your train and test/validation splits, but before training the model itself. It is recommended to run
-# this suite during your model monitoring to verify the data hasn't change over time.
 #
-# For running the suite we need to split the data into train and test/validation sets. We'll use a predefined split
-# our data based on comment dates.
+# The next suite, the :mod:`train_test_validation <deepchecks.nlp.suites>` suite serves to validate our split and
+# compare the two dataset. These splits can be either you training and val / test sets, in which case you'd want to run
+# this suite after the split was made but before training, or for example your training and inference data, in which
+# case the suite is useful for validating that the inference data is similar enough to the training data.
+#
+# To run this suite we'll split the data into train and test/validation sets. We'll use a predefined split based
+# on comment dates.
 
 from deepchecks.nlp.suites import train_test_validation
 
-train_ds, test_ds = just_dance_comment_analysis.load_data(data_format='TextData', as_train_test=True,
-                                                          include_embeddings=True, include_properties=True)
-train_test_validation(n_samples=1000).run(train_ds, test_ds, model_classes=class_names)
+train_ds, test_ds = just_dance_comment_analysis.load_data(
+    data_format='TextData', as_train_test=True,
+    include_embeddings=True, include_properties=True)
+train_test_validation(n_samples=1000).run(train_ds, test_ds,
+                                          model_classes=class_names)
 
 # %%
 # Train Test Validation #1: Properties Drift
@@ -158,36 +173,41 @@ train_test_validation(n_samples=1000).run(train_ds, test_ds, model_classes=class
 # Similarly to the properties drift, we can also look for embedding drift between the train and test datasets.
 # The benefit of using embedding on top of the properties is that they are able to detect semantic changes in the data.
 #
-# In our case, we see that are significant semantic differences between the train and test sets. Specifically,
-# we can see some distinct segments that distinctly contain more
-# samples from the train dataset or more sample from the test dataset. By hovering over the segments we can see
-# text samples contained in each one and find the common ground.
-#
+# In our case, we see there are significant semantic differences between the train and test sets. Specifically,
+# we can see some clusters that distinctly contain more samples from train or more samples from the train dataset or
+# more sample from the test dataset. By hovering over the clusters we can read the user comments understand what is
+# the difference between the clusters.
 
 # %%
 # Model Evaluation
 # ----------------
-# The suite below is designed to be run after a model has been trained and requires model predictions which can be
-# supplied via the relevant arguments in the ``run`` function.
+#
+# The suite below, the :mod:`model_evaluation <deepchecks.nlp.suites>` suite, is designed to be run after a model has
+# been trained and requires model predictions which can be supplied via the relevant arguments in the ``run`` function.
 
 train_preds, test_preds = just_dance_comment_analysis.\
-    load_precalculated_predictions(pred_format='predictions', as_train_test=True)
+    load_precalculated_predictions(pred_format='predictions',
+                                   as_train_test=True)
 train_probas, test_probas = just_dance_comment_analysis.\
-    load_precalculated_predictions(pred_format='probabilities', as_train_test=True)
+    load_precalculated_predictions(pred_format='probabilities',
+                                   as_train_test=True)
 
 from deepchecks.nlp.suites import model_evaluation
 
 suite = model_evaluation(n_samples=1000)
-result = suite.run(train_ds, test_ds, train_predictions=train_preds, test_predictions=test_preds,
-                   train_probabilities=train_probas, test_probabilities=test_probas, model_classes=class_names)
+result = suite.run(train_ds, test_ds,
+                   train_predictions=train_preds,
+                   test_predictions=test_preds,
+                   train_probabilities=train_probas,
+                   test_probabilities=test_probas,
+                   model_classes=class_names)
 result.show()
 
 # %%
 # Model Eval #1: Train Test Performance
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# On the most superficial level, we can immediately see (in the "Did’t
-# Pass" tab) that there has been significant degradation in the Recall on
+# We can immediately see in the "Didn't Pass" tab that there has been significant degradation in the Recall on
 # class “Pain and Discomfort”. Moreover, it seems there is a general deterioration in our model
 # performance on the test set compared to the train set. This can be explained
 # based on the data drift we saw in the previous suite.
@@ -197,9 +217,10 @@ result.show()
 # Running Individual Checks
 # =========================
 #
-# Checks can also be run individually with relevant conditions. In this section,
-# we'll show you how to do that while showcasing one of our
-# most interesting checks - PropertySegmentPerformance.
+# Checks can also be run individually as well as within a suite. You can learn more about customizing suites,
+# checks and conditions in our :ref:`Customizations Guide <general__customizations>`. In this section, we'll show you
+# how to do that while showcasing one of our most interesting checks - :ref:`PropertySegmentPerformance
+# <nlp__property_segments_performance>`.
 #
 
 from deepchecks.nlp.checks import PropertySegmentsPerformance

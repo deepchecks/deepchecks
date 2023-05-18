@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 """
+.. _nlp__multiclass_quickstart:
+
 Test NLP Classification Tasks - Quickstart
 ******************************************
 
 In this quickstart guide, we will go over using the deepchecks NLP package to analyze and evaluate text
-classification tasks. We will cover the following steps:
+classification tasks. If you are interested in a multilabel classification task, you can
+refer to our :ref:`Multilabel Quickstart <nlp__multilabel_quickstart>`. We will cover the following steps:
 
 1. `Creating a TextData object and auto calculating properties <#setting-up>`__
 2. `Running the built-in suites and inspecting the results <#running-the-deepchecks-default-suites>`__
@@ -59,7 +62,7 @@ train.head()
 # Create a TextData Objects
 # -------------------------
 #
-# We can now create a :class:`TextData <deepchecks.nlp.TextData>` object for the train and test dataframes.
+# We can now create a :ref:`TextData <nlp__textdata_object>` object for the train and test dataframes.
 # This object is used to pass your data to the deepchecks checks.
 #
 # To create a TextData object, the only required argument is the text itself, but passing only the text
@@ -80,17 +83,17 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 # Some of deepchecks' checks use properties of the text samples for various calculations. Deepcheck has a wide
 # variety of such properties, some simple and some that rely on external models and are more heavy to run. In order
 # for deepchecks' checks to be able to access the properties, they must be stored within the
-# :class:`TextData <deepchecks.nlp.TextData>` object. You can read more about properties in the
+# :ref:`TextData <nlp__textdata_object>` object. You can read more about properties in the
 # :ref:`Property Guide <nlp__properties_guide>`.
 
 # properties can be either calculated directly by Deepchecks
 # or imported from other sources in appropriate format
 
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# train.calculate_default_properties(
+# train.calculate_builtin_properties(
 #   include_long_calculation_properties=True, device=device
 # )
-# test.calculate_default_properties(
+# test.calculate_builtin_properties(
 #   include_long_calculation_properties=True,  device=device
 # )
 
@@ -107,7 +110,7 @@ train.properties.head(2)
 #
 # Deepchecks comes with a set of pre-built suites that can be used to run a set of checks on your data, alongside
 # with their default conditions and thresholds. You can read more about customizing and creating your own suites in the
-# :doc:`Customizations Guide </general/usage/customizations>`.
+# :ref:`Customizations Guide <general__customizations>`.
 #
 # Data Integrity
 # --------------
@@ -255,7 +258,7 @@ result.show()
 #
 # Checks can also be run individually. In this section, we'll show two of the more interesting checks and how you can
 # run them stand-alone and add conditions to them. You can learn more about customizing suites, checks and conditions
-# in our :doc:`Customizations Guide </general/usage/customizations/auto_examples>`.
+# in our :ref:`Customizations Guide <general__customizations>`.
 #
 # Embeddings Drift
 # ----------------

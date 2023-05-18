@@ -107,7 +107,7 @@ def train_test_validation(n_samples: int = None,
         PropertyDrift(**kwargs).add_condition_drift_score_less_than(),
         LabelDrift(**kwargs).add_condition_drift_score_less_than(),
         TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
-        TextEmbeddingsDrift().add_condition_overall_drift_value_less_than()
+        TextEmbeddingsDrift(**kwargs).add_condition_overall_drift_value_less_than()
 
     )
 
