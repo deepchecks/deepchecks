@@ -50,7 +50,7 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
             # Using deprecated pandas method so hiding the warning
             with warnings.catch_warnings():
                 warnings.simplefilter(action='ignore', category=FutureWarning)
-                # Set precision is deprecated after pandas 1.3.0
+                # Set precision is deprecated since pandas 1.3.0
                 if parse_version(pd.__version__) < parse_version('1.3.0'):
                     df_styler.set_precision(2)
                 else:
