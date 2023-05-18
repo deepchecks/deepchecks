@@ -29,7 +29,7 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.typing import BasicModel
+from deepchecks.utils.typing import ClassificationModel
 from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = [
@@ -54,7 +54,7 @@ TTextPred = t.Union[TClassPred, TTokenPred]
 TTextProba = t.Sequence[t.Sequence[float]]
 
 
-class _DummyModel(BasicModel):
+class _DummyModel(ClassificationModel):
     """Dummy model class used for inference with static predictions from the user.
 
     Parameters
@@ -398,11 +398,17 @@ class Context(BaseContext):
                 f'"{check_name}" is not supported for the "{task_type_name}" tasks'
             )
 
+    def is_multi_label_task(self):
+        """Return whether the task is multi-label classification."""
+        if self.task_type == TaskType.TEXT_CLASSIFICATION:
+            dataset = t.cast(TextData, self._train if self._train is not None else self._test)
+            return dataset.is_multi_label_classification()
+        return False
+
     def raise_if_multi_label_task(self, check=None):
         """Raise an exception if it is a multi-label classification task."""
-        dataset = t.cast(TextData, self._train if self._train is not None else self._test)
         check_name = type(check).__name__ if check else 'Check'
-        if dataset.is_multi_label_classification():
+        if self.is_multi_label_task():
             raise DeepchecksNotSupportedError(
                 f'"{check_name}" is not supported for the multilable classification tasks'
             )
@@ -443,16 +449,16 @@ class Context(BaseContext):
         return init_validate_scorers(scorers, self.model_classes, self._observed_classes)
 
     def get_single_scorer(self,
-                          scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
+                          scorer: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str], None] = None,
                           use_avg_defaults=True) -> DeepcheckScorer:
         """Return initialized & validated scorer if provided or a default scorer otherwise.
 
         Parameters
         ----------
-        scorer : Union[List[str], Dict[str, Union[str, Callable]]], default: None
+        scorer : t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str], None], default: None
             List of scorers to use. If None, use default scorers.
             Scorers can be supplied as a list of scorer names or as a dictionary of names and functions.
-        use_avg_defaults : bool, default True
+        use_avg_defaults : bool, default: True
             If no scorers were provided, for classification, determines whether to use default scorers that return
             an averaged metric, or default scorers that return a metric per class.
         Returns
@@ -460,7 +466,4 @@ class Context(BaseContext):
         List[DeepcheckScorer]
             An initialized & validated scorer.
         """
-        if scorer is not None:
-            scorer_name = next(iter(scorer))
-            scorer = {scorer_name: scorer[scorer_name]}
         return self.get_scorers(scorer, use_avg_defaults)[0]

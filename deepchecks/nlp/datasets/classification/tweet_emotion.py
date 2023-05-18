@@ -17,7 +17,6 @@ For additional details about the dataset, please refer to the original source: h
 Dataset originally published in "Semeval-2018 task 1: Affect in tweets" by Mohammad et al. (2018):
 https://aclanthology.org/S18-1001/.
 """
-import os
 import pathlib
 import typing as t
 
@@ -25,11 +24,12 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.nlp import TextData
+from deepchecks.utils.builtin_datasets_utils import read_and_save_data
 
-__all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions']
+__all__ = ['load_data', 'load_embeddings', 'load_precalculated_predictions', 'load_under_annotated_data']
 
 _FULL_DATA_URL = 'https://ndownloader.figshare.com/files/39486889'
-_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/39729283'
+_EMBEDDINGS_URL = 'https://ndownloader.figshare.com/files/40564880'
 _PROPERTIES_URL = 'https://ndownloader.figshare.com/files/39717619'
 _PREDICTIONS_URL = 'https://ndownloader.figshare.com/files/39264461'
 
@@ -41,7 +41,7 @@ _CAT_METADATA = ['gender', 'user_region']
 _CAT_PROPERTIES = ['Language']
 
 
-def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple[pd.DataFrame, pd.DataFrame]]:
+def load_embeddings(as_train_test: bool = True) -> t.Union[np.array, t.Tuple[np.array, np.array]]:
     """Load and return the embeddings of the tweet_emotion dataset calculated by OpenAI.
 
     Parameters
@@ -56,11 +56,12 @@ def load_embeddings(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     embeddings : np.ndarray
         Embeddings for the tweet_emotion dataset.
     """
-    all_embeddings = _read_and_save('tweet_emotion_embeddings.csv', _EMBEDDINGS_URL, to_numpy=False).drop(
-        columns=['train_test_split'])
+    all_embeddings = read_and_save_data(ASSETS_DIR, 'tweet_emotion_embeddings.npy', _EMBEDDINGS_URL,
+                                        file_type='npy', to_numpy=True)
+
     if as_train_test:
         train_indexes, test_indexes = _get_train_test_indexes()
-        return all_embeddings.loc[train_indexes], all_embeddings.loc[test_indexes]
+        return all_embeddings[train_indexes], all_embeddings[test_indexes]
     else:
         return all_embeddings
 
@@ -81,12 +82,7 @@ def load_properties(as_train_test: bool = True) -> t.Union[pd.DataFrame, t.Tuple
     properties : pd.DataFrame
         Properties for the tweet_emotion dataset.
     """
-    if (ASSETS_DIR / 'tweet_emotion_properties.csv').exists():
-        properties = pd.read_csv(ASSETS_DIR / 'tweet_emotion_properties.csv', index_col=0)
-    else:
-        properties = pd.read_csv(_PROPERTIES_URL, index_col=0)
-        properties.to_csv(ASSETS_DIR / 'tweet_emotion_properties.csv')
-
+    properties = read_and_save_data(ASSETS_DIR, 'tweet_emotion_properties.csv', _PROPERTIES_URL, to_numpy=False)
     if as_train_test:
         train = properties[properties['train_test_split'] == 'Train'].drop(columns=['train_test_split'])
         test = properties[properties['train_test_split'] == 'Test'].drop(columns=['train_test_split'])
@@ -126,7 +122,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
     if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')
 
-    data = _read_and_save('tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
+    data = read_and_save_data(ASSETS_DIR, 'tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
     if not as_train_test:
         data.drop(columns=['train_test_split'], inplace=True)
         if data_format.lower() != 'textdata':
@@ -163,7 +159,8 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         return train_ds, test_ds
 
 
-def load_precalculated_predictions(pred_format: str = 'predictions', as_train_test: bool = True) -> np.array:
+def load_precalculated_predictions(pred_format: str = 'predictions', as_train_test: bool = True) -> \
+        t.Union[np.array, t.Tuple[np.array, np.array]]:
     """Load and return a precalculated predictions for the dataset.
 
     Parameters
@@ -183,7 +180,7 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
         The prediction of the data elements in the dataset.
 
     """
-    all_preds = _read_and_save('tweet_emotion_probabilities.csv', _PREDICTIONS_URL)
+    all_preds = read_and_save_data(ASSETS_DIR, 'tweet_emotion_probabilities.csv', _PREDICTIONS_URL, to_numpy=True)
     if pred_format == 'predictions':
         all_preds = np.array([_LABEL_MAP[x] for x in np.argmax(all_preds, axis=1)])
     elif pred_format != 'probabilities':
@@ -196,18 +193,25 @@ def load_precalculated_predictions(pred_format: str = 'predictions', as_train_te
         return all_preds
 
 
-def _read_and_save(file_name, url_to_file, to_numpy=True):
-    """Read a file from a url and save it to the assets' directory."""
-    os.makedirs(ASSETS_DIR, exist_ok=True)
-    if (ASSETS_DIR / file_name).exists():
-        data = pd.read_csv(ASSETS_DIR / file_name, index_col=0)
-    else:
-        data = pd.read_csv(url_to_file, index_col=0)
-        data.to_csv(ASSETS_DIR / file_name)
+def load_under_annotated_data():
+    """Load and return the test data, modified to have under annotated segment."""
+    _, test = load_data()
+    test_copy = test.copy()
 
-    if to_numpy:
-        data = data.to_numpy()
-    return data
+    # randomly remove 5% of the labels
+    np.random.seed(42)
+    idx_to_fillna = np.random.choice(range(len(test)), int(len(test) * 0.05), replace=False)
+    test_copy._label = test_copy._label.astype(dtype=object)  # pylint: disable=protected-access
+    test_copy._label[idx_to_fillna] = None  # pylint: disable=protected-access
+
+    # randomly remove 40% of the under annotated segments
+    np.random.seed(42)
+    under_annotated_segment_idx = test_copy.properties[
+        (test_copy.properties.Fluency < 0.4) & (test_copy.properties.Formality < 0.2)].index
+    idx_to_fillna = np.random.choice(under_annotated_segment_idx, int(len(under_annotated_segment_idx) * 0.4),
+                                     replace=False)
+    test_copy._label[idx_to_fillna] = None  # pylint: disable=protected-access
+    return test_copy
 
 
 def _get_train_test_indexes() -> t.Tuple[np.array, np.array]:

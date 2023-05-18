@@ -9,13 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Prediction Drift check."""
+import warnings
 
 import numpy as np
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.utils.abstracts.prediction_drift import PredictionDriftAbstract
+from deepchecks.utils.distribution.preprocessing import convert_multi_label_to_multi_class
 
 __all__ = ['PredictionDrift']
 
@@ -54,6 +57,8 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
         the predicted probability of the positive class if binary. Set to 'proba' to force drift on the predicted
         probabilities, and 'prediction' to force drift on the predicted classes. If set to 'proba', on a multiclass
         task, drift would be calculated on each class independently.
+        For token classification tasks, drift is always calculated on the predictions and not on the probabilities,
+        and this parameter is ignored.
     margin_quantile_filter: float, default: 0.025
         float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
         out of the EMD calculation. This is done in order for extreme values not to affect the calculation
@@ -141,22 +146,34 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
             value: drift score.
             display: prediction distribution graph, comparing the train and test distributions.
         """
-        context.raise_if_token_classification_task(self)
-
         train_dataset = context.train.sample(self.n_samples, random_state=context.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=context.random_state)
         model = context.model
 
-        # Flag for computing drift on the probabilities rather than the predicted labels
-        proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
-                      (self.drift_mode == 'proba')
+        if self.drift_mode == 'proba' and \
+                (context.task_type == TaskType.TOKEN_CLASSIFICATION or context.is_multi_label_task()):
+            warnings.warn('Cannot use drift_mode="proba" for multi-label text classification tasks or token '
+                          'classification tasks. Using drift_mode="prediction" instead.', UserWarning)
 
-        if proba_drift:
-            train_prediction = np.array(model.predict_proba(train_dataset))
-            test_prediction = np.array(model.predict_proba(test_dataset))
+        if context.task_type == TaskType.TOKEN_CLASSIFICATION:
+            train_prediction = np.concatenate(model.predict(train_dataset)).reshape(-1, 1)
+            test_prediction = np.concatenate(model.predict(test_dataset)).reshape(-1, 1)
+            proba_drift = False
         else:
-            train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
-            test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
+            # Flag for computing drift on the probabilities rather than the predicted labels
+            proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
+                          (self.drift_mode == 'proba')
+
+            if proba_drift:
+                train_prediction = np.array(model.predict_proba(train_dataset))
+                test_prediction = np.array(model.predict_proba(test_dataset))
+            elif context.is_multi_label_task():
+                model_classes = context.model_classes
+                train_prediction = convert_multi_label_to_multi_class(model.predict(train_dataset), model_classes)
+                test_prediction = convert_multi_label_to_multi_class(model.predict(test_dataset), model_classes)
+            else:
+                train_prediction = np.array(model.predict(train_dataset)).reshape((-1, 1))
+                test_prediction = np.array(model.predict(test_dataset)).reshape((-1, 1))
 
         return self._prediction_drift(train_prediction, test_prediction, context.model_classes, context.with_display,
                                       proba_drift, not proba_drift)
