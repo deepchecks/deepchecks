@@ -39,7 +39,7 @@ Load Data
 ---------
 For the purpose of this guide, we'll use a small subset of the
 `just dance <https://www.kaggle.com/datasets/renatojmsantos/just-dance-on-youtube>`__ comment analysis dataset.
-Dataset containing comments, metadata and labels for multilabel category classification of the comments.
+A dataset containing comments, metadata and labels for a multilabel category classification use case on youtube comments.
 
 """
 
@@ -188,7 +188,7 @@ result.show()
 #
 # On the most superficial level, we can immediately see (in the "Did’t
 # Pass" tab) that there has been significant degradation in the Recall on
-# class “Pain and Discomfort”. Moreover, in seems there is a general deterioration in our model
+# class “Pain and Discomfort”. Moreover, it seems there is a general deterioration in our model
 # performance on the test set compared to the train set. This can be explained
 # based on the data drift we saw in the previous suite.
 #
@@ -216,7 +216,7 @@ result.show()
 # Subjectivity, by looking at the "Subjectivity vs Average Sentence Length" tab
 # We can see that the problem is even more severe on samples containing long sentences.
 #
-# In addition to the visual display, most checks also return a detailed data describing the results. This data can be
+# In addition to the visual display, most checks also return detailed data describing the results. This data can be
 # used for further analysis, create custom visualizations or to set custom conditions.
 #
 
