@@ -90,10 +90,6 @@ def test_calculate_average_sentence_length_property(tweet_emotion_train_test_tex
     assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
     assert_that(result_none_text['Average Sentence Length'], equal_to([np.nan]))
 
-    # Assert
-    assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
-    assert_that(result_none_text['Average Sentence Length'], equal_to([np.nan]))
-
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):
 
@@ -106,39 +102,102 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     result_none_text = calculate_builtin_properties([None], include_properties=['Readability Score'])[0]
 
     # Assert
-    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103, 
+    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103,
                                                             71.782, np.nan, 75.5, 70.102, 95.564]))
     assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
 
 
-def test_calculate_count_unique_urls(tweet_emotion_train_test_textdata):
+def test_calculate_count_unique_urls():
 
     # Arrange
-    _, test = tweet_emotion_train_test_textdata
-    test_text = test.text
+    text_data = [
+        'Please contact me at abc.ex@example.com.',
+        'For more information, visit our website: https://deepchecks.com/.',
+        'Email us at info@example.com or visit our website http://www.example.com for assistance.',
+        'For any inquiries, send an email to support@example.com.',
+        'The results were found at http://www.google.com and it redirects to'
+        'https://www.deepchecks.com and there we can find the links to all social medias such'
+        'as http://gmail.com, https://fb.com, https://www.deepchecks.com, https://www.google.com'
+    ]
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Count Unique URLs'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['Count Unique URLs'])[0]
     result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique URLs'])[0]
 
     # Assert
-    assert_that(result['Count Unique URLs'][0: 10], equal_to([0] * 10))
+    assert_that(result['Count Unique URLs'], equal_to([0, 1, 1, 0, 5]))
     assert_that(result_none_text['Count Unique URLs'], equal_to([0]))
 
 
-def test_calculate_count_unique_email_addresses(tweet_emotion_train_test_textdata):
+def test_calculate_count_urls():
 
     # Arrange
-    _, test = tweet_emotion_train_test_textdata
-    test_text = test.text
+    text_data = [
+        'Please contact me at abc.ex@example.com.',
+        'For more information, visit our website: https://deepchecks.com/.',
+        'Email us at info@example.com or visit our website http://www.example.com for assistance.',
+        'For any inquiries, send an email to support@example.com.',
+        'The results were found at http://www.google.com and it redirects to'
+        'https://www.deepchecks.com and there we can find the links to all social medias such\
+        as http://gmail.com, https://fb.com, https://www.deepchecks.com, https://www.google.com'
+    ]
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Count Unique Email Address'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['Count URLs'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Count URLs'])[0]
+
+    # Assert
+    assert_that(result['Count URLs'], equal_to([0, 1, 1, 0, 6]))
+    assert_that(result_none_text['Count URLs'], equal_to([0]))
+
+
+def test_calculate_count_unique_email_addresses():
+
+    # Arrange
+    text_data = [
+        'Please send your inquiries to info@example.com or support@example.com. We are happy to assist you.',
+        'Contact us at john.doe@example.com or jane.smith@example.com for further information\
+        Looking forward to hearing from you.',
+        'For any questions or concerns, email sales@example.com. We are here to help.',
+        'Hello, this is a text without email address@asx',
+        'You can contact me directly at samantha.wilson@example.com or use the\
+        team email address marketing@example.com.',
+        'If you have any feedback or suggestions, feel free to email us at feedback@example.com,\
+        support@example.com, feedback@example.com.'
+    ]
+
+    # Act
+    result = calculate_builtin_properties(text_data, include_properties=['Count Unique Email Address'])[0]
     result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique Email Address'])[0]
 
     # Assert
-    assert_that(result['Count Unique Email Address'][0: 10], equal_to([0] * 10))
+    assert_that(result['Count Unique Email Address'], equal_to([2, 2, 1, 0, 2, 2]))
     assert_that(result_none_text['Count Unique Email Address'], equal_to([0]))
+
+
+def test_calculate_count_email_addresses():
+
+    # Arrange
+    text_data = [
+        'Please send your inquiries to info@example.com or support@example.com.\
+        We are happy to assist you.',
+        'Contact us at john.doe@example.com or jane.smith@example.com for further\
+        information. Looking forward to hearing from you.',
+        'For any questions or concerns, email sales@example.com. We are here to help.',
+        'Hello, this is a text without email address@asx',
+        'You can contact me directly at samantha.wilson@example.com or use the team email\
+        address marketing@example.com.',
+        'If you have any feedback or suggestions, feel free to email us at feedback@example.com,\
+        support@example.com, feedback@example.com.'
+    ]
+
+    # Act
+    result = calculate_builtin_properties(text_data, include_properties=['Count Email Address'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Count Email Address'])[0]
+
+    # Assert
+    assert_that(result['Count Email Address'], equal_to([2, 2, 1, 0, 2, 3]))
+    assert_that(result_none_text['Count Email Address'], equal_to([0]))
 
 
 def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):

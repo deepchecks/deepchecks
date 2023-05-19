@@ -42,32 +42,39 @@ Deepchecks' Built-in Properties
 ===============================
 
 You can either use the built-in properties or implement your own ones and pass them to the relevant checks.
+There are two types of built-in properties:
+
+#. Default properties: These properties are caclulated when you do not specify any properties to calculate or ignore.
+#. Non-default properties: These properties are only caclulated when you want them to calculate and specify them.
+
 The built-in image properties are:
 
-==============================  ==========
-Property name                   What is it
-==============================  ==========
-Text Length                     Number of characters in the text
-Average Word Length             Average number of characters in a word
-Max Word Length                 Maximum number of characters in a word
-% Special Characters            Percentage of special characters in the text
-Language                        Language of the text. Uses the langdetect library
-Sentiment                       Sentiment of the text. Uses the textblob library
-Subjectivity                    Subjectivity of the text. Uses the textblob library
-Toxicity*                       Toxicity of the text. Uses the unitary/toxic-bert model
-Fluency*                        Fluency of the text. Uses the prithivida/parrot_fluency_model model
-Formality*                      Formality of the text. Uses the s-nlp/roberta-base-formality-ranker model
-Lexical Density                 Percentage of unique words in the text, rounded up to 2 decimal digits
-Unique Noun Count*              Number of unique noun words in the text
-Readability Score               A score calculated based on Flesch reading-ease per text sample. For more information: https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
-Average Sentence Length         Average number of words per sentence in the text
-Count Unique URLs               Number of unique URLS per text sample.
-Count Unique Email Address      Number of unique email addresses per text sample.
-Count Unique Syllables          Number of unique syllables per text sample.
-Reading Time                    Time taken in seconds to read a text sample.
-Sentence Length                 Number of sentences per text sample.
-Average Syllable Length         Average number of syllables per sentence per text sample.
-==============================  ==========
+==============================  ================  ==========
+Property name                   Default Property  What is it
+==============================  ================  ==========
+Text Length                     Yes               Number of characters in the text
+Average Word Length             Yes               Average number of characters in a word
+Max Word Length                 Yes               Maximum number of characters in a word
+% Special Characters            Yes               Percentage of special characters in the text
+Language                        Yes               Language of the text. Uses the langdetect library
+Sentiment                       Yes               Sentiment of the text. Uses the textblob library
+Subjectivity                    Yes               Subjectivity of the text. Uses the textblob library
+Toxicity*                       Yes               Toxicity of the text. Uses the unitary/toxic-bert model
+Fluency*                        Yes               Fluency of the text. Uses the prithivida/parrot_fluency_model model
+Formality*                      Yes               Formality of the text. Uses the s-nlp/roberta-base-formality-ranker model
+Lexical Density                 Yes               Percentage of unique words in the text, rounded up to 2 decimal digits
+Unique Noun Count*              Yes               Number of unique noun words in the text
+Readability Score               Yes               A score calculated based on Flesch reading-ease per text sample. For more information: https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
+Average Sentence Length         Yes               Average number of words per sentence in the text
+Count URLs                      No                Number of URLS per text sample.
+Count Unique URLs               No                Number of unique URLS per text sample.
+Count Email Address             No                Number of email addresses per text sample.
+Count Unique Email Address      No                Number of unique email addresses per text sample.
+Count Unique Syllables          No                Number of unique syllables per text sample.
+Reading Time                    No                Time taken in seconds to read a text sample.
+Sentence Length                 No                Number of sentences per text sample.
+Average Syllable Length         No                Average number of syllables per sentence per text sample.
+==============================  ================  ==========
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass
 ``include_long_calculation_properties=True`` to the :class:`TextData.calculate_properties <deepchecks.nlp.TextData>` method.
@@ -85,6 +92,9 @@ Calculating The Built-in Properties
 
 In order to use the built-in properties, you must call the ``calculate_builtin_properties`` method of the ``TextData``
 object. This method will calculate the properties and add them to the :class:`TextData <deepchecks.nlp.TextData>` object.
+To calculate all the default properties, you do not need to pass the ``include_properties`` parameter in the 
+``calculate_builtin_properties`` function. If you pass either ``include_properties` or ``ignore_properties`` parameter
+then the only the properties specified will be calculated or ignored.
 
 Example of calculating the built-in properties in order to use the TextPropertyOutliers check:
 In the following example, we will calculate the default properties in order to use the TextPropertyOutliers check:
@@ -113,15 +123,18 @@ When calculating the properties, you can choose to include or exclude specific p
 The parameters should be a list of the names of the properties to include or ignore. Note that only one of the
 parameters can be passed to the method.
 
-In the following example, we will calculate the built-in properties and ignore the ``Text Length`` property:
+In the following example, we will calculate the built-in properties (both default and non-default) and ignore the
+``Text Length`` property:
 
 .. code-block:: python
 
   text_data.calculate_builtin_properties(ignore_properties=['Text Length'])
 
 
-Moreover, some properties are not calculated by default, as they may take a long time to calculate. In order to
-use them, pass ``include_long_calculation_properties`` to the ``calculate_builtin_properties`` method.
+Note that in the example above, we specified the ``Text Length property`` to be ignored and hence all other built-in
+properties will be calculated (including default and non-default). Moreover, some properties are not calculated by default, as they may take a 
+long time to calculate. In order to use them, pass ``include_long_calculation_properties`` to the 
+``calculate_builtin_properties`` method.
 
 In the following example, we will calculate the properties and include only the long calculation property "Toxicity":
 

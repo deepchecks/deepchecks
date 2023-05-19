@@ -69,7 +69,9 @@ Useful Functions
 Calculate Default Properties
 -----------------------------
 
-You can calculate the default text properties for the TextData object:
+To calculate all the default properties, you do not need to pass the ``include_properties`` parameter in the
+``calculate_builtin_properties`` function. If you pass either ``include_properties` or ``ignore_properties`` parameter
+then the only the properties specified will be calculated or ignored.You can calculate the default text properties for the TextData object:
 
 >>> text_data.calculate_builtin_properties()
 

@@ -451,15 +451,26 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
 
 def count_unique_urls(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of unique URLS per text sample."""
-    url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
-
+    url_pattern = r'https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
     return [len(set(re.findall(url_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+
+
+def count_urls(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of URLS per text sample."""
+    url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
+    return [len(re.findall(url_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
 
 
 def count_unique_email_addresses(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of unique email addresses per text sample."""
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
     return [len(set(re.findall(email_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+
+
+def count_email_addresses(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of email addresses per text sample."""
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    return [len(re.findall(email_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
 
 
 def count_unique_syllables(raw_text: Sequence[str]) -> List[str]:
@@ -570,6 +581,8 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
 
 
 ALL_PROPERTIES: Tuple[TextProperty, ...] = (
+    {'name': 'Count URLs', 'method': count_urls, 'output_type': 'numeric'},
+    {'name': 'Count Email Address', 'method': count_email_addresses, 'output_type': 'numeric'},
     {'name': 'Count Unique URLs', 'method': count_unique_urls, 'output_type': 'numeric'},
     {'name': 'Count Unique Email Address', 'method': count_unique_email_addresses, 'output_type': 'numeric'},
     {'name': 'Count Unique Syllables', 'method': count_unique_syllables, 'output_type': 'numeric'},
@@ -651,15 +664,19 @@ def calculate_builtin_properties(
     raw_text : Sequence[str]
         The text to calculate the properties for.
     include_properties : List[str], default None
-        The properties to calculate. If None, all default properties will be calculated. Cannot be used together
-        with ignore_properties parameter. Available properties are:
+        The properties to calculate. If None, all default properties will be calculated. Cannot be used
+        together with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Readability Score', 'Average Sentence Length', 'Count Unique URLs', 'Count Unique Email Address',
-        'Count Unique Syllables', 'Reading Time', 'Sentence Length', 'Average Syllable Length']
+        'Readability Score', 'Average Sentence Length', 'Count URLs', Count Unique URLs', 'Count Email Address',
+        'Count Unique Email Address', 'Count Unique Syllables', 'Reading Time', 'Sentence Length',
+        'Average Syllable Length']
         List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
         '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
         'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Sentence Length']
+        To calculate all the default properties, the include_properties and ignore_properties parameters should
+        be None. If you pass either include_properties or ignore_properties then the only the properties specified
+        in the list will be calculated or ignored.
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
         take a long time to calculate. If include_long_calculation_properties is False, these properties will be
         ignored, even if they are in the include_properties parameter.
