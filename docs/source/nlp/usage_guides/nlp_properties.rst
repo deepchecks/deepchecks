@@ -50,7 +50,7 @@ There are two types of built-in properties:
 The built-in image properties are:
 
 ==============================  ================  ==========
-Property name                   Default Property  What is it
+Property name                   Default Property  Description
 ==============================  ================  ==========
 Text Length                     Yes               Number of characters in the text
 Average Word Length             Yes               Average number of characters in a word
