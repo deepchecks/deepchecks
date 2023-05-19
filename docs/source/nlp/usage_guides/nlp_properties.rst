@@ -45,12 +45,12 @@ You can either use the built-in properties or implement your own ones and pass t
 There are two types of built-in properties:
 
 #. Default properties: These properties are caclulated when you do not specify any properties to calculate or ignore.
-#. Non-default properties: These properties are only caclulated when you want them to calculate and specify them.
+#. Non-default properties: These properties are only caclulated when you specify them using the ``include_properties`` argument.
 
 The built-in image properties are:
 
 ==============================  ================  ==========
-Property name                   Default Property  What is it
+Property name                   Default Property  Description
 ==============================  ================  ==========
 Text Length                     Yes               Number of characters in the text
 Average Word Length             Yes               Average number of characters in a word
@@ -93,7 +93,7 @@ Calculating The Built-in Properties
 In order to use the built-in properties, you must call the ``calculate_builtin_properties`` method of the ``TextData``
 object. This method will calculate the properties and add them to the :class:`TextData <deepchecks.nlp.TextData>` object.
 To calculate all the default properties, you do not need to pass the ``include_properties`` parameter in the 
-``calculate_builtin_properties`` function. If you pass either ``include_properties` or ``ignore_properties`` parameter
+``calculate_builtin_properties`` function. If you pass either ``include_properties`` or ``ignore_properties`` parameter
 then the only the properties specified will be calculated or ignored.
 
 Example of calculating the built-in properties in order to use the TextPropertyOutliers check:
