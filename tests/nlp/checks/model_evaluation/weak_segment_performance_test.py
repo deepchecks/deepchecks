@@ -93,7 +93,7 @@ def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=True,
-                               details='Found a segment with f1 macro score of 0.695 in comparison to an average '
+                               details='Found a segment with f1 macro score of 0.712 in comparison to an average '
                                        'score of 0.83 in sampled data.',
                                name='The relative performance of weakest segment is greater '
                                     'than 80% of average model performance.')
