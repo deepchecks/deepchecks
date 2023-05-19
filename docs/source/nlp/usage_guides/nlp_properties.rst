@@ -45,7 +45,7 @@ You can either use the built-in properties or implement your own ones and pass t
 There are two types of built-in properties:
 
 #. Default properties: These properties are caclulated when you do not specify any properties to calculate or ignore.
-#. Non-default properties: These properties are only caclulated when you want them to calculate and specify them.
+#. Non-default properties: These properties are only caclulated when you specify them using the ``include_properties`` argument.
 
 The built-in image properties are:
 
