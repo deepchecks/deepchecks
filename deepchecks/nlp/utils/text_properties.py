@@ -611,6 +611,7 @@ def _select_properties(
 ) -> Sequence[TextProperty]:
     """Select properties."""
     all_properties = ALL_PROPERTIES
+    default_properties = DEFAULT_PROPERTIES
 
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
@@ -618,9 +619,9 @@ def _select_properties(
     if include_properties is not None:
         properties = [prop for prop in all_properties if prop['name'] in include_properties]
     elif ignore_properties is not None:
-        properties = [prop for prop in all_properties if prop['name'] not in ignore_properties]
+        properties = [prop for prop in default_properties if prop['name'] not in ignore_properties]
     else:
-        properties = DEFAULT_PROPERTIES
+        properties = default_properties
 
     if not include_long_calculation_properties:
         return [
@@ -681,8 +682,8 @@ def calculate_builtin_properties(
         take a long time to calculate. If include_long_calculation_properties is False, these properties will be
         ignored, even if they are in the include_properties parameter.
     ignore_properties : List[str], default None
-        The properties to ignore. If None, no properties will be ignored. Cannot be used together with
-        properties parameter.
+        The properties to ignore from the list of default properties. If None, no properties will be ignored and
+        all the default properties will be calculated. Cannot be used together with include_properties parameter.
     include_long_calculation_properties : bool, default False
         Whether to include properties that may take a long time to calculate. If False, these properties will be
         ignored, even if they are in the include_properties parameter.

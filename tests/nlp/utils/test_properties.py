@@ -25,6 +25,34 @@ def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
     return [0] * 20_000
 
 
+@pytest.fixture(name='manual_text_data_for_properties')
+def text_data_fixture():
+    """Mock data for a calculating text properties."""
+    text_data = {
+        'url_data': [
+            'Please contact me at abc.ex@example.com.',
+            'For more information, visit our website: https://deepchecks.com/.',
+            'Email us at info@example.com or visit our website http://www.example.com for assistance.',
+            'For any inquiries, send an email to support@example.com.',
+            'The results were found at http://www.google.com and it redirects to'
+            'https://www.deepchecks.com and there we can find the links to all social medias such'
+            'as http://gmail.com, https://fb.com, https://www.deepchecks.com, https://www.google.com'
+        ],
+        'email_data': [
+            'Please send your inquiries to info@example.com or support@example.com. We are happy to assist you.',
+            'Contact us at john.doe@example.com or jane.smith@example.com for further information\
+            Looking forward to hearing from you.',
+            'For any questions or concerns, email sales@example.com. We are here to help.',
+            'Hello, this is a text without email address@asx',
+            'You can contact me directly at samantha.wilson@example.com or use the\
+            team email address marketing@example.com.',
+            'If you have any feedback or suggestions, feel free to email us at feedback@example.com,\
+            support@example.com, feedback@example.com.'
+        ]
+    }
+    return text_data
+
+
 @patch('deepchecks.nlp.utils.text_properties.run_available_kwargs', mock_fn)
 def test_that_warning_is_shown_for_big_datasets():
     # Arrange
@@ -107,18 +135,10 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
 
 
-def test_calculate_count_unique_urls():
+def test_calculate_count_unique_urls(manual_text_data_for_properties):
 
     # Arrange
-    text_data = [
-        'Please contact me at abc.ex@example.com.',
-        'For more information, visit our website: https://deepchecks.com/.',
-        'Email us at info@example.com or visit our website http://www.example.com for assistance.',
-        'For any inquiries, send an email to support@example.com.',
-        'The results were found at http://www.google.com and it redirects to'
-        'https://www.deepchecks.com and there we can find the links to all social medias such'
-        'as http://gmail.com, https://fb.com, https://www.deepchecks.com, https://www.google.com'
-    ]
+    text_data = manual_text_data_for_properties['url_data']
 
     # Act
     result = calculate_builtin_properties(text_data, include_properties=['Count Unique URLs'])[0]
@@ -129,18 +149,10 @@ def test_calculate_count_unique_urls():
     assert_that(result_none_text['Count Unique URLs'], equal_to([0]))
 
 
-def test_calculate_count_urls():
+def test_calculate_count_urls(manual_text_data_for_properties):
 
     # Arrange
-    text_data = [
-        'Please contact me at abc.ex@example.com.',
-        'For more information, visit our website: https://deepchecks.com/.',
-        'Email us at info@example.com or visit our website http://www.example.com for assistance.',
-        'For any inquiries, send an email to support@example.com.',
-        'The results were found at http://www.google.com and it redirects to'
-        'https://www.deepchecks.com and there we can find the links to all social medias such\
-        as http://gmail.com, https://fb.com, https://www.deepchecks.com, https://www.google.com'
-    ]
+    text_data = manual_text_data_for_properties['url_data']
 
     # Act
     result = calculate_builtin_properties(text_data, include_properties=['Count URLs'])[0]
@@ -151,20 +163,10 @@ def test_calculate_count_urls():
     assert_that(result_none_text['Count URLs'], equal_to([0]))
 
 
-def test_calculate_count_unique_email_addresses():
+def test_calculate_count_unique_email_addresses(manual_text_data_for_properties):
 
     # Arrange
-    text_data = [
-        'Please send your inquiries to info@example.com or support@example.com. We are happy to assist you.',
-        'Contact us at john.doe@example.com or jane.smith@example.com for further information\
-        Looking forward to hearing from you.',
-        'For any questions or concerns, email sales@example.com. We are here to help.',
-        'Hello, this is a text without email address@asx',
-        'You can contact me directly at samantha.wilson@example.com or use the\
-        team email address marketing@example.com.',
-        'If you have any feedback or suggestions, feel free to email us at feedback@example.com,\
-        support@example.com, feedback@example.com.'
-    ]
+    text_data = manual_text_data_for_properties['email_data']
 
     # Act
     result = calculate_builtin_properties(text_data, include_properties=['Count Unique Email Address'])[0]
@@ -175,21 +177,10 @@ def test_calculate_count_unique_email_addresses():
     assert_that(result_none_text['Count Unique Email Address'], equal_to([0]))
 
 
-def test_calculate_count_email_addresses():
+def test_calculate_count_email_addresses(manual_text_data_for_properties):
 
     # Arrange
-    text_data = [
-        'Please send your inquiries to info@example.com or support@example.com.\
-        We are happy to assist you.',
-        'Contact us at john.doe@example.com or jane.smith@example.com for further\
-        information. Looking forward to hearing from you.',
-        'For any questions or concerns, email sales@example.com. We are here to help.',
-        'Hello, this is a text without email address@asx',
-        'You can contact me directly at samantha.wilson@example.com or use the team email\
-        address marketing@example.com.',
-        'If you have any feedback or suggestions, feel free to email us at feedback@example.com,\
-        support@example.com, feedback@example.com.'
-    ]
+    text_data = manual_text_data_for_properties['email_data']
 
     # Act
     result = calculate_builtin_properties(text_data, include_properties=['Count Email Address'])[0]
@@ -260,6 +251,22 @@ def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
     assert_that(result['Average Syllable Length'][0: 10], equal_to([7.0, 8.5, 15.0, 18.0, 11.5,
                                                                     26.0, np.nan, 13.0, 17.0, 9.0]))
     assert_that(result_none_text['Average Syllable Length'], equal_to([np.nan]))
+
+
+def test_ignore_properties():
+
+    # Arrange
+    test_text = ['This is simple sentence.']
+    expected_properties = ['Text Length', 'Average Word Length', 'Max Word Length',
+                           '% Special Characters', 'Language','Sentiment', 'Subjectivity',
+                           'Lexical Density', 'Readability Score', 'Average Sentence Length']
+    # Act
+    result = calculate_builtin_properties(test_text, ignore_properties=['Unique Noun Count',
+                                                                        'Toxicity', 'Fluency',
+                                                                        'Formality'])[0]
+    # Assert
+    for prop in expected_properties:
+        assert_that(result, has_key(prop))
 
 
 @pytest.mark.skipif(

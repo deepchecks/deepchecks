@@ -131,8 +131,8 @@ In the following example, we will calculate the built-in properties (both defaul
   text_data.calculate_builtin_properties(ignore_properties=['Text Length'])
 
 
-Note that in the example above, we specified the ``Text Length property`` to be ignored and hence all other built-in
-properties will be calculated (including default and non-default). Moreover, some properties are not calculated by default, as they may take a 
+Note that in the example above, we specified the ``Text Length`` property to be ignored and hence all other built-in
+default properties will be calculated except for ``Text Length`` property. Moreover, some properties are not calculated by default, as they may take a 
 long time to calculate. In order to use them, pass ``include_long_calculation_properties`` to the 
 ``calculate_builtin_properties`` method.
 
