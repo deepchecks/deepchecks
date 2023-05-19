@@ -265,8 +265,8 @@ def test_ignore_properties():
                                                                         'Toxicity', 'Fluency',
                                                                         'Formality'])[0]
     # Assert
-    for prop in expected_properties:
-        assert_that(result, has_key(prop))
+    for prop in result:
+        assert_that(expected_properties, contains(prop))
 
 
 @pytest.mark.skipif(
