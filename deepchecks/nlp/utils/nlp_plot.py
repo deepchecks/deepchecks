@@ -268,7 +268,6 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
     plot_data['Sample'] = plot_data['Sample'].apply(break_to_lines_and_trim)
 
     fig = px.scatter(plot_data, x=axes[0], y=axes[1], color='Dataset', color_discrete_map=colors,
-                     hover_data=['Label', 'Sample'], hover_name='Dataset', title=plot_title, height=600, width=1000,
-                     opacity=0.4)
+                     hover_data=['Label', 'Sample'], hover_name='Dataset', title=plot_title, opacity=0.4)
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
     return fig
