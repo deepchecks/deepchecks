@@ -266,7 +266,7 @@ def test_ignore_properties():
                                                                         'Formality'])[0]
     # Assert
     for prop in result:
-        assert_that(expected_properties, contains(prop))
+        assert_that(expected_properties, has_item(prop))
 
 
 @pytest.mark.skipif(
