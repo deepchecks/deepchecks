@@ -93,7 +93,7 @@ Calculating The Built-in Properties
 In order to use the built-in properties, you must call the ``calculate_builtin_properties`` method of the ``TextData``
 object. This method will calculate the properties and add them to the :class:`TextData <deepchecks.nlp.TextData>` object.
 To calculate all the default properties, you do not need to pass the ``include_properties`` parameter in the 
-``calculate_builtin_properties`` function. If you pass either ``include_properties` or ``ignore_properties`` parameter
+``calculate_builtin_properties`` function. If you pass either ``include_properties`` or ``ignore_properties`` parameter
 then the only the properties specified will be calculated or ignored.
 
 Example of calculating the built-in properties in order to use the TextPropertyOutliers check:
