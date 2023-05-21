@@ -105,6 +105,7 @@ class TextEmbeddingsDrift(TrainTestCheck):
             num_samples_in_display=self.num_samples_in_display,
             dimension_reduction_method=self.dimension_reduction_method,
             with_display=context.with_display,
+            model_classes=context.model_classes
         )
 
         return CheckResult(value=values_dict, display=displays, header='Embeddings Drift')

@@ -10,7 +10,7 @@
 #
 """Test for the NLP UnderAnnotatedSegments check"""
 import numpy as np
-from hamcrest import assert_that, close_to, equal_to, has_items, calling, raises
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, raises
 
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.nlp.checks import UnderAnnotatedMetaDataSegments, UnderAnnotatedPropertySegments
@@ -103,7 +103,7 @@ def test_token_classification_dataset(small_wikiann_train_test_text_data):
     data, _ = small_wikiann_train_test_text_data
     data = data.copy()
     data._label = np.asarray(list(data._label[:40]) + [None] * 10, dtype=object)
-    data.calculate_default_properties(include_long_calculation_properties=False)
+    data.calculate_builtin_properties(include_long_calculation_properties=False)
     check = UnderAnnotatedPropertySegments().add_condition_segments_relative_performance_greater_than()
 
     # Act
@@ -112,15 +112,16 @@ def test_token_classification_dataset(small_wikiann_train_test_text_data):
 
     # Assert
     assert_that(condition_result, has_items(
-        equal_condition_result(is_pass=False,
-                               details='Found a segment with annotation ratio of 0.375 in comparison to an '
-                                       'average score of 0.8 in sampled data.',
-                               name='The relative performance of weakest segment is greater than 80% of average model '
-                                    'performance.')
+        equal_condition_result(
+            is_pass=False,
+            details='Found a segment with annotation ratio of 0.375 in comparison to an '
+                    'average score of 0.8 in sampled data.',
+            name='The relative performance of weakest segment is greater than 80% of average model '
+                 'performance.')
     ))
 
     assert_that(result.value['avg_score'], close_to(0.8, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(15))
+    assert_that(len(result.value['weak_segments_list']), equal_to(22))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.375, 0.01))
 
 

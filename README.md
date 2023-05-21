@@ -70,7 +70,7 @@ data integrity, distribution mismatches, and more.
 **This README refers to the Tabular version** of deepchecks.
 
 - Check out the [Deepchecks for Computer Vision & Images subpackage](deepchecks/vision) for more details about deepchecks for CV, currently in *beta release*.
-- Check out the [Deepchecks for NLP subpackage](deepchecks/nlp) for more details about deepchecks for NLP, currently in *alpha release*.
+- Check out the [Deepchecks for NLP subpackage](deepchecks/nlp) for more details about deepchecks for NLP, currently in *beta release*.
 
 
 ## 💻 Installation
@@ -93,7 +93,7 @@ pip install deepchecks -U --user
 > ```
 >  
 > To install deepchecks together with the **NLP Submodule** that 
-> is currently in *alpha release*, replace 
+> is currently in *beta release*, replace 
 > ``deepchecks`` with ``"deepchecks[nlp]"`` as follows:   
 > ```bash
 > pip install "deepchecks[nlp]" -U --user
@@ -303,7 +303,7 @@ subset of the following:
 
 The package currently supports tabular data and is in:
 - *beta release* for the [Computer Vision subpackage](deepchecks/vision).
-- *alpha release* for the [NLP subpackage](deepchecks/nlp).
+- *beta release* for the [NLP subpackage](deepchecks/nlp).
 
 
 ## 📖 Documentation

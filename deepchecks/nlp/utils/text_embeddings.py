@@ -12,12 +12,11 @@
 from typing import Optional
 
 import numpy as np
-import pandas as pd
 from tqdm import tqdm
 
 
 def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
-                                 file_path: Optional[str] = 'embeddings.csv') -> pd.DataFrame:
+                                 file_path: Optional[str] = 'embeddings.npy') -> np.array:
     """
     Get default embeddings for the dataset.
 
@@ -34,7 +33,7 @@ def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
 
     Returns
     -------
-        pd.DataFrame
+        np.array
             The embeddings for the dataset.
     """
     if model == 'miniLM':
@@ -71,9 +70,9 @@ def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
                 embeddings.append(x['embedding'])
     else:
         raise ValueError(f'Unknown model type: {model}')
-    embeddings = pd.DataFrame(embeddings)
+    embeddings = np.array(embeddings).astype(np.float16)
     if file_path is not None:
-        embeddings.to_csv(file_path, index=False)
+        np.save(file_path, embeddings)
     return embeddings
 
 

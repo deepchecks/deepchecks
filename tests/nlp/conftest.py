@@ -19,7 +19,7 @@ from datasets import load_dataset
 from nltk import download as nltk_download
 from nltk.corpus import movie_reviews
 
-from deepchecks.nlp.datasets.classification import tweet_emotion
+from deepchecks.nlp.datasets.classification import just_dance_comment_analysis, tweet_emotion
 from deepchecks.nlp.text_data import TextData
 
 
@@ -37,6 +37,26 @@ def tweet_emotion_train_test_textdata():
     train, test = tweet_emotion.load_data(data_format='TextData', as_train_test=True, include_properties=True,
                                           include_embeddings=True)
     return train, test
+
+@pytest.fixture(scope='session')
+def just_dance_train_test_textdata():
+    """Just Dance text multilabel classification dataset"""
+    return just_dance_comment_analysis.load_data(data_format='TextData', as_train_test=True,
+                                                 include_embeddings=True)
+
+@pytest.fixture(scope='session')
+def just_dance_train_test_textdata_probas():
+    """Just Dance text multilabel classification dataset"""
+    return just_dance_comment_analysis.load_precalculated_predictions(pred_format='probabilities', as_train_test=True)
+
+
+@pytest.fixture(scope='session')
+def just_dance_train_test_textdata_sampled(just_dance_train_test_textdata):
+    """Just Dance text multilabel classification dataset"""
+    train, test = just_dance_train_test_textdata
+    sampled_train = train.sample(500, random_state=42)
+    sampled_test = test.sample(500, random_state=42)
+    return sampled_train, sampled_test
 
 
 @pytest.fixture(scope='function')
@@ -144,8 +164,8 @@ def text_token_classification_dataset_mock():
 def multilabel_mock_dataset_and_probabilities(tweet_emotion_train_test_textdata):
     """Mock dataset and probabilities for multilabel classification"""
     from sklearn.datasets import make_multilabel_classification
-    from sklearn.model_selection import train_test_split
     from sklearn.linear_model import LogisticRegression
+    from sklearn.model_selection import train_test_split
 
     X, y = make_multilabel_classification(n_samples=3_000, n_features=10, n_classes=3, n_labels=2,
                                           random_state=42)

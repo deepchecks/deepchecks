@@ -18,11 +18,12 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types, validate_length_and_type,
-                                              validate_modify_label, validate_raw_text, validate_tokenized_text)
+from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types,
+                                              validate_length_and_type_numpy_array, validate_modify_label,
+                                              validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
-from deepchecks.nlp.utils.text_properties import calculate_default_properties
+from deepchecks.nlp.utils.text_properties import calculate_builtin_properties
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.validation import is_sequence_not_str
@@ -84,20 +85,21 @@ class TextData:
         properties. If None, no properties are set.
         The number of rows in the properties DataFrame must be equal to the number of samples in the dataset, and the
         order of the rows must be the same as the order of the samples in the dataset.
-        In order to calculate the default properties, use the `TextData.calculate_default_properties` function after
+        In order to calculate the default properties, use the `TextData.calculate_builtin_properties` function after
         the creation of the TextData object.
         For more on properties, see the `NLP Properties Guide
         <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
     categorical_properties : t.Optional[t.List[str]] , default: None
         The names of the categorical properties columns. If None, categorical properties columns are automatically
         inferred. Only relevant if properties is not None.
-    embeddings : t.Optional[Union[pd.DataFrame, np.ndarray, str]] , default: None
-        The text embeddings for the samples. Embeddings must be given as either a pandas DataFrame or a path to a pandas
-        DataFrame compatible csv file, with the rows representing each sample and columns representing the different
-        embeddings dimensions. If None, no embeddings are set.
-        The number of rows in the embeddings DataFrame must be equal to the number of samples in the dataset, and the
-        order of the rows must be the same as the order of the samples in the dataset.
-        In order to calculate the default embeddings, use the `TextData.calculate_default_embeddings` function after
+    embeddings : t.Optional[Union[np.ndarray, pd.DataFrame, str]], default: None
+        The text embeddings for the samples. Embeddings must be given as a numpy array (or a path to an .npy
+        file containing a numpy array) of shape (N, E), where N is the number of samples in the TextData object and E
+        is the number of embeddings dimensions.
+        The numpy array must be in the same order as the samples in the TextData.
+        If None, no embeddings are set.
+
+        In order to use the default embeddings, use the `TextData.calculate_default_embeddings` function after
         the creation of the TextData object.
         For more on embeddings, see the :ref:`Text Embeddings Guide <nlp__embeddings_guide>`
     """
@@ -238,7 +240,7 @@ class TextData:
                 new_copy.set_properties(properties, self._cat_properties)
 
             if self._embeddings is not None:
-                embeddings = self._embeddings.iloc[rows_to_use, :]
+                embeddings = self._embeddings[rows_to_use]
                 new_copy.set_embeddings(embeddings)
 
             new_copy._original_text_index = self._original_text_index[rows_to_use]
@@ -305,11 +307,11 @@ class TextData:
             The path to save the embeddings to.
         """
         if self._embeddings is not None:
-            warnings.warn('Properties already exist, overwriting them', UserWarning)
+            warnings.warn('Embeddings already exist, overwriting them', UserWarning)
 
         self._embeddings = calculate_default_embeddings(text=self.text, model=model, file_path=file_path)
 
-    def set_embeddings(self, embeddings: pd.DataFrame, verbose: bool = True):
+    def set_embeddings(self, embeddings: np.ndarray, verbose: bool = True):
         """Set the metadata of the dataset.
 
         Parameters
@@ -322,12 +324,15 @@ class TextData:
         if self._embeddings is not None and verbose is True:
             warnings.warn('Embeddings already exist, overwriting it', UserWarning)
 
-        if isinstance(embeddings, np.ndarray):
-            embeddings = pd.DataFrame(embeddings)
+        if isinstance(embeddings, pd.DataFrame):
+            embeddings = embeddings.to_numpy()
+
+        if isinstance(embeddings, str):
+            embeddings = np.load(embeddings)
 
         if embeddings is not None:
-            validate_length_and_type(embeddings, 'Embeddings', len(self))
-        self._embeddings = embeddings.reset_index(drop=True) if isinstance(embeddings, pd.DataFrame) else None
+            validate_length_and_type_numpy_array(embeddings, 'Embeddings', len(self))
+        self._embeddings = embeddings
 
     @property
     def metadata(self) -> pd.DataFrame:
@@ -367,7 +372,7 @@ class TextData:
         self._metadata = metadata.reset_index(drop=True)
         self._cat_metadata = column_types.categorical_columns
 
-    def calculate_default_properties(
+    def calculate_builtin_properties(
         self,
         include_properties: t.Optional[t.List[str]] = None,
         ignore_properties: t.Optional[t.List[str]] = None,
@@ -393,7 +398,7 @@ class TextData:
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        properties, properties_types = calculate_default_properties(
+        properties, properties_types = calculate_builtin_properties(
             list(self.text),
             include_properties=include_properties,
             ignore_properties=ignore_properties,
@@ -437,7 +442,7 @@ class TextData:
         if self._properties is None:
             raise DeepchecksNotSupportedError(
                 'TextData does not contain properties, add them by using '
-                '"calculate_default_properties" or "set_properties" functions'
+                '"calculate_builtin_properties" or "set_properties" functions'
             )
 
         self._properties.to_csv(path, index=False)
@@ -449,7 +454,7 @@ class TextData:
             raise DeepchecksNotSupportedError(
                 'Functionality requires properties, but the the TextData object had none. To use this functionality, '
                 'use the set_properties method to set your own properties with a pandas.DataFrame or use '
-                'TextData.calculate_default_properties to add the default deepchecks properties.'
+                'TextData.calculate_builtin_properties to add the default deepchecks properties.'
             )
         return self._properties
 
@@ -507,16 +512,23 @@ class TextData:
                                        'to run the requested functionalities')
         return self._label
 
-    @property
-    def label_for_display(self) -> TTextLabel:
-        """Return the label defined in the dataset.
+    def label_for_display(self, model_classes: list = None) -> TTextLabel:
+        """Return the label defined in the dataset in a format that can be displayed.
+
+        Parameters
+        ----------
+        model_classes : list, default None
+            List of classes names to use for multi-label display. Only used if the dataset is multi-label.
 
         Returns
         -------
         TTextLabel
         """
         if self.is_multi_label_classification():
-            return [np.argwhere(x == 1).flatten().tolist() for x in self.label]
+            ret_labels = [np.argwhere(x == 1).flatten().tolist() for x in self.label]
+            if model_classes:
+                ret_labels = [[model_classes[i] for i in x] for x in ret_labels]
+            return ret_labels
         else:
             return self.label
 
@@ -583,13 +595,26 @@ class TextData:
 
         return True
 
-    def head(self, n_samples: int = 5) -> pd.DataFrame:
-        """Return a copy of the dataset as a pandas Dataframe with the first n_samples samples."""
+    def head(self, n_samples: int = 5, model_classes: list = None) -> pd.DataFrame:
+        """Return a copy of the dataset as a pandas Dataframe with the first n_samples samples.
+
+        Parameters
+        ----------
+        n_samples : int, default 5
+            Number of samples to return.
+        model_classes : list, default None
+            List of classes names to use for multi-label display. Only used if the dataset is multi-label.
+
+        Returns
+        -------
+        pd.DataFrame
+            A copy of the dataset as a pandas Dataframe with the first n_samples samples.
+        """
         if n_samples > len(self):
             n_samples = len(self) - 1
         result = pd.DataFrame({'text': self.text[:n_samples]}, index=self.get_original_text_indexes()[:n_samples])
         if self.has_label():
-            result['label'] = self.label_for_display[:n_samples]
+            result['label'] = self.label_for_display(model_classes=model_classes)[:n_samples]
         if self._tokenized_text is not None:
             result['tokenized_text'] = self.tokenized_text[:n_samples]
         if self._metadata is not None:

@@ -11,6 +11,7 @@
 """Module contains Conflicting Labels check."""
 import typing as t
 
+import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult
@@ -83,7 +84,8 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
-        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
+        dataset = context.get_data_by_kind(dataset_kind)
+        dataset = dataset.sample(self.n_samples, random_state=self.random_state, drop_na_label=True)
         dataset = t.cast(TextData, dataset)
         samples = dataset.text
         n_of_samples = len(samples)
@@ -96,12 +98,14 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             **self._text_normalization_kwargs
         ))
 
-        if dataset.task_type is TaskType.TOKEN_CLASSIFICATION or dataset.is_multi_label_classification():
+        if dataset.task_type is TaskType.TOKEN_CLASSIFICATION:
             labels = [tuple(t.cast(t.Sequence[t.Any], it)) for it in dataset.label]
+        elif dataset.is_multi_label_classification():
+            labels = [tuple(np.where(row == 1)[0]) for row in dataset.label]
         elif dataset.task_type is TaskType.TEXT_CLASSIFICATION:
             labels = dataset.label
         else:
-            raise DeepchecksValueError(f'Unknow task type - {dataset.task_type}')
+            raise DeepchecksValueError(f'Unknown task type - {dataset.task_type}')
 
         df = pd.DataFrame({
             'hash': samples_hashes,
@@ -117,7 +121,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         ambiguous_samples_hashes = n_of_labels_per_sample[n_of_labels_per_sample > 1]
         ambiguous_samples_hashes = frozenset(ambiguous_samples_hashes.index.to_list())
 
-        ambiguous_samples = df[df['hash'].isin(ambiguous_samples_hashes)]
+        ambiguous_samples = df[df['hash'].isin(ambiguous_samples_hashes)].copy()
         num_of_ambiguous_samples = ambiguous_samples['Text'].count()
         percent_of_ambiguous_samples = num_of_ambiguous_samples / n_of_samples
 
@@ -134,7 +138,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         if context.with_display is False or num_of_ambiguous_samples == 0:
             return CheckResult(value=result_value)
 
-        ambiguous_samples['Text'] = ambiguous_samples['Text'].apply(self._truncate_text)
+        ambiguous_samples.loc[:, 'Text'] = ambiguous_samples['Text'].apply(self._truncate_text)
         by_hash = ambiguous_samples.groupby(['hash'], dropna=False)
         observed_labels = by_hash['Label'].aggregate(lambda x: format_list(x.to_list()))
         samples_ids = by_hash['Sample ID'].aggregate(lambda x: format_list(x.to_list(), max_string_length=200))

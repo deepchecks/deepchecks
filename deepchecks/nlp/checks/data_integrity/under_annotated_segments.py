@@ -20,6 +20,7 @@ from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksProcessError
 from deepchecks.nlp import Context, SingleDatasetCheck
+from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
 from deepchecks.utils.abstracts.weak_segment_abstract import WeakSegmentAbstract
 from deepchecks.utils.metrics import is_label_none
@@ -90,7 +91,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         display_tabs = {}
         if weak_segments.shape[0] > self.n_to_show:
             weak_segments = weak_segments.iloc[:self.n_to_show, :]
-        encoded_data['text'] = text
+        encoded_data['text'] = [break_to_lines_and_trim(sample) for sample in text]
 
         # Handle categorical features
         jitter = 0.25
@@ -111,8 +112,8 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
             if feature_2 != '':  # segment by two features
                 feature_2_lower, feature_2_upper = self._get_box_boundaries(encoded_data[feature_2],
                                                                             row['Feature2 Range'])
-                hover_template = '<b>' + feature_1 + '<b>: %{x}<br><b>' + feature_2 + \
-                                 '<b>: %{y}<br><b>text<b>: %{text}<br><b>Annotated<b>: '
+                hover_template = '<b>' + feature_1 + '</b>: %{x}<br><b>' + feature_2 + \
+                                 '</b>: %{y}<br><b>text</b>: %{text}<br><b>Annotated</b>: '
                 tab_title = f'{feature_1} vs {feature_2}'
                 range_f1 = self._format_partition_vec_for_display([feature_1_lower, feature_1_upper], feature_1, ', ')
                 range_f2 = self._format_partition_vec_for_display([feature_2_lower, feature_2_upper], feature_2, ', ')
@@ -122,7 +123,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                 feature_2 = 'virtual_col'
                 feature_2_lower = encoded_data['virtual_col'].min() * 1.3
                 feature_2_upper = encoded_data['virtual_col'].max() * 1.3
-                hover_template = '<b>' + feature_1 + '<b>: %{x}<br><b>text<b>: %{text}<br><b>Annotated<b>: '
+                hover_template = '<b>' + feature_1 + '</b>: %{x}<br><b>text</b>: %{text}<br><b>Annotated</b>: '
                 tab_title = feature_1
                 range_f1 = self._format_partition_vec_for_display([feature_1_lower, feature_1_upper], feature_1, ', ')
                 msg = f'Under annotated segment contains samples with {feature_1} in {range_f1[0]}.'
@@ -162,7 +163,6 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                      f' in whole data)</sub>',
                 font=dict(size=24)),
                 xaxis_title=feature_1, yaxis_title=feature_2 if feature_2 != 'virtual_col' else '',
-                autosize=False, width=1000, height=600,
                 font=dict(size=14),
                 plot_bgcolor='rgba(245, 245, 245, 1)',
                 xaxis=dict(gridcolor='rgba(200, 200, 200, 0.5)',

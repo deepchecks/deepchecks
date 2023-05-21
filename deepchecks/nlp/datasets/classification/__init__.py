@@ -9,6 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for working with pre-built classification datasets."""
-from . import tweet_emotion
+from . import just_dance_comment_analysis, tweet_emotion
 
-__all__ = ['tweet_emotion']
+__all__ = ['tweet_emotion', 'just_dance_comment_analysis']
