@@ -27,6 +27,7 @@ doi: 10.1109/CBMS52027.2021.00035.
 """
 import pathlib
 import typing as t
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -185,6 +186,11 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
     """
     if data_format.lower() not in ['textdata', 'dataframe']:
         raise ValueError('data_format must be either "Dataset" or "Dataframe"')
+    elif data_format.lower() == 'dataframe':
+        if include_properties or include_embeddings:
+            warnings.warn('include_properties and include_embeddings are incompatible with data_format="Dataframe"',
+                          UserWarning)
+            include_properties, include_embeddings = False, False
 
     if use_full_size:
         data = read_and_save_data(ASSETS_DIR, 'just_dance_data.csv', _FULL_DATA_URL, to_numpy=False)
