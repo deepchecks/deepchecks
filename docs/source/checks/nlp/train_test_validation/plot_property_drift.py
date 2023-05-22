@@ -54,8 +54,8 @@ from deepchecks.nlp.datasets.classification.tweet_emotion import load_data
 train_dataset, test_dataset = load_data()
 
 # # Calculate properties, commented out because it takes a short while to run
-# train_dataset.calculate_default_properties(include_long_calculation_properties=True)
-# test_dataset.calculate_default_properties(include_long_calculation_properties=True)
+# train_dataset.calculate_builtin_properties(include_long_calculation_properties=True)
+# test_dataset.calculate_builtin_properties(include_long_calculation_properties=True)
 
 #%%
 # Run the check

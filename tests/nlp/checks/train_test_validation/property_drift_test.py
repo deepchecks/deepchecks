@@ -50,8 +50,8 @@ class TestTextClassification:
         train = train.sample(30, random_state=0)
         test = test.sample(30, random_state=0)
 
-        train.calculate_default_properties()
-        test.calculate_default_properties()
+        train.calculate_builtin_properties()
+        test.calculate_builtin_properties()
 
         check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
 
@@ -95,7 +95,7 @@ class TestTokenClassification:
     def test_without_drift(self, small_wikiann_train_test_text_data):
         # Arrange
         train, _ = small_wikiann_train_test_text_data
-        train.calculate_default_properties()
+        train.calculate_builtin_properties()
         check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
         # Act
         result = check.run(train_dataset=train, test_dataset=train)
@@ -117,10 +117,10 @@ class TestTokenClassification:
         # Arrange
         train, test = small_wikiann_train_test_text_data
 
-        train.calculate_default_properties(
+        train.calculate_builtin_properties(
             include_long_calculation_properties=False
         )
-        test.calculate_default_properties(
+        test.calculate_builtin_properties(
             include_long_calculation_properties=False
         )
 
@@ -149,7 +149,7 @@ class TestMultiLabelClassification:
     def test_without_drift(self, dummy_multilabel_textdata_train_test):
         # Arrange
         train, _ = dummy_multilabel_textdata_train_test
-        train.calculate_default_properties()
+        train.calculate_builtin_properties()
         check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than()
         # Act
         result = check.run(train_dataset=train, test_dataset=train)
@@ -170,15 +170,12 @@ class TestMultiLabelClassification:
     def test_with_drift(self, dummy_multilabel_textdata_train_test):
         # Arrange
         train, test = dummy_multilabel_textdata_train_test
-        properties_to_ignore = ['Lexical Density','Unique Noun Count', 'Average Sentence Length', 'Readability Score']
-        train.calculate_default_properties(ignore_properties=properties_to_ignore)
-        test.calculate_default_properties(ignore_properties=properties_to_ignore)
-
-        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than(
-            max_allowed_numeric_score=0.3,
-            max_allowed_categorical_score=0.3
-        )
-
+        default_properties = ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 
+                              'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', ]
+        train.calculate_builtin_properties(include_properties=default_properties)
+        test.calculate_builtin_properties(include_properties=default_properties)
+        check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than(max_allowed_numeric_score=0.3,
+                                                                                  max_allowed_categorical_score=0.3)
         # Act
         result = check.run(train_dataset=train, test_dataset=test)
         condition_results = check.conditions_decision(result)

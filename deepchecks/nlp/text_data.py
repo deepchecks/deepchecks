@@ -23,7 +23,7 @@ from deepchecks.nlp.input_validations import (validate_length_and_calculate_colu
                                               validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
-from deepchecks.nlp.utils.text_properties import calculate_default_properties
+from deepchecks.nlp.utils.text_properties import calculate_builtin_properties
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.validation import is_sequence_not_str
@@ -85,7 +85,7 @@ class TextData:
         properties. If None, no properties are set.
         The number of rows in the properties DataFrame must be equal to the number of samples in the dataset, and the
         order of the rows must be the same as the order of the samples in the dataset.
-        In order to calculate the default properties, use the `TextData.calculate_default_properties` function after
+        In order to calculate the default properties, use the `TextData.calculate_builtin_properties` function after
         the creation of the TextData object.
         For more on properties, see the `NLP Properties Guide
         <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
@@ -372,7 +372,7 @@ class TextData:
         self._metadata = metadata.reset_index(drop=True)
         self._cat_metadata = column_types.categorical_columns
 
-    def calculate_default_properties(
+    def calculate_builtin_properties(
         self,
         include_properties: t.Optional[t.List[str]] = None,
         ignore_properties: t.Optional[t.List[str]] = None,
@@ -398,7 +398,7 @@ class TextData:
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        properties, properties_types = calculate_default_properties(
+        properties, properties_types = calculate_builtin_properties(
             list(self.text),
             include_properties=include_properties,
             ignore_properties=ignore_properties,
@@ -442,7 +442,7 @@ class TextData:
         if self._properties is None:
             raise DeepchecksNotSupportedError(
                 'TextData does not contain properties, add them by using '
-                '"calculate_default_properties" or "set_properties" functions'
+                '"calculate_builtin_properties" or "set_properties" functions'
             )
 
         self._properties.to_csv(path, index=False)
@@ -454,7 +454,7 @@ class TextData:
             raise DeepchecksNotSupportedError(
                 'Functionality requires properties, but the the TextData object had none. To use this functionality, '
                 'use the set_properties method to set your own properties with a pandas.DataFrame or use '
-                'TextData.calculate_default_properties to add the default deepchecks properties.'
+                'TextData.calculate_builtin_properties to add the default deepchecks properties.'
             )
         return self._properties
 

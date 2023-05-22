@@ -139,3 +139,13 @@ deepchecks/nlp/utils/.nlp-models
 
 # embedding files
 tests/nlp/utils/embeddings.csv
+embeddings.csv.npy
+embeddings.npy
+deepchecks/nlp/datasets/assets/tweet_emotion/tweet_emotion_embeddings.npy
+
+# nlp datasets
+deepchecks/nlp/datasets/assets/just_dance_comment_analysis
+
+# nlp test properties
+metadata.csv
+test_properties.csv

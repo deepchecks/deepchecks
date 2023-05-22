@@ -9,7 +9,7 @@ In the deepchecks nlp package, predictions are passed into the suite / check ``r
 predictions only (passing a fitted model is currently not supported).
 
 
-.. _nlp_supported_tasks__types:
+.. _nlp__supported_tasks_types:
 
 Supported Task Types
 ====================
@@ -33,7 +33,7 @@ Deepchecks currently supports two NLP task types:
     - Named Entity Recognition,
     - Part-of-speech annotation (in which all tokens have a non-background class).
 
-.. _nlp_supported_labels__predictions_format:
+.. _nlp__supported_labels_predictions_format:
 
 Supported Labels and Predictions Format
 =======================================
@@ -42,7 +42,7 @@ While labels are passed when constructing the :class:`TextData <deepchecks.nlp.T
 separately to the ``run()`` method of the check / suite. Labels and predictions must be in the format detailed in this
 section, according to the task type.
 
-.. _nlp_supported_text_classification:
+.. _nlp__supported_text_classification:
 
 Text Classification
 -------------------
@@ -104,7 +104,7 @@ Multilabel Predictions
 >>> predictions = [[0, 0, 1], [0, 1, 1]]
 >>> probabilities = [[0.2, 0.3, 0.8], [0.4, 0.9, 0.6]]
 
-.. _nlp_supported_token_classification:
+.. _nlp__supported_token_classification:
 
 Token Classification
 --------------------

@@ -29,7 +29,7 @@ This section contain tutorials for different use cases, and how to use deepcheck
 Usage Guides
 ------------
 
-This section contain in-depth guides on different aspects and components of the deepchecks nlp sub package.
+This section contain in-depth guides on different aspects and components of the deepchecks vision sub package.
 
 .. toctree::
     :titlesonly:
@@ -45,7 +45,7 @@ This section contain in-depth guides on different aspects and components of the 
 Checks Gallery
 --------------
 
-Below in the full list of checks and suites available in the deepchecks nlp sub package.
+Below in the full list of checks and suites available in the deepchecks vision sub package.
 
 .. toctree::
     :titlesonly:
