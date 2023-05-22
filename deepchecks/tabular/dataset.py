@@ -669,13 +669,12 @@ class Dataset:
             return
 
     @property
-    def label_name(self) -> t.Optional[Hashable]:
+    def label_name(self) -> Hashable:
         """If label column exists, return its name. Otherwise, throw an exception.
 
         Returns
         -------
-        t.Optional[Hashable]
-           Label name
+        Hashable: Label name
         """
         if not self._label_name:
             raise DeepchecksNotSupportedError(
@@ -855,7 +854,12 @@ class Dataset:
         DeepchecksValueError
             In case one of columns given don't exists raise error
         """
-        if keep_label and columns and self.label_name not in columns:
+        if (
+            keep_label
+            and isinstance(columns, list)
+            and self.label_name not in columns
+        ):
+            columns = columns[:]
             columns.append(self.label_name)
 
         new_data = select_from_dataframe(self._data, columns, ignore_columns)

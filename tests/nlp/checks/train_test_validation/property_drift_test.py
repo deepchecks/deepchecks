@@ -170,7 +170,7 @@ class TestMultiLabelClassification:
     def test_with_drift(self, dummy_multilabel_textdata_train_test):
         # Arrange
         train, test = dummy_multilabel_textdata_train_test
-        default_properties = ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 
+        default_properties = ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters',
                               'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', ]
         train.calculate_builtin_properties(include_properties=default_properties)
         test.calculate_builtin_properties(include_properties=default_properties)
