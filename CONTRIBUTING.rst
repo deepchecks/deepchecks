@@ -60,7 +60,7 @@ Windows Users
 ---------------
 For contributors using Windows operating system, you have to manually run
 the following commands since as of now the ``make`` commands works with
-Linux/Mac OS. **BTW, you are open to solve this issue!!**
+Linux/Mac OS. **BTW, If you have a fix for that you are more than welcome to contribute!**
 
 
 ----------------------------
