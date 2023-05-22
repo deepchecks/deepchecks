@@ -200,7 +200,7 @@ def test_properties(text_classification_dataset_mock):
 
 def test_embeddings():
     ds = TextData(['my name is inigo montoya', 'you killed my father', 'prepare to die'])
-    ds.calculate_default_embeddings()
+    ds.calculate_builtin_embeddings()
     assert_that(ds.embeddings.shape, equal_to((3, 384)))
 
 
