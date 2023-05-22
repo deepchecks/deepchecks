@@ -203,16 +203,6 @@ which uses the same methods but on the model's predictions, and can detect possi
 
 For code examples, see `here <#computer-vision-checks>`__
 
-Text Data
----------
-
-In NLP, we can't measure drift on words directly, as the individual word has little
-
-
-
-
-In NLP (
-
 What Can You Do in Case of Drift?
 =================================
 
