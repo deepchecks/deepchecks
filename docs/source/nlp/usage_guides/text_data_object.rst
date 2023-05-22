@@ -69,9 +69,11 @@ Useful Functions
 Calculate Default Properties
 -----------------------------
 
-You can calculate the default text properties for the TextData object:
+To calculate all the default properties, you do not need to pass the ``include_properties`` parameter in the
+``calculate_builtin_properties`` function. If you pass either ``include_properties`` or ``ignore_properties`` parameter
+then only the properties specified will be calculated or ignored. You can calculate the default text properties for the TextData object using:
 
->>> text_data.calculate_default_properties()
+>>> text_data.calculate_builtin_properties()
 
 To learn more about how deepchecks uses properties and how you can calculate or set them yourself, see
 the :ref:`Text Properties Guide <nlp__properties_guide>`.
