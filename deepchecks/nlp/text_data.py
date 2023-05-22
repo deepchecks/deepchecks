@@ -22,7 +22,7 @@ from deepchecks.nlp.input_validations import (validate_length_and_calculate_colu
                                               validate_length_and_type_numpy_array, validate_modify_label,
                                               validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
-from deepchecks.nlp.utils.text_embeddings import calculate_default_embeddings
+from deepchecks.nlp.utils.text_embeddings import calculate_builtin_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_builtin_properties
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
@@ -99,7 +99,7 @@ class TextData:
         The numpy array must be in the same order as the samples in the TextData.
         If None, no embeddings are set.
 
-        In order to use the default embeddings, use the `TextData.calculate_default_embeddings` function after
+        In order to use the built-in embeddings, use the `TextData.calculate_builtin_embeddings` function after
         the creation of the TextData object.
         For more on embeddings, see the :ref:`Text Embeddings Guide <nlp__embeddings_guide>`
     """
@@ -294,8 +294,8 @@ class TextData:
         """Return the metadata of for the dataset."""
         return self._embeddings
 
-    def calculate_default_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.csv'):
-        """Calculate the default properties of the dataset.
+    def calculate_builtin_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.csv'):
+        """Calculate the built-in embeddings of the dataset.
 
         Parameters
         ----------
@@ -309,7 +309,7 @@ class TextData:
         if self._embeddings is not None:
             warnings.warn('Embeddings already exist, overwriting them', UserWarning)
 
-        self._embeddings = calculate_default_embeddings(text=self.text, model=model, file_path=file_path)
+        self._embeddings = calculate_builtin_embeddings(text=self.text, model=model, file_path=file_path)
 
     def set_embeddings(self, embeddings: np.ndarray, verbose: bool = True):
         """Set the metadata of the dataset.
