@@ -166,7 +166,7 @@ In order to validate your code style, you can run the following commands:
 Linux and Mac Users
 --------------------
 For contributors using either Linux or Mac operating system, we have included
-a ``makefile`` which help you get all the setup done in just a few commands.
+a ``makefile`` which will help you get all the setup done in just a few commands.
 The ``make`` commands will create the virtual environment and install all the
 required dependencies on your system.
 
