@@ -124,6 +124,8 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
         xaxis_layout = dict(type='category')
 
     else:
+        dist = dist[~pd.isnull(dist)]
+
         x_range = (
             dist.min(), dist.max()
         )

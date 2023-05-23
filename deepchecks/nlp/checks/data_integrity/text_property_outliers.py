@@ -142,19 +142,27 @@ class TextPropertyOutliers(SingleDatasetCheck):
                 else:
                     if len(display) < self.n_show_top:
                         dist = df_properties[property_name]
-                        lower_limit = info['lower_limit']
-                        upper_limit = info['upper_limit']
+                        if len(dist[~pd.isnull(dist)]) >= self.min_samples:
+                            lower_limit = info['lower_limit']
+                            upper_limit = info['upper_limit']
 
-                        fig = get_text_outliers_graph(
-                            dist=dist,
-                            data=dataset.text,
-                            lower_limit=lower_limit,
-                            upper_limit=upper_limit,
-                            dist_name=property_name,
-                            is_categorical=property_name in cat_properties
-                        )
+                            fig = get_text_outliers_graph(
+                                dist=dist,
+                                data=dataset.text,
+                                lower_limit=lower_limit,
+                                upper_limit=upper_limit,
+                                dist_name=property_name,
+                                is_categorical=property_name in cat_properties
+                            )
 
-                        display.append(fig)
+                            display.append(fig)
+                        else:
+                            no_outliers = pd.concat(
+                                [no_outliers, pd.Series(property_name, index=[
+                                    f'Not enough non-null samples to compute'
+                                    f' properties (min_samples={self.min_samples}).'
+                                ])]
+                            )
                     else:
                         no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[
                             f'Outliers found but not shown in graphs (n_show_top={self.n_show_top}).'])])
