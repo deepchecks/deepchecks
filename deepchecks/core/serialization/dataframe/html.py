@@ -47,8 +47,9 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
                 df_styler = self.value.style
             else:
                 df_styler = self.value
-            # Set precision is deprecated since pandas 1.3.0
+
             pd_version = parse_version(pd.__version__)
+            # Set precision is deprecated since pandas 1.3.0
             if pd_version < parse_version('1.3.0'):
                 df_styler.set_precision(2)
             else:
@@ -58,6 +59,7 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
                 ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
             ]
             df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=table_css_props)])
+            # render is deprecated since pandas 1.4.0
             if pd_version < parse_version('1.4.0'):
                 return df_styler.render()
             else:
