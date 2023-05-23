@@ -108,7 +108,7 @@ def test_token_classification(small_wikiann_train_test_text_data):
                        test_predictions=np.asarray(test.label))
 
     # Assert
-    assert_that(result.value['Drift score'], close_to(0, 0.01))
+    assert_that(result.value['Drift score'], close_to(0, 0.04))
 
 
 def test_token_classification_with_nones(small_wikiann_train_test_text_data):
@@ -125,7 +125,7 @@ def test_token_classification_with_nones(small_wikiann_train_test_text_data):
                        test_predictions=np.asarray(test.label))
 
     # Assert
-    assert_that(result.value['Drift score'], close_to(0, 0.01))
+    assert_that(result.value['Drift score'], close_to(0, 0.04))
 
 
 def test_drift_mode_proba_warnings(small_wikiann_train_test_text_data):
