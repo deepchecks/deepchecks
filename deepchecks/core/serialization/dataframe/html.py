@@ -47,20 +47,21 @@ class DataFrameSerializer(HtmlSerializer[DataFrameOrStyler]):
                 df_styler = self.value.style
             else:
                 df_styler = self.value
-            # Using deprecated pandas method so hiding the warning
-            with warnings.catch_warnings():
-                warnings.simplefilter(action='ignore', category=FutureWarning)
-                # Set precision is deprecated since pandas 1.3.0
-                if parse_version(pd.__version__) < parse_version('1.3.0'):
-                    df_styler.set_precision(2)
-                else:
-                    df_styler.format(precision=2)
-                table_css_props = [
-                    ('text-align', 'left'),  # Align everything to the left
-                    ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
-                ]
-                df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=table_css_props)])
+            # Set precision is deprecated since pandas 1.3.0
+            pd_version = parse_version(pd.__version__)
+            if pd_version < parse_version('1.3.0'):
+                df_styler.set_precision(2)
+            else:
+                df_styler.format(precision=2)
+            table_css_props = [
+                ('text-align', 'left'),  # Align everything to the left
+                ('white-space', 'pre-wrap')  # Define how to handle white space characters (like \n)
+            ]
+            df_styler.set_table_styles([dict(selector='table,thead,tbody,th,td', props=table_css_props)])
+            if pd_version < parse_version('1.4.0'):
                 return df_styler.render()
+            else:
+                return df_styler.to_html()
         # Because of MLC-154. Dataframe with Multi-index or non unique indices does not have a style
         # attribute, hence we need to display as a regular pd html format.
         except ValueError:
