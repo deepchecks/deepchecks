@@ -21,6 +21,7 @@ from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
+from deepchecks.utils.numbers import round_sig
 from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.strings import get_ellipsis as truncate_string
 
@@ -167,7 +168,7 @@ class UnknownTokens(SingleDatasetCheck):
         # Truncate labels for display
         labels = [truncate_string(label, self.max_text_length_for_display) for label in labels]
         # round percentages to 2 decimal places after the percent
-        percentages = [round(percent, 2) for percent in percentages]
+        percentages = [round_sig(percent, 2) for percent in percentages]
 
         # Create pie chart with hover text and custom hover template
         fig = go.Figure(data=[go.Pie(
