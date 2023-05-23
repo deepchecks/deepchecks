@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of text utils for NLP package."""
+import re
 import string
 import typing as t
 import unicodedata
@@ -55,6 +56,10 @@ def break_to_lines_and_trim(s, max_lines: int = 10, min_line_length: int = 50, m
                     s = s[j:].strip()
                     break
             else:  # if no delimiter was found, break in the middle of the line
+                # Check if breaking in the middle of an HTML tag
+                tag_start = re.search(r'<[^>]*$', s[:max_line_length])
+                if tag_start:
+                    max_line_length = tag_start.start()
                 lines.append(s[:max_line_length].strip() + '-')
                 s = s[max_line_length:].strip()
     else:  # if the loop ended without breaking, and there is still text left, add an ellipsis

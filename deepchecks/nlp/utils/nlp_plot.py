@@ -252,7 +252,8 @@ def annotated_token_classification_text(token_text, iob_annotations) -> List[str
     """Annotate a token classification dataset with IOB tags."""
     annotated_samples = []
     for sample, iob_sample in zip(token_text, iob_annotations):
-        annotated_samples.append(' '.join([f'{word}({iob})' for word, iob in zip(sample, iob_sample)]))
+        annotated_samples.append(' '.join([f'<b>{word}</b>' if iob != 'O' else word for
+                                           word, iob in zip(sample, iob_sample)]))
     return annotated_samples
 
 
