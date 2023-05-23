@@ -10,7 +10,6 @@
 #
 """Module containing html serializer for the pandas.DataFrame type."""
 import typing as t
-import warnings
 
 import pandas as pd
 from pandas.io.formats.style import Styler
