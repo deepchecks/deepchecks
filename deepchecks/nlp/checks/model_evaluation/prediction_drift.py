@@ -156,8 +156,8 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
                           'classification tasks. Using drift_mode="prediction" instead.', UserWarning)
 
         if context.task_type == TaskType.TOKEN_CLASSIFICATION:
-            train_prediction = np.concatenate(model.predict(train_dataset)).reshape(-1, 1)
-            test_prediction = np.concatenate(model.predict(test_dataset)).reshape(-1, 1)
+            train_predictions = clean_iob_format(np.concatenate(model.predict(train_dataset)).reshape(-1, 1))
+            test_predictions = clean_iob_format(np.concatenate(model.predict(test_dataset)).reshape(-1, 1))
             proba_drift = False
         else:
             # Flag for computing drift on the probabilities rather than the predicted labels
