@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
-from typing import List, Sequence
+from collections import Counter
+from typing import Dict, List, Sequence
 
 import numpy as np
 import pandas as pd
@@ -17,6 +18,7 @@ import plotly.express as px
 import plotly.graph_objs as go
 
 from deepchecks.nlp import TextData
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
@@ -235,6 +237,23 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
     return fig
 
 
+def count_token_classification_labels(labels) -> Dict:
+    """Count the number of labels of each kind in a token classification dataset.
+
+    Ignores the initial character of these labels (B- and I- and such) if they exist.
+    """
+    labels = [label[2:] if label[:2] in ['B-', 'I-', 'O-'] else label for label in labels]
+    return dict(Counter(labels))
+
+
+def annotated_token_classification_text(token_text, iob_annotations) -> List[str]:
+    """Annotate a token classification dataset with IOB tags."""
+    annotated_samples = []
+    for sample, iob_sample in zip(token_text, iob_annotations):
+        annotated_samples.append(" ".join([f"{word}({iob})" for word, iob in zip(sample, iob_sample)]))
+    return annotated_samples
+
+
 def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_dataset: TextData,
                               test_dataset: TextData, model_classes: list):
     """Plot a scatter plot of two datasets.
@@ -259,12 +278,27 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
         dataset_names = DEFAULT_DATASET_NAMES
 
     plot_data['Dataset'] = [dataset_names[0]] * len(train_dataset) + [dataset_names[1]] * len(test_dataset)
-    if train_dataset.has_label():
-        plot_data['Label'] = list(train_dataset.label_for_display(model_classes=model_classes)) + \
-                             list(test_dataset.label_for_display(model_classes=model_classes))
+
+    if train_dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
+        plot_data['Sample'] = np.concatenate([train_dataset.tokenized_text, test_dataset.tokenized_text])
+
+        if train_dataset.has_label():
+            plot_data['Label'] = list(train_dataset.label_for_display(model_classes=model_classes)) + \
+                                 list(test_dataset.label_for_display(model_classes=model_classes))
+            plot_data['Sample'] = annotated_token_classification_text(plot_data['Sample'], plot_data['Label'])
+            # Displayed labels are the counts of each label in the dataset:
+            plot_data['Label'] = [break_to_lines_and_trim(str(count_token_classification_labels(x)))
+                                  for x in plot_data['Label']]
+        else:
+            plot_data['Label'] = None
     else:
-        plot_data['Label'] = None
-    plot_data['Sample'] = np.concatenate([train_dataset.text, test_dataset.text])
+        if train_dataset.has_label():
+            plot_data['Label'] = list(train_dataset.label_for_print(model_classes=model_classes)) + \
+                                 list(test_dataset.label_for_print(model_classes=model_classes))
+        else:
+            plot_data['Label'] = None
+        plot_data['Sample'] = np.concatenate([train_dataset.text, test_dataset.text])
+
     plot_data['Sample'] = plot_data['Sample'].apply(break_to_lines_and_trim)
 
     fig = px.scatter(plot_data, x=axes[0], y=axes[1], color='Dataset', color_discrete_map=colors,
