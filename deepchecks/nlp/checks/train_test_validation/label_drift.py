@@ -15,6 +15,7 @@ import numpy as np
 from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.nlp.task_type import TaskType
+from deepchecks.nlp.utils.token_classification_utils import clean_iob_prefixes
 from deepchecks.utils.abstracts.label_drift import LabelDriftAbstract
 from deepchecks.utils.distribution.preprocessing import convert_multi_label_to_multi_class
 
@@ -117,8 +118,8 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract):
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
         if context.task_type == TaskType.TOKEN_CLASSIFICATION:
-            train_labels = np.concatenate(train_dataset.label)
-            test_labels = np.concatenate(test_dataset.label)
+            train_labels = clean_iob_prefixes(np.concatenate(train_dataset.label))
+            test_labels = clean_iob_prefixes(np.concatenate(test_dataset.label))
         elif context.is_multi_label_task():
             train_labels = convert_multi_label_to_multi_class(train_dataset.label, context.model_classes).flatten()
             test_labels = convert_multi_label_to_multi_class(test_dataset.label, context.model_classes).flatten()
