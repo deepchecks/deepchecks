@@ -22,6 +22,7 @@ from deepchecks.nlp.input_validations import (validate_length_and_calculate_colu
                                               validate_length_and_type_numpy_array, validate_modify_label,
                                               validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
+from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.nlp.utils.text_embeddings import calculate_builtin_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_builtin_properties
 from deepchecks.utils.logger import get_logger
@@ -294,7 +295,7 @@ class TextData:
         """Return the metadata of for the dataset."""
         return self._embeddings
 
-    def calculate_builtin_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.csv'):
+    def calculate_builtin_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.npy'):
         """Calculate the built-in embeddings of the dataset.
 
         Parameters
@@ -303,7 +304,7 @@ class TextData:
             The model to use for calculating the embeddings. Possible values are:
             'miniLM': using the miniLM model in the sentence-transformers library.
             'open_ai': using the ADA model in the open_ai library. Requires an API key.
-        file_path : str, default: 'embeddings.csv'
+        file_path : str, default: 'embeddings.npy'
             The path to save the embeddings to.
         """
         if self._embeddings is not None:
@@ -531,6 +532,21 @@ class TextData:
             return ret_labels
         else:
             return self.label
+
+    def label_for_print(self, model_classes: list = None) -> t.List[str]:
+        """Return the label defined in the dataset in a format that can be printed nicely.
+
+        Parameters
+        ----------
+        model_classes : list, default None
+            List of classes names to use for multi-label display. Only used if the dataset is multi-label.
+
+        Returns
+        -------
+        List[str]
+        """
+        label_for_display = self.label_for_display(model_classes)
+        return [break_to_lines_and_trim(str(x)) for x in label_for_display]
 
     def has_label(self) -> bool:
         """Return True if label was set.
