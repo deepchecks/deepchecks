@@ -1,0 +1,18 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""General utilities for working with numbers."""
+
+import numpy as np
+
+
+def round_sig(x: float, sig: int = 2):
+    """Round a number to a given number of significant digits."""
+    return round(x, sig-int(np.floor(np.log10(abs(x))))-1)
