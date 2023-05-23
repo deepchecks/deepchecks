@@ -49,5 +49,4 @@ nltk<=3.6.7
 datasets
 langdetect
 textblob
-
-prince==0.7.1
+transformers
