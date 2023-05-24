@@ -23,7 +23,7 @@ __all__ = [
 
 def clean_iob_prefixes(labels) -> np.array:
     """Remove the initial character of IOB labels (B- and I- and such) if they exist."""
-    return np.array([label[2:] if label[:2] in ['B-', 'I-', 'O-'] else label for label in labels])
+    return np.array([label[2:] if label and label[:2] in ['B-', 'I-', 'O-'] else label for label in labels])
 
 
 def count_token_classification_labels(labels) -> Dict:
