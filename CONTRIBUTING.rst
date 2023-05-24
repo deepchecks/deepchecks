@@ -58,8 +58,8 @@ General guidelines for contribution
 
 Linux and Mac Users
 ======================
-For contributors using either Linux or Mac operating system, we have included
-a ``makefile`` which help you get all the setup done in just a few commands.
+For contributors using either Linux or Mac operating systems, we have created
+a ``makefile`` which will help you get all the setup done in just a few commands.
 The ``make`` commands will create the virtual environment and install all the
 required dependencies on your system.
 
@@ -122,7 +122,7 @@ Windows Users
 ==============
 For contributors using Windows operating system, you have to manually run
 the following commands since as of now the ``make`` commands works with
-Linux/Mac OS. **BTW, you are open to solve this issue!!**
+Linux/Mac OS. **BTW, If you have a fix for that you are more than welcome to contribute!**
 
 
 Creating virtual environment
