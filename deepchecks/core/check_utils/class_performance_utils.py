@@ -78,7 +78,7 @@ def get_condition_train_test_relative_degradation_less_than(threshold: float) ->
         if score_1 == 0:
             if score_2 == 0:
                 return 0
-            return threshold + 1
+            return 1
         return (score_1 - score_2) / abs(score_1)
 
     def condition(check_result: pd.DataFrame) -> ConditionResult:
