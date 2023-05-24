@@ -9,8 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
-from collections import Counter
-from typing import Dict, List, Sequence
+from typing import List, Sequence
 
 import numpy as np
 import pandas as pd
@@ -20,6 +19,8 @@ import plotly.graph_objs as go
 from deepchecks.nlp import TextData
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
+from deepchecks.nlp.utils.token_classification_utils import (annotated_token_classification_text,
+                                                             count_token_classification_labels)
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors, common_and_outlier_colors
@@ -237,24 +238,6 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
         hoverdistance=-1)
 
     return fig
-
-
-def count_token_classification_labels(labels) -> Dict:
-    """Count the number of labels of each kind in a token classification dataset.
-
-    Ignores the initial character of these labels (B- and I- and such) if they exist.
-    """
-    labels = [label[2:] if label[:2] in ['B-', 'I-', 'O-'] else label for label in labels]
-    return dict(Counter(labels))
-
-
-def annotated_token_classification_text(token_text, iob_annotations) -> List[str]:
-    """Annotate a token classification dataset with IOB tags."""
-    annotated_samples = []
-    for sample, iob_sample in zip(token_text, iob_annotations):
-        annotated_samples.append(' '.join([f'<b>{word}</b>' if iob != 'O' else word for
-                                           word, iob in zip(sample, iob_sample)]))
-    return annotated_samples
 
 
 def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_dataset: TextData,
