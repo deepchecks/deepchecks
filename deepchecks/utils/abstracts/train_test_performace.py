@@ -35,6 +35,7 @@ class TrainTestPerformanceAbstract(abc.ABC):
         results: pd.DataFrame,
         train_dataset_name: str,
         test_dataset_name: str,
+        classes_without_enough_samples: t.Optional[t.List[str]] = None,
     ):
         display_df = results.replace({
             'Dataset': {
@@ -46,6 +47,10 @@ class TrainTestPerformanceAbstract(abc.ABC):
         figures = []
         data_scorers_per_class = display_df[results['Class'].notna()]
         data_scorers_per_dataset = display_df[results['Class'].isna()].drop(columns=['Class'])
+
+        if classes_without_enough_samples:  # Remove classes without enough samples from display:
+            data_scorers_per_class = data_scorers_per_class.loc[
+                ~data_scorers_per_class['Class'].isin(classes_without_enough_samples)]
 
         for data in (data_scorers_per_dataset, data_scorers_per_class):
             if data.shape[0] == 0:
@@ -84,6 +89,12 @@ class TrainTestPerformanceAbstract(abc.ABC):
                     x=-0.1
                 )
             )
+
+        if classes_without_enough_samples:
+            comment = 'The following classes were not included in the plot due to insufficient number of samples in ' \
+                      f'either {train_dataset_name} or {test_dataset_name}:<br>' \
+                      f'[{", ".join(sorted(classes_without_enough_samples))}]'
+            figures.append(comment)
 
         return figures
 
