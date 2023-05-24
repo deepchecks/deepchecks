@@ -31,11 +31,12 @@ class TrainTestPerformanceAbstract(abc.ABC):
     add_condition: t.Callable[..., t.Any]
 
     def _prepare_display(
-        self,
-        results: pd.DataFrame,
-        train_dataset_name: str,
-        test_dataset_name: str,
-        classes_without_enough_samples: t.Optional[t.List[str]] = None,
+            self,
+            results: pd.DataFrame,
+            train_dataset_name: str,
+            test_dataset_name: str,
+            classes_without_enough_samples: t.Optional[t.List[str]] = None,
+            top_classes_to_show: t.Optional[t.List[str]] = None
     ):
         display_df = results.replace({
             'Dataset': {
@@ -48,9 +49,18 @@ class TrainTestPerformanceAbstract(abc.ABC):
         data_scorers_per_class = display_df[results['Class'].notna()]
         data_scorers_per_dataset = display_df[results['Class'].isna()].drop(columns=['Class'])
 
-        if classes_without_enough_samples:  # Remove classes without enough samples from display:
-            data_scorers_per_class = data_scorers_per_class.loc[
-                ~data_scorers_per_class['Class'].isin(classes_without_enough_samples)]
+        # Filter classes without enough samples and get display comment for them:
+        if classes_without_enough_samples is not None:
+            data_scorers_per_class = \
+                data_scorers_per_class.loc[~data_scorers_per_class['Class'].isin(classes_without_enough_samples)]
+
+        # Filter top classes to show:
+        if top_classes_to_show is not None:
+            not_shown_classes = set(data_scorers_per_class['Class'].unique()) - set(top_classes_to_show)
+            data_scorers_per_class = \
+                data_scorers_per_class.loc[data_scorers_per_class['Class'].isin(top_classes_to_show)]
+        else:
+            not_shown_classes = None
 
         for data in (data_scorers_per_dataset, data_scorers_per_class):
             if data.shape[0] == 0:
@@ -90,11 +100,16 @@ class TrainTestPerformanceAbstract(abc.ABC):
                 )
             )
 
+        df = pd.DataFrame({}, columns=['Reason', 'Classes']).set_index('Reason')
+        if not_shown_classes:
+            df.loc[f'Not shown classes (showing only top {len(top_classes_to_show)})'] = \
+                ', '.join(not_shown_classes)
         if classes_without_enough_samples:
-            comment = 'The following classes were not included in the plot due to insufficient number of samples in ' \
-                      f'either {train_dataset_name} or {test_dataset_name}:<br>' \
-                      f'[{", ".join(sorted(classes_without_enough_samples))}]'
-            figures.append(comment)
+            df.loc[f'Classes without enough samples in either {train_dataset_name} or {test_dataset_name}'] = \
+                ', '.join(classes_without_enough_samples)
+
+        if not df.empty:
+            figures.append(df)
 
         return figures
 
@@ -122,9 +137,9 @@ class TrainTestPerformanceAbstract(abc.ABC):
         return self.add_condition(name, condition)
 
     def add_condition_class_performance_imbalance_ratio_less_than(
-        self: Self,
-        score: str,
-        threshold: float = 0.3,
+            self: Self,
+            score: str,
+            threshold: float = 0.3,
     ) -> Self:
         """Add condition - relative ratio difference between highest-class and lowest-class is less than threshold.
 
@@ -148,3 +163,35 @@ class TrainTestPerformanceAbstract(abc.ABC):
         name = f"Relative ratio difference between labels '{score}' score is less than {format_percent(threshold)}"
         condition = get_condition_class_performance_imbalance_ratio_less_than(threshold=threshold, score=score)
         return self.add_condition(name=name, condition_func=condition)
+
+# def _filter_classes_without_enough_samples(results_df, class_list, train_dataset_name, test_dataset_name) \
+#         -> t.Tuple[pd.DataFrame, t.Optional[str]]:
+#     """Remove classes without enough samples from display."""
+#     if class_list:
+#         ret_df =
+#         comment = 'The following classes were not included in the plot due to insufficient number of samples in ' \
+#                   f'either {train_dataset_name} or {test_dataset_name}:<br>[{", ".join(sorted(class_list))}]'
+#         return ret_df
+#     else:
+#         return results_df
+#
+#
+# def _filter_classes_to_show(results_df, n_top_classes, show_classes_by, train_dataset_name, test_dataset_name) -> t.Tuple[pd.DataFrame, t.Optional[str]]:
+#     """Remove classes that aren't prioritized to show from display."""
+#     # Choose which classes to show in the display:
+#     if not n_top_classes:
+#         return results_df
+#
+#     samples_per_class = results_df[['Class', 'Dataset', 'Number of samples']].drop_duplicates()
+#
+#     if show_classes_by == 'train_largest':
+#         classes_to_show = samples_per_class[samples_per_class['Dataset'] == train_dataset_name]\
+#             .sort_values('Number of samples').head(n_top_classes)['Class'].tolist()
+#     else:  # show_classes_by == 'test_largest'
+#         classes_to_show = samples_per_class[samples_per_class['Dataset'] == test_dataset_name]\
+#             .sort_values('Number of samples').head(n_top_classes)['Class'].tolist()
+#
+#     ret_df = results_df.loc[results_df['Class'].isin(classes_to_show)]
+#     comment = f'Showing only the {n_top_classes} top classes. Classes not shown:<br>' \
+#               f'[{", ".join(sorted(set(results_df["Class"].unique()) - set(classes_to_show)))}]<br>'
+#     return ret_df

@@ -40,11 +40,10 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         Number of top classes to show in the label graphs. The top classes are determined by the show_classes_by
         parameter. if None, then all classes are shown.
     show_classes_by: str, default: 'test_largest'
-        Specify which categories to show for label graphs, as the number of shown classes is limited
+        Specify which classes to show for label graphs, as the number of shown classes is limited
         by n_top_classes. Possible values:
-        - 'train_largest': Show the largest train classes.
-        - 'test_largest': Show the largest test classes.
-        - 'largest_difference': Show the largest score difference between classes.
+        - 'train_largest': Show the n top largest train classes.
+        - 'test_largest': Show the n top largest test classes.
     n_samples : int , default: 1_000_000
         number of samples to use for this check.
     random_state : int, default: 42
@@ -101,8 +100,11 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
     ):
         super().__init__(**kwargs)
         self.scorers = scorers
-        self.min_samples = min_samples  # TODO
+        self.min_samples = min_samples
         self.n_top_classes = n_top_classes  # TODO
+        if n_top_classes and show_classes_by not in ['train_largest', 'test_largest']:
+            raise ValueError(f'Invalid value for show_classes_by: {show_classes_by}. Allowed values are '
+                             '"train_largest" and "test_largest".')
         self.show_classes_by = show_classes_by  # TODO
         self.n_samples = n_samples
         self.random_state = random_state
@@ -177,14 +179,29 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         results_df.loc[results_df['Number of samples'] < self.min_samples, 'Value'] = None
         classes_without_enough_samples = results_df[results_df['Value'].isna()]['Class'].unique().tolist()
 
+        # Show only top n classes:
+        if self.n_top_classes:
+            samples_per_class = results_df[['Class', 'Dataset', 'Number of samples']].drop_duplicates()
+            samples_per_class = samples_per_class[~samples_per_class['Class'].isin(classes_without_enough_samples)]
+
+            if self.show_classes_by == 'train_largest':
+                top_classes_to_show = samples_per_class[samples_per_class['Dataset'] == 'Train'] \
+                    .sort_values('Number of samples', ascending=False).head(self.n_top_classes)['Class'].tolist()
+            else:  # self.show_classes_by == 'test_largest'
+                top_classes_to_show = samples_per_class[samples_per_class['Dataset'] == 'Test'] \
+                    .sort_values('Number of samples', ascending=False).head(self.n_top_classes)['Class'].tolist()
+        else:
+            top_classes_to_show = None
+
         if context.with_display is False:
             figures = None
         else:
             figures = self._prepare_display(
-                results_df,
-                train_dataset.name or 'Train',
-                test_dataset.name or 'Test',
-                classes_without_enough_samples
+                results=results_df,
+                train_dataset_name=train_dataset.name or 'Train',
+                test_dataset_name=test_dataset.name or 'Test',
+                classes_without_enough_samples=classes_without_enough_samples,
+                top_classes_to_show=top_classes_to_show
             )
 
         return CheckResult(
