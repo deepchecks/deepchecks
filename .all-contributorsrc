@@ -413,12 +413,14 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/20479605?v=4",
       "profile": "https://github.com/hjain5164",
       "contributions": [
-        "code"
+        "code",
+        "doc"
       ]
     }
   ],
   "projectName": "deepchecks",
   "projectOwner": "deepchecks",
   "commitConvention": "angular",
-  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)"
+  "badgeTemplate": "[![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)",
+  "commitType": "docs"
 }
