@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing common EmbeddingsDrift Check (domain classifier drift) utils."""
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -16,11 +17,15 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
-from umap import UMAP
 
 from deepchecks.core.check_utils.multivariate_drift_utils import auc_to_drift_score, build_drift_plot
 from deepchecks.nlp import TextData
 from deepchecks.nlp.utils.nlp_plot import two_datasets_scatter_plot
+
+with warnings.catch_warnings():
+    from numba import NumbaDeprecationWarning
+    warnings.simplefilter(action='ignore', category=NumbaDeprecationWarning)
+    from umap import UMAP
 
 # Max number of samples to use for dimensionality reduction fit (to make calculation faster):
 SAMPLES_FOR_REDUCTION_FIT = 1000
@@ -122,3 +127,6 @@ def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_s
     plot_title = 'Scatter Plot of Embeddings Space (reduced to 2 dimensions)'
     return two_datasets_scatter_plot(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
                                      test_dataset=test_dataset, model_classes=model_classes)
+
+
+

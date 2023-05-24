@@ -293,6 +293,12 @@ class TextData:
     @property
     def embeddings(self) -> pd.DataFrame:
         """Return the metadata of for the dataset."""
+        if self._embeddings is None:
+            raise DeepchecksValueError(
+                'Functionality requires embeddings, but the the TextData object had none. To use this functionality, '
+                'use the set_embeddings method to set your own embeddings with a numpy.array or use '
+                'TextData.calculate_builtin_embeddings to add the default deepchecks embeddings.'
+            )
         return self._embeddings
 
     def calculate_builtin_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.npy'):
