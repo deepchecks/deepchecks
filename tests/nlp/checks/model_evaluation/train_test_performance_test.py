@@ -68,7 +68,7 @@ class TestMultilableClassification:
             task_type='text_classification'
         )
         test = train.copy()
-        check = TrainTestPerformance()
+        check = TrainTestPerformance(min_samples=0)
         # Act
         result = check.run(
             train_dataset=train,
@@ -160,7 +160,7 @@ class TestTokenClassification:
         # Arrange
         train, test = small_wikiann_train_test_text_data
         scorers = ["recall_macro", "f1_macro"]
-        check = TrainTestPerformance(scorers=scorers)
+        check = TrainTestPerformance(scorers=scorers, min_samples=0)
         # Act
         result = check.run(
             train_dataset=train,

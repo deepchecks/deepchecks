@@ -177,11 +177,11 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
 
         # Nullify rows with less than min_samples:
         results_df.loc[results_df['Number of samples'] < self.min_samples, 'Value'] = None
-        classes_without_enough_samples = results_df[results_df['Value'].isna()]['Class'].unique().tolist()
+        classes_without_enough_samples = results_df[results_df['Class'].notna()][results_df['Value'].isna()]['Class'].unique().tolist()
 
         # Show only top n classes:
         if self.n_top_classes:
-            samples_per_class = results_df[['Class', 'Dataset', 'Number of samples']].drop_duplicates()
+            samples_per_class = results_df[results_df['Class'].notna()][['Class', 'Dataset', 'Number of samples']].drop_duplicates()
             samples_per_class = samples_per_class[~samples_per_class['Class'].isin(classes_without_enough_samples)]
 
             if self.show_classes_by == 'train_largest':

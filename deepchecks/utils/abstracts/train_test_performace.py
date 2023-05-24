@@ -50,12 +50,12 @@ class TrainTestPerformanceAbstract(abc.ABC):
         data_scorers_per_dataset = display_df[results['Class'].isna()].drop(columns=['Class'])
 
         # Filter classes without enough samples and get display comment for them:
-        if classes_without_enough_samples is not None:
+        if classes_without_enough_samples:
             data_scorers_per_class = \
                 data_scorers_per_class.loc[~data_scorers_per_class['Class'].isin(classes_without_enough_samples)]
 
         # Filter top classes to show:
-        if top_classes_to_show is not None:
+        if top_classes_to_show:
             not_shown_classes = set(data_scorers_per_class['Class'].unique()) - set(top_classes_to_show)
             data_scorers_per_class = \
                 data_scorers_per_class.loc[data_scorers_per_class['Class'].isin(top_classes_to_show)]
