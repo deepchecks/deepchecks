@@ -127,6 +127,3 @@ def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_s
     plot_title = 'Scatter Plot of Embeddings Space (reduced to 2 dimensions)'
     return two_datasets_scatter_plot(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
                                      test_dataset=test_dataset, model_classes=model_classes)
-
-
-
