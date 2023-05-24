@@ -13,6 +13,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+from numba import NumbaDeprecationWarning
 from sklearn.decomposition import PCA
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
@@ -23,7 +24,6 @@ from deepchecks.nlp import TextData
 from deepchecks.nlp.utils.nlp_plot import two_datasets_scatter_plot
 
 with warnings.catch_warnings():
-    from numba import NumbaDeprecationWarning
     warnings.simplefilter(action='ignore', category=NumbaDeprecationWarning)
     from umap import UMAP
 
