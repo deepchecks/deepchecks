@@ -10,8 +10,8 @@
 #
 """Module containing the Train-Test Performance check."""
 import typing as t
-from numbers import Number
 from collections import Counter
+from numbers import Number
 
 import numpy as np
 import pandas as pd
