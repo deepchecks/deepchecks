@@ -174,6 +174,12 @@ class WeakSegmentAbstract(abc.ABC):
                               scorer: Optional[DeepcheckScorer] = None, scorer_name: Optional[str] = None) \
             -> pd.DataFrame:
         """Search for weak segments based on scorer."""
+        # Remove samples with NaN score per sample
+        score_per_sample = score_per_sample.dropna()
+        data = data.loc[score_per_sample.index]
+        if label_col is not None:
+            label_col = label_col.loc[score_per_sample.index]
+
         if scorer_name is None and scorer is None:
             score_title = 'Average Score Per Sample'
         else:

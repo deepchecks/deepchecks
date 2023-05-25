@@ -13,9 +13,10 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype, is_integer_dtype, is_numeric_dtype
+from pandas.core.dtypes.common import is_float_dtype, is_integer_dtype
 
 from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.type_inference import infer_categorical_features
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
@@ -25,22 +26,25 @@ __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'gener
            'cast_categorical_to_object_dtype']
 
 
-def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Union[pd.Series, t.List]) -> pd.DataFrame:
+def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Optional[t.Union[pd.Series, t.List]]) \
+        -> pd.DataFrame:
     """Fill NaN values per column type."""
     pd.set_option('mode.chained_assignment', None)
+    if cat_features is None:
+        cat_features = infer_categorical_features(df)
+
+    result = df.copy()
     for col_name in df.columns:
-        df[col_name] = default_fill_na_series(df[col_name], col_name in cat_features)
-    return df
+        result[col_name] = default_fill_na_series(df[col_name], col_name in cat_features)
+    return result
 
 
-def default_fill_na_series(col: pd.Series, is_categorical: t.Optional[bool] = None) -> pd.Series:
+def default_fill_na_series(col: pd.Series, is_cat_column: t.Optional[bool] = None) -> pd.Series:
     """Fill NaN values based on column type."""
-    if is_categorical:
+    if is_cat_column:
         return col.astype('object').fillna('None')
-    elif is_numeric_dtype(col):
-        return col.astype('float64').fillna(col.mean())
     else:
-        return col.fillna(col.mode(), inplace=True)
+        return col.fillna(col.mean()).astype('float64')
 
 
 def floatify_dataframe(df: pd.DataFrame):

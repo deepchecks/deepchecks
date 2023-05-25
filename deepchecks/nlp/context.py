@@ -29,7 +29,7 @@ from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers
 from deepchecks.tabular.utils.task_type import TaskType as TabularTaskType
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
-from deepchecks.utils.typing import ClassificationModel
+from deepchecks.utils.typing import ClassificationModel, BasicModel
 from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = [
@@ -54,7 +54,7 @@ TTextPred = t.Union[TClassPred, TTokenPred]
 TTextProba = t.Sequence[t.Sequence[float]]
 
 
-class _DummyModel(ClassificationModel):
+class _DummyModel(BasicModel):
     """Dummy model class used for inference with static predictions from the user.
 
     Parameters

@@ -162,13 +162,17 @@ def validate_length_and_calculate_column_types(
             f'The following columns does not exist in {data_table_name} - {list(difference)}'
         )
 
-    numeric_features = [
-        c for c in data_table.columns
-        if c not in categorical_columns
-    ]
+    numeric_features = set(data_table.columns) - set(categorical_columns)
+
+    for feat in numeric_features:
+        try:
+            _ = data_table[feat].astype(float)
+        except ValueError:
+            raise DeepchecksValueError(f'{data_table_name} {feat} passed as numeric but cannot be cast to float.')
+
     return ColumnTypes(
         categorical_columns=list(categorical_columns),
-        numerical_columns=numeric_features
+        numerical_columns=list(numeric_features)
     )
 
 

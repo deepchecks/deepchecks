@@ -267,13 +267,13 @@ class TextData:
         Dataset
             instance of the Dataset with sampled internal dataframe.
         """
-        samples = np.arange(len(self))
+        samples_to_choose_from = np.arange(len(self))
         if drop_na_label and self.has_label():
-            samples = samples[[not is_label_none(x) for x in self._label]]
-        n_samples = min(n_samples, len(samples))
+            samples_to_choose_from = samples_to_choose_from[[not is_label_none(x) for x in self._label]]
+        n_samples = min(n_samples, len(samples_to_choose_from))
 
         np.random.seed(random_state)
-        sample_idx = np.random.choice(range(len(samples)), n_samples, replace=replace)
+        sample_idx = np.random.choice(samples_to_choose_from, n_samples, replace=replace)
         return self.copy(rows_to_use=sorted(sample_idx))
 
     def __len__(self) -> int:

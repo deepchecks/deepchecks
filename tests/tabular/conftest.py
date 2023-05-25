@@ -120,8 +120,8 @@ def kiss_dataset_and_model():
             'numeric_label': [3, 1, 5, 2, 1, 1],
         })
     train, test = train_test_split(df, test_size=0.33, random_state=42)
-    train_ds = Dataset(train, label='numeric_label', cat_features=['binary_feature'])
-    test_ds = Dataset(test, label='numeric_label', cat_features=['binary_feature'])
+    train_ds = Dataset(train, label='numeric_label', cat_features=['binary_feature', 'string_feature'])
+    test_ds = Dataset(test, label='numeric_label', cat_features=['binary_feature', 'string_feature'])
     clf = Pipeline([('fillna', FunctionTransformer(fillna)),
                     ('lengthifier', FunctionTransformer(string_to_length)),
                     ('clf', AdaBoostClassifier(random_state=0))])
