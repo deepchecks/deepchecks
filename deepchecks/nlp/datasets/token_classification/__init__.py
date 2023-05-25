@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module for working with pre-built datasets."""
-from . import classification, token_classification
+"""Module for working with pre-built token classification datasets."""
+from . import scierc_ner
 
-__all__ = ['classification', 'token_classification']
+__all__ = ['scierc_ner']
