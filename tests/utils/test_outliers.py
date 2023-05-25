@@ -9,10 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-from hamcrest import assert_that, calling, equal_to, raises
+from hamcrest import assert_that, calling, equal_to, raises, close_to
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.outliers import iqr_outliers_range, sharp_drop_outliers_range
+from deepchecks.utils.outliers import iqr_outliers_range, sharp_drop_outliers_range, EPS
+
+
+def test_iqr_range_many_zeros():
+    data = np.array(list(range(10)) + [0] * 1000)
+
+    assert_that(iqr_outliers_range(data, (25, 75), 1), equal_to((-EPS, EPS)))
+    assert_that(iqr_outliers_range(data, (25, 75), 1.5, 1)[1], close_to(1, 0.01))
+
+    assert_that(calling(iqr_outliers_range).with_args(data, (25, 75), -1),
+                raises(DeepchecksValueError, 'IQR scale must be greater than 1'))
 
 
 def test_iqr_range():
@@ -20,7 +30,7 @@ def test_iqr_range():
 
     assert_that(iqr_outliers_range(data, (25, 75), 1), equal_to((-2.25, 11.25)))
     assert_that(iqr_outliers_range(data, (25, 75), 1.5), equal_to((-4.5, 13.5)))
-    assert_that(iqr_outliers_range(data, (10, 60), 0.8), equal_to((-2.6999999999999997, 9.0)))
+    assert_that(iqr_outliers_range(data, (10, 60), 1.1)[1], close_to(10.34, 0.01))
 
     assert_that(calling(iqr_outliers_range).with_args(data, (.25, .75), 1),
                 raises(DeepchecksValueError, 'IQR range must contain two numbers between 0 to 100'))
@@ -37,4 +47,3 @@ def test_sharp_drop_outliers_range():
 
     assert_that(calling(sharp_drop_outliers_range).with_args([0.1, 0.3]),
                 raises(DeepchecksValueError, 'Data percents must sum to 1'))
-
