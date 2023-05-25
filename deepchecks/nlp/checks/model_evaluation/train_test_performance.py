@@ -11,15 +11,18 @@
 """Module containing the Train-Test Performance check."""
 import typing as t
 from numbers import Number
+from collections import Counter
 
 import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.nlp.metric_utils.scorers import infer_on_text_data
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.text_data import TextData
+from deepchecks.nlp.utils.token_classification_utils import clean_iob_prefixes
 from deepchecks.utils.abstracts.train_test_performace import TrainTestPerformanceAbstract
 
 __all__ = ['TrainTestPerformance']
@@ -101,11 +104,11 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         super().__init__(**kwargs)
         self.scorers = scorers
         self.min_samples = min_samples
-        self.n_top_classes = n_top_classes  # TODO
+        self.n_top_classes = n_top_classes
         if n_top_classes and show_classes_by not in ['train_largest', 'test_largest']:
-            raise ValueError(f'Invalid value for show_classes_by: {show_classes_by}. Allowed values are '
-                             '"train_largest" and "test_largest".')
-        self.show_classes_by = show_classes_by  # TODO
+            raise DeepchecksValueError(f'Invalid value for show_classes_by: {show_classes_by}. Allowed values are '
+                                       '"train_largest" and "test_largest".')
+        self.show_classes_by = show_classes_by
         self.n_samples = n_samples
         self.random_state = random_state
 
@@ -131,9 +134,8 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
                 n_of_labels = len(label)
 
             elif context.task_type is TaskType.TOKEN_CLASSIFICATION:
-                # TODO:
-                n_samples_per_class = {}
-                n_of_labels = 0
+                n_samples_per_class = Counter(clean_iob_prefixes(np.concatenate(dataset.label)))
+                n_of_labels = sum(n_samples_per_class.values())
 
             else:
                 raise NotImplementedError()
@@ -177,17 +179,19 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
 
         # Nullify rows with less than min_samples:
         results_df.loc[results_df['Number of samples'] < self.min_samples, 'Value'] = None
-        classes_without_enough_samples = results_df[results_df['Class'].notna()][results_df['Value'].isna()]['Class'].unique().tolist()
+        classes_without_enough_samples = results_df[results_df['Class'].notna() & results_df['Value'].isna()]['Class'] \
+            .unique().tolist()
 
         # Show only top n classes:
         if self.n_top_classes:
-            samples_per_class = results_df[results_df['Class'].notna()][['Class', 'Dataset', 'Number of samples']].drop_duplicates()
+            samples_per_class = results_df[results_df['Class'].notna()][['Class', 'Dataset', 'Number of samples']] \
+                .drop_duplicates()
             samples_per_class = samples_per_class[~samples_per_class['Class'].isin(classes_without_enough_samples)]
 
             if self.show_classes_by == 'train_largest':
                 top_classes_to_show = samples_per_class[samples_per_class['Dataset'] == 'Train'] \
                     .sort_values('Number of samples', ascending=False).head(self.n_top_classes)['Class'].tolist()
-            else:  # self.show_classes_by == 'test_largest'
+            else:  # self.show_classes_by == 'test_largest':
                 top_classes_to_show = samples_per_class[samples_per_class['Dataset'] == 'Test'] \
                     .sort_values('Number of samples', ascending=False).head(self.n_top_classes)['Class'].tolist()
         else:
