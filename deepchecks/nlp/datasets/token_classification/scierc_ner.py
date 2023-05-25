@@ -101,7 +101,7 @@ def load_properties() -> t.Tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def load_data(data_format: str = 'TextData', include_properties: bool = True, include_embeddings: bool = False) -> \
-    t.Tuple[t.Union[TextData, pd.DataFrame], t.Union[TextData, pd.DataFrame]]:
+        t.Tuple[t.Union[TextData, pd.DataFrame], t.Union[TextData, pd.DataFrame]]:
     """Load and returns the SCIERC Abstract NER dataset (token classification).
 
     Parameters
@@ -130,7 +130,7 @@ def load_data(data_format: str = 'TextData', include_properties: bool = True, in
 
     data = load_all_data()
     train, test = data['train'], data['test']
-    # Delete the pred field of the dicts
+    # Delete the pred field of the dictionary
     del train['pred']
     del test['pred']
 
