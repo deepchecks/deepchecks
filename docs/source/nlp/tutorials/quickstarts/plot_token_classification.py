@@ -58,12 +58,12 @@ pprint(train['label'][0][:10])
 # %%
 #
 # The SCIERC dataset is a dataset of scientific articles with annotations for named entities, relations and coreference.
-# In this example we'll only use the named entities annotations, which are the labels we'll use for our token
+# In this example we'll only use the named entity annotations, which are the labels we'll use for our token
 # classification task.
 # We can see that we have the article text itself, and the labels for each token in the text in the
 # :ref:`IOB format <nlp__supported_token_classification>`.
 #
-# Create a TextData Objects
+# Create a TextData Object
 # -------------------------
 #
 # We can now create a :ref:`TextData <nlp__textdata_object>` object for the train and test dataframes.
@@ -129,7 +129,7 @@ result
 
 # %%
 # We can see that the model performs better on the train set than on the test set, which is expected. We can also note
-# specifically that the recall for class OtherScientificTerm has declined significantly on the test set, which is
+# specifically that the recall for class "OtherScientificTerm" has declined significantly on the test set, which is
 # something we might want to investigate further.
 #
 # Embeddings Drift
@@ -137,7 +137,7 @@ result
 #
 # The :ref:`EmbeddingsDrift <nlp__embeddings_drift>` check compares the embeddings of the train and test sets. In
 # order to run this check you must have text embeddings loaded to
-# both datasets. You can read more about using embeddings in deepchecks NLP in # our
+# both datasets. You can read more about using embeddings in deepchecks NLP in our
 # :ref:`Embeddings Guide <nlp__embeddings_guide>`. In this example, we have the embeddings already pre-calculated:
 
 train_embeddings, test_embeddings = scierc_ner.load_embeddings()
