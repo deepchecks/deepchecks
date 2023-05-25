@@ -31,7 +31,8 @@ def iqr_outliers_range(data: np.ndarray,
     iqr_range: Tuple[int, int]
         Two percentiles which define the IQR range
     scale: float
-        The scale to multiply the IQR range for the outliers' detection. When the percentiles values are the same,
+        The scale to multiply the IQR range for the outliers' detection. When the percentiles values are the same
+        (When many samples have the same value),
         the scale will be modified based on the closest element to the percentiles values and
         the `sharp_drop_ratio` parameter.
     sharp_drop_ratio: float, default : 0.9
@@ -55,7 +56,9 @@ def iqr_outliers_range(data: np.ndarray,
             return q1 - EPS, q1 + EPS
         else:
             closest_dist_to_common = min(np.abs(data[data != q1] - q1))
-            scale = 1 + ((scale -1) * (sharp_drop_ratio - common_percent_in_total))
+            # modify the scale to be proportional to the percent of samples that have the same value
+            # when many samples have the same value, the scale will be closer to sharp_drop_ratio
+            scale = sharp_drop_ratio + ((scale - 1) * (1 - common_percent_in_total))
             return q1 - (closest_dist_to_common * scale), q1 + (closest_dist_to_common * scale)
     else:
         iqr = q3 - q1
