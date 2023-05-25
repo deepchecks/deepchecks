@@ -32,7 +32,7 @@ def get_scorer_dict(
     """Return a dict of scorers for token classification.
 
     Parameters
-    -----------
+    ----------
     mode: str, [None (default), `strict`].
         if ``None``, the score is compatible with conlleval.pl. Otherwise,
         the score is calculated strictly.
@@ -40,7 +40,7 @@ def get_scorer_dict(
     suffix: bool, False by default.
 
     Returns
-    --------
+    -------
         A dict of scorers.
     """
     common_kwargs = {
