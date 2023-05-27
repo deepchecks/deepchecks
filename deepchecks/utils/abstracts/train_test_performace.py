@@ -31,10 +31,12 @@ class TrainTestPerformanceAbstract(abc.ABC):
     add_condition: t.Callable[..., t.Any]
 
     def _prepare_display(
-        self,
-        results: pd.DataFrame,
-        train_dataset_name: str,
-        test_dataset_name: str,
+            self,
+            results: pd.DataFrame,
+            train_dataset_name: str,
+            test_dataset_name: str,
+            classes_without_enough_samples: t.Optional[t.List[str]] = None,
+            top_classes_to_show: t.Optional[t.List[str]] = None
     ):
         display_df = results.replace({
             'Dataset': {
@@ -46,6 +48,19 @@ class TrainTestPerformanceAbstract(abc.ABC):
         figures = []
         data_scorers_per_class = display_df[results['Class'].notna()]
         data_scorers_per_dataset = display_df[results['Class'].isna()].drop(columns=['Class'])
+
+        # Filter classes without enough samples and get display comment for them:
+        if classes_without_enough_samples:
+            data_scorers_per_class = \
+                data_scorers_per_class.loc[~data_scorers_per_class['Class'].isin(classes_without_enough_samples)]
+
+        # Filter top classes to show:
+        if top_classes_to_show:
+            not_shown_classes = list(set(data_scorers_per_class['Class'].unique()) - set(top_classes_to_show))
+            data_scorers_per_class = \
+                data_scorers_per_class.loc[data_scorers_per_class['Class'].isin(top_classes_to_show)]
+        else:
+            not_shown_classes = None
 
         for data in (data_scorers_per_dataset, data_scorers_per_class):
             if data.shape[0] == 0:
@@ -85,6 +100,17 @@ class TrainTestPerformanceAbstract(abc.ABC):
                 )
             )
 
+        # Add comments about not shown classes:
+        df = pd.DataFrame({}, columns=['Reason', 'Classes']).set_index('Reason')
+        if not_shown_classes:
+            df.loc[f'Not shown classes (showing only top {len(top_classes_to_show)})'] = str(not_shown_classes)
+        if classes_without_enough_samples:
+            df.loc[f'Classes without enough samples in either {train_dataset_name} or {test_dataset_name}'] = \
+                str(classes_without_enough_samples)
+
+        if not df.empty:
+            figures.append(df)
+
         return figures
 
     def add_condition_test_performance_greater_than(self: Self, min_score: float) -> Self:
@@ -111,9 +137,9 @@ class TrainTestPerformanceAbstract(abc.ABC):
         return self.add_condition(name, condition)
 
     def add_condition_class_performance_imbalance_ratio_less_than(
-        self: Self,
-        score: str,
-        threshold: float = 0.3,
+            self: Self,
+            score: str,
+            threshold: float = 0.3,
     ) -> Self:
         """Add condition - relative ratio difference between highest-class and lowest-class is less than threshold.
 
