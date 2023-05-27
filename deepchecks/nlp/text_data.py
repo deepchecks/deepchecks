@@ -498,14 +498,19 @@ class TextData:
             return False
         return self.n_samples > n_samples
     @classmethod
-    def from_hugging_face(cls, obj:t.Any) -> 'TextData':
+    def from_hugging_face(cls, obj:t.Any, raw_text: t.Optional[t.Sequence[str]] = None,
+            tokenized_text: t.Optional[t.Sequence[t.Sequence[str]]] = None,
+            label: t.Optional[TTextLabel] = None,
+            task_type: str = 'other',
+            name: t.Optional[str] = None,
+            metadata: t.Optional[pd.DataFrame] = None,
+            properties: t.Optional[pd.DataFrame] = None) -> 'TextData':
 
-        if set(['tokens', 'ner_tags']).issubset(obj.column_names):
-            return cls(tokenized_text=obj['tokens'], label=obj['ner_tags'], task_type='token_classification')
-        if set(['text', 'label']).issubset(obj.column_names):
-            return cls(raw_text=obj['text'], label=obj['label'], task_type='text_classification')
-        else:
+        if not set(['tokens', 'ner_tags']).issubset(obj.column_names) and not set(['text', 'label']).issubset(obj.column_names):
             raise DeepchecksValueError(f'{obj} does not contain valid dataset columns')
+
+        return cls(raw_text=raw_text, tokenized_text=tokenized_text, label=label, task_type=task_type, name=name,
+                   metadata=metadata, properties=properties)
 
 
 @contextlib.contextmanager
