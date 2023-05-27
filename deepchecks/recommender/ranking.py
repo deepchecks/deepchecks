@@ -36,6 +36,7 @@ def recall_k(relevant_items: Union[List[int], np.array, None],
         return 0.0
     if recommendations is None or len(recommendations) == 0:
         return 0.0
+
     relevant_set = set(relevant_items)
     rec_set = set(recommendations[:k])
     hits = [1 for p in rec_set if p in relevant_set]
@@ -59,16 +60,15 @@ def mean_average_recall_at_k(relevant_items: Union[List[List[int]], np.array],
     """
     recall_k_list = []
     for i,items in enumerate(relevant_items):
-        recommendations = recommendations[i]
-        recall_i = recall_k(items, recommendations, k)
+        recall_i = recall_k(items, recommendations[i], 10)
         recall_k_list.append(recall_i)
 
     return np.mean(recall_k_list)
 
 
 
-def precision_k(relevant_items: Union[List[int], set, None],
-             recommendations: Union[List, set, None],
+def precision_k(relevant_items: Union[List[int], None],
+             recommendations: Union[List, None],
              k: int = 5) -> float:
     """
     Compute the Precision@k score for a set of recommendations.
@@ -83,6 +83,9 @@ def precision_k(relevant_items: Union[List[int], set, None],
     """
     if relevant_items is None or len(relevant_items) == 0:
         return 0.0
+    if recommendations is None or len(recommendations) == 0:
+        return 0.0
+    
     relevant_set = set(relevant_items)
     rec_set = recommendations[:k]
 
@@ -108,8 +111,7 @@ def mean_average_precision_at_k(relevant_items: Union[List[List[int]], np.array]
     """
     precision_k_list = []
     for i,items in enumerate(relevant_items):
-        recommendations = recommendations[i]
-        precision_i = precision_k(items, recommendations, k)
+        precision_i = precision_k(items, recommendations[i], k)
         precision_k_list.append(precision_i)
 
     return np.mean(precision_k_list)
@@ -153,45 +155,44 @@ def mean_average_f1_at_k(relevant_items: Union[List[List[int]], np.array],
     """
     f1_list = []
     for i,items in enumerate(relevant_items):
-        recommendations = recommendations[i]
-        f1_i = f1_k(items, recommendations, k)
+        f1_i = f1_k(items, recommendations[i], k)
         f1_list.append(f1_i)
 
     return np.mean(f1_list)
 
 
-def reciprocal_rank(relevant_item,recommendations: Union[List, np.array, None]) -> float:
+def reciprocal_rank(relevant_items: Union[List, np.array, None] ,recommendations: Union[List, np.array, None]) -> float:
     """
     Calculates the reciprocal rank for a given recommendations.
 
     Args:
-    - relevant_item: integer representing the relevant item
+    - relevant_item: list  representing the relevant item
     - recommendations: list or numpy array of recommended items
 
     Returns:
     - float: reciprocal rank of the relevant item in the recommendations
     """
-    if relevant_item is None or len(recommendations) == 0:
+    if relevant_items is None or len(recommendations) == 0:
         return 0.0
     for rank, rec_item in enumerate(recommendations):
-        if relevant_item == rec_item:
+        if relevant_items[0] == rec_item:
             return 1/(rank+1)
         return 0
 
 
-def mean_reciprocal_rank(relevant_items: List, recommendations: List[List]) -> float:
+def mean_reciprocal_rank(relevant_items: List[List], recommendations: List[List]) -> float:
     """
     Calculates the mean reciprocal rank (MRR) of the recommendations given for the relevant items.
     
     Args:
-        relevant_items (List): A list of relevant items for each user or item.
+        relevant_items (List): A list of list of relevant items for each user or item.
         recommendations (List[List]): A list of recommended items for each user or item.
     
     Returns:
         float: The mean reciprocal rank (MRR) of the recommendations.
     """
-    reciprocal_ranks = [reciprocal_rank(item, recommendations) \
-                        for item, recommendations \
+    reciprocal_ranks = [reciprocal_rank(item, recommendation) \
+                        for item, recommendation \
                         in zip(relevant_items, recommendations)]
 
     return np.mean(reciprocal_ranks)
