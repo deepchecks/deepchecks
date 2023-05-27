@@ -97,6 +97,9 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 #   include_long_calculation_properties=True,  device=device
 # )
 
+# %%
+# In this example though we'll use pre-calculated properties:
+
 train_properties, test_properties = tweet_emotion.load_properties()
 
 train.set_properties(train_properties, categorical_properties=['Language'])

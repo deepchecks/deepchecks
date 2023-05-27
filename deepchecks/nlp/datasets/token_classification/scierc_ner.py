@@ -112,7 +112,7 @@ def load_data(data_format: str = 'TextData', include_properties: bool = True, in
         'Dict' will return the data as a dict of tokenized texts and IOB NER labels
     include_properties : bool, default: True
         If True, the returned data will include properties of the comments. Incompatible with data_format='DataFrame'
-    include_embeddings : bool, default: True
+    include_embeddings : bool, default: False
         If True, the returned data will include embeddings of the comments. Incompatible with data_format='DataFrame'
 
     Returns
@@ -121,10 +121,11 @@ def load_data(data_format: str = 'TextData', include_properties: bool = True, in
         Tuple of two objects represents the dataset split to train and test sets.
     """
     if data_format.lower() not in ['textdata', 'dict']:
-        raise ValueError('data_format must be either "Dataset" or "Dict"')
-    elif data_format.lower() == 'dataframe':
+        raise ValueError('data_format must be either "TextData" or "Dict"')
+    elif data_format.lower() == 'dict':
         if include_properties or include_embeddings:
-            warnings.warn('include_properties and include_embeddings are incompatible with data_format="Dataframe"',
+            warnings.warn('include_properties and include_embeddings are incompatible with data_format="Dict". '
+                          'loading only original text data',
                           UserWarning)
             include_properties, include_embeddings = False, False
 

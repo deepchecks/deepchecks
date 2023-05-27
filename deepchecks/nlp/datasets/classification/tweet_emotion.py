@@ -19,6 +19,7 @@ https://aclanthology.org/S18-1001/.
 """
 import pathlib
 import typing as t
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -120,7 +121,12 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
         tuple if as_train_test = True. Tuple of two objects represents the dataset split to train and test sets.
     """
     if data_format.lower() not in ['textdata', 'dataframe']:
-        raise ValueError('data_format must be either "Dataset" or "Dataframe"')
+        raise ValueError('data_format must be either "TextData" or "Dataframe"')
+    elif data_format.lower() == 'dataframe':
+        if include_properties or include_embeddings:
+            warnings.warn('include_properties and include_embeddings are incompatible with data_format="Dataframe". '
+                          'loading only original text data.',
+                          UserWarning)
 
     data = read_and_save_data(ASSETS_DIR, 'tweet_emotion_data.csv', _FULL_DATA_URL, to_numpy=False)
     if not as_train_test:

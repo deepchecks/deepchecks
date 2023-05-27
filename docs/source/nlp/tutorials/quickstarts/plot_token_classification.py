@@ -94,8 +94,11 @@ test = TextData(tokenized_text=test['text'], label=test['label'], task_type='tok
 #   include_long_calculation_properties=True, device=device
 # )
 # test.calculate_builtin_properties(
-#   include_long_calculation_properties=True,  device=device
+#   include_long_calculation_properties=True, device=device
 # )
+
+# %%
+# In this example though we'll use pre-calculated properties:
 
 train_properties, test_properties = scierc_ner.load_properties()
 
