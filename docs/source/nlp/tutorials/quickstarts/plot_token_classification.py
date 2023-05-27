@@ -5,23 +5,24 @@
 Test NLP Token Classification Tasks - Quickstart
 ************************************************
 
-In this quickstart guide, we will give a brief example of using the deepchecks NLP package to analyze and evaluate token
-classification tasks. For a more complete example showcasing the range of checks and capabilities of the NLP package,
-refer to our :ref:`Multiclass Quickstart <nlp__multiclass_quickstart>`. We will cover the following steps:
+In this quickstart guide, we will give a brief example of using the deepchecks NLP package to analyze and evaluate
+token classification tasks. A token classification task is a case in which we wish to give a specific label for each
+token (usually a word or a part of a word), rather than assigning a class or classes for the text as a whole. For a
+more complete example showcasing the range of checks and capabilities of the NLP package, refer to our
+:ref:`Multiclass Quickstart <nlp__multiclass_quickstart>`. We will cover the following steps:
 
 1. `Creating a TextData object and auto calculating properties <#setting-up>`__
 2. `Running checks <#running-checks>`__
 
-To run deepchecks for NLP, you need the following for both your train and test data:
+To run deepchecks for token classification, you need the following for both your train and test data:
 
-1. Your :ref:`text data <nlp__textdata_object>` - a list of strings, each string is a single sample
-   (can be a sentence, paragraph, document, etc.).
-2. Your labels - either a :ref:`Text Classification <nlp_supported_text_classification>` label or a
-   :ref:`Token Classification <nlp_supported_token_classification>` label. These are not needed for checks that
-   don't require labels (such as the Embeddings Drift check or most data integrity checks), but are needed for
-   many other checks.
+1. Your tokenized text dataset - a list of lists of strings, each string is a single token within the sample, when a
+   sample can be a sentence, paragraph, document and so on.
+2. Your labels - a :ref:`Token Classification <nlp_supported_token_classification>` label. These are not needed for
+   checks that don't require labels (such as the Embeddings Drift check or most data integrity checks), but are needed
+   for many other checks.
 3. Your model's predictions (see :ref:`nlp__supported_tasks` for info on supported formats). These are needed only for
-   the model related checks, shown in the `Model Evaluation <#model-evaluation>`__ section of this guide.
+   the model related checks, shown in the `Model Evaluation <#running-checks>`__ check in this guide.
 
 If you don't have deepchecks installed yet:
 
@@ -57,7 +58,8 @@ pprint(train['label'][0][:10])
 
 # %%
 #
-# The SCIERC dataset is a dataset of scientific articles with annotations for named entities, relations and coreference.
+# The SCIERC dataset is a dataset of scientific articles with annotations for named entities, relations and
+# coreferences.
 # In this example we'll only use the named entity annotations, which are the labels we'll use for our token
 # classification task.
 # We can see that we have the article text itself, and the labels for each token in the text in the
