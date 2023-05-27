@@ -20,7 +20,8 @@ EPS = 0.001
 
 def iqr_outliers_range(data: np.ndarray,
                        iqr_range: Tuple[int, int],
-                       scale: float) -> Tuple[float, float]:
+                       scale: float,
+                       sharp_drop_ratio: float = 0.9) -> Tuple[float, float]:
     """Calculate outliers range on the data given using IQR.
 
     Parameters
@@ -30,9 +31,14 @@ def iqr_outliers_range(data: np.ndarray,
     iqr_range: Tuple[int, int]
         Two percentiles which define the IQR range
     scale: float
-        The scale to multiply the IQR range for the outliers detection
-    min_samples : int, default: 10
-        Minimum number of samples needed to calculate outliers
+        The scale to multiply the IQR range for the outliers' detection. When the percentiles values are the same
+        (When many samples have the same value),
+        the scale will be modified based on the closest element to the percentiles values and
+        the `sharp_drop_ratio` parameter.
+    sharp_drop_ratio: float, default : 0.9
+        A threshold for the sharp drop outliers detection. When more than `sharp_drop_ratio` of the data
+        contain the same value the rest will be considered as outliers. Also used to normalize the scale in case
+        the percentiles values are the same.
     Returns
     -------
     Tuple[float, float]
@@ -40,13 +46,23 @@ def iqr_outliers_range(data: np.ndarray,
     """
     if len(iqr_range) != 2 or any((x < 0 or x > 100 for x in iqr_range)) or all(x < 1 for x in iqr_range):
         raise DeepchecksValueError('IQR range must contain two numbers between 0 to 100')
+    if scale < 1:
+        raise DeepchecksValueError('IQR scale must be greater than 1')
 
     q1, q3 = np.percentile(data, sorted(iqr_range))
-    iqr = q3 - q1
-    low_lim = q1 - scale * iqr
-    up_lim = q3 + scale * iqr
-
-    return low_lim, up_lim
+    if q1 == q3:
+        common_percent_in_total = np.sum(data == q1) / len(data)
+        if common_percent_in_total > sharp_drop_ratio:
+            return q1 - EPS, q1 + EPS
+        else:
+            closest_dist_to_common = min(np.abs(data[data != q1] - q1))
+            # modify the scale to be proportional to the percent of samples that have the same value
+            # when many samples have the same value, the scale will be closer to sharp_drop_ratio
+            scale = sharp_drop_ratio + ((scale - 1) * (1 - common_percent_in_total))
+            return q1 - (closest_dist_to_common * scale), q1 + (closest_dist_to_common * scale)
+    else:
+        iqr = q3 - q1
+        return q1 - scale * iqr, q3 + scale * iqr
 
 
 def sharp_drop_outliers_range(data_percents: Sequence, sharp_drop_ratio: float = 0.9,

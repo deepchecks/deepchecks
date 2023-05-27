@@ -25,9 +25,9 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     result = check.run(test)
 
     # Assert
-    assert_that(len(result.value['Sentiment']['indices']), equal_to(137))
-    assert_that(result.value['Sentiment']['lower_limit'], close_to(-0.72, 0.01))
-    assert_that(result.value['Sentiment']['upper_limit'], close_to(0.74, 0.01))
+    assert_that(len(result.value['Sentiment']['indices']), equal_to(65))
+    assert_that(result.value['Sentiment']['lower_limit'], close_to(-0.90, 0.01))
+    assert_that(result.value['Sentiment']['upper_limit'], close_to(0.92, 0.01))
 
     assert_that(len(result.value['Text Length']['indices']), equal_to(0))
     assert_that(result.value['Text Length']['lower_limit'], equal_to(6))
@@ -44,7 +44,7 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
 
     # Check the table of properties not shown:
     expected_series = \
-        pd.Series(('Text Length, Subjectivity, Fluency', '% Special Characters, Language'),
+        pd.Series(('Text Length, Subjectivity, Fluency', 'Average Word Length, % Special Characters'),
                   index=('No outliers found.', 'Outliers found but not shown in graphs (n_show_top=5).'))
     result_series = result.display[6].data['Properties']
 
