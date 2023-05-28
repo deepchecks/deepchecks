@@ -150,7 +150,7 @@ def validate_length_and_calculate_column_types(
             )
 
     other_features = set(data_table.columns) - set(categorical_columns)
-    numeric_features = infer_numerical_features(data_table[other_features])
+    numeric_features = infer_numerical_features(data_table[list(other_features)])
 
     return ColumnTypes(
         categorical_columns=list(categorical_columns),
