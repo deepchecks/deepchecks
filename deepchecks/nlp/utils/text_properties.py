@@ -15,6 +15,7 @@ import pathlib
 import re
 import string
 import warnings
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -59,6 +60,37 @@ class PropertyCache:
 
 
 text_blob_cache = PropertyCache()
+
+
+def _sample_for_property(text: str, delimiter: str=' ', limit: int=10000, random_seed: int=42):
+    """Get a sample a single text sample for a text property.
+
+    Parameters
+    ----------
+    text : str
+        The text to sample from.
+    delimiter : str, default ' '
+        The delimiter to use separating the sample to single units.
+        In order to sample characters, use '' (empty string).
+        In order to sample words, use ' ' (space).
+        In order to sample sentences, use '. ' (dot and space). #TODO: add more stop chars such as \n
+    limit : int, default 1000
+        The maximum number of words or sentences to sample.
+    """
+    np.random.seed(random_seed)
+    if delimiter == '':
+        if len(text) <= limit:
+            return text
+        else:
+            all_units = np.random.choice(text, size=limit, replace=False)
+            return ''.join(all_units)
+    else:
+        all_units = text.split(delimiter)
+        # limit = len(all_units)
+        if len(all_units) > limit:
+            all_units = np.random.choice(all_units, size=limit, replace=False)
+        return delimiter.join(all_units)
+
 
 
 def _import_optional_property_dependency(
@@ -287,16 +319,25 @@ def language(
 
 def sentiment(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of sentiment."""
+    start = datetime.now()
     if text_blob_cache.get('textblob') is None:
+        # TextBlob uses only the words and not the relations between them, so we can sample the text
+        # to speed up the process:
+        raw_text = [_sample_for_property(text=text, delimiter=' ') for text in raw_text]
         text_blob_cache.set('textblob', [textblob.TextBlob(text).sentiment for text in raw_text])
+    print(f'Elapsed time: {datetime.now() - start}')
     return [calc.polarity for calc in text_blob_cache.get('textblob')]
 
 
 def subjectivity(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of subjectivity."""
-    # return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
+    start = datetime.now()
     if text_blob_cache.get('textblob') is None:
+        # TextBlob uses only the words and not the relations between them, so we can sample the text
+        # to speed up the process:
+        raw_text = [_sample_for_property(text=text, delimiter=' ') for text in raw_text]
         text_blob_cache.set('textblob', [textblob.TextBlob(text).sentiment for text in raw_text])
+    print(f'Elapsed time: {datetime.now() - start}')
     return [calc.subjectivity for calc in text_blob_cache.get('textblob')]
 
 
