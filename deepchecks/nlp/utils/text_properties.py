@@ -317,12 +317,6 @@ def subjectivity(raw_text: Sequence[str]) -> List[float]:
     return [calc.subjectivity for calc in text_blob_cache.get('textblob')]
 
 
-def sentiment_and_subjectivity(raw_text: Sequence[float]) -> Tuple[List[float], List[float]]:
-    """Return list of floats of sentiment."""
-    textblob_full_calc = [textblob.TextBlob(text).sentiment for text in raw_text]
-    return [calc[0] for calc in textblob_full_calc], [calc[1] for calc in textblob_full_calc]
-
-
 def _predict(text, classifier, kind):
     try:
         v = classifier(text)
