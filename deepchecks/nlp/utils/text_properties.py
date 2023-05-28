@@ -15,7 +15,6 @@ import pathlib
 import re
 import string
 import warnings
-from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -38,29 +37,7 @@ __all__ = ['calculate_builtin_properties']
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 
-
-class PropertyCache:
-    """Cache for text properties.
-
-    This class is used to cache results of text properties that can be reused on the same dataset, such as "sentiment"
-    and "subjectivity" in TextBlob, which use the same calculation."""
-    def __init__(self):
-        self._cache = {}
-
-    def get(self, key: str, default: Any = None) -> Any:
-        """Get a value from the cache, or return the default value if it doesn't exist."""
-        return self._cache.get(key, default)
-
-    def set(self, key: str, value: Any) -> None:
-        """Set a value in the cache."""
-        self._cache[key] = value
-
-    def clear(self) -> None:
-        """Clear the cache."""
-        self._cache.clear()
-
-
-text_blob_cache = PropertyCache()
+text_blob_cache = {}
 
 
 def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, random_seed: int = 42):
@@ -83,7 +60,7 @@ def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, ran
             all_units = np.random.choice(list(text), size=limit, replace=False)
             return ''.join(all_units)
     elif mode == 'words':
-        all_units = re.split('\W+', text)
+        all_units = re.split(r'\W+', text)
         if len(all_units) > limit:
             all_units = np.random.choice(all_units, size=limit, replace=False)
         return ' '.join(all_units)
@@ -322,25 +299,21 @@ def language(
 
 def sentiment(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of sentiment."""
-    start = datetime.now()
     if text_blob_cache.get('textblob') is None:
         # TextBlob uses only the words and not the relations between them, so we can sample the text
         # to speed up the process:
         raw_text = [_sample_for_property(text=text, mode='words') for text in raw_text]
-        text_blob_cache.set('textblob', [textblob.TextBlob(text).sentiment for text in raw_text])
-    print(f'Elapsed time: {datetime.now() - start}')
+        text_blob_cache['textblob'] = [textblob.TextBlob(text).sentiment for text in raw_text]
     return [calc.polarity for calc in text_blob_cache.get('textblob')]
 
 
 def subjectivity(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of subjectivity."""
-    start = datetime.now()
     if text_blob_cache.get('textblob') is None:
         # TextBlob uses only the words and not the relations between them, so we can sample the text
         # to speed up the process:
         raw_text = [_sample_for_property(text=text, mode='words') for text in raw_text]
-        text_blob_cache.set('textblob', [textblob.TextBlob(text).sentiment for text in raw_text])
-    print(f'Elapsed time: {datetime.now() - start}')
+        text_blob_cache['textblob'] = [textblob.TextBlob(text).sentiment for text in raw_text]
     return [calc.subjectivity for calc in text_blob_cache.get('textblob')]
 
 
