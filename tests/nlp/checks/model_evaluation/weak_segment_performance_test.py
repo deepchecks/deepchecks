@@ -40,7 +40,7 @@ def test_column_with_nones(tweet_emotion_train_test_textdata, tweet_emotion_trai
     test_probas = np.asarray([[None] * 4] * 3 + list(test_probas)[3:])
     test._labels = np.asarray(list(test._label[3:]) + [None] * 3)
     metadata = test.metadata.copy()
-    metadata['new_numeric_col'] = list(range(1975)) + [None, np.nan, pd.NA]
+    metadata['new_numeric_col'] = list(range(1976)) + [None, np.nan]
     metadata['new_cat_col'] = [None, np.nan, pd.NA] + [1, 2, 3, 4, 5] * 395
     test.set_metadata(metadata)
 

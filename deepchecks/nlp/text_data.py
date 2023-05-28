@@ -115,6 +115,7 @@ class TextData:
     _properties: t.Optional[t.Union[pd.DataFrame, str]] = None
     _cat_properties: t.Optional[t.List[str]] = None
     _cat_metadata: t.Optional[t.List[str]] = None
+    _numeric_metadata: t.Optional[t.List[str]] = None
     _original_text_index: t.Optional[t.Sequence[int]] = None  # Sequence is np array
 
     def __init__(
@@ -292,7 +293,7 @@ class TextData:
 
     @property
     def embeddings(self) -> pd.DataFrame:
-        """Return the metadata of for the dataset."""
+        """Return the embeddings of for the dataset."""
         if self._embeddings is None:
             raise DeepchecksValueError(
                 'Functionality requires embeddings, but the the TextData object had none. To use this functionality, '
@@ -319,7 +320,7 @@ class TextData:
         self._embeddings = calculate_builtin_embeddings(text=self.text, model=model, file_path=file_path)
 
     def set_embeddings(self, embeddings: np.ndarray, verbose: bool = True):
-        """Set the metadata of the dataset.
+        """Set the embeddings of the dataset.
 
         Parameters
         ----------
@@ -353,9 +354,14 @@ class TextData:
         return self._metadata
 
     @property
-    def categorical_metadata_columns(self) -> t.List[str]:
+    def categorical_metadata(self) -> t.List[str]:
         """Return categorical metadata column names."""
         return self._cat_metadata
+
+    @property
+    def numerical_metadata(self) -> t.List[str]:
+        """Return numeric metadata column names."""
+        return self._numeric_metadata
 
     def set_metadata(
         self,
@@ -378,6 +384,7 @@ class TextData:
 
         self._metadata = metadata.reset_index(drop=True)
         self._cat_metadata = column_types.categorical_columns
+        self._numeric_metadata = column_types.numerical_columns
 
     def calculate_builtin_properties(
         self,

@@ -47,7 +47,7 @@ def infer_numerical_features(df: pd.DataFrame) -> t.List[Hashable]:
     for col in columns:
         col_data = df[col]
         if col_data.dtype == 'object':
-            # object might still be only floats, so we rest the dtype
+            # object might still be only floats, so we reset the dtype
             col_data = pd.Series(col_data.to_list())
         if is_numeric_dtype(col_data):
             numerical_columns.append(col)

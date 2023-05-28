@@ -44,9 +44,12 @@ def default_fill_na_series(col: pd.Series, is_cat_column: t.Optional[bool] = Non
     if is_cat_column:
         return col.astype('object').fillna('None')
     elif is_numeric_dtype(col):
-        return col.fillna(col.mean()).astype('float64')
+        return col.astype('float64').fillna(col.mean())
     else:
-        return col.fillna(col.mode()[0])
+        common_values_list = col.mode()
+        if isinstance(common_values_list, pd.Series) and len(common_values_list) > 0:
+            return col.fillna(common_values_list[0])
+        return col
 
 
 def floatify_dataframe(df: pd.DataFrame):

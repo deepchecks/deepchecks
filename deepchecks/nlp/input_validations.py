@@ -19,7 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError, ValidationError
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
-from deepchecks.utils.type_inference import infer_categorical_features
+from deepchecks.utils.type_inference import infer_categorical_features, infer_numerical_features
 from deepchecks.utils.validation import is_sequence_not_str
 
 if TYPE_CHECKING:
@@ -136,39 +136,21 @@ def validate_length_and_calculate_column_types(
         )
 
     if categorical_columns is None:  # TODO: Add tests
-        categorical_features = infer_categorical_features(data_table)
-        numeric_features = [
-            c for c in data_table.columns
-            if c not in categorical_features
-        ]
-
-        column_types = ColumnTypes(
-            categorical_columns=categorical_features,
-            numerical_columns=numeric_features
-        )
-
+        categorical_columns = infer_categorical_features(data_table)
         get_logger().info(
-            '%s types were not provided, auto inferred types are:\n%s',
+            '%s types were not provided, auto inferred as categorical are:\n%s',
             data_table_name,
-            column_types._asdict()
+            categorical_columns
         )
+    else:
+        difference = set(categorical_columns).difference(data_table.columns)
+        if len(difference) != 0:
+            raise DeepchecksValueError(
+                f'The following columns does not exist in {data_table_name} - {list(difference)}'
+            )
 
-        return column_types
-
-    difference = set(categorical_columns).difference(data_table.columns)
-
-    if len(difference) != 0:
-        raise DeepchecksValueError(
-            f'The following columns does not exist in {data_table_name} - {list(difference)}'
-        )
-
-    numeric_features = set(data_table.columns) - set(categorical_columns)
-
-    for feat in numeric_features:
-        try:
-            _ = data_table[feat].astype(float)
-        except ValueError:
-            raise DeepchecksValueError(f'{data_table_name} {feat} passed as numeric but cannot be cast to float.')
+    other_features = set(data_table.columns) - set(categorical_columns)
+    numeric_features = infer_numerical_features(data_table[other_features])
 
     return ColumnTypes(
         categorical_columns=list(categorical_columns),
