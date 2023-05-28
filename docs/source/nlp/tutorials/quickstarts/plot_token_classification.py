@@ -16,9 +16,9 @@ more complete example showcasing the range of checks and capabilities of the NLP
 
 To run deepchecks for token classification, you need the following for both your train and test data:
 
-1. Your tokenized text dataset - a list of lists of strings, each string is a single token within the sample, when a
-   sample can be a sentence, paragraph, document and so on.
-2. Your labels - a :ref:`Token Classification <nlp_supported_token_classification>` label. These are not needed for
+1. Your tokenized text dataset - a list containing lists of strings, each string is a single token within the sample,
+   where a sample can be a sentence, paragraph, document and so on.
+2. Your labels - a :ref:`Token Classification <nlp__supported_token_classification>` label. These are not needed for
    checks that don't require labels (such as the Embeddings Drift check or most data integrity checks), but are needed
    for many other checks.
 3. Your model's predictions (see :ref:`nlp__supported_tasks` for info on supported formats). These are needed only for
@@ -32,7 +32,7 @@ If you don't have deepchecks installed yet:
     !{sys.executable} -m pip install deepchecks[nlp] -U --quiet #--user
 
 Some properties calculated by ``deepchecks.nlp`` require additional packages to be installed. You can
-install them by running:
+also install them by running:
 
 .. code:: python
 
@@ -71,8 +71,9 @@ pprint(train['label'][0][:10])
 # We can now create a :ref:`TextData <nlp__textdata_object>` object for the train and test dataframes.
 # This object is used to pass your data to the deepchecks checks.
 #
-# To create a TextData object, the only required argument is the tokenized text itself, but passing only the text
-# will prevent multiple checks from running. In this example we'll pass the label and define the task type.
+# To create a TextData object, the only required argument is the tokenized text itself. In most cases we'll want to
+# pass labels as well, as they are needed in order to calculate many checks. In this example we'll pass the label and
+# define the task type.
 
 
 train = TextData(tokenized_text=train['text'], label=train['label'], task_type='token_classification')
@@ -84,8 +85,8 @@ test = TextData(tokenized_text=test['text'], label=test['label'], task_type='tok
 #
 # Some of deepchecks' checks use properties of the text samples for various calculations. Deepcheck has a wide
 # variety of such properties, some simple and some that rely on external models and are more heavy to run. In order
-# for deepchecks' checks to be able to access the properties, they must be stored within the
-# :ref:`TextData <nlp__textdata_object>` object. You can read more about properties in the
+# for deepchecks' checks to be able to use the properties, they must be added to the
+# :ref:`TextData <nlp__textdata_object>` object, usually by calculating them. You can read more about properties in the
 # :ref:`Property Guide <nlp__properties_guide>`.
 
 # properties can be either calculated directly by Deepchecks
@@ -121,7 +122,7 @@ train.properties.head(2)
 # the train and test sets. For this check, we'll need to pass the model's predictions on the train and test sets, also
 # provided in the format of an IOB annotation per token in the tokenized text.
 #
-# We'll also define a condition for the check with the default threshold value.You can learn more about customizing
+# We'll also define a condition for the check with the default threshold value. You can learn more about customizing
 # checks and conditions, as well as defining suites of checks in our
 # :ref:`Customizations Guide <general__customizations>`
 
