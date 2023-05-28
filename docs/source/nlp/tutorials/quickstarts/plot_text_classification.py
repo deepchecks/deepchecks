@@ -5,7 +5,9 @@
 Test NLP Classification Tasks - Quickstart
 ******************************************
 
-In this quickstart guide, we will go over using the deepchecks NLP package to analyze and evaluate text
+Deepchecks NLP tests your models during model development/research and before deploying to production. Using our
+testing package reduces model failures and saves tests development time. In this quickstart guide, you will learn how
+to use the deepchecks NLP package to analyze and evaluate text
 classification tasks. If you are interested in a multilabel classification task, you can
 refer to our :ref:`Multilabel Quickstart <nlp__multilabel_quickstart>`. We will cover the following steps:
 

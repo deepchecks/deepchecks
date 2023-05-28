@@ -5,11 +5,13 @@
 Test NLP Token Classification Tasks - Quickstart
 ************************************************
 
-In this quickstart guide, we will give a brief example of using the deepchecks NLP package to analyze and evaluate
-token classification tasks. A token classification task is a case in which we wish to give a specific label for each
-token (usually a word or a part of a word), rather than assigning a class or classes for the text as a whole. For a
-more complete example showcasing the range of checks and capabilities of the NLP package, refer to our
-:ref:`Multiclass Quickstart <nlp__multiclass_quickstart>`. We will cover the following steps:
+Deepchecks NLP tests your models during model development/research and before deploying to production. Using our
+testing package reduces model failures and saves tests development time. In this quickstart guide, you will learn how
+to use the deepchecks NLP package to analyze and evaluate token classification tasks. A token classification task is
+a case in which we wish to give a specific label for each token (usually a word or a part of a word), rather than
+assigning a class or classes for the text as a whole. For a more complete example showcasing the range of checks and
+capabilities of the NLP package, refer to our :ref:`Multiclass Quickstart <nlp__multiclass_quickstart>`. We will
+cover the following steps:
 
 1. `Creating a TextData object and auto calculating properties <#setting-up>`__
 2. `Running checks <#running-checks>`__
