@@ -33,14 +33,16 @@ def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Optional[t
     if cat_features is None:
         cat_features = infer_categorical_features(df)
 
-    result = df.copy()
+    result = {}
     for col_name in df.columns:
-        result[col_name] = default_fill_na_series(df[col_name], col_name in cat_features)
-    return result
+        modified_col = default_fill_na_series(df[col_name], col_name in cat_features)
+        if modified_col is not None:
+            result[col_name] = modified_col
+    return pd.DataFrame(result, index=df.index)
 
 
-def default_fill_na_series(col: pd.Series, is_cat_column: t.Optional[bool] = None) -> pd.Series:
-    """Fill NaN values based on column type."""
+def default_fill_na_series(col: pd.Series, is_cat_column: t.Optional[bool] = None) -> t.Optional[pd.Series]:
+    """Fill NaN values based on column type if possible otherwise returns None."""
     if is_cat_column:
         return col.astype('object').fillna('None')
     elif is_numeric_dtype(col):
@@ -49,7 +51,7 @@ def default_fill_na_series(col: pd.Series, is_cat_column: t.Optional[bool] = Non
         common_values_list = col.mode()
         if isinstance(common_values_list, pd.Series) and len(common_values_list) > 0:
             return col.fillna(common_values_list[0])
-        return col
+    return None
 
 
 def floatify_dataframe(df: pd.DataFrame):
