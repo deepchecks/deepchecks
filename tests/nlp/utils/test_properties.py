@@ -364,9 +364,7 @@ def test_english_only_properties_calculation_with_not_english_samples():
 def test_sample_for_property():
     s = 'all the single ladies. all the single ladies? now put your hands up.'
     sample_words = _sample_for_property(text=s, mode='words', limit=2, random_seed=42)
-    sample_chars = _sample_for_property(text=s, mode='characters', limit=2, random_seed=42)
     sample_sentences = _sample_for_property(text=s, mode='sentences', limit=2, random_seed=42)
 
     assert_that(sample_words, equal_to('put hands'))
-    assert_that(sample_chars, equal_to('na'))
     assert_that(sample_sentences, equal_to('all the single ladies. all the single ladies?'))
