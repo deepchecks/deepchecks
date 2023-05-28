@@ -100,7 +100,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
         # Running the logic
         weak_segments = self._weak_segments_search(data=encoded_dataset.data, score_per_sample=score_per_sample,
-                                                   label_col=original_label,
+                                                   label_col=pd.Series(original_label, index=score_per_sample.index),
                                                    feature_rank_for_search=np.asarray(encoded_dataset.features),
                                                    dummy_model=dummy_model, scorer=scorer)
 

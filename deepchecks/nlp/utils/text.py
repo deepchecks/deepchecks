@@ -117,6 +117,15 @@ def normalize_text(
     return text_sample
 
 
+def cut_string(input_str: str, cut_length: int = 200) -> str:
+    """Cut a string to 200 characters, but cut only at whitespaces."""
+    if len(input_str) > cut_length:
+        index = input_str.find(' ', cut_length)
+        if index != -1:
+            return input_str[:index]
+    return input_str
+
+
 def normalize_samples(
     text_samples: t.Sequence[str],
     *,

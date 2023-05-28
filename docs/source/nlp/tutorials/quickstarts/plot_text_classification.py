@@ -37,7 +37,7 @@ install them by running:
 .. code:: python
 
     import sys
-    !{sys.executable} -m pip install [nlp-properties] -U --quiet #--user
+    !{sys.executable} -m pip install deepchecks[nlp-properties] -U --quiet #--user
 
 Setting Up
 ==========

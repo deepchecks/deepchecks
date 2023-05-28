@@ -118,10 +118,12 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             raise DeepchecksNotSupportedError('Check requires data to have at least two features in order to run.')
 
         # Decide which scorer and score_per_sample to use in the algorithm run
-        encoded_dataset = self._target_encode_categorical_features_fill_na(dataset_subset.features_columns,
+        features_data = dataset_subset.features_columns[dataset_subset.numerical_features + dataset_subset.cat_features]
+        encoded_dataset = self._target_encode_categorical_features_fill_na(features_data,
                                                                            dataset.label_col,
                                                                            dataset_subset.cat_features,
                                                                            context.task_type != TaskType.REGRESSION)
+
         if self.score_per_sample is not None:
             score_per_sample = self.score_per_sample[list(dataset.data.index)]
             scorer, dummy_model = None, None
