@@ -117,7 +117,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             'Text': dataset.text,
         })
 
-        return df, labels
+        return df
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -132,7 +132,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         # Reduce dataset by first checking on truncated strings
         truncated_samples = [cut_string(x) for x in dataset.text]
 
-        df, labels = self._get_df_and_labels(dataset, truncated_samples)
+        df = self._get_df_and_labels(dataset, truncated_samples)
 
         ambiguous_samples_hashes = self._get_conflicting_indices(df)
         indices_to_reinspect = df[df['hash'].isin(ambiguous_samples_hashes)].index.to_list()
@@ -146,7 +146,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             return CheckResult(value=result_value)
 
         # Now that we have narrowed down the dataset, we can check on full strings
-        df, labels = self._get_df_and_labels(dataset, dataset.text)
+        df = self._get_df_and_labels(dataset, dataset.text)
 
         ambiguous_samples_hashes = self._get_conflicting_indices(df)
 
