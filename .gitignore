@@ -145,6 +145,7 @@ deepchecks/nlp/datasets/assets/tweet_emotion/tweet_emotion_embeddings.npy
 
 # nlp datasets
 deepchecks/nlp/datasets/assets/just_dance_comment_analysis
+deepchecks/nlp/datasets/assets/scierc
 
 # nlp test properties
 metadata.csv

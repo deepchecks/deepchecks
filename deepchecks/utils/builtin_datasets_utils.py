@@ -33,7 +33,7 @@ def read_and_save_data(assets_dir, file_name, url_to_file, file_type='csv', to_n
             raise ValueError('file_type must be either "csv" or "npy"')
     else:
         if file_type == 'csv':
-            data = pd.read_csv(url_to_file, index_col=0)
+            data = pd.read_csv(url_to_file, index_col=0 if include_index else None)
             data.to_csv(assets_dir / file_name)
         elif file_type == 'npy':
             data = np.load(BytesIO(requests.get(url_to_file).content))
