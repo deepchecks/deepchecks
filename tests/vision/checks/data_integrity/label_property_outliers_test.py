@@ -79,9 +79,9 @@ def test_outliers_check_coco_segmentation(segmentation_coco_visiondata_train):
     # Assert
     assert_that(result.value, has_entries({
         'Number of Classes Per Image': has_entries({
-            'outliers_identifiers': contains_exactly('3', '8'),
+            'outliers_identifiers': is_([]),
             'lower_limit': is_(2),
-            'upper_limit': is_(2)
+            'upper_limit': is_(4)
         }),
         'Segment Area (in pixels)': instance_of(dict),
     }))

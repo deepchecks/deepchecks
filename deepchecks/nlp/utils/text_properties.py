@@ -11,6 +11,7 @@
 """Module containing the text properties for the NLP module."""
 import importlib
 import pathlib
+import re
 import string
 import warnings
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
@@ -28,7 +29,7 @@ from deepchecks.nlp.utils.text import remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
 
-__all__ = ['calculate_default_properties']
+__all__ = ['calculate_builtin_properties']
 
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
@@ -411,10 +412,10 @@ def readability_score(raw_text: Sequence[str]) -> List[float]:
     for text in raw_text:
         if not pd.isna(text):
             sentence_count = len(sent_tokenize(text))
-            text = remove_punctuation(text)
+            text = remove_punctuation(text.lower())
             words = word_tokenize(text)
             word_count = len(words)
-            syllable_count = sum([len(cmudict_dict[word.lower()]) for word in words if word.lower() in cmudict_dict])
+            syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
             if word_count != 0 and sentence_count != 0 and syllable_count != 0:
                 avg_syllables_per_word = syllable_count / word_count
                 avg_words_per_sentence = word_count / sentence_count
@@ -448,6 +449,113 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
     return result
 
 
+def count_unique_urls(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of unique URLS per text sample."""
+    url_pattern = r'https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
+    return [len(set(re.findall(url_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+
+
+def count_urls(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of URLS per text sample."""
+    url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
+    return [len(re.findall(url_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
+
+
+def count_unique_email_addresses(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of unique email addresses per text sample."""
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    return [len(set(re.findall(email_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+
+
+def count_email_addresses(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of email addresses per text sample."""
+    email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    return [len(re.findall(email_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
+
+
+def count_unique_syllables(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of unique syllables per text sample."""
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, readability score cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    if not nltk_download('cmudict', quiet=True):
+        warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    result = []
+    cmudict_dict = corpus.cmudict.dict()
+    for text in raw_text:
+        if not pd.isna(text):
+            text = remove_punctuation(text.lower())
+            words = word_tokenize(text)
+            syllables = {word: True for word in words if word in cmudict_dict}
+            result.append(len(syllables))
+        else:
+            result.append(np.nan)
+    return result
+
+
+def reading_time(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting time in seconds to read each text sample.
+
+    The formula is based on Demberg & Keller, 2008 where it is assumed that
+    reading a character taken 14.69 milliseconds on average.
+    """
+    ms_per_char = 14.69
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            words = text.split()
+            nchars = map(len, words)
+            rt_per_word = map(lambda nchar: nchar * ms_per_char, nchars)
+            ms_reading_time = sum(list(rt_per_word))
+            result.append(round(ms_reading_time/1000, 2))
+        else:
+            result.append(0.00)
+    return result
+
+
+def sentence_length(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the number of sentences per text sample."""
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            sentence_count = len(sent_tokenize(text))
+            result.append(sentence_count)
+        else:
+            result.append(np.nan)
+    return result
+
+
+def average_syllable_length(raw_text: Sequence[str]) -> List[str]:
+    """Return a list of integers denoting the average number of syllables per sentences per text sample."""
+    if not nltk_download('punkt', quiet=True):
+        warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    if not nltk_download('cmudict', quiet=True):
+        warnings.warn('nltk cmudict not found, average syllable length cannot be calculated.'
+                      ' Please check your internet connection.', UserWarning)
+        return [np.nan] * len(raw_text)
+    cmudict_dict = corpus.cmudict.dict()
+    result = []
+    for text in raw_text:
+        if not pd.isna(text):
+            sentence_count = len(sent_tokenize(text))
+            text = remove_punctuation(text.lower())
+            words = word_tokenize(text)
+            syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
+            result.append(round(syllable_count/sentence_count, 2))
+        else:
+            result.append(np.nan)
+    return result
+
+
 class TextProperty(TypedDict):
     name: str
     method: Callable[..., Sequence[Any]]
@@ -472,13 +580,24 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
 )
 
 
+ALL_PROPERTIES: Tuple[TextProperty, ...] = (
+    {'name': 'Count URLs', 'method': count_urls, 'output_type': 'numeric'},
+    {'name': 'Count Email Address', 'method': count_email_addresses, 'output_type': 'numeric'},
+    {'name': 'Count Unique URLs', 'method': count_unique_urls, 'output_type': 'numeric'},
+    {'name': 'Count Unique Email Address', 'method': count_unique_email_addresses, 'output_type': 'numeric'},
+    {'name': 'Count Unique Syllables', 'method': count_unique_syllables, 'output_type': 'numeric'},
+    {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
+    {'name': 'Sentence Length', 'method': sentence_length, 'output_type': 'numeric'},
+    {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
+) + DEFAULT_PROPERTIES
+
+
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 LARGE_SAMPLE_SIZE = 10_000
 
 ENGLISH_ONLY_PROPERTIES = (
-    'Sentiment', 'Subjectivity', 'Toxicity',
-    'Fluency', 'Formality', 'Readability Score',
-    'Unique Noun Count'
+    'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Readability Score',
+    'Unique Noun Count', 'Count Unique Syllables', 'Sentence Length', 'Average Syllable Length'
 )
 
 
@@ -491,15 +610,18 @@ def _select_properties(
     device: Optional[str] = None,
 ) -> Sequence[TextProperty]:
     """Select properties."""
-    properties = DEFAULT_PROPERTIES
+    all_properties = ALL_PROPERTIES
+    default_properties = DEFAULT_PROPERTIES
 
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
 
     if include_properties is not None:
-        properties = [prop for prop in properties if prop['name'] in include_properties]
+        properties = [prop for prop in all_properties if prop['name'] in include_properties]
     elif ignore_properties is not None:
-        properties = [prop for prop in properties if prop['name'] not in ignore_properties]
+        properties = [prop for prop in default_properties if prop['name'] not in ignore_properties]
+    else:
+        properties = default_properties
 
     if not include_long_calculation_properties:
         return [
@@ -528,7 +650,7 @@ def _select_properties(
     return properties
 
 
-def calculate_default_properties(
+def calculate_builtin_properties(
     raw_text: Sequence[str],
     include_properties: Optional[List[str]] = None,
     ignore_properties: Optional[List[str]] = None,
@@ -543,17 +665,25 @@ def calculate_default_properties(
     raw_text : Sequence[str]
         The text to calculate the properties for.
     include_properties : List[str], default None
-        The properties to calculate. If None, all default properties will be calculated. Cannot be used together
-        with ignore_properties parameter. Available properties are:
+        The properties to calculate. If None, all default properties will be calculated. Cannot be used
+        together with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Readability Score', 'Average Sentence Length']
+        'Readability Score', 'Average Sentence Length', 'Count URLs', Count Unique URLs', 'Count Email Address',
+        'Count Unique Email Address', 'Count Unique Syllables', 'Reading Time', 'Sentence Length',
+        'Average Syllable Length']
+        List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
+        '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
+        'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Sentence Length']
+        To calculate all the default properties, the include_properties and ignore_properties parameters should
+        be None. If you pass either include_properties or ignore_properties then the only the properties specified
+        in the list will be calculated or ignored.
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
         take a long time to calculate. If include_long_calculation_properties is False, these properties will be
         ignored, even if they are in the include_properties parameter.
     ignore_properties : List[str], default None
-        The properties to ignore. If None, no properties will be ignored. Cannot be used together with
-        properties parameter.
+        The properties to ignore from the list of default properties. If None, no properties will be ignored and
+        all the default properties will be calculated. Cannot be used together with include_properties parameter.
     include_long_calculation_properties : bool, default False
         Whether to include properties that may take a long time to calculate. If False, these properties will be
         ignored, even if they are in the include_properties parameter.

@@ -9,18 +9,23 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing common EmbeddingsDrift Check (domain classifier drift) utils."""
+import warnings
 
 import numpy as np
 import pandas as pd
+from numba import NumbaDeprecationWarning
 from sklearn.decomposition import PCA
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split
-from umap import UMAP
 
 from deepchecks.core.check_utils.multivariate_drift_utils import auc_to_drift_score, build_drift_plot
 from deepchecks.nlp import TextData
 from deepchecks.nlp.utils.nlp_plot import two_datasets_scatter_plot
+
+with warnings.catch_warnings():
+    warnings.simplefilter(action='ignore', category=NumbaDeprecationWarning)
+    from umap import UMAP
 
 # Max number of samples to use for dimensionality reduction fit (to make calculation faster):
 SAMPLES_FOR_REDUCTION_FIT = 1000

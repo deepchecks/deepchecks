@@ -103,7 +103,7 @@ def test_token_classification_dataset(small_wikiann_train_test_text_data):
     data, _ = small_wikiann_train_test_text_data
     data = data.copy()
     data._label = np.asarray(list(data._label[:40]) + [None] * 10, dtype=object)
-    data.calculate_default_properties(include_long_calculation_properties=False)
+    data.calculate_builtin_properties(include_long_calculation_properties=False)
     check = UnderAnnotatedPropertySegments().add_condition_segments_relative_performance_greater_than()
 
     # Act
