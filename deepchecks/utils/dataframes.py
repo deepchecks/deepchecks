@@ -13,7 +13,7 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype, is_integer_dtype
+from pandas.core.dtypes.common import is_float_dtype, is_integer_dtype, is_numeric_dtype
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.type_inference import infer_categorical_features
@@ -43,8 +43,10 @@ def default_fill_na_series(col: pd.Series, is_cat_column: t.Optional[bool] = Non
     """Fill NaN values based on column type."""
     if is_cat_column:
         return col.astype('object').fillna('None')
-    else:
+    elif is_numeric_dtype(col):
         return col.fillna(col.mean()).astype('float64')
+    else:
+        return col.fillna(col.mode()[0])
 
 
 def floatify_dataframe(df: pd.DataFrame):

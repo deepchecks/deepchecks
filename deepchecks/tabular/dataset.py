@@ -264,13 +264,6 @@ class Dataset:
                 raise DeepchecksValueError('Categorical features must be a subset of features. '
                                            f'Categorical features {set(cat_features) - set(self._features)} '
                                            'have not been found in feature list.')
-
-            for feat in set(self._features) - set(cat_features):
-                try:
-                    _ = df[feat].astype(float)
-                except ValueError:
-                    raise DeepchecksValueError(f'Feature {feat} passed as numeric feature but cannot be cast to float.')
-
             self._cat_features = list(cat_features)
         else:
             self._cat_features = self._infer_categorical_features(
