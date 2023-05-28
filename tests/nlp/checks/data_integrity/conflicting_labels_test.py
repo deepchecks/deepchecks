@@ -277,3 +277,25 @@ def assert_display_table(display: t.Sequence[t.Any]):
     assert_that(table.index.names,equal_to(["Observed Labels", "Sample IDs"]))
     assert_that(table.columns,equal_to(["Text"]))
 
+
+def test_inspect_long_samples():
+    # Arrange
+    dataset = TextData(
+        label=[0, 1, 2],
+        task_type="text_classification",
+        raw_text=[
+            ' '.join(["aa"] * 500),
+            ' '.join(["aa"] * 500),
+            ' '.join(["aa"] * 600),
+        ]
+    )
+    check = ConflictingLabels()
+
+    # Act
+    result = check.run(dataset=dataset)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        "percent_of_conflicting_samples": close_to(0.66, 0.01),
+        "conflicting_samples": instance_of(pd.DataFrame),
+    }))

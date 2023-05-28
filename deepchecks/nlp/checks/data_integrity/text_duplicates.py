@@ -79,6 +79,15 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
     def _truncate_text(self, x: str) -> str:
         return truncate_string(x, self.max_text_length_for_display)
 
+    def _create_df(self, dataset, samples):
+        sample_hashes = hash_samples(normalize_samples(samples, **self._text_normalization_kwargs))
+        df = pd.DataFrame({
+            'Text': samples,
+            'hash': sample_hashes,
+            'Sample ID': dataset.get_original_text_indexes()
+        })
+        return df
+
     def run_logic(self, context: Context, dataset_kind):
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
@@ -88,14 +97,11 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
 
         # First run logic on truncated samples to speed up computation
         truncated_samples = [cut_string(x) for x in dataset.text]
-        truncated_sample_hashes = hash_samples(normalize_samples(truncated_samples, **self._text_normalization_kwargs))
-        df_truncated = pd.DataFrame({
-            'Text': truncated_samples,
-            'hash': truncated_sample_hashes
-        })
+        df_truncated = self._create_df(dataset, truncated_samples)
+
         grouped_samples_truncated = df_truncated.groupby(by=['hash'], dropna=False, group_keys=True)
         reinspect_idx = df_truncated[grouped_samples_truncated['Text'].transform('count') > 1].index.to_list()
-        # At this stage, what was detected as unique is really unique
+        # At this stage, what was detected as unique is actually unique
         n_of_unique += sum(grouped_samples_truncated['Text'].transform('count') == 1)
 
         # Reinspect samples that are truncated
@@ -106,13 +112,7 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
 
         samples = dataset.text
 
-        sample_hashes = hash_samples(normalize_samples(samples, **self._text_normalization_kwargs))
-
-        df = pd.DataFrame({
-            'Text': samples,
-            'hash': sample_hashes,
-            'Sample ID': dataset.get_original_text_indexes()
-        })
+        df = self._create_df(dataset, samples)
         grouped_samples = df.groupby(by=['hash'], dropna=False)
         counted_samples = grouped_samples['Text'].size()
         # Once we arrived here (inspecting only samples suspected to be duplicates), we can add them to the count

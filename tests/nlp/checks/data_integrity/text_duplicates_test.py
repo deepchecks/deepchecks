@@ -196,3 +196,24 @@ def assert_display(display: t.Sequence[t.Any]):
         table.columns,
         equal_to(["Text"])
     )
+
+
+def test_inspect_long_samples():
+    # Arrange
+    dataset = TextData(raw_text=[
+        ''.join(['aa'] * 500),
+        ''.join(['aa'] * 500),
+        ''.join(['aa'] * 600)
+    ])
+
+    check = TextDuplicates()
+
+    # Act
+    result = check.run(dataset=dataset)
+
+    # Assert
+    assert_that(result, instance_of(CheckResult))
+    assert_that(result.value, has_entries({
+        "percent_of_duplicates": close_to(0.33, 0.01),
+        "duplicates": instance_of(pd.DataFrame)
+    }))

@@ -102,6 +102,23 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         ambiguous_samples_hashes = n_of_labels_per_sample[n_of_labels_per_sample > 1]
         return frozenset(ambiguous_samples_hashes.index.to_list())
 
+    def _get_df_and_labels(self, dataset, samples):
+        samples_hashes = hash_samples(normalize_samples(
+            samples,
+            **self._text_normalization_kwargs
+        ))
+
+        labels = self._get_labels(dataset)
+
+        df = pd.DataFrame({
+            'hash': samples_hashes,
+            'Sample ID': dataset.get_original_text_indexes(),
+            'Label': labels,
+            'Text': dataset.text,
+        })
+
+        return df, labels
+
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
@@ -114,24 +131,14 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
 
         # Reduce dataset by first checking on truncated strings
         truncated_samples = [cut_string(x) for x in dataset.text]
-        truncated_samples_hashes = hash_samples(normalize_samples(
-            truncated_samples,
-            **self._text_normalization_kwargs
-        ))
 
-        labels = self._get_labels(dataset)
-
-        df = pd.DataFrame({
-            'hash': truncated_samples_hashes,
-            'Sample ID': dataset.get_original_text_indexes(),
-            'Label': labels,
-            'Text': dataset.text,
-        })
+        df, labels = self._get_df_and_labels(dataset, truncated_samples)
 
         ambiguous_samples_hashes = self._get_conflicting_indices(df)
         indices_to_reinspect = df[df['hash'].isin(ambiguous_samples_hashes)].index.to_list()
         dataset = dataset.copy(rows_to_use=indices_to_reinspect)
 
+        # Rest of the code can't handle empty dataset
         if len(dataset) == 0:
             result_value = dict(percent_of_conflicting_samples=0, conflicting_samples=pd.DataFrame(
                 index=pd.MultiIndex(levels=[[], [], []], codes=[[], [], []], names=['Duplicate', 'Sample ID', 'Label']),
@@ -139,19 +146,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             return CheckResult(value=result_value)
 
         # Now that we have narrowed down the dataset, we can check on full strings
-        samples_hashes = hash_samples(normalize_samples(
-            dataset.text,
-            **self._text_normalization_kwargs
-        ))
-
-        labels = self._get_labels(dataset)
-
-        df = pd.DataFrame({
-            'hash': samples_hashes,
-            'Sample ID': dataset.get_original_text_indexes(),
-            'Label': labels,
-            'Text': dataset.text,
-        })
+        df, labels = self._get_df_and_labels(dataset, dataset.text)
 
         ambiguous_samples_hashes = self._get_conflicting_indices(df)
 
