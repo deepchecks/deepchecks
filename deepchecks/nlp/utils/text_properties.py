@@ -61,6 +61,11 @@ def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, ret
         if len(all_units) > limit:
             all_units = np.random.choice(all_units, size=limit, replace=False)
     elif mode == 'sentences':
+        if not nltk_download('punkt', quiet=True):
+            warnings.warn('nltk punkt not found, property cannot be calculated.'
+                          ' Please check your internet connection.', UserWarning)
+            return None
+
         all_units = sent_tokenize(text)
         if len(all_units) > limit:
             all_units = np.random.choice(all_units, size=limit, replace=False)
@@ -465,10 +470,6 @@ def readability_score(raw_text: Sequence[str]) -> List[float]:
     whereas lower numbers mark texts that are more difficult to read. For more information:
     https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
     """
-    if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, readability score cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
     if not nltk_download('cmudict', quiet=True):
         warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
                       ' Please check your internet connection.', UserWarning)
@@ -499,10 +500,6 @@ def readability_score(raw_text: Sequence[str]) -> List[float]:
 
 def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
     """Return a list of floats denoting the average sentence length per text sample."""
-    if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, average sentence length cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
     result = []
     raw_text_sentences = _sample_many_for_property(raw_text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
                                                    return_as_list=True)
