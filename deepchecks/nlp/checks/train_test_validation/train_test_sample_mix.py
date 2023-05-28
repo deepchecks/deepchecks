@@ -11,6 +11,7 @@
 """Module contains train-test samples mix check."""
 import typing as t
 
+import numpy as np
 import pandas as pd
 
 from deepchecks.core import CheckResult
@@ -18,7 +19,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, TrainTestCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text import hash_samples, normalize_samples
+from deepchecks.nlp.utils.text import cut_string, hash_samples, normalize_samples
 from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list, format_percent
@@ -80,20 +81,8 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
     def _truncate_text(self, x: str) -> str:
         return truncate_string(x, self.max_text_length_for_display)
 
-    def run_logic(self, context: Context) -> CheckResult:
-        """Run check."""
-        train = context.train.sample(self.n_samples, random_state=self.random_state)
-        test = context.test.sample(self.n_samples, random_state=self.random_state)
-        train = t.cast(TextData, train)
-        test = t.cast(TextData, test)
-        train_samples = t.cast(t.Sequence[str], train.text)
-        test_samples = t.cast(t.Sequence[str], test.text)
-
-        if len(train_samples) == 0:
-            raise DeepchecksValueError('Train dataset cannot be empty')
-        if len(test_samples) == 0:
-            raise DeepchecksValueError('Test dataset cannot be empty')
-
+    def _get_duplicate_indices(self, train: TextData, test: TextData,
+                               train_samples: t.Sequence[str], test_samples: t.Sequence[str]):
         normalization_kwargs = self._text_normalization_kwargs
         train_sample_hashes = hash_samples(normalize_samples(train_samples, **normalization_kwargs))
         test_sample_hashes = hash_samples(normalize_samples(test_samples, **normalization_kwargs))
@@ -113,7 +102,49 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
 
         hash_intersection = set(train_sample_hashes).intersection(set(test_sample_hashes))
         df = pd.concat([test_df, train_df])
-        df = df[df['hash'].isin(hash_intersection)]
+        return df['hash'].isin(hash_intersection), df, train_df, test_df
+
+    def run_logic(self, context: Context) -> CheckResult:
+        """Run check."""
+        train = context.train.sample(self.n_samples, random_state=self.random_state)
+        test = context.test.sample(self.n_samples, random_state=self.random_state)
+        train = t.cast(TextData, train)
+        test = t.cast(TextData, test)
+        train_samples = t.cast(t.Sequence[str], train.text)
+        test_samples = t.cast(t.Sequence[str], test.text)
+
+        if len(train_samples) == 0:
+            raise DeepchecksValueError('Train dataset cannot be empty')
+        if len(test_samples) == 0:
+            raise DeepchecksValueError('Test dataset cannot be empty')
+
+        # First run on truncated dataset
+        train_truncated = [cut_string(x) for x in train_samples]
+        test_truncated = [cut_string(x) for x in test_samples]
+
+        duplicate_bool_df = self._get_duplicate_indices(train, test, train_truncated, test_truncated)[0]
+        train_indices_reinspect = duplicate_bool_df.iloc[:len(train_samples)]
+        train_indices_reinspect = np.where(train_indices_reinspect.values)[0]
+        test_indices_reinspect = duplicate_bool_df.iloc[len(train_samples):]
+        test_indices_reinspect = np.where(test_indices_reinspect.values)[0]
+
+        # keep only samples that where found to be duplicates after cut_string
+        train = train.copy(train_indices_reinspect.tolist())
+        test = test.copy(test_indices_reinspect.tolist())
+
+        train_samples = t.cast(t.Sequence[str], train.text)
+        test_samples = t.cast(t.Sequence[str], test.text)
+
+        if (len(train_samples) == 0) or (len(test_samples) == 0):
+            result_value = {
+                'ratio': 0,
+                'duplicates': None
+            }
+            return CheckResult(value=result_value)
+
+        bool_df, df, train_df, test_df = self._get_duplicate_indices(train, test, train_samples, test_samples)
+        df = df[bool_df]
+
         n_of_test_duplicates = df[df['Dataset'] == 'test']['Text'].count()
         n_of_test_samples = test_df.shape[0]
         duplicates_ratio = n_of_test_duplicates / n_of_test_samples
@@ -126,9 +157,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
 
         result_value = {
             'ratio': duplicates_ratio,
-            'duplicates': result_df,
-            'train': train_df,
-            'test': test_df
+            'duplicates': result_df
         }
 
         if context.with_display is False or duplicates_ratio == 0:

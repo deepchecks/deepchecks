@@ -17,7 +17,7 @@ from deepchecks.core import CheckResult
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text import hash_samples, normalize_samples
+from deepchecks.nlp.utils.text import cut_string, hash_samples, normalize_samples
 from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list, format_percent
@@ -83,7 +83,24 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset = t.cast(TextData, dataset)
+
+        # First run logic on truncated samples to speed up computation
+        truncated_samples = [cut_string(x) for x in dataset.text]
+        truncated_sample_hashes = hash_samples(normalize_samples(truncated_samples, **self._text_normalization_kwargs))
+        df_truncated = pd.DataFrame({
+            'Text': truncated_samples,
+            'hash': truncated_sample_hashes
+        })
+        grouped_samples_truncated = df_truncated.groupby(by=['hash'], dropna=False, group_keys=True)
+        reinspect_idx = df_truncated[grouped_samples_truncated['Text'].transform('count') > 1].index.to_list()
+
+        # Reinspect samples that are truncated
+        dataset = dataset.copy(rows_to_use=reinspect_idx)
+        if len(dataset) == 0:
+            return CheckResult(value={'percent_of_duplicates': 0})
+
         samples = dataset.text
+
         sample_hashes = hash_samples(normalize_samples(samples, **self._text_normalization_kwargs))
 
         df = pd.DataFrame({
