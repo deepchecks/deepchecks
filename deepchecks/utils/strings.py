@@ -388,7 +388,7 @@ def str_min_find(s: str, substr_list: t.Iterable[str]) -> t.Tuple[int, str]:
 
 def split_and_keep(s: str, separators: t.Union[str, t.Iterable[str]]) -> t.List[str]:
     """
-    Split string by a another substring into a list. Like str.split(), but keeps the separator occurrences in the list.
+    Split string by another substring into a list. Like str.split(), but keeps the separator occurrences in the list.
 
     Parameters
     ----------
@@ -423,7 +423,7 @@ def split_and_keep(s: str, separators: t.Union[str, t.Iterable[str]]) -> t.List[
 
 def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.List[str]:
     """
-    Split string by a a list of substrings, each used once as a separator.
+    Split string by a list of substrings, each used once as a separator.
 
     Parameters
     ----------

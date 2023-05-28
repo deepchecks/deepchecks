@@ -27,6 +27,7 @@ from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
 from typing_extensions import TypedDict
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
@@ -62,35 +63,37 @@ class PropertyCache:
 text_blob_cache = PropertyCache()
 
 
-def _sample_for_property(text: str, delimiter: str=' ', limit: int=10000, random_seed: int=42):
+def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, random_seed: int = 42):
     """Get a sample a single text sample for a text property.
 
     Parameters
     ----------
     text : str
         The text to sample from.
-    delimiter : str, default ' '
-        The delimiter to use separating the sample to single units.
-        In order to sample characters, use '' (empty string).
-        In order to sample words, use ' ' (space).
-        In order to sample sentences, use '. ' (dot and space). #TODO: add more stop chars such as \n
+    mode : str, default 'words'
+        The mode to sample in. Can be either 'characters', 'words' or 'sentences'.
     limit : int, default 1000
         The maximum number of words or sentences to sample.
     """
     np.random.seed(random_seed)
-    if delimiter == '':
+    if mode == 'characters':
         if len(text) <= limit:
             return text
         else:
-            all_units = np.random.choice(text, size=limit, replace=False)
+            all_units = np.random.choice(list(text), size=limit, replace=False)
             return ''.join(all_units)
-    else:
-        all_units = text.split(delimiter)
-        # limit = len(all_units)
+    elif mode == 'words':
+        all_units = re.split('\W+', text)
         if len(all_units) > limit:
             all_units = np.random.choice(all_units, size=limit, replace=False)
-        return delimiter.join(all_units)
-
+        return ' '.join(all_units)
+    elif mode == 'sentences':
+        all_units = sent_tokenize(text)
+        if len(all_units) > limit:
+            all_units = np.random.choice(all_units, size=limit, replace=False)
+        return ' '.join(all_units)
+    else:
+        raise DeepchecksValueError(f'Unexpected mode - {mode}')
 
 
 def _import_optional_property_dependency(
@@ -323,7 +326,7 @@ def sentiment(raw_text: Sequence[str]) -> List[float]:
     if text_blob_cache.get('textblob') is None:
         # TextBlob uses only the words and not the relations between them, so we can sample the text
         # to speed up the process:
-        raw_text = [_sample_for_property(text=text, delimiter=' ') for text in raw_text]
+        raw_text = [_sample_for_property(text=text, mode='words') for text in raw_text]
         text_blob_cache.set('textblob', [textblob.TextBlob(text).sentiment for text in raw_text])
     print(f'Elapsed time: {datetime.now() - start}')
     return [calc.polarity for calc in text_blob_cache.get('textblob')]
@@ -335,7 +338,7 @@ def subjectivity(raw_text: Sequence[str]) -> List[float]:
     if text_blob_cache.get('textblob') is None:
         # TextBlob uses only the words and not the relations between them, so we can sample the text
         # to speed up the process:
-        raw_text = [_sample_for_property(text=text, delimiter=' ') for text in raw_text]
+        raw_text = [_sample_for_property(text=text, mode='words') for text in raw_text]
         text_blob_cache.set('textblob', [textblob.TextBlob(text).sentiment for text in raw_text])
     print(f'Elapsed time: {datetime.now() - start}')
     return [calc.subjectivity for calc in text_blob_cache.get('textblob')]
