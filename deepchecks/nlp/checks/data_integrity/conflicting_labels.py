@@ -133,10 +133,9 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         dataset = dataset.copy(rows_to_use=indices_to_reinspect)
 
         if len(dataset) == 0:
-            result_value = {
-                'percent_of_conflicting_samples': 0,
-                'conflicting_samples': None
-            }
+            result_value = dict(percent_of_conflicting_samples=0, conflicting_samples=pd.DataFrame(
+                index=pd.MultiIndex(levels=[[], [], []], codes=[[], [], []], names=['Duplicate', 'Sample ID', 'Label']),
+                columns=['Text']))
             return CheckResult(value=result_value)
 
         # Now that we have narrowed down the dataset, we can check on full strings

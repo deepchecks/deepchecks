@@ -83,6 +83,8 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         dataset = t.cast(TextData, dataset)
+        n_of_unique = 0
+        n_of_samples = len(dataset)
 
         # First run logic on truncated samples to speed up computation
         truncated_samples = [cut_string(x) for x in dataset.text]
@@ -93,11 +95,14 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         })
         grouped_samples_truncated = df_truncated.groupby(by=['hash'], dropna=False, group_keys=True)
         reinspect_idx = df_truncated[grouped_samples_truncated['Text'].transform('count') > 1].index.to_list()
+        # At this stage, what was detected as unique is really unique
+        n_of_unique += sum(grouped_samples_truncated['Text'].transform('count') == 1)
 
         # Reinspect samples that are truncated
         dataset = dataset.copy(rows_to_use=reinspect_idx)
         if len(dataset) == 0:
-            return CheckResult(value={'percent_of_duplicates': 0})
+            return CheckResult(value={'percent_of_duplicates': 0,
+                                      'duplicates': pd.DataFrame()})
 
         samples = dataset.text
 
@@ -110,8 +115,8 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         })
         grouped_samples = df.groupby(by=['hash'], dropna=False)
         counted_samples = grouped_samples['Text'].size()
-        n_of_unique = len(counted_samples)
-        n_of_samples = df.shape[0]
+        # Once we arrived here (inspecting only samples suspected to be duplicates), we can add them to the count
+        n_of_unique += len(counted_samples)
         percent_of_duplicates = 1 - n_of_unique / n_of_samples
 
         counted_duplicates = counted_samples[counted_samples > 1]

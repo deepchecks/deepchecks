@@ -45,17 +45,17 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
     """
 
     def __init__(
-        self,
-        ignore_case: bool = True,
-        remove_punctuation: bool = True,
-        normalize_unicode: bool = True,
-        remove_stopwords: bool = True,
-        ignore_whitespace: bool = False,
-        n_samples: int = 10_000_000,
-        n_to_show: int = 10,
-        random_state: int = 42,
-        max_text_length_for_display: int = 30,
-        **kwargs
+            self,
+            ignore_case: bool = True,
+            remove_punctuation: bool = True,
+            normalize_unicode: bool = True,
+            remove_stopwords: bool = True,
+            ignore_whitespace: bool = False,
+            n_samples: int = 10_000_000,
+            n_to_show: int = 10,
+            random_state: int = 42,
+            max_text_length_for_display: int = 30,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.ignore_case = ignore_case
@@ -102,7 +102,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
 
         hash_intersection = set(train_sample_hashes).intersection(set(test_sample_hashes))
         df = pd.concat([test_df, train_df])
-        return df['hash'].isin(hash_intersection), df, train_df, test_df
+        return df['hash'].isin(hash_intersection), df, test_df
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -112,6 +112,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         test = t.cast(TextData, test)
         train_samples = t.cast(t.Sequence[str], train.text)
         test_samples = t.cast(t.Sequence[str], test.text)
+        n_of_test_samples = len(test_samples)
 
         if len(train_samples) == 0:
             raise DeepchecksValueError('Train dataset cannot be empty')
@@ -123,9 +124,9 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         test_truncated = [cut_string(x) for x in test_samples]
 
         duplicate_bool_df = self._get_duplicate_indices(train, test, train_truncated, test_truncated)[0]
-        train_indices_reinspect = duplicate_bool_df.iloc[:len(train_samples)]
+        train_indices_reinspect = duplicate_bool_df.iloc[len(test_samples):]
         train_indices_reinspect = np.where(train_indices_reinspect.values)[0]
-        test_indices_reinspect = duplicate_bool_df.iloc[len(train_samples):]
+        test_indices_reinspect = duplicate_bool_df.iloc[:len(test_samples)]
         test_indices_reinspect = np.where(test_indices_reinspect.values)[0]
 
         # keep only samples that where found to be duplicates after cut_string
@@ -138,15 +139,17 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         if (len(train_samples) == 0) or (len(test_samples) == 0):
             result_value = {
                 'ratio': 0,
-                'duplicates': None
+                'duplicates': pd.DataFrame(
+                    index=pd.MultiIndex(levels=[[], [], []], codes=[[], [], []],
+                                        names=['Duplicate', 'Dataset', 'Sample ID']),
+                    columns=['Text'])
             }
             return CheckResult(value=result_value)
 
-        bool_df, df, train_df, test_df = self._get_duplicate_indices(train, test, train_samples, test_samples)
+        bool_df, df, test_df = self._get_duplicate_indices(train, test, train_samples, test_samples)
         df = df[bool_df]
 
         n_of_test_duplicates = df[df['Dataset'] == 'test']['Text'].count()
-        n_of_test_samples = test_df.shape[0]
         duplicates_ratio = n_of_test_duplicates / n_of_test_samples
 
         result_df = df.rename(columns={'hash': 'Duplicate'})
