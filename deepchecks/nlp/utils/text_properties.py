@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the text properties for the NLP module."""
+import gc
 import importlib
 import pathlib
 import re
@@ -34,6 +35,30 @@ __all__ = ['calculate_builtin_properties']
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
+
+
+class PropertyCache:
+    """Cache for text properties.
+
+    This class is used to cache results of text properties that can be reused on the same dataset, such as "sentiment"
+    and "subjectivity" in TextBlob, which use the same calculation."""
+    def __init__(self):
+        self._cache = {}
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Get a value from the cache, or return the default value if it doesn't exist."""
+        return self._cache.get(key, default)
+
+    def set(self, key: str, value: Any) -> None:
+        """Set a value in the cache."""
+        self._cache[key] = value
+
+    def clear(self) -> None:
+        """Clear the cache."""
+        self._cache.clear()
+
+
+text_blob_cache = PropertyCache()
 
 
 def _import_optional_property_dependency(
@@ -260,14 +285,25 @@ def language(
     return language_codes
 
 
-def sentiment(raw_text: Sequence[str]) -> List[str]:
+def sentiment(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of sentiment."""
-    return [textblob.TextBlob(text).sentiment.polarity for text in raw_text]
+    if text_blob_cache.get('textblob') is None:
+        text_blob_cache.set('textblob', [textblob.TextBlob(text).sentiment for text in raw_text])
+    return [calc.polarity for calc in text_blob_cache.get('textblob')]
 
 
-def subjectivity(raw_text: Sequence[str]) -> List[str]:
+def subjectivity(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of subjectivity."""
-    return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
+    # return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
+    if text_blob_cache.get('textblob') is None:
+        text_blob_cache.set('textblob', [textblob.TextBlob(text).sentiment for text in raw_text])
+    return [calc.subjectivity for calc in text_blob_cache.get('textblob')]
+
+
+def sentiment_and_subjectivity(raw_text: Sequence[float]) -> Tuple[List[float], List[float]]:
+    """Return list of floats of sentiment."""
+    textblob_full_calc = [textblob.TextBlob(text).sentiment for text in raw_text]
+    return [calc[0] for calc in textblob_full_calc], [calc[1] for calc in textblob_full_calc]
 
 
 def _predict(text, classifier, kind):
@@ -716,7 +752,6 @@ def calculate_builtin_properties(
     kwargs = dict(device=device, models_storage=models_storage)
     english_properties_names = set(ENGLISH_ONLY_PROPERTIES)
     text_properties_names = {it['name'] for it in text_properties}
-    samples_language = None
     english_samples = []
     english_samples_mask = []
     calculated_properties = {}
@@ -788,6 +823,10 @@ def calculate_builtin_properties(
                     else:
                         result.append(fill_value)
                 calculated_properties[prop['name']] = result
+
+    # Clear property caches:
+    text_blob_cache.clear()
+    gc.collect()
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
