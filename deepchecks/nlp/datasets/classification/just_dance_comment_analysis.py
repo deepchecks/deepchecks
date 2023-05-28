@@ -174,7 +174,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
         If True, the returned data will be the full dataset, otherwise returns a subset of the data.
     include_properties : bool, default: True
         If True, the returned data will include properties of the comments. Incompatible with data_format='DataFrame'
-    include_embeddings : bool, default: True
+    include_embeddings : bool, default: False
         If True, the returned data will include embeddings of the comments. Incompatible with data_format='DataFrame'
 
     Returns
@@ -185,10 +185,11 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
         tuple if as_train_test = True. Tuple of two objects represents the dataset split to train and test sets.
     """
     if data_format.lower() not in ['textdata', 'dataframe']:
-        raise ValueError('data_format must be either "Dataset" or "Dataframe"')
+        raise ValueError('data_format must be either "TextData" or "Dataframe"')
     elif data_format.lower() == 'dataframe':
         if include_properties or include_embeddings:
-            warnings.warn('include_properties and include_embeddings are incompatible with data_format="Dataframe"',
+            warnings.warn('include_properties and include_embeddings are incompatible with data_format="Dataframe". '
+                          'loading only original text data.',
                           UserWarning)
             include_properties, include_embeddings = False, False
 
