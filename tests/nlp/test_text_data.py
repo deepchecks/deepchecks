@@ -16,7 +16,6 @@ from hamcrest import assert_that, calling, contains_exactly, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
-from deepchecks.nlp.utils.text_properties import LONG_RUN_PROPERTIES
 
 
 def test_text_data_init():
@@ -184,7 +183,7 @@ def test_properties(text_classification_dataset_mock):
     # Act & Assert
     assert_that(dataset._properties, equal_to(None))
     # TODO: Create test for the heavy properties
-    dataset.calculate_default_properties(ignore_properties=['topic', *LONG_RUN_PROPERTIES])
+    dataset.calculate_builtin_properties(include_long_calculation_properties = False)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
     assert_that(properties.shape[1], equal_to(10))
@@ -201,7 +200,7 @@ def test_properties(text_classification_dataset_mock):
 
 def test_embeddings():
     ds = TextData(['my name is inigo montoya', 'you killed my father', 'prepare to die'])
-    ds.calculate_default_embeddings()
+    ds.calculate_builtin_embeddings()
     assert_that(ds.embeddings.shape, equal_to((3, 384)))
 
 

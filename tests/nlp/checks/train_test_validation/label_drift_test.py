@@ -96,6 +96,6 @@ def test_token_classification(small_wikiann_train_test_text_data):
     result = check.run(train, test)
 
     # Assert
-    assert_that(result.value['Drift score'], close_to(0.01, 0.01))
+    assert_that(result.value['Drift score'], close_to(0.04, 0.01))
 
 

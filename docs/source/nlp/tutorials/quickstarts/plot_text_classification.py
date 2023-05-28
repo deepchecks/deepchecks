@@ -281,8 +281,8 @@ test.set_embeddings(test_embeddings)
 # You can also calculate the embeddings using deepchecks, either using an
 # open-source sentence-transformer or using Open AI’s embedding API.
 
-# train.calculate_default_embeddings()
-# test.calculate_default_embeddings()
+# train.calculate_builtin_embeddings()
+# test.calculate_builtin_embeddings()
 
 # %%
 #

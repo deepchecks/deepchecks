@@ -17,7 +17,10 @@ import plotly.express as px
 import plotly.graph_objs as go
 
 from deepchecks.nlp import TextData
+from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
+from deepchecks.nlp.utils.token_classification_utils import (annotated_token_classification_text,
+                                                             count_token_classification_labels)
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors, common_and_outlier_colors
@@ -122,6 +125,8 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
         xaxis_layout = dict(type='category')
 
     else:
+        dist = dist[~pd.isnull(dist)]
+
         x_range = (
             dist.min(), dist.max()
         )
@@ -259,12 +264,27 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
         dataset_names = DEFAULT_DATASET_NAMES
 
     plot_data['Dataset'] = [dataset_names[0]] * len(train_dataset) + [dataset_names[1]] * len(test_dataset)
-    if train_dataset.has_label():
-        plot_data['Label'] = list(train_dataset.label_for_display(model_classes=model_classes)) + \
-                             list(test_dataset.label_for_display(model_classes=model_classes))
+
+    if train_dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
+        plot_data['Sample'] = np.concatenate([train_dataset.tokenized_text, test_dataset.tokenized_text])
+
+        if train_dataset.has_label():
+            plot_data['Label'] = list(train_dataset.label_for_display(model_classes=model_classes)) + \
+                                 list(test_dataset.label_for_display(model_classes=model_classes))
+            plot_data['Sample'] = annotated_token_classification_text(plot_data['Sample'], plot_data['Label'])
+            # Displayed labels are the counts of each label in the dataset:
+            plot_data['Label'] = [break_to_lines_and_trim(str(count_token_classification_labels(x)))
+                                  for x in plot_data['Label']]
+        else:
+            plot_data['Label'] = None
     else:
-        plot_data['Label'] = None
-    plot_data['Sample'] = np.concatenate([train_dataset.text, test_dataset.text])
+        if train_dataset.has_label():
+            plot_data['Label'] = list(train_dataset.label_for_print(model_classes=model_classes)) + \
+                                 list(test_dataset.label_for_print(model_classes=model_classes))
+        else:
+            plot_data['Label'] = None
+        plot_data['Sample'] = np.concatenate([train_dataset.text, test_dataset.text])
+
     plot_data['Sample'] = plot_data['Sample'].apply(break_to_lines_and_trim)
 
     fig = px.scatter(plot_data, x=axes[0], y=axes[1], color='Dataset', color_discrete_map=colors,
