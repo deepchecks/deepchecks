@@ -69,6 +69,7 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     # Assert
     assert_that(result_ds, has_length(11))
 
+
 def test_other_feature(kiss_dataset_and_model):
     train, _, clf = kiss_dataset_and_model
     # Arrange

@@ -62,7 +62,7 @@ def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
     assert_that(result.value['avg_score'], close_to(0.5, 0.001))
     assert_that(len(result.value['weak_segments_list']), equal_to(5))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.366, 0.01))
-    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_age'))
+    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_region'))
 
 
 def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_textdata):
@@ -81,7 +81,7 @@ def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_tex
     assert_that(result.value['avg_score'], close_to(0.844, 0.001))
     assert_that(len(result.value['weak_segments_list']), equal_to(6))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0, 0.01))
-    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_age'))
+    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_region'))
 
 
 def test_tweet_emotion_metadata_fully_annotated(tweet_emotion_train_test_textdata):
@@ -148,5 +148,5 @@ def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
     ))
 
     assert_that(result.value['avg_score'], close_to(0.5, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(5))
+    assert_that(len(result.value['weak_segments_list']), equal_to(4))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.326, 0.01))

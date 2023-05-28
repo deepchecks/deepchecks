@@ -24,8 +24,9 @@ def get_relevant_data_table(text_data: TextData, data_type: str, columns: Union[
                             ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int]):
     """Get relevant data table from the database."""
     if data_type == 'metadata':
-        features = select_from_dataframe(text_data.metadata, columns, ignore_columns)
-        cat_features = [col for col in features.columns if col in text_data.categorical_metadata_columns]
+        relevant_metadata = text_data.metadata[text_data.categorical_metadata + text_data.numerical_metadata]
+        features = select_from_dataframe(relevant_metadata, columns, ignore_columns)
+        cat_features = [col for col in features.columns if col in text_data.categorical_metadata]
 
     elif data_type == 'properties':
         features = select_from_dataframe(text_data.properties, columns, ignore_columns)
