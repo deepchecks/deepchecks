@@ -102,7 +102,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
 
         hash_intersection = set(train_sample_hashes).intersection(set(test_sample_hashes))
         df = pd.concat([test_df, train_df])
-        return df['hash'].isin(hash_intersection), df, test_df
+        return df['hash'].isin(hash_intersection), df
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check."""
@@ -146,7 +146,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
             }
             return CheckResult(value=result_value)
 
-        bool_df, df, test_df = self._get_duplicate_indices(train, test, train_samples, test_samples)
+        bool_df, df = self._get_duplicate_indices(train, test, train_samples, test_samples)
         df = df[bool_df]
 
         n_of_test_duplicates = df[df['Dataset'] == 'test']['Text'].count()
