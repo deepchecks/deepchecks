@@ -146,8 +146,8 @@ def model_evaluation(n_samples: int = None,
 
     return Suite(
         'Model Evaluation Suite',
-        TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         PredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+        TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         PropertySegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         MetadataSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
     )
