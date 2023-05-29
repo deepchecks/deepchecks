@@ -49,3 +49,4 @@ beautifulsoup4>=4.11.1
 nltk<=3.6.7
 datasets
 langdetect
+textblob
