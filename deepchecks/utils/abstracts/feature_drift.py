@@ -14,6 +14,7 @@ import textwrap
 import typing as t
 
 import pandas as pd
+from typing_extensions import Self
 
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
@@ -159,11 +160,11 @@ class FeatureDriftAbstract(abc.ABC):
         return results, displays
 
     def add_condition_drift_score_less_than(
-        self: t.Self,
+        self: Self,
         max_allowed_categorical_score: float = 0.2,
         max_allowed_numeric_score: float = 0.2,
         allowed_num_features_exceeding_threshold: int = 0
-    ) -> t.Self:
+    ) -> Self:
         """
         Add condition - require drift score to be less than the threshold.
 

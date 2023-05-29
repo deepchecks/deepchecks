@@ -13,6 +13,7 @@ import abc
 import typing as t
 
 import pandas as pd
+from typing_extensions import Self
 
 from deepchecks import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
@@ -75,7 +76,7 @@ class LabelDriftAbstract(abc.ABC):
 
         return CheckResult(value=values_dict, display=displays, header='Label Drift')
 
-    def add_condition_drift_score_less_than(self, max_allowed_drift_score: float = 0.15) -> t.Self:
+    def add_condition_drift_score_less_than(self, max_allowed_drift_score: float = 0.15) -> Self:
         """
         Add condition - require drift score to be less than the threshold.
 
