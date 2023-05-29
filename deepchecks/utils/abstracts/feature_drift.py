@@ -14,7 +14,6 @@ import textwrap
 import typing as t
 
 import pandas as pd
-from typing_extensions import Literal, Self
 
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
@@ -41,7 +40,7 @@ class FeatureDriftAbstract(abc.ABC):
 
     def _calculate_feature_drift(
         self,
-        drift_kind: Literal['tabular-features', 'nlp-properties'],
+        drift_kind: t.Literal['tabular-features', 'nlp-properties'],
         train: pd.DataFrame,
         test: pd.DataFrame,
         common_columns: t.Dict[str, str],
@@ -160,11 +159,11 @@ class FeatureDriftAbstract(abc.ABC):
         return results, displays
 
     def add_condition_drift_score_less_than(
-        self: Self,
+        self: t.Self,
         max_allowed_categorical_score: float = 0.2,
         max_allowed_numeric_score: float = 0.2,
         allowed_num_features_exceeding_threshold: int = 0
-    ) -> Self:
+    ) -> t.Self:
         """
         Add condition - require drift score to be less than the threshold.
 

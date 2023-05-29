@@ -75,7 +75,7 @@ class LabelDriftAbstract(abc.ABC):
 
         return CheckResult(value=values_dict, display=displays, header='Label Drift')
 
-    def add_condition_drift_score_less_than(self, max_allowed_drift_score: float = 0.15):
+    def add_condition_drift_score_less_than(self, max_allowed_drift_score: float = 0.15) -> t.Self:
         """
         Add condition - require drift score to be less than the threshold.
 
