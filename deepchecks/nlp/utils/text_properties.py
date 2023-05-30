@@ -27,7 +27,7 @@ from nltk import sent_tokenize, word_tokenize
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text import remove_punctuation
+from deepchecks.nlp.utils.text import remove_punctuation, hash_text, normalize_text
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
 
@@ -37,7 +37,29 @@ MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
 properties_cache = {}
+words_tokens_cache = {}
+sentence_tokens_cache = {}
+secret_cache = {}
 
+
+def _word_tokenize_with_cache(text):
+    """Tokenize a text into words and cache the result."""
+    hash_key = hash_text(text)
+    if hash_key not in words_tokens_cache:
+        words_tokens_cache[hash_key] = re.split(
+            r'\W+', normalize_text(text, remove_stops=False, ignore_whitespace=False))
+    return words_tokens_cache[hash_key]
+
+
+def _sent_tokenize_with_cache(text):
+    """Tokenize a text into sentences and cache the result."""
+    hash_key = hash_text(text)
+    if hash_key not in sentence_tokens_cache:
+        if not nltk_download('punkt', quiet=True):
+            _warn_if_missing_nltk_dependencies('punkt', 'property')
+            return None
+        sentence_tokens_cache[hash_key] = sent_tokenize(text)
+    return sentence_tokens_cache[hash_key]
 
 def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, return_as_list=False,
                          random_seed: int = 42) -> Union[str, List[str]]:
@@ -57,44 +79,17 @@ def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, ret
         return None
 
     if mode == 'words':
-        all_units = re.split(r'\W+', text)
+        all_units = _word_tokenize_with_cache(text)
         if len(all_units) > limit:
             all_units = np.random.choice(all_units, size=limit, replace=False)
     elif mode == 'sentences':
-        if not nltk_download('punkt', quiet=True):
-            warnings.warn('nltk punkt not found, property cannot be calculated.'
-                          ' Please check your internet connection.', UserWarning)
-            return None
-
-        all_units = sent_tokenize(text)
+        all_units = _sent_tokenize_with_cache(text)
         if len(all_units) > limit:
             all_units = np.random.choice(all_units, size=limit, replace=False)
     else:
         raise DeepchecksValueError(f'Unexpected mode - {mode}')
 
     return ' '.join(all_units) if not return_as_list else list(all_units)
-
-
-def _sample_many_for_property(raw_text: Sequence[str], mode: str = 'words', limit: int = 10000, return_as_list=False,
-                              random_seed: int = 42) -> Union[str, List[str]]:
-    """Get a sample a single text sample for a text property.
-
-    Parameters
-    ----------
-    text : list
-        The list of texts to sample from.
-    mode : str, default 'words'
-        The mode to sample in. Can be either 'words' or 'sentences'.
-    limit : int, default 10000
-        The maximum number of words or sentences to sample.
-    """
-    cache_key = mode + str(limit) + str(random_seed)
-    if cache_key in properties_cache:
-        return properties_cache[cache_key]
-
-    result = [_sample_for_property(text, mode, limit, return_as_list, random_seed) for text in raw_text]
-    properties_cache[cache_key] = result
-    return result
 
 
 def _import_optional_property_dependency(
@@ -121,6 +116,11 @@ def _import_optional_property_dependency(
     else:
         return lib
 
+
+def _warn_if_missing_nltk_dependencies(dependency: str, property_name: str):
+    """Warn if NLTK dependency is missing."""
+    warnings.warn(f'NLTK {dependency} not found, {property_name} cannot be calculated.'
+                  ' Please check your internet connection.', UserWarning)
 
 def get_creat_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
     """Get the models storage directory and create it if needed."""
@@ -326,7 +326,7 @@ def sentiment(raw_text: Sequence[str]) -> List[float]:
     if properties_cache.get('textblob') is None:
         # TextBlob uses only the words and not the relations between them, so we can sample the text
         # to speed up the process:
-        raw_text = _sample_many_for_property(raw_text, mode='words')
+        raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
         properties_cache['textblob'] = [textblob.TextBlob(text).sentiment for text in raw_text]
     return [calc.polarity for calc in properties_cache.get('textblob')]
 
@@ -336,7 +336,7 @@ def subjectivity(raw_text: Sequence[str]) -> List[float]:
     if properties_cache.get('textblob') is None:
         # TextBlob uses only the words and not the relations between them, so we can sample the text
         # to speed up the process:
-        raw_text = _sample_many_for_property(raw_text, mode='words')
+        raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
         properties_cache['textblob'] = [textblob.TextBlob(text).sentiment for text in raw_text]
     return [calc.subjectivity for calc in properties_cache.get('textblob')]
 
@@ -344,20 +344,22 @@ def subjectivity(raw_text: Sequence[str]) -> List[float]:
 def _predict(text, classifier, kind):
     try:
         v = classifier(text)
-    except Exception:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except
+        print(e)
         return np.nan
     else:
+        print(v)
         if not v:
             return np.nan
-        v = v[0]
+        # v = v[0]
         if kind == 'toxicity':
-            return v['score']
+            return x['score']
         elif kind == 'fluency':
             label_value = 'LABEL_1'
         elif kind == 'formality':
             label_value = 'formal'
         else:
-            raise ValueError('Unssuported value for "kind" parameter')
+            raise ValueError('Unsupported value for "kind" parameter')
         return (
             v['score']
             if v['label'] == label_value
@@ -429,13 +431,12 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
     information: https://en.wikipedia.org/wiki/Lexical_density
     """
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, lexical density cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
+        _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
         if not pd.isna(text):
-            all_words = textblob.TextBlob(text).words
+            all_words = _word_tokenize_with_cache(text)
             if len(all_words) == 0:
                 result.append(np.nan)
             else:
@@ -450,8 +451,7 @@ def lexical_density(raw_text: Sequence[str]) -> List[str]:
 def unique_noun_count(raw_text: Sequence[str]) -> List[float]:
     """Return a list of integers of number of unique noun words in the text."""
     if not nltk_download('averaged_perceptron_tagger', quiet=True):
-        warnings.warn('nltk averaged_perceptron_tagger not found, unique noun count cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
+        _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
@@ -471,13 +471,12 @@ def readability_score(raw_text: Sequence[str]) -> List[float]:
     https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
     """
     if not nltk_download('cmudict', quiet=True):
-        warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
+        _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
         return [np.nan] * len(raw_text)
     result = []
     cmudict_dict = corpus.cmudict.dict()
-    raw_text_sentences = _sample_many_for_property(raw_text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
-                                                   return_as_list=True)
+    raw_text_sentences = [_sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
+                                               return_as_list=True) for text in raw_text]
     for sentences in raw_text_sentences:
         if sentences:
             sentence_count = len(sentences)
@@ -501,8 +500,8 @@ def readability_score(raw_text: Sequence[str]) -> List[float]:
 def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
     """Return a list of floats denoting the average sentence length per text sample."""
     result = []
-    raw_text_sentences = _sample_many_for_property(raw_text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
-                                                   return_as_list=True)
+    raw_text_sentences = [_sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
+                                               return_as_list=True) for text in raw_text]
     for sentences in raw_text_sentences:
         if sentences:
             sentences = [remove_punctuation(sent) for sent in sentences]
@@ -517,39 +516,37 @@ def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
     return result
 
 
-def count_unique_urls(raw_text: Sequence[str]) -> List[str]:
+def unique_urls_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of unique URLS per text sample."""
     url_pattern = r'https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
     return [len(set(re.findall(url_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
 
 
-def count_urls(raw_text: Sequence[str]) -> List[str]:
+def urls_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of URLS per text sample."""
     url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
     return [len(re.findall(url_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
 
 
-def count_unique_email_addresses(raw_text: Sequence[str]) -> List[str]:
+def unique_email_addresses_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of unique email addresses per text sample."""
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
     return [len(set(re.findall(email_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
 
 
-def count_email_addresses(raw_text: Sequence[str]) -> List[str]:
+def email_addresses_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of email addresses per text sample."""
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
     return [len(re.findall(email_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
 
 
-def count_unique_syllables(raw_text: Sequence[str]) -> List[str]:
+def unique_syllables_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of unique syllables per text sample."""
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, readability score cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
+        _warn_if_missing_nltk_dependencies('punkt', 'Readability Score')
         return [np.nan] * len(raw_text)
     if not nltk_download('cmudict', quiet=True):
-        warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
+        _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
         return [np.nan] * len(raw_text)
     result = []
     cmudict_dict = corpus.cmudict.dict()
@@ -584,16 +581,15 @@ def reading_time(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def sentence_length(raw_text: Sequence[str]) -> List[str]:
+def sentences_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of sentences per text sample."""
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
+        _warn_if_missing_nltk_dependencies('punkt', 'Sentences Count')
         return [np.nan] * len(raw_text)
     result = []
     for text in raw_text:
         if not pd.isna(text):
-            sentence_count = len(sent_tokenize(text))
+            sentence_count = len(_sent_tokenize_with_cache(text))
             result.append(sentence_count)
         else:
             result.append(np.nan)
@@ -603,18 +599,16 @@ def sentence_length(raw_text: Sequence[str]) -> List[str]:
 def average_syllable_length(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the average number of syllables per sentences per text sample."""
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
+        _warn_if_missing_nltk_dependencies('punkt', 'Average Syllable Length')
         return [np.nan] * len(raw_text)
     if not nltk_download('cmudict', quiet=True):
-        warnings.warn('nltk cmudict not found, average syllable length cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
+        _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
         return [np.nan] * len(raw_text)
     cmudict_dict = corpus.cmudict.dict()
     result = []
     for text in raw_text:
         if not pd.isna(text):
-            sentence_count = len(sent_tokenize(text))
+            sentence_count = len(_sent_tokenize_with_cache(text))
             text = remove_punctuation(text.lower())
             words = word_tokenize(text)
             syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
@@ -638,28 +632,28 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
     {'name': 'Language', 'method': language, 'output_type': 'categorical'},
     {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
     {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
+    {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
+    {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
+    {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
     {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
     {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
-    {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
     {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-    {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
-    {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
 )
 
 ALL_PROPERTIES: Tuple[TextProperty, ...] = (
-                                               {'name': 'Count URLs', 'method': count_urls, 'output_type': 'numeric'},
-                                               {'name': 'Count Email Address', 'method': count_email_addresses,
+                                               {'name': 'URLs Count', 'method': urls_count, 'output_type': 'numeric'},
+                                               {'name': 'Email Addresses Count', 'method': email_addresses_count,
                                                 'output_type': 'numeric'},
-                                               {'name': 'Count Unique URLs', 'method': count_unique_urls,
+                                               {'name': 'Unique URLs Count', 'method': unique_urls_count,
                                                 'output_type': 'numeric'},
-                                               {'name': 'Count Unique Email Address',
-                                                'method': count_unique_email_addresses, 'output_type': 'numeric'},
-                                               {'name': 'Count Unique Syllables', 'method': count_unique_syllables,
+                                               {'name': 'Unique Email Addresses Count',
+                                                'method': unique_email_addresses_count, 'output_type': 'numeric'},
+                                               {'name': 'Unique Syllables Count', 'method': unique_syllables_count,
                                                 'output_type': 'numeric'},
                                                {'name': 'Reading Time', 'method': reading_time,
                                                 'output_type': 'numeric'},
-                                               {'name': 'Sentence Length', 'method': sentence_length,
+                                               {'name': 'Sentences Count', 'method': sentences_count,
                                                 'output_type': 'numeric'},
                                                {'name': 'Average Syllable Length', 'method': average_syllable_length,
                                                 'output_type': 'numeric'},
@@ -670,7 +664,7 @@ LARGE_SAMPLE_SIZE = 10_000
 
 ENGLISH_ONLY_PROPERTIES = (
     'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Readability Score',
-    'Unique Noun Count', 'Count Unique Syllables', 'Sentence Length', 'Average Syllable Length'
+    'Unique Noun Count', 'Unique Syllables Count', 'Sentences Count', 'Average Syllable Length'
 )
 
 
@@ -742,8 +736,8 @@ def calculate_builtin_properties(
         together with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Readability Score', 'Average Sentence Length', 'Count URLs', Count Unique URLs', 'Count Email Address',
-        'Count Unique Email Address', 'Count Unique Syllables', 'Reading Time', 'Sentence Length',
+        'Readability Score', 'Average Sentence Length', 'URLs Count', Unique URLs Count', 'Email Address Count',
+        'Unique Email Address Count', 'Unique Syllables Count', 'Reading Time', 'Sentences Count',
         'Average Syllable Length']
         List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
         '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
@@ -863,6 +857,8 @@ def calculate_builtin_properties(
 
     # Clear property caches:
     properties_cache.clear()
+    words_tokens_cache.clear()
+    sentence_tokens_cache.clear()
     gc.collect()
 
     if not calculated_properties:

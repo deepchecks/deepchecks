@@ -84,8 +84,8 @@ def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
     result_none_text = calculate_builtin_properties([None], include_properties=['Lexical Density'])[0]
 
     # Assert
-    assert_that(result['Lexical Density'][0: 10], equal_to([94.44, 93.75, 100.0, 91.67,
-                                                            87.5, 100.0, 100.0, 100.0, 91.67, 91.67]))
+    assert_that(result['Lexical Density'][0: 10], equal_to([88.89, 92.86, 100.0, 92.0,
+                                                            87.5, 100.0, 100.0, 100.0, 91.3, 95.45]))
     assert_that(result_none_text['Lexical Density'], equal_to([np.nan]))
 
 
@@ -142,12 +142,12 @@ def test_calculate_count_unique_urls(manual_text_data_for_properties):
     text_data = manual_text_data_for_properties['url_data']
 
     # Act
-    result = calculate_builtin_properties(text_data, include_properties=['Count Unique URLs'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique URLs'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['Unique URLs Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Unique URLs Count'])[0]
 
     # Assert
-    assert_that(result['Count Unique URLs'], equal_to([0, 1, 1, 0, 5]))
-    assert_that(result_none_text['Count Unique URLs'], equal_to([0]))
+    assert_that(result['Unique URLs Count'], equal_to([0, 1, 1, 0, 5]))
+    assert_that(result_none_text['Unique URLs Count'], equal_to([0]))
 
 
 def test_calculate_count_urls(manual_text_data_for_properties):
@@ -156,12 +156,12 @@ def test_calculate_count_urls(manual_text_data_for_properties):
     text_data = manual_text_data_for_properties['url_data']
 
     # Act
-    result = calculate_builtin_properties(text_data, include_properties=['Count URLs'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count URLs'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['URLs Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['URLs Count'])[0]
 
     # Assert
-    assert_that(result['Count URLs'], equal_to([0, 1, 1, 0, 6]))
-    assert_that(result_none_text['Count URLs'], equal_to([0]))
+    assert_that(result['URLs Count'], equal_to([0, 1, 1, 0, 6]))
+    assert_that(result_none_text['URLs Count'], equal_to([0]))
 
 
 def test_calculate_count_unique_email_addresses(manual_text_data_for_properties):
@@ -170,12 +170,12 @@ def test_calculate_count_unique_email_addresses(manual_text_data_for_properties)
     text_data = manual_text_data_for_properties['email_data']
 
     # Act
-    result = calculate_builtin_properties(text_data, include_properties=['Count Unique Email Address'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique Email Address'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['Unique Email Addresses Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Unique Email Addresses Count'])[0]
 
     # Assert
-    assert_that(result['Count Unique Email Address'], equal_to([2, 2, 1, 0, 2, 2]))
-    assert_that(result_none_text['Count Unique Email Address'], equal_to([0]))
+    assert_that(result['Unique Email Addresses Count'], equal_to([2, 2, 1, 0, 2, 2]))
+    assert_that(result_none_text['Unique Email Addresses Count'], equal_to([0]))
 
 
 def test_calculate_count_email_addresses(manual_text_data_for_properties):
@@ -184,12 +184,12 @@ def test_calculate_count_email_addresses(manual_text_data_for_properties):
     text_data = manual_text_data_for_properties['email_data']
 
     # Act
-    result = calculate_builtin_properties(text_data, include_properties=['Count Email Address'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count Email Address'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['Email Addresses Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Email Addresses Count'])[0]
 
     # Assert
-    assert_that(result['Count Email Address'], equal_to([2, 2, 1, 0, 2, 3]))
-    assert_that(result_none_text['Count Email Address'], equal_to([0]))
+    assert_that(result['Email Addresses Count'], equal_to([2, 2, 1, 0, 2, 3]))
+    assert_that(result_none_text['Email Addresses Count'], equal_to([0]))
 
 
 def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
@@ -199,12 +199,12 @@ def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
     test_text = test.text
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Count Unique Syllables'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique Syllables'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Unique Syllables Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Unique Syllables Count'])[0]
 
     # Assert
-    assert_that(result['Count Unique Syllables'][0: 10], equal_to([15, 11, 9, 21, 13, 17, np.nan, 8, 20, 18]))
-    assert_that(result_none_text['Count Unique Syllables'], equal_to([np.nan]))
+    assert_that(result['Unique Syllables Count'][0: 10], equal_to([15, 11, 9, 21, 13, 17, np.nan, 8, 20, 18]))
+    assert_that(result_none_text['Unique Syllables Count'], equal_to([np.nan]))
 
 
 def test_calculate_reading_time(tweet_emotion_train_test_textdata):
@@ -230,12 +230,12 @@ def test_calculate_sentence_length(tweet_emotion_train_test_textdata):
     test_text = test.text
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Sentence Length'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Sentence Length'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Sentences Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Sentences Count'])[0]
 
     # Assert
-    assert_that(result['Sentence Length'][0: 10], equal_to([3, 2, 1, 2, 2, 1, np.nan, 1, 2, 3]))
-    assert_that(result_none_text['Sentence Length'], equal_to([np.nan]))
+    assert_that(result['Sentences Count'][0: 10], equal_to([3, 2, 1, 2, 2, 1, np.nan, 1, 2, 3]))
+    assert_that(result_none_text['Sentences Count'], equal_to([np.nan]))
 
 
 def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
@@ -259,7 +259,7 @@ def test_ignore_properties():
     # Arrange
     test_text = ['This is simple sentence.']
     expected_properties = ['Text Length', 'Average Word Length', 'Max Word Length',
-                           '% Special Characters', 'Language','Sentiment', 'Subjectivity',
+                           '% Special Characters', 'Language', 'Sentiment', 'Subjectivity',
                            'Lexical Density', 'Readability Score', 'Average Sentence Length']
     # Act
     result = calculate_builtin_properties(test_text, ignore_properties=['Unique Noun Count',
@@ -366,5 +366,5 @@ def test_sample_for_property():
     sample_words = _sample_for_property(text=s, mode='words', limit=2, random_seed=42)
     sample_sentences = _sample_for_property(text=s, mode='sentences', limit=2, random_seed=42)
 
-    assert_that(sample_words, equal_to('put hands'))
+    assert_that(sample_words, equal_to('hands put'))
     assert_that(sample_sentences, equal_to('all the single ladies. all the single ladies?'))
