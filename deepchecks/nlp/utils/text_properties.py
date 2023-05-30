@@ -345,15 +345,13 @@ def _predict(text, classifier, kind):
     try:
         v = classifier(text)
     except Exception as e:  # pylint: disable=broad-except
-        print(e)
         return np.nan
     else:
-        print(v)
         if not v:
             return np.nan
-        # v = v[0]
+        v = v[0]
         if kind == 'toxicity':
-            return x['score']
+            return v['score']
         elif kind == 'fluency':
             label_value = 'LABEL_1'
         elif kind == 'formality':
