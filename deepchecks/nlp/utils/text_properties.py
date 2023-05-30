@@ -36,7 +36,7 @@ __all__ = ['calculate_builtin_properties']
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
-properties_cache = {}
+textblob_cache = {}
 words_tokens_cache = {}
 sentence_tokens_cache = {}
 secret_cache = {}
@@ -60,6 +60,7 @@ def _sent_tokenize_with_cache(text):
             return None
         sentence_tokens_cache[hash_key] = sent_tokenize(text)
     return sentence_tokens_cache[hash_key]
+
 
 def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, return_as_list=False,
                          random_seed: int = 42) -> Union[str, List[str]]:
@@ -122,7 +123,7 @@ def _warn_if_missing_nltk_dependencies(dependency: str, property_name: str):
     warnings.warn(f'NLTK {dependency} not found, {property_name} cannot be calculated.'
                   ' Please check your internet connection.', UserWarning)
 
-def get_creat_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
+def get_create_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
     """Get the models storage directory and create it if needed."""
     if models_storage is None:
         models_storage = MODELS_STORAGE
@@ -152,7 +153,7 @@ def get_transformer_model(
 
     optimum.onnxruntime is used to optimize running times on CPU.
     """
-    models_storage = get_creat_model_storage(models_storage)
+    models_storage = get_create_model_storage(models_storage)
 
     if device not in (None, 'cpu'):
         transformers = _import_optional_property_dependency('transformers', property_name=property_name)
@@ -274,16 +275,12 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
     return result
 
 
-def language(
-        raw_text: Sequence[str],
-        models_storage: Union[pathlib.Path, str, None] = None,
-        lang_certainty_threshold: float = 0.8
-) -> List[str]:
-    """Return list of strings of language."""
+def _get_fastext_model(models_storage: Union[pathlib.Path, str, None] = None):
+    """Return fasttext model."""
     fasttext = _import_optional_property_dependency(module='fasttext', property_name='language')
 
     model_name = FASTTEXT_LANG_MODEL.rsplit('/', maxsplit=1)[-1]
-    model_path = get_creat_model_storage(models_storage)
+    model_path = get_create_model_storage(models_storage)
     model_path = model_path / 'fasttext'
 
     if not model_path.exists():
@@ -301,13 +298,26 @@ def language(
     # This weird code is to suppress a warning from fasttext about a deprecated function
     try:
         fasttext.FastText.eprint = lambda *args, **kwargs: None
-        model = fasttext.load_model(str(model_path))
+        fasttext_model = fasttext.load_model(str(model_path))
     except Exception as exp:
         raise exp
 
+    return fasttext_model
+
+
+def language(
+            raw_text: Sequence[str],
+            lang_certainty_threshold: float = 0.8,
+            fasttext_model: Optional[Dict[object, Any]] = None
+    ) -> List[str]:
+    """Return list of strings of language."""
+    # Not recommended, takes a long time. Here only to enable to call this function from outside:
+    if fasttext_model is None:
+        fasttext_model = _get_fastext_model()
+
     # Predictions are the first prediction (k=1), only if the probability is above the threshold
     predictions = [
-        model.predict(it.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)
+        fasttext_model.predict(it.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)
         if it is not None
         else (None, None)
         for it in raw_text
@@ -320,25 +330,37 @@ def language(
 
     return language_codes
 
+blabla = textblob.TextBlob
 
 def sentiment(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of sentiment."""
-    if properties_cache.get('textblob') is None:
-        # TextBlob uses only the words and not the relations between them, so we can sample the text
-        # to speed up the process:
-        raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
-        properties_cache['textblob'] = [textblob.TextBlob(text).sentiment for text in raw_text]
-    return [calc.polarity for calc in properties_cache.get('textblob')]
+    hash_keys = [hash_text(text) for text in raw_text]
+    for key in hash_keys:
+        if textblob_cache.get(key) is None:
+            # TextBlob uses only the words and not the relations between them, so we can sample the text
+            # to speed up the process:
+            raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
+            textblob_cache[key] = [blabla(text).sentiment for text in raw_text]
+    return [textblob_cache.get(key)[0].polarity for key in hash_keys]
 
 
 def subjectivity(raw_text: Sequence[str]) -> List[float]:
     """Return list of floats of subjectivity."""
-    if properties_cache.get('textblob') is None:
-        # TextBlob uses only the words and not the relations between them, so we can sample the text
-        # to speed up the process:
-        raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
-        properties_cache['textblob'] = [textblob.TextBlob(text).sentiment for text in raw_text]
-    return [calc.subjectivity for calc in properties_cache.get('textblob')]
+    hash_keys = [hash_text(text) for text in raw_text]
+    for key in hash_keys:
+        if textblob_cache.get(key) is None:
+            # TextBlob uses only the words and not the relations between them, so we can sample the text
+            # to speed up the process:
+            raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
+            textblob_cache[key] = [blabla(text).sentiment for text in raw_text]
+    return [textblob_cache.get(key)[0].subjectivity for key in hash_keys]
+
+    # if textblob_cache.get('textblob') is None:
+    #     # TextBlob uses only the words and not the relations between them, so we can sample the text
+    #     # to speed up the process:
+    #     raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
+    #     textblob_cache['textblob'] = [textblob.TextBlob(text).sentiment for text in raw_text]
+    # return [calc.subjectivity for calc in textblob_cache.get('textblob')]
 
 
 def _predict(text, classifier, kind):
@@ -461,28 +483,32 @@ def unique_noun_count(raw_text: Sequence[str]) -> List[float]:
     return result
 
 
-def readability_score(raw_text: Sequence[str]) -> List[float]:
+def readability_score(raw_text: Sequence[str], cmudict_dict: dict=None) -> List[float]:
     """Return a list of floats of Flesch Reading-Ease score per text sample.
 
     In the Flesch reading-ease test, higher scores indicate material that is easier to read
     whereas lower numbers mark texts that are more difficult to read. For more information:
     https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
     """
-    if not nltk_download('cmudict', quiet=True):
-        _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
-        return [np.nan] * len(raw_text)
+    if cmudict_dict is None:
+        if not nltk_download('cmudict', quiet=True):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
+            return [np.nan] * len(raw_text)
+        cmudict_dict = corpus.cmudict.dict()
     result = []
-    cmudict_dict = corpus.cmudict.dict()
     raw_text_sentences = [_sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
                                                return_as_list=True) for text in raw_text]
     for sentences in raw_text_sentences:
         if sentences:
             sentence_count = len(sentences)
             text = ' '.join(sentences)
-            text = remove_punctuation(text.lower())
-            words = word_tokenize(text)
+            # text = remove_punctuation(text.lower())
+            # words = word_tokenize(text)
+            words = _word_tokenize_with_cache(text)
             word_count = len(words)
             syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
+            # syllable_count = 5
+
             if word_count != 0 and sentence_count != 0 and syllable_count != 0:
                 avg_syllables_per_word = syllable_count / word_count
                 avg_words_per_sentence = word_count / sentence_count
@@ -541,10 +567,10 @@ def email_addresses_count(raw_text: Sequence[str]) -> List[str]:
 def unique_syllables_count(raw_text: Sequence[str]) -> List[str]:
     """Return a list of integers denoting the number of unique syllables per text sample."""
     if not nltk_download('punkt', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt', 'Readability Score')
+        _warn_if_missing_nltk_dependencies('punkt', 'Unique Syllables Count')
         return [np.nan] * len(raw_text)
     if not nltk_download('cmudict', quiet=True):
-        _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
+        _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
         return [np.nan] * len(raw_text)
     result = []
     cmudict_dict = corpus.cmudict.dict()
@@ -665,6 +691,8 @@ ENGLISH_ONLY_PROPERTIES = (
     'Unique Noun Count', 'Unique Syllables Count', 'Sentences Count', 'Average Syllable Length'
 )
 
+CMUDICT_PROPERTIES = ('Average Syllable Length', 'Unique Syllables Count', 'Readability Score')
+
 
 def _select_properties(
         *,
@@ -713,7 +741,6 @@ def _select_properties(
         warnings.warn(warning_message, UserWarning)
 
     return properties
-
 
 def calculate_builtin_properties(
         raw_text: Sequence[str],
@@ -809,6 +836,16 @@ def calculate_builtin_properties(
     #
     #     text_properties = new_text_properties
 
+    if 'fasttext_model' not in kwargs:
+        kwargs['fasttext_model'] = run_available_kwargs(func=_get_fastext_model, **kwargs)
+
+    if any(prop['name'] in CMUDICT_PROPERTIES for prop in text_properties):
+        if not nltk_download('cmudict', quiet=True):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
+            return [np.nan] * len(raw_text)
+        cmudict_dict = corpus.cmudict.dict()
+        kwargs['cmudict_dict'] = cmudict_dict
+
     language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
     # Remove language property from the list of properties to calculate as it will be calculated separately:
     if language_property_requested:
@@ -826,6 +863,17 @@ def calculate_builtin_properties(
         unit='Text Sample'
     )
     calculated_properties = {k: [] for k in text_properties_names}
+    from datetime import datetime
+    start = datetime.now()
+    total_time = {k: 0 for k in text_properties_names}
+    curr_time = {'now': datetime.now()}
+
+    def add_and_update(name):
+        new_time = datetime.now()
+        if name not in total_time:
+            total_time[name] = 0
+        total_time[name] += (new_time - curr_time['now']).total_seconds()
+        curr_time['now'] = new_time
 
     for text in progress_bar:
         progress_bar.set_postfix(
@@ -833,22 +881,32 @@ def calculate_builtin_properties(
             {'Sample': text[:20] + '...' if len(text) > 20 else text},
             refresh=False
         )
+        add_and_update('Progress Bar')
         text = [text]
         sample_language = run_available_kwargs(language, raw_text=text, **kwargs)[0]
+        add_and_update('Language')
         if language_property_requested:
             calculated_properties['Language'].append(sample_language)
+        add_and_update('Updating Language')
+
+
 
         for prop in text_properties:
             if sample_language != 'en' and prop['name'] in english_properties_names:
                 calculated_properties[prop['name']].append(np.nan)
             else:
                 try:
+                    add_and_update('If Condition')
+
                     values = run_available_kwargs(prop['method'], raw_text=text, **kwargs)
+                    add_and_update(f'{prop["name"]} Calculation')
+
                 except ImportError as e:
                     warnings.warn(warning_message.format(prop['name'], str(e)))
                     continue
                 else:
                     calculated_properties[prop['name']].append(values[0])
+                    add_and_update(f'{prop["name"]} Appending')
             # if prop['name'] not in english_properties_names:
             #     try:
             #         values = run_available_kwargs(prop['method'], raw_text=raw_text, **kwargs)
@@ -875,11 +933,14 @@ def calculate_builtin_properties(
             #                 result.append(fill_value)
             #         calculated_properties[prop['name']] = result
 
+    print(datetime.now() - start)
+
     # Clear property caches:
-    properties_cache.clear()
+    textblob_cache.clear()
     words_tokens_cache.clear()
     sentence_tokens_cache.clear()
     gc.collect()
+    print(pd.Series(total_time))
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
