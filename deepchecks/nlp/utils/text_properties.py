@@ -30,8 +30,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import remove_punctuation, hash_text, normalize_text
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
-from deepchecks.utils.strings import truncate_string
-
+from deepchecks.utils.strings import truncate_string, format_list
 
 __all__ = ['calculate_builtin_properties']
 
@@ -278,7 +277,7 @@ def max_word_length(raw_text: Sequence[str]) -> List[int]:
     return result
 
 
-def _get_fastext_model(models_storage: Union[pathlib.Path, str, None] = None):
+def _get_fasttext_model(models_storage: Union[pathlib.Path, str, None] = None):
     """Return fasttext model."""
     fasttext = _import_optional_property_dependency(module='fasttext', property_name='language')
 
@@ -316,7 +315,7 @@ def language(
     """Return list of strings of language."""
     # Not recommended, takes a long time. Here only to enable to call this function from outside:
     if fasttext_model is None:
-        fasttext_model = _get_fastext_model()
+        fasttext_model = _get_fasttext_model()
 
     # Predictions are the first prediction (k=1), only if the probability is above the threshold
     predictions = [
@@ -744,6 +743,7 @@ def _select_properties(
 
     return properties
 
+
 def calculate_builtin_properties(
         raw_text: Sequence[str],
         include_properties: Optional[List[str]] = None,
@@ -809,48 +809,26 @@ def calculate_builtin_properties(
 
     kwargs = dict(device=device, models_storage=models_storage)
     english_properties_names = set(ENGLISH_ONLY_PROPERTIES)
-    text_properties_names = {it['name'] for it in text_properties}
-    english_samples = []
-    english_samples_mask = []
-    calculated_properties = {}
+    text_properties_names = [it['name'] for it in text_properties]
+    calculated_properties = {k: [] for k in text_properties_names}
 
-    # if english_properties_names & text_properties_names:
-    #     samples_language = run_available_kwargs(
-    #         language,
-    #         raw_text=raw_text,
-    #         **kwargs
-    #     )
-    #
-    #     for lang, text in zip(samples_language, raw_text):
-    #         if lang == 'en':
-    #             english_samples.append(text)
-    #             english_samples_mask.append(True)
-    #         else:
-    #             english_samples_mask.append(False)
-    #
-    #     new_text_properties = []
-    #
-    #     for prop in text_properties:
-    #         if prop['name'] == 'Language':
-    #             calculated_properties['Language'] = samples_language
-    #         else:
-    #             new_text_properties.append(prop)
-    #
-    #     text_properties = new_text_properties
-
+    # Prepare kwargs for properties that require outside resources:
     if 'fasttext_model' not in kwargs:
-        kwargs['fasttext_model'] = run_available_kwargs(func=_get_fastext_model, **kwargs)
+        kwargs['fasttext_model'] = _get_fasttext_model(models_storage=models_storage)
 
-    if any(prop['name'] in CMUDICT_PROPERTIES for prop in text_properties):
-        if not nltk_download('cmudict', quiet=True):
-            _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
-            return [np.nan] * len(raw_text)
-        cmudict_dict = corpus.cmudict.dict()
-        kwargs['cmudict_dict'] = cmudict_dict
+    if 'cmudict_dict' not in kwargs:
+        properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(text_properties_names))
+        if properties_requiring_cmudict:
+            if not nltk_download('cmudict', quiet=True):
+                _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
+                for prop in properties_requiring_cmudict:
+                    calculated_properties[prop] = [np.nan] * len(raw_text)
+            cmudict_dict = corpus.cmudict.dict()
+            kwargs['cmudict_dict'] = cmudict_dict
 
-    language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
+    is_language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
     # Remove language property from the list of properties to calculate as it will be calculated separately:
-    if language_property_requested:
+    if is_language_property_requested:
         text_properties = [prop for prop in text_properties if prop['name'] != 'Language']
 
     warning_message = (
@@ -864,82 +842,34 @@ def calculate_builtin_properties(
         name='Text Samples Calculation',
         unit='Text Sample'
     )
-    calculated_properties = {k: [] for k in text_properties_names}
-    from datetime import datetime
-    start = datetime.now()
-    total_time = {k: 0 for k in text_properties_names}
-    curr_time = {'now': datetime.now()}
-
-    def add_and_update(name):
-        new_time = datetime.now()
-        if name not in total_time:
-            total_time[name] = 0
-        total_time[name] += (new_time - curr_time['now']).total_seconds()
-        curr_time['now'] = new_time
-
+    import psutil
     for text in progress_bar:
         progress_bar.set_postfix(
             {'Sample': truncate_string(text, max_length=20) if text else 'EMPTY STRING'},
             refresh=False
         )
-        add_and_update('Progress Bar')
         text = [text]
         sample_language = run_available_kwargs(language, raw_text=text, **kwargs)[0]
-        add_and_update('Language')
-        if language_property_requested:
+        if is_language_property_requested:
             calculated_properties['Language'].append(sample_language)
-        add_and_update('Updating Language')
 
         for prop in text_properties:
             if sample_language != 'en' and prop['name'] in english_properties_names:
                 calculated_properties[prop['name']].append(np.nan)
             else:
                 try:
-                    add_and_update('If Condition')
-
                     values = run_available_kwargs(prop['method'], raw_text=text, **kwargs)
-                    add_and_update(f'{prop["name"]} Calculation')
-
                 except ImportError as e:
                     warnings.warn(warning_message.format(prop['name'], str(e)))
                     continue
                 else:
                     calculated_properties[prop['name']].append(values[0])
-                    add_and_update(f'{prop["name"]} Appending')
-            # if prop['name'] not in english_properties_names:
-            #     try:
-            #         values = run_available_kwargs(prop['method'], raw_text=raw_text, **kwargs)
-            #     except ImportError as e:
-            #         warnings.warn(warning_message.format(prop['name'], str(e)))
-            #         continue
-            #     else:
-            #         calculated_properties[prop['name']] = values
-            # else:
-            #     try:
-            #         values = run_available_kwargs(prop['method'], raw_text=english_samples, **kwargs)
-            #     except ImportError as e:
-            #         warnings.warn(warning_message.format(prop['name'], str(e)))
-            #         continue
-            #     else:
-            #         result = []
-            #         idx = 0
-            #         fill_value = np.nan if prop['output_type'] == 'numeric' else None
-            #         for mask in english_samples_mask:
-            #             if mask:
-            #                 result.append(values[idx])
-            #                 idx += 1
-            #             else:
-            #                 result.append(fill_value)
-            #         calculated_properties[prop['name']] = result
 
-    print(datetime.now() - start)
-
-    # Clear property caches:
-    textblob_cache.clear()
-    words_tokens_cache.clear()
-    sentence_tokens_cache.clear()
+        # Clear property caches:
+        textblob_cache.clear()
+        words_tokens_cache.clear()
+        sentence_tokens_cache.clear()
     gc.collect()
-    print(pd.Series(total_time))
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
