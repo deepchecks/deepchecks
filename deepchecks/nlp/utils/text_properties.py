@@ -785,29 +785,34 @@ def calculate_builtin_properties(
     english_samples_mask = []
     calculated_properties = {}
 
-    if english_properties_names & text_properties_names:
-        samples_language = run_available_kwargs(
-            language,
-            raw_text=raw_text,
-            **kwargs
-        )
+    # if english_properties_names & text_properties_names:
+    #     samples_language = run_available_kwargs(
+    #         language,
+    #         raw_text=raw_text,
+    #         **kwargs
+    #     )
+    #
+    #     for lang, text in zip(samples_language, raw_text):
+    #         if lang == 'en':
+    #             english_samples.append(text)
+    #             english_samples_mask.append(True)
+    #         else:
+    #             english_samples_mask.append(False)
+    #
+    #     new_text_properties = []
+    #
+    #     for prop in text_properties:
+    #         if prop['name'] == 'Language':
+    #             calculated_properties['Language'] = samples_language
+    #         else:
+    #             new_text_properties.append(prop)
+    #
+    #     text_properties = new_text_properties
 
-        for lang, text in zip(samples_language, raw_text):
-            if lang == 'en':
-                english_samples.append(text)
-                english_samples_mask.append(True)
-            else:
-                english_samples_mask.append(False)
-
-        new_text_properties = []
-
-        for prop in text_properties:
-            if prop['name'] == 'Language':
-                calculated_properties['Language'] = samples_language
-            else:
-                new_text_properties.append(prop)
-
-        text_properties = new_text_properties
+    language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
+    # Remove language property from the list of properties to calculate as it will be calculated separately:
+    if language_property_requested:
+        text_properties = [prop for prop in text_properties if prop['name'] != 'Language']
 
     warning_message = (
         'Failed to calculate property {0}. '
@@ -816,42 +821,59 @@ def calculate_builtin_properties(
     )
 
     progress_bar = create_progress_bar(
-        iterable=list(text_properties),
-        name='Text Properties Calculation',
-        unit='Text Property'
+        iterable=list(raw_text),
+        name='Text Samples Calculation',
+        unit='Text Sample'
     )
 
-    # TODO: refactor
-    for prop in progress_bar:
+    for text in progress_bar:
         progress_bar.set_postfix(
-            {'Property': prop['name']},
+            # {'Property': prop['name']},
+            {'Sample': text[:20] + '...' if len(text) > 20 else text},
             refresh=False
         )
-        if prop['name'] not in english_properties_names:
-            try:
-                values = run_available_kwargs(prop['method'], raw_text=raw_text, **kwargs)
-            except ImportError as e:
-                warnings.warn(warning_message.format(prop['name'], str(e)))
-                continue
+        text = [text]
+        sample_language = run_available_kwargs(language, raw_text=text, **kwargs)[0]
+        calculated_properties = {}
+        if language_property_requested:
+            calculated_properties['Language'] = sample_language
+
+        for prop in text_properties:
+            if sample_language != 'en' and prop['name'] in english_properties_names:
+                calculated_properties[prop['name']] = np.nan
             else:
-                calculated_properties[prop['name']] = values
-        else:
-            try:
-                values = run_available_kwargs(prop['method'], raw_text=english_samples, **kwargs)
-            except ImportError as e:
-                warnings.warn(warning_message.format(prop['name'], str(e)))
-                continue
-            else:
-                result = []
-                idx = 0
-                fill_value = np.nan if prop['output_type'] == 'numeric' else None
-                for mask in english_samples_mask:
-                    if mask:
-                        result.append(values[idx])
-                        idx += 1
-                    else:
-                        result.append(fill_value)
-                calculated_properties[prop['name']] = result
+                try:
+                    values = run_available_kwargs(prop['method'], raw_text=text, **kwargs)
+                except ImportError as e:
+                    warnings.warn(warning_message.format(prop['name'], str(e)))
+                    continue
+                else:
+                    calculated_properties[prop['name']] = values[0]
+            # if prop['name'] not in english_properties_names:
+            #     try:
+            #         values = run_available_kwargs(prop['method'], raw_text=raw_text, **kwargs)
+            #     except ImportError as e:
+            #         warnings.warn(warning_message.format(prop['name'], str(e)))
+            #         continue
+            #     else:
+            #         calculated_properties[prop['name']] = values
+            # else:
+            #     try:
+            #         values = run_available_kwargs(prop['method'], raw_text=english_samples, **kwargs)
+            #     except ImportError as e:
+            #         warnings.warn(warning_message.format(prop['name'], str(e)))
+            #         continue
+            #     else:
+            #         result = []
+            #         idx = 0
+            #         fill_value = np.nan if prop['output_type'] == 'numeric' else None
+            #         for mask in english_samples_mask:
+            #             if mask:
+            #                 result.append(values[idx])
+            #                 idx += 1
+            #             else:
+            #                 result.append(fill_value)
+            #         calculated_properties[prop['name']] = result
 
     # Clear property caches:
     properties_cache.clear()
