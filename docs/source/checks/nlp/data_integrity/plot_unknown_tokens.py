@@ -42,7 +42,7 @@ dataset, _ = tweet_emotion.load_data()
 # The check has several key parameters that affect its behavior and output:
 #
 # * `tokenizer`: Tokenizer from the HuggingFace transformers library to use for tokenization. If None,
-#   AutoTokenizer.from_pretrained('bert-base-uncased') will be used. Must be a fast tokenizer.
+#   AutoTokenizer.from_pretrained('bert-base-uncased') will be used. It's highly recommended to use a fast tokenizer.
 # * `group_singleton_words`: If True, group all words that appear only once in the data into the "Other" category in
 #   the display.
 
@@ -64,7 +64,7 @@ result.show()
 # Use a Different Tokenizer
 # -------------------------
 #
-# We can also use a different fast tokenizer, such as the GPT2 tokenizer, to see how the results change.
+# We can also use a different tokenizer, such as the GPT2 tokenizer, to see how the results change.
 
 from transformers import AutoTokenizer
 tokenizer = AutoTokenizer.from_pretrained('gpt2')

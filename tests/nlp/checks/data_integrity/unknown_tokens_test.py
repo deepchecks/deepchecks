@@ -11,7 +11,7 @@
 """Test for the NLP UnknownTokens check."""
 import pytest
 from hamcrest import *
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, BertTokenizer
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.checks import UnknownTokens
@@ -127,6 +127,19 @@ def test_with_unknown_tokens(dataset_with_unknown_tokens):
             "indexes": contains_exactly(1)
         }),
     }))
+
+
+def test_compare_fast_to_slow_tokenizer(dataset_with_unknown_tokens):
+    # Arrange
+    check = UnknownTokens()
+    check_slow = UnknownTokens(tokenizer=BertTokenizer.from_pretrained("bert-base-uncased"))
+
+    # Act
+    result = check.run(dataset=dataset_with_unknown_tokens)
+    result_slow = check_slow.run(dataset=dataset_with_unknown_tokens)
+
+    # Assert
+    assert_that(result.value, equal_to(result_slow.value))
 
 
 def test_group_singleton_words_true(dataset_with_reoccurring_unknown_words):

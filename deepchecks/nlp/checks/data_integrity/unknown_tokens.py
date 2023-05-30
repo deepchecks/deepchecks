@@ -9,9 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the Unknown Tokens check."""
+import os
 import typing as t
+import warnings
 from collections import Counter
 
+import nltk
 import plotly.graph_objects as go
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
@@ -36,7 +39,7 @@ class UnknownTokens(SingleDatasetCheck):
     ----------
     tokenizer: t.Any , default: None
         Tokenizer from the HuggingFace transformers library to use for tokenization. If None,
-        BertTokenizer.from_pretrained('bert-base-uncased') will be used.
+        AutoTokenizer.from_pretrained('bert-base-uncased') will be used.
     group_singleton_words: bool, default: False
         If True, group all words that appear only once in the data into the "Other" category in the display.
     n_most_common : int , default: 5
@@ -71,6 +74,8 @@ class UnknownTokens(SingleDatasetCheck):
             self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
         else:
             self._validate_tokenizer()
+        self._use_fast_method = self.tokenizer.is_fast
+
         self.group_singleton_words = group_singleton_words
         self.n_most_common = n_most_common
         self.n_samples = n_samples
@@ -87,9 +92,6 @@ class UnknownTokens(SingleDatasetCheck):
             raise DeepchecksValueError('tokenizer must have an "convert_tokens_to_ids" method')
         if not hasattr(self.tokenizer, 'is_fast'):
             raise DeepchecksValueError('tokenizer must have an "is_fast" method')
-        # This is needed because the internal implementation assumes functionality of the fast tokenizer
-        if not self.tokenizer.is_fast:
-            raise DeepchecksValueError('tokenizer must be a fast transformers tokenizer')
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -127,10 +129,14 @@ class UnknownTokens(SingleDatasetCheck):
         return CheckResult(value, display=display)
 
     def _get_non_text_token_ids(self):
-        """Get ids of all non-text tokens in the tokenizer."""
+        """Get ids of all non-text tokens in the tokenizer.
+
+        These include notably the [CLS] token marking the beginning of the sequence, the [SEP] token marking the end
+        of the sequence, and the [PAD] token used for padding.
+        """
         non_text_token_ids = []
-        for token_name, token in self.tokenizer.special_tokens_map_extended.items():
-            if token_name not in ['unk_token', 'pad_token']:
+        for token_name, token in self.tokenizer.special_tokens_map.items():
+            if token_name not in ['unk_token']:
                 non_text_token_ids.append(self.tokenizer.convert_tokens_to_ids(token))
         return non_text_token_ids
 
@@ -140,22 +146,48 @@ class UnknownTokens(SingleDatasetCheck):
         unknown_token_indexes = {}
         total_tokens = 0
 
-        non_text_token_ids = self._get_non_text_token_ids()
+        if self._use_fast_method:
+            non_text_token_ids = self._get_non_text_token_ids()
 
-        # Batch tokenization
-        tokenized_samples = self.tokenizer(list(samples), return_offsets_mapping=True, is_split_into_words=False,
-                                           truncation=False)
+            # Batch tokenization
+            # ------------------
+            # Needed to avoid warning when used after loading a hub dataset
+            os.environ['TOKENIZERS_PARALLELISM '] = 'true'
+            tokenized_samples = self.tokenizer(list(samples), return_offsets_mapping=True, is_split_into_words=False,
+                                               truncation=False)
 
-        for idx, (tokens, offsets_mapping, sample) in zip(indices, zip(tokenized_samples['input_ids'],
-                                                                       tokenized_samples['offset_mapping'], samples)):
-            for token_id, offset_mapping in zip(tokens, offsets_mapping):
-                if token_id == self.tokenizer.unk_token_id:
-                    start, end = offset_mapping
-                    token = sample[start:end]
-                    all_unknown_tokens.append(token)
-                    unknown_token_indexes.setdefault(token, []).append(idx)
-                if token_id not in non_text_token_ids:
-                    total_tokens += 1
+            for idx, (tokens, offsets_mapping, sample) in zip(indices, zip(tokenized_samples['input_ids'],
+                                                                           tokenized_samples['offset_mapping'],
+                                                                           samples)):
+                for token_id, offset_mapping in zip(tokens, offsets_mapping):
+                    if token_id == self.tokenizer.unk_token_id:
+                        start, end = offset_mapping
+                        token = sample[start:end]
+                        all_unknown_tokens.append(token)
+                        unknown_token_indexes.setdefault(token, []).append(idx)
+                    if token_id not in non_text_token_ids:
+                        total_tokens += 1
+        else:
+            # Tokenization for each word
+            # --------------------------
+            # Choose tokenizer based on availability of nltk
+            if nltk.download('punkt', quiet=True):
+                tokenize = nltk.word_tokenize
+            else:
+                warnings.warn('nltk punkt is not available, using str.split instead to identify individual words. '
+                              'Please check your internet connection.')
+                tokenize = str.split
+
+            # Tokenize samples and count unknown words
+            words_array = [tokenize(sample) for sample in samples]
+            for idx, words in zip(indices, words_array):
+                total_tokens += len(words)
+                for word in words:
+                    tokens = self.tokenizer.tokenize(word)
+                    if any(self.tokenizer.convert_tokens_to_ids(token) == self.tokenizer.unk_token_id for token in
+                           tokens):
+                        all_unknown_tokens.append(word)
+                        unknown_token_indexes.setdefault(word, []).append(idx)
 
         return Counter(all_unknown_tokens), total_tokens, unknown_token_indexes
 
