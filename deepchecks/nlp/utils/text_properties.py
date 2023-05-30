@@ -825,6 +825,7 @@ def calculate_builtin_properties(
         name='Text Samples Calculation',
         unit='Text Sample'
     )
+    calculated_properties = {k: [] for k in text_properties_names}
 
     for text in progress_bar:
         progress_bar.set_postfix(
@@ -834,13 +835,12 @@ def calculate_builtin_properties(
         )
         text = [text]
         sample_language = run_available_kwargs(language, raw_text=text, **kwargs)[0]
-        calculated_properties = {}
         if language_property_requested:
-            calculated_properties['Language'] = sample_language
+            calculated_properties['Language'].append(sample_language)
 
         for prop in text_properties:
             if sample_language != 'en' and prop['name'] in english_properties_names:
-                calculated_properties[prop['name']] = np.nan
+                calculated_properties[prop['name']].append(np.nan)
             else:
                 try:
                     values = run_available_kwargs(prop['method'], raw_text=text, **kwargs)
@@ -848,7 +848,7 @@ def calculate_builtin_properties(
                     warnings.warn(warning_message.format(prop['name'], str(e)))
                     continue
                 else:
-                    calculated_properties[prop['name']] = values[0]
+                    calculated_properties[prop['name']].append(values[0])
             # if prop['name'] not in english_properties_names:
             #     try:
             #         values = run_available_kwargs(prop['method'], raw_text=raw_text, **kwargs)
