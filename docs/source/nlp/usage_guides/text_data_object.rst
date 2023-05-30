@@ -18,7 +18,8 @@ The main properties are:
 - **raw_text** - The raw text data, a list of strings representing the raw text of each sample. Each sample can be a
   sentence, paragraph, or a document, depending on the task.
 - **label** - The labels for the text data samples.
-- **task_type** - The task type, see the :ref:`Supported Tasks Guide <nlp__supported_tasks>` for more information.
+- **task_type** - The task type, must be either `text_classification`, `token_classification` or None. See the
+  :ref:`Supported Tasks Guide <nlp__supported_tasks>` for more information about supported formats.
 
 TextData API Reference
 -------------------------

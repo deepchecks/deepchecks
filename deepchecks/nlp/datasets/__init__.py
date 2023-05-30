@@ -9,6 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for working with pre-built datasets."""
-from . import classification
+from . import classification, token_classification
 
-__all__ = ['classification']
+__all__ = ['classification', 'token_classification']

@@ -257,3 +257,31 @@ def assert_display(display: t.Sequence[t.Any]):
     table = display[1]
     assert_that(table.index.names, equal_to(["Train Sample IDs", "Test Sample IDs"]))
     assert_that(table.columns.to_list(), equal_to(["Test Text Sample", "Number of Test Duplicates"]))
+
+
+def test_long_samples():
+    # Arrange
+    train = TextData(
+        raw_text=[
+            ' '.join(['aa'] * 500),
+            ' '.join(['bb'] * 500),
+            ' '.join(['cc'] * 500)
+        ]
+    )
+    test = TextData(
+        raw_text=[
+            ' '.join(['aa'] * 500),
+            ' '.join(['dd'] * 500),
+            ' '.join(['aa'] * 600)
+        ]
+    )
+
+    # Act
+    check = TrainTestSamplesMix()
+
+    # Assert
+    result = check.run(train_dataset=train, test_dataset=test)
+    assert_that(result.value, has_entries({
+        "ratio": close_to(0.333, 0.001),
+        "duplicates": instance_of(pd.DataFrame),
+    }))

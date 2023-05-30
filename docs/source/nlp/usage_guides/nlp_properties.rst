@@ -136,11 +136,15 @@ default properties will be calculated except for ``Text Length`` property. Moreo
 long time to calculate. In order to use them, pass ``include_long_calculation_properties`` to the 
 ``calculate_builtin_properties`` method.
 
-In the following example, we will calculate the properties and include only the long calculation property "Toxicity":
+In the following example, we will calculate the properties and include only the long calculation property "Toxicity".
+We'll also pass the ``device`` parameter to the ``calculate_builtin_properties`` method, in order to use the GPU for
+calculating the properties if it is available:
 
 .. code-block:: python
 
-  text_data.calculate_builtin_properties(include_long_calculation_properties=True, include_properties=['Toxicity'])
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  text_data.calculate_builtin_properties(include_long_calculation_properties=True, include_properties=['Toxicity'],
+                                         device=device)
 
 Saving The Calculated Properties
 ################################

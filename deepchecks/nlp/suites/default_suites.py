@@ -59,14 +59,15 @@ def data_integrity(n_samples: int = None,
     kwargs = {**non_none_args, **kwargs}
     return Suite(
         'Data Integrity Suite',
-        PropertyLabelCorrelation(**kwargs).add_condition_property_pps_less_than(),
         TextPropertyOutliers(**kwargs),
-        TextDuplicates(**kwargs).add_condition_ratio_less_or_equal(),
-        ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
-        SpecialCharacters(**kwargs).add_condition_ratio_of_samples_with_special_characters_less_or_equal(),
         UnknownTokens(**kwargs).add_condition_ratio_of_unknown_words_less_or_equal(),
         UnderAnnotatedPropertySegments(**kwargs).add_condition_segments_relative_performance_greater_than(),
         UnderAnnotatedMetaDataSegments(**kwargs).add_condition_segments_relative_performance_greater_than(),
+        PropertyLabelCorrelation(**kwargs).add_condition_property_pps_less_than(),
+        ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
+        TextDuplicates(**kwargs).add_condition_ratio_less_or_equal(),
+        SpecialCharacters(**kwargs).add_condition_ratio_of_samples_with_special_characters_less_or_equal(),
+
     )
 
 
@@ -106,9 +107,8 @@ def train_test_validation(n_samples: int = None,
         'Train Test Validation Suite',
         PropertyDrift(**kwargs).add_condition_drift_score_less_than(),
         LabelDrift(**kwargs).add_condition_drift_score_less_than(),
+        TextEmbeddingsDrift(**kwargs).add_condition_overall_drift_value_less_than(),
         TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
-        TextEmbeddingsDrift(**kwargs).add_condition_overall_drift_value_less_than()
-
     )
 
 
@@ -146,8 +146,8 @@ def model_evaluation(n_samples: int = None,
 
     return Suite(
         'Model Evaluation Suite',
-        TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         PredictionDrift(**kwargs).add_condition_drift_score_less_than(),
+        TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         PropertySegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         MetadataSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
     )
@@ -157,7 +157,7 @@ def full_suite(**kwargs) -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
     return Suite(
         'Full Suite',
-        data_integrity(**kwargs),
         model_evaluation(**kwargs),
         train_test_validation(**kwargs),
+        data_integrity(**kwargs),
     )
