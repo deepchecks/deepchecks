@@ -48,7 +48,7 @@ __all__ = [
     'get_random_string',
     'format_datetime',
     'get_docs_summary',
-    'get_ellipsis',
+    'truncate_string',
     'to_snake_case',
     'create_new_file_name',
     'widget_to_html',
@@ -64,7 +64,7 @@ DEL_CHARS = ''.join(SPECIAL_CHARACTERS)
 DEL_MAP = str.maketrans('', '', DEL_CHARS)
 
 
-def get_ellipsis(long_string: str, max_length: int):
+def truncate_string(long_string: str, max_length: int):
     """Return the long string with ellipsis if above max_length.
 
     Parameters

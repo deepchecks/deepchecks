@@ -84,7 +84,7 @@ def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
     result_none_text = calculate_builtin_properties([None], include_properties=['Lexical Density'])[0]
 
     # Assert
-    assert_that(result['Lexical Density'][0: 10], equal_to([88.89, 92.86, 100.0, 92.0,
+    assert_that(result['Lexical Density'][0: 10], equal_to([88.24, 92.86, 100.0, 91.67,
                                                             87.5, 100.0, 100.0, 100.0, 91.3, 95.45]))
     assert_that(result_none_text['Lexical Density'], equal_to([np.nan]))
 
@@ -131,8 +131,8 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     result_none_text = calculate_builtin_properties([None], include_properties=['Readability Score'])[0]
 
     # Assert
-    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103,
-                                                            71.782, np.nan, 75.5, 70.102, 95.564]))
+    assert_that(result['Readability Score'][0: 10], equal_to([96.577, 97.001, 80.306, 67.755, 77.103, 71.782,
+                                                              np.nan, 75.5, 70.102, 95.564]))
     assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
 
 

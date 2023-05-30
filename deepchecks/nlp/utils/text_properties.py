@@ -30,6 +30,8 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import remove_punctuation, hash_text, normalize_text
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
+from deepchecks.utils.strings import truncate_string
+
 
 __all__ = ['calculate_builtin_properties']
 
@@ -46,8 +48,9 @@ def _word_tokenize_with_cache(text):
     """Tokenize a text into words and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in words_tokens_cache:
-        words_tokens_cache[hash_key] = re.split(
-            r'\W+', normalize_text(text, remove_stops=False, ignore_whitespace=False))
+        words = re.split(r'\W+', normalize_text(text, remove_stops=False, ignore_whitespace=False))
+        words = [w for w in words if w] # remove empty strings
+        words_tokens_cache[hash_key] = words
     return words_tokens_cache[hash_key]
 
 
@@ -502,12 +505,9 @@ def readability_score(raw_text: Sequence[str], cmudict_dict: dict=None) -> List[
         if sentences:
             sentence_count = len(sentences)
             text = ' '.join(sentences)
-            # text = remove_punctuation(text.lower())
-            # words = word_tokenize(text)
             words = _word_tokenize_with_cache(text)
             word_count = len(words)
             syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
-            # syllable_count = 5
 
             if word_count != 0 and sentence_count != 0 and syllable_count != 0:
                 avg_syllables_per_word = syllable_count / word_count
@@ -564,16 +564,17 @@ def email_addresses_count(raw_text: Sequence[str]) -> List[str]:
     return [len(re.findall(email_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
 
 
-def unique_syllables_count(raw_text: Sequence[str]) -> List[str]:
+def unique_syllables_count(raw_text: Sequence[str], cmudict_dict: dict=None) -> List[str]:
     """Return a list of integers denoting the number of unique syllables per text sample."""
     if not nltk_download('punkt', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt', 'Unique Syllables Count')
         return [np.nan] * len(raw_text)
-    if not nltk_download('cmudict', quiet=True):
-        _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
-        return [np.nan] * len(raw_text)
+    if cmudict_dict is None:
+        if not nltk_download('cmudict', quiet=True):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
+            return [np.nan] * len(raw_text)
+        cmudict_dict = corpus.cmudict.dict()
     result = []
-    cmudict_dict = corpus.cmudict.dict()
     for text in raw_text:
         if not pd.isna(text):
             text = remove_punctuation(text.lower())
@@ -620,15 +621,16 @@ def sentences_count(raw_text: Sequence[str]) -> List[str]:
     return result
 
 
-def average_syllable_length(raw_text: Sequence[str]) -> List[str]:
+def average_syllable_length(raw_text: Sequence[str], cmudict_dict: dict = None) -> List[str]:
     """Return a list of integers denoting the average number of syllables per sentences per text sample."""
     if not nltk_download('punkt', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt', 'Average Syllable Length')
         return [np.nan] * len(raw_text)
-    if not nltk_download('cmudict', quiet=True):
-        _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
-        return [np.nan] * len(raw_text)
-    cmudict_dict = corpus.cmudict.dict()
+    if cmudict_dict is None:
+        if not nltk_download('cmudict', quiet=True):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
+            return [np.nan] * len(raw_text)
+        cmudict_dict = corpus.cmudict.dict()
     result = []
     for text in raw_text:
         if not pd.isna(text):
@@ -877,8 +879,7 @@ def calculate_builtin_properties(
 
     for text in progress_bar:
         progress_bar.set_postfix(
-            # {'Property': prop['name']},
-            {'Sample': text[:20] + '...' if len(text) > 20 else text},
+            {'Sample': truncate_string(text, max_length=20) if text else 'EMPTY STRING'},
             refresh=False
         )
         add_and_update('Progress Bar')
@@ -888,8 +889,6 @@ def calculate_builtin_properties(
         if language_property_requested:
             calculated_properties['Language'].append(sample_language)
         add_and_update('Updating Language')
-
-
 
         for prop in text_properties:
             if sample_language != 'en' and prop['name'] in english_properties_names:
