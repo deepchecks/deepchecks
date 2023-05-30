@@ -44,7 +44,7 @@ class TestTextClassification:
             "Fluency": {"Drift score": 0.0, "Method": "Kolmogorov-Smirnov", "Importance": None},
         }))  # type: ignore
 
-    def test_with_drift(self, tweet_emotion_train_test_textdata):
+    def test_with_drift(self, tweet_emotion_train_test_textdata): 
         # Arrange
         train, test = tweet_emotion_train_test_textdata
         train = train.sample(30, random_state=0)
