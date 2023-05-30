@@ -11,7 +11,7 @@
 """Test for the NLP UnknownTokens check."""
 import pytest
 from hamcrest import *
-from transformers import GPT2Tokenizer
+from transformers import AutoTokenizer
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.checks import UnknownTokens
@@ -158,7 +158,7 @@ def test_group_singleton_words_true(dataset_with_reoccurring_unknown_words):
 
 def test_with_more_robust_tokenizer(dataset_with_unknown_tokens):
     # Arrange
-    tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
+    tokenizer = AutoTokenizer.from_pretrained('gpt2')
     check = UnknownTokens(tokenizer=tokenizer)
 
     # Act
