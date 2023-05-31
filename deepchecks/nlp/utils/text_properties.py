@@ -27,10 +27,10 @@ from nltk import sent_tokenize, word_tokenize
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text import remove_punctuation, hash_text, normalize_text
+from deepchecks.nlp.utils.text import hash_text, normalize_text, remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
-from deepchecks.utils.strings import truncate_string, format_list
+from deepchecks.utils.strings import format_list, truncate_string
 
 __all__ = ['calculate_builtin_properties']
 
@@ -340,10 +340,10 @@ def subjectivity(text: str) -> float:
 
 
 def _predict(text: str, classifier, kind: str) -> float:
-    """Return prediction of huggingface Pipeline classifier"""
+    """Return prediction of huggingface Pipeline classifier."""
     try:
         v = classifier(text)
-    except Exception as e:  # pylint: disable=broad-except
+    except Exception:  # pylint: disable=broad-except
         return np.nan
     else:
         if not v:
@@ -548,7 +548,6 @@ def reading_time(text: str) -> int:
         return np.nan
 
     ms_per_char = 14.69
-    result = []
     words = text.split()
     nchars = map(len, words)
     rt_per_word = map(lambda nchar: nchar * ms_per_char, nchars)
@@ -658,7 +657,7 @@ def _select_properties(
     if include_properties is not None:
         properties = [prop for prop in all_properties if prop['name'] in include_properties]
         if len(properties) < len(include_properties):
-            not_found_properties = sorted(set(include_properties) - set([prop['name'] for prop in properties]))
+            not_found_properties = sorted(set(include_properties) - set(prop['name'] for prop in properties))
             raise DeepchecksValueError('include_properties contains properties that were not found: '
                                        f'{not_found_properties}.')
     elif ignore_properties is not None:

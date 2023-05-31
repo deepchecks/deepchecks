@@ -22,8 +22,7 @@ from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text import cut_string, hash_samples, normalize_samples
 from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMixAbstract
 from deepchecks.utils.other import to_ordional_enumeration
-from deepchecks.utils.strings import format_list, format_percent
-from deepchecks.utils.strings import truncate_string
+from deepchecks.utils.strings import format_list, format_percent, truncate_string
 
 __all__ = ['TrainTestSamplesMix']
 
