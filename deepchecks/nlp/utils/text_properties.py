@@ -842,7 +842,6 @@ def calculate_builtin_properties(
         name='Text Samples Calculation',
         unit='Text Sample'
     )
-    import psutil
     for text in progress_bar:
         progress_bar.set_postfix(
             {'Sample': truncate_string(text, max_length=20) if text else 'EMPTY STRING'},
