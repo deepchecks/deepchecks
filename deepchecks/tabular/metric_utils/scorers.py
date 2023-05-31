@@ -304,6 +304,7 @@ class DeepcheckScorer:
                 f'manually provide predicted probabilities to the check. '
                 f'{SUPPORTED_MODELS_DOCLINK}')
 
+        label_col = pd.Series(label_col)
         original_label_col = label_col
         if self.model_classes is not None:
             model = self._wrap_classification_model(model, data)
@@ -311,6 +312,7 @@ class DeepcheckScorer:
                 if len(label_col.unique()) > 2:
                     raise errors.DeepchecksValueError('Model is binary but the label column has more than 2 classes: '
                                                       f'{label_col.unique()}')
+
                 label_col = label_col.map({self.model_classes[0]: 0, self.model_classes[1]: 1})
             else:
                 # if multilabel convert from series of lists to 2d numpy array

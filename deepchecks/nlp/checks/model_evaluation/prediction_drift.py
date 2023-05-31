@@ -162,8 +162,8 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck):
             proba_drift = False
         else:
             # Flag for computing drift on the probabilities rather than the predicted labels
-            proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto')) or \
-                          (self.drift_mode == 'proba')
+            proba_drift = ((len(context.model_classes) == 2) and (self.drift_mode == 'auto') and
+                           hasattr(model, 'predict_proba')) or (self.drift_mode == 'proba')
 
             if proba_drift:
                 train_prediction = np.array(model.predict_proba(train_dataset))
