@@ -44,7 +44,7 @@ def validate_latest_version():
             is_on_latest = result.read().decode() == 'True'
             if not is_on_latest:
                 get_logger().warning('You are using deepchecks version %s, however a newer version is available.'
-                                     'Deepchecks is frequently updated with major improvements. You should consider '
+                                     ' Deepchecks is frequently updated with major improvements. You should consider '
                                      'upgrading via the "python -m pip install --upgrade deepchecks" command.',
                                      deepchecks.__version__)
         except Exception:  # pylint: disable=broad-except
