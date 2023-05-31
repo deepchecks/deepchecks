@@ -180,7 +180,7 @@ class PredictionDrift(PredictionDriftAbstract, TrainTestCheck, ReduceMixin):
 
         # Flag for computing drift on the probabilities rather than the predicted labels
         proba_drift = \
-            ((context.task_type == TaskType.BINARY and self.drift_mode == 'auto')
+            ((context.task_type == TaskType.BINARY and self.drift_mode == 'auto' and hasattr(model, 'predict_proba'))
              or (self.drift_mode == 'proba')) \
             and not (self.balance_classes is True and self.drift_mode == 'auto')
 
