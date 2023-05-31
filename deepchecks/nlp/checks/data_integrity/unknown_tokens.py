@@ -23,8 +23,7 @@ from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.numbers import round_sig
-from deepchecks.utils.strings import format_list, format_percent
-from deepchecks.utils.strings import get_ellipsis as truncate_string
+from deepchecks.utils.strings import format_list, format_percent, truncate_string
 
 __all__ = ['UnknownTokens']
 

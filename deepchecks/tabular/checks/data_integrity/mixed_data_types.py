@@ -18,7 +18,7 @@ from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.utils.dataframes import select_from_dataframe
-from deepchecks.utils.strings import format_list, format_number, format_percent, get_ellipsis, is_string_column
+from deepchecks.utils.strings import format_list, format_number, format_percent, is_string_column, truncate_string
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['MixedDataTypes']
@@ -87,7 +87,7 @@ class MixedDataTypes(SingleDatasetCheck):
                 formated_mix = {}
                 formated_mix['Strings'] = format_percent(mix['strings'])
                 formated_mix['Numbers'] = format_percent(mix['numbers'])
-                formated_mix['Strings examples'] = [get_ellipsis(strr, 15) for strr in mix['strings_examples']]
+                formated_mix['Strings examples'] = [truncate_string(strr, 15) for strr in mix['strings_examples']]
                 formated_mix['Numbers examples'] = '[' + format_list([format_number(float(num))
                                                                       for num in mix['numbers_examples']]) + ']'
                 display_dict[column_name] = formated_mix
