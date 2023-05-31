@@ -147,7 +147,7 @@ def test_calculate_count_unique_urls(manual_text_data_for_properties):
 
     # Assert
     assert_that(result['Unique URLs Count'], equal_to([0, 1, 1, 0, 5]))
-    assert_that(result_none_text['Unique URLs Count'], equal_to([0]))
+    assert_that(result_none_text['Unique URLs Count'], equal_to([np.nan]))
 
 
 def test_calculate_count_urls(manual_text_data_for_properties):
@@ -161,7 +161,7 @@ def test_calculate_count_urls(manual_text_data_for_properties):
 
     # Assert
     assert_that(result['URLs Count'], equal_to([0, 1, 1, 0, 6]))
-    assert_that(result_none_text['URLs Count'], equal_to([0]))
+    assert_that(result_none_text['URLs Count'], equal_to([np.nan]))
 
 
 def test_calculate_count_unique_email_addresses(manual_text_data_for_properties):
@@ -175,7 +175,7 @@ def test_calculate_count_unique_email_addresses(manual_text_data_for_properties)
 
     # Assert
     assert_that(result['Unique Email Addresses Count'], equal_to([2, 2, 1, 0, 2, 2]))
-    assert_that(result_none_text['Unique Email Addresses Count'], equal_to([0]))
+    assert_that(result_none_text['Unique Email Addresses Count'], equal_to([np.nan]))
 
 
 def test_calculate_count_email_addresses(manual_text_data_for_properties):
@@ -189,7 +189,7 @@ def test_calculate_count_email_addresses(manual_text_data_for_properties):
 
     # Assert
     assert_that(result['Email Addresses Count'], equal_to([2, 2, 1, 0, 2, 3]))
-    assert_that(result_none_text['Email Addresses Count'], equal_to([0]))
+    assert_that(result_none_text['Email Addresses Count'], equal_to([np.nan]))
 
 
 def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
@@ -220,7 +220,7 @@ def test_calculate_reading_time(tweet_emotion_train_test_textdata):
     # Assert
     assert_that(result['Reading Time'][0: 10], equal_to([1.26, 1.25, 0.81, 1.35, 1.44,
                                                          1.88, 0.48, 0.71, 1.53, 1.56]))
-    assert_that(result_none_text['Reading Time'], equal_to([0.00]))
+    assert_that(result_none_text['Reading Time'], equal_to([np.nan]))
 
 
 def test_calculate_sentence_length(tweet_emotion_train_test_textdata):

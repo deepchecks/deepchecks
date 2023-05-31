@@ -48,7 +48,7 @@ def _word_tokenize_with_cache(text):
     hash_key = hash_text(text)
     if hash_key not in words_tokens_cache:
         words = re.split(r'\W+', normalize_text(text, remove_stops=False, ignore_whitespace=False))
-        words = [w for w in words if w] # remove empty strings
+        words = [w for w in words if w]  # remove empty strings
         words_tokens_cache[hash_key] = words
     return words_tokens_cache[hash_key]
 
@@ -124,6 +124,7 @@ def _warn_if_missing_nltk_dependencies(dependency: str, property_name: str):
     """Warn if NLTK dependency is missing."""
     warnings.warn(f'NLTK {dependency} not found, {property_name} cannot be calculated.'
                   ' Please check your internet connection.', UserWarning)
+
 
 def get_create_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
     """Get the models storage directory and create it if needed."""
@@ -246,35 +247,27 @@ def get_transformer_pipeline(
     )
 
 
-def text_length(raw_text: Sequence[str]) -> List[int]:
-    """Return list of integers of text lengths."""
-    return [len(text) for text in raw_text]
+def text_length(text: str) -> int:
+    """Return text length."""
+    return len(text)
 
 
-def word_length(raw_text: Sequence[str]) -> List[int]:  # Not yet used as returns list per sample and not number
-    """Return list of integers of word lengths."""
-    return [len(word) for text in raw_text for word in text.split()]
+def average_word_length(text: str) -> float:
+    """Return average word length."""
+    return np.mean([len(word) for word in text.split()])  # TODO: Change to correct split
 
 
-def average_word_length(raw_text: Sequence[str]) -> List[float]:
-    """Return list of floats of average word length."""
-    return [np.mean([len(word) for word in text.split()]) for text in raw_text]
+def percentage_special_characters(text: str) -> float:
+    """Return percentage of special characters (as float between 0 and 1)."""
+    return len([c for c in text if c in string.punctuation]) / len(text)
 
 
-def percentage_special_characters(raw_text: Sequence[str]) -> List[float]:
-    """Return list of floats of percentage of special characters."""
-    return [len([c for c in text if c in string.punctuation]) / len(text) for text in raw_text]
-
-
-def max_word_length(raw_text: Sequence[str]) -> List[int]:
-    """Return list of integers of max word length."""
-    result = []
-    for text in raw_text:
-        words = text.split()
-        if not words:
-            result.append(np.nan)
-        result.append(max(len(w) for w in words))
-    return result
+def max_word_length(text: str) -> int:
+    """Return max word length."""
+    words = text.split()  # TODO: Change to correct split
+    if not words:
+        return np.nan  # TODO: necessary?
+    return max(len(w) for w in words)
 
 
 def _get_fasttext_model(models_storage: Union[pathlib.Path, str, None] = None):
@@ -308,64 +301,48 @@ def _get_fasttext_model(models_storage: Union[pathlib.Path, str, None] = None):
 
 
 def language(
-            raw_text: Sequence[str],
-            lang_certainty_threshold: float = 0.8,
-            fasttext_model: Optional[Dict[object, Any]] = None
-    ) -> List[str]:
-    """Return list of strings of language."""
+        text: str,
+        lang_certainty_threshold: float = 0.8,
+        fasttext_model: Optional[Dict[object, Any]] = None
+) -> Union[str, None]:
+    """Return text language, represented as a string."""
+    if not text:
+        return None
     # Not recommended, takes a long time. Here only to enable to call this function from outside:
     if fasttext_model is None:
         fasttext_model = _get_fasttext_model()
 
     # Predictions are the first prediction (k=1), only if the probability is above the threshold
-    predictions = [
-        fasttext_model.predict(it.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)
-        if it is not None
-        else (None, None)
-        for it in raw_text
-    ]
-    # labels is empty for detection below threshold
-    language_codes = [
-        labels[0].replace('__label__', '') if labels else None
-        for labels, _ in predictions
-    ]
-
-    return language_codes
-
-blabla = textblob.TextBlob
-
-def sentiment(raw_text: Sequence[str]) -> List[float]:
-    """Return list of floats of sentiment."""
-    hash_keys = [hash_text(text) for text in raw_text]
-    for key in hash_keys:
-        if textblob_cache.get(key) is None:
-            # TextBlob uses only the words and not the relations between them, so we can sample the text
-            # to speed up the process:
-            raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
-            textblob_cache[key] = [blabla(text).sentiment for text in raw_text]
-    return [textblob_cache.get(key)[0].polarity for key in hash_keys]
+    prediction = fasttext_model.predict(text.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)[0]
+    # label is empty for detection below threshold:
+    language_code = prediction[0].replace('__label__', '') if prediction else None
+    return language_code
 
 
-def subjectivity(raw_text: Sequence[str]) -> List[float]:
-    """Return list of floats of subjectivity."""
-    hash_keys = [hash_text(text) for text in raw_text]
-    for key in hash_keys:
-        if textblob_cache.get(key) is None:
-            # TextBlob uses only the words and not the relations between them, so we can sample the text
-            # to speed up the process:
-            raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
-            textblob_cache[key] = [blabla(text).sentiment for text in raw_text]
-    return [textblob_cache.get(key)[0].subjectivity for key in hash_keys]
-
-    # if textblob_cache.get('textblob') is None:
-    #     # TextBlob uses only the words and not the relations between them, so we can sample the text
-    #     # to speed up the process:
-    #     raw_text = [_sample_for_property(text, mode='words') for text in raw_text]
-    #     textblob_cache['textblob'] = [textblob.TextBlob(text).sentiment for text in raw_text]
-    # return [calc.subjectivity for calc in textblob_cache.get('textblob')]
+def sentiment(text: str) -> float:
+    """Return float representing sentiment."""
+    hash_key = hash_text(text)
+    if textblob_cache.get(hash_key) is None:
+        # TextBlob uses only the words and not the relations between them, so we can sample the text
+        # to speed up the process:
+        words = _sample_for_property(text, mode='words')
+        textblob_cache[hash_key] = textblob.TextBlob(words).sentiment
+    return textblob_cache.get(hash_key).polarity
 
 
-def _predict(text, classifier, kind):
+def subjectivity(text: str) -> float:
+    """Return float representing subjectivity."""
+    hash_key = hash_text(text)
+    if textblob_cache.get(hash_key) is None:
+        # TextBlob uses only the words and not the relations between them, so we can sample the text
+        # to speed up the process:
+        words = _sample_for_property(text, mode='words')
+        textblob_cache[hash_key] = textblob.TextBlob(words).sentiment
+    return textblob_cache.get(hash_key).subjectivity
+
+
+def _predict(text: str, classifier, kind: str) -> float:
+    """Return prediction of huggingface Pipeline classifier"""
     try:
         v = classifier(text)
     except Exception as e:  # pylint: disable=broad-except
@@ -390,11 +367,11 @@ def _predict(text, classifier, kind):
 
 
 def toxicity(
-        raw_text: Sequence[str],
+        text: str,
         device: Optional[int] = None,
         models_storage: Union[pathlib.Path, str, None] = None
-) -> List[float]:
-    """Return list of floats of toxicity."""
+) -> float:
+    """Return float representing toxicity."""
     model_name = 'unitary/toxic-bert'
     classifier = get_transformer_pipeline(
         'toxicity',
@@ -402,18 +379,15 @@ def toxicity(
         device=device,
         models_storage=models_storage
     )
-    return [
-        _predict(text, classifier, 'toxicity')
-        for text in raw_text
-    ]
+    return _predict(text, classifier, 'toxicity')
 
 
 def fluency(
-        raw_text: Sequence[str],
+        text: str,
         device: Optional[int] = None,
         models_storage: Union[pathlib.Path, str, None] = None
-) -> List[float]:
-    """Return list of floats of fluency."""
+) -> float:
+    """Return float representing fluency."""
     model_name = 'prithivida/parrot_fluency_model'
     classifier = get_transformer_pipeline(
         'fluency',
@@ -421,18 +395,15 @@ def fluency(
         device=device,
         models_storage=models_storage
     )
-    return [
-        _predict(text, classifier, 'fluency')
-        for text in raw_text
-    ]
+    return _predict(text, classifier, 'fluency')
 
 
 def formality(
-        raw_text: Sequence[str],
+        text: str,
         device: Optional[int] = None,
         models_storage: Union[pathlib.Path, str, None] = None
-) -> List[float]:
-    """Return list of floats of formality."""
+) -> float:
+    """Return float representing formality."""
     model_name = 's-nlp/roberta-base-formality-ranker'
     classifier = get_transformer_pipeline(
         'formality',
@@ -440,207 +411,184 @@ def formality(
         device=device,
         models_storage=models_storage
     )
-    return [
-        _predict(text, classifier, 'formality')
-        for text in raw_text
-    ]
+    return _predict(text, classifier, 'formality')
 
 
-def lexical_density(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of floats of lexical density per text sample.
+def lexical_density(text: str) -> float:
+    """Return a float representing lexical density.
 
     Lexical density is the percentage of unique words in a given text. For more
     information: https://en.wikipedia.org/wiki/Lexical_density
     """
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('punkt', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
-        return [np.nan] * len(raw_text)
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            all_words = _word_tokenize_with_cache(text)
-            if len(all_words) == 0:
-                result.append(np.nan)
-            else:
-                total_unique_words = len(set(all_words))
-                text_lexical_density = round(total_unique_words * 100 / len(all_words), 2)
-                result.append(text_lexical_density)
-        else:
-            result.append(np.nan)
-    return result
+        return np.nan
+
+    all_words = _word_tokenize_with_cache(text)
+    if len(all_words) == 0:
+        return np.nan
+    total_unique_words = len(set(all_words))
+    return round(total_unique_words * 100 / len(all_words), 2)
 
 
-def unique_noun_count(raw_text: Sequence[str]) -> List[float]:
-    """Return a list of integers of number of unique noun words in the text."""
+def unique_noun_count(text: str) -> int:
+    """Return the number of unique noun words in the text."""
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('averaged_perceptron_tagger', quiet=True):
         _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
-        return [np.nan] * len(raw_text)
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            unique_words_with_tags = set(textblob.TextBlob(text).tags)
-            result.append(sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N')))
-        else:
-            result.append(np.nan)
-    return result
+        return np.nan
+
+    unique_words_with_tags = set(textblob.TextBlob(text).tags)
+    return sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N'))
 
 
-def readability_score(raw_text: Sequence[str], cmudict_dict: dict=None) -> List[float]:
-    """Return a list of floats of Flesch Reading-Ease score per text sample.
+def readability_score(text: str, cmudict_dict: dict = None) -> float:
+    """Return a float representing the Flesch Reading-Ease score per text sample.
 
     In the Flesch reading-ease test, higher scores indicate material that is easier to read
     whereas lower numbers mark texts that are more difficult to read. For more information:
     https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
     """
+    if pd.isna(text):
+        return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
             _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
-            return [np.nan] * len(raw_text)
+            return np.nan
         cmudict_dict = corpus.cmudict.dict()
+    text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
+                                          return_as_list=True)
+    sentence_count = len(text_sentences)
+    text = ' '.join(text_sentences)  # TODO: Remove this!
+    words = _word_tokenize_with_cache(text)
+    word_count = len(words)
+    syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
+
+    if word_count != 0 and sentence_count != 0 and syllable_count != 0:
+        avg_syllables_per_word = syllable_count / word_count
+        avg_words_per_sentence = word_count / sentence_count
+        flesch_reading_ease = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
+        return round(flesch_reading_ease, 3)
+    else:
+        return np.nan  # TODO: Simplify this!
+
+
+def average_sentence_length(text: str) -> float:
+    """Return a float representing the average sentence length per text sample."""
     result = []
-    raw_text_sentences = [_sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
-                                               return_as_list=True) for text in raw_text]
-    for sentences in raw_text_sentences:
-        if sentences:
-            sentence_count = len(sentences)
-            text = ' '.join(sentences)
-            words = _word_tokenize_with_cache(text)
-            word_count = len(words)
-            syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
-
-            if word_count != 0 and sentence_count != 0 and syllable_count != 0:
-                avg_syllables_per_word = syllable_count / word_count
-                avg_words_per_sentence = word_count / sentence_count
-                flesch_reading_ease = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
-                result.append(round(flesch_reading_ease, 3))
-            else:
-                result.append(np.nan)
+    text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
+                                              return_as_list=True)
+    if text_sentences:
+        text_sentences = [remove_punctuation(sent) for sent in text_sentences]
+        total_words = sum([len(word_tokenize(sentence)) for sentence in text_sentences])
+        if len(text_sentences) != 0:
+            asl = total_words / len(text_sentences)
+            return round(asl, 0)  # TODO: Why? why not float?
         else:
-            result.append(np.nan)
-    return result
+            return np.nan
+    else:
+        return np.nan
 
 
-def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
-    """Return a list of floats denoting the average sentence length per text sample."""
-    result = []
-    raw_text_sentences = [_sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
-                                               return_as_list=True) for text in raw_text]
-    for sentences in raw_text_sentences:
-        if sentences:
-            sentences = [remove_punctuation(sent) for sent in sentences]
-            total_words = sum([len(word_tokenize(sentence)) for sentence in sentences])
-            if len(sentences) != 0:
-                asl = total_words / len(sentences)
-                result.append(round(asl, 0))
-            else:
-                result.append(np.nan)
-        else:
-            result.append(np.nan)
-    return result
-
-
-def unique_urls_count(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of unique URLS per text sample."""
+def unique_urls_count(text: str) -> int:
+    """Return the number of unique URLS in the text."""
+    if pd.isna(text):
+        return np.nan
     url_pattern = r'https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
-    return [len(set(re.findall(url_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+    return len(set(re.findall(url_pattern, text)))
 
 
-def urls_count(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of URLS per text sample."""
+def urls_count(text: str) -> int:
+    """Return the number of URLS in the text."""
+    if pd.isna(text):
+        return np.nan
     url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
-    return [len(re.findall(url_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
+    return len(re.findall(url_pattern, text))
 
 
-def unique_email_addresses_count(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of unique email addresses per text sample."""
+def unique_email_addresses_count(text: str) -> int:
+    """Return the number of unique email addresses in the text."""
+    if pd.isna(text):
+        return np.nan
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
-    return [len(set(re.findall(email_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+    return len(set(re.findall(email_pattern, text)))
 
 
-def email_addresses_count(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of email addresses per text sample."""
+def email_addresses_count(text: str) -> int:
+    """Return the number of email addresses in the text."""
+    if pd.isna(text):
+        return np.nan
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
-    return [len(re.findall(email_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
+    return len(re.findall(email_pattern, text))
 
 
-def unique_syllables_count(raw_text: Sequence[str], cmudict_dict: dict=None) -> List[str]:
-    """Return a list of integers denoting the number of unique syllables per text sample."""
+def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
+    """Return the number of unique syllables in the text."""
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('punkt', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt', 'Unique Syllables Count')
-        return [np.nan] * len(raw_text)
+        return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
             _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
-            return [np.nan] * len(raw_text)
+            return np.nan
         cmudict_dict = corpus.cmudict.dict()
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            text = remove_punctuation(text.lower())
-            words = word_tokenize(text)
-            syllables = {word: True for word in words if word in cmudict_dict}
-            result.append(len(syllables))
-        else:
-            result.append(np.nan)
-    return result
+
+    text = remove_punctuation(text.lower())
+    words = word_tokenize(text)
+    syllables = {word: True for word in words if word in cmudict_dict}
+    return len(syllables)
 
 
-def reading_time(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting time in seconds to read each text sample.
+def reading_time(text: str) -> int:
+    """Return an integer representing time in seconds to read the text.
 
     The formula is based on Demberg & Keller, 2008 where it is assumed that
     reading a character taken 14.69 milliseconds on average.
     """
+    if pd.isna(text):
+        return np.nan
+
     ms_per_char = 14.69
     result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            words = text.split()
-            nchars = map(len, words)
-            rt_per_word = map(lambda nchar: nchar * ms_per_char, nchars)
-            ms_reading_time = sum(list(rt_per_word))
-            result.append(round(ms_reading_time / 1000, 2))
-        else:
-            result.append(0.00)
-    return result
+    words = text.split()
+    nchars = map(len, words)
+    rt_per_word = map(lambda nchar: nchar * ms_per_char, nchars)
+    ms_reading_time = sum(list(rt_per_word))
+    return round(ms_reading_time / 1000, 2)
 
 
-def sentences_count(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of sentences per text sample."""
+def sentences_count(text: str) -> int:
+    """Return the number of sentences in the text."""
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('punkt', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt', 'Sentences Count')
-        return [np.nan] * len(raw_text)
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            sentence_count = len(_sent_tokenize_with_cache(text))
-            result.append(sentence_count)
-        else:
-            result.append(np.nan)
-    return result
+        return np.nan
+    return len(_sent_tokenize_with_cache(text))
 
 
-def average_syllable_length(raw_text: Sequence[str], cmudict_dict: dict = None) -> List[str]:
-    """Return a list of integers denoting the average number of syllables per sentences per text sample."""
+def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
+    """Return a the average number of syllables per sentences per text sample."""
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('punkt', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt', 'Average Syllable Length')
-        return [np.nan] * len(raw_text)
+        return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
             _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
-            return [np.nan] * len(raw_text)
+            return np.nan
         cmudict_dict = corpus.cmudict.dict()
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            sentence_count = len(_sent_tokenize_with_cache(text))
-            text = remove_punctuation(text.lower())
-            words = word_tokenize(text)
-            syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
-            result.append(round(syllable_count / sentence_count, 2))
-        else:
-            result.append(np.nan)
-    return result
+    sentence_count = len(_sent_tokenize_with_cache(text))
+    text = remove_punctuation(text.lower())
+    words = word_tokenize(text)
+    syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
+    return round(syllable_count / sentence_count, 2)
 
 
 class TextProperty(TypedDict):
@@ -847,8 +795,7 @@ def calculate_builtin_properties(
             {'Sample': truncate_string(text, max_length=20) if text else 'EMPTY STRING'},
             refresh=False
         )
-        text = [text]
-        sample_language = run_available_kwargs(language, raw_text=text, **kwargs)[0]
+        sample_language = run_available_kwargs(language, text=text, **kwargs)
         if is_language_property_requested:
             calculated_properties['Language'].append(sample_language)
 
@@ -857,12 +804,12 @@ def calculate_builtin_properties(
                 calculated_properties[prop['name']].append(np.nan)
             else:
                 try:
-                    values = run_available_kwargs(prop['method'], raw_text=text, **kwargs)
-                except ImportError as e:
+                    value = run_available_kwargs(prop['method'], text=text, **kwargs)
+                except ImportError as e: #TODO: Only once!
                     warnings.warn(warning_message.format(prop['name'], str(e)))
                     continue
                 else:
-                    calculated_properties[prop['name']].append(values[0])
+                    calculated_properties[prop['name']].append(value)
 
         # Clear property caches:
         textblob_cache.clear()
