@@ -270,6 +270,10 @@ def test_include_properties():
     for prop in result:
         assert_that(expected_properties, has_item(prop))
 
+    # Check that raises if include_properties is not a list:
+    assert_that(calling(calculate_builtin_properties).with_args(test_text, include_properties='bla'),
+                raises(DeepchecksValueError))
+
     # Check that raises if property doesn't exist:
     assert_that(calling(calculate_builtin_properties).with_args(test_text, include_properties=['Non Existent Property']),
                 raises(DeepchecksValueError,
@@ -292,6 +296,10 @@ def test_ignore_properties():
     # Assert
     for prop in result:
         assert_that(expected_properties, has_item(prop))
+
+    # Check that raises if ignore_properties is not a list:
+    assert_that(calling(calculate_builtin_properties).with_args(test_text, ignore_properties='bla'),
+                raises(DeepchecksValueError))
 
     # Check that raises if property doesn't exist:
     assert_that(calling(calculate_builtin_properties).with_args(test_text, ignore_properties=['Non Existent Property']),

@@ -34,6 +34,8 @@ from deepchecks.utils.strings import format_list, truncate_string
 
 __all__ = ['calculate_builtin_properties']
 
+from deepchecks.utils.validation import is_sequence_not_str
+
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
@@ -650,6 +652,14 @@ def _select_properties(
 
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
+    if include_properties is not None:
+        if not is_sequence_not_str(include_properties) \
+                and not all(isinstance(prop, str) for prop in include_properties):
+            raise DeepchecksValueError('include_properties must be a sequence of strings.')
+    if ignore_properties is not None:
+        if not is_sequence_not_str(ignore_properties) \
+                and not all(isinstance(prop, str) for prop in ignore_properties):
+            raise DeepchecksValueError('ignore_properties must be a sequence of strings.')
 
     include_properties = [prop.title() for prop in include_properties] if include_properties else None
     ignore_properties = [prop.title() for prop in ignore_properties] if ignore_properties else None
