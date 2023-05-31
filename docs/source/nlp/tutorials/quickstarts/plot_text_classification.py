@@ -115,7 +115,9 @@ train.properties.head(2)
 #
 # Deepchecks comes with a set of pre-built suites that can be used to run a set of checks on your data, alongside
 # with their default conditions and thresholds. You can read more about customizing and creating your own suites in the
-# :ref:`Customizations Guide <general__customizations>`.
+# :ref:`Customizations Guide <general__customizations>`. In this guide we'll be using 3 suites - the data integrity
+# suite, the train test validation suite and the model evaluation suite. You can also run all the checks at once using
+# the :mod:`full_suite <deepchecks.nlp.suites>`.
 #
 # Data Integrity
 # --------------
