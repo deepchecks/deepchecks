@@ -65,7 +65,7 @@ Formality*                      Yes               Formality of the text. Uses th
 Lexical Density                 Yes               Percentage of unique words in the text, rounded up to 2 decimal digits
 Unique Noun Count*              Yes               Number of unique noun words in the text
 Readability Score               Yes               A score calculated based on Flesch reading-ease per text sample. For more information: https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
-Average Sentence Length         Yes               Average number of words per sentence in the text
+Average Words Per Sentence      Yes               Average number of words per sentence in the text
 URLs Count                      No                Number of URLS per text sample.
 Unique URLs Count               No                Number of unique URLS per text sample.
 Email Addresses Count           No                Number of email addresses per text sample.

@@ -43,7 +43,7 @@ sentence_tokens_cache = {}
 secret_cache = {}
 
 
-def _word_tokenize_with_cache(text):
+def _word_tokenize_with_cache(text: str):
     """Tokenize a text into words and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in words_tokens_cache:
@@ -53,7 +53,7 @@ def _word_tokenize_with_cache(text):
     return words_tokens_cache[hash_key]
 
 
-def _sent_tokenize_with_cache(text):
+def _sent_tokenize_with_cache(text: str):
     """Tokenize a text into sentences and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in sentence_tokens_cache:
@@ -254,7 +254,7 @@ def text_length(text: str) -> int:
 
 def average_word_length(text: str) -> float:
     """Return average word length."""
-    return np.mean([len(word) for word in text.split()])  # TODO: Change to correct split
+    return np.mean([len(word) for word in _word_tokenize_with_cache(text)])
 
 
 def percentage_special_characters(text: str) -> float:
@@ -264,9 +264,7 @@ def percentage_special_characters(text: str) -> float:
 
 def max_word_length(text: str) -> int:
     """Return max word length."""
-    words = text.split()  # TODO: Change to correct split
-    if not words:
-        return np.nan  # TODO: necessary?
+    words = _word_tokenize_with_cache(text)
     return max(len(w) for w in words)
 
 
@@ -462,7 +460,6 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
                                           return_as_list=True)
     sentence_count = len(text_sentences)
-    text = ' '.join(text_sentences)  # TODO: Remove this!
     words = _word_tokenize_with_cache(text)
     word_count = len(words)
     syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
@@ -473,22 +470,19 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
         flesch_reading_ease = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
         return round(flesch_reading_ease, 3)
     else:
-        return np.nan  # TODO: Simplify this!
+        return np.nan
 
 
-def average_sentence_length(text: str) -> float:
-    """Return a float representing the average sentence length per text sample."""
-    result = []
+def average_words_per_sentence(text: str) -> float:
+    """Return the average words per sentence in the text."""
+    if pd.isna(text):
+        return np.nan
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
-                                              return_as_list=True)
+                                          return_as_list=True)
     if text_sentences:
         text_sentences = [remove_punctuation(sent) for sent in text_sentences]
-        total_words = sum([len(word_tokenize(sentence)) for sentence in text_sentences])
-        if len(text_sentences) != 0:
-            asl = total_words / len(text_sentences)
-            return round(asl, 0)  # TODO: Why? why not float?
-        else:
-            return np.nan
+        total_words = sum([len(_word_tokenize_with_cache(sentence)) for sentence in text_sentences])
+        return round(total_words / len(text_sentences), 3)
     else:
         return np.nan
 
@@ -605,7 +599,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
     {'name': 'Language', 'method': language, 'output_type': 'categorical'},
     {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
     {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
-    {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
+    {'name': 'Average Words Per Sentence', 'method': average_words_per_sentence, 'output_type': 'numeric'},
     {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
     {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
     {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
@@ -658,10 +652,22 @@ def _select_properties(
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
 
+    include_properties = [prop.title() for prop in include_properties] if include_properties else None
+    ignore_properties = [prop.title() for prop in ignore_properties] if ignore_properties else None
+
     if include_properties is not None:
         properties = [prop for prop in all_properties if prop['name'] in include_properties]
+        if len(properties) < len(include_properties):
+            not_found_properties = sorted(set(include_properties) - set([prop['name'] for prop in properties]))
+            raise DeepchecksValueError('include_properties contains properties that were not found: '
+                                       f'{not_found_properties}.')
     elif ignore_properties is not None:
         properties = [prop for prop in default_properties if prop['name'] not in ignore_properties]
+        if len(properties) + len(ignore_properties) != len(default_properties):
+            not_found_properties = \
+                [prop for prop in ignore_properties if prop not in [prop['name'] for prop in default_properties]]
+            raise DeepchecksValueError('ignore_properties contains properties that were not found: '
+                                       f'{not_found_properties}.')
     else:
         properties = default_properties
 
@@ -711,12 +717,12 @@ def calculate_builtin_properties(
         together with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Readability Score', 'Average Sentence Length', 'URLs Count', Unique URLs Count', 'Email Address Count',
+        'Readability Score', 'Average Words Per Sentence', 'URLs Count', Unique URLs Count', 'Email Address Count',
         'Unique Email Address Count', 'Unique Syllables Count', 'Reading Time', 'Sentences Count',
         'Average Syllable Length']
         List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
         '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
-        'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Sentence Length']
+        'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Words Per Sentence']
         To calculate all the default properties, the include_properties and ignore_properties parameters should
         be None. If you pass either include_properties or ignore_properties then the only the properties specified
         in the list will be calculated or ignored.
@@ -784,6 +790,7 @@ def calculate_builtin_properties(
         'Dependencies required by property are not installed. '
         'Error:\n{1}'
     )
+    import_warnings = set()
 
     progress_bar = create_progress_bar(
         iterable=list(raw_text),
@@ -795,18 +802,26 @@ def calculate_builtin_properties(
             {'Sample': truncate_string(text, max_length=20) if text else 'EMPTY STRING'},
             refresh=False
         )
+        if pd.isna(text):
+            for prop in text_properties:
+                calculated_properties[prop['name']].append(np.nan)
+            continue
         sample_language = run_available_kwargs(language, text=text, **kwargs)
         if is_language_property_requested:
             calculated_properties['Language'].append(sample_language)
 
         for prop in text_properties:
+            if prop['name'] in import_warnings:  # Skip properties that failed to import:
+                calculated_properties[prop['name']].append(np.nan)
+                continue
             if sample_language != 'en' and prop['name'] in english_properties_names:
                 calculated_properties[prop['name']].append(np.nan)
             else:
                 try:
                     value = run_available_kwargs(prop['method'], text=text, **kwargs)
-                except ImportError as e: #TODO: Only once!
+                except ImportError as e:
                     warnings.warn(warning_message.format(prop['name'], str(e)))
+                    import_warnings.add(prop['name'])
                     continue
                 else:
                     calculated_properties[prop['name']].append(value)

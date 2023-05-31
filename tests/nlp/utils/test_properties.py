@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 from hamcrest import *
 
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_builtin_properties, get_transformer_model, \
     _sample_for_property
 
@@ -112,12 +113,13 @@ def test_calculate_average_sentence_length_property(tweet_emotion_train_test_tex
     test_text = test.text
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Average Sentence Length'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Average Sentence Length'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Average Words Per Sentence'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Average Words Per Sentence'])[0]
 
     # Assert
-    assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
-    assert_that(result_none_text['Average Sentence Length'], equal_to([np.nan]))
+    assert_that(result['Average Words Per Sentence'][0: 10], equal_to([5.667, 7.0, 11.0, 12.0, 8.0, 19.0, 3.0, 9.0,
+                                                                       11.5, 7.333]))
+    assert_that(result_none_text['Average Words Per Sentence'], equal_to([np.nan]))
 
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):
@@ -254,20 +256,47 @@ def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
     assert_that(result_none_text['Average Syllable Length'], equal_to([np.nan]))
 
 
+def test_include_properties():
+
+    # Arrange
+    test_text = ['This is simple sentence.']
+    # Also check capitalization doesn't matter:
+    expected_properties = ['Text Length', 'Average Word Length']
+    include_properties = ['Text length', 'average Word length']
+
+    # Act
+    result = calculate_builtin_properties(test_text, include_properties=include_properties)[0]
+    # Assert
+    for prop in result:
+        assert_that(expected_properties, has_item(prop))
+
+    # Check that raises if property doesn't exist:
+    assert_that(calling(calculate_builtin_properties).with_args(test_text, include_properties=['Non Existent Property']),
+                raises(DeepchecksValueError,
+                       r'include_properties contains properties that were not found: \[\'Non Existent Property\'\].'))
+
+
 def test_ignore_properties():
 
     # Arrange
     test_text = ['This is simple sentence.']
     expected_properties = ['Text Length', 'Average Word Length', 'Max Word Length',
                            '% Special Characters', 'Language', 'Sentiment', 'Subjectivity',
-                           'Lexical Density', 'Readability Score', 'Average Sentence Length']
+                           'Lexical Density', 'Readability Score', 'Average Words Per Sentence']
+
+    # Also check capitalization doesn't matter:
+    ignore_properties = ['Unique noun Count', 'toxicity', 'fluency', 'Formality']
+
     # Act
-    result = calculate_builtin_properties(test_text, ignore_properties=['Unique Noun Count',
-                                                                        'Toxicity', 'Fluency',
-                                                                        'Formality'])[0]
+    result = calculate_builtin_properties(test_text, ignore_properties=ignore_properties)[0]
     # Assert
     for prop in result:
         assert_that(expected_properties, has_item(prop))
+
+    # Check that raises if property doesn't exist:
+    assert_that(calling(calculate_builtin_properties).with_args(test_text, ignore_properties=['Non Existent Property']),
+                raises(DeepchecksValueError,
+                       r'ignore_properties contains properties that were not found: \[\'Non Existent Property\'\].'))
 
 
 @pytest.mark.skipif(
