@@ -661,17 +661,17 @@ def _select_properties(
                 and not all(isinstance(prop, str) for prop in ignore_properties):
             raise DeepchecksValueError('ignore_properties must be a sequence of strings.')
 
-    include_properties = [prop.title() for prop in include_properties] if include_properties else None
-    ignore_properties = [prop.title() for prop in ignore_properties] if ignore_properties else None
+    include_properties = [prop.lower() for prop in include_properties] if include_properties else None
+    ignore_properties = [prop.lower() for prop in ignore_properties] if ignore_properties else None
 
     if include_properties is not None:
-        properties = [prop for prop in all_properties if prop['name'] in include_properties]
+        properties = [prop for prop in all_properties if prop['name'].lower() in include_properties]
         if len(properties) < len(include_properties):
-            not_found_properties = sorted(set(include_properties) - set(prop['name'] for prop in properties))
+            not_found_properties = sorted(set(include_properties) - set(prop['name'].lower() for prop in properties))
             raise DeepchecksValueError('include_properties contains properties that were not found: '
                                        f'{not_found_properties}.')
     elif ignore_properties is not None:
-        properties = [prop for prop in default_properties if prop['name'] not in ignore_properties]
+        properties = [prop for prop in default_properties if prop['name'].lower() not in ignore_properties]
         if len(properties) + len(ignore_properties) != len(default_properties):
             not_found_properties = \
                 [prop for prop in ignore_properties if prop not in [prop['name'] for prop in default_properties]]

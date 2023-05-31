@@ -277,7 +277,7 @@ def test_include_properties():
     # Check that raises if property doesn't exist:
     assert_that(calling(calculate_builtin_properties).with_args(test_text, include_properties=['Non Existent Property']),
                 raises(DeepchecksValueError,
-                       r'include_properties contains properties that were not found: \[\'Non Existent Property\'\].'))
+                       r'include_properties contains properties that were not found: \[\'non existent property\'\].'))
 
 
 def test_ignore_properties():
@@ -304,7 +304,7 @@ def test_ignore_properties():
     # Check that raises if property doesn't exist:
     assert_that(calling(calculate_builtin_properties).with_args(test_text, ignore_properties=['Non Existent Property']),
                 raises(DeepchecksValueError,
-                       r'ignore_properties contains properties that were not found: \[\'Non Existent Property\'\].'))
+                       r'ignore_properties contains properties that were not found: \[\'non existent property\'\].'))
 
 
 @pytest.mark.skipif(
