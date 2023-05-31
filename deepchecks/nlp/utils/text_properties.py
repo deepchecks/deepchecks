@@ -40,30 +40,30 @@ MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
 textblob_cache = {}
-words_tokens_cache = {}
-sentence_tokens_cache = {}
+words_cache = {}
+sentences_cache = {}
 secret_cache = {}
 
 
-def _word_tokenize_with_cache(text: str):
+def _split_to_words_with_cache(text: str):
     """Tokenize a text into words and cache the result."""
     hash_key = hash_text(text)
-    if hash_key not in words_tokens_cache:
+    if hash_key not in words_cache:
         words = re.split(r'\W+', normalize_text(text, remove_stops=False, ignore_whitespace=False))
         words = [w for w in words if w]  # remove empty strings
-        words_tokens_cache[hash_key] = words
-    return words_tokens_cache[hash_key]
+        words_cache[hash_key] = words
+    return words_cache[hash_key]
 
 
-def _sent_tokenize_with_cache(text: str):
+def _split_to_sentences_with_cache(text: str):
     """Tokenize a text into sentences and cache the result."""
     hash_key = hash_text(text)
-    if hash_key not in sentence_tokens_cache:
+    if hash_key not in sentences_cache:
         if not nltk_download('punkt', quiet=True):
             _warn_if_missing_nltk_dependencies('punkt', 'property')
             return None
-        sentence_tokens_cache[hash_key] = sent_tokenize(text)
-    return sentence_tokens_cache[hash_key]
+        sentences_cache[hash_key] = sent_tokenize(text)
+    return sentences_cache[hash_key]
 
 
 def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, return_as_list=False,
@@ -84,11 +84,11 @@ def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, ret
         return None
 
     if mode == 'words':
-        all_units = _word_tokenize_with_cache(text)
+        all_units = _split_to_words_with_cache(text)
         if len(all_units) > limit:
             all_units = np.random.choice(all_units, size=limit, replace=False)
     elif mode == 'sentences':
-        all_units = _sent_tokenize_with_cache(text)
+        all_units = _split_to_sentences_with_cache(text)
         if len(all_units) > limit:
             all_units = np.random.choice(all_units, size=limit, replace=False)
     else:
@@ -256,7 +256,7 @@ def text_length(text: str) -> int:
 
 def average_word_length(text: str) -> float:
     """Return average word length."""
-    return np.mean([len(word) for word in _word_tokenize_with_cache(text)])
+    return np.mean([len(word) for word in _split_to_words_with_cache(text)])
 
 
 def percentage_special_characters(text: str) -> float:
@@ -266,7 +266,7 @@ def percentage_special_characters(text: str) -> float:
 
 def max_word_length(text: str) -> int:
     """Return max word length."""
-    words = _word_tokenize_with_cache(text)
+    words = _split_to_words_with_cache(text)
     return max(len(w) for w in words)
 
 
@@ -426,7 +426,7 @@ def lexical_density(text: str) -> float:
         _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
         return np.nan
 
-    all_words = _word_tokenize_with_cache(text)
+    all_words = _split_to_words_with_cache(text)
     if len(all_words) == 0:
         return np.nan
     total_unique_words = len(set(all_words))
@@ -462,7 +462,7 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
                                           return_as_list=True)
     sentence_count = len(text_sentences)
-    words = _word_tokenize_with_cache(text)
+    words = _split_to_words_with_cache(text)
     word_count = len(words)
     syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
 
@@ -483,7 +483,7 @@ def average_words_per_sentence(text: str) -> float:
                                           return_as_list=True)
     if text_sentences:
         text_sentences = [remove_punctuation(sent) for sent in text_sentences]
-        total_words = sum([len(_word_tokenize_with_cache(sentence)) for sentence in text_sentences])
+        total_words = sum([len(_split_to_words_with_cache(sentence)) for sentence in text_sentences])
         return round(total_words / len(text_sentences), 3)
     else:
         return np.nan
@@ -564,7 +564,7 @@ def sentences_count(text: str) -> int:
     if not nltk_download('punkt', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt', 'Sentences Count')
         return np.nan
-    return len(_sent_tokenize_with_cache(text))
+    return len(_split_to_sentences_with_cache(text))
 
 
 def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
@@ -579,7 +579,7 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
             _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
             return np.nan
         cmudict_dict = corpus.cmudict.dict()
-    sentence_count = len(_sent_tokenize_with_cache(text))
+    sentence_count = len(_split_to_sentences_with_cache(text))
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
     syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
@@ -837,8 +837,8 @@ def calculate_builtin_properties(
 
         # Clear property caches:
         textblob_cache.clear()
-        words_tokens_cache.clear()
-        sentence_tokens_cache.clear()
+        words_cache.clear()
+        sentences_cache.clear()
     gc.collect()
 
     if not calculated_properties:
