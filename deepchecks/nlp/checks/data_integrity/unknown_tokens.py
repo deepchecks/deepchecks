@@ -9,7 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the Unknown Tokens check."""
-import os
+import contextlib
+import sys
 import typing as t
 import warnings
 from collections import Counter
@@ -152,9 +153,9 @@ class UnknownTokens(SingleDatasetCheck):
             # Batch tokenization
             # ------------------
             # Needed to avoid warning when used after loading a hub dataset
-            os.environ['TOKENIZERS_PARALLELISM '] = 'true'
-            tokenized_samples = self.tokenizer(list(samples), return_offsets_mapping=True, is_split_into_words=False,
-                                               truncation=False)
+            with contextlib.redirect_stdout(PrintFilter(sys.stdout)):
+                tokenized_samples = self.tokenizer(list(samples), return_offsets_mapping=True,
+                                                   is_split_into_words=False, truncation=False)
 
             for idx, (tokens, offsets_mapping, sample) in zip(indices, zip(tokenized_samples['input_ids'],
                                                                            tokenized_samples['offset_mapping'],
@@ -252,3 +253,17 @@ class UnknownTokens(SingleDatasetCheck):
 
         return self.add_condition(f'Ratio of unknown words is less than {format_percent(ratio)}',
                                   condition)
+
+
+class PrintFilter:
+    """Filter to avoid printing of tokenization warnings."""
+
+    def __init__(self, original_stdout):
+        self.original_stdout = original_stdout
+
+    def write(self, msg):
+        if 'huggingface/tokenizers' not in msg:
+            self.original_stdout.write(msg)
+
+    def flush(self):
+        self.original_stdout.flush()
