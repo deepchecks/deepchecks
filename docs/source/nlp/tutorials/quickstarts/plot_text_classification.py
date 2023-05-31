@@ -47,7 +47,8 @@ Setting Up
 Load Data
 ---------
 For the purpose of this guide, we'll use a small subset of the
-`tweet emotion <https://github.com/cardiffnlp/tweeteval>`__ dataset:
+`tweet emotion <https://github.com/cardiffnlp/tweeteval>`__ dataset. This dataset contains tweets and their
+corresponding emotion - Anger, Happiness, Optimism, and Sadness.
 
 """
 
