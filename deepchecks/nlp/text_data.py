@@ -302,7 +302,8 @@ class TextData:
             )
         return self._embeddings
 
-    def calculate_builtin_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.npy'):
+    def calculate_builtin_embeddings(self, model: str = 'miniLM', file_path: str = 'embeddings.npy',
+                                     device: t.Optional[str] = None):
         """Calculate the built-in embeddings of the dataset.
 
         Parameters
@@ -313,11 +314,13 @@ class TextData:
             'open_ai': using the ADA model in the open_ai library. Requires an API key.
         file_path : str, default: 'embeddings.npy'
             The path to save the embeddings to.
+        device : str, default: None
+            The device to use for calculating the embeddings. If None, the default device will be used.
         """
         if self._embeddings is not None:
             warnings.warn('Embeddings already exist, overwriting them', UserWarning)
 
-        self._embeddings = calculate_builtin_embeddings(text=self.text, model=model, file_path=file_path)
+        self._embeddings = calculate_builtin_embeddings(text=self.text, model=model, file_path=file_path, device=device)
 
     def set_embeddings(self, embeddings: np.ndarray, verbose: bool = True):
         """Set the embeddings of the dataset.
