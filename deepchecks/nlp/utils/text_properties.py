@@ -822,23 +822,23 @@ def calculate_builtin_properties(
         for prop in text_properties:
             if prop['name'] in import_warnings:  # Skip properties that failed to import:
                 calculated_properties[prop['name']].append(np.nan)
-                continue
-            if sample_language != 'en' and prop['name'] in english_properties_names:
+            elif sample_language != 'en' and prop['name'] in english_properties_names:
                 calculated_properties[prop['name']].append(np.nan)
             else:
                 try:
                     value = run_available_kwargs(prop['method'], text=text, **kwargs)
+                    calculated_properties[prop['name']].append(value)
                 except ImportError as e:
                     warnings.warn(warning_message.format(prop['name'], str(e)))
+                    calculated_properties[prop['name']].append(np.nan)
                     import_warnings.add(prop['name'])
-                    continue
-                else:
-                    calculated_properties[prop['name']].append(value)
 
         # Clear property caches:
         textblob_cache.clear()
         words_cache.clear()
         sentences_cache.clear()
+
+    # Clean all remaining RAM:
     gc.collect()
 
     if not calculated_properties:
