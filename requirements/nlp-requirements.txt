@@ -2,3 +2,5 @@ seqeval>=1.0.0
 nltk>=3.4.0,<=3.6.7
 textblob>=0.17.1
 umap-learn
+transformers>=4.0.0
+tiktoken
