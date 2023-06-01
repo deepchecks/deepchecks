@@ -27,7 +27,7 @@ from nltk import sent_tokenize, word_tokenize
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text import hash_text, normalize_text, remove_punctuation
+from deepchecks.nlp.utils.text import hash_text, normalize_text, remove_punctuation, cut_string
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.strings import format_list, truncate_string
@@ -344,6 +344,22 @@ def subjectivity(text: str) -> float:
 def _predict(text: str, classifier, kind: str) -> float:
     """Return prediction of huggingface Pipeline classifier."""
     try:
+        # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
+        # If text is longer than classifier context window, sample it:
+        MAX_CHARS = 720  # Bert accepts max of 512 tokens, and experimentally 720 chars seems to work while 1024 doesn't
+        if len(text) > MAX_CHARS:
+            sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
+            text_to_use = ''
+            for sentence in sentences:
+                if len(text_to_use) + len(sentence) > MAX_CHARS:
+                    break
+                text_to_use += sentence + '. '
+
+            # if even one sentence is too long, use part of the first one:
+            if len(text_to_use) == 0:
+                text_to_use = cut_string(sentences[0], MAX_CHARS)
+            text = text_to_use
+
         v = classifier(text)
     except Exception:  # pylint: disable=broad-except
         return np.nan
