@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the text properties for the NLP module."""
+import gc
 import importlib
 import pathlib
 import re
@@ -25,22 +26,82 @@ from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
 from typing_extensions import TypedDict
 
-from deepchecks.nlp.utils.text import remove_punctuation
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.nlp.utils.text import hash_text, normalize_text, remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
+from deepchecks.utils.strings import format_list, truncate_string
 
 __all__ = ['calculate_builtin_properties']
 
+from deepchecks.utils.validation import is_sequence_not_str
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
+DEFAULT_SENTENCE_SAMPLE_SIZE = 300
+textblob_cache = {}
+words_cache = {}
+sentences_cache = {}
+secret_cache = {}
+
+
+def _split_to_words_with_cache(text: str):
+    """Tokenize a text into words and cache the result."""
+    hash_key = hash_text(text)
+    if hash_key not in words_cache:
+        words = re.split(r'\W+', normalize_text(text, remove_stops=False, ignore_whitespace=False))
+        words = [w for w in words if w]  # remove empty strings
+        words_cache[hash_key] = words
+    return words_cache[hash_key]
+
+
+def _split_to_sentences_with_cache(text: str):
+    """Tokenize a text into sentences and cache the result."""
+    hash_key = hash_text(text)
+    if hash_key not in sentences_cache:
+        if not nltk_download('punkt', quiet=True):
+            _warn_if_missing_nltk_dependencies('punkt', 'property')
+            return None
+        sentences_cache[hash_key] = sent_tokenize(text)
+    return sentences_cache[hash_key]
+
+
+def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, return_as_list=False,
+                         random_seed: int = 42) -> Union[str, List[str]]:
+    """Get a sample a single text sample for a text property.
+
+    Parameters
+    ----------
+    text : str
+        The text to sample from.
+    mode : str, default 'words'
+        The mode to sample in. Can be either 'words' or 'sentences'.
+    limit : int, default 10000
+        The maximum number of words or sentences to sample.
+    """
+    np.random.seed(random_seed)
+    if pd.isna(text):
+        return None
+
+    if mode == 'words':
+        all_units = _split_to_words_with_cache(text)
+        if len(all_units) > limit:
+            all_units = np.random.choice(all_units, size=limit, replace=False)
+    elif mode == 'sentences':
+        all_units = _split_to_sentences_with_cache(text)
+        if len(all_units) > limit:
+            all_units = np.random.choice(all_units, size=limit, replace=False)
+    else:
+        raise DeepchecksValueError(f'Unexpected mode - {mode}')
+
+    return ' '.join(all_units) if not return_as_list else list(all_units)
 
 
 def _import_optional_property_dependency(
-    module: str,
-    property_name: str,
-    package_name: Optional[str] = None,
-    error_template: Optional[str] = None
+        module: str,
+        property_name: str,
+        package_name: Optional[str] = None,
+        error_template: Optional[str] = None
 ):
     try:
         lib = importlib.import_module(module)
@@ -61,7 +122,13 @@ def _import_optional_property_dependency(
         return lib
 
 
-def get_creat_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
+def _warn_if_missing_nltk_dependencies(dependency: str, property_name: str):
+    """Warn if NLTK dependency is missing."""
+    warnings.warn(f'NLTK {dependency} not found, {property_name} cannot be calculated.'
+                  ' Please check your internet connection.', UserWarning)
+
+
+def get_create_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
     """Get the models storage directory and create it if needed."""
     if models_storage is None:
         models_storage = MODELS_STORAGE
@@ -81,17 +148,17 @@ def get_creat_model_storage(models_storage: Union[pathlib.Path, str, None] = Non
 
 
 def get_transformer_model(
-    property_name: str,
-    model_name: str,
-    device: Optional[str] = None,
-    quantize_model: bool = False,
-    models_storage: Union[pathlib.Path, str, None] = None
+        property_name: str,
+        model_name: str,
+        device: Optional[str] = None,
+        quantize_model: bool = False,
+        models_storage: Union[pathlib.Path, str, None] = None
 ):
     """Get the transformer model and decide if to use optimum.onnxruntime.
 
     optimum.onnxruntime is used to optimize running times on CPU.
     """
-    models_storage = get_creat_model_storage(models_storage)
+    models_storage = get_create_model_storage(models_storage)
 
     if device not in (None, 'cpu'):
         transformers = _import_optional_property_dependency('transformers', property_name=property_name)
@@ -160,10 +227,10 @@ def get_transformer_model(
 
 
 def get_transformer_pipeline(
-    property_name: str,
-    model_name: str,
-    device: Optional[str] = None,
-    models_storage: Union[pathlib.Path, str, None] = None
+        property_name: str,
+        model_name: str,
+        device: Optional[str] = None,
+        models_storage: Union[pathlib.Path, str, None] = None
 ):
     """Return a transformers pipeline for the given model name."""
     transformers = _import_optional_property_dependency('transformers', property_name=property_name)
@@ -182,47 +249,33 @@ def get_transformer_pipeline(
     )
 
 
-def text_length(raw_text: Sequence[str]) -> List[int]:
-    """Return list of integers of text lengths."""
-    return [len(text) for text in raw_text]
+def text_length(text: str) -> int:
+    """Return text length."""
+    return len(text)
 
 
-def word_length(raw_text: Sequence[str]) -> List[int]:  # Not yet used as returns list per sample and not number
-    """Return list of integers of word lengths."""
-    return [len(word) for text in raw_text for word in text.split()]
+def average_word_length(text: str) -> float:
+    """Return average word length."""
+    return np.mean([len(word) for word in _split_to_words_with_cache(text)])
 
 
-def average_word_length(raw_text: Sequence[str]) -> List[float]:
-    """Return list of floats of average word length."""
-    return [np.mean([len(word) for word in text.split()]) for text in raw_text]
+def percentage_special_characters(text: str) -> float:
+    """Return percentage of special characters (as float between 0 and 1)."""
+    return len([c for c in text if c in string.punctuation]) / len(text)
 
 
-def percentage_special_characters(raw_text: Sequence[str]) -> List[float]:
-    """Return list of floats of percentage of special characters."""
-    return [len([c for c in text if c in string.punctuation]) / len(text) for text in raw_text]
+def max_word_length(text: str) -> int:
+    """Return max word length."""
+    words = _split_to_words_with_cache(text)
+    return max(len(w) for w in words)
 
 
-def max_word_length(raw_text: Sequence[str]) -> List[int]:
-    """Return list of integers of max word length."""
-    result = []
-    for text in raw_text:
-        words = text.split()
-        if not words:
-            result.append(np.nan)
-        result.append(max(len(w) for w in words))
-    return result
-
-
-def language(
-    raw_text: Sequence[str],
-    models_storage: Union[pathlib.Path, str, None] = None,
-    lang_certainty_threshold: float = 0.8
-) -> List[str]:
-    """Return list of strings of language."""
+def _get_fasttext_model(models_storage: Union[pathlib.Path, str, None] = None):
+    """Return fasttext model."""
     fasttext = _import_optional_property_dependency(module='fasttext', property_name='language')
 
     model_name = FASTTEXT_LANG_MODEL.rsplit('/', maxsplit=1)[-1]
-    model_path = get_creat_model_storage(models_storage)
+    model_path = get_create_model_storage(models_storage)
     model_path = model_path / 'fasttext'
 
     if not model_path.exists():
@@ -240,37 +293,56 @@ def language(
     # This weird code is to suppress a warning from fasttext about a deprecated function
     try:
         fasttext.FastText.eprint = lambda *args, **kwargs: None
-        model = fasttext.load_model(str(model_path))
+        fasttext_model = fasttext.load_model(str(model_path))
     except Exception as exp:
         raise exp
 
+    return fasttext_model
+
+
+def language(
+        text: str,
+        lang_certainty_threshold: float = 0.8,
+        fasttext_model: Optional[Dict[object, Any]] = None
+) -> Union[str, None]:
+    """Return text language, represented as a string."""
+    if not text:
+        return None
+    # Not recommended, takes a long time. Here only to enable to call this function from outside:
+    if fasttext_model is None:
+        fasttext_model = _get_fasttext_model()
+
     # Predictions are the first prediction (k=1), only if the probability is above the threshold
-    predictions = [
-        model.predict(it.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)
-        if it is not None
-        else (None, None)
-        for it in raw_text
-    ]
-    # labels is empty for detection below threshold
-    language_codes = [
-        labels[0].replace('__label__', '') if labels else None
-        for labels, _ in predictions
-    ]
-
-    return language_codes
+    prediction = fasttext_model.predict(text.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)[0]
+    # label is empty for detection below threshold:
+    language_code = prediction[0].replace('__label__', '') if prediction else None
+    return language_code
 
 
-def sentiment(raw_text: Sequence[str]) -> List[str]:
-    """Return list of floats of sentiment."""
-    return [textblob.TextBlob(text).sentiment.polarity for text in raw_text]
+def sentiment(text: str) -> float:
+    """Return float representing sentiment."""
+    hash_key = hash_text(text)
+    if textblob_cache.get(hash_key) is None:
+        # TextBlob uses only the words and not the relations between them, so we can sample the text
+        # to speed up the process:
+        words = _sample_for_property(text, mode='words')
+        textblob_cache[hash_key] = textblob.TextBlob(words).sentiment
+    return textblob_cache.get(hash_key).polarity
 
 
-def subjectivity(raw_text: Sequence[str]) -> List[str]:
-    """Return list of floats of subjectivity."""
-    return [textblob.TextBlob(text).sentiment.subjectivity for text in raw_text]
+def subjectivity(text: str) -> float:
+    """Return float representing subjectivity."""
+    hash_key = hash_text(text)
+    if textblob_cache.get(hash_key) is None:
+        # TextBlob uses only the words and not the relations between them, so we can sample the text
+        # to speed up the process:
+        words = _sample_for_property(text, mode='words')
+        textblob_cache[hash_key] = textblob.TextBlob(words).sentiment
+    return textblob_cache.get(hash_key).subjectivity
 
 
-def _predict(text, classifier, kind):
+def _predict(text: str, classifier, kind: str) -> float:
+    """Return prediction of huggingface Pipeline classifier."""
     try:
         v = classifier(text)
     except Exception:  # pylint: disable=broad-except
@@ -286,7 +358,7 @@ def _predict(text, classifier, kind):
         elif kind == 'formality':
             label_value = 'formal'
         else:
-            raise ValueError('Unssuported value for "kind" parameter')
+            raise ValueError('Unsupported value for "kind" parameter')
         return (
             v['score']
             if v['label'] == label_value
@@ -295,11 +367,11 @@ def _predict(text, classifier, kind):
 
 
 def toxicity(
-    raw_text: Sequence[str],
-    device: Optional[int] = None,
-    models_storage: Union[pathlib.Path, str, None] = None
-) -> List[float]:
-    """Return list of floats of toxicity."""
+        text: str,
+        device: Optional[int] = None,
+        models_storage: Union[pathlib.Path, str, None] = None
+) -> float:
+    """Return float representing toxicity."""
     model_name = 'unitary/toxic-bert'
     classifier = get_transformer_pipeline(
         'toxicity',
@@ -307,18 +379,15 @@ def toxicity(
         device=device,
         models_storage=models_storage
     )
-    return [
-        _predict(text, classifier, 'toxicity')
-        for text in raw_text
-    ]
+    return _predict(text, classifier, 'toxicity')
 
 
 def fluency(
-    raw_text: Sequence[str],
-    device: Optional[int] = None,
-    models_storage: Union[pathlib.Path, str, None] = None
-) -> List[float]:
-    """Return list of floats of fluency."""
+        text: str,
+        device: Optional[int] = None,
+        models_storage: Union[pathlib.Path, str, None] = None
+) -> float:
+    """Return float representing fluency."""
     model_name = 'prithivida/parrot_fluency_model'
     classifier = get_transformer_pipeline(
         'fluency',
@@ -326,18 +395,15 @@ def fluency(
         device=device,
         models_storage=models_storage
     )
-    return [
-        _predict(text, classifier, 'fluency')
-        for text in raw_text
-    ]
+    return _predict(text, classifier, 'fluency')
 
 
 def formality(
-    raw_text: Sequence[str],
-    device: Optional[int] = None,
-    models_storage: Union[pathlib.Path, str, None] = None
-) -> List[float]:
-    """Return list of floats of formality."""
+        text: str,
+        device: Optional[int] = None,
+        models_storage: Union[pathlib.Path, str, None] = None
+) -> float:
+    """Return float representing formality."""
     model_name = 's-nlp/roberta-base-formality-ranker'
     classifier = get_transformer_pipeline(
         'formality',
@@ -345,215 +411,179 @@ def formality(
         device=device,
         models_storage=models_storage
     )
-    return [
-        _predict(text, classifier, 'formality')
-        for text in raw_text
-    ]
+    return _predict(text, classifier, 'formality')
 
 
-def lexical_density(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of floats of lexical density per text sample.
+def lexical_density(text: str) -> float:
+    """Return a float representing lexical density.
 
     Lexical density is the percentage of unique words in a given text. For more
     information: https://en.wikipedia.org/wiki/Lexical_density
     """
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, lexical density cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            all_words = textblob.TextBlob(text).words
-            if len(all_words) == 0:
-                result.append(np.nan)
-            else:
-                total_unique_words = len(set(all_words))
-                text_lexical_density = round(total_unique_words * 100 / len(all_words), 2)
-                result.append(text_lexical_density)
-        else:
-            result.append(np.nan)
-    return result
+        _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
+        return np.nan
+
+    all_words = _split_to_words_with_cache(text)
+    if len(all_words) == 0:
+        return np.nan
+    total_unique_words = len(set(all_words))
+    return round(total_unique_words * 100 / len(all_words), 2)
 
 
-def unique_noun_count(raw_text: Sequence[str]) -> List[float]:
-    """Return a list of integers of number of unique noun words in the text."""
+def unique_noun_count(text: str) -> int:
+    """Return the number of unique noun words in the text."""
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('averaged_perceptron_tagger', quiet=True):
-        warnings.warn('nltk averaged_perceptron_tagger not found, unique noun count cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            unique_words_with_tags = set(textblob.TextBlob(text).tags)
-            result.append(sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N')))
-        else:
-            result.append(np.nan)
-    return result
+        _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
+        return np.nan
+
+    unique_words_with_tags = set(textblob.TextBlob(text).tags)
+    return sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N'))
 
 
-def readability_score(raw_text: Sequence[str]) -> List[float]:
-    """Return a list of floats of Flesch Reading-Ease score per text sample.
+def readability_score(text: str, cmudict_dict: dict = None) -> float:
+    """Return a float representing the Flesch Reading-Ease score per text sample.
 
     In the Flesch reading-ease test, higher scores indicate material that is easier to read
     whereas lower numbers mark texts that are more difficult to read. For more information:
     https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
     """
-    if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, readability score cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    if not nltk_download('cmudict', quiet=True):
-        warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    result = []
-    cmudict_dict = corpus.cmudict.dict()
-    for text in raw_text:
-        if not pd.isna(text):
-            sentence_count = len(sent_tokenize(text))
-            text = remove_punctuation(text.lower())
-            words = word_tokenize(text)
-            word_count = len(words)
-            syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
-            if word_count != 0 and sentence_count != 0 and syllable_count != 0:
-                avg_syllables_per_word = syllable_count / word_count
-                avg_words_per_sentence = word_count / sentence_count
-                flesch_reading_ease = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
-                result.append(round(flesch_reading_ease, 3))
-            else:
-                result.append(np.nan)
-        else:
-            result.append(np.nan)
-    return result
+    if pd.isna(text):
+        return np.nan
+    if cmudict_dict is None:
+        if not nltk_download('cmudict', quiet=True):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
+            return np.nan
+        cmudict_dict = corpus.cmudict.dict()
+    text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
+                                          return_as_list=True)
+    sentence_count = len(text_sentences)
+    words = _split_to_words_with_cache(text)
+    word_count = len(words)
+    syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
+
+    if word_count != 0 and sentence_count != 0 and syllable_count != 0:
+        avg_syllables_per_word = syllable_count / word_count
+        avg_words_per_sentence = word_count / sentence_count
+        flesch_reading_ease = 206.835 - (1.015 * avg_words_per_sentence) - (84.6 * avg_syllables_per_word)
+        return round(flesch_reading_ease, 3)
+    else:
+        return np.nan
 
 
-def average_sentence_length(raw_text: Sequence[str]) -> List[float]:
-    """Return a list of floats denoting the average sentence length per text sample."""
-    if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, average sentence length cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            sentences = [remove_punctuation(sent) for sent in sent_tokenize(text)]
-            total_words = sum([len(word_tokenize(sentence)) for sentence in sentences])
-            if len(sentences) != 0:
-                asl = total_words / len(sentences)
-                result.append(round(asl, 0))
-            else:
-                result.append(np.nan)
-        else:
-            result.append(np.nan)
-    return result
+def average_words_per_sentence(text: str) -> float:
+    """Return the average words per sentence in the text."""
+    if pd.isna(text):
+        return np.nan
+    text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
+                                          return_as_list=True)
+    if text_sentences:
+        text_sentences = [remove_punctuation(sent) for sent in text_sentences]
+        total_words = sum([len(_split_to_words_with_cache(sentence)) for sentence in text_sentences])
+        return round(total_words / len(text_sentences), 3)
+    else:
+        return np.nan
 
 
-def count_unique_urls(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of unique URLS per text sample."""
+def unique_urls_count(text: str) -> int:
+    """Return the number of unique URLS in the text."""
+    if pd.isna(text):
+        return np.nan
     url_pattern = r'https?:\/\/(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
-    return [len(set(re.findall(url_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+    return len(set(re.findall(url_pattern, text)))
 
 
-def count_urls(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of URLS per text sample."""
+def urls_count(text: str) -> int:
+    """Return the number of URLS in the text."""
+    if pd.isna(text):
+        return np.nan
     url_pattern = r'https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+'
-    return [len(re.findall(url_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
+    return len(re.findall(url_pattern, text))
 
 
-def count_unique_email_addresses(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of unique email addresses per text sample."""
+def unique_email_addresses_count(text: str) -> int:
+    """Return the number of unique email addresses in the text."""
+    if pd.isna(text):
+        return np.nan
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
-    return [len(set(re.findall(email_pattern, text))) if not pd.isna(text) else 0 for text in raw_text]
+    return len(set(re.findall(email_pattern, text)))
 
 
-def count_email_addresses(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of email addresses per text sample."""
+def email_addresses_count(text: str) -> int:
+    """Return the number of email addresses in the text."""
+    if pd.isna(text):
+        return np.nan
     email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
-    return [len(re.findall(email_pattern, text)) if not pd.isna(text) else 0 for text in raw_text]
+    return len(re.findall(email_pattern, text))
 
 
-def count_unique_syllables(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of unique syllables per text sample."""
+def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
+    """Return the number of unique syllables in the text."""
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, readability score cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    if not nltk_download('cmudict', quiet=True):
-        warnings.warn('nltk cmudict not found, readability score cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    result = []
-    cmudict_dict = corpus.cmudict.dict()
-    for text in raw_text:
-        if not pd.isna(text):
-            text = remove_punctuation(text.lower())
-            words = word_tokenize(text)
-            syllables = {word: True for word in words if word in cmudict_dict}
-            result.append(len(syllables))
-        else:
-            result.append(np.nan)
-    return result
+        _warn_if_missing_nltk_dependencies('punkt', 'Unique Syllables Count')
+        return np.nan
+    if cmudict_dict is None:
+        if not nltk_download('cmudict', quiet=True):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
+            return np.nan
+        cmudict_dict = corpus.cmudict.dict()
+
+    text = remove_punctuation(text.lower())
+    words = word_tokenize(text)
+    syllables = {word: True for word in words if word in cmudict_dict}
+    return len(syllables)
 
 
-def reading_time(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting time in seconds to read each text sample.
+def reading_time(text: str) -> int:
+    """Return an integer representing time in seconds to read the text.
 
     The formula is based on Demberg & Keller, 2008 where it is assumed that
     reading a character taken 14.69 milliseconds on average.
     """
+    if pd.isna(text):
+        return np.nan
+
     ms_per_char = 14.69
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            words = text.split()
-            nchars = map(len, words)
-            rt_per_word = map(lambda nchar: nchar * ms_per_char, nchars)
-            ms_reading_time = sum(list(rt_per_word))
-            result.append(round(ms_reading_time/1000, 2))
-        else:
-            result.append(0.00)
-    return result
+    words = text.split()
+    nchars = map(len, words)
+    rt_per_word = map(lambda nchar: nchar * ms_per_char, nchars)
+    ms_reading_time = sum(list(rt_per_word))
+    return round(ms_reading_time / 1000, 2)
 
 
-def sentence_length(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the number of sentences per text sample."""
+def sentences_count(text: str) -> int:
+    """Return the number of sentences in the text."""
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            sentence_count = len(sent_tokenize(text))
-            result.append(sentence_count)
-        else:
-            result.append(np.nan)
-    return result
+        _warn_if_missing_nltk_dependencies('punkt', 'Sentences Count')
+        return np.nan
+    return len(_split_to_sentences_with_cache(text))
 
 
-def average_syllable_length(raw_text: Sequence[str]) -> List[str]:
-    """Return a list of integers denoting the average number of syllables per sentences per text sample."""
+def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
+    """Return a the average number of syllables per sentences per text sample."""
+    if pd.isna(text):
+        return np.nan
     if not nltk_download('punkt', quiet=True):
-        warnings.warn('nltk punkt not found, average syllable length cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    if not nltk_download('cmudict', quiet=True):
-        warnings.warn('nltk cmudict not found, average syllable length cannot be calculated.'
-                      ' Please check your internet connection.', UserWarning)
-        return [np.nan] * len(raw_text)
-    cmudict_dict = corpus.cmudict.dict()
-    result = []
-    for text in raw_text:
-        if not pd.isna(text):
-            sentence_count = len(sent_tokenize(text))
-            text = remove_punctuation(text.lower())
-            words = word_tokenize(text)
-            syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
-            result.append(round(syllable_count/sentence_count, 2))
-        else:
-            result.append(np.nan)
-    return result
+        _warn_if_missing_nltk_dependencies('punkt', 'Average Syllable Length')
+        return np.nan
+    if cmudict_dict is None:
+        if not nltk_download('cmudict', quiet=True):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
+            return np.nan
+        cmudict_dict = corpus.cmudict.dict()
+    sentence_count = len(_split_to_sentences_with_cache(text))
+    text = remove_punctuation(text.lower())
+    words = word_tokenize(text)
+    syllable_count = sum([len(cmudict_dict[word]) for word in words if word in cmudict_dict])
+    return round(syllable_count / sentence_count, 2)
 
 
 class TextProperty(TypedDict):
@@ -570,44 +600,51 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
     {'name': 'Language', 'method': language, 'output_type': 'categorical'},
     {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
     {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
+    {'name': 'Average Words Per Sentence', 'method': average_words_per_sentence, 'output_type': 'numeric'},
+    {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
+    {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
     {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
     {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
     {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
-    {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
     {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-    {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
-    {'name': 'Average Sentence Length', 'method': average_sentence_length, 'output_type': 'numeric'},
 )
 
-
 ALL_PROPERTIES: Tuple[TextProperty, ...] = (
-    {'name': 'Count URLs', 'method': count_urls, 'output_type': 'numeric'},
-    {'name': 'Count Email Address', 'method': count_email_addresses, 'output_type': 'numeric'},
-    {'name': 'Count Unique URLs', 'method': count_unique_urls, 'output_type': 'numeric'},
-    {'name': 'Count Unique Email Address', 'method': count_unique_email_addresses, 'output_type': 'numeric'},
-    {'name': 'Count Unique Syllables', 'method': count_unique_syllables, 'output_type': 'numeric'},
-    {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
-    {'name': 'Sentence Length', 'method': sentence_length, 'output_type': 'numeric'},
-    {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
-) + DEFAULT_PROPERTIES
-
+                                               {'name': 'URLs Count', 'method': urls_count, 'output_type': 'numeric'},
+                                               {'name': 'Email Addresses Count', 'method': email_addresses_count,
+                                                'output_type': 'numeric'},
+                                               {'name': 'Unique URLs Count', 'method': unique_urls_count,
+                                                'output_type': 'numeric'},
+                                               {'name': 'Unique Email Addresses Count',
+                                                'method': unique_email_addresses_count, 'output_type': 'numeric'},
+                                               {'name': 'Unique Syllables Count', 'method': unique_syllables_count,
+                                                'output_type': 'numeric'},
+                                               {'name': 'Reading Time', 'method': reading_time,
+                                                'output_type': 'numeric'},
+                                               {'name': 'Sentences Count', 'method': sentences_count,
+                                                'output_type': 'numeric'},
+                                               {'name': 'Average Syllable Length', 'method': average_syllable_length,
+                                                'output_type': 'numeric'},
+                                           ) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 LARGE_SAMPLE_SIZE = 10_000
 
 ENGLISH_ONLY_PROPERTIES = (
     'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Readability Score',
-    'Unique Noun Count', 'Count Unique Syllables', 'Sentence Length', 'Average Syllable Length'
+    'Unique Noun Count', 'Unique Syllables Count', 'Sentences Count', 'Average Syllable Length'
 )
+
+CMUDICT_PROPERTIES = ('Average Syllable Length', 'Unique Syllables Count', 'Readability Score')
 
 
 def _select_properties(
-    *,
-    n_of_samples: int,
-    include_properties: Optional[List[str]] = None,
-    ignore_properties: Optional[List[str]] = None,
-    include_long_calculation_properties: bool = False,
-    device: Optional[str] = None,
+        *,
+        n_of_samples: int,
+        include_properties: Optional[List[str]] = None,
+        ignore_properties: Optional[List[str]] = None,
+        include_long_calculation_properties: bool = False,
+        device: Optional[str] = None,
 ) -> Sequence[TextProperty]:
     """Select properties."""
     all_properties = ALL_PROPERTIES
@@ -615,11 +652,31 @@ def _select_properties(
 
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
+    if include_properties is not None:
+        if not is_sequence_not_str(include_properties) \
+                and not all(isinstance(prop, str) for prop in include_properties):
+            raise DeepchecksValueError('include_properties must be a sequence of strings.')
+    if ignore_properties is not None:
+        if not is_sequence_not_str(ignore_properties) \
+                and not all(isinstance(prop, str) for prop in ignore_properties):
+            raise DeepchecksValueError('ignore_properties must be a sequence of strings.')
+
+    include_properties = [prop.lower() for prop in include_properties] if include_properties else None
+    ignore_properties = [prop.lower() for prop in ignore_properties] if ignore_properties else None
 
     if include_properties is not None:
-        properties = [prop for prop in all_properties if prop['name'] in include_properties]
+        properties = [prop for prop in all_properties if prop['name'].lower() in include_properties]
+        if len(properties) < len(include_properties):
+            not_found_properties = sorted(set(include_properties) - set(prop['name'].lower() for prop in properties))
+            raise DeepchecksValueError('include_properties contains properties that were not found: '
+                                       f'{not_found_properties}.')
     elif ignore_properties is not None:
-        properties = [prop for prop in default_properties if prop['name'] not in ignore_properties]
+        properties = [prop for prop in default_properties if prop['name'].lower() not in ignore_properties]
+        if len(properties) + len(ignore_properties) != len(default_properties):
+            not_found_properties = \
+                [prop for prop in ignore_properties if prop not in [prop['name'] for prop in default_properties]]
+            raise DeepchecksValueError('ignore_properties contains properties that were not found: '
+                                       f'{not_found_properties}.')
     else:
         properties = default_properties
 
@@ -651,12 +708,12 @@ def _select_properties(
 
 
 def calculate_builtin_properties(
-    raw_text: Sequence[str],
-    include_properties: Optional[List[str]] = None,
-    ignore_properties: Optional[List[str]] = None,
-    include_long_calculation_properties: bool = False,
-    device: Optional[str] = None,
-    models_storage: Union[pathlib.Path, str, None] = None
+        raw_text: Sequence[str],
+        include_properties: Optional[List[str]] = None,
+        ignore_properties: Optional[List[str]] = None,
+        include_long_calculation_properties: bool = False,
+        device: Optional[str] = None,
+        models_storage: Union[pathlib.Path, str, None] = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
 
@@ -669,12 +726,12 @@ def calculate_builtin_properties(
         together with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Readability Score', 'Average Sentence Length', 'Count URLs', Count Unique URLs', 'Count Email Address',
-        'Count Unique Email Address', 'Count Unique Syllables', 'Reading Time', 'Sentence Length',
+        'Readability Score', 'Average Words Per Sentence', 'URLs Count', Unique URLs Count', 'Email Address Count',
+        'Unique Email Address Count', 'Unique Syllables Count', 'Reading Time', 'Sentences Count',
         'Average Syllable Length']
         List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
         '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
-        'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Sentence Length']
+        'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Words Per Sentence']
         To calculate all the default properties, the include_properties and ignore_properties parameters should
         be None. If you pass either include_properties or ignore_properties then the only the properties specified
         in the list will be calculated or ignored.
@@ -715,79 +772,74 @@ def calculate_builtin_properties(
 
     kwargs = dict(device=device, models_storage=models_storage)
     english_properties_names = set(ENGLISH_ONLY_PROPERTIES)
-    text_properties_names = {it['name'] for it in text_properties}
-    samples_language = None
-    english_samples = []
-    english_samples_mask = []
-    calculated_properties = {}
+    text_properties_names = [it['name'] for it in text_properties]
+    calculated_properties = {k: [] for k in text_properties_names}
 
-    if english_properties_names & text_properties_names:
-        samples_language = run_available_kwargs(
-            language,
-            raw_text=raw_text,
-            **kwargs
-        )
+    # Prepare kwargs for properties that require outside resources:
+    if 'fasttext_model' not in kwargs:
+        kwargs['fasttext_model'] = _get_fasttext_model(models_storage=models_storage)
 
-        for lang, text in zip(samples_language, raw_text):
-            if lang == 'en':
-                english_samples.append(text)
-                english_samples_mask.append(True)
-            else:
-                english_samples_mask.append(False)
+    if 'cmudict_dict' not in kwargs:
+        properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(text_properties_names))
+        if properties_requiring_cmudict:
+            if not nltk_download('cmudict', quiet=True):
+                _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
+                for prop in properties_requiring_cmudict:
+                    calculated_properties[prop] = [np.nan] * len(raw_text)
+            cmudict_dict = corpus.cmudict.dict()
+            kwargs['cmudict_dict'] = cmudict_dict
 
-        new_text_properties = []
-
-        for prop in text_properties:
-            if prop['name'] == 'Language':
-                calculated_properties['Language'] = samples_language
-            else:
-                new_text_properties.append(prop)
-
-        text_properties = new_text_properties
+    is_language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
+    # Remove language property from the list of properties to calculate as it will be calculated separately:
+    if is_language_property_requested:
+        text_properties = [prop for prop in text_properties if prop['name'] != 'Language']
 
     warning_message = (
         'Failed to calculate property {0}. '
         'Dependencies required by property are not installed. '
         'Error:\n{1}'
     )
+    import_warnings = set()
 
     progress_bar = create_progress_bar(
-        iterable=list(text_properties),
-        name='Text Properties Calculation',
-        unit='Text Property'
+        iterable=list(raw_text),
+        name='Text Samples Calculation',
+        unit='Text Sample'
     )
-
-    # TODO: refactor
-    for prop in progress_bar:
+    for text in progress_bar:
         progress_bar.set_postfix(
-            {'Property': prop['name']},
+            {'Sample': truncate_string(text, max_length=20) if text else 'EMPTY STRING'},
             refresh=False
         )
-        if prop['name'] not in english_properties_names:
-            try:
-                values = run_available_kwargs(prop['method'], raw_text=raw_text, **kwargs)
-            except ImportError as e:
-                warnings.warn(warning_message.format(prop['name'], str(e)))
-                continue
+        if pd.isna(text):
+            for prop in text_properties:
+                calculated_properties[prop['name']].append(np.nan)
+            continue
+        sample_language = run_available_kwargs(language, text=text, **kwargs)
+        if is_language_property_requested:
+            calculated_properties['Language'].append(sample_language)
+
+        for prop in text_properties:
+            if prop['name'] in import_warnings:  # Skip properties that failed to import:
+                calculated_properties[prop['name']].append(np.nan)
+            elif sample_language != 'en' and prop['name'] in english_properties_names:
+                calculated_properties[prop['name']].append(np.nan)
             else:
-                calculated_properties[prop['name']] = values
-        else:
-            try:
-                values = run_available_kwargs(prop['method'], raw_text=english_samples, **kwargs)
-            except ImportError as e:
-                warnings.warn(warning_message.format(prop['name'], str(e)))
-                continue
-            else:
-                result = []
-                idx = 0
-                fill_value = np.nan if prop['output_type'] == 'numeric' else None
-                for mask in english_samples_mask:
-                    if mask:
-                        result.append(values[idx])
-                        idx += 1
-                    else:
-                        result.append(fill_value)
-                calculated_properties[prop['name']] = result
+                try:
+                    value = run_available_kwargs(prop['method'], text=text, **kwargs)
+                    calculated_properties[prop['name']].append(value)
+                except ImportError as e:
+                    warnings.warn(warning_message.format(prop['name'], str(e)))
+                    calculated_properties[prop['name']].append(np.nan)
+                    import_warnings.add(prop['name'])
+
+        # Clear property caches:
+        textblob_cache.clear()
+        words_cache.clear()
+        sentences_cache.clear()
+
+    # Clean all remaining RAM:
+    gc.collect()
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')

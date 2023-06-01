@@ -32,7 +32,7 @@ from deepchecks.core import check_result as check_types
 from deepchecks.core import errors
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.html import linktag
-from deepchecks.utils.strings import get_ellipsis
+from deepchecks.utils.strings import truncate_string
 
 __all__ = [
     'aggregate_conditions',
@@ -181,7 +181,7 @@ def aggregate_conditions(
     if include_check_name is False:
         df.drop('Check', axis=1, inplace=True)
 
-    df['More Info'] = df['More Info'].map(lambda x: get_ellipsis(x, max_info_len))
+    df['More Info'] = df['More Info'].map(lambda x: truncate_string(x, max_info_len))
 
     with warnings.catch_warnings():
         warnings.simplefilter(action='ignore', category=FutureWarning)

@@ -238,7 +238,7 @@ result.show()
 # In the display we can see some distinct property based segments that our model under performs on.
 #
 # By reviewing the results we can see that our model is performing poorly on samples that have a low level of
-# Subjectivity, by looking at the "Subjectivity vs Average Sentence Length" tab
+# Subjectivity, by looking at the "Subjectivity vs Average Words Per Sentence" tab
 # We can see that the problem is even more severe on samples containing long sentences.
 #
 # In addition to the visual display, most checks also return detailed data describing the results. This data can be
