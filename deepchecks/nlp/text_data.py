@@ -582,6 +582,26 @@ class TextData:
         assert self._original_text_index is not None, 'Internal Error'
         return self._original_text_index
 
+    def get_sample_at_original_index(self, index: int) -> str:
+        """Return the text sample at the original index.
+
+        Parameters
+        ----------
+        index : int
+            Original index of the text sample.
+
+        Returns
+        -------
+        str
+           Text sample at the original index.
+        """
+        locations_in_array = np.where(self._original_text_index == index)
+        if len(locations_in_array) == 0:
+            raise DeepchecksValueError('Original text index is not in sampled TextData object')
+        elif len(locations_in_array) > 1:
+            raise DeepchecksValueError('Original text index is not unique in sampled TextData object')
+        return self._text[int(locations_in_array[0])]
+
     @classmethod
     def cast_to_dataset(cls, obj: t.Any) -> 'TextData':
         """Verify Dataset or transform to Dataset.
