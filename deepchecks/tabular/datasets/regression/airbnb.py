@@ -92,8 +92,8 @@ __all__ = ['load_data', 'load_pre_calculated_prediction', 'load_pre_calculated_f
 
 from numpy import ndarray
 
-_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/39953713'
-_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/39953695'
+_TRAIN_DATA_URL = 'https://deepchecks-datasets-public.s3.eu-west-1.amazonaws.com/airbnb/airbnb_ref_data.csv'
+_TEST_DATA_URL = 'https://deepchecks-datasets-public.s3.eu-west-1.amazonaws.com/airbnb/airbnb_prod_data.csv'
 _target = 'price'
 _predictions = 'predictions'
 _datetime = 'timestamp'
