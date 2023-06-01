@@ -104,6 +104,8 @@ tweet_emotion_*.csv
 
 # docs build files
 docs/source/_build
+docs/html
+docs/doctrees
 
 # build folders of sphinx gallery
 docs/source/general/usage/customizations/auto_examples/
@@ -119,6 +121,8 @@ docs/source/vision/auto_tutorials
 
 docs/source/user-guide/tabular/auto_quickstarts
 docs/source/user-guide/vision/auto_quickstarts
+
+docs/source/checks_gallery
 
 # build artificats from running docs (vision, nlp, wandb export)
 docs/source/vision/tutorials/quickstarts/*.html
