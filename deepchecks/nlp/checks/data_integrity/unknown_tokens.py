@@ -153,7 +153,7 @@ class UnknownTokens(SingleDatasetCheck):
             # ------------------
             # Needed to avoid warning when used after loading a hub dataset
             # We divert the printing to stdout (done by the rust code within the HuggingFace tokenizer)
-            # into this filter, that will filter out any print containging the str 'huggingface/tokenizers'
+            # into this filter, that will filter out any print containing the str 'huggingface/tokenizers'
             # This warning printout is activated when running this check after loading a HuggingFace dataset,
             # and is irrelevant to us because we're not forking the process.
             # see: https://github.com/huggingface/transformers/issues/5486
