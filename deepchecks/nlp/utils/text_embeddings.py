@@ -14,7 +14,6 @@ from typing import Optional
 import sys
 
 import numpy as np
-import tiktoken
 from tqdm import tqdm
 
 EMBEDDING_MODEL = 'text-embedding-ada-002'
@@ -40,6 +39,7 @@ def encode_text(text, encoding_name):
     # tiktoken.get_encoding is only available in python 3.8 and above.
     # This means that for python < 3.8, the batching is just using chunk_length chars each time.
     if sys.version_info >= (3, 8):
+        import tiktoken  # pylint: disable=import-outside-toplevel
         encoding = tiktoken.get_encoding(encoding_name)
         return encoding.encode(text)
     else:
