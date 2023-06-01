@@ -47,7 +47,8 @@ Setting Up
 Load Data
 ---------
 For the purpose of this guide, we'll use a small subset of the
-`tweet emotion <https://github.com/cardiffnlp/tweeteval>`__ dataset:
+`tweet emotion <https://github.com/cardiffnlp/tweeteval>`__ dataset. This dataset contains tweets and their
+corresponding emotion - Anger, Happiness, Optimism, and Sadness.
 
 """
 
@@ -115,7 +116,9 @@ train.properties.head(2)
 #
 # Deepchecks comes with a set of pre-built suites that can be used to run a set of checks on your data, alongside
 # with their default conditions and thresholds. You can read more about customizing and creating your own suites in the
-# :ref:`Customizations Guide <general__customizations>`.
+# :ref:`Customizations Guide <general__customizations>`. In this guide we'll be using 3 suites - the data integrity
+# suite, the train test validation suite and the model evaluation suite. You can also run all the checks at once using
+# the :mod:`full_suite <deepchecks.nlp.suites>`.
 #
 # Data Integrity
 # --------------
