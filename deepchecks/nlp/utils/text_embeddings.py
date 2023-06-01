@@ -11,6 +11,7 @@
 """Utils module for calculating embeddings for text."""
 from itertools import islice
 from typing import Optional
+import sys
 
 import numpy as np
 import tiktoken
@@ -36,8 +37,13 @@ def batched(iterable, n):
 
 def encode_text(text, encoding_name):
     """Encode tokens with the given encoding."""
-    encoding = tiktoken.get_encoding(encoding_name)
-    return encoding.encode(text)
+    # tiktoken.get_encoding is only available in python 3.8 and above.
+    # This means that for python < 3.8, the batching is just using chunk_length chars each time.
+    if sys.version_info >= (3, 8):
+        encoding = tiktoken.get_encoding(encoding_name)
+        return encoding.encode(text)
+    else:
+        return text
 
 
 def iterate_batched(tokenized_text, chunk_length):
