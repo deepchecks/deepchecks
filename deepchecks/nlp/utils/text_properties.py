@@ -39,6 +39,7 @@ from deepchecks.utils.validation import is_sequence_not_str
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
+MAX_CHARS = 720  # Bert accepts max of 512 tokens, and experimentally 720 chars seems to work while 1024 doesn't
 textblob_cache = {}
 words_cache = {}
 sentences_cache = {}
@@ -346,7 +347,6 @@ def _predict(text: str, classifier, kind: str) -> float:
     try:
         # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
         # If text is longer than classifier context window, sample it:
-        MAX_CHARS = 720  # Bert accepts max of 512 tokens, and experimentally 720 chars seems to work while 1024 doesn't
         if len(text) > MAX_CHARS:
             sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
             text_to_use = ''
