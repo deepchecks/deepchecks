@@ -368,7 +368,7 @@ def _predict(text: str, classifier, kind: str) -> float:
 
 def toxicity(
         text: str,
-        device: Optional[int] = None,
+        device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None
 ) -> float:
     """Return float representing toxicity."""
@@ -384,7 +384,7 @@ def toxicity(
 
 def fluency(
         text: str,
-        device: Optional[int] = None,
+        device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None
 ) -> float:
     """Return float representing fluency."""
@@ -400,7 +400,7 @@ def fluency(
 
 def formality(
         text: str,
-        device: Optional[int] = None,
+        device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None
 ) -> float:
     """Return float representing formality."""
