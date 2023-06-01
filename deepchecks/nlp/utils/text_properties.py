@@ -647,7 +647,7 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'Subjectivity': 'Subjectivity of the text',
     'Average Words Per Sentence': 'Average number of words per sentence in the text',
     'Readability Score': 'A score calculated based on Flesch reading-ease per text sample',
-    'Lexical Density': 'Percentage of unique words in the text, rounded up to 2 decimal digits',
+    'Lexical Density': 'Percentage of unique words in the text',
     'Toxicity': 'Toxicity of the text',
     'Fluency': 'Fluency of the text',
     'Formality': 'Formality of the text',
