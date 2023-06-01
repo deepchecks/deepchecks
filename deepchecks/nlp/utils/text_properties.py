@@ -27,7 +27,7 @@ from nltk import sent_tokenize, word_tokenize
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text import hash_text, normalize_text, remove_punctuation, cut_string
+from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.strings import format_list, truncate_string

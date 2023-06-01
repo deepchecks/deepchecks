@@ -9,9 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module for calculating embeddings for text."""
+import sys
 from itertools import islice
 from typing import Optional
-import sys
 
 import numpy as np
 from tqdm import tqdm
