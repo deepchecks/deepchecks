@@ -110,6 +110,7 @@ class SpecialCharacters(SingleDatasetCheck):
         percents_arr = np.asarray(list(percent_special_chars_in_sample.values()))
         percent_of_samples_with_special_chars = len(percents_arr[percents_arr > 0]) / dataset.n_samples
         percent_special_chars_in_sample = pd.Series(percent_special_chars_in_sample).sort_values(ascending=False)
+        samples_per_special_char = dict(sorted(samples_per_special_char.items(), key=lambda x: -len(x[1])))
         result_value = {
             'samples_per_special_char': samples_per_special_char,
             'percent_of_samples_with_special_chars': percent_of_samples_with_special_chars,
