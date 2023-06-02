@@ -151,5 +151,5 @@ class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
         return CheckResult(
             value=results,
             display=displays,
-            header='Properties Drift'
+            header='Property Drift'
         )
