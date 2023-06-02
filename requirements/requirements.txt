@@ -3,7 +3,6 @@ numpy>=1.19
 scikit-learn>=0.23.2
 jsonpickle>=2
 PyNomaly>=0.3.3
-seqeval>=1.0.0
 
 # require for python 3.8+
 ipython>=7.15.0,<8; python_version >= '3.8'
