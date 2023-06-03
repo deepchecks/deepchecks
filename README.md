@@ -125,9 +125,11 @@ Optional conditions can be added to each check, to automatically validate whethe
 ## ⏩  Getting Started
 
 <details open>
-<summary>
-### 💻 Installation
-</summary>
+   <summary>
+      <h3>
+         💻 Installation
+      </h3>
+   </summary>
 
 #### Deepchecks Testing Installation
 
