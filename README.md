@@ -100,7 +100,13 @@ This repo is our main repo as all components use the deepchecks checks in their 
 If you want to see deepchecks monitoring's code, you can check out the 
 [deepchecks/monitoring](https://github.com/deepchecks/monitoring) repo.
 
-## ✅ Deepchecks Checks
+
+<details open>
+   <summary>
+      <h2>
+         ✅ Deepchecks Checks
+      </h2>
+   </summary>
 
 - Each check tests for a specific potential problem. Deepchecks has many preimplemented checks for
   finding issues with the model's performance (e.g. identifying weak segments), 
@@ -111,8 +117,12 @@ If you want to see deepchecks monitoring's code, you can check out the
    - Saving to HTML or viewing in Jupyter - for visual output for human analysis
    - JSON output - for processing with code
    - Deepchecks' UI - for dynamic inspection and collaboration (of test results and production monitoring)
-- Optional conditions can be added and customized, to automatically validate whether it passed or not
-- A list of checks (with optional conditions) can be run together in a "Suite"
+- Optional conditions can be added and customized, to automatically validate check results,
+  with a a pass ✓, fail ✖ or warning ! status
+- An ordered list of checks (with optional conditions) can be run together in a "Suite"
+  (and the output is a concluding report of all checks that ran)
+
+</details>
 
 <!---
 These checks can be run manually (e.g. during research) or automatically triggered (with CI processes or in scheduled runs for production monitoring).
@@ -124,7 +134,7 @@ Optional conditions can be added to each check, to automatically validate whethe
 
 ## ⏩  Getting Started
 
-<details open>
+<details close>
    <summary>
       <h3>
          💻 Installation
@@ -161,7 +171,13 @@ Check out the full installation instructions for deepchecks monitoring [here](ht
 
 ### 🏃‍♀️ Quickstarts
 
-#### Deepchecks Testing Quickstart
+
+<details open>
+   <summary>
+      <h4>
+         Deepchecks Testing Quickstart
+      </h4>
+   </summary>
 
 Jump straight over to the respective quickstarts for 
 [Tabular](https://docs.deepchecks.com/stable/tabular/auto_tutorials/quickstarts/index.html), 
@@ -177,8 +193,14 @@ and inspect their status and results, with the visual output that looks like thi
    <img src="docs/source/_static/images/general/model_evaluation_suite.gif" width="800">
 </p>
 
+</details>
 
-#### Deepchecks Monitoring Quickstart
+<details open>
+   <summary>
+      <h4>
+         Deepchecks Monitoring Quickstart
+      </h4>
+   </summary>
 
 Jump straight over to the 
 [monitoring quickstart](https://docs.deepchecks.com/monitoring/stable/user-guide/tabular/auto_quickstarts/plot_quickstart.html)
@@ -190,6 +212,8 @@ with the dynamic deepchecks UI that looks like this:
 <p align="center">
    <img src="docs/source/_static/images/general/monitoring-app-ui.gif" width="800">
 </p>
+
+</details>
 
 <!---
 ### 🔡 Supported Data Types
