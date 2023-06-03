@@ -16,7 +16,9 @@
 stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=social&label=Star&maxAge=2592000)](https://GitHub.com/deepchecks/deepchecks/stargazers/)
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
+<!---
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
+--->
 [![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
@@ -33,19 +35,6 @@ Deepchecks is a holistic open-source solution for all of your AI & ML validation
 enabling to thoroughly test your data and models from research to production.
 
 
-<p align="center">
-   &emsp;
-   <a href="https://www.deepchecks.com/slack">👋 Join&nbsp;Slack</a>
-   &emsp; | &emsp; 
-   <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">נ📖&nbsp;Documentation</a>
-   &emsp; | &emsp; 
-   <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">🌐 Blog</a>
-   &emsp; | &emsp;  
-   <a href="https://twitter.com/deepchecks">🐦 Twitter</a>
-   &emsp;
-</p>
-   
-
 <a target="_blank" href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
    <picture>
       <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/images/readme/cont_validation_dark.png">
@@ -54,6 +43,18 @@ enabling to thoroughly test your data and models from research to production.
    </picture>
 </a>
 
+<p align="center">
+   &emsp;
+   <a href="https://www.deepchecks.com/slack">👋 Join&nbsp;Slack</a>
+   &emsp; | &emsp; 
+   <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">📖&nbsp;Documentation</a>
+   &emsp; | &emsp; 
+   <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">🌐&nbsp;Blog</a>
+   &emsp; | &emsp;  
+   <a href="https://twitter.com/deepchecks">🐦 Twitter</a>
+   &emsp;
+</p>
+   
 
 <!---
 ## 🧐 What is Deepchecks?
@@ -61,11 +62,14 @@ enabling to thoroughly test your data and models from research to production.
 ## 🧮 How does it work?
 
 At its core, Deepchecks includes a wide variety of built-in Checks,
-for testing all types of data and model realted issues.
-These check sare implemented fo various models and data types (Tabular, NLP, Vision), 
+for testing all types of data and model related issues.
+These checks are implemented fo various models and data types (Tabular, NLP, Vision), 
 and can easily be customized and expanded. 
-These checks results can be used for automatically making informed decisions
+The check results can be used for automatically making informed decisions
 regarding your model's production-readiness, and for monitoring it over time when in production.
+They can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
+processed with code (using their json output), and inspected and collaborated upon with a Deepchecks' dynamic UI 
+(for examining test results and for production monitoring).
 
 <!---
 At its core, Deepchecks has a wide variety of built-in Checks and Suites (lists of checks) 
@@ -80,13 +84,13 @@ production-readiness, and behavior over time.
 ## 🧩 Components
 
 Deepchecks includes:
-- A Testing Package 
+- **Deepchecks Testing**
   ([docs](https://docs.deepchecks.com/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
   with built-in Checks & Suites for Tabular, NLP & CV (open source)
-- CI & Testing Management 
+- **CI & Testing Management**
   ([docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): for collaborating over test results and efficient iterations until 
   model is production-ready and can be deployed (open source & managed offering)
-- Monitoring 
+- **Deepchecks Monitoring**
   ([docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
   for tracking your deployed models behavior when in produciton (open source & managed offering)
 
@@ -96,18 +100,16 @@ If you want to see deepchecks monitoring's code, you can check out the
 
 ## ✅ Deepchecks Checks
 
-- Many preimplemented checks for testing issues such as:
-   - Model performance (e.g. identify weak segments)
-   - Data distribution (e.g. detect drifts or leakages)
-   - Data integrity (e.g. find conflicting labels)
+- Many preimplemented checks for testing issues such as model performance (e.g. identify weak segments), 
+  data distribution (e.g. detect drifts or leakages) and data integrity (e.g. find conflicting labels).
 - Customizable: each check has many configurable parameters, and custom checks can easily be implemented.
-- Run manually (during research) or triggered automatically (in CI processes or production monitoring)
+- Can be run manually (during research) or triggered automatically (in CI processes or production monitoring)
 - Check results can be analyzed by:
    - Saving to HTML or viewing in Jupyter - for visual output for human analysis
    - JSON output - for processing with code
    - Deepchecks' UI - for dynamic inspection and collaboration (of test results and production monitoring)
-- List of check (with optional conditions) can be run together in a "Suite"
 - Optional conditions can be added and customized, to automatically validate whether it passed or not
+- A list of checks (with optional conditions) can be run together in a "Suite"
 
 <!---
 These checks can be run manually (e.g. during research) or automatically triggered (with CI processes or in scheduled runs for production monitoring).
@@ -121,7 +123,7 @@ Optional conditions can be added to each check, to automatically validate whethe
 
 ### 💻 Installation
 
-#### Testing
+#### Deepchecks Testing Installation
 
 Deepchecks testing can be easily installed with pip.
 
@@ -136,7 +138,7 @@ For installing with conda, similarly use: ``conda install -c conda-forge deepche
 
 Check out the full installation instructions for deepchecks testing [here](https://docs.deepchecks.com/stable/getting-started/installation.html).
 
-#### Monitoring
+#### Deepchecks Monitoring Installation
 
 If you're using deepchecks also for production monitoring,
 you can deploy a hobby instance in one line on Linux/MacOS (Windows is WIP!) with Docker:
@@ -153,20 +155,30 @@ Check out the full installation instructions for deepchecks monitoring [here](ht
 
 ### 🏃‍♀️ Quickstarts
 
+#### Deepchecks Testing Quickstart
 
-- Deepchecks testing quickstarts for [Tabular](), [NLP](), or [Vision]()
+Jump straight over to the respective quickstarts for 
+[Tabular](https://docs.deepchecks.com/stable/tabular/auto_tutorials/quickstarts/index.html), 
+[NLP](https://docs.deepchecks.com/stable/nlp/auto_tutorials/quickstarts/index.html), or 
+[Vision](https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/index.html) 
+models and data,
+to have it up and running on your data.
 
-In a few minutes you should see it running on your data, and receive an output like this:
+Withing a few minutes you should be able to see the results, that look like this:
 
 <p align="center">
    <img src="docs/source/_static/images/general/model_evaluation_suite.gif" width="800">
 </p>
 
 
-- Deepchecks 
-  [monitoring quickstart](https://docs.deepchecks.com/monitoring/stable/user-guide/tabular/auto_quickstarts/plot_quickstart.html)
+#### Deepchecks Monitoring Quickstart
 
-Once you have the monitroing client and deployment up and running, the UI that you'll interact with will look like this:
+Jump straight over to the 
+[monitoring quickstart](https://docs.deepchecks.com/monitoring/stable/user-guide/tabular/auto_quickstarts/plot_quickstart.html)
+to have it up and running on your data.
+
+You'll then be able to see the results and interact
+with the UI looks like this:
 
 <p align="center">
    <img src="docs/source/_static/images/general/monitoring-app-ui.gif" width="800">
@@ -215,17 +227,17 @@ we would love to have you as part of our community.
 
 - Give us a ⭐️ github star ⭐️ on the top of this page to support what we're doing,
   it means a lot for open source projects!
-- Join our [Slack Community](https://www.deepchecks.com/slack) to give us feedback,
-  connect with the maintainers and fellow users, ask questions, get help for package usage or contributions, or
-  engage in discussions about ML testing.
 - Read our 
-  [docs]([https://docs.deepchecks.com/](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=docs))
+  [docs](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=docs)
   for more info about how to use and customize deepchecks, and for step-by-step tutorials.
 - Post a [Github
   Issue](https://github.com/deepchecks/deepchecks/issues) to submit a bug report, feature request, or suggest an improvement.
 - To contribute to the package, check out our [first good issues](https://github.com/deepchecks/deepchecks/contribute)
-  and [contribution guidelines](CONTRIBUTING.rst)], and open a PR.
+  and [contribution guidelines](CONTRIBUTING.rst), and open a PR.
 
+- Join our [Slack Community](https://www.deepchecks.com/slack) to give us feedback,
+  connect with the maintainers and fellow users, ask questions, get help for package usage or contributions, or
+  engage in discussions about ML testing.
 
 ## ✨ Contributors
 
