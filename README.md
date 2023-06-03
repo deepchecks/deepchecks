@@ -239,7 +239,7 @@ we would love to have you as part of our community.
 Join our Slack to give us feedback, connect with the maintainers and fellow users, ask questions, 
 get help for package usage or contributions, or engage in discussions about ML testing!
 
-<a href="https://deepchecks.com/slack"><img src="docs/source/_static/images/general/join-our-slack-community.png"> /></a>
+<a href="https://deepchecks.com/slack"><img src="docs/source/_static/images/general/join-our-slack-community.png" width="100"></a>
 
 - Join our [Slack Community](https://www.deepchecks.com/slack) to give us feedback,
   connect with the maintainers and fellow users, ask questions, get help for package usage or contributions, or
