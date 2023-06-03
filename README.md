@@ -207,7 +207,8 @@ For more info about the supported use cases, refer to the respective docs within
 ## 📜 Open Source vs Paid 
 
 Deepchecks' projects (``deepchecks/deepchecks`` & ``deepchecks/monitoring``) are open source and are released under [AGPL 3.0](./LICENSE).
-The only exception are the components under the 
+
+The only exception are the deepchecks monitoring components under the 
 ([backend/deepchecks_monitoring/ee](https://github.com/deepchecks/monitoring/tree/main/backend/deepchecks_monitoring/ee)) 
 directory, that are subject to a commercial license (see the license [here](https://deepchecks.com/terms-and-conditions)).
 That directory isn't used by default, and is packaged as part of the deepchecks monitoring repository simply to 
