@@ -94,11 +94,10 @@ Deepchecks includes:
 - **Deepchecks Monitoring**
   ([docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
   - Tracking your deployed models behavior when in production (open source & managed offering).
-    The client and deployment for monitoring need to be installed in addition to the testing, check out the 
 
-This repo is our main repo as all components use the deepchecks checks in their core.
+This repo is our main repo as all components use the deepchecks checks in their core. See the [Getting Started](#--getting-started) section for more information about installation and quickstarts for each of the components.
 If you want to see deepchecks monitoring's code, you can check out the 
-[deepchecks/monitoring](https://github.com/deepchecks/monitoring) repo.
+files in the [deepchecks/monitoring](https://github.com/deepchecks/monitoring) repo.
 
 
 <details close>
@@ -141,7 +140,7 @@ Optional conditions can be added to each check, to automatically validate whethe
       </h3>
    </summary>
 
-#### Deepchecks Testing Installation
+#### Deepchecks Testing (and CI) Installation
 
 ```bash
 pip install deepchecks -U --user
@@ -211,6 +210,25 @@ with the dynamic deepchecks UI that looks like this:
 <p align="center">
    <img src="docs/source/_static/images/general/monitoring-app-ui.gif" width="800">
 </p>
+
+</details>
+
+<details open>
+   <summary>
+      <h4>
+         Deepchecks CI & Testing Management Quickstart
+      </h4>
+   </summary>
+
+Deepchecks managed CI & Testing management is currently in closed preview.
+[Book a demo](https://deepchecks.com/book-demo/) for more information about the offering.
+
+<p align="center">
+   <img src="docs/source/_static/images/general/deepchecks-ci-tests.png" width="800">
+</p>
+
+For building and maintaining your own CI process while utilizing Deepchecks Testing for it,
+check out our [using Deepchecks in CI/CD docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html)
 
 </details>
 
