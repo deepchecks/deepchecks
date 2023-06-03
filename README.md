@@ -124,7 +124,10 @@ Optional conditions can be added to each check, to automatically validate whethe
 
 ## ⏩  Getting Started
 
+<details open>
+<summary>
 ### 💻 Installation
+</summary>
 
 #### Deepchecks Testing Installation
 
@@ -152,6 +155,7 @@ that it won't scale to support real-time production usage.
 
 Check out the full installation instructions for deepchecks monitoring [here](https://docs.deepchecks.com/monitoring/stable/installation/index.html). 
 
+</details>
 
 ### 🏃‍♀️ Quickstarts
 
