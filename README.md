@@ -228,7 +228,7 @@ Deepchecks managed CI & Testing management is currently in closed preview.
 </p>
 
 For building and maintaining your own CI process while utilizing Deepchecks Testing for it,
-check out our [using Deepchecks in CI/CD docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html)
+check out our [docs for Using Deepchecks in CI/CD](https://docs.deepchecks.com/stable/general/usage/ci_cd.html).
 
 </details>
 
