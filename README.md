@@ -27,7 +27,7 @@ Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch
 
 
 <h1 align="center">
-   Deepchecks: Continuous Validation for AI & ML: Testing, CI & Monitoring
+   Deepchecks - Continuous Validation for AI & ML: Testing, CI & Monitoring
 </h1>
 
 Deepchecks is a holistic open-source solution for all of your AI & ML validation needs,
@@ -113,9 +113,9 @@ If you want to see deepchecks monitoring's code, you can check out the
   data distribution (e.g. detect drifts or leakages) and data integrity (e.g. find conflicting labels).
 - Customizable: each check has many configurable parameters, and custom checks can easily be implemented.
 - Can be run manually (during research) or triggered automatically (in CI processes or production monitoring)
-- Check results can be consumed by:
-   - Saving to HTML or viewing in Jupyter - for visual output for human analysis
-   - JSON output - for processing with code
+- Check results can be consumed by: 
+   - [Saving to HTML](https://docs.deepchecks.com/stable/general/usage/export_save_results.html) or [viewing](https://docs.deepchecks.com/stable/general/usage/showing_results.html) in Jupyter - for visual output for human analysis
+   - [JSON output](https://docs.deepchecks.com/stable/general/usage/export_save_results.html) - for processing with code
    - Deepchecks' UI - for dynamic inspection and collaboration (of test results and production monitoring)
 - Optional conditions can be added and customized, to automatically validate check results,
   with a a pass ✓, fail ✖ or warning ! status
@@ -179,15 +179,14 @@ Check out the full installation instructions for deepchecks monitoring [here](ht
       </h4>
    </summary>
 
-Jump straight over to the respective quickstarts for 
-[Tabular](https://docs.deepchecks.com/stable/tabular/auto_tutorials/quickstarts/index.html), 
-[NLP](https://docs.deepchecks.com/stable/nlp/auto_tutorials/quickstarts/index.html), or 
-[Vision](https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/index.html) 
-models and data,
+Jump straight over to the respective quickstart docs:
+- [Tabular Quickstarts](https://docs.deepchecks.com/stable/tabular/auto_tutorials/quickstarts/index.html)
+- [NLP Quickstarts](https://docs.deepchecks.com/stable/nlp/auto_tutorials/quickstarts/index.html)
+- [Vision Quickstarts](https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/index.html) 
 to have it up and running on your data.
 
-You'll then be able to view all the checks that you chose to run on your data,
-and inspect their status and results, with the visual output that looks like this:
+You'll then be able to view all the chosen checks checks and inspect their status and results, 
+with the visual output that looks like this:
 
 <p align="center">
    <img src="docs/source/_static/images/general/model_evaluation_suite.gif" width="800">
@@ -203,7 +202,7 @@ and inspect their status and results, with the visual output that looks like thi
    </summary>
 
 Jump straight over to the 
-[monitoring quickstart](https://docs.deepchecks.com/monitoring/stable/user-guide/tabular/auto_quickstarts/plot_quickstart.html)
+[monitoring quickstart docs](https://docs.deepchecks.com/monitoring/stable/user-guide/tabular/auto_quickstarts/plot_quickstart.html)
 to have it up and running on your data.
 
 You'll then be able to see the checks results over time, set alerts, and interact
