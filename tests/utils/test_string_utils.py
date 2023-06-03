@@ -12,13 +12,13 @@ from datetime import datetime
 
 from hamcrest import assert_that, calling, equal_to, instance_of, matches_regexp, raises
 
-from deepchecks.utils.strings import format_datetime, get_ellipsis
+from deepchecks.utils.strings import format_datetime, truncate_string
 
 
 def test_get_ellipsis():
-    result = get_ellipsis('1234', 3)
+    result = truncate_string('1234', 3)
     assert_that(result, equal_to('123...'))
-    result = get_ellipsis('1234', 4)
+    result = truncate_string('1234', 4)
     assert_that(result, equal_to('1234'))
 
 

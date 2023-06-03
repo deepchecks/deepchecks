@@ -188,19 +188,18 @@ def test_properties(text_classification_dataset_mock):
     assert_that(properties.shape[0], equal_to(3))
     assert_that(properties.shape[1], equal_to(10))
     assert_that(properties.columns, contains_exactly(
-        'Language','Text Length', 'Average Word Length',
-        'Max Word Length', '% Special Characters', 'Sentiment',
-        'Subjectivity', 'Lexical Density', 'Readability Score',
-        'Average Sentence Length'
+        'Text Length', 'Average Word Length',
+        'Max Word Length', '% Special Characters', 'Language', 'Sentiment',
+        'Subjectivity', 'Average Words Per Sentence', 'Readability Score', 'Lexical Density'
     ))
     assert_that(properties.iloc[0].values, contains_exactly(
-        'en', 22, 3.6, 9, 0.0, 0.0, 0.0, 80.0, 100.24, 5
+        22, 3.6, 9, 0.0, 'en', 0.0, 0.0, 5.0, 100.24, 80.0
     ))
 
 
 def test_embeddings():
     ds = TextData(['my name is inigo montoya', 'you killed my father', 'prepare to die'])
-    ds.calculate_default_embeddings()
+    ds.calculate_builtin_embeddings()
     assert_that(ds.embeddings.shape, equal_to((3, 384)))
 
 
@@ -235,7 +234,7 @@ def test_set_metadata(text_classification_dataset_mock):
 
     # Assert
     assert_that((dataset.metadata != metadata).sum().sum(), equal_to(0))
-    assert_that(dataset.categorical_metadata_columns, equal_to([]))
+    assert_that(dataset.categorical_metadata, equal_to([]))
 
 
 def test_set_metadata_with_categorical_columns(text_classification_dataset_mock):
@@ -251,7 +250,7 @@ def test_set_metadata_with_categorical_columns(text_classification_dataset_mock)
 
     # Assert
     assert_that((dataset.metadata != metadata).sum().sum(), equal_to(0))
-    assert_that(dataset.categorical_metadata_columns, equal_to(['second']))
+    assert_that(dataset.categorical_metadata, equal_to(['second']))
 
 
 def test_set_metadata_with_an_incorrect_list_of_categorical_columns(text_classification_dataset_mock):

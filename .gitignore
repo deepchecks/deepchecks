@@ -104,6 +104,8 @@ tweet_emotion_*.csv
 
 # docs build files
 docs/source/_build
+docs/html
+docs/doctrees
 
 # build folders of sphinx gallery
 docs/source/general/usage/customizations/auto_examples/
@@ -119,6 +121,8 @@ docs/source/vision/auto_tutorials
 
 docs/source/user-guide/tabular/auto_quickstarts
 docs/source/user-guide/vision/auto_quickstarts
+
+docs/source/checks_gallery
 
 # build artificats from running docs (vision, nlp, wandb export)
 docs/source/vision/tutorials/quickstarts/*.html
@@ -145,6 +149,7 @@ deepchecks/nlp/datasets/assets/tweet_emotion/tweet_emotion_embeddings.npy
 
 # nlp datasets
 deepchecks/nlp/datasets/assets/just_dance_comment_analysis
+deepchecks/nlp/datasets/assets/scierc
 
 # nlp test properties
 metadata.csv

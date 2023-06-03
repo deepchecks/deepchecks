@@ -5,7 +5,9 @@
 Test NLP Classification Tasks - Quickstart
 ******************************************
 
-In this quickstart guide, we will go over using the deepchecks NLP package to analyze and evaluate text
+Deepchecks NLP tests your models during model development/research and before deploying to production. Using our
+testing package reduces model failures and saves tests development time. In this quickstart guide, you will learn how
+to use the deepchecks NLP package to analyze and evaluate text
 classification tasks. If you are interested in a multilabel classification task, you can
 refer to our :ref:`Multilabel Quickstart <nlp__multilabel_quickstart>`. We will cover the following steps:
 
@@ -37,7 +39,7 @@ install them by running:
 .. code:: python
 
     import sys
-    !{sys.executable} -m pip install [nlp-properties] -U --quiet #--user
+    !{sys.executable} -m pip install deepchecks[nlp-properties] -U --quiet #--user
 
 Setting Up
 ==========
@@ -45,7 +47,8 @@ Setting Up
 Load Data
 ---------
 For the purpose of this guide, we'll use a small subset of the
-`tweet emotion <https://github.com/cardiffnlp/tweeteval>`__ dataset:
+`tweet emotion <https://github.com/cardiffnlp/tweeteval>`__ dataset. This dataset contains tweets and their
+corresponding emotion - Anger, Happiness, Optimism, and Sadness.
 
 """
 
@@ -97,6 +100,9 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 #   include_long_calculation_properties=True,  device=device
 # )
 
+# %%
+# In this example though we'll use pre-calculated properties:
+
 train_properties, test_properties = tweet_emotion.load_properties()
 
 train.set_properties(train_properties, categorical_properties=['Language'])
@@ -110,7 +116,9 @@ train.properties.head(2)
 #
 # Deepchecks comes with a set of pre-built suites that can be used to run a set of checks on your data, alongside
 # with their default conditions and thresholds. You can read more about customizing and creating your own suites in the
-# :ref:`Customizations Guide <general__customizations>`.
+# :ref:`Customizations Guide <general__customizations>`. In this guide we'll be using 3 suites - the data integrity
+# suite, the train test validation suite and the model evaluation suite. You can also run all the checks at once using
+# the :mod:`full_suite <deepchecks.nlp.suites>`.
 #
 # Data Integrity
 # --------------
@@ -281,8 +289,8 @@ test.set_embeddings(test_embeddings)
 # You can also calculate the embeddings using deepchecks, either using an
 # open-source sentence-transformer or using Open AI’s embedding API.
 
-# train.calculate_default_embeddings()
-# test.calculate_default_embeddings()
+# train.calculate_builtin_embeddings()
+# test.calculate_builtin_embeddings()
 
 # %%
 #

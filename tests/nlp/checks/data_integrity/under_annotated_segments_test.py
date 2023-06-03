@@ -62,7 +62,7 @@ def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
     assert_that(result.value['avg_score'], close_to(0.5, 0.001))
     assert_that(len(result.value['weak_segments_list']), equal_to(5))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.366, 0.01))
-    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_age'))
+    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_region'))
 
 
 def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_textdata):
@@ -81,7 +81,7 @@ def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_tex
     assert_that(result.value['avg_score'], close_to(0.844, 0.001))
     assert_that(len(result.value['weak_segments_list']), equal_to(6))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0, 0.01))
-    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_age'))
+    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('user_region'))
 
 
 def test_tweet_emotion_metadata_fully_annotated(tweet_emotion_train_test_textdata):
@@ -114,15 +114,15 @@ def test_token_classification_dataset(small_wikiann_train_test_text_data):
     assert_that(condition_result, has_items(
         equal_condition_result(
             is_pass=False,
-            details='Found a segment with annotation ratio of 0.375 in comparison to an '
+            details='Found a segment with annotation ratio of 0.2 in comparison to an '
                     'average score of 0.8 in sampled data.',
             name='The relative performance of weakest segment is greater than 80% of average model '
                  'performance.')
     ))
 
     assert_that(result.value['avg_score'], close_to(0.8, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(22))
-    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.375, 0.01))
+    assert_that(len(result.value['weak_segments_list']), equal_to(23))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.2, 0.01))
 
 
 def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
@@ -148,5 +148,5 @@ def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
     ))
 
     assert_that(result.value['avg_score'], close_to(0.5, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(5))
+    assert_that(len(result.value['weak_segments_list']), equal_to(4))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.326, 0.01))

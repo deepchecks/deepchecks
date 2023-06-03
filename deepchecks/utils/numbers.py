@@ -8,14 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Utils package for nlp functionality."""
+"""General utilities for working with numbers."""
 
-from deepchecks.nlp.utils.llm_utils import call_open_ai_completion_api
-from deepchecks.nlp.utils.text_embeddings import calculate_builtin_embeddings
-from deepchecks.nlp.utils.text_properties import calculate_builtin_properties
+import numpy as np
 
-__all__ = [
-    'calculate_builtin_properties',
-    'calculate_builtin_embeddings',
-    'call_open_ai_completion_api'
-]
+
+def round_sig(x: float, sig: int = 2):
+    """Round a number to a given number of significant digits."""
+    return round(x, sig-int(np.floor(np.log10(abs(x))))-1)

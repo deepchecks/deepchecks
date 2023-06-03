@@ -52,11 +52,11 @@ If you don't have model embeddings for you text, you can use deepchecks to calcu
 deepchecks currently supports using the open-source ``sentence-transformers`` library to calculate the embeddings,
 or the paid API of ``open-ai``.
 
-Calculating your embeddings is done by calling the ``calculate_default_embeddings`` method of the ``TextData``
+Calculating your embeddings is done by calling the ``calculate_builtin_embeddings`` method of the ``TextData``
 object. This method will calculate the embeddings and add them to the :class:`TextData <deepchecks.nlp.TextData>` object.
 
-Example of calculating the default embeddings in order to use the TextEmbeddingsDrift check:
-In the following example, we will calculate the default embeddings in order to use the TextEmbeddingsDrift check:
+Example of calculating the built-in embeddings in order to use the TextEmbeddingsDrift check:
+In the following example, we will calculate the built-in embeddings in order to use the TextEmbeddingsDrift check:
 
 .. code-block:: python
 
@@ -66,13 +66,13 @@ In the following example, we will calculate the default embeddings in order to u
   # Initialize the TextData object
   text_data = TextData(text)
 
-  # Calculate the default embeddings
-  text_data.calculate_default_embeddings()
+  # Calculate the built-in embeddings
+  text_data.calculate_builtin_embeddings()
 
   # Run the check
   TextEmbeddingsDrift().run(text_data)
 
-Note that any use of the :func:`deepchecks.nlp.TextData.calculate_default_embeddings` method will override the existing embeddings.
+Note that any use of the :func:`deepchecks.nlp.TextData.calculate_builtin_embeddings` method will override the existing embeddings.
 
 Currently, deepchecks supports either using the ``all-MiniLM-L6-v2`` (default) model from the ``sentence-transformers`` library,
 or Open AI's ``text-embedding-ada-002`` model. You can choose which model to use by setting the ``model`` parameter

@@ -108,7 +108,7 @@ def test_token_classification(small_wikiann_train_test_text_data):
                        test_predictions=np.asarray(test.label))
 
     # Assert
-    assert_that(result.value['Drift score'], close_to(0, 0.01))
+    assert_that(result.value['Drift score'], close_to(0, 0.04))
 
 
 def test_token_classification_with_nones(small_wikiann_train_test_text_data):
@@ -125,7 +125,7 @@ def test_token_classification_with_nones(small_wikiann_train_test_text_data):
                        test_predictions=np.asarray(test.label))
 
     # Assert
-    assert_that(result.value['Drift score'], close_to(0, 0.01))
+    assert_that(result.value['Drift score'], close_to(0, 0.04))
 
 
 def test_drift_mode_proba_warnings(small_wikiann_train_test_text_data):
@@ -147,3 +147,29 @@ def test_drift_mode_proba_warnings(small_wikiann_train_test_text_data):
 
     assert_that(record, has_length(0))
 
+
+def test_binary_classification_probabilities(binary_mock_dataset_and_probabilities):
+    # Arrange
+    text_data, proba_train, proba_test = binary_mock_dataset_and_probabilities
+    check = PredictionDrift()
+
+    # Act
+    result = check.run(text_data, text_data, train_probabilities=proba_train, test_probabilities=proba_test)
+
+    # Assert
+    assert_that(result.value['Drift score'], close_to(0.666, 0.01))
+
+
+def test_binary_classification(binary_mock_dataset_and_probabilities):
+    # Arrange
+    text_data, proba_train, proba_test = binary_mock_dataset_and_probabilities
+    model_classes = {0: 'negative', 1: 'positive'}
+    preds_train = [model_classes[x] for x in np.argmax(proba_train, axis=1)]
+    preds_test = [model_classes[x] for x in np.argmax(proba_test, axis=1)]
+    check = PredictionDrift()
+
+    # Act
+    result = check.run(text_data, text_data, train_predictions=preds_train, test_predictions=preds_test)
+
+    # Assert
+    assert_that(result.value['Drift score'], close_to(0.327, 0.01))

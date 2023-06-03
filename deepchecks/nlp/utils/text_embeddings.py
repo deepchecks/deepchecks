@@ -15,10 +15,10 @@ import numpy as np
 from tqdm import tqdm
 
 
-def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
+def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                                  file_path: Optional[str] = 'embeddings.npy') -> np.array:
     """
-    Get default embeddings for the dataset.
+    Get the built-in embeddings for the dataset.
 
     Parameters
     ----------
@@ -41,7 +41,7 @@ def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
             import sentence_transformers  # pylint: disable=import-outside-toplevel
         except ImportError as e:
             raise ImportError(
-                'get_default_embeddings with model="miniLM" requires the sentence_transformers python package. '
+                'calculate_builtin_embeddings with model="miniLM" requires the sentence_transformers python package. '
                 'To get it, run "pip install sentence_transformers".') from e
 
         model = sentence_transformers.SentenceTransformer('all-MiniLM-L6-v2')
@@ -50,7 +50,7 @@ def calculate_default_embeddings(text: np.array, model: str = 'miniLM',
         try:
             import openai  # pylint: disable=import-outside-toplevel
         except ImportError as e:
-            raise ImportError('get_default_embeddings with model="open_ai" requires the openai python package. '
+            raise ImportError('calculate_builtin_embeddings with model="open_ai" requires the openai python package. '
                               'To get it, run "pip install openai".') from e
 
         from tenacity import (retry, stop_after_attempt,  # pylint: disable=import-outside-toplevel

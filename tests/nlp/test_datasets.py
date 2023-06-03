@@ -13,6 +13,7 @@ import numpy as np
 from hamcrest import assert_that, contains_exactly, equal_to
 
 from deepchecks.nlp.datasets.classification import just_dance_comment_analysis, tweet_emotion
+from deepchecks.nlp.datasets.token_classification import scierc_ner
 
 
 def test_tweet_emotion():
@@ -82,3 +83,22 @@ def test_just_dance_comment_analysis():
     assert_that(embeddings.shape, contains_exactly(16281, 1536))
     assert_that(train_embeddings.shape, contains_exactly(7669, 1536))
     assert_that(test_embeddings.shape, contains_exactly(8612, 1536))
+
+
+def test_scierc_ner_tokens():
+    train_dict, test_dict = scierc_ner.load_data(data_format='Dict')
+    train_ds, test_ds = scierc_ner.load_data(data_format='TextData')
+    train_preds, test_preds = scierc_ner.load_precalculated_predictions()
+    train_props, test_props = scierc_ner.load_properties()
+    train_embeddings, test_embeddings = scierc_ner.load_embeddings()
+
+    assert_that(len(train_dict['text']), equal_to(len(train_dict['label'])))
+    assert_that(len(test_dict['text']), equal_to(len(test_dict['label'])))
+
+    assert_that(len(train_ds.text), equal_to(len(train_preds)))
+    assert_that(len(test_ds.text), equal_to(len(test_preds)))
+
+    assert_that(train_props.columns, contains_exactly(*test_props.columns))
+
+    assert_that(train_embeddings.shape, contains_exactly(350, 1536))
+    assert_that(test_embeddings.shape, contains_exactly(100, 1536))

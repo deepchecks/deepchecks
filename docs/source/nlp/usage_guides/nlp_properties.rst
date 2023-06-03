@@ -65,12 +65,12 @@ Formality*                      Yes               Formality of the text. Uses th
 Lexical Density                 Yes               Percentage of unique words in the text, rounded up to 2 decimal digits
 Unique Noun Count*              Yes               Number of unique noun words in the text
 Readability Score               Yes               A score calculated based on Flesch reading-ease per text sample. For more information: https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
-Average Sentence Length         Yes               Average number of words per sentence in the text
-Count URLs                      No                Number of URLS per text sample.
-Count Unique URLs               No                Number of unique URLS per text sample.
-Count Email Address             No                Number of email addresses per text sample.
-Count Unique Email Address      No                Number of unique email addresses per text sample.
-Count Unique Syllables          No                Number of unique syllables per text sample.
+Average Words Per Sentence      Yes               Average number of words per sentence in the text
+URLs Count                      No                Number of URLS per text sample.
+Unique URLs Count               No                Number of unique URLS per text sample.
+Email Addresses Count           No                Number of email addresses per text sample.
+Unique Email Addresses Count    No                Number of unique email addresses per text sample.
+Unique Syllables Count          No                Number of unique syllables per text sample.
 Reading Time                    No                Time taken in seconds to read a text sample.
 Sentence Length                 No                Number of sentences per text sample.
 Average Syllable Length         No                Average number of syllables per sentence per text sample.
@@ -136,11 +136,15 @@ default properties will be calculated except for ``Text Length`` property. Moreo
 long time to calculate. In order to use them, pass ``include_long_calculation_properties`` to the 
 ``calculate_builtin_properties`` method.
 
-In the following example, we will calculate the properties and include only the long calculation property "Toxicity":
+In the following example, we will calculate the properties and include only the long calculation property "Toxicity".
+We'll also pass the ``device`` parameter to the ``calculate_builtin_properties`` method, in order to use the GPU for
+calculating the properties if it is available:
 
 .. code-block:: python
 
-  text_data.calculate_builtin_properties(include_long_calculation_properties=True, include_properties=['Toxicity'])
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  text_data.calculate_builtin_properties(include_long_calculation_properties=True, include_properties=['Toxicity'],
+                                         device=device)
 
 Saving The Calculated Properties
 ################################
