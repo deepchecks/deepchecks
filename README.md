@@ -18,7 +18,8 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 [![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main) 
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section --> [![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst) <!-- ALL-CONTRIBUTORS-BADGE:END --> 
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+[![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)<!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 <!---
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
@@ -101,7 +102,8 @@ If you want to see deepchecks monitoring's code, you can check out the
 
 ## ✅ Deepchecks Checks
 
-- Many preimplemented checks for testing issues such as model performance (e.g. identify weak segments), 
+- Each check tests for a specific potential problem. Deepchecks has many preimplemented checks for
+  finding issues with the model's performance (e.g. identifying weak segments), 
   data distribution (e.g. detect drifts or leakages) and data integrity (e.g. find conflicting labels).
 - Customizable: each check has many configurable parameters, and custom checks can easily be implemented.
 - Can be run manually (during research) or triggered automatically (in CI processes or production monitoring)
