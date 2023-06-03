@@ -224,7 +224,7 @@ Deepchecks managed CI & Testing management is currently in closed preview.
 [Book a demo](https://deepchecks.com/book-demo/) for more information about the offering.
 
 <p align="center">
-   <img src="docs/source/_static/images/general/deepchecks-ci-tests.png" width="800">
+   <img src="docs/source/_static/images/general/deepchecks-ci-checks.png" width="800">
 </p>
 
 For building and maintaining your own CI process while utilizing Deepchecks Testing for it,
