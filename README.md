@@ -31,7 +31,7 @@ Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch
 </h1>
 
 Deepchecks is a holistic open-source solution for all of your AI & ML validation needs,
-enabling to thoroughly test your data and models from research to production.
+enabling you to thoroughly test your data and models from research to production.
 
 
 <a target="_blank" href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
