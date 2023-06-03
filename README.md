@@ -86,14 +86,14 @@ production-readiness, and behavior over time.
 Deepchecks includes:
 - **Deepchecks Testing**
   ([docs](https://docs.deepchecks.com/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
-  - Built-in Checks & Suites for Tabular, NLP & CV (open source)
+  - Built-in Checks & Suites for Tabular, NLP & CV (open source). [Quickstart](#---------deepchecks-testing-quickstart------)
 - **CI & Testing Management**
   ([docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)):
   - Collaborating over test results and efficient iterations until 
-  model is production-ready and can be deployed (open source & managed offering)
+  model is production-ready and can be deployed (open source & managed offering). [Quickstart](#---------deepchecks-ci--testing-management-quickstart------)
 - **Deepchecks Monitoring**
   ([docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
-  - Tracking your deployed models behavior when in production (open source & managed offering).
+  - Tracking your deployed models behavior when in production (open source & managed offering). [ Quickstart](#---------deepchecks-monitoring-quickstart------)
 
 This repo is our main repo as all components use the deepchecks checks in their core. See the [Getting Started](#--getting-started) section for more information about installation and quickstarts for each of the components.
 If you want to see deepchecks monitoring's code, you can check out the 
