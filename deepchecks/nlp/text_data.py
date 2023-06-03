@@ -83,16 +83,15 @@ class TextData:
     properties : t.Optional[t.Union[pd.DataFrame, str]] , default: None
         The text properties for the samples. Properties must be given as either a pandas DataFrame or a path to a pandas
         DataFrame compatible csv file, with the rows representing each sample and columns representing the different
-        properties. If None, no properties are set.
+        properties. The csv file will have a double header, with the first row representing the name of the property,
+        and the second row representing the type of the property, which must be either 'numeric' or 'categorical'.
+        If None, no properties are set.
         The number of rows in the properties DataFrame must be equal to the number of samples in the dataset, and the
         order of the rows must be the same as the order of the samples in the dataset.
         In order to calculate the default properties, use the `TextData.calculate_builtin_properties` function after
         the creation of the TextData object.
         For more on properties, see the `NLP Properties Guide
         <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
-    categorical_properties : t.Optional[t.List[str]] , default: None
-        The names of the categorical properties columns. If None, categorical properties columns are automatically
-        inferred. Only relevant if properties is not None.
     embeddings : t.Optional[Union[np.ndarray, pd.DataFrame, str]], default: None
         The text embeddings for the samples. Embeddings must be given as a numpy array (or a path to an .npy
         file containing a numpy array) of shape (N, E), where N is the number of samples in the TextData object and E
@@ -129,7 +128,6 @@ class TextData:
             metadata: t.Optional[pd.DataFrame] = None,
             categorical_metadata: t.Optional[t.List[str]] = None,
             properties: t.Optional[pd.DataFrame] = None,
-            categorical_properties: t.Optional[t.List[str]] = None,
     ):
         # Require explicitly setting task type if label is provided
         if task_type in [None, 'other']:
@@ -168,7 +166,7 @@ class TextData:
         if metadata is not None:
             self.set_metadata(metadata, categorical_metadata)
         if properties is not None:
-            self.set_properties(properties, categorical_properties)
+            self.set_properties(properties)
         if embeddings is not None:
             self.set_embeddings(embeddings)
 
@@ -422,28 +420,45 @@ class TextData:
 
         self._properties = pd.DataFrame(properties, index=self.get_original_text_indexes())
         self._cat_properties = [k for k, v in properties_types.items() if v == 'categorical']
+        # Set the column index to be a multilevel index, with the type as the second level
+        self._properties.columns = pd.MultiIndex.from_tuples(
+            [(col, properties_types[col]) for col in self._properties.columns],
+            names=['property', 'type']
+        )
 
     def set_properties(
         self,
         properties: pd.DataFrame,
-        categorical_properties: t.Optional[t.Sequence[str]] = None
     ):
         """Set the properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
         if isinstance(properties, str):
-            properties = pd.read_csv(properties)
+            # the first row in each column is the property name, the second is the property type, the rest are values
+            # The names of the column multiindex are 'property' and 'type'
+            properties = pd.read_csv(properties, header=[0, 1])
+            # Set column multiindex names
+            properties.columns.names = ['property', 'type']
+        else:
+            if not isinstance(properties, pd.DataFrame):
+                raise DeepchecksValueError(
+                    f'Properties type {type(properties)} is not supported, '
+                    'must be a pandas DataFrame'
+                )
+        categorical_properties = \
+            properties.columns.get_level_values('property')[
+                properties.columns.get_level_values('type') == 'categorical'
+                ].tolist()
 
-        column_types = validate_length_and_calculate_column_types(
-            data_table=properties,
-            data_table_name='Properties',
-            expected_size=len(self),
-            categorical_columns=categorical_properties
-        )
+        if len(properties) != len(self):
+            raise DeepchecksValueError(
+                f'received Properties with {len(properties)} rows, '
+                f'expected {len(self)}'
+            )
 
         self._properties = properties.reset_index(drop=True)
-        self._cat_properties = column_types.categorical_columns
+        self._cat_properties = categorical_properties
 
     def save_properties(self, path: str):
         """Save the dataset properties to csv.

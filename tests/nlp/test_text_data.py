@@ -187,7 +187,7 @@ def test_properties(text_classification_dataset_mock):
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
     assert_that(properties.shape[1], equal_to(10))
-    assert_that(properties.columns, contains_exactly(
+    assert_that(properties.columns.get_level_values('property'), contains_exactly(
         'Text Length', 'Average Word Length',
         'Max Word Length', '% Special Characters', 'Language', 'Sentiment',
         'Subjectivity', 'Average Words Per Sentence', 'Readability Score', 'Lexical Density'
@@ -295,12 +295,15 @@ def test_set_properties(text_classification_dataset_mock):
     # Arrange
     dataset = text_classification_dataset_mock
     properties = pd.DataFrame({'text_length': [1, 2, 3], 'average_word_length': [4, 5, 6]})
+    # add the type as a second level of the columns
+    properties.columns = pd.MultiIndex.from_product([properties.columns, ['numeric']],
+                                                    names=['property', 'type'])
 
     assert_that(dataset._properties, equal_to(None))
     assert_that(dataset._cat_properties, equal_to(None))
 
     # Act
-    dataset.set_properties(properties, categorical_properties=[])
+    dataset.set_properties(properties)
 
     # Assert
     assert_that(dataset.categorical_properties, equal_to([]))
@@ -310,28 +313,13 @@ def test_set_properties(text_classification_dataset_mock):
     dataset._cat_properties = None
 
 
-def test_set_properties_with_an_incorrect_list_of_categorical_columns(text_classification_dataset_mock):
-    # Arrange
-    dataset = text_classification_dataset_mock
-    properties = pd.DataFrame({'text_length': [1, 2, 3], 'average_word_length': [4, 5, 6]})
-
-    # Act/Assert
-    assert_that(
-        calling(dataset.set_properties).with_args(
-            properties,
-            categorical_properties=['foo']
-        ),
-        raises(
-            DeepchecksValueError,
-            r"The following columns does not exist in Properties - \['foo'\]"
-        )
-    )
-
-
 def test_set_properties_with_categorical_columns(text_classification_dataset_mock):
     # Arrange
     dataset = text_classification_dataset_mock
     properties = pd.DataFrame({'unknown_property': ['foo', 'foo', 'bar']})
+    # add the type as a second level of the columns
+    properties.columns = pd.MultiIndex.from_product([properties.columns, ['categorical']],
+                                                    names=['property', 'type'])
 
     assert_that(dataset._properties, equal_to(None))
     assert_that(dataset._cat_properties, equal_to(None))
@@ -347,17 +335,21 @@ def test_save_and_load_properties(text_classification_dataset_mock):
     # Arrange
     dataset = text_classification_dataset_mock
     properties = pd.DataFrame({'text_length': [1, 2, 3], 'average_word_length': [4, 5, 6]})
+    # add the type as a second level of the columns
+    properties.columns = pd.MultiIndex.from_product([properties.columns, ['numeric']],
+                                                    names=['property', 'type'])
 
     assert_that(dataset._properties, equal_to(None))
     assert_that(dataset._cat_properties, equal_to(None))
 
     # Act
-    dataset.set_properties(properties, categorical_properties=[])
+    dataset.set_properties(properties)
     dataset.save_properties('test_properties.csv')
 
     # Make sure is saved correctly:
 
-    properties_loaded = pd.read_csv('test_properties.csv')
+    properties_loaded = pd.read_csv('test_properties.csv', header=[0, 1])
+    properties_loaded.columns.names = ['property', 'type']
 
     assert_that((properties_loaded != properties).sum().sum(), equal_to(0))
 
