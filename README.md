@@ -17,10 +17,8 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 [![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
 [![Coverage
-Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
-<!-- ALL-CONTRIBUTORS-BADGE:END --> 
+Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main) 
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section --> [![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst) <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 <!---
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
@@ -240,11 +238,8 @@ we would love to have you as part of our community.
 Join our Slack to give us feedback, connect with the maintainers and fellow users, ask questions, 
 get help for package usage or contributions, or engage in discussions about ML testing!
 
-<a href="https://deepchecks.com/slack"><img src="docs/source/_static/images/general/join-our-slack-community.png" width="100"></a>
+<a href="https://deepchecks.com/slack"><img src="docs/source/_static/images/general/join-our-slack-community.png" width="200"></a>
 
-- Join our [Slack Community](https://www.deepchecks.com/slack) to give us feedback,
-  connect with the maintainers and fellow users, ask questions, get help for package usage or contributions, or
-  engage in discussions about ML testing.
 
 ## ✨ Contributors
 
