@@ -45,10 +45,10 @@ class FeatureDriftAbstract(abc.ABC):
         train: pd.DataFrame,
         test: pd.DataFrame,
         common_columns: t.Dict[str, str],
-        plot_titles: t.Dict[str, str], # Specialized plot titles, as of now only for NLP
         train_dataframe_name: str,
         test_dataframe_name: str,
         with_display: bool,
+        plot_titles: t.Dict[str, str] = {}, # Specialized plot titles, as of now only for NLP
         feature_importance: t.Optional[pd.Series] = None,
         features_order: t.Optional[t.Sequence[str]] = None,
     ):
