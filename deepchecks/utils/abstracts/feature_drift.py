@@ -48,7 +48,7 @@ class FeatureDriftAbstract(abc.ABC):
         train_dataframe_name: str,
         test_dataframe_name: str,
         with_display: bool,
-        override_plot_titles: t.Dict[str, str] = None, # Specialized plot titles, as of now only for NLP
+        override_plot_titles: t.Dict[str, str] = None,  # Specialized plot titles, as of now only for NLP
         feature_importance: t.Optional[pd.Series] = None,
         features_order: t.Optional[t.Sequence[str]] = None,
     ):
