@@ -32,7 +32,7 @@ from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.strings import format_list, truncate_string
 
-__all__ = ['calculate_builtin_properties']
+__all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 
 from deepchecks.utils.validation import is_sequence_not_str
 
@@ -851,3 +851,18 @@ def calculate_builtin_properties(
     }
 
     return calculated_properties, properties_types
+
+
+def get_builtin_properties_types():
+    """
+    Get the names of all the available builtin properties.
+
+    Returns
+    -------
+    Dict[str, str]
+        A dictionary with the property name as key and the property's type as value.
+    """
+    return {
+        prop['name']: prop['output_type']
+        for prop in ALL_PROPERTIES
+    }

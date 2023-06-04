@@ -20,11 +20,11 @@ import pandas as pd
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types,
                                               validate_length_and_type_numpy_array, validate_modify_label,
-                                              validate_raw_text, validate_tokenized_text)
+                                              validate_raw_text, validate_tokenized_text, ColumnTypes)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.nlp.utils.text_embeddings import calculate_builtin_embeddings
-from deepchecks.nlp.utils.text_properties import calculate_builtin_properties
+from deepchecks.nlp.utils.text_properties import calculate_builtin_properties, get_builtin_properties_types
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.validation import is_sequence_not_str
@@ -90,9 +90,10 @@ class TextData:
         the creation of the TextData object.
         For more on properties, see the `NLP Properties Guide
         <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
+        The properties provided must be either all be built-in properties or all custom properties.
     categorical_properties : t.Optional[t.List[str]] , default: None
-        The names of the categorical properties columns. If None, categorical properties columns are automatically
-        inferred. Only relevant if properties is not None.
+        The names of the categorical properties columns. Relevant only if providing custom properties, that are not
+        any of the built-in properties. If None, categorical properties columns are automatically inferred.
     embeddings : t.Optional[Union[np.ndarray, pd.DataFrame, str]], default: None
         The text embeddings for the samples. Embeddings must be given as a numpy array (or a path to an .npy
         file containing a numpy array) of shape (N, E), where N is the number of samples in the TextData object and E
@@ -435,12 +436,26 @@ class TextData:
         if isinstance(properties, str):
             properties = pd.read_csv(properties)
 
-        column_types = validate_length_and_calculate_column_types(
-            data_table=properties,
-            data_table_name='Properties',
-            expected_size=len(self),
-            categorical_columns=categorical_properties
-        )
+        builtin_property_types = get_builtin_properties_types()
+        property_names = properties.columns.tolist()
+        intersection = set(builtin_property_types.keys()).intersection(property_names)
+        if len(intersection) == len(property_names):
+            column_types = ColumnTypes(
+                categorical_columns=[x for x in property_names if builtin_property_types[x] == 'categorical'],
+                numerical_columns=[x for x in property_names if builtin_property_types[x] != 'categorical']
+            )
+        elif len(intersection) == 0:
+            column_types = validate_length_and_calculate_column_types(
+                data_table=properties,
+                data_table_name='Properties',
+                expected_size=len(self),
+                categorical_columns=categorical_properties
+            )
+        else:
+            raise DeepchecksValueError(
+                'Properties contain both built-in and custom properties. The built-in properties found are: '
+                f'{", ".join(list(intersection))}. Must be either all built-in or all custom.'
+            )
 
         self._properties = properties.reset_index(drop=True)
         self._cat_properties = column_types.categorical_columns
