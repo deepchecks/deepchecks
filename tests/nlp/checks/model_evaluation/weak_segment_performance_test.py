@@ -12,7 +12,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from hamcrest import assert_that, close_to, equal_to, has_items, is_in, matches_regexp, calling, raises
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, is_in, matches_regexp, raises
 
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.nlp.checks import MetadataSegmentsPerformance, PropertySegmentsPerformance

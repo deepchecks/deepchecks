@@ -19,8 +19,8 @@ import pytest
 from hamcrest import *
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_builtin_properties, get_transformer_model, \
-    _sample_for_property
+from deepchecks.nlp.utils.text_properties import (MODELS_STORAGE, _sample_for_property, calculate_builtin_properties,
+                                                  get_transformer_model)
 
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument

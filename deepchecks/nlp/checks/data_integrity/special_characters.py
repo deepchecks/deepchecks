@@ -23,6 +23,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
+from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_percent
 
 __all__ = ['SpecialCharacters']
@@ -134,7 +135,7 @@ class SpecialCharacters(SingleDatasetCheck):
             display=[
                 f'<b>{format_percent(percent_of_samples_with_special_chars)}</b> of samples contain special characters',
                 f'List of ignored special characters: {list(self.special_characters_allow_list)}',
-                display_table.style.hide_index()
+                hide_index_for_display(display_table)
             ]
         )
 

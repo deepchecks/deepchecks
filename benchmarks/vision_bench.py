@@ -18,7 +18,6 @@ from deepchecks.vision.datasets.classification import mnist_torch as mnist
 from deepchecks.vision.datasets.detection import coco_torch as coco
 from deepchecks.vision.vision_data import VisionData
 
-
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
 

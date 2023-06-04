@@ -23,6 +23,7 @@ from deepchecks.core.serialization.check_result.html import CheckResultSerialize
 from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
                                                   form_output_anchor, plotlyjs_script)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
+from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.html import linktag
 
 __all__ = ['SuiteResultSerializer']
@@ -349,8 +350,6 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
 
         with warnings.catch_warnings():
             warnings.simplefilter(action='ignore', category=FutureWarning)
-            # style.hide_index() was deprecated in the latest versions and new method was added
-            styler = df.style
-            styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
+            styler = hide_index_for_display(df)
             table = DataFrameHtmlSerializer(styler).serialize()
             return f'<h2>Other Checks That Weren\'t Displayed</h2>\n{table}'
