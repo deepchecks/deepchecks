@@ -21,7 +21,7 @@ The ``SpecialCharacters`` check looks for text sample in which the percentage of
 out of all characters is significant. Such samples can be an indicator for a problem in the data pipeline that
 require attention. Additionally, such examples may be problematic for the model to predict on.
 For example, a text sample with many emojis may be hard to
-predict on and a common mythology will be to replace them with a textual representation of the emoji.
+predict on and a common methodology will be to replace them with a textual representation of the emoji.
 
 Generate data & model
 =====================
@@ -45,8 +45,12 @@ result = check.run(text_data)
 result.show()
 
 #%%
+# We can see in the check display that ~17% of the samples contain at least one special character and that the
+# samples with the highest percentage of special characters contain many emojis.
+#
 # In addition to the check display we can also see receive a summary of most common special characters
-# and which samples contain them:
+# and which samples contain them. This can assist us in conforming that the majority of the special characters
+# in this dataset are indeed emojis.
 
 result.value['samples_per_special_char']
 

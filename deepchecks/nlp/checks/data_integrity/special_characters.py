@@ -36,7 +36,7 @@ class SpecialCharacterInfo(TypedDict):
 
 @docstrings
 class SpecialCharacters(SingleDatasetCheck):
-    """Find samples that contain special characters and most common special characters in the dataset.
+    """Find samples that contain special characters and also the most common special characters in the dataset.
 
     Parameters
     ----------
@@ -47,7 +47,7 @@ class SpecialCharacters(SingleDatasetCheck):
     max_special_chars_to_show : int , default: 5
         Maximum number of most common special characters per sample to show in the display.
     max_chars_to_review_per_sample : int , default: 10000
-        Maximum number of characters to review per sample.
+        Maximal number of characters to sample randomly from each text sample.
     n_samples: int, default: 10_000_000
         number of samples to use for this check.
     random_state : int, default: 42
