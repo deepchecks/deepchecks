@@ -10,6 +10,7 @@
 #
 """Utils module for calculating embeddings for text."""
 import sys
+import warnings
 from itertools import islice
 from typing import Optional
 
@@ -54,7 +55,8 @@ def iterate_batched(tokenized_text, chunk_length):
 
 def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                                  file_path: Optional[str] = 'embeddings.npy',
-                                 device: Optional[str] = None) -> np.array:
+                                 device: Optional[str] = None,
+                                 long_doc_averaging: str = 'average+warn') -> np.array:
     """
     Get the built-in embeddings for the dataset.
 
@@ -70,6 +72,15 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
         If given, the embeddings will be saved to the given file path.
     device : str, default None
         The device to use for the embeddings. If None, the default device will be used.
+    long_doc_averaging : str, default 'warn'
+        How to handle long documents (docments that are longer than the model context window).
+         Can be either 'average+warn', 'average', 'truncate' or 'raise'.
+         Currently, applies only to the 'open_ai' model, as the 'miniLM' model can handle long documents. Averaging is
+         done as described in https://github.com/openai/openai-cookbook/blob/main/examples/Embedding_long_inputs.ipynb
+            - 'average+warn': average the embeddings of the chunks and warn if the document is too long.
+            - 'average': average the embeddings of the chunks.
+            - 'truncate': truncate the document to the maximum length.
+            - 'raise': raise an error if the document is too long.
 
     Returns
     -------
@@ -107,12 +118,31 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
             chunked_texts = []
             chunk_lens = []
             encoded_texts = []
+            max_doc_length = 0
             for text_sample in list_of_texts:
                 tokens_in_sample = encode_text(text_sample, encoding_name=encoding_name)
-                encoded_texts.append(tokens_in_sample)
+                tokens_per_sample = []
                 for chunk in iterate_batched(tokens_in_sample, chunk_length=max_tokens):
                     chunked_texts.append(chunk)
                     chunk_lens.append(len(chunk))
+                    tokens_per_sample += chunk
+                    max_doc_length = max(max_doc_length, len(tokens_per_sample))
+                    if long_doc_averaging == 'truncate':
+                        break
+                encoded_texts.append(tokens_per_sample)
+
+            if max_doc_length > max_tokens:
+                if long_doc_averaging == 'average+warn':
+                    warnings.warn(f'At least one document is longer than {max_tokens} tokens, which is the maximum '
+                                  f'context window handled by {model}. Maximal document length '
+                                  f'found is {max_doc_length} tokens. The document will be split into chunks and the '
+                                  f'embeddings will be averaged. To avoid this warning, set '
+                                  f'long_doc_averaging="average" or long_doc_averaging="truncate".')
+                elif long_doc_averaging == 'raise':
+                    raise ValueError(f'At least one document is longer than {max_tokens} tokens, which is the maximum '
+                                     f'context window handled by {model}. Maximal document '
+                                     f'length found is {max_doc_length} tokens. To avoid this error, set '
+                                     f'long_doc_averaging="average" or long_doc_averaging="truncate".')
 
             batch_size = 500
             chunk_embeddings_output = []
@@ -132,6 +162,7 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                     idx += 1
 
                 text_embedding = np.average(text_embeddings, axis=0, weights=text_lens)
+                text_embedding = text_embedding / np.linalg.norm(text_embedding)  # normalizes length to 1
                 result_embeddings.append(text_embedding.tolist())
 
             return result_embeddings
