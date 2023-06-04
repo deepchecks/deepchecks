@@ -10,7 +10,6 @@
 #
 """Contain functions for handling dataframes in checks."""
 import typing as t
-import warnings
 
 import numpy as np
 import pandas as pd
@@ -258,9 +257,7 @@ def cast_categorical_to_object_dtype(df: pd.DataFrame) -> pd.DataFrame:
 
 def hide_index_for_display(df: t.Union[pd.DataFrame, pd.io.formats.style.Styler]) -> pd.io.formats.style.Styler:
     """Hide the index of a dataframe for display."""
-    with warnings.catch_warnings():
-        warnings.simplefilter(action='ignore', category=FutureWarning)
-        styler = df.style if isinstance(df, pd.DataFrame) else df
-        if hasattr(styler, 'hide'):
-            return styler.hide(axis='index')
-        return styler.hide_index()
+    styler = df.style if isinstance(df, pd.DataFrame) else df
+    if hasattr(styler, 'hide'):
+        return styler.hide(axis='index')
+    return styler.hide_index()

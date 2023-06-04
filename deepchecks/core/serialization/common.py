@@ -14,7 +14,6 @@ import io
 import json
 import textwrap
 import typing as t
-import warnings
 from contextlib import contextmanager
 
 import matplotlib
