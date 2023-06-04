@@ -82,52 +82,23 @@ production-readiness, and behavior over time.
 
 Deepchecks includes:
 - **Deepchecks Testing**
-  ([docs](https://docs.deepchecks.com/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
-  - Running built-in & your own custom Checks and Suites for Tabular, NLP & CV validation (open source). [Quickstart](#---------deepchecks-testing-quickstart------)
+  ([Quickstart](#---------deepchecks-testing-quickstart------), 
+  [docs](https://docs.deepchecks.com/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
+  - Running built-in & your own custom Checks and Suites for Tabular, NLP & CV validation (open source).
 - **CI & Testing Management**
-  ([docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)):
+  ([Quickstart](#---------deepchecks-ci--testing-management-quickstart------), 
+  [docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)):
   - Collaborating over test results and iterating efficiently until 
-  model is production-ready and can be deployed (open source & managed offering). [Quickstart](#---------deepchecks-ci--testing-management-quickstart------)
+  model is production-ready and can be deployed (open source & managed offering).
 - **Deepchecks Monitoring**
-  ([docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
-  - Tracking and validating your deployed models behavior when in production (open source & managed offering). [ Quickstart](#---------deepchecks-monitoring-quickstart------)
+  ([Quickstart](#---------deepchecks-monitoring-quickstart------), 
+  [docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
+  - Tracking and validating your deployed models behavior when in production (open source & managed offering).
 
 This repo is our main repo as all components use the deepchecks checks in their core. See the [Getting Started](#--getting-started) section for more information about installation and quickstarts for each of the components.
 If you want to see deepchecks monitoring's code, you can check out the 
 [deepchecks/monitoring](https://github.com/deepchecks/monitoring) repo.
 
-
-<details close>
-   <summary>
-      <h2>
-         ✅ Deepchecks' Core: The Checks
-      </h2>
-   </summary>
-
-- Each check tests for a specific potential problem. Deepchecks has many preimplemented checks for
-  finding issues with the model's performance (e.g. identifying weak segments), 
-  data distribution (e.g. detect drifts or leakages) and data integrity (e.g. find conflicting labels).
-- Customizable: each check has many configurable parameters, and custom checks can easily be implemented.
-- Can be run manually (during research) or triggered automatically (in CI processes or production monitoring)
-- Check results can be consumed by: 
-   - Visual output report - [Saving to HTML](https://docs.deepchecks.com/stable/general/usage/export_save_results.html) or [viewing them](https://docs.deepchecks.com/stable/general/usage/showing_results.html) in Jupyter
-   - Processing with code - with python using the check result's ``value`` attribute, or saving a 
-     [JSON output](https://docs.deepchecks.com/stable/general/usage/export_save_results.html)
-   - Deepchecks' UI - for dynamic inspection and collaboration (of test results and production monitoring)
-- Optional conditions can be added and customized, to automatically validate check results,
-  with a a pass ✓, fail ✖ or warning ! status
-- An ordered list of checks (with optional conditions) can be run together in a "Suite"
-  (and the output is a concluding report of all checks that ran)
-
-</details>
-
-<!---
-These checks can be run manually (e.g. during research) or automatically triggered (with CI processes or in scheduled runs for production monitoring).
-The check's results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
-processed with code (using their json output), and inspected and colloaborated upon with a dynamic UI 
-(for examining test results and for production monitoring).
-Optional conditions can be added to each check, to automatically validate whether it passed or not.
---->
 
 ## ⏩  Getting Started
 
@@ -241,6 +212,40 @@ For building and maintaining your own CI process while utilizing Deepchecks Test
 check out our [docs for Using Deepchecks in CI/CD](https://docs.deepchecks.com/stable/general/usage/ci_cd.html).
 
 </details>
+
+<details open>
+   <summary>
+      <h2>
+         ✅ Deepchecks' Core: The Checks
+      </h2>
+   </summary>
+
+- All of the Checks and the framework for customizing them are implemented inside 
+  the Deepchecks Testing Python package (this repo).
+- Each check tests for a specific potential problem. Deepchecks has many preimplemented checks for
+  finding issues with the model's performance (e.g. identifying weak segments), 
+  data distribution (e.g. detect drifts or leakages) and data integrity (e.g. find conflicting labels).
+- Customizable: each check has many configurable parameters, and custom checks can easily be implemented.
+- Can be run manually (during research) or triggered automatically (in CI processes or production monitoring)
+- Check results can be consumed by: 
+   - Visual output report - [Saving to HTML](https://docs.deepchecks.com/stable/general/usage/export_save_results.html)(``result.save_to_html('output_report_name.html')``) or [viewing them](https://docs.deepchecks.com/stable/general/usage/showing_results.html) in Jupyter (``result.show()``).
+   - Processing with code - with python using the check result's ``value`` attribute, or saving a 
+     [JSON output](https://docs.deepchecks.com/stable/general/usage/export_save_results.html)
+   - Deepchecks' UI - for dynamic inspection and collaboration (of test results and production monitoring)
+- Optional conditions can be added and customized, to automatically validate check results,
+  with a a pass ✓, fail ✖ or warning ! status
+- An ordered list of checks (with optional conditions) can be run together in a "Suite"
+  (and the output is a concluding report of all checks that ran)
+
+</details>
+
+<!---
+These checks can be run manually (e.g. during research) or automatically triggered (with CI processes or in scheduled runs for production monitoring).
+The check's results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
+processed with code (using their json output), and inspected and colloaborated upon with a dynamic UI 
+(for examining test results and for production monitoring).
+Optional conditions can be added to each check, to automatically validate whether it passed or not.
+--->
 
 ## 📜 Open Source vs Paid 
 
