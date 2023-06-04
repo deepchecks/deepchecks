@@ -62,13 +62,13 @@ enabling you to thoroughly test your data and models from research to production
 
 At its core, deepchecks includes a wide variety of built-in Checks,
 for testing all types of data and model related issues.
-These checks are implemented fo various models and data types (Tabular, NLP, Vision), 
+These checks are implemented for various models and data types (Tabular, NLP, Vision), 
 and can easily be customized and expanded. 
 
-The check results can be used for automatically making informed decisions
-regarding your model's production-readiness, and for monitoring it over time when in production.
-They can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
-processed with code (using their json output), and inspected and collaborated upon with a Deepchecks' dynamic UI 
+The check results can be used to automatically make informed decisions
+about your model's production-readiness, and for monitoring it over time in production.
+The check results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
+processed with code (using their pythonic / json output), and inspected and collaborated on with a Deepchecks' dynamic UI 
 (for examining test results and for production monitoring).
 
 <!---
@@ -89,7 +89,7 @@ Deepchecks includes:
   - Built-in Checks & Suites for Tabular, NLP & CV (open source). [Quickstart](#---------deepchecks-testing-quickstart------)
 - **CI & Testing Management**
   ([docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)):
-  - Collaborating over test results and efficient iterations until 
+  - Collaborating over test results and iterating efficiently until 
   model is production-ready and can be deployed (open source & managed offering). [Quickstart](#---------deepchecks-ci--testing-management-quickstart------)
 - **Deepchecks Monitoring**
   ([docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
@@ -146,8 +146,8 @@ Optional conditions can be added to each check, to automatically validate whethe
 pip install deepchecks -U --user
 ```
 
-For installing also the nlp submodle, replace ``deepchecks`` with ``"deepchecks[vision]"``
-and for installing it with the computer vision submodule, replace it with ``"deepchecks[nlp]"``. 
+For installing also the nlp submodle, replace ``deepchecks`` with ``"deepchecks[nlp]"``
+and for installing it with the computer vision submodule, replace it with ``"deepchecks[vision]"``. 
 For installing with conda, similarly use: ``conda install -c conda-forge deepchecks``.
 
 Check out the full installation instructions for deepchecks testing [here](https://docs.deepchecks.com/stable/getting-started/installation.html).
@@ -161,7 +161,7 @@ you can deploy a hobby instance in one line on Linux/MacOS (Windows is WIP!) wit
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/deepchecks/monitoring/main/deploy/deploy-oss.sh)"
 ```
 This will automatically download the necessary dependencies and start the application locally.
-Installing our open source service is an excellent way for local usage, note however, 
+Installing our open source service is an excellent way to try monitoring locally. Note however, 
 that it won't scale to support real-time production usage.
 
 Check out the full installation instructions for deepchecks monitoring [here](https://docs.deepchecks.com/monitoring/stable/installation/index.html). 
@@ -178,7 +178,7 @@ Check out the full installation instructions for deepchecks monitoring [here](ht
       </h4>
    </summary>
 
-Jump straight over to the respective quickstart docs:
+Jump right into the respective quickstart docs:
 - [Tabular Quickstarts](https://docs.deepchecks.com/stable/tabular/auto_tutorials/quickstarts/index.html)
 - [NLP Quickstarts](https://docs.deepchecks.com/stable/nlp/auto_tutorials/quickstarts/index.html)
 - [Vision Quickstarts](https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/index.html) 
