@@ -22,6 +22,7 @@ Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch
 [![All Contributors](https://img.shields.io/badge/all_contributors-41-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)<!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 <!---
+this badge takes quite some space, can re-add it if wanted
 ![pyVersions](https://img.shields.io/pypi/pyversions/deepchecks)
 --->
 
@@ -115,23 +116,25 @@ If you want to see deepchecks monitoring's code, you can check out the
 pip install deepchecks -U --user
 ```
 
-For installing also the nlp submodle, replace ``deepchecks`` with ``"deepchecks[nlp]"``
-and for installing it with the computer vision submodule, replace it with ``"deepchecks[vision]"``. 
-For installing with conda, similarly use: ``conda install -c conda-forge deepchecks``.
+For installing the nlp / vision submodules or with conda:
+- For NLP: Replace ``deepchecks`` with ``"deepchecks[nlp]"``, 
+  and optionally install also``deepchecks[nlp-properties]``
+- For Computer Vision: Replace ``deepchecks`` with ``"deepchecks[vision]"``. 
+- For installing with conda, similarly use: ``conda install -c conda-forge deepchecks``.
 
 Check out the full installation instructions for deepchecks testing [here](https://docs.deepchecks.com/stable/getting-started/installation.html).
 
 #### Deepchecks Monitoring Installation
 
-If you're using deepchecks also for production monitoring,
-you can deploy a hobby instance in one line on Linux/MacOS (Windows is WIP!) with Docker:
+To use deepchecks for production monitoring, you can either use our SaaS service, or deploy a local instance in one line on Linux/MacOS (Windows is WIP!) with Docker:
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/deepchecks/monitoring/main/deploy/deploy-oss.sh)"
 ```
+
 This will automatically download the necessary dependencies and start the application locally.
-Installing our open source service is an excellent way to try monitoring locally. Note however, 
-that it won't scale to support real-time production usage.
+Note that the open source product is built such that each deployment supports monitoring of
+a single model.
 
 Check out the full installation instructions for deepchecks monitoring [here](https://docs.deepchecks.com/monitoring/stable/installation/index.html). 
 
