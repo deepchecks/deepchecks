@@ -60,7 +60,7 @@ enabling you to thoroughly test your data and models from research to production
 --->
 ## 🧮 How does it work?
 
-At its core, Deepchecks includes a wide variety of built-in Checks,
+At its core, deepchecks includes a wide variety of built-in Checks,
 for testing all types of data and model related issues.
 These checks are implemented fo various models and data types (Tabular, NLP, Vision), 
 and can easily be customized and expanded. 
