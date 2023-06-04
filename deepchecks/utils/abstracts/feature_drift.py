@@ -48,7 +48,7 @@ class FeatureDriftAbstract(abc.ABC):
         train_dataframe_name: str,
         test_dataframe_name: str,
         with_display: bool,
-        plot_titles: t.Dict[str, str] = {}, # Specialized plot titles, as of now only for NLP
+        plot_titles: t.Dict[str, str] = None, # Specialized plot titles, as of now only for NLP
         feature_importance: t.Optional[pd.Series] = None,
         features_order: t.Optional[t.Sequence[str]] = None,
     ):
@@ -60,7 +60,7 @@ class FeatureDriftAbstract(abc.ABC):
             if features_order is not None:
                 fi_rank = features_order.index(column_name) + 1
                 plot_title = f'{column_name} (#{int(fi_rank)} in FI)'
-            elif drift_kind == 'nlp-properties' and column_name in plot_titles:
+            elif drift_kind == 'nlp-properties' and plot_titles is not None and column_name in plot_titles:
                 plot_title = plot_titles[column_name]
             else:
                 plot_title = column_name
