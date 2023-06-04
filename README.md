@@ -55,9 +55,6 @@ enabling you to thoroughly test your data and models from research to production
 </p>
    
 
-<!---
-## 🧐 What is Deepchecks?
---->
 ## 🧮 How does it work?
 
 At its core, deepchecks includes a wide variety of built-in Checks,
@@ -68,7 +65,7 @@ and can easily be customized and expanded.
 The check results can be used to automatically make informed decisions
 about your model's production-readiness, and for monitoring it over time in production.
 The check results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
-processed with code (using their pythonic / json output), and inspected and collaborated on with a Deepchecks' dynamic UI 
+processed with code (using their pythonic / json output), and inspected and collaborated on with Deepchecks' dynamic UI 
 (for examining test results and for production monitoring).
 
 <!---
@@ -86,24 +83,24 @@ production-readiness, and behavior over time.
 Deepchecks includes:
 - **Deepchecks Testing**
   ([docs](https://docs.deepchecks.com/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
-  - Built-in Checks & Suites for Tabular, NLP & CV (open source). [Quickstart](#---------deepchecks-testing-quickstart------)
+  - Running built-in & your own custom Checks and Suites for Tabular, NLP & CV validation (open source). [Quickstart](#---------deepchecks-testing-quickstart------)
 - **CI & Testing Management**
   ([docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)):
   - Collaborating over test results and iterating efficiently until 
   model is production-ready and can be deployed (open source & managed offering). [Quickstart](#---------deepchecks-ci--testing-management-quickstart------)
 - **Deepchecks Monitoring**
   ([docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
-  - Tracking your deployed models behavior when in production (open source & managed offering). [ Quickstart](#---------deepchecks-monitoring-quickstart------)
+  - Tracking and validating your deployed models behavior when in production (open source & managed offering). [ Quickstart](#---------deepchecks-monitoring-quickstart------)
 
 This repo is our main repo as all components use the deepchecks checks in their core. See the [Getting Started](#--getting-started) section for more information about installation and quickstarts for each of the components.
 If you want to see deepchecks monitoring's code, you can check out the 
-files in the [deepchecks/monitoring](https://github.com/deepchecks/monitoring) repo.
+[deepchecks/monitoring](https://github.com/deepchecks/monitoring) repo.
 
 
 <details close>
    <summary>
       <h2>
-         ✅ Deepchecks Checks
+         ✅ Deepchecks' Core: The Checks
       </h2>
    </summary>
 
@@ -113,8 +110,9 @@ files in the [deepchecks/monitoring](https://github.com/deepchecks/monitoring) r
 - Customizable: each check has many configurable parameters, and custom checks can easily be implemented.
 - Can be run manually (during research) or triggered automatically (in CI processes or production monitoring)
 - Check results can be consumed by: 
-   - [Saving to HTML](https://docs.deepchecks.com/stable/general/usage/export_save_results.html) or [viewing](https://docs.deepchecks.com/stable/general/usage/showing_results.html) in Jupyter - for visual output for human analysis
-   - [JSON output](https://docs.deepchecks.com/stable/general/usage/export_save_results.html) - for processing with code
+   - Visual output report - [Saving to HTML](https://docs.deepchecks.com/stable/general/usage/export_save_results.html) or [viewing them](https://docs.deepchecks.com/stable/general/usage/showing_results.html) in Jupyter
+   - Processing with code - with python using the check result's ``value`` attribute, or saving a 
+     [JSON output](https://docs.deepchecks.com/stable/general/usage/export_save_results.html)
    - Deepchecks' UI - for dynamic inspection and collaboration (of test results and production monitoring)
 - Optional conditions can be added and customized, to automatically validate check results,
   with a a pass ✓, fail ✖ or warning ! status
@@ -179,13 +177,26 @@ Check out the full installation instructions for deepchecks monitoring [here](ht
    </summary>
 
 Jump right into the respective quickstart docs:
+
 - [Tabular Quickstarts](https://docs.deepchecks.com/stable/tabular/auto_tutorials/quickstarts/index.html)
 - [NLP Quickstarts](https://docs.deepchecks.com/stable/nlp/auto_tutorials/quickstarts/index.html)
 - [Vision Quickstarts](https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/index.html) 
+
 to have it up and running on your data.
 
-You'll then be able to view all the chosen checks checks and inspect their status and results, 
-with the visual output that looks like this:
+Inside the quickstarts, you'll see how to create the relevant deepchecks object for holding your data and metadata
+([Dataset](https://docs.deepchecks.com/stable/tabular/usage_guides/dataset_object.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_suite), [TextData](https://docs.deepchecks.com/stable/nlp/usage_guides/text_data_object.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=running_a_suite) or [VisionData](https://docs.deepchecks.com/stable/vision/usage_guides/visiondata_object.html), corresponding to the data type), and run a Suite or Check.
+The code snippet for running it will look something like the following, depending on the chosen Suite or Check.
+
+```python
+from deepchecks.tabular.suites import model_evaluation
+suite = model_evaluation()
+suite_result = suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
+suite_result.save_as_html() # replace this with suite_result.show() or suite_result.show_in_window() to see results inline or in window
+# or suite_result.results[0].value with the relevant check index to process the check result's values in python
+```
+
+The output will be a report that enables you to inspect the status and results of the chosen checks:
 
 <p align="center">
    <img src="docs/source/_static/images/general/model_evaluation_suite.gif" width="800">
@@ -200,10 +211,9 @@ with the visual output that looks like this:
       </h4>
    </summary>
 
-Jump straight over to the 
+Jump right into the 
 [monitoring quickstart docs](https://docs.deepchecks.com/monitoring/stable/user-guide/tabular/auto_quickstarts/plot_quickstart.html)
 to have it up and running on your data.
-
 You'll then be able to see the checks results over time, set alerts, and interact
 with the dynamic deepchecks UI that looks like this:
 
@@ -236,7 +246,7 @@ check out our [docs for Using Deepchecks in CI/CD](https://docs.deepchecks.com/s
 
 Deepchecks' projects (``deepchecks/deepchecks`` & ``deepchecks/monitoring``) are open source and are released under [AGPL 3.0](./LICENSE).
 
-The only exception are the deepchecks monitoring components under the 
+The only exception are the Deepchecks Monitoring components (in the ``deepchecks/monitoring`` repo), that are under the 
 ([backend/deepchecks_monitoring/ee](https://github.com/deepchecks/monitoring/tree/main/backend/deepchecks_monitoring/ee)) 
 directory, that are subject to a commercial license (see the license [here](https://deepchecks.com/terms-and-conditions)).
 That directory isn't used by default, and is packaged as part of the deepchecks monitoring repository simply to 
