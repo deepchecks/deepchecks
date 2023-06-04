@@ -25,6 +25,7 @@ from deepchecks.core.serialization.common import (aggregate_conditions, create_f
                                                   create_results_dataframe, form_output_anchor, join,
                                                   normalize_widget_style)
 from deepchecks.core.serialization.dataframe.widget import DataFrameSerializer
+from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.strings import get_random_string
 
 from . import html
@@ -153,9 +154,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
         if len(failures) == 0:
             children = (HTML(value='<p>No outputs to show.</p>'),)
         else:
-            styler = create_failures_dataframe(failures).style
-            # style.hide_index() was deprecated in the latest versions and new method was added
-            styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
+            styler = hide_index_for_display(create_failures_dataframe(failures))
             table = DataFrameSerializer(styler).serialize()
             children = (table,)
         accordion = normalize_widget_style(Accordion(
@@ -305,9 +304,7 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
                 output_id=output_id,
                 is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
             )
-            # style.hide_index() was deprecated in the latest versions and new method was added
-            styler = df.style
-            styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
+            styler = hide_index_for_display(df)
             return DataFrameSerializer(styler).serialize()
 
 

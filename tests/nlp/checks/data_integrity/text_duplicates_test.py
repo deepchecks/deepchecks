@@ -30,6 +30,7 @@ class DuplicateVariation(t.NamedTuple):
     sample_ids: t.Sequence[t.Any]
     text: t.Sequence[str]
 
+
 class ProblematicDataset(t.NamedTuple):
     dataset: TextData
     duplicates: t.Sequence[DuplicateVariation]
@@ -94,7 +95,7 @@ def dataset_without_duplicates() -> TextData:
 
 def test_without_duplicates(dataset_without_duplicates: TextData):
     # Arrange
-    check = TextDuplicates().add_condition_ratio_less_or_equal()
+    check = TextDuplicates().add_condition_ratio_less_or_equal(0)
 
     # Act
     result = check.run(dataset=dataset_without_duplicates)
@@ -125,7 +126,7 @@ def test_without_duplicates(dataset_without_duplicates: TextData):
 def test_with_duplicates(dataset_with_duplicates: ProblematicDataset):
     # Arrange
     dataset = dataset_with_duplicates.dataset
-    check = TextDuplicates().add_condition_ratio_less_or_equal()
+    check = TextDuplicates().add_condition_ratio_less_or_equal(0)
 
     # Act
     result = check.run(dataset=dataset)
@@ -158,8 +159,8 @@ def test_with_duplicates(dataset_with_duplicates: ProblematicDataset):
 
 
 def assert_result_dataframe(
-    df: pd.DataFrame,
-    duplicates_variations: t.Optional[t.Sequence[DuplicateVariation]] = None,
+        df: pd.DataFrame,
+        duplicates_variations: t.Optional[t.Sequence[DuplicateVariation]] = None,
 ):
     assert_that(df, instance_of(pd.DataFrame))
     assert_that(df.index.names, equal_to(["Duplicate", "Sample ID"]))
@@ -183,18 +184,13 @@ def assert_display(display: t.Sequence[t.Any]):
     assert_that(display, has_items(
         instance_of(str),
         instance_of(str),
-        instance_of(pd.DataFrame)
-    )) # type: ignore
+        instance_of(pd.io.formats.style.Styler)
+    ))  # type: ignore
 
     table = t.cast(pd.DataFrame, display[2])
-
     assert_that(
-        table.index.names,
-        equal_to(["Sample IDs", "Number of Samples"])
-    )
-    assert_that(
-        table.columns,
-        equal_to(["Text"])
+        sorted(table.columns),
+        equal_to(sorted(["Sample IDs", "Number of Samples", "Text"]))
     )
 
 

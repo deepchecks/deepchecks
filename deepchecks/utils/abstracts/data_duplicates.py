@@ -26,12 +26,12 @@ class DataDuplicatesAbstract(abc.ABC):
     n_to_show: int
     add_condition: t.Callable[..., t.Any]
 
-    def add_condition_ratio_less_or_equal(self: Self, max_ratio: float = 0) -> Self:
+    def add_condition_ratio_less_or_equal(self: Self, max_ratio: float = 0.05) -> Self:
         """Add condition - require duplicate ratio to be less or equal to max_ratio.
 
         Parameters
         ----------
-        max_ratio : float , default: 0
+        max_ratio : float , default: 0.05
             Maximum ratio of duplicates.
         """
         def max_ratio_condition(result: t.Union[float, t.Dict[str, float]]) -> ConditionResult:

@@ -66,7 +66,7 @@ def data_integrity(n_samples: int = None,
         PropertyLabelCorrelation(**kwargs).add_condition_property_pps_less_than(),
         ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
         TextDuplicates(**kwargs).add_condition_ratio_less_or_equal(),
-        SpecialCharacters(**kwargs).add_condition_ratio_of_samples_with_special_characters_less_or_equal(),
+        SpecialCharacters(**kwargs).add_condition_samples_ratio_w_special_characters_less_or_equal(),
 
     )
 

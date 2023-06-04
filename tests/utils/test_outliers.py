@@ -9,10 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 import numpy as np
-from hamcrest import assert_that, calling, equal_to, raises, close_to
+from hamcrest import assert_that, calling, close_to, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.outliers import iqr_outliers_range, sharp_drop_outliers_range, EPS
+from deepchecks.utils.outliers import EPS, iqr_outliers_range, sharp_drop_outliers_range
 
 
 def test_iqr_range_many_zeros():

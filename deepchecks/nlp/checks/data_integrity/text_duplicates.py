@@ -19,6 +19,7 @@ from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
 from deepchecks.nlp.utils.text import cut_string, hash_samples, normalize_samples
 from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
+from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.other import to_ordional_enumeration
 from deepchecks.utils.strings import format_list, format_percent, truncate_string
 
@@ -146,13 +147,12 @@ class TextDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         })
         table = table.iloc[:self.n_to_show]
         table = table.sort_values(by=['Number of Samples'], ascending=False)
-        table = table.set_index(['Sample IDs', 'Number of Samples'])
 
         return CheckResult(
             value=result_value,
             display=[
                 f'{format_percent(percent_of_duplicates)} of data samples are duplicates.',
                 'Each row in the table shows an example of a text duplicate and the number of times it appears.',
-                table
+                hide_index_for_display(table)
             ]
         )
