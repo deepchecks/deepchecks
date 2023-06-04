@@ -17,9 +17,7 @@ import pandas as pd
 from typing_extensions import Literal, Self
 
 from deepchecks.core.errors import NotEnoughSamplesError
-from deepchecks.nlp.utils.text_properties import TEXT_PROPERTIES_DESCRIPTION
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, drift_condition, get_drift_plot_sidenote
-from deepchecks.utils.strings import get_docs_link
 
 __all__ = ['FeatureDriftAbstract']
 
@@ -47,6 +45,7 @@ class FeatureDriftAbstract(abc.ABC):
         train: pd.DataFrame,
         test: pd.DataFrame,
         common_columns: t.Dict[str, str],
+        plot_titles: t.Dict[str, str], # Specialized plot titles, as of now only for NLP
         train_dataframe_name: str,
         test_dataframe_name: str,
         with_display: bool,
@@ -61,10 +60,8 @@ class FeatureDriftAbstract(abc.ABC):
             if features_order is not None:
                 fi_rank = features_order.index(column_name) + 1
                 plot_title = f'{column_name} (#{int(fi_rank)} in FI)'
-            elif drift_kind == 'nlp-properties' and column_name in TEXT_PROPERTIES_DESCRIPTION:
-                plot_title = f'{column_name}<sup><a href="{get_docs_link()}nlp/usage_guides/nlp_properties.html' \
-                            '#deepchecks-built-in-properties">&#x24D8;</a></sup><br>' \
-                            f'<sup>{TEXT_PROPERTIES_DESCRIPTION[column_name]}</sup>'
+            elif drift_kind == 'nlp-properties' and column_name in plot_titles:
+                plot_title = plot_titles[column_name]
             else:
                 plot_title = column_name
 
