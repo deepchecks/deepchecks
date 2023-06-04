@@ -157,7 +157,7 @@ class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
             train_dataframe_name=train.name or 'Train',
             test_dataframe_name=test.name or 'Test',
             common_columns=context.common_datasets_properties,
-            override_plot_titles = plot_titles,
+            override_plot_titles=plot_titles,
             with_display=context.with_display
         )
         return CheckResult(
