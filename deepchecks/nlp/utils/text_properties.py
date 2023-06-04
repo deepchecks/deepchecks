@@ -637,6 +637,31 @@ ENGLISH_ONLY_PROPERTIES = (
 
 CMUDICT_PROPERTIES = ('Average Syllable Length', 'Unique Syllables Count', 'Readability Score')
 
+TEXT_PROPERTIES_DESCRIPTION = {
+    'Text Length': 'Number of characters in the text',
+    'Average Word Length': 'Average number of characters in a word',
+    'Max Word Length': 'Maximum number of characters in a word',
+    '% Special Characters': 'Percentage of special characters in the text',
+    'Language': 'Language of the text',
+    'Sentiment': 'Sentiment of the text',
+    'Subjectivity': 'Subjectivity of the text',
+    'Average Words Per Sentence': 'Average number of words per sentence in the text',
+    'Readability Score': 'A score calculated based on Flesch reading-ease per text sample',
+    'Lexical Density': 'Percentage of unique words in the text',
+    'Toxicity': 'Toxicity of the text',
+    'Fluency': 'Fluency of the text',
+    'Formality': 'Formality of the text',
+    'Unique Noun Count': 'Number of unique noun words in the text',
+    'URLs Count': 'Number of URLS per text sample',
+    'Email Addresses Count': 'Number of email addresses per text sample',
+    'Unique URLs Count': 'Number of unique URLS per text sample',
+    'Unique Email Addresses Count': 'Number of unique email addresses per text sample',
+    'Unique Syllables Count': 'Number of unique syllables per text sample',
+    'Reading Time': 'Time taken in seconds to read a text sample',
+    'Sentences Count': 'Number of sentences per text sample',
+    'Average Syllable Length': 'Average number of syllables per sentence per text sample',
+}
+
 
 def _select_properties(
         *,

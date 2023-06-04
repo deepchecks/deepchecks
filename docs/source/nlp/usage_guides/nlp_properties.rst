@@ -72,7 +72,7 @@ Email Addresses Count           No                Number of email addresses per 
 Unique Email Addresses Count    No                Number of unique email addresses per text sample.
 Unique Syllables Count          No                Number of unique syllables per text sample.
 Reading Time                    No                Time taken in seconds to read a text sample.
-Sentence Length                 No                Number of sentences per text sample.
+Sentences Count                 No                Number of sentences per text sample.
 Average Syllable Length         No                Average number of syllables per sentence per text sample.
 ==============================  ================  ==========
 
