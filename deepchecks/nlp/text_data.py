@@ -434,12 +434,6 @@ class TextData:
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        # This is needed to restore the original value of categorical_properties in case it is after intersection
-        # with user properties
-        categorical_properties_og_value = copy.deepcopy(categorical_properties)
-        if categorical_properties is None:
-            categorical_properties = []
-
         if isinstance(properties, str):
             properties = pd.read_csv(properties)
 
@@ -452,15 +446,17 @@ class TextData:
 
         # Get column types for user properties
         user_properties = list(set(property_names).difference(builtin_property_types.keys()))
-        categorical_properties = list(set(categorical_properties).intersection(user_properties))
-        if len(categorical_properties) == 0:
-            categorical_properties = categorical_properties_og_value
+        if categorical_properties is None:
+            user_categorical_properties = None
+        else:
+            user_categorical_properties = list(set(categorical_properties).intersection(user_properties))
+
         if len(user_properties) != 0:
             column_types = validate_length_and_calculate_column_types(
                 data_table=properties[user_properties],
                 data_table_name='Properties',
                 expected_size=len(self),
-                categorical_columns=categorical_properties
+                categorical_columns=user_categorical_properties
             )
         else:
             column_types = ColumnTypes([], [])
