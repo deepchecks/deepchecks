@@ -39,7 +39,7 @@ from deepchecks.utils.validation import is_sequence_not_str
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
-MAX_CHARS = 720  # Bert accepts max of 512 tokens, and experimentally 720 chars seems to work while 1024 doesn't
+MAX_CHARS = 512  # Bert accepts max of 512 tokens, so without counting tokens we go for the lower bound.
 textblob_cache = {}
 words_cache = {}
 sentences_cache = {}

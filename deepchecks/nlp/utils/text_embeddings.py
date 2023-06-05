@@ -57,7 +57,7 @@ def iterate_batched(tokenized_text, chunk_length):
 def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                                  file_path: Optional[str] = 'embeddings.npy',
                                  device: Optional[str] = None,
-                                 long_sample_averaging: str = 'average+warn',
+                                 long_sample_behaviour: str = 'average+warn',
                                  open_ai_batch_size: int = 500) -> np.array:
     """
     Get the built-in embeddings for the dataset.
@@ -74,7 +74,7 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
         If given, the embeddings will be saved to the given file path.
     device : str, default None
         The device to use for the embeddings. If None, the default device will be used.
-    long_sample_averaging : str, default 'average+warn'
+    long_sample_behaviour : str, default 'average+warn'
         How to handle long samples. Averaging is done as described in
         https://github.com/openai/openai-cookbook/blob/main/examples/Embedding_long_inputs.ipynb
         Currently, applies only to the 'open_ai' model, as the 'miniLM' model can handle long samples.
@@ -131,7 +131,7 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                 tokens_per_sample = []
                 num_chunks = 0
                 for chunk in iterate_batched(tokens_in_sample, chunk_length=max_tokens):
-                    if long_sample_averaging == 'nan' and num_chunks > 0:
+                    if long_sample_behaviour == 'nan' and num_chunks > 0:
                         # If nan condition was met, we're going to skip this sample
                         skip_sample_indices.add(i)
                         break
@@ -141,22 +141,22 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                     tokens_per_sample += chunk
                     max_sample_length = max(max_sample_length, len(tokens_per_sample))
                     num_chunks += 1
-                    if long_sample_averaging == 'truncate':
+                    if long_sample_behaviour == 'truncate':
                         break
                 encoded_texts.append(tokens_per_sample)
 
             if max_sample_length > max_tokens:
-                if long_sample_averaging == 'average+warn':
+                if long_sample_behaviour == 'average+warn':
                     warnings.warn(f'At least one sample is longer than {max_tokens} tokens, which is the maximum '
                                   f'context window handled by {model}. Maximal sample length '
                                   f'found is {max_sample_length} tokens. The sample will be split into chunks and the '
                                   f'embeddings will be averaged. To avoid this warning, set '
-                                  f'long_sample_averaging="average" or long_sample_averaging="truncate".')
-                elif long_sample_averaging == 'raise':
+                                  f'long_sample_behaviour="average" or long_sample_behaviour="truncate".')
+                elif long_sample_behaviour == 'raise':
                     raise ValueError(f'At least one sample is longer than {max_tokens} tokens, which is the maximum '
                                      f'context window handled by {model}. Maximal sample '
                                      f'length found is {max_sample_length} tokens. To avoid this error, set '
-                                     f'long_sample_averaging="average" or long_sample_averaging="truncate".')
+                                     f'long_sample_behaviour="average" or long_sample_behaviour="truncate".')
 
             # Filter out the first chunk of samples in skip_sample_indices
             filtered_chunked_texts = [chunk for i, chunk in chunked_texts if i not in skip_sample_indices]
@@ -180,6 +180,7 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                 else:
                     text_embeddings = []
                     text_lens = []
+                    # while loop to get all chunks for this sample
                     while idx < len(chunk_lens) and sum(text_lens) < len(tokens_in_sample):
                         text_embeddings.append(chunk_embeddings[idx])
                         text_lens.append(chunk_lens[idx])
