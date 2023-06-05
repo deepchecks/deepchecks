@@ -823,29 +823,17 @@ def calculate_builtin_properties(
             cmudict_dict = corpus.cmudict.dict()
             kwargs['cmudict_dict'] = cmudict_dict
 
-    if 'Formality' in text_properties_names and 'formality_classifier' not in kwargs:
-        kwargs['formality_classifier'] = get_transformer_pipeline(
-            'formality',
-            FORMALITY_MODEL_NAME,
-            device=device,
-            models_storage=models_storage
-        )
-
     if 'Toxicity' in text_properties_names and 'toxicity_classifier' not in kwargs:
         kwargs['toxicity_classifier'] = get_transformer_pipeline(
-            'toxicity',
-            TOXICITY_MODEL_NAME,
-            device=device,
-            models_storage=models_storage
-        )
+            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
+
+    if 'Formality' in text_properties_names and 'formality_classifier' not in kwargs:
+        kwargs['formality_classifier'] = get_transformer_pipeline(
+            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
 
     if 'Fluency' in text_properties_names and 'fluency_classifier' not in kwargs:
         kwargs['fluency_classifier'] = get_transformer_pipeline(
-            'fluency',
-            FLUENCY_MODEL_NAME,
-            device=device,
-            models_storage=models_storage
-        )
+            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
 
     is_language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
     # Remove language property from the list of properties to calculate as it will be calculated separately:
