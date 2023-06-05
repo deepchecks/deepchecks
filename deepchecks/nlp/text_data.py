@@ -10,6 +10,7 @@
 #
 """The dataset module containing the tabular Dataset class and its functions."""
 import contextlib
+import copy
 import typing as t
 import warnings
 from numbers import Number
@@ -432,6 +433,10 @@ class TextData:
         """Set the properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
+
+        # This is needed to restore the original value of categorical_properties in case it is after intersection
+        # with user properties
+        categorical_properties_og_value = copy.deepcopy(categorical_properties)
         if categorical_properties is None:
             categorical_properties = []
 
@@ -449,7 +454,7 @@ class TextData:
         user_properties = list(set(property_names).difference(builtin_property_types.keys()))
         categorical_properties = list(set(categorical_properties).intersection(user_properties))
         if len(categorical_properties) == 0:
-            categorical_properties = None
+            categorical_properties = categorical_properties_og_value
         if len(user_properties) != 0:
             column_types = validate_length_and_calculate_column_types(
                 data_table=properties[user_properties],
