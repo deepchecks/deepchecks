@@ -81,6 +81,7 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
             - 'average': average the embeddings of the chunks.
             - 'truncate': truncate the document to the maximum length.
             - 'raise': raise an error if the document is too long.
+            - 'nan': return an embedding vector of nans for each document that is too long.
 
     Returns
     -------
@@ -161,8 +162,11 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                     text_lens.append(chunk_lens[idx])
                     idx += 1
 
-                text_embedding = np.average(text_embeddings, axis=0, weights=text_lens)
-                text_embedding = text_embedding / np.linalg.norm(text_embedding)  # normalizes length to 1
+                if long_doc_averaging == 'nan' and len(text_embeddings) > 1:
+                    text_embedding = np.ones_like(text_embeddings[0]) * np.nan
+                else:
+                    text_embedding = np.average(text_embeddings, axis=0, weights=text_lens)
+                    text_embedding = text_embedding / np.linalg.norm(text_embedding)  # normalizes length to 1
                 result_embeddings.append(text_embedding.tolist())
 
             return result_embeddings

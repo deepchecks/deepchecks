@@ -316,7 +316,7 @@ class TextData:
             The path to save the embeddings to.
         device : str, default: None
             The device to use for calculating the embeddings. If None, the default device will be used.
-        long_doc_averaging : str, default 'warn'
+        long_doc_averaging : str, default 'average+warn'
             How to handle long documents (docments that are longer than the model context window).
             Can be either 'average+warn', 'average', 'truncate' or 'raise'. Averaging is done as described in
             https://github.com/openai/openai-cookbook/blob/main/examples/Embedding_long_inputs.ipynb
@@ -326,6 +326,7 @@ class TextData:
                 - 'average': average the embeddings of the chunks.
                 - 'truncate': truncate the document to the maximum length.
                 - 'raise': raise an error if the document is too long.
+                - 'nan': return an embedding vector of nans for each document that is too long.
         """
         if self._embeddings is not None:
             warnings.warn('Embeddings already exist, overwriting them', UserWarning)
