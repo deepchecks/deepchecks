@@ -158,3 +158,4 @@ tokenization
 huggingface
 tiktoken
 ai
+idx
