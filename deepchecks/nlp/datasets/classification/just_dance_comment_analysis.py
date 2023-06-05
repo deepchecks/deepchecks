@@ -47,7 +47,6 @@ ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'just_
 
 _METADATA_COLS = ['likes', 'dateComment']
 _CAT_METADATA = []
-_CAT_PROPERTIES = ['Language']
 _TEXT_COL = 'originalText'
 _TIME_COL = 'dateComment'
 _DATE_TO_SPLIT_BY = '2015-01-01'
@@ -209,7 +208,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
         label = data.drop(columns=[_TEXT_COL] + _METADATA_COLS).to_numpy().astype(int)
         dataset = TextData(data[_TEXT_COL], label=label, task_type='text_classification',
                            metadata=data[_METADATA_COLS], categorical_metadata=_CAT_METADATA,
-                           properties=properties, categorical_properties=_CAT_PROPERTIES, embeddings=embeddings)
+                           properties=properties, embeddings=embeddings)
         return dataset
 
     else:
@@ -235,12 +234,10 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
 
         train_ds = TextData(train[_TEXT_COL], label=label_train, task_type='text_classification',
                             metadata=train_metadata, categorical_metadata=_CAT_METADATA,
-                            properties=train_properties, categorical_properties=_CAT_PROPERTIES,
-                            embeddings=train_embeddings)
+                            properties=train_properties, embeddings=train_embeddings)
         test_ds = TextData(test[_TEXT_COL], label=label_test, task_type='text_classification',
                            metadata=test_metadata, categorical_metadata=_CAT_METADATA,
-                           properties=test_properties, categorical_properties=_CAT_PROPERTIES,
-                           embeddings=test_embeddings)
+                           properties=test_properties, embeddings=test_embeddings)
 
         return train_ds, test_ds
 

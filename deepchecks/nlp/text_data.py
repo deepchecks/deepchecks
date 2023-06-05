@@ -432,6 +432,8 @@ class TextData:
         """Set the properties of the dataset."""
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
+        if categorical_properties is None:
+            categorical_properties = []
 
         if isinstance(properties, str):
             properties = pd.read_csv(properties)
@@ -445,6 +447,9 @@ class TextData:
 
         # Get column types for user properties
         user_properties = list(set(property_names).difference(builtin_property_types.keys()))
+        categorical_properties = list(set(categorical_properties).intersection(user_properties))
+        if len(categorical_properties) == 0:
+            categorical_properties = None
         if len(user_properties) != 0:
             column_types = validate_length_and_calculate_column_types(
                 data_table=properties[user_properties],
