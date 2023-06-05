@@ -10,7 +10,6 @@
 #
 """The dataset module containing the tabular Dataset class and its functions."""
 import contextlib
-import copy
 import typing as t
 import warnings
 from numbers import Number
