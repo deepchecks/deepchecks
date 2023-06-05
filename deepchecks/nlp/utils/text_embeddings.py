@@ -18,6 +18,7 @@ import numpy as np
 from tqdm import tqdm
 
 EMBEDDING_MODEL = 'text-embedding-ada-002'
+EMBEDDING_DIM = 1536
 EMBEDDING_CTX_LENGTH = 8191
 EMBEDDING_ENCODING = 'cl100k_base'
 
@@ -124,14 +125,22 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
             chunk_lens = []
             encoded_texts = []
             max_sample_length = 0
-            for text_sample in list_of_texts:
+            skip_sample_indices = set()
+            for i, text_sample in enumerate(list_of_texts):
                 tokens_in_sample = encode_text(text_sample, encoding_name=encoding_name)
                 tokens_per_sample = []
+                num_chunks = 0
                 for chunk in iterate_batched(tokens_in_sample, chunk_length=max_tokens):
-                    chunked_texts.append(chunk)
+                    if long_sample_averaging == 'nan' and num_chunks > 0:
+                        # If nan condition was met, we're going to skip this sample
+                        skip_sample_indices.add(i)
+                        break
+                    # cache the index for each chunk
+                    chunked_texts.append((i, chunk))
                     chunk_lens.append(len(chunk))
                     tokens_per_sample += chunk
                     max_sample_length = max(max_sample_length, len(tokens_per_sample))
+                    num_chunks += 1
                     if long_sample_averaging == 'truncate':
                         break
                 encoded_texts.append(tokens_per_sample)
@@ -149,27 +158,33 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                                      f'length found is {max_sample_length} tokens. To avoid this error, set '
                                      f'long_sample_averaging="average" or long_sample_averaging="truncate".')
 
-            open_ai_batch_size = 500
+            # Filter out the first chunk of samples in skip_sample_indices
+            filtered_chunked_texts = [chunk for i, chunk in chunked_texts if i not in skip_sample_indices]
+
             chunk_embeddings_output = []
-            for sub_list in tqdm([chunked_texts[x:x + open_ai_batch_size]
-                                  for x in range(0, len(chunked_texts), open_ai_batch_size)],
+            for sub_list in tqdm([filtered_chunked_texts[x:x + open_ai_batch_size]
+                                  for x in range(0, len(filtered_chunked_texts), open_ai_batch_size)],
                                  desc='Calculating Embeddings '):
                 chunk_embeddings_output.extend(_get_embedding_with_backoff(sub_list, model=model_name))
             chunk_embeddings = [embedding['embedding'] for embedding in chunk_embeddings_output]
 
             result_embeddings = []
             idx = 0
-            for tokens_in_sample in encoded_texts:
-                text_embeddings = []
-                text_lens = []
-                while idx < len(chunk_lens) and sum(text_lens) < len(tokens_in_sample):
-                    text_embeddings.append(chunk_embeddings[idx])
-                    text_lens.append(chunk_lens[idx])
-                    idx += 1
-
-                if long_sample_averaging == 'nan' and len(text_embeddings) > 1:
-                    text_embedding = np.ones_like(text_embeddings[0]) * np.nan
+            for i, tokens_in_sample in enumerate(encoded_texts):
+                # If the sample was too long and long_sample_averaging is set to nan, we skip it
+                # and return a vector of nans. Otherwise, we average the embeddings of the chunks.
+                # Note that idx only increases if the sample was not skipped, thus keeping us on the same index as
+                # the filtered chunk_embeddings list.
+                if i in skip_sample_indices:
+                    text_embedding = np.ones((EMBEDDING_DIM, )) * np.nan
                 else:
+                    text_embeddings = []
+                    text_lens = []
+                    while idx < len(chunk_lens) and sum(text_lens) < len(tokens_in_sample):
+                        text_embeddings.append(chunk_embeddings[idx])
+                        text_lens.append(chunk_lens[idx])
+                        idx += 1
+
                     text_embedding = np.average(text_embeddings, axis=0, weights=text_lens)
                     text_embedding = text_embedding / np.linalg.norm(text_embedding)  # normalizes length to 1
                 result_embeddings.append(text_embedding.tolist())
