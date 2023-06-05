@@ -74,6 +74,66 @@ def test_that_warning_is_shown_for_big_datasets():
     assert len(result['Toxicity']) == len(raw_text)
 
 
+def test_calculate_text_length():
+    # Arrange
+    text = ['This is a test sentence.', 'This is another test sentence.']
+
+    # Act
+    result = calculate_builtin_properties(text, include_properties=['Text Length'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Text Length'])[0]
+    result_empty_string = calculate_builtin_properties([''], include_properties=['Text Length'])[0]
+
+    # Assert
+    assert_that(result['Text Length'], equal_to([24, 30]))
+    assert_that(result_none_text['Text Length'], equal_to([np.nan]))
+    assert_that(result_empty_string['Text Length'], equal_to([0]))
+
+
+def test_average_word_length():
+    # Arrange
+    text = ['This is a, test sentence.', 'This is another !!! test sentence.', 'וואלק זה משפט בעברית אפילו יא ווראדי']
+
+    # Act
+    result = calculate_builtin_properties(text, include_properties=['Average Word Length'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Average Word Length'])[0]
+    result_empty_string = calculate_builtin_properties([''], include_properties=['Average Word Length'])[0]
+
+    # Assert
+    assert_that(result['Average Word Length'], equal_to([19/5, 25/5, 30/7]))
+    assert_that(result_none_text['Average Word Length'], equal_to([np.nan]))
+    assert_that(result_empty_string['Average Word Length'], equal_to([0]))
+
+
+def test_max_word_length():
+    # Arrange
+    text = ['This is a, test sentence.', 'This is another !!! test sentence.', 'וואלק זה משפט בעברית אפילו יא ווראדי']
+
+    # Act
+    result = calculate_builtin_properties(text, include_properties=['Max Word Length'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Max Word Length'])[0]
+    result_empty_string = calculate_builtin_properties([''], include_properties=['Max Word Length'])[0]
+
+    # Assert
+    assert_that(result['Max Word Length'], equal_to([8, 8, 6]))
+    assert_that(result_none_text['Max Word Length'], equal_to([np.nan]))
+    assert_that(result_empty_string['Max Word Length'], equal_to([0]))
+
+
+def test_percentage_special_characters():
+    # Arrange
+    text = ['This is a, test sentence.', 'This is another !!! test sentence.', 'וואלק זה משפט בעברית אפילו יא ווראדי']
+
+    # Act
+    result = calculate_builtin_properties(text, include_properties=['% Special Characters'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['% Special Characters'])[0]
+    result_empty_string = calculate_builtin_properties([''], include_properties=['% Special Characters'])[0]
+
+    # Assert
+    assert_that(result['% Special Characters'], equal_to([2/25, 4/34, 0]))
+    assert_that(result_none_text['% Special Characters'], equal_to([np.nan]))
+    assert_that(result_empty_string['% Special Characters'], equal_to([0]))
+
+
 def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
 
     # Arrange
