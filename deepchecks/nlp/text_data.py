@@ -90,10 +90,10 @@ class TextData:
         the creation of the TextData object.
         For more on properties, see the `NLP Properties Guide
         <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
-        The properties provided must be either all be built-in properties or all custom properties.
     categorical_properties : t.Optional[t.List[str]] , default: None
-        The names of the categorical properties columns. Relevant only if providing custom properties, that are not
-        any of the built-in properties. If None, categorical properties columns are automatically inferred.
+        The names of the categorical properties columns. Should be given only for custom properties, not for
+        any of the built-in properties. If None, categorical properties columns are automatically inferred for custom
+        properties.
     embeddings : t.Optional[Union[np.ndarray, pd.DataFrame, str]], default: None
         The text embeddings for the samples. Embeddings must be given as a numpy array (or a path to an .npy
         file containing a numpy array) of shape (N, E), where N is the number of samples in the TextData object and E
@@ -439,23 +439,28 @@ class TextData:
         builtin_property_types = get_builtin_properties_types()
         property_names = properties.columns.tolist()
         intersection = set(builtin_property_types.keys()).intersection(property_names)
-        if len(intersection) == len(property_names):
-            column_types = ColumnTypes(
-                categorical_columns=[x for x in property_names if builtin_property_types[x] == 'categorical'],
-                numerical_columns=[x for x in property_names if builtin_property_types[x] != 'categorical']
-            )
-        elif len(intersection) == 0:
+
+        # Get column types for intersection properties
+        builtin_categorical_properties = [x for x in intersection if builtin_property_types[x] == 'categorical']
+
+        # Get column types for user properties
+        user_properties = list(set(property_names).difference(builtin_property_types.keys()))
+        if len(user_properties) != 0:
             column_types = validate_length_and_calculate_column_types(
-                data_table=properties,
+                data_table=properties[user_properties],
                 data_table_name='Properties',
                 expected_size=len(self),
                 categorical_columns=categorical_properties
             )
         else:
-            raise DeepchecksValueError(
-                'Properties contain both built-in and custom properties. The built-in properties found are: '
-                f'{", ".join(list(intersection))}. Must be either all built-in or all custom.'
-            )
+            column_types = ColumnTypes([], [])
+
+        # merge the two categorical properties list into one ColumnTypes object
+        all_cat_properties = column_types.categorical_columns + builtin_categorical_properties
+        column_types = ColumnTypes(
+            categorical_columns=all_cat_properties,
+            numerical_columns=list(set(property_names).difference(all_cat_properties))
+        )
 
         self._properties = properties.reset_index(drop=True)
         self._cat_properties = column_types.categorical_columns

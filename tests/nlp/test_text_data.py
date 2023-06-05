@@ -390,8 +390,23 @@ def test_mixed_builtin_and_mixed_properties(text_classification_dataset_mock):
     dataset = text_classification_dataset_mock
     properties = pd.DataFrame({'custom': [1, 2, 3], 'Average Word Length': [4, 5, 6]})
 
-    # Act & Assert
-    assert_that(calling(dataset.set_properties).with_args(properties),
-                raises(DeepchecksValueError,
-                       r'Properties contain both built-in and custom properties. The built-in properties found are: '
-                       r'Average Word Length. Must be either all built-in or all custom.'))
+    # Act
+    dataset.set_properties(properties, categorical_properties=[])
+
+    # Assert
+    # The custom property is not categorical as we passed an empty list, and the builtin property is not categorical
+    # as defined internally.
+    assert_that(dataset.categorical_properties, equal_to([]))
+
+    # Test that the builtin property is not overwritten by categorical_properties=[]
+    # Arrange
+    dataset = text_classification_dataset_mock
+    properties = pd.DataFrame({'custom': [1, 2, 3], 'Language': ['en', 'en', 'es']})
+
+    # Act
+    dataset.set_properties(properties, categorical_properties=[])
+
+    # Assert
+    # The custom property is not categorical as we passed an empty list, and the builtin property is not categorical
+    # as defined internally.
+    assert_that(dataset.categorical_properties, equal_to(['Language']))
