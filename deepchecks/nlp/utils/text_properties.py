@@ -45,7 +45,7 @@ sentences_cache = {}
 secret_cache = {}
 
 
-def _split_to_words_with_cache(text: str):
+def _split_to_words_with_cache(text: str) -> List[str]:
     """Tokenize a text into words and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in words_cache:
@@ -55,7 +55,7 @@ def _split_to_words_with_cache(text: str):
     return words_cache[hash_key]
 
 
-def _split_to_sentences_with_cache(text: str):
+def _split_to_sentences_with_cache(text: str) -> Union[List[str], None]:
     """Tokenize a text into sentences and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in sentences_cache:
@@ -256,18 +256,19 @@ def text_length(text: str) -> int:
 
 def average_word_length(text: str) -> float:
     """Return average word length."""
-    return np.mean([len(word) for word in _split_to_words_with_cache(text)])
+    words = _split_to_words_with_cache(text)
+    return np.mean([len(word) for word in words]) if words else 0
 
 
 def percentage_special_characters(text: str) -> float:
     """Return percentage of special characters (as float between 0 and 1)."""
-    return len([c for c in text if c in string.punctuation]) / len(text)
+    return len([c for c in text if c in string.punctuation]) / len(text) if len(text) != 0 else 0
 
 
 def max_word_length(text: str) -> int:
     """Return max word length."""
     words = _split_to_words_with_cache(text)
-    return max(len(w) for w in words)
+    return max(len(w) for w in words) if words else 0
 
 
 def _get_fasttext_model(models_storage: Union[pathlib.Path, str, None] = None):
