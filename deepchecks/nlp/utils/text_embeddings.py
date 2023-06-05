@@ -56,7 +56,8 @@ def iterate_batched(tokenized_text, chunk_length):
 def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                                  file_path: Optional[str] = 'embeddings.npy',
                                  device: Optional[str] = None,
-                                 long_doc_averaging: str = 'average+warn') -> np.array:
+                                 long_sample_averaging: str = 'average+warn',
+                                 open_ai_batch_size: int = 500) -> np.array:
     """
     Get the built-in embeddings for the dataset.
 
@@ -72,16 +73,19 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
         If given, the embeddings will be saved to the given file path.
     device : str, default None
         The device to use for the embeddings. If None, the default device will be used.
-    long_doc_averaging : str, default 'warn'
-        How to handle long documents (docments that are longer than the model context window).
-         Can be either 'average+warn', 'average', 'truncate' or 'raise'.
-         Currently, applies only to the 'open_ai' model, as the 'miniLM' model can handle long documents. Averaging is
-         done as described in https://github.com/openai/openai-cookbook/blob/main/examples/Embedding_long_inputs.ipynb
-            - 'average+warn': average the embeddings of the chunks and warn if the document is too long.
+    long_sample_averaging : str, default 'average+warn'
+        How to handle long samples. Averaging is done as described in
+        https://github.com/openai/openai-cookbook/blob/main/examples/Embedding_long_inputs.ipynb
+        Currently, applies only to the 'open_ai' model, as the 'miniLM' model can handle long samples.
+
+        Options are:
+            - 'average+warn' (default): average the embeddings of the chunks and warn if the sample is too long.
             - 'average': average the embeddings of the chunks.
-            - 'truncate': truncate the document to the maximum length.
-            - 'raise': raise an error if the document is too long.
-            - 'nan': return an embedding vector of nans for each document that is too long.
+            - 'truncate': truncate the sample to the maximum length.
+            - 'raise': raise an error if the sample is too long.
+            - 'nan': return an embedding vector of nans for each sample that is too long.
+    open_ai_batch_size : int, default 500
+        The amount of samples to send to open ai in each batch. Reduce if getting errors from open ai.
 
     Returns
     -------
@@ -119,7 +123,7 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
             chunked_texts = []
             chunk_lens = []
             encoded_texts = []
-            max_doc_length = 0
+            max_sample_length = 0
             for text_sample in list_of_texts:
                 tokens_in_sample = encode_text(text_sample, encoding_name=encoding_name)
                 tokens_per_sample = []
@@ -127,27 +131,28 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                     chunked_texts.append(chunk)
                     chunk_lens.append(len(chunk))
                     tokens_per_sample += chunk
-                    max_doc_length = max(max_doc_length, len(tokens_per_sample))
-                    if long_doc_averaging == 'truncate':
+                    max_sample_length = max(max_sample_length, len(tokens_per_sample))
+                    if long_sample_averaging == 'truncate':
                         break
                 encoded_texts.append(tokens_per_sample)
 
-            if max_doc_length > max_tokens:
-                if long_doc_averaging == 'average+warn':
-                    warnings.warn(f'At least one document is longer than {max_tokens} tokens, which is the maximum '
-                                  f'context window handled by {model}. Maximal document length '
-                                  f'found is {max_doc_length} tokens. The document will be split into chunks and the '
+            if max_sample_length > max_tokens:
+                if long_sample_averaging == 'average+warn':
+                    warnings.warn(f'At least one sample is longer than {max_tokens} tokens, which is the maximum '
+                                  f'context window handled by {model}. Maximal sample length '
+                                  f'found is {max_sample_length} tokens. The sample will be split into chunks and the '
                                   f'embeddings will be averaged. To avoid this warning, set '
-                                  f'long_doc_averaging="average" or long_doc_averaging="truncate".')
-                elif long_doc_averaging == 'raise':
-                    raise ValueError(f'At least one document is longer than {max_tokens} tokens, which is the maximum '
-                                     f'context window handled by {model}. Maximal document '
-                                     f'length found is {max_doc_length} tokens. To avoid this error, set '
-                                     f'long_doc_averaging="average" or long_doc_averaging="truncate".')
+                                  f'long_sample_averaging="average" or long_sample_averaging="truncate".')
+                elif long_sample_averaging == 'raise':
+                    raise ValueError(f'At least one sample is longer than {max_tokens} tokens, which is the maximum '
+                                     f'context window handled by {model}. Maximal sample '
+                                     f'length found is {max_sample_length} tokens. To avoid this error, set '
+                                     f'long_sample_averaging="average" or long_sample_averaging="truncate".')
 
-            batch_size = 500
+            open_ai_batch_size = 500
             chunk_embeddings_output = []
-            for sub_list in tqdm([chunked_texts[x:x + batch_size] for x in range(0, len(chunked_texts), batch_size)],
+            for sub_list in tqdm([chunked_texts[x:x + open_ai_batch_size]
+                                  for x in range(0, len(chunked_texts), open_ai_batch_size)],
                                  desc='Calculating Embeddings '):
                 chunk_embeddings_output.extend(_get_embedding_with_backoff(sub_list, model=model_name))
             chunk_embeddings = [embedding['embedding'] for embedding in chunk_embeddings_output]
@@ -162,7 +167,7 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                     text_lens.append(chunk_lens[idx])
                     idx += 1
 
-                if long_doc_averaging == 'nan' and len(text_embeddings) > 1:
+                if long_sample_averaging == 'nan' and len(text_embeddings) > 1:
                     text_embedding = np.ones_like(text_embeddings[0]) * np.nan
                 else:
                     text_embedding = np.average(text_embeddings, axis=0, weights=text_lens)
