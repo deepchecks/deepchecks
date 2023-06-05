@@ -381,11 +381,7 @@ def toxicity(
     """Return float representing toxicity."""
     if toxicity_classifier is None:
         toxicity_classifier = get_transformer_pipeline(
-            'toxicity',
-            TOXICITY_MODEL_NAME,
-            device=device,
-            models_storage=models_storage
-        )
+            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
     return _predict(text, toxicity_classifier, 'toxicity')
 
 
@@ -398,11 +394,7 @@ def fluency(
     """Return float representing fluency."""
     if fluency_classifier is None:
         fluency_classifier = get_transformer_pipeline(
-            'fluency',
-            FLUENCY_MODEL_NAME,
-            device=device,
-            models_storage=models_storage
-        )
+            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
     return _predict(text, fluency_classifier, 'fluency')
 
 
@@ -415,11 +407,7 @@ def formality(
     """Return float representing formality."""
     if formality_classifier is None:
         formality_classifier = get_transformer_pipeline(
-            'formality',
-            FORMALITY_MODEL_NAME,
-            device=device,
-            models_storage=models_storage
-        )
+            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
     return _predict(text, formality_classifier, 'formality')
 
 
