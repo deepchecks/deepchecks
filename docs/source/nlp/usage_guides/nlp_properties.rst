@@ -49,32 +49,32 @@ There are two types of built-in properties:
 
 The built-in image properties are:
 
-==============================  ================  ==========
-Property name                   Default Property  Description
-==============================  ================  ==========
-Text Length                     Yes               Number of characters in the text
-Average Word Length             Yes               Average number of characters in a word
-Max Word Length                 Yes               Maximum number of characters in a word
-% Special Characters            Yes               Percentage of special characters in the text
-Language                        Yes               Language of the text. Uses the langdetect library
-Sentiment                       Yes               Sentiment of the text. Uses the textblob library
-Subjectivity                    Yes               Subjectivity of the text. Uses the textblob library
-Toxicity*                       Yes               Toxicity of the text. Uses the unitary/toxic-bert model
-Fluency*                        Yes               Fluency of the text. Uses the prithivida/parrot_fluency_model model
-Formality*                      Yes               Formality of the text. Uses the s-nlp/roberta-base-formality-ranker model
-Lexical Density                 Yes               Percentage of unique words in the text, rounded up to 2 decimal digits
-Unique Noun Count*              Yes               Number of unique noun words in the text
-Readability Score               Yes               A score calculated based on Flesch reading-ease per text sample. For more information: https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease
-Average Words Per Sentence      Yes               Average number of words per sentence in the text
-URLs Count                      No                Number of URLS per text sample.
-Unique URLs Count               No                Number of unique URLS per text sample.
-Email Addresses Count           No                Number of email addresses per text sample.
-Unique Email Addresses Count    No                Number of unique email addresses per text sample.
-Unique Syllables Count          No                Number of unique syllables per text sample.
-Reading Time                    No                Time taken in seconds to read a text sample.
-Sentences Count                 No                Number of sentences per text sample.
-Average Syllable Length         No                Average number of syllables per sentence per text sample.
-==============================  ================  ==========
+==============================  ================  ====================================================================================================================================================================================  ===============
+Property name                   Default Property  Description                                                                                                                                                                           English Only
+==============================  ================  ====================================================================================================================================================================================  ===============
+Text Length                     Yes               Number of characters in the text                                                                                                                                                      No
+Average Word Length             Yes               Average number of characters in a word                                                                                                                                                No
+Max Word Length                 Yes               Maximum number of characters in a word                                                                                                                                                No
+% Special Characters            Yes               Percentage of special characters in the text                                                                                                                                          No
+Language                        Yes               Language of the text. Uses the langdetect library                                                                                                                                     No
+Sentiment                       Yes               Sentiment of the text. Uses the textblob library                                                                                                                                      Yes
+Subjectivity                    Yes               Subjectivity of the text. Uses the textblob library                                                                                                                                   Yes
+Toxicity*                       Yes               Toxicity of the text. Uses the unitary/toxic-bert model                                                                                                                               Yes
+Fluency*                        Yes               Fluency of the text. Uses the prithivida/parrot_fluency_model model                                                                                                                   Yes
+Formality*                      Yes               Formality of the text. Uses the s-nlp/roberta-base-formality-ranker model                                                                                                             Yes
+Lexical Density                 Yes               Percentage of unique words in the text, rounded up to 2 decimal digits                                                                                                                Yes
+Unique Noun Count*              Yes               Number of unique noun words in the text                                                                                                                                               Yes
+Readability Score               Yes               A score calculated based on Flesch reading-ease per text sample. For more information: https://en.wikipedia.org/wiki/Flesch%E2%80%93Kincaid_readability_tests#Flesch_reading_ease     Yes
+Average Words Per Sentence      Yes               Average number of words per sentence in the text                                                                                                                                      No
+URLs Count                      No                Number of URLS per text sample.                                                                                                                                                       No
+Unique URLs Count               No                Number of unique URLS per text sample.                                                                                                                                                No
+Email Addresses Count           No                Number of email addresses per text sample.                                                                                                                                            No
+Unique Email Addresses Count    No                Number of unique email addresses per text sample.                                                                                                                                     No
+Unique Syllables Count          No                Number of unique syllables per text sample.                                                                                                                                           No
+Reading Time                    No                Time taken in seconds to read a text sample.                                                                                                                                          No
+Sentences Count                 No                Number of sentences per text sample.                                                                                                                                                  No
+Average Syllable Length         No                Average number of syllables per sentence per text sample.                                                                                                                             No
+==============================  ================  ====================================================================================================================================================================================  ===============
 
 *These properties are not calculated by default, as they may take a long time to calculate. To use them, pass
 ``include_long_calculation_properties=True`` to the :class:`TextData.calculate_properties <deepchecks.nlp.TextData>` method.

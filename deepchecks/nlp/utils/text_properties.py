@@ -721,7 +721,8 @@ def _select_properties(
     else:
         properties = default_properties
 
-    if not include_long_calculation_properties:
+    # include_long_calculation_properties is only applicable when include_properties is None
+    if not include_long_calculation_properties and include_properties is None:
         return [
             prop for prop in properties
             if prop['name'] not in LONG_RUN_PROPERTIES
@@ -784,7 +785,7 @@ def calculate_builtin_properties(
         all the default properties will be calculated. Cannot be used together with include_properties parameter.
     include_long_calculation_properties : bool, default False
         Whether to include properties that may take a long time to calculate. If False, these properties will be
-        ignored, even if they are in the include_properties parameter.
+        ignored, unless they are specified in the include_properties parameter explicitly.
     device : int, default None
         The device to use for the calculation. If None, the default device will be used.
     models_storage : Union[str, pathlib.Path, None], default None
