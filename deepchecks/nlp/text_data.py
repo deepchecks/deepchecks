@@ -433,11 +433,12 @@ class TextData:
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
-        categories_not_in_data = set(categorical_properties).difference(properties.columns.tolist())
-        if not len(categories_not_in_data) == 0:
-            raise DeepchecksValueError(
-                f'The following columns does not exist in Properties - {list(categories_not_in_data)}'
-            )
+        if categorical_properties is not None:
+            categories_not_in_data = set(categorical_properties).difference(properties.columns.tolist())
+            if not len(categories_not_in_data) == 0:
+                raise DeepchecksValueError(
+                    f'The following columns does not exist in Properties - {list(categories_not_in_data)}'
+                )
 
         if isinstance(properties, str):
             properties = pd.read_csv(properties)
