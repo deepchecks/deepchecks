@@ -92,8 +92,8 @@ __all__ = ['load_data', 'load_pre_calculated_prediction', 'load_pre_calculated_f
 
 from numpy import ndarray
 
-_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/39953713'
-_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/39953695'
+_TRAIN_DATA_URL = 'https://drive.google.com/uc?export=download&id=1UWkr1BQlyyUkbsW5hHIFTr-x0evZE3Ie'
+_TEST_DATA_URL = 'https://drive.google.com/uc?export=download&id=1v_0ZyyycoFfltJ6wj_riGZoXhtPzrnqR'
 _target = 'price'
 _predictions = 'predictions'
 _datetime = 'timestamp'
