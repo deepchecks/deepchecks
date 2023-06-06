@@ -9,6 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains the Unknown Tokens check."""
+import contextlib
+import copy
+import sys
 import typing as t
 import warnings
 from collections import Counter
@@ -22,8 +25,7 @@ from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.numbers import round_sig
-from deepchecks.utils.strings import format_list, format_percent
-from deepchecks.utils.strings import get_ellipsis as truncate_string
+from deepchecks.utils.strings import format_list, format_percent, truncate_string
 
 __all__ = ['UnknownTokens']
 
@@ -38,7 +40,7 @@ class UnknownTokens(SingleDatasetCheck):
     ----------
     tokenizer: t.Any , default: None
         Tokenizer from the HuggingFace transformers library to use for tokenization. If None,
-        BertTokenizer.from_pretrained('bert-base-uncased') will be used.
+        AutoTokenizer.from_pretrained('bert-base-uncased') will be used.
     group_singleton_words: bool, default: False
         If True, group all words that appear only once in the data into the "Other" category in the display.
     n_most_common : int , default: 5
@@ -61,18 +63,22 @@ class UnknownTokens(SingleDatasetCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.tokenizer = tokenizer
+        self.tokenizer = copy.deepcopy(tokenizer)
         if tokenizer is None:
             try:
-                from transformers import BertTokenizer  # pylint: disable=W0611,C0415 # noqa
+                from transformers import AutoTokenizer  # pylint: disable=W0611,C0415 # noqa
             except ImportError as e:
                 raise DeepchecksProcessError(
                     'Tokenizer was not provided. In order to use checks default '
-                    'tokenizer (BertTokenizer), please run:\n>> pip install transformers>=4.27.4.'
+                    'tokenizer (bert-base-uncased), please run:\n>> pip install transformers>=4.27.4.'
                 ) from e
-            self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+            self.tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
         else:
             self._validate_tokenizer()
+        self._use_fast_method = self.tokenizer.is_fast
+        # We're not feeding the data to a model, so we don't need to limit the length
+        self.tokenizer.model_max_length = sys.maxsize
+
         self.group_singleton_words = group_singleton_words
         self.n_most_common = n_most_common
         self.n_samples = n_samples
@@ -87,6 +93,8 @@ class UnknownTokens(SingleDatasetCheck):
             raise DeepchecksValueError('tokenizer must have an "unk_token_id" attribute')
         if not hasattr(self.tokenizer, 'convert_tokens_to_ids'):
             raise DeepchecksValueError('tokenizer must have an "convert_tokens_to_ids" method')
+        if not hasattr(self.tokenizer, 'is_fast'):
+            raise DeepchecksValueError('tokenizer must have an "is_fast" method')
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -123,30 +131,73 @@ class UnknownTokens(SingleDatasetCheck):
 
         return CheckResult(value, display=display)
 
+    def _get_non_text_token_ids(self):
+        """Get ids of all non-text tokens in the tokenizer.
+
+        These include notably the [CLS] token marking the beginning of the sequence, the [SEP] token marking the end
+        of the sequence, and the [PAD] token used for padding.
+        """
+        non_text_token_ids = []
+        for token_name, token in self.tokenizer.special_tokens_map.items():
+            if token_name not in ['unk_token']:
+                non_text_token_ids.append(self.tokenizer.convert_tokens_to_ids(token))
+        return non_text_token_ids
+
     def find_unknown_words(self, samples, indices):
         """Find words with unknown tokens in samples."""
-        # Choose tokenizer based on availability of nltk
-        if nltk.download('punkt', quiet=True):
-            tokenize = nltk.word_tokenize
+        all_unknown_tokens = []
+        unknown_token_indexes = {}
+        total_tokens = 0
+
+        if self._use_fast_method:
+            non_text_token_ids = self._get_non_text_token_ids()
+
+            # Batch tokenization
+            # ------------------
+            # Needed to avoid warning when used after loading a hub dataset
+            # We divert the printing to stdout (done by the rust code within the HuggingFace tokenizer)
+            # into this filter, that will filter out any print containing the str 'huggingface/tokenizers'
+            # This warning printout is activated when running this check after loading a HuggingFace dataset,
+            # and is irrelevant to us because we're not forking the process.
+            # see: https://github.com/huggingface/transformers/issues/5486
+            with contextlib.redirect_stdout(PrintFilter(sys.stdout)):
+                tokenized_samples = self.tokenizer(list(samples), return_offsets_mapping=True,
+                                                   is_split_into_words=False, truncation=False)
+
+            for idx, (tokens, offsets_mapping, sample) in zip(indices, zip(tokenized_samples['input_ids'],
+                                                                           tokenized_samples['offset_mapping'],
+                                                                           samples)):
+                for token_id, offset_mapping in zip(tokens, offsets_mapping):
+                    if token_id == self.tokenizer.unk_token_id:
+                        start, end = offset_mapping
+                        token = sample[start:end]
+                        all_unknown_tokens.append(token)
+                        unknown_token_indexes.setdefault(token, []).append(idx)
+                    if token_id not in non_text_token_ids:
+                        total_tokens += 1
         else:
-            warnings.warn('nltk punkt is not available, using str.split instead to identify individual words. '
-                          'Please check your internet connection.')
-            tokenize = str.split
+            # Tokenization for each word
+            # --------------------------
+            # Choose tokenizer based on availability of nltk
+            if nltk.download('punkt', quiet=True):
+                tokenize = nltk.word_tokenize
+            else:
+                warnings.warn('nltk punkt is not available, using str.split instead to identify individual words. '
+                              'Please check your internet connection.')
+                tokenize = str.split
 
-        # Tokenize samples and count unknown words
-        words_array = [tokenize(sample) for sample in samples]
-        all_unknown_words = []
-        unknown_word_indexes = {}
-        total_words = 0
-        for idx, words in zip(indices, words_array):
-            total_words += len(words)
-            for word in words:
-                tokens = self.tokenizer.tokenize(word)
-                if any(self.tokenizer.convert_tokens_to_ids(token) == self.tokenizer.unk_token_id for token in tokens):
-                    all_unknown_words.append(word)
-                    unknown_word_indexes.setdefault(word, []).append(idx)
+            # Tokenize samples and count unknown words
+            words_array = [tokenize(sample) for sample in samples]
+            for idx, words in zip(indices, words_array):
+                total_tokens += len(words)
+                for word in words:
+                    tokens = self.tokenizer.tokenize(word)
+                    if any(self.tokenizer.convert_tokens_to_ids(token) == self.tokenizer.unk_token_id for token in
+                           tokens):
+                        all_unknown_tokens.append(word)
+                        unknown_token_indexes.setdefault(word, []).append(idx)
 
-        return Counter(all_unknown_words), total_words, unknown_word_indexes
+        return Counter(all_unknown_tokens), total_tokens, unknown_token_indexes
 
     def create_pie_chart(self, all_unknown_words_counter, total_words):
         """Create pie chart with most common unknown words."""
@@ -209,3 +260,17 @@ class UnknownTokens(SingleDatasetCheck):
 
         return self.add_condition(f'Ratio of unknown words is less than {format_percent(ratio)}',
                                   condition)
+
+
+class PrintFilter:
+    """Filter to avoid printing of tokenization warnings."""
+
+    def __init__(self, original_stdout):
+        self.original_stdout = original_stdout
+
+    def write(self, msg):
+        if 'huggingface/tokenizers' not in msg:
+            self.original_stdout.write(msg)
+
+    def flush(self):
+        self.original_stdout.flush()

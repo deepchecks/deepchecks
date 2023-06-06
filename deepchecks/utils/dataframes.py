@@ -23,7 +23,7 @@ from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 __all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith',
            'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type',
            'is_float_column', 'default_fill_na_series',
-           'cast_categorical_to_object_dtype']
+           'cast_categorical_to_object_dtype', 'hide_index_for_display']
 
 
 def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Optional[t.Union[pd.Series, t.List]]) \
@@ -253,3 +253,11 @@ def cast_categorical_to_object_dtype(df: pd.DataFrame) -> pd.DataFrame:
     if categorical_columns:
         df = df.astype({c: 'object' for c in categorical_columns})
     return df
+
+
+def hide_index_for_display(df: t.Union[pd.DataFrame, pd.io.formats.style.Styler]) -> pd.io.formats.style.Styler:
+    """Hide the index of a dataframe for display."""
+    styler = df.style if isinstance(df, pd.DataFrame) else df
+    if hasattr(styler, 'hide'):
+        return styler.hide(axis='index')
+    return styler.hide_index()

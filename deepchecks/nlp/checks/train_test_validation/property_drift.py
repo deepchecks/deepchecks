@@ -15,8 +15,10 @@ from deepchecks.core import CheckResult
 from deepchecks.nlp.base_checks import TrainTestCheck
 from deepchecks.nlp.context import Context
 from deepchecks.nlp.text_data import TextData
+from deepchecks.nlp.utils.text_properties import TEXT_PROPERTIES_DESCRIPTION
 from deepchecks.utils.abstracts.feature_drift import FeatureDriftAbstract
 from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['PropertyDrift']
@@ -139,6 +141,15 @@ class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
             columns=self.properties,
             ignore_columns=self.ignore_properties
         )
+
+        # Specialized plot titles for NLP Plots
+        plot_titles = {}
+        for column_name in context.common_datasets_properties:
+            if column_name in TEXT_PROPERTIES_DESCRIPTION:
+                plot_titles[column_name] = f'{column_name}<sup><a href="{get_docs_link()}nlp/usage_guides' \
+                            '/nlp_properties.html#deepchecks-built-in-properties">&#x24D8;</a></sup><br>' \
+                            f'<sup>{TEXT_PROPERTIES_DESCRIPTION[column_name]}</sup>'
+
         results, displays = self._calculate_feature_drift(
             drift_kind='nlp-properties',
             train=train_properties,
@@ -146,10 +157,11 @@ class PropertyDrift(TrainTestCheck, FeatureDriftAbstract):
             train_dataframe_name=train.name or 'Train',
             test_dataframe_name=test.name or 'Test',
             common_columns=context.common_datasets_properties,
+            override_plot_titles=plot_titles,
             with_display=context.with_display
         )
         return CheckResult(
             value=results,
             display=displays,
-            header='Properties Drift'
+            header='Property Drift'
         )

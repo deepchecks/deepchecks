@@ -18,7 +18,9 @@ import numpy as np
 import pytest
 from hamcrest import *
 
-from deepchecks.nlp.utils.text_properties import MODELS_STORAGE, calculate_builtin_properties, get_transformer_model
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.nlp.utils.text_properties import (MODELS_STORAGE, _sample_for_property, calculate_builtin_properties,
+                                                  get_transformer_model)
 
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
@@ -83,8 +85,8 @@ def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
     result_none_text = calculate_builtin_properties([None], include_properties=['Lexical Density'])[0]
 
     # Assert
-    assert_that(result['Lexical Density'][0: 10], equal_to([94.44, 93.75, 100.0, 91.67,
-                                                            87.5, 100.0, 100.0, 100.0, 91.67, 91.67]))
+    assert_that(result['Lexical Density'][0: 10], equal_to([88.24, 92.86, 100.0, 91.67,
+                                                            87.5, 100.0, 100.0, 100.0, 91.3, 95.45]))
     assert_that(result_none_text['Lexical Density'], equal_to([np.nan]))
 
 
@@ -111,12 +113,13 @@ def test_calculate_average_sentence_length_property(tweet_emotion_train_test_tex
     test_text = test.text
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Average Sentence Length'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Average Sentence Length'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Average Words Per Sentence'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Average Words Per Sentence'])[0]
 
     # Assert
-    assert_that(result['Average Sentence Length'][0: 10], equal_to([6, 7, 11, 12, 8, 19, 3, 9, 12, 7]))
-    assert_that(result_none_text['Average Sentence Length'], equal_to([np.nan]))
+    assert_that(result['Average Words Per Sentence'][0: 10], equal_to([5.667, 7.0, 11.0, 12.0, 8.0, 19.0, 3.0, 9.0,
+                                                                       11.5, 7.333]))
+    assert_that(result_none_text['Average Words Per Sentence'], equal_to([np.nan]))
 
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):
@@ -130,8 +133,8 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     result_none_text = calculate_builtin_properties([None], include_properties=['Readability Score'])[0]
 
     # Assert
-    assert_that(result['Readability Score'][0: 10], equal_to([102.045, 97.001, 80.306, 67.755, 77.103,
-                                                            71.782, np.nan, 75.5, 70.102, 95.564]))
+    assert_that(result['Readability Score'][0: 10], equal_to([96.577, 97.001, 80.306, 67.755, 77.103, 71.782,
+                                                              np.nan, 75.5, 70.102, 95.564]))
     assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
 
 
@@ -141,12 +144,12 @@ def test_calculate_count_unique_urls(manual_text_data_for_properties):
     text_data = manual_text_data_for_properties['url_data']
 
     # Act
-    result = calculate_builtin_properties(text_data, include_properties=['Count Unique URLs'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique URLs'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['Unique URLs Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Unique URLs Count'])[0]
 
     # Assert
-    assert_that(result['Count Unique URLs'], equal_to([0, 1, 1, 0, 5]))
-    assert_that(result_none_text['Count Unique URLs'], equal_to([0]))
+    assert_that(result['Unique URLs Count'], equal_to([0, 1, 1, 0, 5]))
+    assert_that(result_none_text['Unique URLs Count'], equal_to([np.nan]))
 
 
 def test_calculate_count_urls(manual_text_data_for_properties):
@@ -155,12 +158,12 @@ def test_calculate_count_urls(manual_text_data_for_properties):
     text_data = manual_text_data_for_properties['url_data']
 
     # Act
-    result = calculate_builtin_properties(text_data, include_properties=['Count URLs'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count URLs'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['URLs Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['URLs Count'])[0]
 
     # Assert
-    assert_that(result['Count URLs'], equal_to([0, 1, 1, 0, 6]))
-    assert_that(result_none_text['Count URLs'], equal_to([0]))
+    assert_that(result['URLs Count'], equal_to([0, 1, 1, 0, 6]))
+    assert_that(result_none_text['URLs Count'], equal_to([np.nan]))
 
 
 def test_calculate_count_unique_email_addresses(manual_text_data_for_properties):
@@ -169,12 +172,12 @@ def test_calculate_count_unique_email_addresses(manual_text_data_for_properties)
     text_data = manual_text_data_for_properties['email_data']
 
     # Act
-    result = calculate_builtin_properties(text_data, include_properties=['Count Unique Email Address'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique Email Address'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['Unique Email Addresses Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Unique Email Addresses Count'])[0]
 
     # Assert
-    assert_that(result['Count Unique Email Address'], equal_to([2, 2, 1, 0, 2, 2]))
-    assert_that(result_none_text['Count Unique Email Address'], equal_to([0]))
+    assert_that(result['Unique Email Addresses Count'], equal_to([2, 2, 1, 0, 2, 2]))
+    assert_that(result_none_text['Unique Email Addresses Count'], equal_to([np.nan]))
 
 
 def test_calculate_count_email_addresses(manual_text_data_for_properties):
@@ -183,12 +186,12 @@ def test_calculate_count_email_addresses(manual_text_data_for_properties):
     text_data = manual_text_data_for_properties['email_data']
 
     # Act
-    result = calculate_builtin_properties(text_data, include_properties=['Count Email Address'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count Email Address'])[0]
+    result = calculate_builtin_properties(text_data, include_properties=['Email Addresses Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Email Addresses Count'])[0]
 
     # Assert
-    assert_that(result['Count Email Address'], equal_to([2, 2, 1, 0, 2, 3]))
-    assert_that(result_none_text['Count Email Address'], equal_to([0]))
+    assert_that(result['Email Addresses Count'], equal_to([2, 2, 1, 0, 2, 3]))
+    assert_that(result_none_text['Email Addresses Count'], equal_to([np.nan]))
 
 
 def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
@@ -198,12 +201,12 @@ def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
     test_text = test.text
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Count Unique Syllables'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Count Unique Syllables'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Unique Syllables Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Unique Syllables Count'])[0]
 
     # Assert
-    assert_that(result['Count Unique Syllables'][0: 10], equal_to([15, 11, 9, 21, 13, 17, np.nan, 8, 20, 18]))
-    assert_that(result_none_text['Count Unique Syllables'], equal_to([np.nan]))
+    assert_that(result['Unique Syllables Count'][0: 10], equal_to([15, 11, 9, 21, 13, 17, np.nan, 8, 20, 18]))
+    assert_that(result_none_text['Unique Syllables Count'], equal_to([np.nan]))
 
 
 def test_calculate_reading_time(tweet_emotion_train_test_textdata):
@@ -219,7 +222,7 @@ def test_calculate_reading_time(tweet_emotion_train_test_textdata):
     # Assert
     assert_that(result['Reading Time'][0: 10], equal_to([1.26, 1.25, 0.81, 1.35, 1.44,
                                                          1.88, 0.48, 0.71, 1.53, 1.56]))
-    assert_that(result_none_text['Reading Time'], equal_to([0.00]))
+    assert_that(result_none_text['Reading Time'], equal_to([np.nan]))
 
 
 def test_calculate_sentence_length(tweet_emotion_train_test_textdata):
@@ -229,12 +232,12 @@ def test_calculate_sentence_length(tweet_emotion_train_test_textdata):
     test_text = test.text
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Sentence Length'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Sentence Length'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Sentences Count'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Sentences Count'])[0]
 
     # Assert
-    assert_that(result['Sentence Length'][0: 10], equal_to([3, 2, 1, 2, 2, 1, np.nan, 1, 2, 3]))
-    assert_that(result_none_text['Sentence Length'], equal_to([np.nan]))
+    assert_that(result['Sentences Count'][0: 10], equal_to([3, 2, 1, 2, 2, 1, np.nan, 1, 2, 3]))
+    assert_that(result_none_text['Sentences Count'], equal_to([np.nan]))
 
 
 def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
@@ -253,20 +256,55 @@ def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
     assert_that(result_none_text['Average Syllable Length'], equal_to([np.nan]))
 
 
+def test_include_properties():
+
+    # Arrange
+    test_text = ['This is simple sentence.']
+    # Also check capitalization doesn't matter:
+    expected_properties = ['Text Length', 'Average Word Length']
+    include_properties = ['Text length', 'average Word length']
+
+    # Act
+    result = calculate_builtin_properties(test_text, include_properties=include_properties)[0]
+    # Assert
+    for prop in result:
+        assert_that(expected_properties, has_item(prop))
+
+    # Check that raises if include_properties is not a list:
+    assert_that(calling(calculate_builtin_properties).with_args(test_text, include_properties='bla'),
+                raises(DeepchecksValueError))
+
+    # Check that raises if property doesn't exist:
+    assert_that(calling(calculate_builtin_properties).with_args(test_text, include_properties=['Non Existent Property']),
+                raises(DeepchecksValueError,
+                       r'include_properties contains properties that were not found: \[\'non existent property\'\].'))
+
+
 def test_ignore_properties():
 
     # Arrange
     test_text = ['This is simple sentence.']
     expected_properties = ['Text Length', 'Average Word Length', 'Max Word Length',
-                           '% Special Characters', 'Language','Sentiment', 'Subjectivity',
-                           'Lexical Density', 'Readability Score', 'Average Sentence Length']
+                           '% Special Characters', 'Language', 'Sentiment', 'Subjectivity',
+                           'Lexical Density', 'Readability Score', 'Average Words Per Sentence']
+
+    # Also check capitalization doesn't matter:
+    ignore_properties = ['Unique noun Count', 'toxicity', 'fluency', 'Formality']
+
     # Act
-    result = calculate_builtin_properties(test_text, ignore_properties=['Unique Noun Count',
-                                                                        'Toxicity', 'Fluency',
-                                                                        'Formality'])[0]
+    result = calculate_builtin_properties(test_text, ignore_properties=ignore_properties)[0]
     # Assert
     for prop in result:
         assert_that(expected_properties, has_item(prop))
+
+    # Check that raises if ignore_properties is not a list:
+    assert_that(calling(calculate_builtin_properties).with_args(test_text, ignore_properties='bla'),
+                raises(DeepchecksValueError))
+
+    # Check that raises if property doesn't exist:
+    assert_that(calling(calculate_builtin_properties).with_args(test_text, ignore_properties=['Non Existent Property']),
+                raises(DeepchecksValueError,
+                       r'ignore_properties contains properties that were not found: \[\'non existent property\'\].'))
 
 
 @pytest.mark.skipif(
@@ -360,3 +398,10 @@ def test_english_only_properties_calculation_with_not_english_samples():
     }))  # type: ignore
 
 
+def test_sample_for_property():
+    s = 'all the single ladies. all the single ladies? now put your hands up.'
+    sample_words = _sample_for_property(text=s, mode='words', limit=2, random_seed=42)
+    sample_sentences = _sample_for_property(text=s, mode='sentences', limit=2, random_seed=42)
+
+    assert_that(sample_words, equal_to('hands put'))
+    assert_that(sample_sentences, equal_to('all the single ladies. all the single ladies?'))

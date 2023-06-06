@@ -12,7 +12,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from hamcrest import assert_that, close_to, equal_to, has_items, is_in, matches_regexp, calling, raises
+from hamcrest import assert_that, calling, close_to, equal_to, has_items, is_in, matches_regexp, raises
 
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.nlp.checks import MetadataSegmentsPerformance, PropertySegmentsPerformance
@@ -170,3 +170,17 @@ def test_multilabel_just_dance(just_dance_train_test_textdata, just_dance_train_
     assert_that(result.value['avg_score'], close_to(0.615, 0.001))
     assert_that(len(result.value['weak_segments_list']), is_in([79, 80]))  # TODO: check why it's not always 80
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.401, 0.01))
+
+
+def test_binary_classification(binary_mock_dataset_and_probabilities):
+    # Arrange
+    text_data, _, proba_test = binary_mock_dataset_and_probabilities
+    check = PropertySegmentsPerformance()
+
+    # Act
+    result = check.run(text_data, probabilities=proba_test)
+
+    # Assert
+    assert_that(result.value['avg_score'], close_to(0.447, 0.001))
+    assert_that(len(result.value['weak_segments_list']), equal_to(6))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.34, 0.01))

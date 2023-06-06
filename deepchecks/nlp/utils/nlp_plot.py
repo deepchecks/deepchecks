@@ -19,11 +19,13 @@ import plotly.graph_objs as go
 from deepchecks.nlp import TextData
 from deepchecks.nlp.task_type import TaskType
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
+from deepchecks.nlp.utils.text_properties import TEXT_PROPERTIES_DESCRIPTION
 from deepchecks.nlp.utils.token_classification_utils import (annotated_token_classification_text,
                                                              count_token_classification_labels)
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors, common_and_outlier_colors
+from deepchecks.utils.strings import get_docs_link
 
 __all__ = ['get_text_outliers_graph',
            'two_datasets_scatter_plot']
@@ -226,6 +228,10 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
     if is_categorical:  # Add vertical line to separate outliers from common values in bar charts:
         fig.add_vline(x=outlier_line_index, line_width=2, line_dash='dash', line_color='black')
 
+    if dist_name in TEXT_PROPERTIES_DESCRIPTION:
+        dist_name = f'{dist_name}<sup><a href="{get_docs_link()}nlp/usage_guides/nlp_properties.html' \
+                    '#deepchecks-built-in-properties">&#x24D8;</a></sup><br>' \
+                    f'<sup>{TEXT_PROPERTIES_DESCRIPTION[dist_name]}</sup>'
     fig.update_layout(
         legend=dict(
             title='Legend',

@@ -25,13 +25,13 @@ class TrainTestSamplesMixAbstract(abc.ABC):
 
     add_condition: t.Callable[..., t.Any]
 
-    def add_condition_duplicates_ratio_less_or_equal(self: Self, max_ratio: float = 0.1) -> Self:
+    def add_condition_duplicates_ratio_less_or_equal(self: Self, max_ratio: float = 0.05) -> Self:
         """Add condition - require ratio of test data samples that appear in train data to be less or equal to the\
          threshold.
 
         Parameters
         ----------
-        max_ratio : float , default: 0.1
+        max_ratio : float , default: 0.05
             Max allowed ratio of test data samples to appear in train data
         """
         def condition(result: dict) -> ConditionResult:

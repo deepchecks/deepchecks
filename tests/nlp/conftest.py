@@ -179,6 +179,22 @@ def multilabel_mock_dataset_and_probabilities(tweet_emotion_train_test_textdata)
     return data, probabilities
 
 
+@pytest.fixture(scope='session')
+def binary_mock_dataset_and_probabilities():
+    """Mock dataset and probabilities for binary classification"""
+
+    text = ['I think therefore I am', 'I am therefore I think', 'I am'] * 100
+    label = ["a", "b", "b"] * 100
+    probabilities_train = np.array([[0.1,0.9]] * 200 + [[0.9,0.1]] * 100)
+    probabilities_test = np.array([[0.6,0.4]] * 200 + [[0.4,0.6]] * 100)
+
+    text_data = TextData(raw_text=text, label=label, task_type='text_classification')
+    text_data.calculate_builtin_properties()
+    return text_data, probabilities_train, probabilities_test
+
+
+
+
 # Token Classification
 @pytest.fixture(scope='session')
 def original_wikiann():

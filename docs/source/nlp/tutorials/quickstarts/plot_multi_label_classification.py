@@ -96,7 +96,9 @@ dataset.properties.head(2)
 #
 # Deepchecks comes with a set of pre-built suites that can be used to run a set of checks on your data, alongside
 # with their default conditions and thresholds. You can read more about customizing and creating your own suites in the
-# :ref:`Customizations Guide <general__customizations>`.
+# :ref:`Customizations Guide <general__customizations>`. In this guide we'll be using 3 suites - the data integrity
+# suite, the train test validation suite and the model evaluation suite. You can also run all the checks at once using
+# the :mod:`full_suite <deepchecks.nlp.suites>`.
 #
 # Data Integrity
 # --------------
@@ -236,7 +238,7 @@ result.show()
 # In the display we can see some distinct property based segments that our model under performs on.
 #
 # By reviewing the results we can see that our model is performing poorly on samples that have a low level of
-# Subjectivity, by looking at the "Subjectivity vs Average Sentence Length" tab
+# Subjectivity, by looking at the "Subjectivity vs Average Words Per Sentence" tab
 # We can see that the problem is even more severe on samples containing long sentences.
 #
 # In addition to the visual display, most checks also return detailed data describing the results. This data can be

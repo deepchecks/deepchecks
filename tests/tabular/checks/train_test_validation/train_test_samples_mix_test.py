@@ -171,7 +171,7 @@ def test_condition_ratio_not_greater_than_passed(diabetes_split_dataset_and_mode
     assert_that(result, has_items(
         equal_condition_result(is_pass=True,
                                details='No samples mix found',
-                               name='Percentage of test data samples that appear in train data is less or equal to 10%')
+                               name='Percentage of test data samples that appear in train data is less or equal to 5%')
     ))
 
 

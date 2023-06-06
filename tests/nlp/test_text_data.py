@@ -188,13 +188,12 @@ def test_properties(text_classification_dataset_mock):
     assert_that(properties.shape[0], equal_to(3))
     assert_that(properties.shape[1], equal_to(10))
     assert_that(properties.columns, contains_exactly(
-        'Language','Text Length', 'Average Word Length',
-        'Max Word Length', '% Special Characters', 'Sentiment',
-        'Subjectivity', 'Lexical Density', 'Readability Score',
-        'Average Sentence Length'
+        'Text Length', 'Average Word Length',
+        'Max Word Length', '% Special Characters', 'Language', 'Sentiment',
+        'Subjectivity', 'Average Words Per Sentence', 'Readability Score', 'Lexical Density'
     ))
     assert_that(properties.iloc[0].values, contains_exactly(
-        'en', 22, 3.6, 9, 0.0, 0.0, 0.0, 80.0, 100.24, 5
+        22, 3.6, 9, 0.0, 'en', 0.0, 0.0, 5.0, 100.24, 80.0
     ))
 
 
@@ -311,6 +310,22 @@ def test_set_properties(text_classification_dataset_mock):
     dataset._cat_properties = None
 
 
+def test_set_properties_with_builtin(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    properties = pd.DataFrame({'Language': ['en', 'en', 'es'], 'Average Word Length': [4, 5, 6]})
+
+    assert_that(dataset._properties, equal_to(None))
+    assert_that(dataset._cat_properties, equal_to(None))
+
+    # Act
+    dataset.set_properties(properties)
+
+    # Assert
+    assert_that(dataset.categorical_properties, equal_to(['Language']))
+    assert_that((dataset.properties != properties).sum().sum(), equal_to(0))
+
+
 def test_set_properties_with_an_incorrect_list_of_categorical_columns(text_classification_dataset_mock):
     # Arrange
     dataset = text_classification_dataset_mock
@@ -368,3 +383,30 @@ def test_save_and_load_properties(text_classification_dataset_mock):
     dataset.set_properties('test_properties.csv')
 
     assert_that((dataset.properties != properties).sum().sum(), equal_to(0))
+
+
+def test_mixed_builtin_and_mixed_properties(text_classification_dataset_mock):
+    # Arrange
+    dataset = text_classification_dataset_mock
+    properties = pd.DataFrame({'custom': [1, 2, 3], 'Average Word Length': [4, 5, 6]})
+
+    # Act
+    dataset.set_properties(properties, categorical_properties=[])
+
+    # Assert
+    # The custom property is not categorical as we passed an empty list, and the builtin property is not categorical
+    # as defined internally.
+    assert_that(dataset.categorical_properties, equal_to([]))
+
+    # Test that the builtin property is not overwritten by categorical_properties=[]
+    # Arrange
+    dataset = text_classification_dataset_mock
+    properties = pd.DataFrame({'custom': [1, 2, 3], 'Language': ['en', 'en', 'es']})
+
+    # Act
+    dataset.set_properties(properties, categorical_properties=[])
+
+    # Assert
+    # The custom property is not categorical as we passed an empty list, and the builtin property is not categorical
+    # as defined internally.
+    assert_that(dataset.categorical_properties, equal_to(['Language']))

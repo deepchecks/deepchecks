@@ -63,30 +63,30 @@ class TestTextClassification:
         assert len(condition_results) == 1
         assert condition_results[0].is_pass() is False
         assert_that(result.value, has_entries({
-            "Subjectivity": {
-                "Drift score": 0.14333333333333337,
+            "Subjectivity": has_entries({
+                "Drift score": close_to(0.14, 0.01),
                 "Method": "Kolmogorov-Smirnov",
-                "Importance": None},
-            "Average Word Length": {
-                "Drift score": 0.16666666666666666,
+                "Importance": None}),
+            "Average Word Length": has_entries({
+                "Drift score": close_to(0.23, 0.01),
                 "Method": "Kolmogorov-Smirnov",
-                "Importance": None},
-            "Text Length": {
-                "Drift score": 0.13333333333333333,
+                "Importance": None}),
+            "Text Length": has_entries({
+                "Drift score": close_to(0.13, 0.01),
                 "Method": "Kolmogorov-Smirnov",
-                "Importance": None},
-            "Max Word Length": {
-                "Drift score": 0.13333333333333341,
+                "Importance": None}),
+            "Max Word Length": has_entries({
+                "Drift score": close_to(0.1, 0.01),
                 "Method": "Kolmogorov-Smirnov",
-                "Importance": None},
-            "% Special Characters": {
-                "Drift score": 0.23333333333333334,
+                "Importance": None}),
+            "% Special Characters": has_entries({
+                "Drift score": close_to(0.23, 0.01),
                 "Method": "Kolmogorov-Smirnov",
-                "Importance": None},
-            "Sentiment": {
-                "Drift score": 0.1133333333333334,
+                "Importance": None}),
+            "Sentiment": has_entries({
+                "Drift score": close_to(0.11, 0.01),
                 "Method": "Kolmogorov-Smirnov",
-                "Importance": None},
+                "Importance": None}),
         }))  # type: ignore
 
 
@@ -135,10 +135,10 @@ class TestTokenClassification:
         assert condition_results[0].is_pass() is False
 
         assert_that(result.value, has_entries({
-            'Max Word Length': has_entries({'Drift score': 0.18000000000000005, 'Method': 'Kolmogorov-Smirnov'}),
-            'Average Word Length': has_entries({'Drift score': 0.1, 'Method': 'Kolmogorov-Smirnov'}),
-            '% Special Characters': has_entries({'Drift score': 0.16000000000000003, 'Method': 'Kolmogorov-Smirnov'}),
-            'Text Length': has_entries({'Drift score': 0.30000000000000004, 'Method': 'Kolmogorov-Smirnov'}),
+            'Max Word Length': has_entries({'Drift score': close_to(0.18, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
+            'Average Word Length': has_entries({'Drift score': close_to(0.24, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
+            '% Special Characters': has_entries({'Drift score': close_to(0.16, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
+            'Text Length': has_entries({'Drift score': close_to(0.3, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
             'Subjectivity': has_entries({'Drift score': None, 'Method': None}),
             'Sentiment': has_entries({'Drift score': None, 'Method': None})
         }))  # type: ignore

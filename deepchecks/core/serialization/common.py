@@ -14,7 +14,6 @@ import io
 import json
 import textwrap
 import typing as t
-import warnings
 from contextlib import contextmanager
 
 import matplotlib
@@ -30,9 +29,9 @@ from plotly.offline.offline import get_plotlyjs
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core import errors
-from deepchecks.utils.dataframes import un_numpy
+from deepchecks.utils.dataframes import hide_index_for_display, un_numpy
 from deepchecks.utils.html import linktag
-from deepchecks.utils.strings import get_ellipsis
+from deepchecks.utils.strings import truncate_string
 
 __all__ = [
     'aggregate_conditions',
@@ -181,14 +180,8 @@ def aggregate_conditions(
     if include_check_name is False:
         df.drop('Check', axis=1, inplace=True)
 
-    df['More Info'] = df['More Info'].map(lambda x: get_ellipsis(x, max_info_len))
-
-    with warnings.catch_warnings():
-        warnings.simplefilter(action='ignore', category=FutureWarning)
-        # style.hide_index() was deprecated in the latest versions and new method was added
-        styler = df.style
-        styler = styler.hide(axis='index') if hasattr(styler, 'hide') else styler.hide_index()
-        return styler
+    df['More Info'] = df['More Info'].map(lambda x: truncate_string(x, max_info_len))
+    return hide_index_for_display(df)
 
 
 def create_results_dataframe(
