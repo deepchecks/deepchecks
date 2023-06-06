@@ -24,9 +24,7 @@ from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.outliers import iqr_outliers_range, sharp_drop_outliers_range
 from deepchecks.utils.strings import format_percent
 
-
 __all__ = ['TextPropertyOutliers']
-
 
 
 class TextPropertyOutliers(SingleDatasetCheck):

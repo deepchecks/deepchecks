@@ -64,7 +64,7 @@ dataset = tweet_emotion.load_data(as_train_test=False)
 
 check = TextPropertyOutliers()
 result = check.run(dataset)
-result
+result.show()
 
 #%%
 # Observe Graphic Result
