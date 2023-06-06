@@ -15,6 +15,8 @@ from hamcrest import assert_that, calling, close_to, equal_to, raises
 
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.checks import TextPropertyOutliers
+from deepchecks.utils.strings import format_percent
+from tests.base.utils import equal_condition_result
 
 
 def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
@@ -49,6 +51,30 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     result_series = result.display[6].data['Properties']
 
     assert_that((expected_series != result_series).sum().sum(), equal_to(0))
+
+
+def test_tweet_emotion_condition(tweet_emotion_train_test_textdata):
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    check = TextPropertyOutliers().add_condition_outlier_ratio_less_or_equal()
+    # Act
+    result = check.run(test)
+    conditions_decisions = check.conditions_decision(result)
+
+    # Assert
+    assert_that(len(result.value['Sentiment']['indices']), equal_to(65))
+    assert_that(result.value['Sentiment']['lower_limit'], close_to(-0.90, 0.01))
+    assert_that(result.value['Sentiment']['upper_limit'], close_to(0.92, 0.01))
+
+    assert_that(
+        conditions_decisions[0],
+        equal_condition_result(
+            is_pass=False,
+            name=f'Outlier ratio in every property should be less or equal to 5%',
+            details=f'Found 1 properties with outlier ratio above threshold.</br>Property '
+                    f'with highest ratio is Toxicity with outlier ratio of 16.43%'
+        )  # type: ignore
+    )
 
 
 def test_not_enough_samples(tweet_emotion_train_test_textdata):

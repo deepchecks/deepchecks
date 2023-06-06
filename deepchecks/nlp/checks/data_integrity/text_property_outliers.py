@@ -13,7 +13,9 @@ import typing as t
 
 import numpy as np
 import pandas as pd
+from typing_extensions import Self
 
+from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
 from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp import Context, SingleDatasetCheck
@@ -22,6 +24,8 @@ from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.outliers import iqr_outliers_range, sharp_drop_outliers_range
 
 __all__ = ['TextPropertyOutliers']
+
+from deepchecks.utils.strings import format_percent
 
 
 class TextPropertyOutliers(SingleDatasetCheck):
@@ -126,6 +130,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
                 # we have in the data
                 'lower_limit': max(lower_limit, min(values_arr)),
                 'upper_limit': min(upper_limit, max(values_arr)) if is_numeric else None,
+                'outlier_ratio': len(text_outliers) / len(values_arr)
             }
 
         # Create display
@@ -181,3 +186,43 @@ class TextPropertyOutliers(SingleDatasetCheck):
             display = None
 
         return CheckResult(result, display=display)
+
+    def add_condition_outlier_ratio_less_or_equal(self: Self, ratio: float = 0.05,
+                                                  properties_to_ignore: t.Optional[t.List[str]] = None) -> Self:
+        """Add condition - outlier ration in every property is less or equal to ratio.
+
+        Parameters
+        ----------
+        ratio : float , default: 0.05
+            Maximum ratio of outliers per property.
+        properties_to_ignore : t.Optional[t.List[str]] , default: None
+            List of properties to ignore for the condition.
+        """
+
+        def condition(result: t.Dict[str, t.Any]):
+            failed_properties = []
+            worst_property = ''
+            worst_ratio = 0
+
+            for property_name, info in result.items():
+                if properties_to_ignore is not None and property_name in properties_to_ignore:
+                    continue
+                if info['outlier_ratio'] > ratio:
+                    failed_properties.append(property_name)
+                if info['outlier_ratio'] > worst_ratio:
+                    worst_property = property_name
+                    worst_ratio = info['outlier_ratio']
+
+            if len(failed_properties) > 0:
+                return ConditionResult(ConditionCategory.FAIL,
+                                       f'Found {len(failed_properties)} properties with outlier ratio above threshold.'
+                                       f'</br>Property with highest ratio is {worst_property} with outlier ratio of '
+                                       f'{format_percent(worst_ratio)}')
+            else:
+                return ConditionResult(ConditionCategory.PASS,
+                                       f'All properties have outlier ratio below threshold. '
+                                       f'Property with highest ratio is {worst_property} with outlier ratio of'
+                                       f' {format_percent(worst_ratio)}')
+
+        return self.add_condition(f'Outlier ratio in every property should be less or equal to {format_percent(ratio)}',
+                                  condition)
