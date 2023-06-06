@@ -18,13 +18,13 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
-from deepchecks.nlp.input_validations import (validate_length_and_calculate_column_types,
+from deepchecks.nlp.input_validations import (ColumnTypes, validate_length_and_calculate_column_types,
                                               validate_length_and_type_numpy_array, validate_modify_label,
                                               validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.nlp.utils.text_embeddings import calculate_builtin_embeddings
-from deepchecks.nlp.utils.text_properties import calculate_builtin_properties
+from deepchecks.nlp.utils.text_properties import calculate_builtin_properties, get_builtin_properties_types
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.validation import is_sequence_not_str
@@ -91,8 +91,9 @@ class TextData:
         For more on properties, see the `NLP Properties Guide
         <https://docs.deepchecks.com/stable/nlp/usage_guides/nlp_properties.html>`_.
     categorical_properties : t.Optional[t.List[str]] , default: None
-        The names of the categorical properties columns. If None, categorical properties columns are automatically
-        inferred. Only relevant if properties is not None.
+        The names of the categorical properties columns. Should be given only for custom properties, not for
+        any of the built-in properties. If None, categorical properties columns are automatically inferred for custom
+        properties.
     embeddings : t.Optional[Union[np.ndarray, pd.DataFrame, str]], default: None
         The text embeddings for the samples. Embeddings must be given as a numpy array (or a path to an .npy
         file containing a numpy array) of shape (N, E), where N is the number of samples in the TextData object and E
@@ -451,14 +452,45 @@ class TextData:
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
 
+        if categorical_properties is not None:
+            categories_not_in_data = set(categorical_properties).difference(properties.columns.tolist())
+            if not len(categories_not_in_data) == 0:
+                raise DeepchecksValueError(
+                    f'The following columns does not exist in Properties - {list(categories_not_in_data)}'
+                )
+
         if isinstance(properties, str):
             properties = pd.read_csv(properties)
 
-        column_types = validate_length_and_calculate_column_types(
-            data_table=properties,
-            data_table_name='Properties',
-            expected_size=len(self),
-            categorical_columns=categorical_properties
+        builtin_property_types = get_builtin_properties_types()
+        property_names = properties.columns.tolist()
+        intersection = set(builtin_property_types.keys()).intersection(property_names)
+
+        # Get column types for intersection properties
+        builtin_categorical_properties = [x for x in intersection if builtin_property_types[x] == 'categorical']
+
+        # Get column types for user properties
+        user_properties = list(set(property_names).difference(builtin_property_types.keys()))
+        if categorical_properties is None:
+            user_categorical_properties = None
+        else:
+            user_categorical_properties = list(set(categorical_properties).intersection(user_properties))
+
+        if len(user_properties) != 0:
+            column_types = validate_length_and_calculate_column_types(
+                data_table=properties[user_properties],
+                data_table_name='Properties',
+                expected_size=len(self),
+                categorical_columns=user_categorical_properties
+            )
+        else:
+            column_types = ColumnTypes([], [])
+
+        # merge the two categorical properties list into one ColumnTypes object
+        all_cat_properties = column_types.categorical_columns + builtin_categorical_properties
+        column_types = ColumnTypes(
+            categorical_columns=all_cat_properties,
+            numerical_columns=list(set(property_names).difference(all_cat_properties))
         )
 
         self._properties = properties.reset_index(drop=True)

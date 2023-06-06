@@ -39,7 +39,6 @@ _target = 'label'
 
 _LABEL_MAP = {0: 'anger', 1: 'happiness', 2: 'optimism', 3: 'sadness'}
 _CAT_METADATA = ['gender', 'user_region']
-_CAT_PROPERTIES = ['Language']
 
 
 def load_embeddings(as_train_test: bool = True) -> t.Union[np.array, t.Tuple[np.array, np.array]]:
@@ -140,7 +139,7 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
 
         dataset = TextData(data.text, label=data[_target], task_type='text_classification',
                            metadata=metadata, embeddings=embeddings, properties=properties,
-                           categorical_metadata=_CAT_METADATA, categorical_properties=_CAT_PROPERTIES)
+                           categorical_metadata=_CAT_METADATA)
         return dataset
 
     else:
@@ -157,10 +156,10 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True,
 
         train_ds = TextData(train.text, label=train[_target], task_type='text_classification',
                             metadata=train_metadata, embeddings=train_embeddings, properties=train_properties,
-                            categorical_metadata=_CAT_METADATA, categorical_properties=_CAT_PROPERTIES)
+                            categorical_metadata=_CAT_METADATA)
         test_ds = TextData(test.text, label=test[_target], task_type='text_classification',
                            metadata=test_metadata, embeddings=test_embeddings, properties=test_properties,
-                           categorical_metadata=_CAT_METADATA, categorical_properties=_CAT_PROPERTIES)
+                           categorical_metadata=_CAT_METADATA)
 
         return train_ds, test_ds
 
