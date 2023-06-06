@@ -10,6 +10,7 @@
 #
 """Module contains the Unknown Tokens check."""
 import contextlib
+import copy
 import sys
 import typing as t
 import warnings
@@ -62,7 +63,7 @@ class UnknownTokens(SingleDatasetCheck):
         **kwargs
     ):
         super().__init__(**kwargs)
-        self.tokenizer = tokenizer
+        self.tokenizer = copy.deepcopy(tokenizer)
         if tokenizer is None:
             try:
                 from transformers import AutoTokenizer  # pylint: disable=W0611,C0415 # noqa
@@ -75,6 +76,8 @@ class UnknownTokens(SingleDatasetCheck):
         else:
             self._validate_tokenizer()
         self._use_fast_method = self.tokenizer.is_fast
+        # We're not feeding the data to a model, so we don't need to limit the length
+        self.tokenizer.model_max_length = sys.maxsize
 
         self.group_singleton_words = group_singleton_words
         self.n_most_common = n_most_common

@@ -1,3 +1,2 @@
-transformers>=4.0.0
 optimum[onnxruntime]>=1.7.0
 fasttext>=0.8.0
