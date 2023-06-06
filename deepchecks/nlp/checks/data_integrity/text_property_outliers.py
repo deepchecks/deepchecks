@@ -22,10 +22,11 @@ from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.nlp_plot import get_text_outliers_graph
 from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.outliers import iqr_outliers_range, sharp_drop_outliers_range
+from deepchecks.utils.strings import format_percent
+
 
 __all__ = ['TextPropertyOutliers']
 
-from deepchecks.utils.strings import format_percent
 
 
 class TextPropertyOutliers(SingleDatasetCheck):
