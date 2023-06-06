@@ -186,14 +186,14 @@ class TextPropertyOutliers(SingleDatasetCheck):
 
         return CheckResult(result, display=display)
 
-    def add_condition_outlier_ratio_less_or_equal(self: Self, ratio: float = 0.05,
+    def add_condition_outlier_ratio_less_or_equal(self: Self, threshold: float = 0.05,
                                                   properties_to_ignore: t.Optional[t.List[str]] = None) -> Self:
-        """Add condition - outlier ration in every property is less or equal to ratio.
+        """Add condition - outlier ratio in every property is less or equal to ratio.
 
         Parameters
         ----------
-        ratio : float , default: 0.05
-            Maximum ratio of outliers per property.
+        threshold : float , default: 0.05
+            Maximum threshold of outliers ratio per property.
         properties_to_ignore : t.Optional[t.List[str]] , default: None
             List of properties to ignore for the condition.
         """
@@ -206,7 +206,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
             for property_name, info in result.items():
                 if properties_to_ignore is not None and property_name in properties_to_ignore:
                     continue
-                if info['outlier_ratio'] > ratio:
+                if info['outlier_ratio'] > threshold:
                     failed_properties.append(property_name)
                 if info['outlier_ratio'] > worst_ratio:
                     worst_property = property_name
@@ -214,14 +214,14 @@ class TextPropertyOutliers(SingleDatasetCheck):
 
             if len(failed_properties) > 0:
                 return ConditionResult(ConditionCategory.FAIL,
-                                       f'Found {len(failed_properties)} properties with outlier ratio above threshold.'
+                                       f'Found {len(failed_properties)} properties with outlier ratios above threshold.'
                                        f'</br>Property with highest ratio is {worst_property} with outlier ratio of '
                                        f'{format_percent(worst_ratio)}')
             else:
                 return ConditionResult(ConditionCategory.PASS,
-                                       f'All properties have outlier ratio below threshold. '
+                                       f'All properties have outlier ratios below threshold. '
                                        f'Property with highest ratio is {worst_property} with outlier ratio of'
                                        f' {format_percent(worst_ratio)}')
 
-        return self.add_condition(f'Outlier ratio in every property should be less or equal to {format_percent(ratio)}',
+        return self.add_condition(f'Outlier ratio in all properties is less or equal than {format_percent(threshold)}',
                                   condition)
