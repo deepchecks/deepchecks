@@ -115,6 +115,11 @@ In the following example, we will calculate the default properties in order to u
 
 Note that any use of the ``TextData.calculate_builtin_properties`` method will override the existing properties.
 
+.. admonition:: Non-English Samples
+
+    If a property was not calculated for a sample (for example, if it applies only to English samples and the sample
+    is in another language), it will contain a nan value and will be ignored when calculating the different checks.
+
 Including or Ignoring Properties
 #################################
 
