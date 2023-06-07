@@ -70,9 +70,9 @@ def test_tweet_emotion_condition(tweet_emotion_train_test_textdata):
         conditions_decisions[0],
         equal_condition_result(
             is_pass=False,
-            name=f'Outlier ratio in every property should be less or equal to 5%',
-            details=f'Found 1 properties with outlier ratio above threshold.</br>Property '
-                    f'with highest ratio is Toxicity with outlier ratio of 16.43%'
+            name='Outlier ratio in all properties is less or equal than 5%',
+            details='Found 1 properties with outlier ratios above threshold.</br>'
+                    'Property with highest ratio is Toxicity with outlier ratio of 16.43%'
         )  # type: ignore
     )
 
