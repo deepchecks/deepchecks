@@ -152,7 +152,7 @@ data_integrity_suite.run(train, test)
 # Integrity #2: Text Outliers
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
-# In the “Other” tab, Looking at the Text Outlier check result we can
+# In the “Didn't Pass” tab, by looking at the Text Outlier check result we can
 # derive several insights by hovering over the different values and inspecting the outlier texts:
 #
 # 1. hashtags (‘#…’) are usually several words
