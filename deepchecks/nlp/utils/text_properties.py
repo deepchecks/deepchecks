@@ -46,7 +46,7 @@ sentences_cache = {}
 secret_cache = {}
 
 
-def _split_to_words_with_cache(text: str):
+def _split_to_words_with_cache(text: str) -> List[str]:
     """Tokenize a text into words and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in words_cache:
@@ -56,7 +56,7 @@ def _split_to_words_with_cache(text: str):
     return words_cache[hash_key]
 
 
-def _split_to_sentences_with_cache(text: str):
+def _split_to_sentences_with_cache(text: str) -> Union[List[str], None]:
     """Tokenize a text into sentences and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in sentences_cache:
@@ -257,18 +257,19 @@ def text_length(text: str) -> int:
 
 def average_word_length(text: str) -> float:
     """Return average word length."""
-    return np.mean([len(word) for word in _split_to_words_with_cache(text)])
+    words = _split_to_words_with_cache(text)
+    return np.mean([len(word) for word in words]) if words else 0
 
 
 def percentage_special_characters(text: str) -> float:
     """Return percentage of special characters (as float between 0 and 1)."""
-    return len([c for c in text if c in string.punctuation]) / len(text)
+    return len([c for c in text if c in string.punctuation]) / len(text) if len(text) != 0 else 0
 
 
 def max_word_length(text: str) -> int:
     """Return max word length."""
     words = _split_to_words_with_cache(text)
-    return max(len(w) for w in words)
+    return max(len(w) for w in words) if words else 0
 
 
 def _get_fasttext_model(models_storage: Union[pathlib.Path, str, None] = None):
@@ -382,52 +383,48 @@ def _predict(text: str, classifier, kind: str) -> float:
         )
 
 
+TOXICITY_MODEL_NAME = 'unitary/toxic-bert'
+FLUENCY_MODEL_NAME = 'prithivida/parrot_fluency_model'
+FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
+
+
 def toxicity(
         text: str,
         device: Optional[str] = None,
-        models_storage: Union[pathlib.Path, str, None] = None
+        models_storage: Union[pathlib.Path, str, None] = None,
+        toxicity_classifier: Optional[object] = None
 ) -> float:
     """Return float representing toxicity."""
-    model_name = 'unitary/toxic-bert'
-    classifier = get_transformer_pipeline(
-        'toxicity',
-        model_name,
-        device=device,
-        models_storage=models_storage
-    )
-    return _predict(text, classifier, 'toxicity')
+    if toxicity_classifier is None:
+        toxicity_classifier = get_transformer_pipeline(
+            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
+    return _predict(text, toxicity_classifier, 'toxicity')
 
 
 def fluency(
         text: str,
         device: Optional[str] = None,
-        models_storage: Union[pathlib.Path, str, None] = None
+        models_storage: Union[pathlib.Path, str, None] = None,
+        fluency_classifier: Optional[object] = None
 ) -> float:
     """Return float representing fluency."""
-    model_name = 'prithivida/parrot_fluency_model'
-    classifier = get_transformer_pipeline(
-        'fluency',
-        model_name,
-        device=device,
-        models_storage=models_storage
-    )
-    return _predict(text, classifier, 'fluency')
+    if fluency_classifier is None:
+        fluency_classifier = get_transformer_pipeline(
+            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
+    return _predict(text, fluency_classifier, 'fluency')
 
 
 def formality(
         text: str,
         device: Optional[str] = None,
-        models_storage: Union[pathlib.Path, str, None] = None
+        models_storage: Union[pathlib.Path, str, None] = None,
+        formality_classifier: Optional[object] = None
 ) -> float:
     """Return float representing formality."""
-    model_name = 's-nlp/roberta-base-formality-ranker'
-    classifier = get_transformer_pipeline(
-        'formality',
-        model_name,
-        device=device,
-        models_storage=models_storage
-    )
-    return _predict(text, classifier, 'formality')
+    if formality_classifier is None:
+        formality_classifier = get_transformer_pipeline(
+            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
+    return _predict(text, formality_classifier, 'formality')
 
 
 def lexical_density(text: str) -> float:
@@ -830,6 +827,18 @@ def calculate_builtin_properties(
                     calculated_properties[prop] = [np.nan] * len(raw_text)
             cmudict_dict = corpus.cmudict.dict()
             kwargs['cmudict_dict'] = cmudict_dict
+
+    if 'Toxicity' in text_properties_names and 'toxicity_classifier' not in kwargs:
+        kwargs['toxicity_classifier'] = get_transformer_pipeline(
+            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
+
+    if 'Formality' in text_properties_names and 'formality_classifier' not in kwargs:
+        kwargs['formality_classifier'] = get_transformer_pipeline(
+            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
+
+    if 'Fluency' in text_properties_names and 'fluency_classifier' not in kwargs:
+        kwargs['fluency_classifier'] = get_transformer_pipeline(
+            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
 
     is_language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
     # Remove language property from the list of properties to calculate as it will be calculated separately:
