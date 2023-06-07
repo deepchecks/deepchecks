@@ -193,7 +193,8 @@ def load_data(data_format: str = 'TextData', as_train_test: bool = True, use_ful
             include_properties, include_embeddings = False, False
 
     if use_full_size:
-        data = read_and_save_data(ASSETS_DIR, 'just_dance_data.csv', _FULL_DATA_URL, to_numpy=False)
+        data = read_and_save_data(ASSETS_DIR, 'just_dance_data.csv', _FULL_DATA_URL, to_numpy=False,
+                                  include_index=False)
     else:
         data = read_and_save_data(ASSETS_DIR, 'just_dance_shorted_data.csv', _SHORT_DATA_URL, to_numpy=False)
     data[_TIME_COL] = pd.to_datetime(data[_TIME_COL])

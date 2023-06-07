@@ -45,9 +45,15 @@ average word length, language etc.) which are much more efficient to compute, an
 
 Which Text Properties Are Used?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-By default the checks use the built-in text properties, and it's also possible to replace the default properties
-with custom ones. For the list of the built-in text properties and explanation about custom properties refer to
-:ref:`NLP properties <nlp__properties_guide>`.
+By default the checks uses the properties that where calculated for the train and test datasets, which by default are
+the built-in text properties. It's also possible to replace the default properties with custom ones. For the list
+of the built-in text properties and explanation about custom properties refer to :ref:`NLP properties
+<nlp__properties_guide>`.
+
+.. note::
+
+    If a property was not calculated for a sample (for example, if it applies only to English samples and the sample
+    is in another language), it will contain a nan value and will be ignored when calculating the outliers.
 
 """
 
