@@ -106,6 +106,7 @@ def un_numpy(val):
     """
     if isinstance(val, np.str_):
         # NOTE:
+        # 'np.str_' is instance of the 'np.generic' but
         # 'np.isnan(np.str_())' raises an error with a next message:
         # >> TypeError: ufunc 'isnan' not supported for the input types...)
         #
