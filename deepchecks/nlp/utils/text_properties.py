@@ -27,18 +27,19 @@ from nltk import sent_tokenize, word_tokenize
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text import hash_text, normalize_text, remove_punctuation
+from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.strings import format_list, truncate_string
 
-__all__ = ['calculate_builtin_properties']
+__all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 
 from deepchecks.utils.validation import is_sequence_not_str
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
+MAX_CHARS = 512  # Bert accepts max of 512 tokens, so without counting tokens we go for the lower bound.
 textblob_cache = {}
 words_cache = {}
 sentences_cache = {}
@@ -345,6 +346,21 @@ def subjectivity(text: str) -> float:
 def _predict(text: str, classifier, kind: str) -> float:
     """Return prediction of huggingface Pipeline classifier."""
     try:
+        # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
+        # If text is longer than classifier context window, sample it:
+        if len(text) > MAX_CHARS:
+            sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
+            text_to_use = ''
+            for sentence in sentences:
+                if len(text_to_use) + len(sentence) > MAX_CHARS:
+                    break
+                text_to_use += sentence + '. '
+
+            # if even one sentence is too long, use part of the first one:
+            if len(text_to_use) == 0:
+                text_to_use = cut_string(sentences[0], MAX_CHARS)
+            text = text_to_use
+
         v = classifier(text)
     except Exception:  # pylint: disable=broad-except
         return np.nan
@@ -374,7 +390,7 @@ FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
 
 def toxicity(
         text: str,
-        device: Optional[int] = None,
+        device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         toxicity_classifier: Optional[object] = None
 ) -> float:
@@ -387,7 +403,7 @@ def toxicity(
 
 def fluency(
         text: str,
-        device: Optional[int] = None,
+        device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         fluency_classifier: Optional[object] = None
 ) -> float:
@@ -400,7 +416,7 @@ def fluency(
 
 def formality(
         text: str,
-        device: Optional[int] = None,
+        device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         formality_classifier: Optional[object] = None
 ) -> float:
@@ -639,15 +655,15 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'Average Word Length': 'Average number of characters in a word',
     'Max Word Length': 'Maximum number of characters in a word',
     '% Special Characters': 'Percentage of special characters in the text',
-    'Language': 'Language of the text',
-    'Sentiment': 'Sentiment of the text',
-    'Subjectivity': 'Subjectivity of the text',
+    'Language': 'Language of the text, using the fasttext language detection model',
+    'Sentiment': 'Sentiment of the text, calculated using the TextBlob sentiment analysis model',
+    'Subjectivity': 'Subjectivity of the text, calculated using the TextBlob sentiment analysis model',
     'Average Words Per Sentence': 'Average number of words per sentence in the text',
     'Readability Score': 'A score calculated based on Flesch reading-ease per text sample',
     'Lexical Density': 'Percentage of unique words in the text',
-    'Toxicity': 'Toxicity of the text',
-    'Fluency': 'Fluency of the text',
-    'Formality': 'Formality of the text',
+    'Toxicity': 'Toxicity score using unitary/toxic-bert HuggingFace model',
+    'Fluency': 'Fluency score using prithivida/parrot_fluency_model HuggingFace model',
+    'Formality': 'Formality score using s-nlp/roberta-base-formality-ranker HuggingFace model',
     'Unique Noun Count': 'Number of unique noun words in the text',
     'URLs Count': 'Number of URLS per text sample',
     'Email Addresses Count': 'Number of email addresses per text sample',
@@ -702,7 +718,8 @@ def _select_properties(
     else:
         properties = default_properties
 
-    if not include_long_calculation_properties:
+    # include_long_calculation_properties is only applicable when include_properties is None
+    if not include_long_calculation_properties and include_properties is None:
         return [
             prop for prop in properties
             if prop['name'] not in LONG_RUN_PROPERTIES
@@ -765,7 +782,7 @@ def calculate_builtin_properties(
         all the default properties will be calculated. Cannot be used together with include_properties parameter.
     include_long_calculation_properties : bool, default False
         Whether to include properties that may take a long time to calculate. If False, these properties will be
-        ignored, even if they are in the include_properties parameter.
+        ignored, unless they are specified in the include_properties parameter explicitly.
     device : int, default None
         The device to use for the calculation. If None, the default device will be used.
     models_storage : Union[str, pathlib.Path, None], default None
@@ -885,3 +902,18 @@ def calculate_builtin_properties(
     }
 
     return calculated_properties, properties_types
+
+
+def get_builtin_properties_types():
+    """
+    Get the names of all the available builtin properties.
+
+    Returns
+    -------
+    Dict[str, str]
+        A dictionary with the property name as key and the property's type as value.
+    """
+    return {
+        prop['name']: prop['output_type']
+        for prop in ALL_PROPERTIES
+    }

@@ -67,7 +67,7 @@ def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, exp
                                            ' of possible classes.')
             labels = [[None]*len(labels[0]) if is_label_none(label_per_sample) else [int(x) for x in label_per_sample]
                       for label_per_sample in labels]
-        elif not all(isinstance(x, (str, int)) or pd.isna(x) for x in labels):  # Classic classification
+        elif any(not isinstance(x, (str, np.integer, int)) and not pd.isna(x) for x in labels):
             raise DeepchecksValueError('label must be a Sequence of strings or ints (multiclass classification) '
                                        'or a Sequence of Sequences of strings or ints (multilabel classification)')
         else:

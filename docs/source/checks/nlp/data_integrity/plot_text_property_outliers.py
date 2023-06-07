@@ -14,6 +14,7 @@ outliers check, used to detect outliers in simple text properties in a dataset.
 * `How Does the Check Work? <#how-does-the-check-work>`__
 * `Which Text Properties Are Used? <#which-text-properties-are-used>`__
 * `Run the Check <#run-the-check>`__
+* `Define a Condition <#define-a-condition>`__
 
 
 Why Check for Outliers?
@@ -44,9 +45,15 @@ average word length, language etc.) which are much more efficient to compute, an
 
 Which Text Properties Are Used?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-By default the checks use the built-in text properties, and it's also possible to replace the default properties
-with custom ones. For the list of the built-in text properties and explanation about custom properties refer to
-:ref:`NLP properties <nlp__properties_guide>`.
+By default the checks uses the properties that where calculated for the train and test datasets, which by default are
+the built-in text properties. It's also possible to replace the default properties with custom ones. For the list
+of the built-in text properties and explanation about custom properties refer to :ref:`NLP properties
+<nlp__properties_guide>`.
+
+.. note::
+
+    If a property was not calculated for a sample (for example, if it applies only to English samples and the sample
+    is in another language), it will contain a nan value and will be ignored when calculating the outliers.
 
 """
 
@@ -63,13 +70,25 @@ dataset = tweet_emotion.load_data(as_train_test=False)
 
 check = TextPropertyOutliers()
 result = check.run(dataset)
-result
+result.show()
 
 #%%
 # Observe Graphic Result
 # ^^^^^^^^^^^^^^^^^^^^^^
 # In this example, we can find many tweets that are outliers - For example, in the "average word length" property,
-# we can see that there are tweets with a very large average word length, which is is usually because of missing spaces
-# in the tweet itself, or the fact that tweeter hashtags remained in the data and they don't contain spaces. This
-# could be problematic for the model, as it cannot coprehend the hashtags as words, and it may cause the model to
+# we can see that there are tweets with a very large average word length, which is usually because of missing spaces
+# in the tweet itself, or the fact that tweeter hashtags remained in the data, and they don't contain spaces. This
+# could be problematic for the model, as it cannot comprehend the hashtags as words, and it may cause the model to
 # fail on these tweets.
+#
+# Define a Condition
+# ------------------
+#
+# Now, we define a condition that enforces the ratio of duplicates to be 0. A condition
+# is deepchecks' way to validate model and data quality, and let you know if anything
+# goes wrong.
+
+check = TextPropertyOutliers()
+check.add_condition_outlier_ratio_less_or_equal(0.1)
+result = check.run(dataset)
+result.show(show_additional_outputs=False)

@@ -59,7 +59,7 @@ def data_integrity(n_samples: int = None,
     kwargs = {**non_none_args, **kwargs}
     return Suite(
         'Data Integrity Suite',
-        TextPropertyOutliers(**kwargs),
+        TextPropertyOutliers(**kwargs).add_condition_outlier_ratio_less_or_equal(),
         UnknownTokens(**kwargs).add_condition_ratio_of_unknown_words_less_or_equal(),
         UnderAnnotatedPropertySegments(**kwargs).add_condition_segments_relative_performance_greater_than(),
         UnderAnnotatedMetaDataSegments(**kwargs).add_condition_segments_relative_performance_greater_than(),

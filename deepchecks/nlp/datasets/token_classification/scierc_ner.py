@@ -50,8 +50,6 @@ _TEST_EMBEDDINGS_URL = 'https://figshare.com/ndownloader/files/40878620'
 
 ASSETS_DIR = pathlib.Path(__file__).absolute().parent.parent / 'assets' / 'scierc'
 
-_CAT_PROPERTIES = ['Language']
-
 
 def load_all_data() -> t.Dict[str, t.Dict[str, t.Any]]:
     """Load a dict of all the text data, labels and predictions. One function because it's very lightweight."""
@@ -148,10 +146,8 @@ def load_data(data_format: str = 'TextData', include_properties: bool = True, in
         train_embeddings, test_embeddings = None, None
 
     train_ds = TextData(tokenized_text=train['text'], label=train['text'], task_type='token_classification',
-                        properties=train_properties, categorical_properties=_CAT_PROPERTIES,
-                        embeddings=train_embeddings)
+                        properties=train_properties, embeddings=train_embeddings)
     test_ds = TextData(tokenized_text=test['text'], label=test['text'], task_type='token_classification',
-                       properties=test_properties, categorical_properties=_CAT_PROPERTIES,
-                       embeddings=test_embeddings)
+                       properties=test_properties, embeddings=test_embeddings)
 
     return train_ds, test_ds
