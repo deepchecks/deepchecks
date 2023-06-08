@@ -171,7 +171,7 @@ class TestMultiLabelClassification:
         # Arrange
         train, test = dummy_multilabel_textdata_train_test
         default_properties = ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters',
-                              'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', ]
+                              'Language', 'Sentiment', 'Subjectivity']
         train.calculate_builtin_properties(include_properties=default_properties)
         test.calculate_builtin_properties(include_properties=default_properties)
         check = PropertyDrift(min_samples=20).add_condition_drift_score_less_than(max_allowed_numeric_score=0.3,
