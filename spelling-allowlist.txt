@@ -159,3 +159,6 @@ huggingface
 tiktoken
 ai
 idx
+isnan
+'isnan'
+ufunc
