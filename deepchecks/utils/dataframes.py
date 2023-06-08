@@ -104,6 +104,14 @@ def un_numpy(val):
     -------
         returns the numpy value in a native type.
     """
+    if isinstance(val, np.str_):
+        # NOTE:
+        # 'np.str_' is instance of the 'np.generic' but
+        # 'np.isnan(np.str_())' raises an error with a next message:
+        # >> TypeError: ufunc 'isnan' not supported for the input types...)
+        #
+        # therefore this 'if' statement is needed
+        return val.item()
     if isinstance(val, np.generic):
         if np.isnan(val):
             return None
