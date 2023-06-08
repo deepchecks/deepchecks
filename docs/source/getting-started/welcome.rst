@@ -109,17 +109,16 @@ Get Started with Deepchecks Testing
         :link-type: doc
         :link: /tabular/auto_tutorials/quickstarts/index
         :columns: 4
+
+    .. grid-item-card:: 🔤️ NLP 🔤️
+        :link-type: doc
+        :link: /nlp/auto_tutorials/quickstarts/plot_text_classification
+        :columns: 4
     
     .. grid-item-card:: 🎦‍ Vision 🎦‍ (in Beta)
         :link-type: doc
         :link: /vision/auto_tutorials/quickstarts/index
         :columns: 4
-
-    .. grid-item-card:: 🔤️ NLP 🔤️ (in Alpha)
-        :link-type: doc
-        :link: /nlp/auto_tutorials/quickstarts/plot_text_classification
-        :columns: 4
-
 
 
 .. _welcome__deepchecks_components:
