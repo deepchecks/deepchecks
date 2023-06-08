@@ -27,7 +27,7 @@ If you don't have deepchecks installed yet:
 .. code:: python
 
     import sys
-    !{sys.executable} -m pip install deepchecks[nlp] -U --quiet #--user
+    !{sys.executable} -m pip install 'deepchecks[nlp]' -U --quiet #--user
 
 Some properties calculated by ``deepchecks.nlp`` require additional packages to be installed. You can
 install them by running:
@@ -35,7 +35,7 @@ install them by running:
 .. code:: python
 
     import sys
-    !{sys.executable} -m pip install deepchecks[nlp-properties] -U --quiet #--user
+    !{sys.executable} -m pip install 'deepchecks[nlp-properties]' -U --quiet #--user
 
 Setting Up
 ==========

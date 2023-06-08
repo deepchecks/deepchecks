@@ -65,6 +65,14 @@ Get Started with Deepchecks Testing
         Quickstarts, main concepts, checks gallery and end-to-end guides demonstrating 
         how to start working Deepchecks with tabular data and models.
 
+    .. grid-item-card:: 🔤️ NLP 🔤️
+        :link-type: ref
+        :link: nlp__index
+
+        Quickstarts, main concepts, checks gallery and end-to-end guides demonstrating
+        how to start working Deepchecks with textual data.
+        Future releases to come!
+
     .. grid-item-card:: 🎦‍ Computer Vision (Note: in Beta Release) 🎦‍
         :link-type: ref
         :link: vision__index
@@ -72,14 +80,6 @@ Get Started with Deepchecks Testing
         Quickstarts, main concepts, checks gallery and end-to-end guides demonstrating 
         how to start working Deepchecks with CV data and models.
         Built-in support for PyTorch, TensorFlow, and custom frameworks.
-
-    .. grid-item-card:: 🔤️ NLP (Note: in Alpha Release) 🔤️
-        :link-type: ref
-        :link: nlp__index
-
-        Quickstarts, main concepts, checks gallery and end-to-end guides demonstrating 
-        how to start working Deepchecks with textual data.
-        Future releases to come!
     
     .. grid-item-card:: 🚀 Interactive Checks Demo 🚀
         :link-type: url

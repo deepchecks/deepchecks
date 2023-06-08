@@ -22,8 +22,9 @@ Built-In Suites - API Reference
 ================================
 
 Check the :mod:`deepchecks.tabular.suites` in the API reference for a list of all of the built-in suites for tabular data,
-:mod:`deepchecks.vision.suites` for vision data (in beta release) or
-:mod:`deepchecks.nlp.suites` for nlp data (in alpha release).
+:mod:`deepchecks.nlp.suites` for nlp data or
+:mod:`deepchecks.vision.suites` for vision data (in beta release).
+.
 
 
 Typical Validation Scenarios

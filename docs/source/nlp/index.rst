@@ -4,12 +4,12 @@
 NLP
 ===
 
-Deepchecks for NLP is currently in alpha.
-Jump over to the :ref:`nlp__quickstarts` in the Tutorials section to get started, 
+Deepchecks NLP sub package contain a large variety of checks and suites for different use cases.
+Jump over to the :ref:`nlp__quickstarts` in the Tutorials section to get started,
 or visit the :ref:`getting-started__installation` for a full 
 guide about how to set up your environment.
 
-This is an alpha release and you can help us develop it further! You can provide feedback and suggestions as issues on
+Help us develop it further! You can provide feedback and suggestions as issues on
 `GitHub <https://github.com/deepchecks/deepchecks/issues>`__, or by joining our
 `Community Slack <https://www.deepchecks.com/slack>`__.
 
