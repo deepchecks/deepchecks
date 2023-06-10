@@ -270,7 +270,7 @@ def test_set_properties_with_categorical_columns(text_classification_dataset_moc
 def test_from_hugging_face():
 
     dataset = load_dataset('wikiann', name='en', split='train')
-    textData = TextData.from_hugging_face(obj=dataset,tokenized_text=dataset['tokens'],label =dataset['ner_tags'],task_type='token_classification')
+    textData = TextData.from_hugging_face(task_type='token_classification', obj=dataset)
     textData.calculate_default_properties()
     properties = textData.properties
 
