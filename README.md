@@ -115,8 +115,7 @@ This will automatically download the necessary dependencies, run the installatio
 and then start the application locally.
 
 The installation will take a few minutes. Then you can open the deployment url (default is http://localhost),
-and start the system onboarding. Check out the full monitoring open source installation & quickstart
-[here](https://docs.deepchecks.com/monitoring/stable/getting-started/deploy_self_host_open_source.html).
+and start the system onboarding. Check out the full monitoring [open source installation & quickstart](https://docs.deepchecks.com/monitoring/stable/getting-started/deploy_self_host_open_source.html).
 
 Note that the open source product is built such that each deployment supports monitoring of
 a single model.
@@ -156,7 +155,7 @@ suite_result.save_as_html() # replace this with suite_result.show() or suite_res
 The output will be a report that enables you to inspect the status and results of the chosen checks:
 
 <p align="center">
-   <img src="docs/source/_static/images/readme/model-evaluation-suite.gif" width="800">
+   <img src="docs/source/_static/images/readme/model-evaluation-suite.gif" width="600">
 </p>
 
 </details>
