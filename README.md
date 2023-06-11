@@ -168,13 +168,13 @@ The output will be a report that enables you to inspect the status and results o
    </summary>
 
 Jump right into the 
-[monitoring quickstart docs](https://docs.deepchecks.com/monitoring/stable/user-guide/tabular/auto_quickstarts/plot_quickstart.html)
+[open source monitoring quickstart docs](https://docs.deepchecks.com/monitoring/stable/getting-started/deploy_self_host_open_source.html)
 to have it up and running on your data.
 You'll then be able to see the checks results over time, set alerts, and interact
 with the dynamic deepchecks UI that looks like this:
 
 <p align="center">
-   <img src="docs/source/_static/images/general/monitoring-app-ui.gif" width="800">
+   <img src="docs/source/_static/images/general/monitoring-app-ui.gif" width="600">
 </p>
 
 </details>
@@ -190,7 +190,7 @@ Deepchecks managed CI & Testing management is currently in closed preview.
 [Book a demo](https://deepchecks.com/book-demo/) for more information about the offering.
 
 <p align="center">
-   <img src="docs/source/_static/images/general/deepchecks-ci-checks.png" width="800">
+   <img src="docs/source/_static/images/general/deepchecks-ci-checks.png" width="600">
 </p>
 
 For building and maintaining your own CI process while utilizing Deepchecks Testing for it,
