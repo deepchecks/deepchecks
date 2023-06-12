@@ -10,8 +10,10 @@ refer to the :ref:`exporting_deepchecks_results` guide.
 Structure:
 
 - :ref:`showing_results_main_methods`
-   - :ref:`show_method`
-   - :ref:`show_in_window_method`
+
+  - :ref:`show_method`
+  - :ref:`show_in_window_method`
+
 - :ref:`alternative_show_options_for_troubleshooting`
 
 

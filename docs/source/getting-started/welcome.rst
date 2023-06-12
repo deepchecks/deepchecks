@@ -1,30 +1,90 @@
-.. image:: /_static/images/general/deepchecks-logo-with-white-wide-back.png
-   :target: https://deepchecks.com/?utm_source=docs.deepchecks.com/stable&utm_medium=referral&utm_campaign=welcome
-   :alt: Deepchecks Logo
+.. image:: /_static/images/welcome/deepchecks_continuous_validation_light.png
+   :alt: Deepchecks Continuous Validation: Testing, CI & Monitoring
    :align: center
    :width: 80%
 
-=========================
+.. _welcome_depchecks_testing:
+
+========================
 Welcome to Deepchecks!
-=========================
+========================
 
-Deepchecks is a holistic tool for testing, validating and monitoring your machine learning models
-and data, throughout the model's lifecycle. It enables you to identify problems with your
-data quality, distributions, and model's performance with minimal effort.
-
-See more info in the :ref:`Deepchecks Components for Continuous Validation <welcome__deepchecks_components>`
-section, along with the direct links to the documentation of each component.
+`Deepchecks <https://github.com/deepchecks/deepchecks>`__ is a holistic open-source solution for all of your AI & ML validation needs, 
+enabling you to thoroughly test your data and models from research to production.
 
 
-.. _welcome__start_working:
+We invite you to:
+
+- See the following :ref:`Deepchecks Components <welcome__start_with_deepchecks_testing>` 
+  section for more info about the Testing, CI, & Monitoring components and for links to their corresponding documentation.
+- Go to the :ref:`welcome__start_with_deepchecks_monitoring` section to have it up and running quickly and see it in action.
+
+
+.. .. image:: /_static/images/general/checks-and-conditions.png
+..    :alt: Deepchecks Testing Suite of Checks
+..    :width: 65%
+..    :align: center
+
+.. image:: /_static/images/general/model-evaluation-suite.gif
+   :alt: Deepchecks Suite Run
+   :width: 65%
+   :align: center
+
+
+
+.. _welcome__deepchecks_components:
+
+Deepchecks' Components for Continuous Validation
+==================================================
+
+Deepchecks provides comprehensive support for your testing requirements,
+from examining data integrity and assessing distributions,
+to validating data splits, comparing models and evaluating their 
+performance across the model's entire development process. 
+
+.. grid:: 1
+    :gutter: 1 1 3 3
+
+    .. grid-item-card:: Testing Docs (here)
+        :link-type: ref
+        :link: welcome__start_with_deepchecks_testing
+        :img-top: /_static/images/welcome/testing_tile.png
+        :columns: 6 4 4 4
+
+        Tests during research and model development
+    
+    .. grid-item-card:: CI Docs
+        :link-type: ref
+        :link: using_deepchecks_ci_cd
+        :img-top: /_static/images/welcome/ci_tile.png
+        :columns: 6 4 4 4
+
+        Tests before deploying the model to production
+
+    .. grid-item-card:: Monitoring Docs (Here)
+        :link-type: ref
+        :link: deepchecks-mon:welcome__start_with_deepchecks_monitoring
+        :img-top: /_static/images/welcome/monitoring_tile.png
+        :columns: 6 4 4 4
+
+        Tests and continuous monitoring during production
+        
+
+Deechecks' continuous validation approach is based on testing the ML models and data throughout their lifecycle
+using the exact same checks, enabling a simple, elaborate and seamless experience for configuring and consuming the results.
+Each phase has its relevant interfaces (e.g. visual outputs, python/json output results, alert configuration, push notifications, RCA, etc.) for
+interacting with the test results.
+
+.. image:: /_static/images/welcome/testing_phases_in_pipeline_with_tiles.png
+   :alt: Phases for Continuous Validation of ML Models and Data
+   :align: center
+
+|
+
+.. _welcome__start_with_deepchecks_testing:
 
 Get Started with Deepchecks Testing
 ========================================
-
-.. image:: /_static/images/general/checks-and-conditions.png
-   :alt: Deepchecks Testing Suite of Checks
-   :width: 65%
-   :align: center
 
 
 .. grid:: 1
@@ -121,52 +181,6 @@ Get Started with Deepchecks Testing
         :columns: 4
 
 
-.. _welcome__deepchecks_components:
-
-Deepchecks' Components
-=======================
-
-.. grid:: 1
-    :gutter: 3
-
-    .. grid-item-card:: Testing Docs (Here)
-        :link-type: ref
-        :link: welcome__start_working
-        :img-top: /_static/images/welcome/research_title.png
-        :columns: 4
-
-        Tests during research and model development
-    
-    .. grid-item-card:: CI Docs
-        :link-type: doc
-        :link: /general/usage/ci_cd
-        :img-top: /_static/images/welcome/ci_cd_title.png
-        :columns: 4
-        
-        Tests before deploying the model to production
-
-    .. grid-item-card:: Monitoring Docs
-        :link-type: ref
-        :link: deepchecks-mon:welcome__start_with_deepchecks_monitoring
-        :img-top: /_static/images/welcome/monitoring_title.png
-        :columns: 4
-
-        Tests and continuous monitoring during production
-
-Deepchecks accompanies you through various testing needs such as verifying your data's integrity, 
-inspecting its distributions, validating data splits, evaluating your model and comparing between different models,
-throughout the model's lifecycle.
-
-.. image:: /_static/images/welcome/testing_phases_in_pipeline.png
-   :alt: Phases for Continuous Validation of ML Models and Data
-   :align: center
-
-|
-
-Deechecks' continuous validation approach is based on testing the ML models and data throughout the different phases 
-using the exact same checks, enabling a simple, elaborate and seamless experience for configuring and consuming the results.
-Each phase has its relevant interfaces (e.g. visual outputs, output results to json, alert configuration, push notifications, RCA, etc.) for
-interacting with the test results.
 
 .. _welcome__get_help:
 
@@ -182,7 +196,7 @@ Get Help & Give Us Feedback
    - Post an issue or start a discussion on `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__.
    - To contribute to the package, check out the 
      `Contribution Guidelines <https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst>`__ and join the 
-     `contributors-q-and-a channel <https://deepcheckscommunity.slack.com/archives/C030REPARGR>`__ on Slack, 
+     `contributors-q-&-a channel <https://deepcheckscommunity.slack.com/archives/C030REPARGR>`__ on Slack, 
      or communicate with us via github issues.
 
    To support us, please give us a star on ⭐️ `Github <https://github.com/deepchecks/deepchecks>`__ ⭐️, 
