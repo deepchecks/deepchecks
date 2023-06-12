@@ -17,6 +17,7 @@ from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.checks import TextPropertyOutliers
 from deepchecks.utils.strings import format_percent
 from tests.base.utils import equal_condition_result
+from deepchecks.nlp.text_data import TextData
 
 
 def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
@@ -84,3 +85,21 @@ def test_not_enough_samples(tweet_emotion_train_test_textdata):
 
     assert_that(calling(check.run).with_args(test),
                 raises(NotEnoughSamplesError, 'Need at least 6000 non-null samples to calculate outliers.'))
+    
+def test_non_numeric_values_in_text_properties_outliers(tweet_emotion_train_test_textdata):
+    # Arrange
+    raw_text = ["This is an example.", "Another example here."] * 6
+    labels = ["positive", "negative"] * 6
+    task_type = "text_classification"
+    text_data = TextData(raw_text=raw_text, label=labels, task_type=task_type)
+    text_data.calculate_builtin_properties(include_properties=['Sentences Count', 'Average Word Length'])
+    text_data.properties['Sentences Count'].iloc[9] = 'as'
+    text_data.properties['Average Word Length'].iloc[9] = 100
+
+    # Act
+    check = TextPropertyOutliers()
+    result = check.run(text_data)
+
+    # Assert
+    assert_that(result.value['Sentences Count']['property_error'], equal_to('Numeric property contains non-numeric values.'))
+    assert_that(result.value['Average Word Length']['property_error'], equal_to(None))

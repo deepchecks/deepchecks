@@ -81,10 +81,17 @@ class TextPropertyOutliers(SingleDatasetCheck):
         for name, values in properties.items():
             # If the property is single value per sample, then wrap the values in list in order to work on fixed
             # structure
-            if not isinstance(values[0], list):
-                values = [[x] for x in values]
-
             is_numeric = name not in cat_properties
+            property_error = None
+            if not isinstance(values[0], list):
+                if is_numeric:
+                    curr_nan_count = pd.isnull(values).sum()
+                    values = pd.to_numeric(values, errors='coerce')
+                    updated_nan_count = pd.isnull(values).sum()
+                    if updated_nan_count > curr_nan_count:
+                        property_error = 'Numeric property contains non-numeric values.'
+
+                values = [[x] for x in values]
 
             if is_numeric:
                 values_arr = np.hstack(values).astype(float).squeeze()
@@ -129,7 +136,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
                 # we have in the data
                 'lower_limit': max(lower_limit, min(values_arr)),
                 'upper_limit': min(upper_limit, max(values_arr)) if is_numeric else None,
-                'outlier_ratio': len(text_outliers) / len(values_arr)
+                'outlier_ratio': len(text_outliers) / len(values_arr),
+                'property_error': property_error
             }
 
         # Create display
@@ -143,6 +151,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
                 # If info is string it means there was error
                 if isinstance(info, str):
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
+                elif info['property_error'] is not None:
+                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info['property_error']])])
                 elif len(info['indices']) == 0:
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
                 else:
