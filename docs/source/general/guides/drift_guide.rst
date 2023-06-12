@@ -181,6 +181,14 @@ For code examples, see `here <#tabular-checks>`__
 All of these checks appear also in the `deepchecks interactive demo <https://checks-demo.deepchecks.com>`__, where you can
 insert corruption into the data and see the checks at work.
 
+Text (NLP) Data
+---------------
+
+In text data, we can't measure drift on the text directly, as the individual word has little value when estimating drift.
+Therfore, we need to transform the unstructured data to a structured ...
+Therefore, the text checks use :ref:`text__properties_guide` to estimate drift, as text data is not a simple one-dimensional variable.
+
+
 Computer Vision Data
 --------------------
 
