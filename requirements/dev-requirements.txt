@@ -41,6 +41,7 @@ scipy>=1.4.1
 tqdm>=4.41.0
 seaborn>=0.11.0
 wandb>=0.12.15,<0.13.0
+protobuf<3.20,>=3.9.2  # tensorflow 2.11.0 requires this, but pip cannot resolve this alone as tensorflow is requested in makefile
 beautifulsoup4>=4.11.1
 
 # NLP
