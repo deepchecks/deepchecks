@@ -467,8 +467,8 @@ html_theme_options = {
         "url_template": "https://docs.deepchecks.com/{version}/",
     },
     "external_links": [
-      {"name": "Deepchecks Monitoring", "url": "https://docs.deepchecks.com/monitoring"},
-      {"name": "Deepchecks CI", "url": "https://docs.deepchecks.com/stable/general/usage/ci_cd.html"}
+      {"name": "Monitoring", "url": "https://docs.deepchecks.com/monitoring"},
+      {"name": "CI", "url": "https://docs.deepchecks.com/stable/general/usage/ci_cd.html"}
     ],
     "icon_links": [
         {
