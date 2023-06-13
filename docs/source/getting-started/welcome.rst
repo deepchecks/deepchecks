@@ -61,7 +61,7 @@ performance across the model's entire development process.
 
         Tests before deploying the model to production
 
-    .. grid-item-card:: Monitoring Docs (Here)
+    .. grid-item-card:: Monitoring Docs
         :link-type: ref
         :link: deepchecks-mon:welcome__start_with_deepchecks_monitoring
         :img-top: /_static/images/welcome/monitoring_tile.png
