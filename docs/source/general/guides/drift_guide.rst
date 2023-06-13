@@ -12,9 +12,9 @@ This guide will help you understand what drift is and how you can detect in usin
 * `How Do You Detect Drift? <#how-do-you-detect-drift>`__
 * `How Can I Use Deepchecks to Detect Drift? <#how-can-i-use-deepchecks-to-detect-drift>`__
 
-    * `Tabular Data <#tabular-data>`__
-    * `Text (NLP) Data <#text-nlp-data>`__
-    * `Computer Vision Data <#computer-vision-data>`__
+  * `Tabular Data <#tabular-data>`__
+  * `Text (NLP) Data <#text-nlp-data>`__
+  * `Computer Vision Data <#computer-vision-data>`__
 * `What Can You Do in Case of Drift? <#what-can-you-do-in-case-of-drift>`__
 * `Code Examples <#code-examples>`__
 
