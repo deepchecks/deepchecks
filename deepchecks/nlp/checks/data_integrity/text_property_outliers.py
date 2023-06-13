@@ -107,7 +107,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
 
                 if is_numeric:
                     lower_limit, upper_limit = iqr_outliers_range(values_arr, self.iqr_percentiles,
-                                                              self.iqr_scale, self.sharp_drop_ratio)
+                                                                  self.iqr_scale, self.sharp_drop_ratio)
                 else:
                     # Counting the frequency of each category. Normalizing because distribution graph shows percentage.
                     counts_map = pd.Series(values_arr.astype(str)).value_counts(normalize=True).to_dict()
