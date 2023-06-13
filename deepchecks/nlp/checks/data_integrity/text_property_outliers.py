@@ -142,7 +142,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
                     'upper_limit': min(upper_limit, max(values_arr)) if is_numeric else None,
                     'outlier_ratio': len(text_outliers) / len(values_arr),
                 }
-            except Exception as exp:
+            except Exception as exp:  # pylint: disable=broad-except
                 result[name] = f'{exp}'
 
         # Create display
@@ -190,7 +190,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
                         else:
                             no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[
                                 f'Outliers found but not shown in graphs (n_show_top={self.n_show_top}).'])])
-                except Exception as exp:
+                except Exception as exp:  # pylint: disable=broad-except
                     no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[exp])])
 
             if not no_outliers.empty:
