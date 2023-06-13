@@ -115,7 +115,7 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
         if self.transforms is not None:
             # Albumentations accepts images as numpy
-            transformed = self.transforms(image=np.array(image), masks=masks)
+            transformed = self.transforms(image=np.array(image), masks=masks if masks else None)
             image = transformed['image']
             masks = transformed['masks']
             # Transform masks to tensor of (num_masks, H, W)
