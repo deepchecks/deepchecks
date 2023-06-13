@@ -17,7 +17,7 @@ from typing_extensions import Self
 
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, NotEnoughSamplesError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.nlp_plot import get_text_outliers_graph
 from deepchecks.utils.dataframes import hide_index_for_display
@@ -46,7 +46,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
     sharp_drop_ratio : float, default : 0.9
         The size of the sharp drop to detect categorical outliers
     min_samples : int , default : 10
-        Minimum number of samples required to calculate IQR. If there are not enough non-null samples a specific
+        Minimum number of samples required to calculate IQR. If there are not enough non-null samples for a specific
         property, the check will skip it. If all properties are skipped, the check will raise a NotEnoughSamplesError.
     """
 
@@ -72,9 +72,6 @@ class TextPropertyOutliers(SingleDatasetCheck):
         df_properties = dataset.properties
         cat_properties = dataset.categorical_properties
         properties = df_properties.to_dict(orient='list')
-
-        if all(len(np.hstack(v).squeeze()) < self.min_samples for v in properties.values()):
-            raise NotEnoughSamplesError(f'Need at least {self.min_samples} non-null samples to calculate outliers.')
 
         # The values are in the same order as the batch order, so always keeps the same order in order to access
         # the original sample at this index location
@@ -102,8 +99,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
                     values_arr = np.hstack(values).astype(str).squeeze()
 
                 if len(values_arr) < self.min_samples:
-                    result[name] = 'Not enough non-null samples to calculate outliers.'
-                    continue
+                    raise NotEnoughSamplesError(f'Not enough non-null samples to calculate outliers'
+                                                f'(min_samples={self.min_samples}).')
 
                 if is_numeric:
                     lower_limit, upper_limit = iqr_outliers_range(values_arr, self.iqr_percentiles,
@@ -156,41 +153,38 @@ class TextPropertyOutliers(SingleDatasetCheck):
                                          reverse=True)
 
             for property_name, info in sorted_result_items:
-                try:
-                    # If info is string it means there was error
-                    if isinstance(info, str):
-                        no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
-                    elif len(info['indices']) == 0:
-                        no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
-                    else:
-                        if len(display) < self.n_show_top:
-                            dist = df_properties[property_name]
-                            if len(dist[~pd.isnull(dist)]) >= self.min_samples:
-                                lower_limit = info['lower_limit']
-                                upper_limit = info['upper_limit']
 
-                                fig = get_text_outliers_graph(
-                                    dist=dist,
-                                    data=dataset.text,
-                                    lower_limit=lower_limit,
-                                    upper_limit=upper_limit,
-                                    dist_name=property_name,
-                                    is_categorical=property_name in cat_properties
-                                )
-
-                                display.append(fig)
-                            else:
-                                no_outliers = pd.concat(
-                                    [no_outliers, pd.Series(property_name, index=[
-                                        f'Not enough non-null samples to compute'
-                                        f' properties (min_samples={self.min_samples}).'
-                                    ])]
-                                )
+                # If info is string it means there was error
+                if isinstance(info, str):
+                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[info])])
+                elif len(info['indices']) == 0:
+                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=['No outliers found.'])])
+                else:
+                    if len(display) < self.n_show_top:
+                        if property_name not in cat_properties:
+                            dist = df_properties[property_name].astype(float)
                         else:
-                            no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[
-                                f'Outliers found but not shown in graphs (n_show_top={self.n_show_top}).'])])
-                except Exception as exp:  # pylint: disable=broad-except
-                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[exp])])
+                            dist = df_properties[property_name]
+                        lower_limit = info['lower_limit']
+                        upper_limit = info['upper_limit']
+
+                        try:
+                            fig = get_text_outliers_graph(
+                                dist=dist,
+                                data=dataset.text,
+                                lower_limit=lower_limit,
+                                upper_limit=upper_limit,
+                                dist_name=property_name,
+                                is_categorical=property_name in cat_properties
+                            )
+
+                            display.append(fig)
+                        except Exception as exp:  # pylint: disable=broad-except
+                            result[property_name] = f'{exp}'
+                            no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[exp])])
+                    else:
+                        no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[
+                            f'Outliers found but not shown in graphs (n_show_top={self.n_show_top}).'])])
 
             if not no_outliers.empty:
                 grouped = no_outliers.groupby(level=0).unique().str.join(', ')
