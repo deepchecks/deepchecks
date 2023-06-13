@@ -9,6 +9,11 @@ Jump over to the :ref:`tabular__quickstarts` in the Tutorials section to get sta
 or visit the :ref:`getting-started__installation` for a full 
 guide about how to set up your environment.
 
+.. image:: /_static/images/general/model-evaluation-suite.gif
+   :alt: Deepchecks Suite Run
+   :width: 60%
+   :align: center
+
 .. _tabular__index_tutorials:
 
 Tutorials
@@ -49,8 +54,7 @@ Checks Gallery
 Below in the full list of checks and suites available in the deepchecks tabular sub package.
 
 .. toctree::
-    :titlesonly:
-    :maxdepth: 0
+    :maxdepth: 2
     :caption: Checks Gallery
 
     auto_checks/data_integrity/index
