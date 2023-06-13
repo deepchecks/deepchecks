@@ -82,8 +82,6 @@ class TextPropertyOutliers(SingleDatasetCheck):
             is_numeric = name not in cat_properties
 
             try:
-                # If the property is single value per sample, then wrap the values in list in order to work on fixed
-                # structure
                 if not isinstance(values[0], list):
                     if is_numeric:
                         # Check for numeric data is there are any non-numeric values other than None
@@ -93,7 +91,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
                         updated_nan_count = pd.isnull(values).sum()
                         if updated_nan_count > curr_nan_count:
                             raise DeepchecksValueError('Numeric property contains non-numeric values.')
-
+                    # If the property is single value per sample, then wrap the values in list in order to
+                    # work on fixed structure
                     values = [[x] for x in values]
 
                 if is_numeric:
