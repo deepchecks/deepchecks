@@ -131,8 +131,10 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True, modify_t
     train_data, test_data : Tuple[Union[deepchecks.Dataset, pd.DataFrame],Union[deepchecks.Dataset, pd.DataFrame]
         tuple if as_train_test = True. Tuple of two objects represents the dataset split to train and test sets.
     """
-    train = pd.read_csv(_TRAIN_DATA_URL, index_col=0).drop(_predictions, axis=1)
-    test = pd.read_csv(_TEST_DATA_URL, index_col=0).drop(_predictions, axis=1)
+    train = pd.read_csv(_TRAIN_DATA_URL, index_col=0, na_values=['', 'NaN'], keep_default_na=False
+                        ).drop(_predictions, axis=1)
+    test = pd.read_csv(_TEST_DATA_URL, index_col=0, na_values=['', 'NaN'], keep_default_na=False
+                       ).drop(_predictions, axis=1)
 
     if data_size is not None:
         if data_size < len(train):
