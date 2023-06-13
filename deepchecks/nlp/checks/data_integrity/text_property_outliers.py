@@ -17,7 +17,7 @@ from typing_extensions import Self
 
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
+from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError, DeepchecksBaseError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.nlp_plot import get_text_outliers_graph
 from deepchecks.utils.dataframes import hide_index_for_display
@@ -110,7 +110,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
                     lower_limit, upper_limit = iqr_outliers_range(values_arr, self.iqr_percentiles,
                                                               self.iqr_scale, self.sharp_drop_ratio)
                 else:
-                    # Counting the frequency of each category. Normalizing because distribution graph shows the percentage.
+                    # Counting the frequency of each category. Normalizing because distribution graph shows percentage.
                     counts_map = pd.Series(values_arr.astype(str)).value_counts(normalize=True).to_dict()
                     lower_limit = sharp_drop_outliers_range(sorted(list(counts_map.values()), reverse=True),
                                                             self.sharp_drop_ratio) or 0
@@ -128,7 +128,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
                 bottom_outliers = np.argwhere(values_arr < lower_limit).squeeze(axis=1)
                 # Sort the indices of the outliers by the original values
                 bottom_outliers = bottom_outliers[
-                    np.apply_along_axis(lambda i, sort_arr=values_arr: sort_arr[i], axis=0, arr=bottom_outliers).argsort()
+                    np.apply_along_axis(lambda i, sort_arr=values_arr: sort_arr[i],
+                                        axis=0, arr=bottom_outliers).argsort()
                 ]
 
                 text_outliers = np.concatenate([bottom_outliers, top_outliers])
@@ -141,8 +142,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
                     'upper_limit': min(upper_limit, max(values_arr)) if is_numeric else None,
                     'outlier_ratio': len(text_outliers) / len(values_arr),
                 }
-            except Exception as error:
-                result[name] = f'{error}'
+            except Exception as exp:
+                result[name] = f'{exp}'
 
         # Create display
         if context.with_display:
@@ -189,8 +190,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
                         else:
                             no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[
                                 f'Outliers found but not shown in graphs (n_show_top={self.n_show_top}).'])])
-                except Exception as error:
-                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[error])])
+                except Exception as exp:
+                    no_outliers = pd.concat([no_outliers, pd.Series(property_name, index=[exp])])
 
             if not no_outliers.empty:
                 grouped = no_outliers.groupby(level=0).unique().str.join(', ')
