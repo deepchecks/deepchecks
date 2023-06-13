@@ -1,3 +1,5 @@
+.. _using_deepchecks_ci_cd:
+
 =================================
 Using Deepchecks In CI/CD
 =================================

@@ -66,11 +66,6 @@ Simply run the following command in a notebook cell
 Deepchecks For NLP
 ==================
 
-.. note:: 
-   Deepchecks' NLP subpackage is in **beta** release, and is available from PyPI,
-   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__ are
-   highly encouraged for feature requests and bug reports.
-
 Installation of deepchecks for NLP should be stated explicitly and it includes
 both the installation of the tabular version and of the nlp subpackage.
 Example commands from above should be altered to install `deepchecks[nlp]`.
@@ -86,11 +81,6 @@ Using Pip
 
 Deepchecks For Computer Vision
 ===============================
-
-.. note::
-   Deepchecks' Computer Vision subpackage is in **beta** release, and is available from PyPI,
-   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__ are
-   highly encouraged for feature requests and bug reports.
 
 Installation of deepchecks for CV should be stated explicitly and it includes
 both the installation of the tabular version and of the computer vision subpackage.
