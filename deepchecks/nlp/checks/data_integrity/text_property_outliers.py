@@ -17,7 +17,7 @@ from typing_extensions import Self
 
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult, DatasetKind
-from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError, DeepchecksBaseError
+from deepchecks.core.errors import NotEnoughSamplesError, DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.nlp_plot import get_text_outliers_graph
 from deepchecks.utils.dataframes import hide_index_for_display
