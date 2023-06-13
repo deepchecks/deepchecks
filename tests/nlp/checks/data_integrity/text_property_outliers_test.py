@@ -95,19 +95,20 @@ def test_non_numeric_values_for_properties():
     labels = ['positive', 'negative'] * 6
     task_type = 'text_classification'
     text_data = TextData(raw_text=raw_text, label=labels, task_type=task_type)
-    text_data.calculate_builtin_properties(include_properties=['Sentences Count', 'Average Word Length'])
+    text_data.calculate_builtin_properties(include_properties=['Sentences Count', 'Average Word Length',
+                                                               'Text Length'])
     text_data.properties['Sentences Count'].iloc[9] = 'as'
     text_data.properties['Average Word Length'].iloc[9] = 19
     text_data.properties['Average Word Length'].iloc[8] = '90'
+    text_data.properties['Text Length'].iloc[8] = ['90', 'asdh', None]
 
     # Act
     check = TextPropertyOutliers()
     result = check.run(text_data)
 
     # Assert
-    print(result.value)
-    assert_that(result.value['Sentences Count'],
-                equal_to('Numeric property contains non-numeric values.'))
+    assert_that(result.value['Sentences Count'], equal_to('Numeric property contains non-numeric values.'))
     assert_that(len(result.value['Average Word Length']['indices']), equal_to(2))
     assert_that(result.value['Average Word Length']['lower_limit'], equal_to(3.75))
     assert_that(result.value['Average Word Length']['upper_limit'], equal_to(10.5))
+    assert_that(result.value['Text Length'], equal_to('Numeric property contains non-numeric values.'))
