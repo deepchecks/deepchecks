@@ -101,5 +101,4 @@ def test_non_numeric_values_in_text_properties_outliers(tweet_emotion_train_test
     result = check.run(text_data)
 
     # Assert
-    assert_that(result.value['Sentences Count']['property_error'], equal_to('Numeric property contains non-numeric values.'))
-    assert_that(result.value['Average Word Length']['property_error'], equal_to(None))
+    assert_that(result.value['Sentences Count'], equal_to('Numeric property contains non-numeric values.'))
