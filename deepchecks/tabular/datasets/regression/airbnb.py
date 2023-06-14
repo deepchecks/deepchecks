@@ -112,7 +112,7 @@ def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = T
         Represent the format of the returned value. Can be 'Dataset'|'Dataframe'
         'Dataset' will return the data as a Dataset object
         'Dataframe' will return the data as a pandas Dataframe object
-  load_train : bool , default: True
+    load_train : bool , default: True
         If True, the returned data is the train data. otherwise the test dataset.
     modify_timestamps : bool , default: True
         If True, the returned data timestamp column will be for the last 30 days.
