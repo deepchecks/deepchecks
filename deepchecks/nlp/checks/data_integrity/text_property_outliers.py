@@ -81,8 +81,7 @@ class TextPropertyOutliers(SingleDatasetCheck):
             try:
                 if not isinstance(values[0], list):
                     if is_numeric:
-                        # Check for numeric data is there are any non-numeric values other than None
-                        # If so, convert all non-numeric value to NaN, then raise an exception
+                        # Check for non numeric data in the column
                         curr_nan_count = pd.isnull(values).sum()
                         values = pd.to_numeric(values, errors='coerce')
                         updated_nan_count = pd.isnull(values).sum()
