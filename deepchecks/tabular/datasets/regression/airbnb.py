@@ -102,7 +102,7 @@ _FEATURES = _NUM_FEATURES + _CAT_FEATURES
 
 
 def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = True, modify_timestamps: bool = True,
-                              data_size: t.Optional[int] = 15000) \
+                              data_size: t.Optional[int] = 15000, random_state: int = 42) \
         -> t.Tuple[t.Union[Dataset, pd.DataFrame], np.ndarray]:
     """Load and returns the Airbnb NYC 2019 dataset (regression).
 
@@ -112,13 +112,15 @@ def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = T
         Represent the format of the returned value. Can be 'Dataset'|'Dataframe'
         'Dataset' will return the data as a Dataset object
         'Dataframe' will return the data as a pandas Dataframe object
-   load_train : bool , default: True
+  load_train : bool , default: True
         If True, the returned data is the train data. otherwise the test dataset.
     modify_timestamps : bool , default: True
         If True, the returned data timestamp column will be for the last 30 days.
         Otherwise, the data timestamp will be for March 2023.
     data_size : t.Optional[int] , default: 15000
         The number of samples to return. If None, returns all the data.
+    random_state : int , default 42
+        The random state to use for sampling.
     Returns
     -------
     dataset, predictions : Tuple[Union[deepchecks.Dataset, pd.DataFrame], np.ndarray]
@@ -131,10 +133,10 @@ def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = T
 
     if data_size is not None:
         if data_size < len(dataset):
-            dataset = dataset.sample(data_size, random_state=42)
+            dataset = dataset.sample(data_size, random_state=random_state)
         elif data_size > len(dataset):
             dataset = pd.concat([dataset] * math.ceil(data_size / len(dataset)), axis=0, ignore_index=True)
-            dataset = dataset.sample(data_size, random_state=42)
+            dataset = dataset.sample(data_size, random_state=random_state)
             if not load_train:
                 dataset = dataset.sort_values(_datetime)
 
