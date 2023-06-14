@@ -79,6 +79,7 @@ Description:
          - Label
          - The rental price of the unit
 """
+import math
 import time
 import typing as t
 from typing import Tuple
@@ -93,7 +94,7 @@ __all__ = ['load_data', 'load_pre_calculated_prediction', 'load_pre_calculated_f
 from numpy import ndarray
 
 _TRAIN_DATA_URL = 'https://drive.google.com/uc?export=download&id=1UWkr1BQlyyUkbsW5hHIFTr-x0evZE3Ie'
-_TEST_DATA_URL = 'https://drive.google.com/uc?export=download&id=1v_0ZyyycoFfltJ6wj_riGZoXhtPzrnqR'
+_TEST_DATA_URL = 'https://drive.google.com/uc?export=download&id=1lfpWVtDktrnsLUzCN1tkRc1jRbguEz3a'
 _target = 'price'
 _predictions = 'predictions'
 _datetime = 'timestamp'
@@ -103,7 +104,7 @@ _NUM_FEATURES = ['minimum_nights', 'number_of_reviews', 'reviews_per_month', 'ca
 _FEATURES = _NUM_FEATURES + _CAT_FEATURES
 
 
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True, modify_timestamps: bool = True,
+def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = True, modify_timestamps: bool = True,
               data_size: t.Optional[int] = 15000) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Airbnb NYC 2019 dataset (regression).
 
@@ -113,76 +114,44 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True, modify_t
         Represent the format of the returned value. Can be 'Dataset'|'Dataframe'
         'Dataset' will return the data as a Dataset object
         'Dataframe' will return the data as a pandas Dataframe object
-    as_train_test : bool , default: True
-        If True, the returned data is split into train and test exactly like the toy model
-        was trained. The first return value is the train data and the second is the test data.
-        In order to get this model, call the load_fitted_model() function.
-        Otherwise, returns a single object.
+   load_train : bool , default: True
+        If True, the returned data is the train data. otherwise the test dataset.
     modify_timestamps : bool , default: True
         If True, the returned data timestamp column will be for the last 30 days.
         Otherwise, the data timestamp will be for March 2023.
     data_size : t.Optional[int] , default: 15000
         The number of samples to return. If None, returns all the data.
-
     Returns
     -------
-    dataset : Union[deepchecks.Dataset, pd.DataFrame]
-        the data object, corresponding to the data_format attribute.
-    train_data, test_data : Tuple[Union[deepchecks.Dataset, pd.DataFrame],Union[deepchecks.Dataset, pd.DataFrame]
-        tuple if as_train_test = True. Tuple of two objects represents the dataset split to train and test sets.
+    dataset, predictions : Tuple[Union[deepchecks.Dataset, pd.DataFrame], np.ndarray]
+        Tuple of the deepchecks dataset or dataframe and the predictions.
     """
-    train = pd.read_csv(_TRAIN_DATA_URL, index_col=0).drop(_predictions, axis=1)
-    test = pd.read_csv(_TEST_DATA_URL, index_col=0).drop(_predictions, axis=1)
+    if load_train:
+        dataset = pd.read_csv(_TRAIN_DATA_URL)
+    else:
+        dataset = pd.read_csv(_TEST_DATA_URL)
 
     if data_size is not None:
-        if data_size < len(train):
-            train = train.sample(data_size, random_state=42)
-        if data_size < len(test):
-            test = test.sample(data_size, random_state=42)
+        if data_size < len(dataset):
+            dataset = dataset.sample(data_size, random_state=42)
+        elif data_size > len(dataset):
+            dataset = pd.concat([dataset] * math.ceil(data_size / len(dataset)), axis=0, ignore_index=True)
+            dataset = dataset.sample(data_size, random_state=42)
+            if not load_train:
+                dataset = dataset.sort_values(_datetime)
 
-    if modify_timestamps:
+    if modify_timestamps and not load_train:
         current_time = int(time.time())
         time_test_start = current_time - 86400 * 30  # Span data for 30 days
-        test[_datetime] = np.sort((np.random.rand(len(test)) * (current_time - time_test_start)) + time_test_start)
-        test[_datetime] = test[_datetime].apply(lambda x: pd.Timestamp(x, unit='s'))
+        dataset[_datetime] = np.sort((np.random.rand(len(dataset)) * (current_time - time_test_start)) + time_test_start)
+        dataset[_datetime] = dataset[_datetime].apply(lambda x: pd.Timestamp(x, unit='s'))
 
-    if not as_train_test:
-        dataset = pd.concat([train, test.drop(_datetime, axis=1)], axis=0, ignore_index=True)
-        if data_format == 'Dataset':
-            dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES, features=_FEATURES)
-        return dataset
-    else:
-        if data_format == 'Dataset':
-            train = Dataset(train, label=_target, cat_features=_CAT_FEATURES,
-                            features=_FEATURES)
-            test = Dataset(test, label=_target, cat_features=_CAT_FEATURES,
-                           datetime_name=_datetime, features=_FEATURES)
-        return train, test
-
-
-def load_pre_calculated_prediction(data_size: t.Optional[int] = 15000) -> Tuple[ndarray, ndarray]:
-    """Load the pre-calculated prediction for the Airbnb NYC 2019 dataset.
-
-    Parameters
-    ----------
-    data_size : t.Optional[int] , default: 15000
-        The number of samples to return. If None, returns all the data.
-
-    Returns
-    -------
-    predictions : Tuple(np.ndarray, np.ndarray)
-        The first element is the pre-calculated prediction for the train set.
-        The second element is the pre-calculated prediction for the test set.
-    """
-    usable_columns = [_target, _predictions]
-    train = pd.read_csv(_TRAIN_DATA_URL, usecols=usable_columns)
-    test = pd.read_csv(_TEST_DATA_URL, usecols=usable_columns)
-    if data_size is not None:
-        if data_size < len(train):
-            train = train.sample(data_size, random_state=42)
-        if data_size < len(test):
-            test = test.sample(data_size, random_state=42)
-    return np.asarray(train[_predictions]), np.asarray(test[_predictions])
+    predictions = np.asarray(dataset[_predictions])
+    dataset.drop(_predictions, axis=1, inplace=True)
+    if data_format == 'Dataset':
+        dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES,
+                        features=_FEATURES)
+    return dataset, predictions
 
 
 def load_pre_calculated_feature_importance() -> pd.Series:

@@ -76,8 +76,11 @@ def test_model_predict_on_wine_quality():
     assert_dataset_module(wine_quality)
 
 def test_sampling_airbnb():
-    train_sampled , _ = airbnb.load_data(data_format='DataFrame')
-    pred_full, _ = airbnb.load_pre_calculated_prediction(data_size=None)
-    pred_sampled, _ = airbnb.load_pre_calculated_prediction()
-
-    assert list(pred_full[train_sampled.index]) == list(pred_sampled)
+    train_sampled , train_pred_sampled = airbnb.load_data_and_predictions(data_format='DataFrame')
+    assert len(train_sampled) == len(train_pred_sampled) == 15_000
+    train_inflated , train_pred_inflated = airbnb.load_data_and_predictions(data_format='DataFrame', data_size=100_000)
+    assert len(train_inflated) == len(train_pred_inflated) == 100_000
+    test_sampled , test_pred_sampled = airbnb.load_data_and_predictions(load_train=False)
+    assert len(test_sampled) == len(test_pred_sampled) == 15_000
+    test_inflated , test_pred_inflated = airbnb.load_data_and_predictions(load_train=False, data_size=100_000)
+    assert len(test_inflated) == len(test_pred_inflated) == 100_000
