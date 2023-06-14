@@ -35,11 +35,11 @@ Deepchecks is a holistic open-source solution for all of your AI & ML validation
 enabling you to thoroughly test your data and models from research to production.
 
 
-<a target="_blank" href="https://deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
+<a target="_blank" href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=logo">
    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/images/readme/cont_validation_dark.png">
-      <source media="(prefers-color-scheme: light)" srcset="docs/source/_static/images/readme/cont_validation_light.png">
-      <img alt="Deepchecks continuous validation parts." src="docs/source/_static/images//readme/cont_validation_light.png">
+      <source media="(prefers-color-scheme: dark)" srcset="docs/source/_static/images/readme/deepchecks_continuous_validation_dark.png">
+      <source media="(prefers-color-scheme: light)" srcset="docs/source/_static/images/readme/deepchecks_continuous_validation_light.png">
+      <img alt="Deepchecks continuous validation parts." src="docs/source/_static/images//readme/deepchecks_continuous_validation_light.png">
    </picture>
 </a>
 
@@ -55,29 +55,6 @@ enabling you to thoroughly test your data and models from research to production
    &emsp;
 </p>
    
-
-## 🧮 How does it work?
-
-At its core, deepchecks includes a wide variety of built-in Checks,
-for testing all types of data and model related issues.
-These checks are implemented for various models and data types (Tabular, NLP, Vision), 
-and can easily be customized and expanded. 
-
-The check results can be used to automatically make informed decisions
-about your model's production-readiness, and for monitoring it over time in production.
-The check results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
-processed with code (using their pythonic / json output), and inspected and collaborated on with Deepchecks' dynamic UI 
-(for examining test results and for production monitoring).
-
-<!---
-At its core, Deepchecks has a wide variety of built-in Checks and Suites (lists of checks) 
-for all data types (Tabular, NLP, Vision), 
-These includes checks for validating your model's performance (e.g. identify weak segments), the data's 
-distribution (e.g. detect drifts or leakages), data integrity (e.g. find conflicting labels) and more.
-These checks results can be run manually (e.g. during research) or trigerred automatically (e.g. during CI
-and production monitoring) and enable automatically making informed decisions regarding your model pipelines' 
-production-readiness, and behavior over time.
---->
 
 ## 🧩 Components
 
@@ -126,17 +103,22 @@ Check out the full installation instructions for deepchecks testing [here](https
 
 #### Deepchecks Monitoring Installation
 
-To use deepchecks for production monitoring, you can either use our SaaS service, or deploy a local instance in one line on Linux/MacOS (Windows is WIP!) with Docker:
+To use deepchecks for production monitoring, you can either use our SaaS service, or deploy a local instance in one line on Linux/MacOS (Windows is WIP!) with Docker.
+Create a new directory for the installation files, open a terminal within that directory and run the following:
 
 ```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/deepchecks/monitoring/main/deploy/deploy-oss.sh)"
+pip install deepchecks-installer
+deepchecks-installer monitoring-install
 ```
 
-This will automatically download the necessary dependencies and start the application locally.
+This will automatically download the necessary dependencies, run the installation prcoess
+and then start the application locally.
+
+The installation will take a few minutes. Then you can open the deployment url (default is http://localhost),
+and start the system onboarding. Check out the full monitoring [open source installation & quickstart](https://docs.deepchecks.com/monitoring/stable/getting-started/deploy_self_host_open_source.html).
+
 Note that the open source product is built such that each deployment supports monitoring of
 a single model.
-
-Check out the full installation instructions for deepchecks monitoring [here](https://docs.deepchecks.com/monitoring/stable/installation/index.html). 
 
 </details>
 
@@ -173,7 +155,7 @@ suite_result.save_as_html() # replace this with suite_result.show() or suite_res
 The output will be a report that enables you to inspect the status and results of the chosen checks:
 
 <p align="center">
-   <img src="docs/source/_static/images/general/model_evaluation_suite.gif" width="800">
+   <img src="docs/source/_static/images/readme/model-evaluation-suite.gif" width="600">
 </p>
 
 </details>
@@ -186,13 +168,13 @@ The output will be a report that enables you to inspect the status and results o
    </summary>
 
 Jump right into the 
-[monitoring quickstart docs](https://docs.deepchecks.com/monitoring/stable/user-guide/tabular/auto_quickstarts/plot_quickstart.html)
+[open source monitoring quickstart docs](https://docs.deepchecks.com/monitoring/stable/getting-started/deploy_self_host_open_source.html)
 to have it up and running on your data.
 You'll then be able to see the checks results over time, set alerts, and interact
 with the dynamic deepchecks UI that looks like this:
 
 <p align="center">
-   <img src="docs/source/_static/images/general/monitoring-app-ui.gif" width="800">
+   <img src="docs/source/_static/images/general/monitoring-app-ui.gif" width="600">
 </p>
 
 </details>
@@ -208,13 +190,38 @@ Deepchecks managed CI & Testing management is currently in closed preview.
 [Book a demo](https://deepchecks.com/book-demo/) for more information about the offering.
 
 <p align="center">
-   <img src="docs/source/_static/images/general/deepchecks-ci-checks.png" width="800">
+   <img src="docs/source/_static/images/general/deepchecks-ci-checks.png" width="600">
 </p>
 
 For building and maintaining your own CI process while utilizing Deepchecks Testing for it,
 check out our [docs for Using Deepchecks in CI/CD](https://docs.deepchecks.com/stable/general/usage/ci_cd.html).
 
 </details>
+
+
+## 🧮 How does it work?
+
+At its core, deepchecks includes a wide variety of built-in Checks,
+for testing all types of data and model related issues.
+These checks are implemented for various models and data types (Tabular, NLP, Vision), 
+and can easily be customized and expanded. 
+
+The check results can be used to automatically make informed decisions
+about your model's production-readiness, and for monitoring it over time in production.
+The check results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
+processed with code (using their pythonic / json output), and inspected and collaborated on with Deepchecks' dynamic UI 
+(for examining test results and for production monitoring).
+
+<!---
+At its core, Deepchecks has a wide variety of built-in Checks and Suites (lists of checks) 
+for all data types (Tabular, NLP, Vision), 
+These includes checks for validating your model's performance (e.g. identify weak segments), the data's 
+distribution (e.g. detect drifts or leakages), data integrity (e.g. find conflicting labels) and more.
+These checks results can be run manually (e.g. during research) or trigerred automatically (e.g. during CI
+and production monitoring) and enable automatically making informed decisions regarding your model pipelines' 
+production-readiness, and behavior over time.
+--->
+
 
 <details open>
    <summary>
@@ -249,6 +256,7 @@ processed with code (using their json output), and inspected and colloaborated u
 (for examining test results and for production monitoring).
 Optional conditions can be added to each check, to automatically validate whether it passed or not.
 --->
+
 
 ## 📜 Open Source vs Paid 
 

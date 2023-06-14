@@ -11,11 +11,10 @@
 """Test for the NLP TextPropertyOutliers check"""
 
 import pandas as pd
-from hamcrest import assert_that, calling, close_to, equal_to, raises
+from hamcrest import assert_that, close_to, equal_to
 
-from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp.checks import TextPropertyOutliers
-from deepchecks.utils.strings import format_percent
+from deepchecks.nlp.text_data import TextData
 from tests.base.utils import equal_condition_result
 
 
@@ -80,7 +79,36 @@ def test_tweet_emotion_condition(tweet_emotion_train_test_textdata):
 def test_not_enough_samples(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
-    check = TextPropertyOutliers(min_samples=6000)
 
-    assert_that(calling(check.run).with_args(test),
-                raises(NotEnoughSamplesError, 'Need at least 6000 non-null samples to calculate outliers.'))
+    # Act
+    check = TextPropertyOutliers(min_samples=6000)
+    result = check.run(test)
+
+    # Assert
+    for _, value in result.value.items():
+        assert_that(value, equal_to('Not enough non-null samples to calculate outliers(min_samples=6000).'))
+
+
+def test_non_numeric_values_for_properties():
+    # Arrange
+    raw_text = ['This is an example.', 'Another example here.'] * 6
+    labels = ['positive', 'negative'] * 6
+    task_type = 'text_classification'
+    text_data = TextData(raw_text=raw_text, label=labels, task_type=task_type)
+    text_data.calculate_builtin_properties(include_properties=['Sentences Count', 'Average Word Length',
+                                                               'Text Length'])
+    text_data.properties['Sentences Count'].iloc[9] = 'as'
+    text_data.properties['Average Word Length'].iloc[9] = 19
+    text_data.properties['Average Word Length'].iloc[8] = '90'
+    text_data.properties['Text Length'].iloc[8] = ['90', 'asdh', None]
+
+    # Act
+    check = TextPropertyOutliers()
+    result = check.run(text_data)
+
+    # Assert
+    assert_that(result.value['Sentences Count'], equal_to('Numeric property contains non-numeric values.'))
+    assert_that(len(result.value['Average Word Length']['indices']), equal_to(2))
+    assert_that(result.value['Average Word Length']['lower_limit'], equal_to(3.75))
+    assert_that(result.value['Average Word Length']['upper_limit'], equal_to(10.5))
+    assert_that(result.value['Text Length'], equal_to('Numeric property contains non-numeric values.'))
