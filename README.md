@@ -108,7 +108,7 @@ Create a new directory for the installation files, open a terminal within that d
 
 ```
 pip install deepchecks-installer
-deepchecks-installer monitoring-install
+deepchecks-installer install-monitoring
 ```
 
 This will automatically download the necessary dependencies, run the installation prcoess
