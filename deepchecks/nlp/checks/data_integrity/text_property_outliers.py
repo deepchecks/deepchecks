@@ -73,8 +73,6 @@ class TextPropertyOutliers(SingleDatasetCheck):
         cat_properties = dataset.categorical_properties
         properties = df_properties.to_dict(orient='list')
 
-        # The values are in the same order as the batch order, so always keeps the same order in order to access
-        # the original sample at this index location
         for name, values in properties.items():
             is_numeric = name not in cat_properties
 
