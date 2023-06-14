@@ -82,16 +82,13 @@ Description:
 import math
 import time
 import typing as t
-from typing import Tuple
 
 import numpy as np
 import pandas as pd
 
 from deepchecks.tabular.dataset import Dataset
 
-__all__ = ['load_data', 'load_pre_calculated_prediction', 'load_pre_calculated_feature_importance']
-
-from numpy import ndarray
+__all__ = ['load_data_and_predictions', 'load_pre_calculated_feature_importance']
 
 _TRAIN_DATA_URL = 'https://drive.google.com/uc?export=download&id=1UWkr1BQlyyUkbsW5hHIFTr-x0evZE3Ie'
 _TEST_DATA_URL = 'https://drive.google.com/uc?export=download&id=1lfpWVtDktrnsLUzCN1tkRc1jRbguEz3a'
@@ -105,7 +102,7 @@ _FEATURES = _NUM_FEATURES + _CAT_FEATURES
 
 
 def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = True, modify_timestamps: bool = True,
-              data_size: t.Optional[int] = 15000) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+              data_size: t.Optional[int] = 15000) -> t.Tuple[t.Union[Dataset, pd.DataFrame], np.ndarray]:
     """Load and returns the Airbnb NYC 2019 dataset (regression).
 
     Parameters
@@ -143,7 +140,9 @@ def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = T
     if modify_timestamps and not load_train:
         current_time = int(time.time())
         time_test_start = current_time - 86400 * 30  # Span data for 30 days
-        dataset[_datetime] = np.sort((np.random.rand(len(dataset)) * (current_time - time_test_start)) + time_test_start)
+        dataset[_datetime] = np.sort(
+            (np.random.rand(len(dataset)) * (current_time - time_test_start)) + time_test_start
+        )
         dataset[_datetime] = dataset[_datetime].apply(lambda x: pd.Timestamp(x, unit='s'))
 
     predictions = np.asarray(dataset[_predictions])
