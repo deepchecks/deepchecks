@@ -102,7 +102,8 @@ _FEATURES = _NUM_FEATURES + _CAT_FEATURES
 
 
 def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = True, modify_timestamps: bool = True,
-              data_size: t.Optional[int] = 15000) -> t.Tuple[t.Union[Dataset, pd.DataFrame], np.ndarray]:
+                              data_size: t.Optional[int] = 15000) \
+        -> t.Tuple[t.Union[Dataset, pd.DataFrame], np.ndarray]:
     """Load and returns the Airbnb NYC 2019 dataset (regression).
 
     Parameters
@@ -149,7 +150,7 @@ def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = T
     dataset.drop(_predictions, axis=1, inplace=True)
     if data_format == 'Dataset':
         dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES,
-                        features=_FEATURES)
+                          features=_FEATURES)
     return dataset, predictions
 
 
