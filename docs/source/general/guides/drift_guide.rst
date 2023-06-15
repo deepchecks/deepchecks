@@ -329,6 +329,9 @@ Text (NLP) Checks
 
 :ref:`nlp__embeddings_drift`:
 
+In the following code, we load the embeddings from a precalculated file. For more on loading embeddings,
+and additional methods, see the :ref:`nlp__embeddings_guide`.
+
 .. code-block:: python
 
     # Load the embeddings from a file:
@@ -339,12 +342,12 @@ Text (NLP) Checks
     train_dataset.calculate_default_embeddings()
     test_dataset.calculate_default_embeddings()
 
-    # For more on loading embeddings, see the :ref:`nlp__embeddings_guide`.
 
     # Run the check:
     from deepchecks.nlp.checks import TextEmbeddingsDrift
     check = TextEmbeddingsDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
 
 :ref:`nlp__property_drift`:
 
