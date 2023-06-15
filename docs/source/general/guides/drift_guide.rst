@@ -191,7 +191,10 @@ Text (NLP) Data
 Regarding `data <#data-drift>`__ or `concept drift <#concept-drift>`__
 In text data, we can't measure drift on the text directly, as text is not structured data that can be easily quantified or compared.
 However, we can use different methods to represent the text as a structured variable, and then measure drift on that variable.
-In deepchecks-nlp, we use 2 such methods: :ref:`Text Embeddings <nlp__embeddings_guide>` and :ref:`Text Properties <nlp__properties_guide>`.
+In deepchecks-nlp, we use 2 such methods:
+
+- :ref:`Text Embeddings <nlp__embeddings_guide>`
+- :ref:`Text Properties <nlp__properties_guide>`
 
 Both methods have their pros and cons when used to measure drift: Properties are more explainable, but will not necessarily
 capture all the information in the text. Embeddings are able to find more complex patterns in the text, but these
