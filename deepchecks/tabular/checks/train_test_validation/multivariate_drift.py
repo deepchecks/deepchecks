@@ -101,9 +101,10 @@ class MultivariateDrift(TrainTestCheck):
         cat_features = train_dataset.cat_features
         numerical_features = train_dataset.numerical_features
 
-        sample_size = min(train_dataset.n_samples, test_dataset.n_samples)
-        if self.n_samples is not None:
-            sample_size = min(sample_size, self.n_samples)
+        if self.n_samples is None:
+            sample_size = min(train_dataset.n_samples, test_dataset.n_samples)
+        else:
+            sample_size = min(train_dataset.n_samples, test_dataset.n_samples, self.n_samples)
 
         headnote = """
         <span>
