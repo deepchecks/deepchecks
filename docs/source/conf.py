@@ -443,7 +443,7 @@ html_sidebars = {
 
 # Path to logo and favicon
 #
-html_logo = "./_static/images/general/deepchecks_logo.svg"
+html_logo = "./_static/images/general/deepchecks-testing-logo.svg"
 html_favicon = "./_static/favicons/favicon.ico"
 
 # If true, the reST sources are included in the HTML build as _sources/name. The default is True.
@@ -466,6 +466,10 @@ html_theme_options = {
         "version_match": version,
         "url_template": "https://docs.deepchecks.com/{version}/",
     },
+    "external_links": [
+      {"name": "Monitoring", "url": "https://docs.deepchecks.com/monitoring"},
+      {"name": "CI", "url": "https://docs.deepchecks.com/stable/general/usage/ci_cd.html"}
+    ],
     "icon_links": [
         {
             "name": "GitHub",
@@ -474,7 +478,7 @@ html_theme_options = {
         },
         {
             "name": "Slack",
-            "url": "https://deepcheckscommunity.slack.com/join/shared_invite/zt-y28sjt1v-PBT50S3uoyWui_Deg5L_jg#/shared-invite/email",
+            "url": "https://deepchecks.com/slack",
             "icon": "fab fa-slack",
         },
         {

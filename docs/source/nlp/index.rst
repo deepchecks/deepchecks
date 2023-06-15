@@ -13,6 +13,11 @@ Help us develop it further! You can provide feedback and suggestions as issues o
 `GitHub <https://github.com/deepchecks/deepchecks/issues>`__, or by joining our
 `Community Slack <https://www.deepchecks.com/slack>`__.
 
+.. image:: /_static/images/general/nlp-checks.gif
+   :alt: Deepchecks NLP Check Results
+   :width: 50%
+   :align: center
+
 .. _nlp__index_tutorials:
 
 Tutorials
@@ -50,11 +55,11 @@ Checks Gallery
 Below in the full list of checks and suites available in the deepchecks nlp sub package.
 
 .. toctree::
+    :hidden:
     :titlesonly:
-    :maxdepth: 0
+    :maxdepth: 2
     :caption: Checks Gallery
 
     auto_checks/data_integrity/index
     auto_checks/train_test_validation/index
     auto_checks/model_evaluation/index
-
