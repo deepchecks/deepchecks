@@ -177,7 +177,7 @@ which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to
 For drift in your label's distribution, deepchecks offers the :ref:`tabular__label_drift`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :ref:`tabular__prediction_drift`,
+In cases where the labels are not available, we strongly recommend to also use the :ref:`tabular__prediction_drift`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#tabular-checks>`__
@@ -189,9 +189,9 @@ Text (NLP) Data
 ---------------
 
 Regarding `data <#data-drift>`__ or `concept drift <#concept-drift>`__
-In text data, we can't measure drift on the text directly, as text is not structured data that can be measured.
+In text data, we can't measure drift on the text directly, as text is not structured data that can be easily quantified or compared.
 However, we can use different methods to represent the text as a structured variable, and then measure drift on that variable.
-In deepchecks-NLP, we use 2 such methods: :ref:`Text Embeddings <nlp__embeddings_guide>` and :ref:`Text Properties <nlp__properties_guide>`.
+In deepchecks-nlp, we use 2 such methods: :ref:`Text Embeddings <nlp__embeddings_guide>` and :ref:`Text Properties <nlp__properties_guide>`.
 
 Both methods have their pros and cons when used to measure drift: Properties are more explainable, but will not necessarily
 capture all the information in the text. Embeddings are able to find more complex patterns in the text, but these
@@ -200,13 +200,13 @@ patterns may be difficult to explain. Therefore, we recommend to use both method
 
 #. The :ref:`Text Embeddings Drift Check <nlp__embeddings_drift>` uses embeddings to measure drift using a
    `domain classifier <#detection-by-domain-classifier>`__
-#. The :ref:`Text Properties Drift Check <nlp__properties_drift>` uses properties to measure drift using
+#. The :ref:`Text Property Drift Check <nlp__property_drift>` uses properties to measure drift using
    `univariate measures <#detection-by-univariate-measure>`__
 
 For drift in your label's distribution, deepchecks offers the :ref:`nlp__label_drift`,
 which uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :ref:`nlp__prediction_drift`,
+In cases where the labels are not available, we strongly recommend to also use the :ref:`nlp__prediction_drift`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#text-nlp-checks>`__
@@ -228,7 +228,7 @@ which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to
 For drift in your label's distribution, deepchecks offers the :ref:`vision__label_drift`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :ref:`vision__prediction_drift`,
+In cases where the labels are not available, we strongly recommend to also use the :ref:`vision__prediction_drift`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#computer-vision-checks>`__
@@ -339,9 +339,9 @@ Text (NLP) Checks
     train_dataset.calculate_default_embeddings()
     test_dataset.calculate_default_embeddings()
 
-    # For more on loading embeddings, see the :ref:`nlp__embeddings_guide'.
+    # For more on loading embeddings, see the :ref:`nlp__embeddings_guide`.
 
-    # Calculate the check:
+    # Run the check:
     from deepchecks.nlp.checks import TextEmbeddingsDrift
     check = TextEmbeddingsDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
