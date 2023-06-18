@@ -81,7 +81,7 @@ class PartialBoostingModel:
             self.model = model
 
     @classmethod
-    def _raise_not_suppored_model_error(cls, model_class):
+    def _raise_not_supported_model_error(cls, model_class):
         if model_class != '_DummyModel':
             raise ModelValidationError(cls._UNSUPPORTED_MODEL_ERROR.format(
                 supported_models=cls._SUPPORTED_MODELS,
@@ -100,7 +100,7 @@ class PartialBoostingModel:
         elif self.model_class == 'CatBoostClassifier':
             return self.model.predict_proba(x, ntree_end=self.step)
         else:
-            self._raise_not_suppored_model_error(self.model_class)
+            self._raise_not_supported_model_error(self.model_class)
 
     def predict(self, x):
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
@@ -113,7 +113,7 @@ class PartialBoostingModel:
         elif self.model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return self.model.predict(x, ntree_end=self.step)
         else:
-            self._raise_not_suppored_model_error(self.model_class)
+            self._raise_not_supported_model_error(self.model_class)
 
     @classmethod
     def n_estimators(cls, model):
@@ -129,7 +129,7 @@ class PartialBoostingModel:
         elif model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return model.tree_count_
         else:
-            cls._raise_not_suppored_model_error(model_class=model_class)
+            cls._raise_not_supported_model_error(model_class=model_class)
 
 
 class BoostingOverfit(TrainTestCheck):
