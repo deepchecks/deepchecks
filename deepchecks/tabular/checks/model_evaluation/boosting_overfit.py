@@ -32,10 +32,12 @@ __all__ = ['BoostingOverfit']
 class PartialBoostingModel:
     """Wrapper for boosting models which limits the number of estimators being used in the prediction."""
 
-    _UNSUPPORTED_MODEL_ERROR = (
-        'Check is relevant for Boosting models of type '
-        '{supported_models}, but received model of type {model_type}'
-    )
+    _UNSUPPORTED_MODEL_ERROR = \
+        'Check is relevant for Boosting models of type {supported_models}, but received model of type {model_type}'
+
+    _NO_MODEL_ERROR = \
+        'Check is relevant only when receiving the model, but predictions/probabilities were received instead. ' \
+        'In order to use this check, please pass the model to the run() method.'
 
     _SUPPORTED_CLASSIFICATION_MODELS = (
         'AdaBoostClassifier',
@@ -78,6 +80,16 @@ class PartialBoostingModel:
         else:
             self.model = model
 
+    @classmethod
+    def _raise_not_supported_model_error(cls, model_class):
+        if model_class != '_DummyModel':
+            raise ModelValidationError(cls._UNSUPPORTED_MODEL_ERROR.format(
+                supported_models=cls._SUPPORTED_MODELS,
+                model_type=model_class
+            ))
+        else:
+            raise ModelValidationError(cls._NO_MODEL_ERROR)
+
     def predict_proba(self, x):
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier']:
             return self.model.predict_proba(x)
@@ -88,10 +100,7 @@ class PartialBoostingModel:
         elif self.model_class == 'CatBoostClassifier':
             return self.model.predict_proba(x, ntree_end=self.step)
         else:
-            raise ModelValidationError(self._UNSUPPORTED_MODEL_ERROR.format(
-                supported_models=self._SUPPORTED_CLASSIFICATION_MODELS,
-                model_type=self.model_class
-            ))
+            self._raise_not_supported_model_error(self.model_class)
 
     def predict(self, x):
         if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
@@ -104,10 +113,7 @@ class PartialBoostingModel:
         elif self.model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return self.model.predict(x, ntree_end=self.step)
         else:
-            raise ModelValidationError(self._UNSUPPORTED_MODEL_ERROR.format(
-                supported_models=self._SUPPORTED_MODELS,
-                model_type=self.model_class
-            ))
+            self._raise_not_supported_model_error(self.model_class)
 
     @classmethod
     def n_estimators(cls, model):
@@ -123,10 +129,7 @@ class PartialBoostingModel:
         elif model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
             return model.tree_count_
         else:
-            raise ModelValidationError(cls._UNSUPPORTED_MODEL_ERROR.format(
-                supported_models=cls._SUPPORTED_MODELS,
-                model_type=model_class
-            ))
+            cls._raise_not_supported_model_error(model_class=model_class)
 
 
 class BoostingOverfit(TrainTestCheck):
