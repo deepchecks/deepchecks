@@ -150,4 +150,4 @@ class Suite(BaseSuite):
 
             results[-1].run_time = int(round(time.time() - start, 0))
 
-        return SuiteResult(self.name, results, context)
+        return SuiteResult(self.name, results)
