@@ -130,10 +130,6 @@ class PartialBoostingModel:
             return model.tree_count_
         else:
             cls._raise_not_suppored_model_error(model_class=model_class)
-            # raise ModelValidationError(cls._UNSUPPORTED_MODEL_ERROR.format(
-            #     supported_models=cls._SUPPORTED_MODELS,
-            #     model_type=model_class
-            # ))
 
 
 class BoostingOverfit(TrainTestCheck):
