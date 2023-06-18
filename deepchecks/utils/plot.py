@@ -31,6 +31,11 @@ metric_colors = ['rgb(102, 197, 204)',
                  'rgb(139, 224, 164)',
                  'rgb(180, 151, 231)']
 
+feature_distribution_colors = {
+    'measure': '#00008b', # dark blue
+    'feature': 'rgba(105, 179, 162, 1)'
+}
+
 common_and_outlier_colors = {'common': 'rgba(105, 179, 162, 1)',
                              'outliers': 'rgba(179, 106, 106, 1)',
                              'common_fill': 'rgba(105, 179, 162, 0.7)',

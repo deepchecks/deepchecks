@@ -16,6 +16,8 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.input_validations import (ColumnTypes, validate_length_and_calculate_column_types,
@@ -27,6 +29,7 @@ from deepchecks.nlp.utils.text_embeddings import calculate_builtin_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_builtin_properties, get_builtin_properties_types
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
+from deepchecks.utils.plot import feature_distribution_colors
 from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = ['TextData']
@@ -732,6 +735,126 @@ class TextData:
         if n_samples is None:
             return False
         return self.n_samples > n_samples
+
+
+    def describe(self, n_properties: t.Optional[int] = 4, include_properties: t.Optional[t.List[str]] = None,
+                 ignore_properties: t.Optional[t.List[str]] = None):
+        """Provides holistic view of the data.
+        
+        Parameters
+        ----------
+        n_properties : int, default 4
+            Number of properties to consider for generating property distribution graphs. If include_properties
+            or ignore_properties is provided, this value is ignore.
+        include_properties : List[str], default None
+            List of property names to consider for generating property distribution graphs. If None, all the
+            properties are considered. Cannot be used together with ignore_properties parameter.
+        include_properties : List[str], default None
+            List of property names to ignore while generating proeprty distribution graphs. If None, no
+            properties will be ignored and all the properties will be used to generate the distribution
+            plots. Cannot be used together with include_properties parameter.
+        Returns
+        -------
+        Displays the Plotly Figure.
+        """
+        properties = []
+        if include_properties is not None and ignore_properties is not None:
+            raise ValueError('Cannot use include_properties and ignore_properties parameters together.')
+        if include_properties is not None:
+            properties = include_properties
+        elif ignore_properties is not None:
+            properties = [property for property in list(self.properties.columns) if property not in ignore_properties]
+        elif n_properties > len(self.properties.columns):
+            raise ValueError(f'There are only {len(self.properties.columns)} properties available.')
+        else:
+            properties = list(self.properties.columns)[:n_properties]
+
+        fig = self._text_data_describe_plot(properties=properties)
+        
+        fig.update_layout(height=450*(n_properties + 1))
+        fig.show()
+
+
+    def _text_data_describe_plot(self, properties: t.Optional[t.List[str]]):
+        specs = [[{'type': 'pie'}]] + [[{"type": "xy"}] for _ in range(len(properties))]
+        fig = make_subplots(rows=len(properties) + 1, cols=1, specs=specs,
+                            subplot_titles=['Label Distribution<br><sup>Out of all the annotated data</sup><br><br>']
+                            + [prop + ' Property Distribution' for prop in properties])
+
+        label_series = pd.Series(self.label)
+        label_counts = label_series.value_counts()
+        non_annotated_count = pd.isna(self.label).sum()
+        annotated_count = sum(list(label_counts)) - non_annotated_count
+        annotation_ratio = round(annotated_count / (annotated_count + non_annotated_count),2)
+        count_categorical_properties = len(self.categorical_properties)
+        count_numerical_properties = len(self.properties.columns) - len(self.categorical_properties)
+        text = f'<b>Number of samples:</b> {self.n_samples}<br><b>Annotation Ratio:</b> {annotation_ratio}%<br>' \
+        f'Metadata columns: {",".join(self.metadata.columns)}<br><b>Properties:</b>' \
+            f'<i>{count_categorical_properties}</i> categorical and <i>{count_numerical_properties}</i> numerical' \
+                f'<br><b>List of all properties:</b> {",".join(self.properties.columns)}'
+        fig.add_trace(go.Pie(labels=list(label_counts.index), values=list(label_counts),
+                                hovertemplate='%{label}: %{value} samples<extra></extra>',textinfo="label+percent",
+                                showlegend=False, marker=dict(line=dict(color='#000000', width=1)),
+                                textposition="inside"),row=1, col=1)        
+        
+        curr_row = 2
+        for property_name in properties:
+            property_value_count = self.properties[property_name].value_counts()
+            property_value_count = property_value_count.sort_index()
+            x_value = list(property_value_count.index)
+            total = sum(list(property_value_count))
+            y_value = list(property_value_count)
+            # y_value = [round(val*100/total, 2) for val in list(property_value_count)]
+
+            if property_name in self.categorical_properties:
+                fig.add_trace(go.Bar(x=x_value, y=y_value,hovertemplate='<b>Value:</b> %{x}<br>' \
+                                     '<b>Samples:</b> %{y}<extra></extra>', showlegend=False),
+                                     row=curr_row, col=1)
+            else:
+                mean = np.mean(x_value)
+                percentile_90 = np.percentile(x_value, 90)
+                percentile_10 = np.percentile(x_value, 10)
+                median = np.median(x_value)
+
+                # Text property distribution
+                fig.add_trace(go.Scatter(x=x_value, y=y_value, fill='tozeroy',
+                                        line=dict(color=feature_distribution_colors['feature'], shape='linear', width=5), showlegend=False,
+                                        hovertemplate="<b>Value:</b> %{x}<br><b>Samples:</b> %{y}<extra></extra>"),
+                                        row=curr_row, col=1)
+                # Mean line on the scatter plot
+                fig.add_shape(type="line", x0=mean, y0=0, x1=mean, y1=max(y_value),
+                            line=dict(color=feature_distribution_colors['measure'],dash="dash",width=3),
+                            row=curr_row, col=1)
+                fig.add_annotation(x=mean, y=max(y_value),text='Mean',showarrow=False,xanchor='left',yanchor='bottom',
+                                font=dict(size=12), row=curr_row, col=1)
+
+                # Median line on the scatter plot
+                fig.add_shape(type="line", x0=median, y0=0, x1=median, y1=max(y_value),
+                            line=dict(color=feature_distribution_colors['measure'],dash="dot",width=3),
+                            row=curr_row, col=1)
+                fig.add_annotation(x=mean, y=max(y_value),text='Median',showarrow=False,xanchor='right',
+                                yanchor='bottom',font=dict(size=12), row=curr_row, col=1)
+
+                # 10th Percentile line on the scatter plot
+                fig.add_shape(type="line", x0=percentile_10, y0=0, x1=percentile_10, y1=max(y_value),
+                            line=dict(color=feature_distribution_colors['measure'],dash="dashdot",width=3),
+                            row=curr_row, col=1)
+                fig.add_annotation(x=percentile_10, y=max(y_value),text='10<sup>th</sup> Percentile',showarrow=False,
+                                xanchor='left',yanchor='top',font=dict(size=12), row=curr_row, col=1)
+
+                # 90th Percentile line on the scatter plot
+                fig.add_shape(type="line", x0=percentile_90, y0=0, x1=percentile_90, y1=max(y_value),
+                            line=dict(color=feature_distribution_colors['measure'],dash="dashdot",width=3),
+                            row=curr_row, col=1)
+                fig.add_annotation(x=percentile_90, y=max(y_value),text='90<sup>th</sup> Percentile',showarrow=False,
+                                xanchor='right',yanchor='bottom',font=dict(size=12), row=curr_row, col=1)
+
+                fig.update_yaxes(title="Occurrences",row=curr_row, col=1)
+                fig.update_xaxes(title=property_name,row=curr_row, col=1)
+
+            curr_row += 1
+
+        return fig
 
 
 @contextlib.contextmanager
