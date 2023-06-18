@@ -67,11 +67,13 @@ class SuiteResult(DisplayableResult):
         self,
         name: str,
         results: List['check_types.BaseCheckResult'],
+        context=None,
         extra_info: Optional[List[str]] = None,
     ):
         """Initialize suite result."""
         self.name = name
         self.results = sort_check_results(results)
+        self.context = context
         self.extra_info = extra_info or []
 
         # NOTE:
