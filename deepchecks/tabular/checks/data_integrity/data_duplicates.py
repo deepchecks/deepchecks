@@ -45,13 +45,13 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract, SingleDatasetCh
     """
 
     def __init__(
-        self,
-        columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_to_show: int = 5,
-        n_samples: int = 10_000_000,
-        random_state: int = 42,
-        **kwargs
+            self,
+            columns: Union[Hashable, List[Hashable], None] = None,
+            ignore_columns: Union[Hashable, List[Hashable], None] = None,
+            n_to_show: int = 5,
+            n_samples: int = 10_000_000,
+            random_state: int = 42,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns

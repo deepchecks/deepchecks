@@ -16,6 +16,7 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular._shared_docs import docstrings
@@ -29,7 +30,7 @@ __all__ = ['StringMismatch']
 
 
 @docstrings
-class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
+class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckFixMixin):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
     This check tests all the categorical columns within a dataset and search for variants of similar strings.
@@ -56,14 +57,14 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
     """
 
     def __init__(
-        self,
-        columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_top_columns: int = 10,
-        aggregation_method: Optional[str] = 'max',
-        n_samples: int = 1_000_000,
-        random_state: int = 42,
-        **kwargs
+            self,
+            columns: Union[Hashable, List[Hashable], None] = None,
+            ignore_columns: Union[Hashable, List[Hashable], None] = None,
+            n_top_columns: int = 10,
+            aggregation_method: Optional[str] = 'max',
+            n_samples: int = 1_000_000,
+            random_state: int = 42,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -160,6 +161,7 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
         max_ratio : float , default: 0.01
             Maximum percent of variants allowed in data.
         """
+
         def condition(result, max_ratio: float):
             not_passing_columns = {}
             for col, baseforms in result['columns'].items():
@@ -177,6 +179,43 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
 
         name = f'Ratio of variants is less or equal to {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
+
+    def fix_logic(self, context: Context, check_result, dataset_kind) -> Context:
+        """Run fix."""
+        dataset = context.get_data_by_kind(dataset_kind)
+        data = dataset.data.copy()
+
+        for col, variants in check_result.value['columns'].items():
+            for baseform, details in variants.items():
+                most_common_variant = sorted([(var['variant'], var['percent']) for var in details],
+                                             key=lambda x: x[1], reverse=True)[0][0]
+                all_variants = [var['variant'] for var in details]
+                data[col] = data[col].apply(lambda x: most_common_variant if x in all_variants else x)
+
+        context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
+        return context
+
+    @property
+    def fix_params(self):
+        """Return fix params for display."""
+        return {}
+
+    @property
+    def problem_description(self):
+        """Return problem description."""
+        return """String variants are found in data. This can be caused by typos, different ways of writing the same
+                  thing, etc. This can decrease model performance as the model cannot connect the different variants."""
+
+    @property
+    def manual_solution_description(self):
+        """Return manual solution description."""
+        return """Change variants to the preferred form of original string."""
+
+    @property
+    def automatic_solution_description(self):
+        """Return automatic solution description."""
+        return """In each column, change each variant to the most common one."""
+
 
 
 def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
