@@ -72,6 +72,15 @@ class BaseContext(ABC):
         else:
             raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
 
+    def set_dataset_by_kind(self, kind: DatasetKind, dataset):
+        """Set the relevant Dataset by given kind."""
+        if kind == DatasetKind.TRAIN:
+            self._train = dataset
+        elif kind == DatasetKind.TEST:
+            self._test = dataset
+        else:
+            raise DeepchecksValueError(f'Unexpected dataset kind {kind}')
+
     def finalize_check_result(self, check_result, check, dataset_kind: DatasetKind = None):
         """Run final processing on a check result which includes validation, conditions processing and sampling\
         footnote."""

@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 from hamcrest import assert_that, calling, close_to, equal_to, has_items, has_length, raises
 
+from deepchecks import Dataset
 from deepchecks.core import ConditionCategory
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.data_duplicates import DataDuplicates
@@ -146,3 +147,48 @@ def test_condition():
         equal_condition_result(is_pass=True,
                                details='Found 0% duplicate data',
                                name='Duplicate data ratio is less or equal to 0%')))
+
+
+def test_fix():
+    dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
+    check_obj = DataDuplicates()
+    assert_that(check_obj.run(dataset).value, close_to(0.40, 0.01))
+
+    dataset = check_obj.fix(dataset)
+    assert_that(check_obj.run(dataset).value, equal_to(0))
+    assert_that(dataset.n_samples, equal_to(6))
+
+
+def test_fix_with_columns():
+    dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
+
+    check_obj = DataDuplicates(columns=['col1'])
+    dataset = check_obj.fix(dataset)
+    assert_that(check_obj.run(dataset).value, equal_to(0))
+    assert_that(dataset.n_samples, equal_to(2))
+
+
+def test_fix_keep_last():
+    dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
+    check_obj = DataDuplicates()
+    assert_that(check_obj.run(dataset).value, close_to(0.40, 0.01))
+
+    dataset = check_obj.fix(dataset, keep='first')
+    assert_that(dataset.n_samples, equal_to(6))
+    assert_that(dataset.data.index.values, has_items(0, 1, 2, 3, 7, 8))
+
+    dataset = Dataset(pd.DataFrame({'col1': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
+                                    'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
+
+    dataset = check_obj.fix(dataset, keep='last')
+    assert_that(dataset.n_samples, equal_to(6))
+    assert_that(dataset.data.index.values, has_items(0, 5, 6, 7, 8, 9))
+
+
