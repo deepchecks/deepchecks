@@ -32,6 +32,7 @@ from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
 from deepchecks.utils.plot import feature_distribution_colors
+from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = ['TextData']
 
