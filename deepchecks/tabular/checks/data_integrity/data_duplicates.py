@@ -128,28 +128,3 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract, SingleDatasetCh
         data.drop_duplicates(inplace=True, keep=keep)
         context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
         return context
-
-    @property
-    def fix_params(self):
-        """Return fix params for display."""
-        return {'keep': {'display': 'Keep',
-                         'params': ['first', 'last'],
-                         'params_display': ['First Sample', 'Last Sample'],
-                         'params_description': ['Drop duplicates and keep first occurrence',
-                                                'Drop duplicates and keep last occurrence']}}
-
-    @property
-    def problem_description(self):
-        """Return problem description."""
-        return """Duplicate data samples are present in the dataset. This can lead to overfitting and
-                  decrease the performance of the model."""
-
-    @property
-    def manual_solution_description(self):
-        """Return manual solution description."""
-        return """Remove duplicate samples."""
-
-    @property
-    def automatic_solution_description(self):
-        """Return automatic solution description."""
-        return """Remove duplicate samples."""

@@ -195,28 +195,6 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckF
         context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
         return context
 
-    @property
-    def fix_params(self):
-        """Return fix params for display."""
-        return {}
-
-    @property
-    def problem_description(self):
-        """Return problem description."""
-        return """String variants are found in data. This can be caused by typos, different ways of writing the same
-                  thing, etc. This can decrease model performance as the model cannot connect the different variants."""
-
-    @property
-    def manual_solution_description(self):
-        """Return manual solution description."""
-        return """Change variants to the preferred form of original string."""
-
-    @property
-    def automatic_solution_description(self):
-        """Return automatic solution description."""
-        return """In each column, change each variant to the most common one."""
-
-
 
 def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
     not_passing_variants = defaultdict(list)

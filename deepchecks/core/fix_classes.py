@@ -42,21 +42,6 @@ class FixMixin(abc.ABC):
         """Return the fix params."""
         raise NotImplementedError()
 
-    @property
-    def problem_description(self):
-        """Return a problem description."""
-        raise NotImplementedError()
-
-    @property
-    def manual_solution_description(self):
-        """Return a manual solution description."""
-        raise NotImplementedError()
-
-    @property
-    def automatic_solution_description(self):
-        """Return an automatic solution description."""
-        raise NotImplementedError()
-
 
 class SingleDatasetCheckFixMixin(FixMixin):
     """Extend FixMixin to for SingleDataset checks."""
