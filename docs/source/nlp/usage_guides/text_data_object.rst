@@ -67,7 +67,7 @@ into tokens.
 Useful Functions
 ===================
 
-Calculate Default Properties
+Describe data
 -----------------------------
 
 To get an overall view of the data, you can use the `describe()` function that will display label distribution, some statistical
