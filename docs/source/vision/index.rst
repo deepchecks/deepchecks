@@ -48,8 +48,7 @@ Checks Gallery
 Below in the full list of checks and suites available in the deepchecks vision sub package.
 
 .. toctree::
-    :titlesonly:
-    :maxdepth: 0
+    :maxdepth: 1
     :caption: Checks Gallery
 
     auto_checks/data_integrity/index

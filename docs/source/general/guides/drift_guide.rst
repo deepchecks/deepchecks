@@ -11,6 +11,10 @@ This guide will help you understand what drift is and how you can detect in usin
 * `Which Types of Drift Are There? <#which-types-of-drift-are-there>`__
 * `How Do You Detect Drift? <#how-do-you-detect-drift>`__
 * `How Can I Use Deepchecks to Detect Drift? <#how-can-i-use-deepchecks-to-detect-drift>`__
+
+  * `Tabular Data <#tabular-data>`__
+  * `Text (NLP) Data <#text-nlp-data>`__
+  * `Computer Vision Data <#computer-vision-data>`__
 * `What Can You Do in Case of Drift? <#what-can-you-do-in-case-of-drift>`__
 * `Code Examples <#code-examples>`__
 
@@ -173,13 +177,42 @@ which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to
 For drift in your label's distribution, deepchecks offers the :ref:`tabular__label_drift`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :ref:`tabular__prediction_drift`,
+In cases where the labels are not available, we strongly recommend to also use the :ref:`tabular__prediction_drift`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#tabular-checks>`__
 
 All of these checks appear also in the `deepchecks interactive demo <https://checks-demo.deepchecks.com>`__, where you can
 insert corruption into the data and see the checks at work.
+
+Text (NLP) Data
+---------------
+
+Regarding `data <#data-drift>`__ or `concept drift <#concept-drift>`__
+In text data, we can't measure drift on the text directly, as text is not structured data that can be easily quantified or compared.
+However, we can use different methods to represent the text as a structured variable, and then measure drift on that variable.
+In deepchecks-nlp, we use 2 such methods:
+
+- :ref:`Text Embeddings <nlp__embeddings_guide>`
+- :ref:`Text Properties <nlp__properties_guide>`
+
+Both methods have their pros and cons when used to measure drift: Properties are more explainable, but will not necessarily
+capture all the information in the text. Embeddings are able to find more complex patterns in the text, but these
+patterns may be difficult to explain. Therefore, we recommend to use both methods to detect
+`data <#data-drift>`__ or `concept drift <#concept-drift>`__:
+
+#. The :ref:`Text Embeddings Drift Check <nlp__embeddings_drift>` uses embeddings to measure drift using a
+   `domain classifier <#detection-by-domain-classifier>`__
+#. The :ref:`Text Property Drift Check <nlp__property_drift>` uses properties to measure drift using
+   `univariate measures <#detection-by-univariate-measure>`__
+
+For drift in your label's distribution, deepchecks offers the :ref:`nlp__label_drift`,
+which uses `univariate measures <#detection-by-univariate-measure>`__.
+
+In cases where the labels are not available, we strongly recommend to also use the :ref:`nlp__prediction_drift`,
+which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
+
+For code examples, see `here <#text-nlp-checks>`__
 
 Computer Vision Data
 --------------------
@@ -198,7 +231,7 @@ which uses a `domain classifier <#detection-by-domain-classifier>`__ in order to
 For drift in your label's distribution, deepchecks offers the :ref:`vision__label_drift`,
 which also uses `univariate measures <#detection-by-univariate-measure>`__.
 
-In cases where the label is not available, we strongly recommend to also use the :ref:`vision__prediction_drift`,
+In cases where the labels are not available, we strongly recommend to also use the :ref:`vision__prediction_drift`,
 which uses the same methods but on the model's predictions, and can detect possible changes in the distribution of the label.
 
 For code examples, see `here <#computer-vision-checks>`__
@@ -294,6 +327,65 @@ Tabular Checks
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 
 
+Text (NLP) Checks
+-----------------
+
+:ref:`nlp__embeddings_drift`:
+
+In the following code, we load the embeddings from a precalculated file. For more on loading embeddings,
+and additional methods, see the :ref:`nlp__embeddings_guide`.
+
+.. code-block:: python
+
+    # Load the embeddings from a file:
+    train_dataset.set_embeddings('my_train_embeddings_file.npy')
+    test_dataset.set_embeddings('my_test_embeddings_file.npy')
+
+    # If you do not have a model to extract embeddings from, you can use the deepchecks default embeddings:
+    train_dataset.calculate_default_embeddings()
+    test_dataset.calculate_default_embeddings()
+
+
+    # Run the check:
+    from deepchecks.nlp.checks import TextEmbeddingsDrift
+    check = TextEmbeddingsDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+
+:ref:`nlp__property_drift`:
+
+.. code-block:: python
+
+    # If text properties were not calculated yet:
+    train_dataset.calculate_default_properties()
+    test_dataset.calculate_default_properties()
+
+    from deepchecks.nlp.checks import PropertyDrift
+    check = PropertyDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+:ref:`nlp__label_drift`:
+
+.. code-block:: python
+
+    from deepchecks.nlp.checks import LabelDrift
+    check = LabelDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
+
+:ref:`nlp__prediction_drift`:
+
+.. code-block:: python
+
+    from deepchecks.nlp.checks import PredictionDrift
+    check = PredictionDrift()
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
+                       train_predictions=train_predictions, test_predictions=test_predictions)
+
+    # For Text Classification tasks, it is recommended to use the probabilities:
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset,
+                       train_probabilities=train_probabilities, test_probabilities=test_probabilities)
+
+
 Computer Vision Checks
 ----------------------
 
@@ -302,7 +394,7 @@ Computer Vision Checks
 .. code-block:: python
 
     from deepchecks.vision.checks import ImagePropertyDrift
-    check = TrainTestPropertyDrift()
+    check = ImagePropertyDrift()
     result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 
 :ref:`vision__image_dataset_drift`:
@@ -327,4 +419,4 @@ Computer Vision Checks
 
     from deepchecks.vision.checks import PredictionDrift
     check = PredictionDrift()
-    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
+    result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)

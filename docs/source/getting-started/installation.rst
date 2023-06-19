@@ -66,11 +66,6 @@ Simply run the following command in a notebook cell
 Deepchecks For NLP
 ==================
 
-.. note:: 
-   Deepchecks' NLP subpackage is in **beta** release, and is available from PyPI,
-   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__ are
-   highly encouraged for feature requests and bug reports.
-
 Installation of deepchecks for NLP should be stated explicitly and it includes
 both the installation of the tabular version and of the nlp subpackage.
 Example commands from above should be altered to install `deepchecks[nlp]`.
@@ -84,13 +79,19 @@ Using Pip
     pip install "deepchecks[nlp]" --upgrade
 
 
+Installing Properties
+---------------------
+deepchecks for NLP uses :ref:`text properties <nlp__properties_guide>` for some checks.
+In order for deepchecks to calculate the text properties of your data, there are additional dependencies that need to
+be installed. These can be installed using the following command:
+
+.. code-block:: bash
+
+    pip install "deepchecks[nlp-properties]" --upgrade
+
+
 Deepchecks For Computer Vision
 ===============================
-
-.. note::
-   Deepchecks' Computer Vision subpackage is in **beta** release, and is available from PyPI,
-   use at your own discretion. `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__ are
-   highly encouraged for feature requests and bug reports.
 
 Installation of deepchecks for CV should be stated explicitly and it includes
 both the installation of the tabular version and of the computer vision subpackage.
