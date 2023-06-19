@@ -70,6 +70,15 @@ Useful Functions
 Calculate Default Properties
 -----------------------------
 
+To get an overall view of the data, you can use the `describe()` function that will display label distribution, some statistical
+information regarding the data such as number of samples, annotation ratio, metadata, properties, etc. and will generate distribution
+plots of the text properties. You can use the function on the TextData object using:
+
+>>> text_data.describe()
+
+Calculate Default Properties
+-----------------------------
+
 To calculate all the default properties, you do not need to pass the ``include_properties`` parameter in the
 ``calculate_builtin_properties`` function. If you pass either ``include_properties`` or ``ignore_properties`` parameter
 then only the properties specified will be calculated or ignored. You can calculate the default text properties for the TextData object using:
