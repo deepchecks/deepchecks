@@ -767,7 +767,7 @@ class TextData:
             if properties_to_show is not None:
                 properties = [prop for prop in properties_to_show if prop in self.properties.columns]
                 if len(properties) != len(properties_to_show):
-                    raise DeepchecksValueError(f'{set(properties_to_show) - set(properties)} propertites does not exist!')
+                    raise DeepchecksValueError(f'{set(properties_to_show)-set(properties)} propertites does not exist!')
             else:
                 properties = list(self.properties.columns)[:n_properties_to_show]
 

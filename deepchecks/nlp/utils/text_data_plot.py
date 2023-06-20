@@ -30,8 +30,15 @@ def _generate_table_trace(n_samples, label, categorical_metadata, numerical_meta
     annotation_ratio = format_percent(pd.notna(label).sum() / n_samples)
     data_cell = ['<b>Number of samples</b>', '<b>Annotation ratio</b>', '<b>Metadata categorical columns</b>',
                  '<b>Metadata numerical columns</b>', '<b>Categorical properties</b>', '<b>Numerical properties</b>']
-    info_cell = [n_samples, annotation_ratio, ', '.join(categorical_metadata), ', '.join(numerical_metadata),
-                 ', '.join(categorical_properties), ', '.join(numerical_properties)]
+    info_cell = [n_samples, annotation_ratio,
+                 ', '.join(categorical_metadata) if len(categorical_metadata) <= 3 else
+                 f'{len(len(categorical_metadata))} metadata columns',
+                 ', '.join(numerical_metadata) if len(numerical_metadata) <= 3 else
+                 f'{len(len(numerical_metadata))} metadata columns',
+                 ', '.join(categorical_properties) if len(categorical_properties) <= 2 else
+                 f'{len(len(categorical_properties))} properties',
+                 ', '.join(numerical_properties) if len(numerical_properties) <= 9 else
+                 f'{len(len(numerical_properties))} properties']
     trace = go.Table(header={'fill': {'color': 'white'}},
                      cells={'values': [data_cell, info_cell], 'align': ['left'], 'font_size': 12,
                             'height': 30})
@@ -146,7 +153,8 @@ def text_data_describe_plot(all_properties_data, n_samples, label, categorical_m
                                   'nlp_properties.html#deepchecks-built-in-properties">&#x24D8;</a></sup><br>'
                                   f'<sup>{TEXT_PROPERTIES_DESCRIPTION[prop]}</sup>')
 
-    fig = make_subplots(rows=len(properties) + 1, cols=2, specs=specs, subplot_titles=subplot_titles)
+    fig = make_subplots(rows=len(properties) + 1, cols=2, specs=specs, subplot_titles=subplot_titles,
+                        row_heights=[1.5] + [1.0] * len(properties))
     label_counts = pd.Series(label).value_counts()
 
     # Pie chart for label distribution
@@ -189,5 +197,5 @@ def text_data_describe_plot(all_properties_data, n_samples, label, categorical_m
 
         curr_row += 1
 
-    fig.update_layout(height=400*(len(properties) + 1))
+    fig.update_layout(height=450*(len(properties) + 1))
     return fig
