@@ -741,8 +741,8 @@ class TextData:
 
     def describe(self, n_properties: t.Optional[int] = 4, include_properties: t.Optional[t.List[str]] = None,
                  ignore_properties: t.Optional[t.List[str]] = None):
-        """Provides holistic view of the data.
-        
+        """Provide holistic view of the data.
+
         Parameters
         ----------
         n_properties : int, default 4
@@ -755,6 +755,7 @@ class TextData:
             List of property names to ignore while generating proeprty distribution graphs. If None, no
             properties will be ignored and all the properties will be used to generate the distribution
             plots. Cannot be used together with include_properties parameter.
+
         Returns
         -------
         Displays the Plotly Figure.
@@ -777,16 +778,17 @@ class TextData:
 
 
     def _text_data_describe_plot(self, properties: t.List[str]):
-        """Returns a plotly figure instance.
+        """Return a plotly figure instance.
 
         Parameters
         ----------
         properties : List[str]
             List of property names to consider for generating property distribution graphs.
+
         Returns
         -------
-        Plotly Figure instance."""
-
+        Plotly Figure instance.
+        """
         specs = [[{'type': 'pie'}, {'type': 'table'}]] + \
             [[{'type': 'xy', 'colspan':2}, None] for _ in range(len(properties))]
 
@@ -803,7 +805,7 @@ class TextData:
         annotation_ratio = round(annotated_count / (annotated_count + non_annotated_count),2)
 
         # Pie chart for label distribution
-        fig.add_trace(go.Pie(labels=list(label_counts.index), values=list(label_counts), textposition="inside",
+        fig.add_trace(go.Pie(labels=list(label_counts.index), values=list(label_counts), textposition='inside',
                              hovertemplate='%{label}: %{value} samples<extra></extra>',textinfo='label+percent',
                              showlegend=False),row=1, col=1)
 
