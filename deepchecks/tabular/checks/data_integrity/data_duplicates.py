@@ -10,10 +10,10 @@
 #
 """module contains Data Duplicates check."""
 from typing import List, Union
-from typing_extensions import Literal
 
 import numpy as np
 from merge_args import merge_args
+from typing_extensions import Literal
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError
