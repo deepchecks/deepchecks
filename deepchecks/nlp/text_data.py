@@ -738,44 +738,43 @@ class TextData:
             return False
         return self.n_samples > n_samples
 
-
-    def describe(self, n_properties: t.Optional[int] = 4, include_properties: t.Optional[t.List[str]] = None,
-                 ignore_properties: t.Optional[t.List[str]] = None):
+    def describe(self, n_properties_to_show: t.Optional[int] = 4, properties_to_show: t.Optional[t.List[str]] = None):
         """Provide holistic view of the data.
+
+        Generates the following plots:
+        1. Label distribution
+        2. Statistics about the data such as number of samples, annotation ratio, list of metadata columns, list of
+        text properties and so on.
+        3. Property distribution for the text properties defined either by n_properties_to_show or properties_to_show
+        parameter.
 
         Parameters
         ----------
-        n_properties : int, default 4
-            Number of properties to consider for generating property distribution graphs. If include_properties
-            or ignore_properties is provided, this value is ignore.
-        include_properties : List[str], default None
+        n_properties_to_show : int, default 4
+            Number of properties to consider for generating property distribution graphs. If properties_to_show
+            is provided, this value is ignored.
+        properties_to_show : List[str], default None
             List of property names to consider for generating property distribution graphs. If None, all the
-            properties are considered. Cannot be used together with ignore_properties parameter.
-        include_properties : List[str], default None
-            List of property names to ignore while generating proeprty distribution graphs. If None, no
-            properties will be ignored and all the properties will be used to generate the distribution
-            plots. Cannot be used together with include_properties parameter.
+            properties are considered.
 
         Returns
         -------
         Displays the Plotly Figure.
         """
         properties = []
-        if include_properties is not None and ignore_properties is not None:
-            raise ValueError('Cannot use include_properties and ignore_properties parameters together.')
-        if include_properties is not None:
-            properties = include_properties
-        elif ignore_properties is not None:
-            properties = [property for property in list(self.properties.columns) if property not in ignore_properties]
-        elif n_properties > len(self.properties.columns):
+        if properties_to_show is not None:
+            properties = [prop for prop in properties_to_show if prop in self.properties.columns]
+            if len(properties) != len(properties_to_show):
+                raise ValueError('One or more propertites does not exist!')
+
+        elif n_properties_to_show > len(self.properties.columns):
             raise ValueError(f'There are only {len(self.properties.columns)} properties available.')
         else:
-            properties = list(self.properties.columns)[:n_properties]
+            properties = list(self.properties.columns)[:n_properties_to_show]
 
         fig = self._text_data_describe_plot(properties=properties)
 
         fig.show()
-
 
     def _text_data_describe_plot(self, properties: t.List[str]):
         """Return a plotly figure instance.
@@ -790,37 +789,35 @@ class TextData:
         Plotly Figure instance.
         """
         specs = [[{'type': 'pie'}, {'type': 'table'}]] + \
-            [[{'type': 'xy', 'colspan':2}, None] for _ in range(len(properties))]
+            [[{'type': 'xy', 'colspan': 2}, None] for _ in range(len(properties))]
 
         fig = make_subplots(rows=len(properties) + 1, cols=2, specs=specs,
-                            subplot_titles=[
-                                'Label Distribution<br><sup>Out of all the annotated data</sup><br><br>',
-                                'Statistics about the data']
-                                + [prop + ' Property Distribution' for prop in properties])
+                            subplot_titles=['Label Distribution<br><sup>Out of all the annotated'
+                                            'data</sup><br><br>', 'Statistics about the data',
+                                            *[prop + ' Property Distribution' for prop in properties]])
 
-        label_series = pd.Series(self.label)
-        label_counts = label_series.value_counts()
-        non_annotated_count = pd.isna(self.label).sum()
-        annotated_count = sum(list(label_counts)) - non_annotated_count
-        annotation_ratio = round(annotated_count / (annotated_count + non_annotated_count),2)
+        label_counts = pd.Series(self.label).value_counts()
+        annotation_ratio = round(pd.notna(self.label).sum() / self.n_samples, 2)
 
         # Pie chart for label distribution
         fig.add_trace(go.Pie(labels=list(label_counts.index), values=list(label_counts), textposition='inside',
-                             hovertemplate='%{label}: %{value} samples<extra></extra>',textinfo='label+percent',
-                             showlegend=False),row=1, col=1)
+                             hovertemplate='%{label}: %{value} samples<extra></extra>', textinfo='label+percent',
+                             showlegend=False), row=1, col=1)
 
         # Preparing data to render on the right side of the pie chart inside a Plotly Table figure.
-        data_cell = ['<b>Number of samples</b>','<b>Annotation ratio</b>','<b>Metadata categorical columns</b>',
-                     '<b>Metadata numerical columns</b>','<b>Categorical properties</b>','<b>Numerical properties</b>']
+        data_cell = ['<b>Number of samples</b>', '<b>Annotation ratio</b>', '<b>Metadata categorical columns</b>',
+                     '<b>Metadata numerical columns</b>', '<b>Categorical properties</b>',
+                     '<b>Numerical properties</b>']
         info_cell = [self.n_samples, annotation_ratio, ', '.join(self.categorical_metadata),
                      ', '.join(self.numerical_metadata), ', '.join(self.categorical_properties),
                      ', '.join(prop for prop in self.properties.columns if prop not in self.categorical_properties)]
         data = [data_cell, info_cell]
-        fig.add_trace(go.Table(header={'fill':{'color': 'white'}},
-                            cells={'values':data, 'align':['left'], 'font_size':12, 'height':30}),row=1, col=2)
+        fig.add_trace(go.Table(header={'fill': {'color': 'white'}},
+                               cells={'values': data, 'align': ['left'], 'font_size': 12, 'height': 30}),
+                      row=1, col=2)
 
-        # Looping over all the properties to generate respective proeprty distrbution graphs
-        curr_row = 2 # Since row 1 is occupied with Pie and Table
+        # Looping over all the properties to generate respective property distribution graphs
+        curr_row = 2  # Since row 1 is occupied with Pie and Table
         for property_name in properties:
 
             if property_name in self.categorical_properties:
@@ -853,47 +850,47 @@ class TextData:
                             np.linspace(x_range[0], x_range[1], 50),
                             np.quantile(self.properties[property_name], q=np.arange(0.02, 1, 0.02)),
                             [mean, median]
-                        )))
+                            )))
                 y_value = get_density(self.properties[property_name], xs)
 
-                fig.add_trace(go.Scatter(x=xs, y=y_value, fill='tozeroy',showlegend=False,
-                                        line={'color':feature_distribution_colors['feature'],
-                                              'shape':'linear', 'width':5},
-                                        hovertemplate='<b>Value:</b> %{x}<br><b>Density:</b> %{y}<extra></extra>'),
-                                        row=curr_row, col=1)
+                fig.add_trace(go.Scatter(x=xs, y=y_value, fill='tozeroy', showlegend=False,
+                                         line={'color': feature_distribution_colors['feature'],
+                                               'shape': 'linear', 'width': 5},
+                                         hovertemplate='<b>Value:</b> %{x}<br><b>Density:</b> %{y}<extra></extra>'),
+                              row=curr_row, col=1)
 
                 # Mean line on the scatter plot
                 fig.add_shape(type='line', x0=mean, y0=0, x1=mean, y1=max(y_value),
-                              line={'color':feature_distribution_colors['measure'], 'dash':'dash', 'width':3},
+                              line={'color': feature_distribution_colors['measure'], 'dash': 'dash', 'width': 3},
                               row=curr_row, col=1)
                 fig.add_annotation(x=mean, y=max(y_value), text='Mean', showarrow=False, xanchor='left',
-                                   yanchor='bottom', font={'size':12}, row=curr_row, col=1)
+                                   yanchor='bottom', font={'size': 12}, row=curr_row, col=1)
 
                 # Median line on the scatter plot
                 fig.add_shape(type='line', x0=median, y0=0, x1=median, y1=max(y_value),
-                              line={'color':feature_distribution_colors['measure'], 'dash':'dot', 'width':3},
+                              line={'color': feature_distribution_colors['measure'], 'dash': 'dot', 'width': 3},
                               row=curr_row, col=1)
                 fig.add_annotation(x=mean, y=max(y_value), text='Median', showarrow=False, xanchor='right',
-                                   yanchor='bottom', font={'size':12}, row=curr_row, col=1)
+                                   yanchor='bottom', font={'size': 12}, row=curr_row, col=1)
 
-                # 10th Percentile line on the scatter plot
+                # 10^th Percentile line on the scatter plot
                 fig.add_shape(type='line', x0=percentile_10, y0=0, x1=percentile_10, y1=max(y_value),
-                              line={'color':feature_distribution_colors['measure'], 'dash':'dashdot', 'width':3},
+                              line={'color': feature_distribution_colors['measure'], 'dash': 'dashdot', 'width': 3},
                               row=curr_row, col=1)
                 fig.add_annotation(x=percentile_10, y=max(y_value), text='10<sup>th</sup> Percentile',
-                                   showarrow=False, xanchor='left', yanchor='bottom', font={'size':12},
+                                   showarrow=False, xanchor='left', yanchor='bottom', font={'size': 12},
                                    row=curr_row, col=1)
 
-                # 90th Percentile line on the scatter plot
+                # 90^th Percentile line on the scatter plot
                 fig.add_shape(type='line', x0=percentile_90, y0=0, x1=percentile_90, y1=max(y_value),
-                              line={'color':feature_distribution_colors['measure'], 'dash':'dashdot', 'width':3},
+                              line={'color': feature_distribution_colors['measure'], 'dash': 'dashdot', 'width': 3},
                               row=curr_row, col=1)
                 fig.add_annotation(x=percentile_90, y=max(y_value), text='90<sup>th</sup> Percentile',
-                                   showarrow=False, xanchor='right', yanchor='bottom', font={'size':12},
+                                   showarrow=False, xanchor='right', yanchor='bottom', font={'size': 12},
                                    row=curr_row, col=1)
 
-                fig.update_yaxes(title='Density',row=curr_row, col=1)
-                fig.update_xaxes(title=property_name,row=curr_row, col=1)
+                fig.update_yaxes(title='Density', row=curr_row, col=1)
+                fig.update_xaxes(title=property_name, row=curr_row, col=1)
 
             curr_row += 1
 
