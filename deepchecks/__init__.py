@@ -13,6 +13,7 @@ import os
 import sys
 import types
 import warnings
+import multiprocessing
 from importlib._bootstrap import _init_module_attrs
 
 try:
