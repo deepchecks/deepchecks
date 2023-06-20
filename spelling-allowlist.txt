@@ -162,3 +162,4 @@ idx
 isnan
 'isnan'
 ufunc
+joblib
