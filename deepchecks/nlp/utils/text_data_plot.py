@@ -38,7 +38,7 @@ def _generate_table_trace(n_samples, label, categorical_metadata, numerical_meta
     return trace
 
 
-def _generate_bar_distribution_trace_text_properties(data, property_name):
+def _generate_categorical_distribution_plot(data, property_name):
 
     dist_counts = data.value_counts(normalize=True).to_dict()
     counts = list(dist_counts.values())
@@ -73,7 +73,7 @@ def _get_distribution_values(data):
     return y_value, xs
 
 
-def _generate_scatter_distribution_trace(data, x_value, y_value, property_name):
+def _generate_numeric_distribution_plot(data, x_value, y_value, property_name):
 
     mean = data.mean()
     percentile_90 = data.quantile(0.9)
@@ -165,7 +165,7 @@ def text_data_describe_plot(all_properties_data, n_samples, label, categorical_m
 
         if property_name in categorical_properties:
             # Creating bar plots for categorical properties
-            trace, xaxis_layout, yaxis_layout = _generate_bar_distribution_trace_text_properties(
+            trace, xaxis_layout, yaxis_layout = _generate_categorical_distribution_plot(
                                                     all_properties_data[property_name], property_name
                                                 )
             fig.add_trace(trace, row=curr_row, col=1)
@@ -174,7 +174,7 @@ def text_data_describe_plot(all_properties_data, n_samples, label, categorical_m
         else:
             # Creating scatter plots for numerical properties
             y_value, xs = _get_distribution_values(all_properties_data[property_name])
-            trace, shapes, annotations, xaxis_layout, yaxis_layout = _generate_scatter_distribution_trace(
+            trace, shapes, annotations, xaxis_layout, yaxis_layout = _generate_numeric_distribution_plot(
                                                                         all_properties_data[property_name],
                                                                         xs, y_value, property_name
                                                                     )
