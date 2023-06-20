@@ -90,7 +90,7 @@ def _generate_scatter_distribution_trace(data, x_value, y_value, property_name):
     shapes.append(dict(type='line', x0=mean, y0=0, x1=mean, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dash', 'width': 3}))
     mean_xpos = mean + max(x_value) * 0.02 if median < mean else median - max(x_value) * 0.02
-    annotations.append(dict(x=mean, y=max(y_value)/2, text='<b>Mean</b>', showarrow=False,
+    annotations.append(dict(x=mean_xpos, y=max(y_value)/2, text='<b>Mean</b>', showarrow=False,
                             textangle=-90, font={'size': 12}))
 
     shapes.append(dict(type='line', x0=median, y0=0, x1=median, y1=max(y_value),
