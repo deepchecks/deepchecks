@@ -47,5 +47,6 @@ def validate_latest_version():
                                      ' Deepchecks is frequently updated with major improvements. You should consider '
                                      'upgrading via the "python -m pip install --upgrade deepchecks" command.',
                                      deepchecks.__version__)
+                os.environ['DISABLE_DEEPCHECKS_ANONYMOUS_TELEMETRY'] = 'True'  # to ignore joblib
         except Exception:  # pylint: disable=broad-except
             pass
