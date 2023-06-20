@@ -180,7 +180,8 @@ class StringMismatchComparison(TrainTestCheck, TrainTestCheckFixMixin):
         Returns
         -------
         Dataset
-            Dataset with fixed duplicates."""
+            Dataset with fixed duplicates.
+        """
         context = self.get_context(*args, **kwargs)
 
         if check_result is None:
@@ -199,8 +200,10 @@ class StringMismatchComparison(TrainTestCheck, TrainTestCheckFixMixin):
                 train_variants = sorted([variant for variant in all_variants if variant in value_counts.index])
                 most_common_variant = value_counts[train_variants].sort_values(ascending=False).index[0]
 
-                train_data[col] = train_data[col].apply(lambda x: most_common_variant if x in all_variants else x)
-                test_data[col] = test_data[col].apply(lambda x: most_common_variant if x in all_variants else x)
+                value_map = {variant: most_common_variant for variant in all_variants}
+
+                train_data[col] = train_data[col].replace(value_map)
+                test_data[col] = test_data[col].replace(value_map)
 
         return FixResult(fixed_train=train.copy(train_data), fixed_test=test.copy(test_data))
 

@@ -231,8 +231,9 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFix
             new_categories_cols = check_result.value['New categories']
             for col in cols_to_fix:
                 new_categories = new_categories_cols[col]
-                train_data[col] = train_data[col].apply(lambda x: None if x in new_categories else x)
-                test_data[col] = test_data[col].apply(lambda x: None if x in new_categories else x)
+                value_map = {x: None for x in new_categories}
+                train_data[col] = train_data[col].replace(value_map)
+                test_data[col] = test_data[col].replace(value_map)
         elif fix_method == 'move_to_train':
             # The following code takes the samples with new categories and moves 0.5 of them from test to train:
             for col in cols_to_fix:

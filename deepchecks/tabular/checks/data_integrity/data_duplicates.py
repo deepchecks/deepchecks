@@ -138,7 +138,8 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract, SingleDatasetCh
         Returns
         -------
         Dataset
-            Dataset with fixed duplicates."""
+            Dataset with fixed duplicates.
+        """
         context = self.get_context(*args, **kwargs)
         dataset = context.train
 

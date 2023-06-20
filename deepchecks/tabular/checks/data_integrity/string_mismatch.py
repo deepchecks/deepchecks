@@ -195,7 +195,8 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckF
         Returns
         -------
         Dataset
-            Dataset with fixed duplicates."""
+            Dataset with fixed duplicates.
+        """
         context = self.get_context(*args, **kwargs)
         dataset = context.train
 
@@ -208,8 +209,8 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckF
             for details in variants.values():
                 most_common_variant = sorted([(var['variant'], var['percent']) for var in details],
                                              key=lambda x: x[1], reverse=True)[0][0]
-                all_variants = [var['variant'] for var in details]
-                data[col] = data[col].apply(lambda x: most_common_variant if x in all_variants else x)
+                value_map = {variant: most_common_variant for variant in [var['variant'] for var in details]}
+                data[col] = data[col].replace(value_map)
 
         return FixResult(fixed_train=dataset.copy(data))
 
