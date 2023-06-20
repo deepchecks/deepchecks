@@ -162,7 +162,6 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckF
         max_ratio : float , default: 0.01
             Maximum percent of variants allowed in data.
         """
-
         def condition(result, max_ratio: float):
             not_passing_columns = {}
             for col, baseforms in result['columns'].items():
