@@ -12,10 +12,12 @@
 from typing import List, Union
 
 import pandas as pd
+from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-from deepchecks.core.fix_classes import TrainTestCheckFixMixin
+from deepchecks.core.fix_classes import TrainTestCheckFixMixin, FixResult
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -164,8 +166,26 @@ class StringMismatchComparison(TrainTestCheck, TrainTestCheckFixMixin):
         name = f'Ratio of new variants in test data is less or equal to {format_percent(ratio)}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
 
-    def fix_logic(self, context: Context, check_result) -> Context:
-        """Run fix."""
+    @docstrings
+    @merge_args(TrainTestCheck.run)
+    def fix(self, *args, check_result: CheckResult = None, **kwargs) -> FixResult:
+        """Run fix.
+
+        Parameters
+        ----------
+        {additional_context_params:2*indent}
+        check_result : CheckResult, default: None
+            CheckResult object to use for fixing the dataset.
+
+        Returns
+        -------
+        Dataset
+            Dataset with fixed duplicates."""
+        context = self.get_context(*args, **kwargs)
+
+        if check_result is None:
+            check_result = self.run_logic(context)
+
         train, test = context.train, context.test
         train_data, test_data = train.data, test.data
 
@@ -183,10 +203,7 @@ class StringMismatchComparison(TrainTestCheck, TrainTestCheckFixMixin):
                 train_data[col] = train_data[col].apply(lambda x: most_common_variant if x in all_variants else x)
                 test_data[col] = test_data[col].apply(lambda x: most_common_variant if x in all_variants else x)
 
-        context.set_dataset_by_kind(DatasetKind.TRAIN, context.train.copy(train_data))
-        context.set_dataset_by_kind(DatasetKind.TEST, context.test.copy(test_data))
-
-        return context
+        return FixResult(fixed_train=train.copy(train_data), fixed_test=test.copy(test_data))
 
 
 def _condition_percent_limit(result, ratio: float):

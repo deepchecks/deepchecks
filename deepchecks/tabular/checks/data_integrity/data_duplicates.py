@@ -9,14 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Data Duplicates check."""
-from typing import List, Union
+from typing import List, Literal, Union
 
 import numpy as np
+from merge_args import merge_args
 
+from deepchecks import Dataset
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_list, format_percent
@@ -120,11 +123,30 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract, SingleDatasetCh
 
         return CheckResult(value=percent_duplicate, display=display)
 
-    def fix_logic(self, context: Context, check_result, dataset_kind, keep: str = 'first') -> Context:
-        """Run fix."""
-        dataset = context.get_data_by_kind(dataset_kind)
+    @docstrings
+    @merge_args(SingleDatasetCheck.run)
+    def fix(self, *args, check_result: CheckResult = None, keep: Literal['first', 'last', False] = 'first', **kwargs) \
+            -> FixResult:
+        """Run fix.
+
+        Parameters
+        ----------
+        {additional_context_params:2*indent}
+        check_result : CheckResult, default: None
+            CheckResult object to use for fixing the dataset.
+        keep : Literal['first', 'last', False], default: 'first'
+            Whether to keep the first or last duplicate row.
+            If False, all duplicates will be removed.
+
+        Returns
+        -------
+        Dataset
+            Dataset with fixed duplicates."""
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+
         data = dataset.data.copy()
         data = select_from_dataframe(data, self.columns, self.ignore_columns)
         data.drop_duplicates(inplace=True, keep=keep)
-        context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
-        return context
+
+        return FixResult(fixed_train=dataset.copy(data))

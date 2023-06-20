@@ -218,7 +218,7 @@ def test_mismatch_string_comparison_fix():
     # Assert - 2 columns, 4 baseforms are mismatch
     assert_that(result, has_entries({'col1': has_length(1), 'col2': has_length(3)}))
 
-    train, test = check.fix(ds_train, ds_test)
+    train, test = check.fix(ds_train, ds_test).to_datasets()
     result = check.run(train, test).value
     assert_that(result, has_entries({'col1': has_length(0), 'col2': has_length(0)}))
     assert_that(train.data['col1'].iloc[0], equal_to('deep'))

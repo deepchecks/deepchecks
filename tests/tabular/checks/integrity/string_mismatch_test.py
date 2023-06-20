@@ -263,7 +263,7 @@ def test_string_mismatch_fix():
     assert_that(df['col1'].iloc[0], equal_to('Deep'))
 
     # Fix:
-    df = check.fix(df)
+    df = check.fix(df).to_dataset()
     result = check.run(df).value
     assert_that(len(result['columns']['col1']), equal_to(0))
     assert_that(len(result['columns']['col2']), equal_to(0))

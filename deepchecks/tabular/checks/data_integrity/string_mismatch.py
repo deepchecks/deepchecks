@@ -14,9 +14,10 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Union
 
 import pandas as pd
+from merge_args import merge_args
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular._shared_docs import docstrings
@@ -180,9 +181,27 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckF
         name = f'Ratio of variants is less or equal to {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
 
-    def fix_logic(self, context: Context, check_result, dataset_kind) -> Context:
-        """Run fix."""
-        dataset = context.get_data_by_kind(dataset_kind)
+    @docstrings
+    @merge_args(SingleDatasetCheck.run)
+    def fix(self, *args, check_result: CheckResult = None, **kwargs) -> FixResult:
+        """Run fix.
+
+        Parameters
+        ----------
+        {additional_context_params:2*indent}
+        check_result : CheckResult, default: None
+            CheckResult object to use for fixing the dataset.
+
+        Returns
+        -------
+        Dataset
+            Dataset with fixed duplicates."""
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+
+        if check_result is None:
+            check_result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
+
         data = dataset.data.copy()
 
         for col, variants in check_result.value['columns'].items():
@@ -192,8 +211,7 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckF
                 all_variants = [var['variant'] for var in details]
                 data[col] = data[col].apply(lambda x: most_common_variant if x in all_variants else x)
 
-        context.set_dataset_by_kind(dataset_kind, dataset.copy(data))
-        return context
+        return FixResult(fixed_train=dataset.copy(data))
 
 
 def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):

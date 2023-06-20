@@ -285,7 +285,7 @@ def test_new_category_fix():
 
     # Drop features with new categories:
     new_train_dataset, new_test_dataset = check.fix(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                    fix_method='drop_features')
+                                                    fix_method='drop_features').to_datasets()
     assert_that(new_train_dataset.data.columns, has_items('col2'))
     assert_that(new_test_dataset.data.columns, has_items('col2'))
 
@@ -294,14 +294,14 @@ def test_new_category_fix():
 
     # Replace new categories with None value:
     new_train_dataset, new_test_dataset = check.fix(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                    fix_method='replace_with_nones')
+                                                    fix_method='replace_with_nones').to_datasets()
     assert_that(new_train_dataset.data['col1'].unique(), has_items('a', 'b', 'c'))
     assert_that(new_test_dataset.data['col1'].unique(), has_items('a', 'b', 'c', None))
 
     # Move new categories samples to train dataset:
 
     new_train_dataset, new_test_dataset = check.fix(train_dataset=train_dataset, test_dataset=test_dataset,
-                                                    fix_method='move_to_train')
+                                                    fix_method='move_to_train').to_datasets()
     assert_that(new_train_dataset.data['col1'].unique(), has_items('a', 'b', 'c', 'd'))
     assert_that(new_train_dataset.data['col1'].value_counts()['d'], equal_to(10))
     assert_that(new_test_dataset.data['col1'].value_counts()['d'], equal_to(10))

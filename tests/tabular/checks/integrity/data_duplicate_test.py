@@ -156,7 +156,7 @@ def test_fix():
     check_obj = DataDuplicates()
     assert_that(check_obj.run(dataset).value, close_to(0.40, 0.01))
 
-    dataset = check_obj.fix(dataset)
+    dataset = check_obj.fix(dataset).to_dataset()
     assert_that(check_obj.run(dataset).value, equal_to(0))
     assert_that(dataset.n_samples, equal_to(6))
 
@@ -167,7 +167,7 @@ def test_fix_with_columns():
                                     'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
 
     check_obj = DataDuplicates(columns=['col1'])
-    dataset = check_obj.fix(dataset)
+    dataset = check_obj.fix(dataset).to_dataset()
     assert_that(check_obj.run(dataset).value, equal_to(0))
     assert_that(dataset.n_samples, equal_to(2))
 
@@ -179,7 +179,7 @@ def test_fix_keep_last():
     check_obj = DataDuplicates()
     assert_that(check_obj.run(dataset).value, close_to(0.40, 0.01))
 
-    dataset = check_obj.fix(dataset, keep='first')
+    dataset = check_obj.fix(dataset=dataset, keep='first').to_dataset()
     assert_that(dataset.n_samples, equal_to(6))
     assert_that(dataset.data.index.values, has_items(0, 1, 2, 3, 7, 8))
 
@@ -187,7 +187,7 @@ def test_fix_keep_last():
                                     'col2': [1, 2, 1, 2, 1, 2, 1, 2, 1, 2],
                                     'col3': [2, 3, 4, 4, 4, 3, 4, 5, 6, 4]}))
 
-    dataset = check_obj.fix(dataset, keep='last')
+    dataset = check_obj.fix(dataset, keep='last').to_dataset()
     assert_that(dataset.n_samples, equal_to(6))
     assert_that(dataset.data.index.values, has_items(0, 5, 6, 7, 8, 9))
 
