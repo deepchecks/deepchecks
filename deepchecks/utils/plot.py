@@ -32,7 +32,7 @@ metric_colors = ['rgb(102, 197, 204)',
                  'rgb(180, 151, 231)']
 
 feature_distribution_colors = {
-    'measure': '#00008b', # dark blue
+    'measure': '#00008b',  # dark blue
     'feature': 'rgba(105, 179, 162, 1)'
 }
 

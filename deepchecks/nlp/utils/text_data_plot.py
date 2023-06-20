@@ -16,11 +16,11 @@ import pandas as pd
 import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
+from deepchecks.nlp.utils.text_properties import TEXT_PROPERTIES_DESCRIPTION
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.plot import feature_distribution_colors
 from deepchecks.utils.strings import format_percent, get_docs_link
-from deepchecks.nlp.utils.text_properties import TEXT_PROPERTIES_DESCRIPTION
 
 __all__ = ['text_data_describe_plot']
 
@@ -86,26 +86,29 @@ def _generate_scatter_distribution_trace(data, x_value, y_value, property_name):
                              'shape': 'linear', 'width': 5})
     shapes = []
     annotations = []
+
     shapes.append(dict(type='line', x0=mean, y0=0, x1=mean, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dash', 'width': 3}))
-    annotations.append(dict(x=mean, y=max(y_value), text='Mean', showarrow=False, xanchor='left',
-                            yanchor='bottom', font={'size': 12}))
+    annotations.append(dict(x=mean, y=max(y_value), text='<b>Mean</b>', showarrow=False, yanchor='bottom',
+                            xanchor='left' if median < mean else 'right', font={'size': 12}))
 
     shapes.append(dict(type='line', x0=median, y0=0, x1=median, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dot', 'width': 3}))
-    annotations.append(dict(x=mean, y=max(y_value), text='Median', showarrow=False, xanchor='right',
-                            yanchor='bottom', font={'size': 12}))
+    annotations.append(dict(x=mean, y=max(y_value), text='<b>Median</b>', showarrow=False, yanchor='bottom',
+                            xanchor='right' if median < mean else 'left', font={'size': 12}))
+
     shapes.append(dict(type='line', x0=percentile_10, y0=0, x1=percentile_10, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dashdot', 'width': 3}))
-    annotations.append(dict(x=percentile_10, y=max(y_value), text='10<sup>th</sup> Percentile',
-                            showarrow=False, xanchor='left', yanchor='bottom', font={'size': 12}))
+    annotations.append(dict(x=percentile_10 - max(x_value)*0.02, y=max(y_value)/2, textangle=-90,
+                            text='<b>10<sup>th</sup> Percentile</b>', showarrow=False, font={'size': 12}))
 
     shapes.append(dict(type='line', x0=percentile_90, y0=0, x1=percentile_90, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dashdot', 'width': 3}))
-    annotations.append(dict(x=percentile_90, y=max(y_value), text='90<sup>th</sup> Percentile',
-                            showarrow=False, xanchor='right', yanchor='bottom', font={'size': 12}))
-    xaxis_layout = dict(title='Density')
-    yaxis_layout = dict(title=property_name)
+    annotations.append(dict(x=percentile_90 - max(x_value)*0.02, y=max(y_value)/2, textangle=-90,
+                            text='<b>90<sup>th</sup> Percentile</b>', showarrow=False, font={'size': 12}))
+
+    xaxis_layout = dict(title=property_name)
+    yaxis_layout = dict(title='Density')
 
     return trace, shapes, annotations, xaxis_layout, yaxis_layout
 
@@ -137,9 +140,9 @@ def text_data_describe_plot(all_properties_data, n_samples, label, categorical_m
                       '']
     for prop in properties:
         if prop in TEXT_PROPERTIES_DESCRIPTION:
-            subplot_titles.append(f'{prop} Property Distribution<sup><a href="{get_docs_link()}nlp/usage_guides/nlp_properties.html' \
-                    '#deepchecks-built-in-properties">&#x24D8;</a></sup><br>' \
-                    f'<sup>{TEXT_PROPERTIES_DESCRIPTION[prop]}</sup>')
+            subplot_titles.append(f'{prop} Property Distribution<sup><a href="{get_docs_link()}nlp/usage_guides/'
+                                  'nlp_properties.html#deepchecks-built-in-properties">&#x24D8;</a></sup><br>'
+                                  f'<sup>{TEXT_PROPERTIES_DESCRIPTION[prop]}</sup>')
 
     fig = make_subplots(rows=len(properties) + 1, cols=2, specs=specs, subplot_titles=subplot_titles)
     label_counts = pd.Series(label).value_counts()
