@@ -17,7 +17,7 @@ import pandas as pd
 from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
+from deepchecks.core.fix_classes import FixResult, SingleDatasetCheckFixMixin
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular._shared_docs import docstrings
@@ -205,7 +205,7 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckF
         data = dataset.data.copy()
 
         for col, variants in check_result.value['columns'].items():
-            for baseform, details in variants.items():
+            for details in variants.values():
                 most_common_variant = sorted([(var['variant'], var['percent']) for var in details],
                                              key=lambda x: x[1], reverse=True)[0][0]
                 all_variants = [var['variant'] for var in details]

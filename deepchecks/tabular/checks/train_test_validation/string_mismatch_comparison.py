@@ -14,8 +14,8 @@ from typing import List, Union
 import pandas as pd
 from merge_args import merge_args
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-from deepchecks.core.fix_classes import TrainTestCheckFixMixin, FixResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import FixResult, TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_df
@@ -192,14 +192,13 @@ class StringMismatchComparison(TrainTestCheck, TrainTestCheckFixMixin):
         for col, variants in check_result.value.items():
             # We take the most common form from train data:
             value_counts = train_data[col].value_counts()
-            for baseform, details in variants.items():
-                all_variants = set(details['variants_only_in_train'] + details['commons'] + details['variants_only_in_test'])
+            for details in variants.values():
+                all_variants = set(details['variants_only_in_train'] + details['commons'] +
+                                   details['variants_only_in_test'])
 
                 train_variants = sorted([variant for variant in all_variants if variant in value_counts.index])
                 most_common_variant = value_counts[train_variants].sort_values(ascending=False).index[0]
 
-                # most_common_variant = sorted([(var['variant'], var['percent']) for var in details],
-                #                              key=lambda x: x[1], reverse=True)[0][0]
                 train_data[col] = train_data[col].apply(lambda x: most_common_variant if x in all_variants else x)
                 test_data[col] = test_data[col].apply(lambda x: most_common_variant if x in all_variants else x)
 

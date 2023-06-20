@@ -14,10 +14,9 @@ from typing import List, Literal, Union
 import numpy as np
 from merge_args import merge_args
 
-from deepchecks import Dataset
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError
-from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
+from deepchecks.core.fix_classes import FixResult, SingleDatasetCheckFixMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
@@ -125,15 +124,13 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract, SingleDatasetCh
 
     @docstrings
     @merge_args(SingleDatasetCheck.run)
-    def fix(self, *args, check_result: CheckResult = None, keep: Literal['first', 'last', False] = 'first', **kwargs) \
+    def fix(self, *args, keep: Literal['first', 'last', False] = 'first', **kwargs) \
             -> FixResult:
         """Run fix.
 
         Parameters
         ----------
         {additional_context_params:2*indent}
-        check_result : CheckResult, default: None
-            CheckResult object to use for fixing the dataset.
         keep : Literal['first', 'last', False], default: 'first'
             Whether to keep the first or last duplicate row.
             If False, all duplicates will be removed.

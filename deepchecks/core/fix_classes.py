@@ -11,7 +11,7 @@
 # pylint: disable=import-outside-toplevel
 """Module containing the fix classes and methods."""
 import abc
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -91,7 +91,7 @@ class SingleDatasetCheckFixMixin(FixMixin):
             y_proba: Optional[np.ndarray] = None,
             model_classes: Optional[List] = None,
             with_display: bool = True
-    ) -> 'Context':
+    ):
         """Get Context for check."""
         assert self.context_type is not None
 
@@ -121,7 +121,7 @@ class TrainTestCheckFixMixin(FixMixin):
             y_proba_test: Optional[np.ndarray] = None,
             model_classes: Optional[List] = None,
             with_display: bool = True
-    ) -> 'Context':
+    ):
         """Get Context for check."""
         assert self.context_type is not None
 
@@ -137,5 +137,3 @@ class TrainTestCheckFixMixin(FixMixin):
             with_display=with_display
         )
         return context
-
-

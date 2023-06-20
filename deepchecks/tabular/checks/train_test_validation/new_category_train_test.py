@@ -14,8 +14,8 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 from merge_args import merge_args
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
-from deepchecks.core.fix_classes import TrainTestCheckFixMixin, FixResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import FixResult, TrainTestCheckFixMixin
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
