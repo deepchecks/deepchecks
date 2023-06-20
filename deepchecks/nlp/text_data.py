@@ -16,8 +16,6 @@ from numbers import Number
 
 import numpy as np
 import pandas as pd
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.nlp.input_validations import (ColumnTypes, validate_length_and_calculate_column_types,
@@ -25,13 +23,11 @@ from deepchecks.nlp.input_validations import (ColumnTypes, validate_length_and_c
                                               validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
+from deepchecks.nlp.utils.text_data_plot import text_data_describe_plot
 from deepchecks.nlp.utils.text_embeddings import calculate_builtin_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_builtin_properties, get_builtin_properties_types
-from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.metrics import is_label_none
-from deepchecks.utils.plot import feature_distribution_colors
 from deepchecks.utils.validation import is_sequence_not_str
 
 __all__ = ['TextData']
@@ -534,6 +530,11 @@ class TextData:
         return self._cat_properties
 
     @property
+    def numerical_properties(self) -> t.List[str]:
+        """Return numerical properties names."""
+        return [prop for prop in self.properties.columns if prop not in self.categorical_properties]
+
+    @property
     def task_type(self) -> t.Optional[TaskType]:
         """Return the task type.
 
@@ -772,130 +773,14 @@ class TextData:
         else:
             properties = list(self.properties.columns)[:n_properties_to_show]
 
-        fig = self._text_data_describe_plot(properties=properties)
+        fig = text_data_describe_plot(all_properties_data=self.properties, n_samples=self.n_samples,
+                                      label=self.label, categorical_metadata=self.categorical_metadata,
+                                      numerical_metadata=self.numerical_metadata,
+                                      categorical_properties=self.categorical_properties,
+                                      numerical_properties=self.numerical_properties,
+                                      properties=properties)
 
         fig.show()
-
-    def _text_data_describe_plot(self, properties: t.List[str]):
-        """Return a plotly figure instance.
-
-        Parameters
-        ----------
-        properties : List[str]
-            List of property names to consider for generating property distribution graphs.
-
-        Returns
-        -------
-        Plotly Figure instance.
-        """
-        specs = [[{'type': 'pie'}, {'type': 'table'}]] + \
-            [[{'type': 'xy', 'colspan': 2}, None] for _ in range(len(properties))]
-
-        fig = make_subplots(rows=len(properties) + 1, cols=2, specs=specs,
-                            subplot_titles=['Label Distribution<br><sup>Out of all the annotated'
-                                            'data</sup><br><br>', 'Statistics about the data',
-                                            *[prop + ' Property Distribution' for prop in properties]])
-
-        label_counts = pd.Series(self.label).value_counts()
-        annotation_ratio = round(pd.notna(self.label).sum() / self.n_samples, 2)
-
-        # Pie chart for label distribution
-        fig.add_trace(go.Pie(labels=list(label_counts.index), values=list(label_counts), textposition='inside',
-                             hovertemplate='%{label}: %{value} samples<extra></extra>', textinfo='label+percent',
-                             showlegend=False), row=1, col=1)
-
-        # Preparing data to render on the right side of the pie chart inside a Plotly Table figure.
-        data_cell = ['<b>Number of samples</b>', '<b>Annotation ratio</b>', '<b>Metadata categorical columns</b>',
-                     '<b>Metadata numerical columns</b>', '<b>Categorical properties</b>',
-                     '<b>Numerical properties</b>']
-        info_cell = [self.n_samples, annotation_ratio, ', '.join(self.categorical_metadata),
-                     ', '.join(self.numerical_metadata), ', '.join(self.categorical_properties),
-                     ', '.join(prop for prop in self.properties.columns if prop not in self.categorical_properties)]
-        data = [data_cell, info_cell]
-        fig.add_trace(go.Table(header={'fill': {'color': 'white'}},
-                               cells={'values': data, 'align': ['left'], 'font_size': 12, 'height': 30}),
-                      row=1, col=2)
-
-        # Looping over all the properties to generate respective property distribution graphs
-        curr_row = 2  # Since row 1 is occupied with Pie and Table
-        for property_name in properties:
-
-            if property_name in self.categorical_properties:
-                # Creating bar plots for categorical properties
-                dist_counts = self.properties[property_name].value_counts(normalize=True).to_dict()
-                counts = list(dist_counts.values())
-                categories_list = list(dist_counts.keys())
-                cat_df = pd.DataFrame(
-                    {property_name: counts},
-                    index=[un_numpy(cat) for cat in categories_list])
-
-                fig.add_trace(go.Bar(x=cat_df.index, y=cat_df[property_name],
-                                     hovertemplate='<b>Value:</b> %{x}<br><b>Frequency:</b> %{y}<extra></extra>',
-                                     showlegend=False), row=curr_row, col=1)
-                fig.update_yaxes(type='log', title='Frequency (Log Scale)', row=curr_row, col=1)
-                fig.update_xaxes(title=property_name, row=curr_row, col=1)
-            else:
-                # Creating scatter plots for numerical properties
-                property_value_count = self.properties[property_name].value_counts()
-                property_value_count = property_value_count.sort_index()
-                y_value = list(property_value_count)
-                mean = self.properties[property_name].mean()
-                percentile_90 = self.properties[property_name].quantile(0.9)
-                percentile_10 = self.properties[property_name].quantile(0.1)
-                median = self.properties[property_name].median()
-                x_range = (self.properties[property_name].min(), self.properties[property_name].max())
-
-                # Calculate density to generate a smooth scatter plot
-                xs = sorted(np.concatenate((
-                            np.linspace(x_range[0], x_range[1], 50),
-                            np.quantile(self.properties[property_name], q=np.arange(0.02, 1, 0.02)),
-                            [mean, median]
-                            )))
-                y_value = get_density(self.properties[property_name], xs)
-
-                fig.add_trace(go.Scatter(x=xs, y=y_value, fill='tozeroy', showlegend=False,
-                                         line={'color': feature_distribution_colors['feature'],
-                                               'shape': 'linear', 'width': 5},
-                                         hovertemplate='<b>Value:</b> %{x}<br><b>Density:</b> %{y}<extra></extra>'),
-                              row=curr_row, col=1)
-
-                # Mean line on the scatter plot
-                fig.add_shape(type='line', x0=mean, y0=0, x1=mean, y1=max(y_value),
-                              line={'color': feature_distribution_colors['measure'], 'dash': 'dash', 'width': 3},
-                              row=curr_row, col=1)
-                fig.add_annotation(x=mean, y=max(y_value), text='Mean', showarrow=False, xanchor='left',
-                                   yanchor='bottom', font={'size': 12}, row=curr_row, col=1)
-
-                # Median line on the scatter plot
-                fig.add_shape(type='line', x0=median, y0=0, x1=median, y1=max(y_value),
-                              line={'color': feature_distribution_colors['measure'], 'dash': 'dot', 'width': 3},
-                              row=curr_row, col=1)
-                fig.add_annotation(x=mean, y=max(y_value), text='Median', showarrow=False, xanchor='right',
-                                   yanchor='bottom', font={'size': 12}, row=curr_row, col=1)
-
-                # 10^th Percentile line on the scatter plot
-                fig.add_shape(type='line', x0=percentile_10, y0=0, x1=percentile_10, y1=max(y_value),
-                              line={'color': feature_distribution_colors['measure'], 'dash': 'dashdot', 'width': 3},
-                              row=curr_row, col=1)
-                fig.add_annotation(x=percentile_10, y=max(y_value), text='10<sup>th</sup> Percentile',
-                                   showarrow=False, xanchor='left', yanchor='bottom', font={'size': 12},
-                                   row=curr_row, col=1)
-
-                # 90^th Percentile line on the scatter plot
-                fig.add_shape(type='line', x0=percentile_90, y0=0, x1=percentile_90, y1=max(y_value),
-                              line={'color': feature_distribution_colors['measure'], 'dash': 'dashdot', 'width': 3},
-                              row=curr_row, col=1)
-                fig.add_annotation(x=percentile_90, y=max(y_value), text='90<sup>th</sup> Percentile',
-                                   showarrow=False, xanchor='right', yanchor='bottom', font={'size': 12},
-                                   row=curr_row, col=1)
-
-                fig.update_yaxes(title='Density', row=curr_row, col=1)
-                fig.update_xaxes(title=property_name, row=curr_row, col=1)
-
-            curr_row += 1
-
-        fig.update_layout(height=400*(len(properties) + 1))
-        return fig
 
 
 @contextlib.contextmanager
