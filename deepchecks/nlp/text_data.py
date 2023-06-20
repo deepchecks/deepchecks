@@ -763,12 +763,13 @@ class TextData:
         Displays the Plotly Figure.
         """
         properties = []
-        if properties_to_show is not None:
-            properties = [prop for prop in properties_to_show if prop in self.properties.columns]
-            if len(properties) != len(properties_to_show):
-                raise DeepchecksValueError(f'{set(properties_to_show) - set(properties)} propertites does not exist!')
-        else:
-            properties = list(self.properties.columns)[:n_properties_to_show]
+        if self.properties is not None:
+            if properties_to_show is not None:
+                properties = [prop for prop in properties_to_show if prop in self.properties.columns]
+                if len(properties) != len(properties_to_show):
+                    raise DeepchecksValueError(f'{set(properties_to_show) - set(properties)} propertites does not exist!')
+            else:
+                properties = list(self.properties.columns)[:n_properties_to_show]
 
         fig = text_data_describe_plot(all_properties_data=self.properties, n_samples=self.n_samples,
                                       label=self.label, categorical_metadata=self.categorical_metadata,
