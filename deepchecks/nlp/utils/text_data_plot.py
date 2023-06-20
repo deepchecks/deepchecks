@@ -89,13 +89,15 @@ def _generate_scatter_distribution_trace(data, x_value, y_value, property_name):
 
     shapes.append(dict(type='line', x0=mean, y0=0, x1=mean, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dash', 'width': 3}))
-    annotations.append(dict(x=mean, y=max(y_value), text='<b>Mean</b>', showarrow=False, yanchor='bottom',
-                            xanchor='left' if median < mean else 'right', font={'size': 12}))
+    mean_xpos = mean + max(x_value) * 0.02 if median < mean else median - max(x_value) * 0.02
+    annotations.append(dict(x=mean, y=max(y_value)/2, text='<b>Mean</b>', showarrow=False,
+                            textangle=-90, font={'size': 12}))
 
     shapes.append(dict(type='line', x0=median, y0=0, x1=median, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dot', 'width': 3}))
-    annotations.append(dict(x=mean, y=max(y_value), text='<b>Median</b>', showarrow=False, yanchor='bottom',
-                            xanchor='right' if median < mean else 'left', font={'size': 12}))
+    median_xpos = median - max(x_value) * 0.02 if median < mean else median + max(x_value) * 0.02
+    annotations.append(dict(x=median_xpos, y=max(y_value)/2, text='<b>Median</b>', showarrow=False,
+                            textangle=-90, font={'size': 12}))
 
     shapes.append(dict(type='line', x0=percentile_10, y0=0, x1=percentile_10, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dashdot', 'width': 3}))
@@ -104,7 +106,7 @@ def _generate_scatter_distribution_trace(data, x_value, y_value, property_name):
 
     shapes.append(dict(type='line', x0=percentile_90, y0=0, x1=percentile_90, y1=max(y_value),
                        line={'color': feature_distribution_colors['measure'], 'dash': 'dashdot', 'width': 3}))
-    annotations.append(dict(x=percentile_90 - max(x_value)*0.02, y=max(y_value)/2, textangle=-90,
+    annotations.append(dict(x=percentile_90 + max(x_value)*0.02, y=max(y_value)/2, textangle=-90,
                             text='<b>90<sup>th</sup> Percentile</b>', showarrow=False, font={'size': 12}))
 
     xaxis_layout = dict(title=property_name)
