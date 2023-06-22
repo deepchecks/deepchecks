@@ -767,11 +767,13 @@ class TextData:
         """
         properties = []
         all_properties_data = pd.DataFrame()
-        if self._properties is not None:
+        if self._properties is None and properties_to_show is not None:
+            raise DeepchecksValueError('No properties exist!')
+        elif self._properties is not None:
             if properties_to_show is not None:
                 properties = [prop for prop in properties_to_show if prop in self.properties.columns]
                 if len(properties) != len(properties_to_show):
-                    raise DeepchecksValueError(f'{set(properties_to_show)-set(properties)} propertites does not exist!')
+                    raise DeepchecksValueError(f'{set(properties_to_show)-set(properties)} property(s) does not exist!')
             else:
                 properties = list(self.properties.columns)[:n_properties_to_show]
             all_properties_data = self.properties[properties]
@@ -784,7 +786,7 @@ class TextData:
                                       numerical_properties=self.numerical_properties, label=self._label,
                                       properties=properties)
 
-        fig.show()
+        return fig
 
 
 @contextlib.contextmanager
