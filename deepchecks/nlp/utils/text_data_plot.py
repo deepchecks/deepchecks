@@ -229,14 +229,14 @@ def text_data_describe_plot(all_properties_data: pd.DataFrame, n_samples: int,
                 df_label = pd.DataFrame(label).fillna(0)
                 label_counts = pd.Series(np.sum(df_label.to_numpy(), axis=0))
             elif task_type == TaskType.TOKEN_CLASSIFICATION:
-                map = {}
+                hashmap = {}
                 for val in label:
                     flattened_array = pd.Series(np.array(val).flatten()).fillna('NaN').to_numpy()
                     unique_values, counts = np.unique(flattened_array, return_counts=True)
                     for label_value, count in zip(unique_values, counts):
                         if label_value != 'NaN':
-                            map[label_value] = map[label_value] + count if label_value in map else count
-                label_counts = pd.Series(list(map.values()), index=list(map))
+                            hashmap[label_value] = hashmap[label_value] + count if label_value in hashmap else count
+                label_counts = pd.Series(list(hashmap.values()), index=list(hashmap))
             else:
                 label_counts = pd.Series(label).value_counts()
 
