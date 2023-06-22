@@ -532,7 +532,10 @@ class TextData:
     @property
     def numerical_properties(self) -> t.List[str]:
         """Return numerical properties names."""
-        return [prop for prop in self.properties.columns if prop not in self.categorical_properties]
+        if self._properties is not None:
+            return [prop for prop in self._properties.columns if prop not in self._cat_properties]
+        else:
+            return []
 
     @property
     def task_type(self) -> t.Optional[TaskType]:
@@ -763,19 +766,22 @@ class TextData:
         Displays the Plotly Figure.
         """
         properties = []
-        if self.properties is not None:
+        all_properties_data = pd.DataFrame()
+        if self._properties is not None:
             if properties_to_show is not None:
                 properties = [prop for prop in properties_to_show if prop in self.properties.columns]
                 if len(properties) != len(properties_to_show):
                     raise DeepchecksValueError(f'{set(properties_to_show)-set(properties)} propertites does not exist!')
             else:
                 properties = list(self.properties.columns)[:n_properties_to_show]
+            all_properties_data = self.properties[properties]
 
-        fig = text_data_describe_plot(all_properties_data=self.properties, n_samples=self.n_samples,
-                                      label=self.label, categorical_metadata=self.categorical_metadata,
+        fig = text_data_describe_plot(all_properties_data=all_properties_data, n_samples=self.n_samples,
+                                      is_multi_label=self.is_multi_label_classification(), task_type=self.task_type,
+                                      categorical_metadata=self.categorical_metadata,
                                       numerical_metadata=self.numerical_metadata,
                                       categorical_properties=self.categorical_properties,
-                                      numerical_properties=self.numerical_properties,
+                                      numerical_properties=self.numerical_properties, label=self._label,
                                       properties=properties)
 
         fig.show()
