@@ -430,28 +430,28 @@ def test_describe_with_properties(text_multilabel_classification_dataset_mock, t
     )
     assert_that(len(figure_without_properties.data), equal_to(2))
     assert_that(len(figure_without_properties.layout.annotations), equal_to(1))
-    assert_that(figure_without_properties.data[0].type, equal_to("pie"))
-    assert_that(figure_without_properties.data[1].type, equal_to("table"))
+    assert_that(figure_without_properties.data[0].type, equal_to('pie'))
+    assert_that(figure_without_properties.data[1].type, equal_to('table'))
 
     # assert_that(
     #     calling(dataset_with_properties.describe).with_args(properties_to_show=['Text Length',
     #                                                                             'Property One']),
-    #     raises(DeepchecksValueError, "Property One property(s) does not exist")
+    #     raises(DeepchecksValueError, 'Property One property(s) does not exist')
     # )
     assert_that(len(figure_with_properties_one.data), equal_to(5))
     assert_that(len(figure_with_properties_one.layout.annotations), equal_to(16))
-    assert_that(figure_with_properties_one.data[0].type, equal_to("pie"))
-    assert_that(figure_with_properties_one.data[1].type, equal_to("table"))
-    assert_that(figure_with_properties_one.data[2].type, equal_to("scatter"))
-    assert_that(figure_with_properties_one.data[3].type, equal_to("scatter"))
-    assert_that(figure_with_properties_one.data[4].type, equal_to("scatter"))
+    assert_that(figure_with_properties_one.data[0].type, equal_to('pie'))
+    assert_that(figure_with_properties_one.data[1].type, equal_to('table'))
+    assert_that(figure_with_properties_one.data[2].type, equal_to('scatter'))
+    assert_that(figure_with_properties_one.data[3].type, equal_to('scatter'))
+    assert_that(figure_with_properties_one.data[4].type, equal_to('scatter'))
 
     assert_that(len(figure_with_properties_two.data), equal_to(4))
     assert_that(len(figure_with_properties_two.layout.annotations), equal_to(7))
-    assert_that(figure_with_properties_two.data[0].type, equal_to("pie"))
-    assert_that(figure_with_properties_two.data[1].type, equal_to("table"))
-    assert_that(figure_with_properties_two.data[2].type, equal_to("scatter"))
-    assert_that(figure_with_properties_two.data[3].type, equal_to("bar"))
+    assert_that(figure_with_properties_two.data[0].type, equal_to('pie'))
+    assert_that(figure_with_properties_two.data[1].type, equal_to('table'))
+    assert_that(figure_with_properties_two.data[2].type, equal_to('scatter'))
+    assert_that(figure_with_properties_two.data[3].type, equal_to('bar'))
 
 
 def test_describe_with_multi_label_dataset(text_multilabel_classification_dataset_mock):
@@ -464,8 +464,8 @@ def test_describe_with_multi_label_dataset(text_multilabel_classification_datase
     # Assert
     assert_that(len(figure.data), equal_to(2))
     assert_that(len(figure.layout.annotations), equal_to(1))
-    assert_that(figure.data[0].type, equal_to("pie"))
-    assert_that(figure.data[1].type, equal_to("table"))
+    assert_that(figure.data[0].type, equal_to('pie'))
+    assert_that(figure.data[1].type, equal_to('table'))
 
 
 def test_describe_with_single_label_dataset(tweet_emotion_train_test_textdata):
@@ -479,10 +479,10 @@ def test_describe_with_single_label_dataset(tweet_emotion_train_test_textdata):
     assert_that(len(figure.data), equal_to(4))
     # 1 for pie, 2 for scatter, 4*2 lines for mean, median, 10^th percentile and 90^th percentile
     assert_that(len(figure.layout.annotations), equal_to(11))
-    assert_that(figure.data[0].type, equal_to("pie"))
-    assert_that(figure.data[1].type, equal_to("table"))
-    assert_that(figure.data[2].type, equal_to("scatter"))
-    assert_that(figure.data[3].type, equal_to("scatter"))
+    assert_that(figure.data[0].type, equal_to('pie'))
+    assert_that(figure.data[1].type, equal_to('table'))
+    assert_that(figure.data[2].type, equal_to('scatter'))
+    assert_that(figure.data[3].type, equal_to('scatter'))
 
 
 def test_describe_with_token_classification_dataset(text_token_classification_dataset_mock):
@@ -495,5 +495,5 @@ def test_describe_with_token_classification_dataset(text_token_classification_da
     # Assert
     assert_that(len(figure.data), equal_to(2))
     assert_that(len(figure.layout.annotations), equal_to(1))
-    assert_that(figure.data[0].type, equal_to("pie"))
-    assert_that(figure.data[1].type, equal_to("table"))
+    assert_that(figure.data[0].type, equal_to('pie'))
+    assert_that(figure.data[1].type, equal_to('table'))
