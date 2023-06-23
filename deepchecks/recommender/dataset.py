@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""The dataset module containing the recsys RecDataset class and its functions."""
+"""The dataset module containing the recsys UserDataset class and its functions."""
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
 
@@ -18,12 +18,12 @@ import pandas as pd
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.utils.task_type import TaskType
 
-__all__ = ['RecDataset', 'ItemDataset']
+__all__ = ['UserDataset', 'ItemDataset','InteractionDataset']
 
-TDataset = t.TypeVar('TDataset', bound='RecDataset')
+TDataset = t.TypeVar('TDataset', bound='UserDataset')
 
-
-class RecDataset(Dataset):
+## R
+class UserDataset(Dataset):
 
     _user_index_name: t.Optional[t.Hashable]
 
@@ -80,6 +80,7 @@ class RecDataset(Dataset):
         """
         dataset = super().copy(new_data)
         dataset._user_index_name = self.user_index_name
+    
         return dataset
 
     @property
@@ -100,9 +101,14 @@ class ItemDataset(Dataset):
             cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
             index_name: t.Optional[t.Hashable] = None,
             set_index_from_dataframe_index: bool = False,
+            datetime_name: t.Optional[t.Hashable] = None,
+            set_datetime_from_dataframe_index: bool = False,
+            convert_datetime: bool = True,
+            datetime_args: t.Optional[t.Dict] = None,
             max_categorical_ratio: float = 0.01,
             max_categories: int = None,
             dataset_name: t.Optional[str] = None,
+            **kwargs
     ):
 
         super().__init__(
@@ -144,3 +150,69 @@ class ItemDataset(Dataset):
         if self.item_index_name is None:
             return None
         return dict(zip(self.item_index_name, range(len(self.item_index_name))))
+
+
+class InteractionDataset(Dataset):
+    _user_index_name: t.Optional[t.Hashable]
+    _item_index_name: t.Optional[t.Hashable]
+    _rating_name: t.Optional[t.Hashable]
+
+    def __init__(
+            self,
+            df: t.Any,
+            user_index_name: t.Optional[t.Hashable] = None,
+            item_index_name: t.Optional[t.Hashable] = None,
+            rating_name: t.Optional[t.Hashable] = None,
+            features: t.Optional[t.Sequence[t.Hashable]] = None,
+            cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
+            index_name: t.Optional[t.Hashable] = None,
+            set_index_from_dataframe_index: bool = False,
+            datetime_name: t.Optional[t.Hashable] = None,
+            set_datetime_from_dataframe_index: bool = False,
+            convert_datetime: bool = True,
+            datetime_args: t.Optional[t.Dict] = None,
+            max_categorical_ratio: float = 0.01,
+            max_categories: int = None,
+            dataset_name: t.Optional[str] = None,
+            **kwargs
+    ):
+        super().__init__(
+            df=df,
+            features=features,
+            cat_features=cat_features,
+            index_name=index_name,
+            set_index_from_dataframe_index=set_index_from_dataframe_index,
+            datetime_name=datetime_name,
+            set_datetime_from_dataframe_index=set_datetime_from_dataframe_index,
+            convert_datetime=convert_datetime,
+            datetime_args=datetime_args,
+            dataset_name=dataset_name,
+        )
+        self._user_index_name = user_index_name
+        self._item_index_name = item_index_name
+        self._rating_name = rating_name
+
+    def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
+        dataset = super().copy(new_data)
+        dataset._user_index_name = self._user_index_name
+        dataset._item_index_name = self._item_index_name
+        dataset._rating_name = self._rating_name
+
+        return dataset
+
+    @property
+    def user_index_name(self) -> t.Optional[t.Hashable]:
+        return self._user_index_name
+    
+    @property
+    def item_index_name(self) -> t.Optional[t.Hashable]:
+        return self._item_index_name
+    
+    @property
+    def rating_name(self) -> t.Optional[t.Hashable]:
+        return self._rating_name
+    @property
+    def user_index_to_ordinal(self) -> t.Optional[dict]:
+        if self.user_index_name is None:
+            return None
+        return dict(zip(self.user_index_name, range(len(self.user_index_name))))
