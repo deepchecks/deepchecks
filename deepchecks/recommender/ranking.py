@@ -12,6 +12,7 @@
 from typing import List, Union,Tuple
 import numpy as np
 import pandas as pd
+import itertools
 import prince
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import StandardScaler
@@ -32,11 +33,10 @@ def recall_k(relevant_items: Union[List[int], np.array, None],
     Returns:
         float: The Recall@k score for the recommendations.
     """
-    if relevant_items is None or len(relevant_items) == 0:
+    if relevant_items is None: or len(relevant_items) == 0:
         return 0.0
-    if recommendations is None or len(recommendations) == 0:
+    if recommendations is None: or len(recommendations) == 0:
         return 0.0
-
     relevant_set = set(relevant_items)
     rec_set = set(recommendations[:k])
     hits = [1 for p in rec_set if p in relevant_set]
@@ -86,12 +86,17 @@ def precision_k(relevant_items: Union[List[int], None],
     if recommendations is None or len(recommendations) == 0:
         return 0.0
     
+    num_hits = 0.0
+    score = 0.0
+    # Speed up 
     relevant_set = set(relevant_items)
-    rec_set = recommendations[:k]
+    for i, p in enumerate(itertools.islice(recommendations, k)):
+        if p in relevant_set:
+            num_hits += 1.0
+            score += num_hits / (i + 1.0)
 
-    hits = sum(1/(i+1.0) for (i,p) in enumerate(rec_set) if p in relevant_set)
 
-    return hits / min(len(relevant_items),k)
+    return score / min(len(relevant_items), k)
 
 
 
