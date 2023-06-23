@@ -69,23 +69,22 @@ class PredictionPopularityDrift(TrainTestCheck):
         """
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
-        model = context.model
 
-        train_predictions = model.predict(train_dataset.features_columns)
-        test_predictions = model.predict(test_dataset.features_columns)
-        # flatten sequence of sequences to a single sequence
-        train_predictions = [item for sublist in train_predictions for item in sublist]
-        test_predictions = [item for sublist in test_predictions for item in sublist]
+        train_predictions = train_dataset.label_col.tolist()
+        test_predictions = test_dataset.label_col.tolist()
 
-        value_counts = pd.Series(train_predictions + test_predictions).value_counts(ascending=False)
-        value_counts.iloc[:] = list(range(len(value_counts)))
-        translation_dict = value_counts.to_dict()
-        train_predictions = [translation_dict[prediction] for prediction in train_predictions]
-        test_predictions = [translation_dict[prediction] for prediction in test_predictions]
+        # Compute item popularity for the training dataset
+        item_id = context._item_dataset.index_name
+        item_popularity = context._item_dataset.data.set_index(item_id)['train_popularity'].to_dict()
+
+        train_popularity = [item_popularity[item] for sublist in train_predictions for item in sublist]
+        test_popularity =  [item_popularity[item] for sublist in test_predictions for item in sublist]
+
+
 
         drift_score, method, drift_display = calc_drift_and_plot(
-            train_column=pd.Series(train_predictions),
-            test_column=pd.Series(test_predictions),
+            train_column=pd.Series(train_popularity),
+            test_column=pd.Series(test_popularity),
             value_name='Prediction Popularity',
             column_type='numerical',
             plot_title='Prediction Popularity Drift',
@@ -103,6 +102,7 @@ class PredictionPopularityDrift(TrainTestCheck):
             dataset_names=('Train', 'Test'),
             with_display=context.with_display,
         )
+
 
         return CheckResult(
             value=drift_score,
