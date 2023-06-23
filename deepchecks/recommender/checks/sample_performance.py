@@ -9,18 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the single dataset performance check."""
-from numbers import Number
 from typing import TYPE_CHECKING, Callable, Dict, List, Mapping, Optional, TypeVar, Union, cast
+import plotly.express as px
 
 import pandas as pd
-import plotly.graph_objects as go
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.core.reduce_classes import ReduceMetricClassMixin
-from deepchecks.tabular import Context
+from deepchecks.recommender import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
-from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import format_number
 
@@ -31,7 +27,6 @@ __all__ = ['SamplePerformance']
 
 
 SDP = TypeVar('SDP', bound='SamplePerformance')
-
 
 class SamplePerformance(SingleDatasetCheck):
     """Summarize given model performance on the train and test datasets based on selected scorers.
@@ -49,7 +44,7 @@ class SamplePerformance(SingleDatasetCheck):
 
     def __init__(self,
                  scorers: Optional[Union[Mapping[str, Union[str, Callable]], List[str]]] = None,
-                 n_samples: int = 1_000_000,
+                 n_samples: Union[int,None] = 1_000_000,
                  random_state: int = 42,
                  **kwargs):
         super().__init__(**kwargs)
@@ -59,9 +54,12 @@ class SamplePerformance(SingleDatasetCheck):
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
+        if self.n_samples ==None:
+            dataset = context.get_data_by_kind(dataset_kind)
+
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         model = context.model
-        scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
+        scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []
         display = None
@@ -69,14 +67,16 @@ class SamplePerformance(SingleDatasetCheck):
             scorer_value = scorer(model, dataset)
             results.append([scorer.name, scorer_value])
         results_df = pd.DataFrame(results, columns=['Metric', 'Value'])
+        
         if context.with_display:
-            fig = go.Figure()
-            for _, row in results_df.iterrows():
-                box_fig = go.Box(y=row['Value'], name=row['Metric'])
-                fig.add_trace(box_fig)
-            display = fig
+            fig = px.bar(results_df,y='Value', x='Metric')
+            
+        text = '''
+                The metrics are computed over {:,.0f} samples.
+               '''.format(self.n_samples)
+        display = [text,fig]
 
-        return CheckResult(results_df, display=display)
+        return CheckResult(results_df, header='Sample Performance', display=display)
 
     def config(
         self,
@@ -97,10 +97,3 @@ class SamplePerformance(SingleDatasetCheck):
                     )
         return super().config(include_version=include_version, include_defaults=include_defaults)
 
-    def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
-        """Return the values of the metrics for the dataset provided in a {metric: value} format."""
-        result = {}
-        for _, row in check_result.value.iterrows():
-            key = row['Metric'] if pd.isna(row.get('Class')) else (row['Metric'], str(row['Class']))
-            result[key] = row['Value']
-        return result
