@@ -10,9 +10,11 @@
 #
 """Package for tabular functionality."""
 from .context import Context
-from .dataset import RecDataset
-
+from .dataset import UserDataset, ItemDataset,InteractionDataset
 __all__ = [
-    "RecDataset",
+    "UserDataset",
+    "ItemDataset",
+    "InteractionDataset",
     "Context",
+
 ]
