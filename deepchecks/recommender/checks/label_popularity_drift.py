@@ -68,28 +68,20 @@ class LabelPopularityDrift(TrainTestCheck):
             value: drift score.
             display: label distribution graph, comparing the train and test distributions.
         """
-        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
-        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
+        train_labels = context._y_pred_train
+        test_labels = context._y_pred_test
 
-        train_labels = pd.Series(train_dataset.label_col)
-        test_labels = pd.Series(test_dataset.label_col)
 
-        all_values = pd.Series(train_labels.tolist() + test_labels.tolist())
-        value_counts = all_values.value_counts(ascending=False)
-        value_counts.iloc[:] = list(range(len(value_counts)))
-        translation_dict = value_counts.to_dict()
+        # Compute item popularity for the training dataset
+        item_id = context._item_dataset.index_name
+        item_popularity = context._item_dataset.data.set_index(item_id)['train_popularity'].to_dict()
 
-        if is_sequence_not_str(train_labels.iloc[0]):
-            train_labels = pd.Series([item for sublist in train_labels for item in sublist])
-        if is_sequence_not_str(test_labels.iloc[0]):
-            test_labels = pd.Series([item for sublist in test_labels for item in sublist])
-    
-        train_labels = [translation_dict[label] for label in train_labels]
-        test_labels = [translation_dict[label] for label in test_labels]
+        train_labels_popularity = [item_popularity[item] for sublist in train_labels for item in sublist]
+        test_labels_popularity =  [item_popularity[item] for sublist in test_labels for item in sublist]
 
         drift_score, method, drift_display = calc_drift_and_plot(
-            train_column=pd.Series(train_labels),
-            test_column=pd.Series(test_labels),
+            train_column=pd.Series(train_labels_popularity),
+            test_column=pd.Series(test_labels_popularity),
             value_name='Label Popularity',
             column_type='numerical',
             plot_title='Label Popularity Drift',
