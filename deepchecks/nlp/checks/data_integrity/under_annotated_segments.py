@@ -32,7 +32,7 @@ __all__ = ['UnderAnnotatedMetaDataSegments', 'UnderAnnotatedPropertySegments']
 MAX_SAMPLES_IN_FIGURE = 1000
 # The threshold the UnderAnnotatedSegments considers the data to be well
 # annotated and skips the checks
-MAX_ANNOTATION_RATIO = 0.90
+ANNOTATION_RATIO_THRESHOLD = 95.0
 MIN_TEXT_SAMPLES = 10  # Min samples to calculate under annotated segments
 
 
@@ -41,8 +41,9 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
 
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
                  ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: int,
-                 segment_minimum_size_ratio: float, n_samples: int,
-                 categorical_aggregation_threshold: float, n_to_show: int, **kwargs):
+                 segment_minimum_size_ratio: float, n_samples: int,  n_to_show: int,
+                 categorical_aggregation_threshold: float, annotation_ratio_threshold: float,
+                 **kwargs):
         super().__init__(**kwargs)
         self.segment_by = segment_by
         self.columns = columns
@@ -52,6 +53,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
+        self.annotation_ratio_threshold = annotation_ratio_threshold
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -63,10 +65,11 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                                                          n_top_features=self.n_top_features)
 
         score_per_sample = pd.Series([1 - is_label_none(x) for x in text_data.label], index=features.index)
-        annotation_ratio = round(score_per_sample.sum() / text_data.n_samples, 2)
-        if annotation_ratio > MAX_ANNOTATION_RATIO:
+        annotation_ratio = round(score_per_sample.sum() * 100 / text_data.n_samples, 2)
+        if annotation_ratio > self.annotation_ratio_threshold:
             display_msg = f'Under annotated {self.segment_by} segments check is skipped since your data ' \
-                          f'annotation ratio is > {MAX_ANNOTATION_RATIO * 100}%.'
+                          f'annotation ratio is > {self.annotation_ratio_threshold}%. Try increasing the ' \
+                          'annotation_ratio_threshold parameter.'
             return CheckResult(value={'message': display_msg}, display=[display_msg])
 
         if text_data.n_samples < MIN_TEXT_SAMPLES:
@@ -246,6 +249,8 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
         Maximum number of samples to use for this check.
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
+    annotation_ratio_threshold : float , default: 95.0
+        The threshold ranging from 1 to 100 for the under annotated property segement check to run. 
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """
@@ -258,6 +263,7 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
+                 annotation_ratio_threshold: float = ANNOTATION_RATIO_THRESHOLD,
                  **kwargs):
         super().__init__(segment_by='properties',
                          columns=properties,
@@ -267,6 +273,7 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
+                         annotation_ratio_threshold=annotation_ratio_threshold,
                          **kwargs)
 
 
@@ -297,6 +304,8 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
         Maximum number of samples to use for this check.
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
+    annotation_ratio_threshold : float , default: 95.0
+        The threshold ranging from 1 to 100 for the under annotated metatdata segement check to run. 
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """
@@ -309,6 +318,7 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
+                 annotation_ratio_threshold: float = ANNOTATION_RATIO_THRESHOLD,
                  **kwargs):
         super().__init__(segment_by='metadata',
                          columns=columns,
@@ -318,4 +328,5 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
+                         annotation_ratio_threshold=annotation_ratio_threshold,
                          **kwargs)

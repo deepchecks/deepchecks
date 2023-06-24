@@ -55,9 +55,9 @@ def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
     # Assert
     assert_that(condition_result, has_items(
         equal_condition_result(is_pass=False,
-                               details='Found a segment with annotation ratio of 0.366 in comparison to an average'
+                               details='Found a segment with annotation ratio of 0.366 in comparison to an average '
                                        'score of 0.5 in sampled data.',
-                               name='The relative performance of weakest segment is greater than 80% of average'
+                               name='The relative performance of weakest segment is greater than 80% of average '
                                     'model performance.')
     ))
 
@@ -89,14 +89,17 @@ def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_tex
 def test_tweet_emotion_metadata_fully_annotated(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
-    check = UnderAnnotatedMetaDataSegments().add_condition_segments_relative_performance_greater_than()
+    check = UnderAnnotatedMetaDataSegments(
+                annotation_ratio_threshold=90
+            ).add_condition_segments_relative_performance_greater_than()
 
     # Act
     result = check.run(test)
 
     # Assert
     assert_that(result.value['message'], equal_to('Under annotated metadata segments check is skipped '
-                                                'since your data annotation ratio is > 90.0%.'))
+                                                  'since your data annotation ratio is > 90%. Try '
+                                                  'increasing the annotation_ratio_threshold parameter.'))
 
 
 def test_token_classification_dataset(small_wikiann_train_test_text_data):
