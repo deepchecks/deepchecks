@@ -95,7 +95,7 @@ def test_tweet_emotion_metadata_fully_annotated(tweet_emotion_train_test_textdat
     result = check.run(test)
 
     # Assert
-    assert_that(result.value['error'], equal_to('Under annotated metadata segments check is skipped '
+    assert_that(result.value['message'], equal_to('Under annotated metadata segments check is skipped '
                                                 'since your data annotation ratio is > 90.0%.'))
 
 

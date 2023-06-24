@@ -67,7 +67,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         if annotation_ratio > MAX_ANNOTATION_RATIO:
             display_msg = f'Under annotated {self.segment_by} segments check is skipped since your data ' \
                           f'annotation ratio is > {MAX_ANNOTATION_RATIO * 100}%.'
-            return CheckResult(value={'error': display_msg}, display=[display_msg])
+            return CheckResult(value={'message': display_msg}, display=[display_msg])
 
         if text_data.n_samples < MIN_TEXT_SAMPLES:
             raise NotEnoughSamplesError(f'Not enough samples to calculate under annotated {self.segment_by} '
@@ -84,7 +84,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         if len(weak_segments) == 0:
             display_msg = 'Check was unable to find under annotated segments. Try ' \
                             f'supplying more {self.segment_by}.'
-            return CheckResult(value={'error': display_msg}, display=[display_msg])
+            return CheckResult(value={'message': display_msg}, display=[display_msg])
 
         check_result_value = self._generate_check_result_value(weak_segments, cat_features, avg_score)
         display_msg = f'Showcasing intersections of {self.segment_by} that result in the most ' \
