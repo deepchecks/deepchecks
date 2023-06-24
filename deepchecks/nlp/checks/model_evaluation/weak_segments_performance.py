@@ -17,7 +17,7 @@ from sklearn.decomposition import TruncatedSVD
 
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
-from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError
+from deepchecks.core.errors import DeepchecksNotSupportedError, NotEnoughSamplesError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
 from deepchecks.tabular.context import _DummyModel
@@ -26,6 +26,8 @@ from deepchecks.utils.single_sample_metrics import calculate_neg_cross_entropy_p
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['MetadataSegmentsPerformance', 'PropertySegmentsPerformance']
+
+MIN_TEXT_SAMPLES = 10  # Min samples to calculate weak segments performance
 
 
 class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
@@ -55,6 +57,9 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         text_data = context.get_data_by_kind(dataset_kind)
         text_data = text_data.sample(self.n_samples, random_state=context.random_state, drop_na_label=True)
 
+        if text_data.n_samples < MIN_TEXT_SAMPLES:
+            raise NotEnoughSamplesError(f'Not enough samples to find weak {self.segment_by} segments.'
+                                        ' Minimum 10 samples required.')
         features, cat_features = get_relevant_data_table(text_data, data_type=self.segment_by,
                                                          columns=self.columns, ignore_columns=self.ignore_columns,
                                                          n_top_features=self.n_top_features)
@@ -105,8 +110,9 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
                                                    dummy_model=dummy_model, scorer=scorer)
 
         if len(weak_segments) == 0:
-            raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
-                                         f'segments. Try increasing n_samples or supply more {self.segment_by}.')
+            display_msg = 'WeakSegmentsPerformance was unable to train an error model to find weak segments.'\
+                          f'Try supplying more {self.segment_by}.'
+            return CheckResult(value={'error': display_msg}, display=[display_msg])
 
         if context.with_display:
             display = self._create_heatmap_display(data=encoded_dataset.data, weak_segments=weak_segments,
