@@ -433,11 +433,6 @@ def test_describe_with_properties(text_multilabel_classification_dataset_mock, t
     assert_that(figure_without_properties.data[0].type, equal_to('pie'))
     assert_that(figure_without_properties.data[1].type, equal_to('table'))
 
-    # assert_that(
-    #     calling(dataset_with_properties.describe).with_args(properties_to_show=['Text Length',
-    #                                                                             'Property One']),
-    #     raises(DeepchecksValueError, 'Property One property(s) does not exist')
-    # )
     assert_that(len(figure_with_properties_one.data), equal_to(5))
     assert_that(len(figure_with_properties_one.layout.annotations), equal_to(16))
     assert_that(figure_with_properties_one.data[0].type, equal_to('pie'))
