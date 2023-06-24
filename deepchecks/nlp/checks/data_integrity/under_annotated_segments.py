@@ -250,7 +250,7 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
     annotation_ratio_threshold : float , default: 95.0
-        The threshold ranging from 1 to 100 for the under annotated property segement check to run. 
+        The threshold ranging from 1 to 100 for the under annotated property segement check to run.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """
@@ -305,7 +305,7 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
     annotation_ratio_threshold : float , default: 95.0
-        The threshold ranging from 1 to 100 for the under annotated metatdata segement check to run. 
+        The threshold ranging from 1 to 100 for the under annotated metatdata segement check to run.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """

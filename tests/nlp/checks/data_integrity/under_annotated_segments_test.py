@@ -89,17 +89,24 @@ def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_tex
 def test_tweet_emotion_metadata_fully_annotated(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
-    check = UnderAnnotatedMetaDataSegments(
+    check_one = UnderAnnotatedMetaDataSegments(
                 annotation_ratio_threshold=90
             ).add_condition_segments_relative_performance_greater_than()
 
+    check_two = UnderAnnotatedMetaDataSegments(
+                annotation_ratio_threshold=100
+                ).add_condition_segments_relative_performance_greater_than()
+
     # Act
-    result = check.run(test)
+    result_one = check_one.run(test)
+    result_two = check_two.run(test)
 
     # Assert
-    assert_that(result.value['message'], equal_to('Under annotated metadata segments check is skipped '
-                                                  'since your data annotation ratio is > 90%. Try '
-                                                  'increasing the annotation_ratio_threshold parameter.'))
+    assert_that(result_one.value['message'], equal_to('Under annotated metadata segments check is '
+                                                      'skipped since your data annotation ratio is > 90%. '
+                                                      'Try increasing the annotation_ratio_threshold parameter.'))
+    assert_that(result_two.value['message'], equal_to('Check was unable to find under annotated segments. Try '
+                                                      'supplying more metadata.'))
 
 
 def test_token_classification_dataset(small_wikiann_train_test_text_data):
