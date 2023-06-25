@@ -70,7 +70,7 @@ Useful Functions
 Describe data
 -----------------------------
 
-The ``describe()`` function is a great way to get an overview of your textual data. The function output displays the label distribution,  the text distribution across selected properties and statistical information regarding the data. You can use the function on the TextData object using:
+The ``describe()`` function is a great way to get an overview of your textual data. The function output displays the label distribution, texts distribution across selected properties and statistical information regarding the data. You can use the function on the TextData object using:
 
 >>> text_data.describe()
 
