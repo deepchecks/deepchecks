@@ -755,16 +755,16 @@ class TextData:
 
         Parameters
         ----------
-        n_properties_to_show : int, default 4
+        n_properties_to_show : int, default: 4
             Number of properties to consider for generating property distribution graphs. If properties_to_show
             is provided, this value is ignored.
         properties_to_show : List[str], default: None
             List of property names to consider for generating property distribution graphs. If None, all the
             properties are considered.
-        max_num_labels_to_show : int, default 5
+        max_num_labels_to_show : int, default: 5
             The threshold to display the maximum number of labels on the label distribution pie chart and
             display rest of the labels under "Others" category.
-        model_classes : 
+        model_classes : Optional[List[str]], default: None
             List of classes names to use for multi-label display. Only used if the dataset is multi-label.
 
         Returns
