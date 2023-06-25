@@ -757,7 +757,7 @@ class TextData:
         n_properties_to_show : int, default 4
             Number of properties to consider for generating property distribution graphs. If properties_to_show
             is provided, this value is ignored.
-        properties_to_show : List[str], default None
+        properties_to_show : List[str], default: None
             List of property names to consider for generating property distribution graphs. If None, all the
             properties are considered.
 
