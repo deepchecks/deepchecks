@@ -762,8 +762,7 @@ class TextData:
             List of property names to consider for generating property distribution graphs. If None, all the
             properties are considered.
         max_num_labels_to_show : int, default 6
-            The threshold to display the maximum number of labels on the label distribution pie chart and display
-            rest of the labels under "Others" category.
+            The maximum number of labels to display on the label distribution pie chart. The remaining labels are grouped under the "Others" category.
 
         Returns
         -------
