@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
-from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
@@ -30,6 +30,10 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['UnderAnnotatedMetaDataSegments', 'UnderAnnotatedPropertySegments']
 
 MAX_SAMPLES_IN_FIGURE = 1000
+# The threshold the UnderAnnotatedSegments considers the data to be well
+# annotated and skips the checks
+ANNOTATION_RATIO_THRESHOLD = 95.0
+MIN_TEXT_SAMPLES = 10  # Min samples to calculate under annotated segments
 
 
 class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
@@ -37,8 +41,8 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
 
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
                  ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: int,
-                 segment_minimum_size_ratio: float, n_samples: int,
-                 categorical_aggregation_threshold: float, n_to_show: int, **kwargs):
+                 segment_minimum_size_ratio: float, n_samples: int,  n_to_show: int,
+                 categorical_aggregation_threshold: float, **kwargs):
         super().__init__(**kwargs)
         self.segment_by = segment_by
         self.columns = columns
@@ -48,6 +52,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
+        self.annotation_ratio_threshold = ANNOTATION_RATIO_THRESHOLD
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -59,6 +64,17 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                                                          n_top_features=self.n_top_features)
 
         score_per_sample = pd.Series([1 - is_label_none(x) for x in text_data.label], index=features.index)
+        annotation_ratio = round(score_per_sample.sum() * 100 / text_data.n_samples, 2)
+        if annotation_ratio > self.annotation_ratio_threshold:
+            display_msg = f'Under annotated {self.segment_by} segments check is skipped since your data ' \
+                          f'annotation ratio is > {self.annotation_ratio_threshold}%. Try increasing the ' \
+                          'annotation_ratio_threshold parameter.'
+            return CheckResult(value={'message': display_msg}, display=[display_msg])
+
+        if text_data.n_samples < MIN_TEXT_SAMPLES:
+            raise NotEnoughSamplesError(f'Not enough samples to calculate under annotated {self.segment_by} '
+                                        'segments. Minimum 10 samples required.')
+
         encoded_dataset = self._target_encode_categorical_features_fill_na(features, score_per_sample,
                                                                            cat_features)
 
@@ -68,9 +84,9 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                                                    scorer_name='Annotation Ratio')
 
         if len(weak_segments) == 0:
-            raise DeepchecksProcessError('Check was unable to find under annotated segments. This is expected if '
-                                         'your data is well annotated. If this is not the case, try increasing '
-                                         f'n_samples or supply more {self.segment_by}.')
+            display_msg = 'Check was unable to find under annotated segments. Try ' \
+                            f'supplying more {self.segment_by}.'
+            return CheckResult(value={'message': display_msg}, display=[display_msg])
 
         check_result_value = self._generate_check_result_value(weak_segments, cat_features, avg_score)
         display_msg = f'Showcasing intersections of {self.segment_by} that result in the most ' \
