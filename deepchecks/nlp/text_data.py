@@ -742,7 +742,8 @@ class TextData:
             return False
         return self.n_samples > n_samples
 
-    def describe(self, n_properties_to_show: t.Optional[int] = 4, properties_to_show: t.Optional[t.List[str]] = None):
+    def describe(self, n_properties_to_show: t.Optional[int] = 4, properties_to_show: t.Optional[t.List[str]] = None,
+                 max_num_labels_to_show: t.Optional[int] = 6):
         """Provide holistic view of the data.
 
         Generates the following plots:
@@ -760,31 +761,35 @@ class TextData:
         properties_to_show : List[str], default: None
             List of property names to consider for generating property distribution graphs. If None, all the
             properties are considered.
+        max_num_labels_to_show : int, default 6
+            The threshold to display the maximum number of labels on the label distribution pie chart and display
+            rest of the labels under "Others" category.
 
         Returns
         -------
         Displays the Plotly Figure.
         """
-        properties = []
+        prop_names = []
         all_properties_data = pd.DataFrame()
         if self._properties is None and properties_to_show is not None:
             raise DeepchecksValueError('No properties exist!')
         elif self._properties is not None:
             if properties_to_show is not None:
-                properties = [prop for prop in properties_to_show if prop in self.properties.columns]
-                if len(properties) != len(properties_to_show):
-                    raise DeepchecksValueError(f'{set(properties_to_show)-set(properties)} properties does not exist in the TextData object')
+                prop_names = [prop for prop in properties_to_show if prop in self.properties.columns]
+                if len(prop_names) != len(properties_to_show):
+                    raise DeepchecksValueError(f'{set(properties_to_show)-set(prop_names)} '
+                                               'properties does not exist in the TextData object')
             else:
-                properties = list(self.properties.columns)[:n_properties_to_show]
-            all_properties_data = self.properties[properties]
+                prop_names = list(self.properties.columns)[:n_properties_to_show]
+            all_properties_data = self.properties[prop_names]
 
-        fig = text_data_describe_plot(all_properties_data=all_properties_data, n_samples=self.n_samples,
+        fig = text_data_describe_plot(properties=all_properties_data, n_samples=self.n_samples,
                                       is_multi_label=self.is_multi_label_classification(), task_type=self.task_type,
                                       categorical_metadata=self.categorical_metadata,
                                       numerical_metadata=self.numerical_metadata,
                                       categorical_properties=self.categorical_properties,
                                       numerical_properties=self.numerical_properties, label=self._label,
-                                      properties=properties)
+                                      max_num_labels_to_show=max_num_labels_to_show)
 
         return fig
 

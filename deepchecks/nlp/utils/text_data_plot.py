@@ -22,12 +22,9 @@ from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.plot import feature_distribution_colors
 from deepchecks.utils.strings import format_percent, get_docs_link
+from deepchecks.nlp.utils.text import break_to_lines_and_trim
 
 __all__ = ['text_data_describe_plot']
-
-# The threshold to display the maximum number of labels on the label distribution pie chart and display
-# rest of the labels under "Others" category.
-MAX_NUM_LABEL_DISTRIBUTION_TO_SHOW = 6
 
 
 def _calculate_annoation_ratio(label, n_samples, is_mutli_label, task_type):
@@ -44,35 +41,47 @@ def _calculate_annoation_ratio(label, n_samples, is_mutli_label, task_type):
         return format_percent(pd.notna(label).sum() / n_samples)
 
 
-def _generate_table_trace(n_samples, annotation_ratio, categorical_metadata, numerical_metadata,
-                          categorical_properties, numerical_properties):
-    data_cell = ['<b>Number of samples</b>', '<b>Annotation ratio</b>', '<b>Metadata categorical columns</b>',
-                 '<b>Metadata numerical columns</b>', '<b>Categorical properties</b>', '<b>Numerical properties</b>']
+def _get_table_row_data(n_samples, annotation_ratio, categorical_metadata, numerical_metadata,
+                        categorical_properties, numerical_properties, max_values_to_show: int = 5):
+
     info_cell = [n_samples, annotation_ratio]
 
     if categorical_metadata is None or len(categorical_metadata) == 0:
         info_cell.append('No categorical metadata')
     else:
-        info_cell.append(', '.join(categorical_metadata) if len(categorical_metadata) <= 3 else
-                         f'{len(len(categorical_metadata))} metadata columns')
+        info_cell.append(', '.join(categorical_metadata) if len(categorical_metadata) <= max_values_to_show
+                         else f'{len(categorical_metadata)} metadata columns')
 
     if numerical_metadata is None or len(numerical_metadata) == 0:
         info_cell.append('No numerical metadata')
     else:
-        info_cell.append(', '.join(numerical_metadata) if len(numerical_metadata) <= 3 else
-                         f'{len(len(numerical_metadata))} metadata columns')
+        info_cell.append(', '.join(numerical_metadata) if len(numerical_metadata) <= max_values_to_show
+                         else f'{len(numerical_metadata)} metadata columns')
 
     if categorical_properties is None or len(categorical_properties) == 0:
         info_cell.append('No categorical properties')
     else:
-        info_cell.append(', '.join(categorical_properties) if len(categorical_properties) <= 2 else
-                         f'{len(len(categorical_properties))} properties')
+        info_cell.append(', '.join(categorical_properties) if len(categorical_properties) <= max_values_to_show
+                         else f'{len(categorical_properties)} properties')
 
     if numerical_properties is None or len(numerical_properties) == 0:
         info_cell.append('No numerical properties')
     else:
-        info_cell.append(', '.join(numerical_properties) if len(numerical_properties) <= 9 else
-                         f'{len(len(numerical_properties))} properties')
+        info_cell.append(', '.join(numerical_properties) if len(numerical_properties) <= max_values_to_show
+                         else f'{len(numerical_properties)} properties')
+
+    return info_cell
+
+
+def _generate_table_trace(n_samples, annotation_ratio, categorical_metadata, numerical_metadata,
+                          categorical_properties, numerical_properties):
+    data_cell = ['<b>Number of samples</b>', '<b>Annotation ratio</b>', '<b>Metadata categorical columns</b>',
+                 '<b>Metadata numerical columns</b>', '<b>Categorical properties</b>', '<b>Numerical properties</b>']
+
+    info_cell = _get_table_row_data(n_samples=n_samples, annotation_ratio=annotation_ratio,
+                                    categorical_metadata=categorical_metadata, numerical_metadata=numerical_metadata,
+                                    categorical_properties=categorical_properties,
+                                    numerical_properties=numerical_properties, max_values_to_show=7)
 
     trace = go.Table(header={'fill': {'color': 'white'}},
                      cells={'values': [data_cell, info_cell], 'align': ['left'], 'font_size': 12,
@@ -157,23 +166,26 @@ def _generate_numeric_distribution_plot(data, x_value, y_value, property_name):
     return trace, shapes, annotations, xaxis_layout, yaxis_layout
 
 
-def text_data_describe_plot(all_properties_data: pd.DataFrame, n_samples: int,
+def text_data_describe_plot(n_samples: int, max_num_labels_to_show: int,
                             is_multi_label: bool, task_type: str,
+                            properties: pd.DataFrame,
                             categorical_metadata: Optional[List[str]] = None,
                             numerical_metadata: Optional[List[str]] = None,
                             categorical_properties: Optional[List[str]] = None,
                             numerical_properties: Optional[List[str]] = None,
-                            label: Optional[TTextLabel] = None,
-                            properties: Optional[List[str]] = None):
+                            label: Optional[TTextLabel] = None):
     """Return a plotly figure instance.
 
     Parameters
     ----------
-    all_properties_data: pd.DataFrame
+    properties: pd.DataFrame
         The DataFrame consisting of the text properties data. If no prooperties are there, you can pass an
         empty DataFrame as well.
     n_samples: int
         The total number of samples present in the TextData object.
+    max_num_labels_to_show : int
+        The threshold to display the maximum number of labels on the label distribution pie chart and display
+        rest of the labels under "Others" category.
     is_multi_label: bool
         A boolean where True denotes that the TextData contains multi labeled data otherwise false.
     task_type: str
@@ -198,15 +210,13 @@ def text_data_describe_plot(all_properties_data: pd.DataFrame, n_samples: int,
         - token_classification label - For token classification the accepted label format is the IOB format or similar
           to it. The Label must be a sequence of sequences of strings or integers, with each sequence corresponding to
           a sample in the tokenized text, and exactly the length of the corresponding tokenized text.
-    properties : List[str]
-        List of property names to consider for generating property distribution graphs.
 
     Returns
     -------
     Plotly Figure instance.
     """
     specs = [[{'type': 'pie'}, {'type': 'table'}] if label is not None else [{'type': 'table', 'colspan': 2}, None]] + \
-        [[{'type': 'xy', 'colspan': 2}, None] for _ in range(len(properties))]
+        [[{'type': 'xy', 'colspan': 2}, None] for _ in range(len(properties.columns))]
 
     subplot_titles = []
     if label is not None:
@@ -214,77 +224,79 @@ def text_data_describe_plot(all_properties_data: pd.DataFrame, n_samples: int,
         subplot_titles.append(f'Label Distribution<br><sup>Out of {annotated_samples} annotated samples</sup><br><br>')
 
     subplot_titles.append('')  # Empty title for table figure
-    if properties is not None or len(properties) > 0:
-        for prop in properties:
-            if prop in TEXT_PROPERTIES_DESCRIPTION:
-                subplot_titles.append(f'{prop} Property Distribution<sup><a href="{get_docs_link()}nlp/usage_guides/'
-                                      'nlp_properties.html#deepchecks-built-in-properties">&#x24D8;</a></sup><br>'
-                                      f'<sup>{TEXT_PROPERTIES_DESCRIPTION[prop]}</sup>')
+    if not properties.empty:
+        for prop_name in properties:
+            if prop_name in TEXT_PROPERTIES_DESCRIPTION:
+                subplot_titles.append(f'{prop_name} Property Distribution<sup><a href="{get_docs_link()}nlp/'
+                                      'usage_guides/nlp_properties.html#deepchecks-built-in-properties">&#x24D8;</a>'
+                                      f'</sup><br><sup>{TEXT_PROPERTIES_DESCRIPTION[prop_name]}</sup>')
 
-        fig = make_subplots(rows=len(properties) + 1, cols=2, specs=specs, subplot_titles=subplot_titles,
-                            row_heights=[1.5] + [1.0] * len(properties))
+    fig = make_subplots(rows=len(properties.columns) + 1, cols=2, specs=specs, subplot_titles=subplot_titles,
+                        row_heights=[1.5] + [1.0] * len(properties.columns))
 
-        if label is not None:
-            if is_multi_label:
-                df_label = pd.DataFrame(label).fillna(0)
-                label_counts = pd.Series(np.sum(df_label.to_numpy(), axis=0))
-            elif task_type == TaskType.TOKEN_CLASSIFICATION:
-                hashmap = {}
-                for val in label:
-                    flattened_array = pd.Series(np.array(val).flatten()).fillna('NaN').to_numpy()
-                    unique_values, counts = np.unique(flattened_array, return_counts=True)
-                    for label_value, count in zip(unique_values, counts):
-                        if label_value != 'NaN':
-                            hashmap[label_value] = hashmap[label_value] + count if label_value in hashmap else count
-                label_counts = pd.Series(list(hashmap.values()), index=list(hashmap))
-            else:
-                label_counts = pd.Series(label).value_counts()
+    # Create label distribution if label is provided
+    if label is not None:
+        if is_multi_label:
+            df_label = pd.DataFrame(label).fillna(0)
+            label_counts = pd.Series(np.sum(df_label.to_numpy(), axis=0))
+        elif task_type == TaskType.TOKEN_CLASSIFICATION:
+            hashmap = {}
+            for val in label:
+                flattened_array = pd.Series(np.array(val).flatten()).fillna('NaN').to_numpy()
+                unique_values, counts = np.unique(flattened_array, return_counts=True)
+                for label_value, count in zip(unique_values, counts):
+                    if label_value != 'NaN':
+                        hashmap[label_value] = hashmap[label_value] + count if label_value in hashmap else count
+            label_counts = pd.Series(list(hashmap.values()), index=list(hashmap))
+        else:
+            label_counts = pd.Series(label).value_counts()
 
-            label_counts.sort_values(ascending=False, inplace=True)
-            labels_to_display = label_counts[:MAX_NUM_LABEL_DISTRIBUTION_TO_SHOW]
-            count_other_labels = label_counts[MAX_NUM_LABEL_DISTRIBUTION_TO_SHOW + 1:].sum()
-            labels_to_display['Others'] = count_other_labels
+        label_counts.sort_values(ascending=False, inplace=True)
+        labels_to_display = label_counts[:max_num_labels_to_show]
+        labels_to_display.index = [break_to_lines_and_trim(str(label)) for label in list(labels_to_display.index)]
+        count_other_labels = label_counts[max_num_labels_to_show + 1:].sum()
+        labels_to_display['Others'] = count_other_labels
 
-            # Pie chart for label distribution
-            fig.add_trace(go.Pie(labels=list(labels_to_display.index), values=list(labels_to_display),
-                                 textposition='inside', showlegend=False, textinfo='label+percent',
-                                 hovertemplate='%{label}: %{value} samples<extra></extra>'), row=1, col=1)
+        # Pie chart for label distribution
+        fig.add_trace(go.Pie(labels=list(labels_to_display.index), values=list(labels_to_display),
+                             textposition='inside', showlegend=False, textinfo='label+percent',
+                             hovertemplate='%{label}: %{value} samples<extra></extra>'), row=1, col=1)
 
-        # Table figure for displaying some statistics
-        annotation_ratio = _calculate_annoation_ratio(label, n_samples, is_multi_label, task_type)
-        table_trace = _generate_table_trace(n_samples, annotation_ratio, categorical_metadata, numerical_metadata,
-                                            categorical_properties, numerical_properties)
-        fig.add_trace(table_trace, row=1, col=2 if label is not None else 1)
+    # Table figure for displaying some statistics
+    annotation_ratio = _calculate_annoation_ratio(label, n_samples, is_multi_label, task_type)
+    table_trace = _generate_table_trace(n_samples, annotation_ratio, categorical_metadata, numerical_metadata,
+                                        categorical_properties, numerical_properties)
+    fig.add_trace(table_trace, row=1, col=2 if label is not None else 1)
 
-        # Looping over all the properties to generate respective property distribution graphs
-        curr_row = 2  # Since row 1 is occupied with Pie and Table
-        for property_name in properties:
+    # Looping over all the properties to generate respective property distribution graphs
+    curr_row = 2  # Since row 1 is occupied with Pie and Table
+    for property_name in properties.columns:
 
-            if property_name in categorical_properties:
-                # Creating bar plots for categorical properties
-                trace, xaxis_layout, yaxis_layout = _generate_categorical_distribution_plot(
-                                                        all_properties_data[property_name], property_name
-                                                    )
-                fig.add_trace(trace, row=curr_row, col=1)
-                fig.update_xaxes(xaxis_layout, row=curr_row, col=1)
-                fig.update_yaxes(yaxis_layout, row=curr_row, col=1)
-            else:
-                # Creating scatter plots for numerical properties
-                y_value, xs = _get_distribution_values(all_properties_data[property_name])
-                trace, shapes, annotations, xaxis_layout, yaxis_layout = _generate_numeric_distribution_plot(
-                                                                            all_properties_data[property_name],
-                                                                            xs, y_value, property_name
-                                                                        )
-                fig.add_trace(trace, row=curr_row, col=1)
+        if property_name in categorical_properties:
+            # Creating bar plots for categorical properties
+            trace, xaxis_layout, yaxis_layout = _generate_categorical_distribution_plot(
+                                                    properties[property_name], property_name
+                                                )
+            fig.add_trace(trace, row=curr_row, col=1)
+            fig.update_xaxes(xaxis_layout, row=curr_row, col=1)
+            fig.update_yaxes(yaxis_layout, row=curr_row, col=1)
+        else:
+            # Creating scatter plots for numerical properties
+            y_value, xs = _get_distribution_values(properties[property_name])
+            trace, shapes, annotations, xaxis_layout, yaxis_layout = _generate_numeric_distribution_plot(
+                                                                        properties[property_name],
+                                                                        xs, y_value, property_name
+                                                                    )
+            fig.add_trace(trace, row=curr_row, col=1)
 
-                for shape, annotation in zip(shapes, annotations):
-                    fig.add_shape(shape, row=curr_row, col=1)
-                    fig.add_annotation(annotation, row=curr_row, col=1)
+            for shape, annotation in zip(shapes, annotations):
+                fig.add_shape(shape, row=curr_row, col=1)
+                fig.add_annotation(annotation, row=curr_row, col=1)
 
-                fig.update_yaxes(yaxis_layout, row=curr_row, col=1)
-                fig.update_xaxes(xaxis_layout, row=curr_row, col=1)
+            fig.update_yaxes(yaxis_layout, row=curr_row, col=1)
+            fig.update_xaxes(xaxis_layout, row=curr_row, col=1)
 
-            curr_row += 1
+        curr_row += 1
 
-        fig.update_layout(height=450*(len(properties) + 1))
+    fig.update_layout(height=450*(len(properties.columns) + 1))
     return fig
