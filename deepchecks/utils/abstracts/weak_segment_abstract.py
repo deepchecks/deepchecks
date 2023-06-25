@@ -330,6 +330,9 @@ class WeakSegmentAbstract(abc.ABC):
         """
 
         def condition(result: Dict) -> ConditionResult:
+            if 'message' in result:
+                return ConditionResult(ConditionCategory.PASS, result['message'])
+
             weakest_segment_score = result['weak_segments_list'].iloc[0, 0]
             scorer_name = result['weak_segments_list'].columns[0].lower()
             msg = f'Found a segment with {scorer_name} of {format_number(weakest_segment_score, 3)} ' \
