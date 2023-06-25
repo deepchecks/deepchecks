@@ -14,7 +14,7 @@ import pandas as pd
 import pytest
 from hamcrest import assert_that, calling, close_to, equal_to, has_items, is_in, matches_regexp, raises
 
-from deepchecks.core.errors import DeepchecksNotSupportedError
+from deepchecks.core.errors import DeepchecksNotSupportedError, NotEnoughSamplesError
 from deepchecks.nlp.checks import MetadataSegmentsPerformance, PropertySegmentsPerformance
 from tests.base.utils import equal_condition_result
 
@@ -184,3 +184,25 @@ def test_binary_classification(binary_mock_dataset_and_probabilities):
     assert_that(result.value['avg_score'], close_to(0.447, 0.001))
     assert_that(len(result.value['weak_segments_list']), equal_to(6))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.34, 0.01))
+
+
+def test_not_enough_samples(tweet_emotion_train_test_textdata, tweet_emotion_train_test_probabilities):
+
+    _, test = tweet_emotion_train_test_textdata
+    _, test_probas = tweet_emotion_train_test_probabilities
+    property_check = PropertySegmentsPerformance(n_top_properties=3)
+    metadata_check = MetadataSegmentsPerformance(n_top_columns=2)
+    text_data = test.sample(5)
+    text_data.label[0] = np.nan
+    text_data.label[3] = None
+
+    assert_that(
+        calling(property_check.run).with_args(text_data),
+        raises(NotEnoughSamplesError,
+               'Not enough samples to find weak properties segments. Minimum 10 samples required.'
+               ))
+    assert_that(
+        calling(metadata_check.run).with_args(text_data),
+        raises(NotEnoughSamplesError,
+               'Not enough samples to find weak metadata segments. Minimum 10 samples required.'
+               ))
