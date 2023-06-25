@@ -59,7 +59,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
         if text_data.n_samples < MIN_TEXT_SAMPLES:
             raise NotEnoughSamplesError(f'Not enough samples to find weak {self.segment_by} segments.'
-                                        ' Minimum 10 samples required.')
+                                        f' Minimum {MIN_TEXT_SAMPLES} samples required.')
         features, cat_features = get_relevant_data_table(text_data, data_type=self.segment_by,
                                                          columns=self.columns, ignore_columns=self.ignore_columns,
                                                          n_top_features=self.n_top_features)
