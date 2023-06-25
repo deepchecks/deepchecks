@@ -743,7 +743,7 @@ class TextData:
         return self.n_samples > n_samples
 
     def describe(self, n_properties_to_show: t.Optional[int] = 4, properties_to_show: t.Optional[t.List[str]] = None,
-                 max_num_labels_to_show: t.Optional[int] = 6):
+                 max_num_labels_to_show: t.Optional[int] = 5, model_classes: t.Optional[t.List[str]] = None):
         """Provide holistic view of the data.
 
         Generates the following plots:
@@ -761,9 +761,11 @@ class TextData:
         properties_to_show : List[str], default: None
             List of property names to consider for generating property distribution graphs. If None, all the
             properties are considered.
-        max_num_labels_to_show : int, default 6
-            The threshold to display the maximum number of labels on the label distribution pie chart and display
-            rest of the labels under "Others" category.
+        max_num_labels_to_show : int, default 5
+            The threshold to display the maximum number of labels on the label distribution pie chart and
+            display rest of the labels under "Others" category.
+        model_classes : 
+            List of classes names to use for multi-label display. Only used if the dataset is multi-label.
 
         Returns
         -------
@@ -789,6 +791,7 @@ class TextData:
                                       numerical_metadata=self.numerical_metadata,
                                       categorical_properties=self.categorical_properties,
                                       numerical_properties=self.numerical_properties, label=self._label,
+                                      model_classes=model_classes,
                                       max_num_labels_to_show=max_num_labels_to_show)
 
         return fig

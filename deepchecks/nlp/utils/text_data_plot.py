@@ -32,10 +32,9 @@ def _calculate_annoation_ratio(label, n_samples, is_mutli_label, task_type):
     if label is None:
         return format_percent(0)
     if is_mutli_label or task_type == TaskType.TOKEN_CLASSIFICATION:
-        annotated_count = 0
-        for label_data in label:
-            annotated_count = annotated_count + 1 if len(label_data) > 0 and pd.isna(label_data).sum() == 0 \
-                              else annotated_count
+        annotated_count = _calculate_number_of_annotated_samples(label=label,
+                                                                 is_multi_label=is_mutli_label,
+                                                                 task_type=task_type)
         return format_percent(annotated_count / n_samples)
     else:
         return format_percent(pd.notna(label).sum() / n_samples)
@@ -124,6 +123,17 @@ def _get_distribution_values(data):
     return y_value, xs
 
 
+def _calculate_number_of_annotated_samples(label, is_multi_label, task_type):
+
+    if is_multi_label or task_type == TaskType.TOKEN_CLASSIFICATION:
+        annotated_count = 0
+        for label_data in label:
+            annotated_count = annotated_count + 1 if len(label_data) > 0 and pd.isna(label_data).sum() == 0 \
+                              else annotated_count
+        return annotated_count
+    else:
+        return pd.notna(label).sum()
+
 def _generate_numeric_distribution_plot(data, x_value, y_value, property_name):
 
     mean = data.mean()
@@ -173,6 +183,7 @@ def text_data_describe_plot(n_samples: int, max_num_labels_to_show: int,
                             numerical_metadata: Optional[List[str]] = None,
                             categorical_properties: Optional[List[str]] = None,
                             numerical_properties: Optional[List[str]] = None,
+                            model_classes: Optional[List[str]] = None,
                             label: Optional[TTextLabel] = None):
     """Return a plotly figure instance.
 
@@ -210,6 +221,8 @@ def text_data_describe_plot(n_samples: int, max_num_labels_to_show: int,
         - token_classification label - For token classification the accepted label format is the IOB format or similar
           to it. The Label must be a sequence of sequences of strings or integers, with each sequence corresponding to
           a sample in the tokenized text, and exactly the length of the corresponding tokenized text.
+    model_classes: Optional[List[str]], default: None
+        List of classes names to use for multi-label display. Only used if the dataset is multi-label.
 
     Returns
     -------
@@ -220,7 +233,7 @@ def text_data_describe_plot(n_samples: int, max_num_labels_to_show: int,
 
     subplot_titles = []
     if label is not None:
-        annotated_samples = pd.notna(label).sum()
+        annotated_samples = _calculate_number_of_annotated_samples(label, is_multi_label, task_type)
         subplot_titles.append(f'Label Distribution<br><sup>Out of {annotated_samples} annotated samples</sup><br><br>')
 
     subplot_titles.append('')  # Empty title for table figure
@@ -238,7 +251,15 @@ def text_data_describe_plot(n_samples: int, max_num_labels_to_show: int,
     if label is not None:
         if is_multi_label:
             df_label = pd.DataFrame(label).fillna(0)
-            label_counts = pd.Series(np.sum(df_label.to_numpy(), axis=0))
+            if model_classes is not None:
+                hashmap = {}
+                for val in label:
+                    model_array = np.array([model_classes[i] for i, val in enumerate(val) if val == 1])
+                    for class_name in model_array:
+                        hashmap[class_name] = hashmap[class_name] + 1 if class_name in hashmap else 1
+                label_counts = pd.Series(list(hashmap.values()), index=list(hashmap))
+            else:
+                label_counts = pd.Series(np.sum(df_label.to_numpy(), axis=0))
         elif task_type == TaskType.TOKEN_CLASSIFICATION:
             hashmap = {}
             for val in label:
