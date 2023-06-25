@@ -42,8 +42,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
                  ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: int,
                  segment_minimum_size_ratio: float, n_samples: int,  n_to_show: int,
-                 categorical_aggregation_threshold: float, annotation_ratio_threshold: float,
-                 **kwargs):
+                 categorical_aggregation_threshold: float, **kwargs):
         super().__init__(**kwargs)
         self.segment_by = segment_by
         self.columns = columns
@@ -53,7 +52,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
-        self.annotation_ratio_threshold = annotation_ratio_threshold
+        self.annotation_ratio_threshold = ANNOTATION_RATIO_THRESHOLD
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -249,8 +248,6 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
         Maximum number of samples to use for this check.
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
-    annotation_ratio_threshold : float , default: 95.0
-        The threshold ranging from 1 to 100 for the under annotated property segement check to run.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """
@@ -263,7 +260,6 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
-                 annotation_ratio_threshold: float = ANNOTATION_RATIO_THRESHOLD,
                  **kwargs):
         super().__init__(segment_by='properties',
                          columns=properties,
@@ -273,7 +269,6 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
-                         annotation_ratio_threshold=annotation_ratio_threshold,
                          **kwargs)
 
 
@@ -304,8 +299,6 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
         Maximum number of samples to use for this check.
     n_to_show : int , default: 3
         number of segments with the weakest performance to show.
-    annotation_ratio_threshold : float , default: 95.0
-        The threshold ranging from 1 to 100 for the under annotated metatdata segement check to run.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     """
@@ -318,7 +311,6 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
-                 annotation_ratio_threshold: float = ANNOTATION_RATIO_THRESHOLD,
                  **kwargs):
         super().__init__(segment_by='metadata',
                          columns=columns,
@@ -328,5 +320,4 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
-                         annotation_ratio_threshold=annotation_ratio_threshold,
                          **kwargs)
