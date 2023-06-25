@@ -17,12 +17,12 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 
 from deepchecks.nlp.task_type import TaskType, TTextLabel
+from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.nlp.utils.text_properties import TEXT_PROPERTIES_DESCRIPTION
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.plot import feature_distribution_colors
 from deepchecks.utils.strings import format_percent, get_docs_link
-from deepchecks.nlp.utils.text import break_to_lines_and_trim
 
 __all__ = ['text_data_describe_plot']
 
