@@ -134,6 +134,7 @@ def _calculate_number_of_annotated_samples(label, is_multi_label, task_type):
     else:
         return pd.notna(label).sum()
 
+
 def _generate_numeric_distribution_plot(data, x_value, y_value, property_name):
 
     mean = data.mean()
