@@ -70,7 +70,7 @@ Useful Functions
 Describe data
 -----------------------------
 
-The ``describe()`` function is a great way to get a quick overview of your dataset. The calling the function will display the label distribution,
+The ``describe()`` function is a great way to get a quick overview of your dataset. Calling the function will display the label distribution,
 the distribution of the calculated :ref:`text properties <nlp__properties_guide>` and statistical information. You can use the function in the following way:
 
 >>> text_data.describe()
