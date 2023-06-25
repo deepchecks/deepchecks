@@ -111,7 +111,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
         if len(weak_segments) == 0:
             display_msg = 'WeakSegmentsPerformance was unable to train an error model to find weak segments.'\
-                          f'Try supplying more {self.segment_by}.'
+                          f'Try supplying additional {self.segment_by}.'
             return CheckResult(value={'message': display_msg}, display=[display_msg])
 
         if context.with_display:
