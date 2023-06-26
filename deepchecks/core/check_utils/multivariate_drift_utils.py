@@ -36,6 +36,34 @@ from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
 
+def basic_preprocessing_for_domain_classification(train_df, test_df, cat_features,
+                                                  impute_numerical_nones: bool = False):
+    domain_class_df = pd.concat([train_df, test_df])
+    domain_class_df[cat_features] = RareCategoryEncoder(254).fit_transform(domain_class_df[cat_features].astype(str))
+    domain_class_df[cat_features] = OrdinalEncoder().fit_transform(domain_class_df[cat_features].astype(str))
+    domain_class_labels = pd.Series([0] * len(train_df) + [1] * len(test_df), index=domain_class_df.index)
+    if impute_numerical_nones:
+        numerical_features = [col for col in domain_class_df.columns if col not in cat_features]
+        domain_class_df = domain_class_df.fillna({col: domain_class_df[col].mean() for col in numerical_features})
+    domain_class_df = floatify_dataframe(domain_class_df)
+
+    return domain_class_df, domain_class_labels
+
+
+def get_domain_classifier(x_train, y_train, cat_features, random_state):
+    domain_classifier = HistGradientBoostingClassifier(max_depth=2, max_iter=10, random_state=random_state,
+                                                       categorical_features=cat_features)
+    domain_classifier.fit(x_train, y_train)
+    return domain_classifier
+
+
+def get_domain_classifier_hq(x_train, y_train, cat_features, random_state):
+    domain_classifier = HistGradientBoostingClassifier(max_depth=5, max_iter=100, random_state=random_state,
+                                                       categorical_features=cat_features)
+    domain_classifier.fit(x_train, y_train)
+    return domain_classifier
+
+
 def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.DataFrame,
                             numerical_features: List[Hashable], cat_features: List[Hashable], sample_size: int,
                             random_state: int, test_size: float, n_top_columns: int, min_feature_importance: float,
@@ -50,21 +78,17 @@ def run_multivariable_drift(train_dataframe: pd.DataFrame, test_dataframe: pd.Da
     test_sample_df = test_dataframe.sample(sample_size, random_state=random_state)[numerical_features + cat_features]
 
     # create new dataset, with label denoting whether sample belongs to test dataset
-    domain_class_df = pd.concat([train_sample_df, test_sample_df])
-    domain_class_df[cat_features] = RareCategoryEncoder(254).fit_transform(domain_class_df[cat_features].astype(str))
-    domain_class_df[cat_features] = OrdinalEncoder().fit_transform(domain_class_df[cat_features].astype(str))
-    domain_class_labels = pd.Series([0] * len(train_sample_df) + [1] * len(test_sample_df))
+    x, y = basic_preprocessing_for_domain_classification(train_sample_df, test_sample_df, cat_features)
 
-    x_train, x_test, y_train, y_test = train_test_split(floatify_dataframe(domain_class_df), domain_class_labels,
-                                                        stratify=domain_class_labels,
+    x_train, x_test, y_train, y_test = train_test_split(x, y,
+                                                        stratify=y,
                                                         random_state=random_state,
                                                         test_size=test_size)
 
     # train a model to disguise between train and test samples
-    domain_classifier = HistGradientBoostingClassifier(max_depth=2, max_iter=10, random_state=random_state,
-                                                       categorical_features=[x in cat_features for x in
-                                                                             domain_class_df.columns])
-    domain_classifier.fit(x_train, y_train)
+    domain_classifier = get_domain_classifier(x_train=x_train, y_train=y_train,
+                                              cat_features=[col in cat_features for col in x.columns],
+                                              random_state=random_state)
 
     y_test.name = 'belongs_to_test'
     domain_test_dataset = Dataset(pd.concat([x_test.reset_index(drop=True), y_test.reset_index(drop=True)], axis=1),
