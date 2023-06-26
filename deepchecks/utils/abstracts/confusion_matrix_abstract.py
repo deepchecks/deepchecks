@@ -103,9 +103,9 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
                                 f'<b>{confusion_matrix_data[index][index]} ({accuracy_array[index]}%)</b> correct predictions'
                                 f'<br>Having <b>{format_percent(n_samples_with_label/total_samples)}</b> of labeled data '
                                 f'in the dataset', labels=labels, showlegend=False, textposition='inside', textinfo='label+percent',
-                                customdata=[[classes_names[index], accuracy_array[index], n_samples_with_label]],
-                                hovertemplate='Label: %{customdata[0][0]}<br>Accuracy: %{customdata[0][1]}%<br>'
-                                   'Samples: %{customdata[0][2]}<extra></extra>'), row=1, col=curr_col)
+                                customdata=[[label, values[index]] for index, label in enumerate(labels)],
+                                hovertemplate='Label: %{customdata[0][0]}<br>Samples: %{customdata[0][1]}<extra></extra>'),
+                                row=1, col=curr_col)
             curr_col += 1
         fig.update_layout(title='Worst Performing Classes', title_x=0.5)
         display.append(fig)
