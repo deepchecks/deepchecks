@@ -10,12 +10,14 @@
 #
 """Outlier detection functions."""
 import time
-from typing import List, Union
+from typing import List, Union, cast, Any
 
 import numpy as np
 from PyNomaly import loop
+from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
 from deepchecks.core.errors import (DeepchecksProcessError, DeepchecksTimeoutError, DeepchecksValueError,
                                     NotEnoughSamplesError)
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -30,7 +32,7 @@ DATASET_TIME_EVALUATION_SIZE = 100
 MINIMUM_NUM_NEAREST_NEIGHBORS = 5
 
 
-class OutlierSampleDetection(SingleDatasetCheck):
+class OutlierSampleDetection(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     """Detects outliers in a dataset using the LoOP algorithm.
 
     The LoOP algorithm is a robust method for detecting outliers in a dataset across multiple variables by comparing
@@ -170,6 +172,22 @@ class OutlierSampleDetection(SingleDatasetCheck):
         """
         name = f'No samples in dataset over outlier score of {format_number(outlier_score_threshold)}'
         return self.add_condition(name, _condition_outliers_number, outlier_score_threshold=outlier_score_threshold)
+    
+    @merge_args(SingleDatasetCheck.run)
+    def fix(
+        self, 
+        check_result: CheckResult,
+        *args,
+        action: str = 'set-none',
+        **kwargs
+    ):
+        """Fix data."""
+        if action not in {'set-none', 'drop-rows'}:
+            raise ValueError(f'Unknown "action" parameter value - "{action}"')
+
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+        # TODO:
 
 
 def _condition_outliers_number(quantiles_vector: np.ndarray, outlier_score_threshold: float,
