@@ -9,14 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """String length outlier check."""
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Tuple, Union, cast, Any
 
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
 from scipy import stats
+from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.tabular.utils.messages import get_condition_passed_message
@@ -27,7 +29,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['StringLengthOutOfBounds']
 
 
-class StringLengthOutOfBounds(SingleDatasetCheck):
+class StringLengthOutOfBounds(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     """Detect strings with length that is much longer/shorter than the identified "normal" string lengths.
 
     Parameters
@@ -265,6 +267,52 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         return self.add_condition(
             f'Ratio of string length outliers is less or equal to {format_percent(max_ratio)}',
             compare_outlier_ratio)
+
+    @merge_args(SingleDatasetCheck.run)
+    def fix(
+        self, 
+        check_result: CheckResult,
+        *args,
+        action: str = 'set-none',
+        **kwargs
+    ):
+        """Fix data."""
+        if action not in {'set-none', 'drop-rows'}:
+            raise ValueError(f'Unknown "action" parameter value - "{action}"')
+
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+        check_value = cast(Dict[str, Dict[str, Any]], check_result.value)
+        data = cast(pd.DataFrame, dataset.data.copy())
+        rows_to_drop = None
+
+        for column_name, results in check_value.items():
+            indexes = set()
+            column = data[column_name] 
+            string_length = column.map(lambda x: len(str(x)))
+            
+            for it in results['outliers']:
+                indexes.update(list(string_length[
+                    string_length.between(
+                        it['range']['min'], it['range']['max'], 
+                        inclusive='both'
+                    )
+                ].index))
+
+            if action == 'drop-rows':
+                rows_to_drop = rows_to_drop or set()
+                rows_to_drop.update(indexes)
+            else:
+                data[column_name] = pd.Series({
+                    k: (v if k not in indexes else None)
+                    for k, v in column.items()
+                })
+        
+        if rows_to_drop:
+            data = data.drop(list(rows_to_drop))
+        
+        return FixResult(fixed_train=dataset.copy(data))
+
 
 
 def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iqr_percent: float = 85,

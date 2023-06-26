@@ -15,10 +15,12 @@ from typing import Dict, Iterable, List, Optional, Union
 import numpy as np
 import pandas as pd
 from pandas.api.types import is_categorical_dtype
+from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE
@@ -34,7 +36,7 @@ DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
 
 
 @docstrings
-class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
+class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckFixMixin):
     """Search for various types of null values, including string representations of null.
 
     Parameters
@@ -71,7 +73,7 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
     ):
         super().__init__(**kwargs)
         self.null_string_list = null_string_list
-        self.check_nan = check_nan
+        self.check_nan = check_nan  # TODO: parameter is not used, remove
         self.columns = columns
         self.ignore_columns = ignore_columns
         self.n_top_columns = n_top_columns
@@ -111,9 +113,9 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
                 # work in an unusual way with categorical data types
                 # - 'value_counts' returns all categorical values even if they are not in series
                 # - 'apply' applies function to each category, not to values
-                # therefore we processing categorical dtypes differently
+                # therefore we process categorical dtypes differently
                 # NOTE:
-                # 'Series.value_counts' method transforms null values like 'None', 'pd.Na', 'pd.NaT'
+                # 'Series.value_counts' method transforms nullable values like 'None', 'pd.Na', 'pd.NaT'
                 # into 'np.nan' therefore it cannot be used for usual dtypes, because we will lose info
                 # about all different null types in the column
                 null_counts = {}
@@ -218,6 +220,23 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
 
         return self.add_condition(f'Number of different null types is less or equal to {max_allowed_null_types}',
                                   condition)
+
+    @merge_args(SingleDatasetCheck.run)
+    def fix(
+        self, 
+        check_result: CheckResult,
+        *args,
+        **kwargs
+    ):
+        """Fix data."""
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+        columns = list(check_result.value.keys())
+        none_strings = getattr(check_result.check, 'null_string_list', None) or self.null_string_list or []
+        data = dataset.data.copy().astype('object')
+        data[data[columns].isna()] = None
+        data[data[columns].isin(list(none_strings))] = None
+        return FixResult(fixed_train=dataset.copy(data))
 
 
 def nan_type(x):

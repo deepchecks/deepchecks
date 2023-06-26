@@ -9,20 +9,22 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains is_single_value check."""
-from typing import List, Union
+from typing import List, Union, cast
 
 import pandas as pd
+from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.messages import get_condition_passed_message
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
 
 __all__ = ['IsSingleValue']
 
 
-class IsSingleValue(SingleDatasetCheck):
+class IsSingleValue(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     """Check if there are columns which have only a single unique value in all rows.
 
     Parameters
@@ -102,3 +104,18 @@ class IsSingleValue(SingleDatasetCheck):
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(name, condition)
+
+    @merge_args(SingleDatasetCheck.run)
+    def fix(self, check_result: CheckResult, *args, **kwargs):
+        """Fix data."""
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+        data = cast(pd.DataFrame, dataset.data.copy())
+        columns = [
+            column_name
+            for column_name, n_of_unique_values in check_result.value.items()
+            if n_of_unique_values == 1
+        ]
+        return FixResult(fixed_train=dataset.copy(
+            data.drop(columns=columns)
+        ))

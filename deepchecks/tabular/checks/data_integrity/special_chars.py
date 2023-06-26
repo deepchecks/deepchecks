@@ -10,12 +10,14 @@
 #
 """module contains Invalid Chars check."""
 from collections import defaultdict
-from typing import List, Union
+from typing import List, Union, cast, Dict
 
 import pandas as pd
 from pandas.api.types import infer_dtype
+from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import SingleDatasetCheckFixMixin, FixResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.tabular.utils.messages import get_condition_passed_message
@@ -26,7 +28,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['SpecialCharacters']
 
 
-class SpecialCharacters(SingleDatasetCheck):
+class SpecialCharacters(SingleDatasetCheck, SingleDatasetCheckFixMixin):
     """Search in column[s] for values that contains only special characters.
 
     Parameters
@@ -72,10 +74,8 @@ class SpecialCharacters(SingleDatasetCheck):
         """
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         df = select_from_dataframe(dataset.data, self.columns, self.ignore_columns)
-
-        # Result value: { Column Name: pct}
         display_array = []
-        result = {}
+        result: Dict[str, float] = {}  # dict[column, percent]
 
         for column_name in df.columns:
             column_data = df[column_name]
@@ -126,6 +126,48 @@ class SpecialCharacters(SingleDatasetCheck):
             return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(name, condition)
+    
+    @merge_args(SingleDatasetCheck.run)
+    def fix(
+        self, 
+        check_result: CheckResult,
+        *args,
+        action: str = 'set-none',
+        column_drop_threshold: float = 1,
+        **kwargs
+    ):
+        """Fix data."""
+        if action not in {'set-none', 'drop-rows'}:
+            raise ValueError(f'Unknown "action" parameter value - "{action}"')
+
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+        check_value = cast(Dict[str, float], check_result.value)
+        data = cast(pd.DataFrame, dataset.data.copy())
+        rows_to_drop = None
+
+        for column_name, percent_of_special_samples in check_value.items():
+            if percent_of_special_samples >= column_drop_threshold:
+                continue
+            
+            if action == 'drop-rows':
+                rows_to_drop = rows_to_drop or set()
+                rows_to_drop.update(
+                    index
+                    for index, sample in data[column_name].items()
+                    if _is_special_char(sample)
+                )
+            else:
+                data[column_name] = pd.Series([
+                    sample
+                    for sample in data[column_name]
+                    if _is_special_char(sample)
+                ])
+        
+        if rows_to_drop:
+            data.drop(list(rows_to_drop))
+
+        return FixResult(fixed_train=dataset.copy(data))
 
 
 def _get_special_samples(column_data: pd.Series) -> Union[dict, None]:
@@ -133,10 +175,18 @@ def _get_special_samples(column_data: pd.Series) -> Union[dict, None]:
         return None
     samples_to_count = defaultdict(lambda: 0)
     for sample in column_data:
-        if isinstance(sample, str) and len(sample) > 0 and len(string_baseform(sample, True)) == 0:
+        if _is_special_char(sample):
             samples_to_count[sample] = samples_to_count[sample] + 1
 
     return samples_to_count or None
+
+
+def _is_special_char(sample):
+    return (
+        isinstance(sample, str) 
+        and len(sample) > 0 
+        and len(string_baseform(sample, True)) == 0
+    )
 
 
 def _is_stringed_type(col) -> bool:
