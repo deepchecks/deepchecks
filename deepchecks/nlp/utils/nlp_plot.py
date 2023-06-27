@@ -22,6 +22,7 @@ from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.nlp.utils.text_properties import TEXT_PROPERTIES_DESCRIPTION
 from deepchecks.nlp.utils.token_classification_utils import (annotated_token_classification_text,
                                                              count_token_classification_labels)
+from deepchecks.nlp.utils.topic_extraction import get_topics
 from deepchecks.utils.dataframes import un_numpy
 from deepchecks.utils.distribution.plot import get_density
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors, common_and_outlier_colors
@@ -247,7 +248,7 @@ def get_text_outliers_graph(dist: Sequence, data: Sequence[str], lower_limit: fl
 
 
 def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_dataset: TextData,
-                              test_dataset: TextData, model_classes: list):
+                              test_dataset: TextData, model_classes: list, cluster_labels: list = None):
     """Plot a scatter plot of two datasets.
 
     Parameters
@@ -262,6 +263,8 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
         The test dataset.
     model_classes : list
         The names of the model classes (relevant only if the datasets are multi-label).
+    cluster_labels : list, optional
+        The cluster labels of the samples (relevant only if the performed clustering on the data).
     """
     axes = plot_data.columns
     if train_dataset.name and test_dataset.name:
@@ -270,6 +273,8 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
         dataset_names = DEFAULT_DATASET_NAMES
 
     plot_data['Dataset'] = [dataset_names[0]] * len(train_dataset) + [dataset_names[1]] * len(test_dataset)
+    if cluster_labels is not None:
+        plot_data['Cluster'] = cluster_labels
 
     if train_dataset.task_type == TaskType.TOKEN_CLASSIFICATION:
         plot_data['Sample'] = np.concatenate([train_dataset.tokenized_text, test_dataset.tokenized_text])
@@ -296,4 +301,23 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
     fig = px.scatter(plot_data, x=axes[0], y=axes[1], color='Dataset', color_discrete_map=colors,
                      hover_data=['Label', 'Sample'], hover_name='Dataset', title=plot_title, opacity=0.4)
     fig.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')), selector=dict(mode='markers'))
-    return fig
+    if cluster_labels is not None:
+        # all clusters with less than 5 samples will get the -1 label:
+        cluster_labels = np.array(cluster_labels)
+        cluster_labels[np.where(np.bincount(cluster_labels + 1) < 5)[0]] = -1
+        # get topics for all samples that have a label different than -1:
+        cluster_topics = get_topics(np.concatenate([train_dataset.text, test_dataset.text])[cluster_labels != -1],
+                                    cluster_labels[cluster_labels != -1])
+        plot_data = plot_data[cluster_labels != -1]
+        plot_data['Topic'] = cluster_topics
+        # plot the clusters:
+        fig_cluster = px.scatter(plot_data, x=axes[0], y=axes[1], color='Cluster',
+                                 color_discrete_map=px.colors.qualitative.G10,
+                                 hover_data=['Label', 'Sample', 'Topic'], hover_name='Cluster',
+                                 title='Scatter Plot of Embeddings Space (reduced to 2 dimensions) by Cluster',
+                                 opacity=0.4)
+        fig_cluster.update_traces(marker=dict(size=8, line=dict(width=1, color='DarkSlateGrey')),
+                                  selector=dict(mode='markers'))
+    else:
+        fig_cluster = None
+    return fig, fig_cluster

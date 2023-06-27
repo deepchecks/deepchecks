@@ -14,6 +14,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from numba import NumbaDeprecationWarning
+from sklearn.cluster import DBSCAN
 from sklearn.decomposition import PCA
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import roc_auc_score
@@ -95,17 +96,18 @@ def run_multivariable_drift_for_embeddings(train_dataset: TextData, test_dataset
         test_sample = test_sample.copy(rows_to_use=relevant_index_test)
 
         # Sample data before display calculations
-        num_samples_in_display_train = min(int(num_samples_in_display/2), sample_size, len(train_sample))
+        num_samples_in_display_train = min(int(num_samples_in_display / 2), sample_size, len(train_sample))
         train_dataset_for_display = train_sample.sample(num_samples_in_display_train, random_state=random_state)
 
-        num_samples_in_display_test = min(int(num_samples_in_display/2), sample_size, len(test_sample))
+        num_samples_in_display_test = min(int(num_samples_in_display / 2), sample_size, len(test_sample))
         test_dataset_for_display = test_sample.sample(num_samples_in_display_test, random_state=random_state)
 
-        displays = [build_drift_plot(drift_score),
-                    display_embeddings(train_dataset=train_dataset_for_display,
-                                       test_dataset=test_dataset_for_display,
-                                       random_state=random_state,
-                                       model_classes=model_classes)]
+        embedding_displays = display_embeddings(train_dataset=train_dataset_for_display,
+                                                 test_dataset=test_dataset_for_display,
+                                                 random_state=random_state,
+                                                 model_classes=model_classes)
+
+        displays = [build_drift_plot(drift_score)] + list(embedding_displays)
     else:
         displays = None
 
@@ -119,11 +121,14 @@ def display_embeddings(train_dataset: TextData, test_dataset: TextData, random_s
     reducer = UMAP(n_components=2, n_neighbors=5, init='random', min_dist=1, random_state=random_state)
     reduced_embeddings = reducer.fit_transform(embeddings)
 
+    cluster_labels = DBSCAN(n_jobs=-1, eps=0.6).fit_predict(embeddings)
+
     x_axis_title = 'Reduced Embedding (0)'
     y_axis_title = 'Reduced Embedding (1)'
 
     plot_data = pd.DataFrame({x_axis_title: reduced_embeddings[:, 0],
                               y_axis_title: reduced_embeddings[:, 1]})
-    plot_title = 'Scatter Plot of Embeddings Space (reduced to 2 dimensions)'
+    plot_title = 'Scatter Plot of Embeddings Space (reduced to 2 dimensions) by Dataset'
     return two_datasets_scatter_plot(plot_title=plot_title, plot_data=plot_data, train_dataset=train_dataset,
-                                     test_dataset=test_dataset, model_classes=model_classes)
+                                     test_dataset=test_dataset, model_classes=model_classes,
+                                     cluster_labels=cluster_labels)
