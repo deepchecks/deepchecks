@@ -310,7 +310,8 @@ def language(
     """Return text language, represented as a string."""
     if not text:
         return None
-    # Not recommended, takes a long time. Here only to enable to call this function from outside:
+    # Load the model if it wasn't received as a parameter. This is done to avoid loading the model
+    # each time the function is called.
     if fasttext_model is None:
         fasttext_model = _get_fasttext_model()
 
@@ -319,6 +320,20 @@ def language(
     # label is empty for detection below threshold:
     language_code = prediction[0].replace('__label__', '') if prediction else None
     return language_code
+
+
+def is_english(
+        text: str,
+        lang_certainty_threshold: float = 0.8,
+        fasttext_model: Optional[Dict[object, Any]] = None,
+        language_property_result: Optional[str] = None
+) -> Union[bool, None]:
+    """Return whether text is in English or not."""
+    if not text:
+        return None
+    if language_property_result is None:
+        language_property_result = language(text, lang_certainty_threshold, fasttext_model)
+    return language_property_result == 'en'
 
 
 def sentiment(text: str) -> float:
@@ -605,40 +620,36 @@ class TextProperty(TypedDict):
     output_type: str
 
 
-DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
-    {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
-    {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
-    {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
-    {'name': '% Special Characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
-    {'name': 'Language', 'method': language, 'output_type': 'categorical'},
-    {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
-    {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
-    {'name': 'Average Words Per Sentence', 'method': average_words_per_sentence, 'output_type': 'numeric'},
-    {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
-    {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
-    {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
-    {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
-    {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
-    {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-)
+DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
+    (
+        {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
+        {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
+        {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
+        {'name': '% Special Characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
+        {'name': 'Language', 'method': language, 'output_type': 'categorical'},
+        {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
+        {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
+        {'name': 'Average Words Per Sentence', 'method': average_words_per_sentence, 'output_type': 'numeric'},
+        {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
+        {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
+        {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
+        {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
+        {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
+        {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
+    )
 
-ALL_PROPERTIES: Tuple[TextProperty, ...] = (
-                                               {'name': 'URLs Count', 'method': urls_count, 'output_type': 'numeric'},
-                                               {'name': 'Email Addresses Count', 'method': email_addresses_count,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Unique URLs Count', 'method': unique_urls_count,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Unique Email Addresses Count',
-                                                'method': unique_email_addresses_count, 'output_type': 'numeric'},
-                                               {'name': 'Unique Syllables Count', 'method': unique_syllables_count,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Reading Time', 'method': reading_time,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Sentences Count', 'method': sentences_count,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Average Syllable Length', 'method': average_syllable_length,
-                                                'output_type': 'numeric'},
-                                           ) + DEFAULT_PROPERTIES
+ALL_PROPERTIES: Tuple[TextProperty, ...] = \
+    (
+        {'name': 'Is English', 'method': is_english, 'output_type': 'categorical'},
+        {'name': 'URLs Count', 'method': urls_count, 'output_type': 'numeric'},
+        {'name': 'Email Addresses Count', 'method': email_addresses_count, 'output_type': 'numeric'},
+        {'name': 'Unique URLs Count', 'method': unique_urls_count, 'output_type': 'numeric'},
+        {'name': 'Unique Email Addresses Count', 'method': unique_email_addresses_count, 'output_type': 'numeric'},
+        {'name': 'Unique Syllables Count', 'method': unique_syllables_count, 'output_type': 'numeric'},
+        {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
+        {'name': 'Sentences Count', 'method': sentences_count, 'output_type': 'numeric'},
+        {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
+    ) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 LARGE_SAMPLE_SIZE = 10_000
@@ -751,6 +762,7 @@ def calculate_builtin_properties(
         include_properties: Optional[List[str]] = None,
         ignore_properties: Optional[List[str]] = None,
         include_long_calculation_properties: bool = False,
+        ignore_non_english_samples_for_english_properties: bool = True,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
@@ -772,7 +784,7 @@ def calculate_builtin_properties(
         '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
         'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Words Per Sentence']
         To calculate all the default properties, the include_properties and ignore_properties parameters should
-        be None. If you pass either include_properties or ignore_properties then the only the properties specified
+        be None. If you pass either include_properties or ignore_properties then only the properties specified
         in the list will be calculated or ignored.
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
         take a long time to calculate. If include_long_calculation_properties is False, these properties will be
@@ -783,6 +795,12 @@ def calculate_builtin_properties(
     include_long_calculation_properties : bool, default False
         Whether to include properties that may take a long time to calculate. If False, these properties will be
         ignored, unless they are specified in the include_properties parameter explicitly.
+    ignore_non_english_samples_for_english_properties : bool, default True
+        Whether to ignore samples that are not in English when calculating English properties. If False, samples
+        that are not in English will be calculated as well. This parameter is ignored when calculating non-English
+        properties.
+        English-Only properties WILL NOT work properly on non-English samples, and this parameter should be used
+        only when you are sure that all the samples are in English.
     device : int, default None
         The device to use for the calculation. If None, the default device will be used.
     models_storage : Union[str, pathlib.Path, None], default None
@@ -869,11 +887,13 @@ def calculate_builtin_properties(
         sample_language = run_available_kwargs(language, text=text, **kwargs)
         if is_language_property_requested:
             calculated_properties['Language'].append(sample_language)
+        kwargs['language_property_result'] = sample_language  # Pass the language property result to other properties
 
         for prop in text_properties:
             if prop['name'] in import_warnings:  # Skip properties that failed to import:
                 calculated_properties[prop['name']].append(np.nan)
-            elif sample_language != 'en' and prop['name'] in english_properties_names:
+            elif sample_language != 'en' and prop['name'] in english_properties_names \
+                    and ignore_non_english_samples_for_english_properties is True:
                 calculated_properties[prop['name']].append(np.nan)
             else:
                 try:
