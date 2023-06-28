@@ -10,7 +10,7 @@
 #
 """Contains unit tests for the confusion_matrix_report check."""
 import numpy as np
-from hamcrest import assert_that, calling, greater_than, has_length, raises
+from hamcrest import assert_that, calling, greater_than, has_length, raises, equal_to
 
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
@@ -183,3 +183,25 @@ def test_condition_misclassified_samples_lower_than_fails(iris_split_dataset_and
                   f'Largest misclassified cell ({format_percent(max_misclassified_samples_ratio)} of the data) ' \
                   f'is samples with a true value of "{class_names[x]}" and a predicted value of "{class_names[y]}".'
     ))
+
+
+def test_confusion_matrix_report_display(iris_split_dataset_and_model):
+    # Arrange
+    _, test, clf = iris_split_dataset_and_model
+
+    # Act
+    check = ConfusionMatrixReport()
+
+    result = check.run(test, clf)
+
+    # Assert
+    assert_that(result.display[0],
+                equal_to('The overall accuracy of your model is: 91.67%.<br>Best accuracy achieved on samples with '
+                         '<b>0</b> label (100.0%).<br>Worst accuracy achieved on samples with <b>2</b> label (75.0%).'
+                         '<br>Below are pie charts showing the prediction distribution for samples '
+                         'grouped based on their label.'))
+    # # First is the text description and second a row of 1 pie chart since accuracy for other labels is 100%
+    assert_that(len(result.display), equal_to(2))
+    # 1 Pie chart is generated
+    assert_that(len(result.display[1].data), equal_to(1))
+    assert_that(result.display[1].data[0].type, equal_to('pie'))
