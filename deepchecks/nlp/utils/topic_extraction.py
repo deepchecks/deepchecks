@@ -13,7 +13,7 @@ import openai
 import pandas as pd
 from langchain import PromptTemplate
 
-template = """Your purpose is to extract topics for a list of queries.
+template1 = """Your purpose is to extract topics for a list of queries.
 
 Example Format:
 QUERY_LIST:
@@ -34,10 +34,10 @@ QUERY_LIST:
 """
 
 TOPIC_EXTRACTOR_RESPONSE_TEMPLATE = PromptTemplate(input_variables=["query_list"],
-                                                   template=template)
+                                                   template=template1)
 
 
-template = """Your purpose is to extract unique identifying topics.
+template2 = """Your purpose is to extract unique identifying topics.
 Each line will contain a list of topics. For each line you should choose one topic (or define a new one)
 that categorizes best that list of topics, while keeping it most unique from the others.
 So the target is to find what are the most accurate distinct descriptions for each line of topics.
@@ -59,7 +59,7 @@ TOPICS_LIST:
 """
 
 UNIQUE_TOPICS_EXTRACTOR_RESPONSE_TEMPLATE = PromptTemplate(input_variables=["topics_list"],
-                                                           template=template)
+                                                           template=template2)
 
 # MODEL PARAMS
 MODEL = "gpt-3.5-turbo"
@@ -78,17 +78,22 @@ MIN_SAMPLE_SIZE_FROM_CLUSTER = 5
 
 def get_chat_completion_content(user_prompt, system_prompt=SYSTEM_PROMPT):
     # get chat response
-    response = openai.ChatCompletion.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-        max_tokens=300,
-        n=1,
-        stop=None,
-        temperature=0.5
-    )
+    for i in range(10):
+        try:
+            response = openai.ChatCompletion.create(
+                model=MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                max_tokens=600,
+                n=1,
+                stop=None,
+                temperature=0.5
+            )
+            break
+        except:
+            continue
 
     return response['choices'][0]['message']['content']
 
@@ -111,8 +116,13 @@ def build_prompt_with_all_topic_groups(per_cluster_topics):
 
 
 def run_prompt_for_overall_topics(get_uniques_user_prompt):
-    result = get_chat_completion_content(get_uniques_user_prompt)
-    overall_topics_dict = eval(result)
+    for i in range(10):
+        result = get_chat_completion_content(get_uniques_user_prompt)
+        try:
+            overall_topics_dict = eval(result)
+            break
+        except:
+            continue
     return overall_topics_dict
 
 
@@ -142,4 +152,5 @@ def get_topics(texts, cluster_labels):
     per_cluster_topics = run_topics_extraction_prompts(prompts_with_cluster_queries)
     get_uniques_prompt = build_prompt_with_all_topic_groups(per_cluster_topics)
     overall_topics_dict = run_prompt_for_overall_topics(get_uniques_prompt)
-    return text_and_clusters[cluster_col_name].apply(lambda x: overall_topics_dict["topics_group_{}".format(x)])
+    return text_and_clusters[cluster_col_name].apply(lambda x: overall_topics_dict.get("topics_group_{}".format(x),
+                                                                                       None))

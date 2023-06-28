@@ -304,12 +304,12 @@ def two_datasets_scatter_plot(plot_title: str, plot_data: pd.DataFrame, train_da
     if cluster_labels is not None:
         # all clusters with less than 5 samples will get the -1 label:
         cluster_labels = np.array(cluster_labels)
-        cluster_labels[np.where(np.bincount(cluster_labels + 1) < 5)[0]] = -1
+        cluster_labels[np.where(np.bincount(cluster_labels + 1) < 20)[0]] = -1
         # get topics for all samples that have a label different than -1:
         cluster_topics = get_topics(np.concatenate([train_dataset.text, test_dataset.text])[cluster_labels != -1],
                                     cluster_labels[cluster_labels != -1])
-        plot_data = plot_data[cluster_labels != -1]
-        plot_data['Topic'] = cluster_topics
+        plot_data = plot_data.loc[cluster_labels != -1, :]
+        plot_data['Topic'] = cluster_topics.values
         # plot the clusters:
         fig_cluster = px.scatter(plot_data, x=axes[0], y=axes[1], color='Cluster',
                                  color_discrete_map=px.colors.qualitative.G10,
