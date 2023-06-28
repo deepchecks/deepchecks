@@ -113,7 +113,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             confusion_matrix, categories = filter_confusion_matrix(matrix, self.categories_to_display)
             confusion_matrix = np.nan_to_num(confusion_matrix)
 
-            description = [f'Showing {self.categories_to_display} of {len(dataset.get_observed_classes())} classes:']
+            description = []
             classes_to_display = []
             classes_map = dict(enumerate(classes))  # class index -> class label
 
@@ -147,7 +147,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     y.append('No overlapping')
 
             description.extend(
-                *create_confusion_matrix_figure(confusion_matrix, x, self.max_num_labels_to_show)
+                create_confusion_matrix_figure(confusion_matrix, x, self.max_num_labels_to_show)
             )
         else:
             description = None

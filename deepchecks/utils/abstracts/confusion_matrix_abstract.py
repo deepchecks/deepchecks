@@ -91,10 +91,10 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
     if len(worst_class_indices) > 0:
         fig = make_subplots(rows=1, cols=min(MAX_WORST_CLASSES_TO_DISPLAY, len(worst_class_indices)),
                             specs=[[{'type': 'pie'}] * min(MAX_WORST_CLASSES_TO_DISPLAY, len(worst_class_indices))])
-        total_samples = np.sum(confusion_matrix_data, axis=None)
+        total_samples = np.nansum(confusion_matrix_data, axis=None)
         for idx in worst_class_indices:
             values = np.delete(confusion_matrix_data[idx], idx)
-            n_samples_with_label = np.sum(confusion_matrix_data[idx])
+            n_samples_with_label = np.nansum(confusion_matrix_data[idx])
             label_percentage = format_percent(n_samples_with_label/total_samples)
             labels = np.delete(classes_names, idx)
             if len(values) > max_num_labels_to_show:
