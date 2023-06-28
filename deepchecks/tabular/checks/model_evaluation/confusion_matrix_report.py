@@ -35,13 +35,11 @@ class ConfusionMatrixReport(SingleDatasetCheck):
     """
 
     def __init__(self,
-                 normalize_display: bool = True,
                  n_samples: int = 1_000_000,
                  random_state: int = 42,
                  max_num_labels_to_show: int = 5,
                  **kwargs):
         super().__init__(**kwargs)
-        self.normalize_display = normalize_display
         self.n_samples = n_samples
         self.random_state = random_state
         self.max_num_labels_to_show = max_num_labels_to_show

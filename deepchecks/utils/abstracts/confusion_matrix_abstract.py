@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The confusion_matrix_report check module."""
-from typing import List, Optional
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -82,8 +82,9 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
 
     display_msg = textwrap.dedent(
         f'The overall accuracy of your model is: {round(np.sum(accuracy_array)/len(accuracy_array), 2)}%.<br>'
-        f'Best accuracy achieved on samples with <b>{classes_names[np.argmax(accuracy_array)]}</b> label ({np.max(accuracy_array)}%).<br>'
-        f'Worst accuracy achieved on samples with <b>{classes_names[np.argmin(accuracy_array)]}</b> label ({np.min(accuracy_array)}%).<br>'
+        f'Best accuracy achieved on samples with <b>{classes_names[np.argmax(accuracy_array)]}</b> '
+        f'label ({np.max(accuracy_array)}%).<br>Worst accuracy achieved on samples with '
+        f'<b>{classes_names[np.argmin(accuracy_array)]}</b> label ({np.min(accuracy_array)}%).<br>'
         'Below are pie charts showing the prediction distribution for samples grouped based on their label.'
     )
     display.append(display_msg)
@@ -113,8 +114,8 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
                                  f'Accuracy: <b>{confusion_matrix_data[idx][idx]} ({accuracy_array[idx]}%)</b>'
                                  f'<br>Percentage of data with label <b>{classes_names[idx]}: {label_percentage}</b>',
                                  labels=labels, showlegend=False, textposition='inside', textinfo='label+percent',
-                                 customdata=[[label, values[idx]] if label != 'Others' else [other_label_names, values[idx]] 
-                                             for idx, label in enumerate(labels)],
+                                 customdata=[[label, values[idx]] if label != 'Others' else
+                                             [other_label_names, values[idx]] for idx, label in enumerate(labels)],
                                  hovertemplate='Label: %{customdata[0][0]}<br>Samples: %{customdata[0][1]}'
                                                '<extra></extra>'), row=1, col=curr_col)
             curr_col += 1

@@ -279,7 +279,6 @@ def text_data_describe_plot(n_samples: int, max_num_labels_to_show: int,
             labels_to_display.index = [break_to_lines_and_trim(str(label)) for label in list(labels_to_display.index)]
             count_other_labels = label_counts[max_num_labels_to_show:].sum()
             labels_to_display['Others'] = count_other_labels
-            
 
         # Pie chart for label distribution
         fig.add_trace(go.Pie(labels=list(labels_to_display.index), values=list(labels_to_display),

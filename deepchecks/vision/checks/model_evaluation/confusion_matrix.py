@@ -62,8 +62,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         Threshold to consider bounding box as detected.
     iou_threshold (float, default 0.5):
         Threshold to consider detected bounding box as labeled bounding box.
-    normalized (bool, default True):
-        boolean that determines whether to normalize the true values of the matrix.
+    max_num_labels_to_show : int, default: 5
+        The threshold to display the maximum number of labels on the label prediction distribution pie
+        charts and display rest of the labels under "Others" category.
     {additional_check_init_params:2*indent}
     """
 
@@ -71,16 +72,16 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                  categories_to_display: int = 10,
                  confidence_threshold: float = 0.3,
                  iou_threshold: float = 0.5,
-                 normalized: bool = True,
                  n_samples: t.Optional[int] = 10000,
+                 max_num_labels_to_show: int = 5,
                  **kwargs):
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.confidence_threshold = confidence_threshold
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
-        self.normalized = normalized
         self.matrix = None
+        self.max_num_labels_to_show =max_num_labels_to_show
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
@@ -146,7 +147,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     y.append('No overlapping')
 
             description.append(
-                create_confusion_matrix_figure(confusion_matrix, x)
+                *create_confusion_matrix_figure(confusion_matrix, x, self.max_num_labels_to_show)
             )
         else:
             description = None
