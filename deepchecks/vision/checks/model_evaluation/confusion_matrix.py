@@ -81,7 +81,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         self.categories_to_display = categories_to_display
         self.iou_threshold = iou_threshold
         self.matrix = None
-        self.max_num_labels_to_show =max_num_labels_to_show
+        self.max_num_labels_to_show = max_num_labels_to_show
 
     def initialize_run(self, context: Context, dataset_kind: DatasetKind = None):
         """Initialize run by creating an empty matrix the size of the data."""
