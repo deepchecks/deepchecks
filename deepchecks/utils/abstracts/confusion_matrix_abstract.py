@@ -21,7 +21,6 @@ from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_percent
-from deepchecks.nlp.utils.text import break_to_lines_and_trim
 
 __all__ = ['create_confusion_matrix_figure', 'run_confusion_matrix_check']
 
@@ -72,8 +71,7 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
         (confusion_matrix_data.sum(axis=1)[:, np.newaxis] + np.finfo(float).eps) * 100
 
     accuracy_array = np.diag(confusion_matrix_norm).round(decimals=2)
-    index_accuracy_map = {index: acc for index, acc in enumerate(accuracy_array)}
-    sorted_map = {key: value for key, value in sorted(index_accuracy_map.items(), key=lambda item: item[1])}
+    sorted_map = dict(sorted(dict(enumerate(accuracy_array)).items(), key=lambda item: item[1]))
 
     worst_class_indices = [index for index, acc in sorted_map.items() if acc < MIN_ACCURACY_FOR_GOOD_CLASSES]
 
@@ -98,7 +96,6 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
             n_samples_with_label = np.sum(confusion_matrix_data[idx])
             label_percentage = format_percent(n_samples_with_label/total_samples)
             labels = np.delete(classes_names, idx)
-            labels = np.array([break_to_lines_and_trim(str(label)) for label in labels])
             if len(values) > max_num_labels_to_show:
                 sorted_indices = np.argsort(values)[::-1]
                 values = values[sorted_indices]
