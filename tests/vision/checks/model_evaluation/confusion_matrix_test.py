@@ -40,7 +40,7 @@ def test_classification_without_display(mnist_visiondata_train):
 
 def test_classification_not_normalize(mnist_visiondata_train):
     # Arrange
-    check = ConfusionMatrixReport(normalized=False)
+    check = ConfusionMatrixReport()
     # Act
     result = check.run(mnist_visiondata_train)
     # Assert
@@ -67,10 +67,8 @@ def test_confusion_matrix_report_display(mnist_visiondata_train):
 
     # Assert
     assert_that(result.display[0],
-                equal_to('The overall accuracy of your model is: 97.45%.<br>Best accuracy achieved on samples with '
-                         '<b>0</b> label (100.0%).<br>Worst accuracy achieved on samples with <b>9</b> label (86.96%).'
-                         '<br>Below are pie charts showing the prediction distribution for samples '
-                         'grouped based on their label.'))
+                equal_to('The overall accuracy of your model is: 97.45%.<br>Best accuracy achieved on samples with <b>'
+                         '0</b> label (100.0%).<br>Worst accuracy achieved on samples with <b>9</b> label (86.96%).'))
     # First is the text description and second a row of 3 pie charts
     assert_that(len(result.display), equal_to(2))
     # 3 Pie charts are generated

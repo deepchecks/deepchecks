@@ -196,10 +196,8 @@ def test_confusion_matrix_report_display(iris_split_dataset_and_model):
 
     # Assert
     assert_that(result.display[0],
-                equal_to('The overall accuracy of your model is: 91.67%.<br>Best accuracy achieved on samples with '
-                         '<b>0</b> label (100.0%).<br>Worst accuracy achieved on samples with <b>2</b> label (75.0%).'
-                         '<br>Below are pie charts showing the prediction distribution for samples '
-                         'grouped based on their label.'))
+                equal_to('The overall accuracy of your model is: 91.67%.<br>Best accuracy achieved on samples with <b>'
+                         '0</b> label (100.0%).<br>Worst accuracy achieved on samples with <b>2</b> label (75.0%).'))
     # # First is the text description and second a row of 1 pie chart since accuracy for other labels is 100%
     assert_that(len(result.display), equal_to(2))
     # 1 Pie chart is generated

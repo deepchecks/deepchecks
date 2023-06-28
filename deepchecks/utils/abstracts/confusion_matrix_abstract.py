@@ -26,7 +26,6 @@ from deepchecks.utils.strings import format_percent
 __all__ = ['create_confusion_matrix_figure', 'run_confusion_matrix_check']
 
 MAX_WORST_CLASSES_TO_DISPLAY = 3
-MAX_TOP_CLASSES_TO_DISPLAY = 3
 MIN_ACCURACY_FOR_GOOD_CLASSES = 100.0
 
 
@@ -82,43 +81,47 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
     display_msg = textwrap.dedent(
         f'The overall accuracy of your model is: {round(np.sum(accuracy_array)/len(accuracy_array), 2)}%.<br>'
         f'Best accuracy achieved on samples with <b>{classes_names[np.argmax(accuracy_array)]}</b> '
-        f'label ({np.max(accuracy_array)}%).<br>Worst accuracy achieved on samples with '
-        f'<b>{classes_names[np.argmin(accuracy_array)]}</b> label ({np.min(accuracy_array)}%).<br>'
-        'Below are pie charts showing the prediction distribution for samples grouped based on their label.'
-    )
-    display.append(display_msg)
-    curr_col = 1
-    if len(worst_class_indices) > 0:
-        fig = make_subplots(rows=1, cols=min(MAX_WORST_CLASSES_TO_DISPLAY, len(worst_class_indices)),
-                            specs=[[{'type': 'pie'}] * min(MAX_WORST_CLASSES_TO_DISPLAY, len(worst_class_indices))])
-        total_samples = np.nansum(confusion_matrix_data, axis=None)
-        for idx in worst_class_indices:
-            values = np.delete(confusion_matrix_data[idx], idx)
-            n_samples_with_label = np.nansum(confusion_matrix_data[idx])
-            label_percentage = format_percent(n_samples_with_label/total_samples)
-            labels = np.delete(classes_names, idx)
-            if len(values) > max_num_labels_to_show:
-                sorted_indices = np.argsort(values)[::-1]
-                values = values[sorted_indices]
-                labels = labels[sorted_indices]
-                other_labels_sum = np.sum(values[max_num_labels_to_show:])
-                other_label_names = ', '.join(labels[max_num_labels_to_show:])
-                labels = labels[:max_num_labels_to_show]
-                values = values[:max_num_labels_to_show]
-                values = np.append(values, other_labels_sum)
-                labels = np.append(labels, 'Others')
+        f'label ({np.max(accuracy_array)}%).'
+        )
 
-            fig.add_trace(go.Pie(values=values, title=f'Label: <b>{classes_names[idx]}</b><br>'
-                                 f'Accuracy: <b>{confusion_matrix_data[idx][idx]} ({accuracy_array[idx]}%)</b>'
-                                 f'<br>Percentage of data with label <b>{classes_names[idx]}: {label_percentage}</b>',
-                                 labels=labels, showlegend=False, textposition='inside', textinfo='label+percent',
-                                 customdata=[[label, values[idx]] if label != 'Others' else
-                                             [other_label_names, values[idx]] for idx, label in enumerate(labels)],
-                                 hovertemplate='Label: %{customdata[0][0]}<br>Samples: %{customdata[0][1]}'
-                                               '<extra></extra>'), row=1, col=curr_col)
-            curr_col += 1
-        fig.update_layout(title='Prediction distribution for worst performing classes', title_x=0.5)
-        display.append(fig)
+    if len(worst_class_indices) == 0:
+        display.append(display_msg)
+        return display
+    else:
+        display_msg += f'<br>Worst accuracy achieved on samples with <b>{classes_names[np.argmin(accuracy_array)]}' \
+                       f'</b> label ({np.min(accuracy_array)}%).'
+        display.append(display_msg)
+
+    curr_col = 1
+    fig = make_subplots(rows=1, cols=min(MAX_WORST_CLASSES_TO_DISPLAY, len(worst_class_indices)),
+                        specs=[[{'type': 'pie'}] * min(MAX_WORST_CLASSES_TO_DISPLAY, len(worst_class_indices))])
+
+    for idx in worst_class_indices:
+        values = np.delete(confusion_matrix_data[idx], idx)
+        n_samples_with_label = np.nansum(confusion_matrix_data[idx])
+        labels = np.delete(classes_names, idx)
+        if len(values) > max_num_labels_to_show:
+            sorted_indices = np.argsort(values)[::-1]
+            values = values[sorted_indices]
+            labels = labels[sorted_indices]
+            other_labels_sum = np.sum(values[max_num_labels_to_show:])
+            other_label_names = ', '.join(labels[max_num_labels_to_show:])
+            labels = labels[:max_num_labels_to_show]
+            values = values[:max_num_labels_to_show]
+            values = np.append(values, other_labels_sum)
+            labels = np.append(labels, 'Others')
+
+        fig.add_trace(go.Pie(values=values, title=f'<b>{classes_names[idx]}</b><br><sup># Samples: <b>'
+                             f'{n_samples_with_label}</b> Accurate predictions: <b>'
+                             f'{confusion_matrix_data[idx][idx]} ({accuracy_array[idx]}%)</b></sup>',
+                             labels=labels, showlegend=False, textposition='inside', textinfo='label+percent',
+                             customdata=[[label, values[idx]] if label != 'Others' else
+                                         [other_label_names, values[idx]] for idx, label in enumerate(labels)],
+                             hovertemplate='Label: %{customdata[0][0]}<br>Samples: %{customdata[0][1]}'
+                                           '<extra></extra>'), row=1, col=curr_col)
+        curr_col += 1
+    fig.update_layout(title='Prediction distribution for worst performing classes', title_x=0.5)
+    display.append(fig)
     return display
 
 

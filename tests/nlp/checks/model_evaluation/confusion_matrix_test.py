@@ -200,8 +200,7 @@ def test_confusion_matrix_report_display(tweet_emotion_train_test_textdata, twee
     assert_that(result.display[0],
                 equal_to('The overall accuracy of your model is: 92.04%.<br>Best accuracy achieved on samples with '
                          '<b>anger</b> label (96.59%).<br>Worst accuracy achieved on samples with <b>sadness</b> '
-                         'label (88.86%).<br>Below are pie charts showing the prediction distribution for samples '
-                         'grouped based on their label.'))
+                         'label (88.86%).'))
     # First is the text description and second a row of max 3 pie charts
     assert_that(len(result.display), equal_to(2))
     # 3 Pie charts are generated
