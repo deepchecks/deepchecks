@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The confusion_matrix_report check module."""
+import textwrap
 from typing import List
 
 import numpy as np
@@ -16,7 +17,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from sklearn.metrics import confusion_matrix
-import textwrap
+
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
