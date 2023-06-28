@@ -100,16 +100,16 @@ def test_condition_misclassified_samples_lower_than_raises_error(tweet_emotion_t
     assert_that(result.conditions_results[0], equal_condition_result(
         is_pass=False,
         name=f'Misclassified cell size lower than {format_number(-0.1 * 100)}% of the total samples',
-        details='Exception in condition: DeepchecksValueError: Condition requires the parameter "misclassified_samples_threshold" '
-                'to be between 0 and 1 inclusive but got -0.1',
+        details='Exception in condition: DeepchecksValueError: Condition requires the parameter '
+                '"misclassified_samples_threshold" to be between 0 and 1 inclusive but got -0.1',
         category=ConditionCategory.ERROR
     ))
 
     assert_that(result.conditions_results[1], equal_condition_result(
         is_pass=False,
         name=f'Misclassified cell size lower than {format_number(1.1 * 100)}% of the total samples',
-        details='Exception in condition: DeepchecksValueError: Condition requires the parameter "misclassified_samples_threshold" '
-                'to be between 0 and 1 inclusive but got 1.1',
+        details='Exception in condition: DeepchecksValueError: Condition requires the parameter '
+                '"misclassified_samples_threshold" to be between 0 and 1 inclusive but got 1.1',
         category=ConditionCategory.ERROR
     ))
 
@@ -189,3 +189,23 @@ def test_condition_misclassified_samples_lower_than_fails(tweet_emotion_train_te
                   f'Largest misclassified cell ({format_percent(max_misclassified_samples_ratio)} of the data) ' \
                   f'is samples with a true value of "{class_names[x]}" and a predicted value of "{class_names[y]}".'
     ))
+
+
+def test_confusion_matrix_report_display(tweet_emotion_train_test_textdata, tweet_emotion_train_test_predictions):
+    # Arrange and Act
+    check = ConfusionMatrixReport()
+    result = check.run(tweet_emotion_train_test_textdata[0], predictions=tweet_emotion_train_test_predictions[0])
+
+    # Assert
+    assert_that(result.display[0],
+                equal_to('The overall accuracy of your model is: 92.04%.<br>Best accuracy achieved on samples with '
+                         '<b>anger</b> label (96.59%).<br>Worst accuracy achieved on samples with <b>sadness</b> '
+                         'label (88.86%).<br>Below are pie charts showing the prediction distribution for samples '
+                         'grouped based on their label.'))
+    # First is the text description and second a row of max 3 pie charts
+    assert_that(len(result.display), equal_to(2))
+    # 3 Pie charts are generated
+    assert_that(len(result.display[1].data), equal_to(3))
+    assert_that(result.display[1].data[0].type, equal_to('pie'))
+    assert_that(result.display[1].data[1].type, equal_to('pie'))
+    assert_that(result.display[1].data[2].type, equal_to('pie'))

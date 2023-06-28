@@ -146,7 +146,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
                     x.append('No overlapping')
                     y.append('No overlapping')
 
-            description.append(
+            description.extend(
                 *create_confusion_matrix_figure(confusion_matrix, x, self.max_num_labels_to_show)
             )
         else:
