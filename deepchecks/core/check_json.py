@@ -23,7 +23,7 @@ from deepchecks.core.condition import Condition, ConditionCategory, ConditionRes
 from deepchecks.utils.html import imagetag
 
 __all__ = [
-    'CheckResultJson',
+    'CheckResultJson', 
     'CheckFailureJson',
 ]
 
