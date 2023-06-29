@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The confusion_matrix_report check module."""
+import textwrap
 from typing import List
 
 import numpy as np
@@ -23,6 +24,8 @@ from deepchecks.utils.strings import format_number_if_not_nan, format_percent
 
 __all__ = ['create_confusion_matrix_figure', 'run_confusion_matrix_check']
 
+MIN_ACCURACY_FOR_GOOD_CLASSES = 100.0
+
 
 def run_confusion_matrix_check(y_pred: np.ndarray, y_true: np.ndarray, with_display=True,
                                normalize_display=True) -> CheckResult:
@@ -31,14 +34,14 @@ def run_confusion_matrix_check(y_pred: np.ndarray, y_true: np.ndarray, with_disp
     result = confusion_matrix(y_true, y_pred)
 
     if with_display:
-        fig = create_confusion_matrix_figure(result, total_classes, normalize_display)
+        displays = create_confusion_matrix_figure(result, total_classes, normalize_display)
     else:
-        fig = None
+        displays = None
 
     # For accessing the class names from the condition
     result = pd.DataFrame(result, index=total_classes, columns=total_classes)
 
-    return CheckResult(result, display=fig)
+    return CheckResult(result, display=displays)
 
 
 def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_names: List[str],
@@ -60,29 +63,53 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
         confusion matrix figure
 
     """
+    confusion_matrix_norm = confusion_matrix_data.astype('float') / \
+        (confusion_matrix_data.sum(axis=1)[:, np.newaxis] + np.finfo(float).eps) * 100
     if normalize_display:
-        confusion_matrix_norm = confusion_matrix_data.astype('float') / \
-                                (confusion_matrix_data.sum(axis=1)[:, np.newaxis] + np.finfo(float).eps) * 100
         z = np.vectorize(format_number_if_not_nan)(confusion_matrix_norm)
-        text_template = '%{z}%<br>(%{text})'
-        color_bar_title = '% out of<br>True Values'
-        plot_title = 'Percent Out of True Values (Count)'
     else:
         z = confusion_matrix_data
-        color_bar_title = None
-        text_template = '%{text}'
-        plot_title = 'Value Count'
 
-    fig = go.Figure(data=go.Heatmap(
-        x=classes_names, y=classes_names, z=z,
-        text=confusion_matrix_data, texttemplate=text_template))
-    fig.data[0].colorbar.title = color_bar_title
-    fig.update_layout(title=plot_title)
+    display = []
+    accuracy_array = np.diag(confusion_matrix_norm).round(decimals=2)
+    sorted_map = dict(sorted(dict(enumerate(accuracy_array)).items(), key=lambda item: item[1]))
+
+    worst_class_indices = [index for index, acc in sorted_map.items() if acc < MIN_ACCURACY_FOR_GOOD_CLASSES]
+
+    display_msg = textwrap.dedent(
+            f'The overall accuracy of your model is: {round(np.sum(accuracy_array)/len(accuracy_array), 2)}%.<br>'
+            f'Best accuracy achieved on samples with <b>{classes_names[np.argmax(accuracy_array)]}</b> '
+            f'label ({np.max(accuracy_array)}%).'
+        )
+
+    if len(worst_class_indices) == 0:
+        display.append(display_msg)
+    else:
+        display_msg += f'<br>Worst accuracy achieved on samples with <b>{classes_names[np.argmin(accuracy_array)]}' \
+                       f'</b> label ({np.min(accuracy_array)}%).'
+        display.append(display_msg)
+
+    total_samples = np.nansum(confusion_matrix_data)
+    percent_data_each_row = np.round(confusion_matrix_norm, decimals=2)
+    percent_data_each_cell = np.round(np.divide(np.nan_to_num(confusion_matrix_data, nan=0.0), total_samples) * 100,
+                                      decimals=2)
+    percent_data_each_col = (confusion_matrix_data.astype('float') /
+                             (confusion_matrix_data.sum(axis=0)[:, np.newaxis] +
+                              np.finfo(float).eps) * 100).round(decimals=2)
+    custom_hoverdata = np.dstack((percent_data_each_cell, percent_data_each_row, percent_data_each_col))
+
+    fig = go.Figure(data=go.Heatmap(x=classes_names, y=classes_names, z=z, customdata=custom_hoverdata,
+                                    xgap=1, ygap=1, text=confusion_matrix_data, texttemplate='%{text}',
+                                    hovertemplate='% out of all data: <b>%{customdata[0]}%</b><br>% out '
+                                                  'of row: <b>%{customdata[1]}%</b><br>% out of column: '
+                                                  '<b>%{customdata[2]}%</b><extra></extra>',
+                                    showscale=False))
+    fig.update_layout(title='Confusion matrix', title_x=0.5)
     fig.update_layout(height=600)
     fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
     fig.update_yaxes(title='True Value', type='category', constrain='domain', autorange='reversed')
-
-    return fig
+    display.append(fig)
+    return display
 
 
 def misclassified_samples_lower_than_condition(value: pd.DataFrame,
