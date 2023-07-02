@@ -225,7 +225,9 @@ def get_font_with_size(text, desired_width):
     desired_width = max(100, desired_width)
     jump_size = 100
     while jump_size > 1:
-        if font.size(text)[0] < desired_width:
+        left, _, right, _ = font.getbbox(text)
+        width = right - left
+        if width < desired_width:
             font_size += jump_size
         else:
             jump_size = jump_size // 2
