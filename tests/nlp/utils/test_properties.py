@@ -20,7 +20,7 @@ from hamcrest import *
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text_properties import (MODELS_STORAGE, _sample_for_property, calculate_builtin_properties,
-                                                  get_transformer_model)
+                                                  get_transformer_model, is_english)
 
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
@@ -316,6 +316,17 @@ def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
     assert_that(result_none_text['Average Syllable Length'], equal_to([np.nan]))
 
 
+def test_calcualte_is_english_property():
+    data = ['This is a sentence in English.', 'Это предложение на русском языке.']
+    result = calculate_builtin_properties(data, include_properties=['Is English'])[0]
+    assert_that(result['Is English'], equal_to([True, False]))
+
+
+def test_calcualte_is_english_property_without_language_precalculation():
+    data = ['This is a sentence in English.', 'Это предложение на русском языке.']
+    assert_that([is_english(data[0]), is_english(data[1])], equal_to([True, False]))
+
+
 def test_include_properties():
 
     # Arrange
@@ -456,6 +467,33 @@ def test_english_only_properties_calculation_with_not_english_samples():
         'Language': 'categorical',
         'Text Length': 'numeric',
     }))  # type: ignore
+
+
+def test_english_only_properties_calculated_for_all_samples():
+    # Arrange
+    text = [
+        'Explicit is better than implicit',
+        'Сьогодні чудова погода',
+        'London is the capital of Great Britain'
+    ]
+    # Act
+    properties, properties_types = calculate_builtin_properties(
+        raw_text=text,
+        include_properties=['Sentiment', 'Language', 'Text Length'],
+        ignore_non_english_samples_for_english_properties=False
+    )
+    # Assert
+    assert_that(properties, has_entries({
+        'Sentiment': contains_exactly(close_to(0.5, 0.01), close_to(0.0, 0.01), close_to(0.8, 0.01)),
+        'Language': contains_exactly('en', 'uk', 'en'),
+        'Text Length': contains_exactly(*[len(it) for it in text]),
+    }))  # type: ignore
+    assert_that(properties_types, has_entries({
+        'Sentiment': 'numeric',
+        'Language': 'categorical',
+        'Text Length': 'numeric',
+    }))  # type: ignore
+
 
 
 def test_sample_for_property():
