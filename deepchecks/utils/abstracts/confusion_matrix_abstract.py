@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """The confusion_matrix_report check module."""
-import textwrap
 from typing import List
 
 import numpy as np
@@ -23,8 +22,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.strings import format_number_if_not_nan, format_percent
 
 __all__ = ['create_confusion_matrix_figure', 'run_confusion_matrix_check']
-
-MIN_ACCURACY_FOR_GOOD_CLASSES = 100.0
 
 
 def run_confusion_matrix_check(y_pred: np.ndarray, y_true: np.ndarray, with_display=True,
@@ -74,20 +71,16 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
     accuracy_array = np.diag(confusion_matrix_norm).round(decimals=2)
     sorted_map = dict(sorted(dict(enumerate(accuracy_array)).items(), key=lambda item: item[1]))
 
-    worst_class_indices = [index for index, acc in sorted_map.items() if acc < MIN_ACCURACY_FOR_GOOD_CLASSES]
+    worst_class_indices = [index for index, acc in sorted_map.items()]
 
-    display_msg = textwrap.dedent(
-            f'The overall accuracy of your model is: {round(np.sum(accuracy_array)/len(accuracy_array), 2)}%.<br>'
-            f'Best accuracy achieved on samples with <b>{classes_names[np.argmax(accuracy_array)]}</b> '
-            f'label ({np.max(accuracy_array)}%).'
-        )
+    display_msg = f'The overall accuracy of your model is: {round(np.sum(accuracy_array)/len(accuracy_array), 2)}%.'
 
-    if len(worst_class_indices) == 0:
-        display.append(display_msg)
-    else:
+    if min(accuracy_array) < 100:
+        display_msg += f'<br>Best accuracy achieved on samples with <b>{classes_names[np.argmax(accuracy_array)]}' \
+                       f'</b> label ({np.max(accuracy_array)}%).'
         display_msg += f'<br>Worst accuracy achieved on samples with <b>{classes_names[np.argmin(accuracy_array)]}' \
                        f'</b> label ({np.min(accuracy_array)}%).'
-        display.append(display_msg)
+    display.append(display_msg)
 
     total_samples = np.nansum(confusion_matrix_data)
     percent_data_each_row = np.round(confusion_matrix_norm, decimals=2)
@@ -104,7 +97,7 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
                                                   'of row: <b>%{customdata[1]}%</b><br>% out of column: '
                                                   '<b>%{customdata[2]}%</b><extra></extra>',
                                     showscale=False))
-    fig.update_layout(title='Confusion matrix', title_x=0.5)
+    fig.update_layout(title='Confusion Matrix (# Samples)', title_x=0.5)
     fig.update_layout(height=600)
     fig.update_xaxes(title='Predicted Value', type='category', scaleanchor='y', constrain='domain')
     fig.update_yaxes(title='True Value', type='category', constrain='domain', autorange='reversed')
