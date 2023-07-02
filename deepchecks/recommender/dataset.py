@@ -20,8 +20,6 @@ from deepchecks.tabular.utils.task_type import TaskType
 
 __all__ = ['UserDataset', 'ItemDataset','InteractionDataset']
 
-TDataset = t.TypeVar('TDataset', bound='UserDataset')
-
 class UserDataset(Dataset):
 
     _user_index_name: t.Optional[t.Hashable]
