@@ -22,7 +22,6 @@ __all__ = ['UserDataset', 'ItemDataset','InteractionDataset']
 
 TDataset = t.TypeVar('TDataset', bound='UserDataset')
 
-## R
 class UserDataset(Dataset):
 
     _user_index_name: t.Optional[t.Hashable]
@@ -150,7 +149,6 @@ class ItemDataset(Dataset):
         if self.item_index_name is None:
             return None
         return dict(zip(self.item_index_name, range(len(self.item_index_name))))
-
 
 class InteractionDataset(Dataset):
     _user_index_name: t.Optional[t.Hashable]
