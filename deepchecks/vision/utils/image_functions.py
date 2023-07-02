@@ -266,8 +266,8 @@ def prepare_thumbnail(
         # Takes the minimum factor in order for the image to not exceed the size in either width or height
         factor = min(width_factor, height_factor)
         size = (int(image.size[0] * factor), int(image.size[1] * factor))
-        # Resize the image
-        image = image.resize(size, pilimage.ANTIALIAS)
+        # Resize the image by Resampling.LANCZOS
+        image = image.resize(size, pilimage.Resampling.LANCZOS)
     else:
         image = ensure_image(image, copy=False)
 
