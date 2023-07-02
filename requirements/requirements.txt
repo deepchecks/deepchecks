@@ -26,7 +26,7 @@ importlib_metadata>=1.4; python_version < '3.8'
 statsmodels>=0.11.0; python_version < '3.7'
 statsmodels>=0.13.5; python_version >= '3.7'
 # Remove the <=1.10.1 dependency below once sklearn's issue is fixed. The higher version causes
-# issues with sklear's _most_frequent() function using scipy's mode() function
+# issues with sklearn's _most_frequent() function using scipy's mode() function
 scipy>=1.4.1, <=1.10.1
 dataclasses>=0.6; python_version < '3.7'
 plotly>=5.13.1
