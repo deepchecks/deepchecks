@@ -412,6 +412,7 @@ class TextData:
         include_properties: t.Optional[t.List[str]] = None,
         ignore_properties: t.Optional[t.List[str]] = None,
         include_long_calculation_properties: bool = False,
+        ignore_non_english_samples_for_english_properties: bool = True,
         device: t.Optional[str] = None
     ):
         """Calculate the default properties of the dataset.
@@ -427,6 +428,12 @@ class TextData:
         include_long_calculation_properties : bool, default False
             Whether to include properties that may take a long time to calculate. If False, these properties will be
             ignored.
+        ignore_non_english_samples_for_english_properties : bool, default True
+            Whether to ignore samples that are not in English when calculating English properties. If False, samples
+            that are not in English will be calculated as well. This parameter is ignored when calculating non-English
+            properties.
+            English-Only properties WILL NOT work properly on non-English samples, and this parameter should be used
+            only when you are sure that all the samples are in English.
         device : int, default None
             The device to use for the calculation. If None, the default device will be used.
         """
@@ -438,6 +445,7 @@ class TextData:
             include_properties=include_properties,
             ignore_properties=ignore_properties,
             include_long_calculation_properties=include_long_calculation_properties,
+            ignore_non_english_samples_for_english_properties=ignore_non_english_samples_for_english_properties,
             device=device
         )
 
