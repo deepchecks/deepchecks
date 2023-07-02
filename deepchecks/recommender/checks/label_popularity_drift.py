@@ -73,8 +73,9 @@ class LabelPopularityDrift(TrainTestCheck):
 
 
         # Compute item popularity for the training dataset
-        item_id = context._item_dataset.index_name
-        item_popularity = context._item_dataset.data.set_index(item_id)['train_popularity'].to_dict()
+        interaction_dataset  = context._interaction_dataset
+        item_id = interaction_dataset.item_index_name
+        item_popularity = interaction_dataset.data[item_id].value_counts().to_dict()
 
         train_labels_popularity = [item_popularity[item] for sublist in train_labels for item in sublist]
         test_labels_popularity =  [item_popularity[item] for sublist in test_labels for item in sublist]
