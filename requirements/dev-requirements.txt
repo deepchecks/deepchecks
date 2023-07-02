@@ -37,7 +37,9 @@ opencv-python>=4.1.2
 Pillow>=7.1.2
 PyYAML>=5.3.1
 requests>=2.23.0
-scipy>=1.4.1
+# Remove the <=1.10.1 dependency below once sklearn's issue is fixed. The higher version causes
+# issues with sklearn's _most_frequent() function using scipy's mode() function
+scipy>=1.4.1, <=1.10.1
 tqdm>=4.41.0
 seaborn>=0.11.0
 wandb>=0.12.15,<0.13.0
