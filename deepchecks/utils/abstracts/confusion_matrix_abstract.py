@@ -67,12 +67,9 @@ def create_confusion_matrix_figure(confusion_matrix_data: np.ndarray, classes_na
     else:
         z = confusion_matrix_data
 
-    display = []
     accuracy_array = np.diag(confusion_matrix_norm).round(decimals=2)
-    sorted_map = dict(sorted(dict(enumerate(accuracy_array)).items(), key=lambda item: item[1]))
 
-    worst_class_indices = [index for index, acc in sorted_map.items()]
-
+    display = []
     display_msg = f'The overall accuracy of your model is: {round(np.sum(accuracy_array)/len(accuracy_array), 2)}%.'
 
     if min(accuracy_array) < 100:
