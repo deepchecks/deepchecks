@@ -15,6 +15,7 @@ import pathlib
 import re
 import string
 import warnings
+from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -358,44 +359,46 @@ def subjectivity(text: str) -> float:
     return textblob_cache.get(hash_key).subjectivity
 
 
-def _predict(text: str, classifier, kind: str) -> float:
+def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) -> Sequence[float]:
     """Return prediction of huggingface Pipeline classifier."""
     try:
         # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
         # If text is longer than classifier context window, sample it:
-        if len(text) > MAX_CHARS:
-            sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
-            text_to_use = ''
-            for sentence in sentences:
-                if len(text_to_use) + len(sentence) > MAX_CHARS:
-                    break
-                text_to_use += sentence + '. '
+        text_list_to_predict = []
+        for text in text_batch:
+            if len(text) > MAX_CHARS:
+                sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
+                text_to_use = ''
+                for sentence in sentences:
+                    if len(text_to_use) + len(sentence) > MAX_CHARS:
+                        break
+                    text_to_use += sentence + '. '
 
-            # if even one sentence is too long, use part of the first one:
-            if len(text_to_use) == 0:
-                text_to_use = cut_string(sentences[0], MAX_CHARS)
-            text = text_to_use
+                # if even one sentence is too long, use part of the first one:
+                if len(text_to_use) == 0:
+                    text_to_use = cut_string(sentences[0], MAX_CHARS)
+                text_list_to_predict.append(text_to_use)
+            else:
+                text_list_to_predict.append(text)
 
-        v = classifier(text)
+        v_list = classifier(text_list_to_predict, batch_size=batch_size)
+        results = []
+
+        for v in v_list:
+            if not v:
+                results.append(np.nan)
+            if kind == 'toxicity':
+                results.append(v['score'])
+            elif kind == 'fluency':
+                results.append(v['score'] if v['label'] == 'LABEL_1' else 1 - v['score'])
+            elif kind == 'formality':
+                results.append(v['score'] if v['label'] == 'formal' else 1 - v['score'])
+            else:
+                raise ValueError('Unsupported value for "kind" parameter')
     except Exception:  # pylint: disable=broad-except
-        return np.nan
+        return [np.nan] * batch_size # TODO: Handle exceptions here
     else:
-        if not v:
-            return np.nan
-        v = v[0]
-        if kind == 'toxicity':
-            return v['score']
-        elif kind == 'fluency':
-            label_value = 'LABEL_1'
-        elif kind == 'formality':
-            label_value = 'formal'
-        else:
-            raise ValueError('Unsupported value for "kind" parameter')
-        return (
-            v['score']
-            if v['label'] == label_value
-            else 1 - v['score']
-        )
+        return results
 
 
 TOXICITY_MODEL_NAME = 'unitary/toxic-bert'
@@ -404,42 +407,45 @@ FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
 
 
 def toxicity(
-        text: str,
+        text_batch: Sequence[str],
+        batch_size: int = 1,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         toxicity_classifier: Optional[object] = None
-) -> float:
+) -> Sequence[float]:
     """Return float representing toxicity."""
     if toxicity_classifier is None:
         toxicity_classifier = get_transformer_pipeline(
             property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text, toxicity_classifier, 'toxicity')
+    return _predict(text_batch, toxicity_classifier, 'toxicity', batch_size)
 
 
 def fluency(
-        text: str,
+        text_batch: Sequence[str],
+        batch_size: int = 1,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         fluency_classifier: Optional[object] = None
-) -> float:
+) -> Sequence[float]:
     """Return float representing fluency."""
     if fluency_classifier is None:
         fluency_classifier = get_transformer_pipeline(
             property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text, fluency_classifier, 'fluency')
+    return _predict(text_batch, fluency_classifier, 'fluency', batch_size)
 
 
 def formality(
-        text: str,
+        text_batch: Sequence[str],
+        batch_size: int = 1,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         formality_classifier: Optional[object] = None
-) -> float:
+) -> Sequence[float]:
     """Return float representing formality."""
     if formality_classifier is None:
         formality_classifier = get_transformer_pipeline(
             property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text, formality_classifier, 'formality')
+    return _predict(text_batch, formality_classifier, 'formality', batch_size)
 
 
 def lexical_density(text: str) -> float:
@@ -461,7 +467,7 @@ def lexical_density(text: str) -> float:
     return round(total_unique_words * 100 / len(all_words), 2)
 
 
-def unique_noun_count(text: str) -> int:
+def unique_noun_count(text: Sequence[str]) -> int:
     """Return the number of unique noun words in the text."""
     if pd.isna(text):
         return np.nan
@@ -614,6 +620,15 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
     return round(syllable_count / sentence_count, 2)
 
 
+def _batch_wrapper(text_batch: Sequence[str], func: Callable, **kwargs) -> List[Any]:
+    """A utility function to wrap the non-batched properties with batches."""
+    results = []
+    for text in text_batch:
+        results.append(run_available_kwargs(func, text=text, **kwargs))
+
+    return results
+
+
 class TextProperty(TypedDict):
     name: str
     method: Callable[..., Sequence[Any]]
@@ -652,6 +667,9 @@ ALL_PROPERTIES: Tuple[TextProperty, ...] = \
     ) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
+
+BATCH_PROPERTIES = ('Toxicity', 'Fluency', 'Formality')
+
 LARGE_SAMPLE_SIZE = 10_000
 
 ENGLISH_ONLY_PROPERTIES = (
@@ -764,7 +782,8 @@ def calculate_builtin_properties(
         include_long_calculation_properties: bool = False,
         ignore_non_english_samples_for_english_properties: bool = True,
         device: Optional[str] = None,
-        models_storage: Union[pathlib.Path, str, None] = None
+        models_storage: Union[pathlib.Path, str, None] = None,
+        batch_size: Optional[int] = 1
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
 
@@ -871,38 +890,50 @@ def calculate_builtin_properties(
     import_warnings = set()
 
     progress_bar = create_progress_bar(
-        iterable=list(raw_text),
+        total=len(raw_text) // batch_size,
         name='Text Samples Calculation',
         unit='Text Sample'
     )
-    for text in progress_bar:
+    for i in range(0, len(raw_text), batch_size):
+        batch = raw_text[i:i + batch_size]
+        batch_properties = defaultdict(list)
+
+        progress_bar.update(1)
         progress_bar.set_postfix(
-            {'Sample': truncate_string(text, max_length=20) if text else 'EMPTY STRING'},
+            {'Sample': truncate_string(batch[0], max_length=20) if batch[0] else 'EMPTY STRING'},
             refresh=False
         )
-        if pd.isna(text):
-            for prop in text_properties:
-                calculated_properties[prop['name']].append(np.nan)
-            continue
-        sample_language = run_available_kwargs(language, text=text, **kwargs)
+
+        # filtering out empty sequences
+        filtered_sequences = [seq for seq in batch if pd.isna(seq) is False]
+
+        samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
         if is_language_property_requested:
-            calculated_properties['Language'].append(sample_language)
-        kwargs['language_property_result'] = sample_language  # Pass the language property result to other properties
+            batch_properties['Language'].extend(samples_language)
+        kwargs['language_property_result'] = samples_language  # Pass the language property result to other properties
 
         for prop in text_properties:
             if prop['name'] in import_warnings:  # Skip properties that failed to import:
-                calculated_properties[prop['name']].append(np.nan)
-            elif sample_language != 'en' and prop['name'] in english_properties_names \
-                    and ignore_non_english_samples_for_english_properties is True:
-                calculated_properties[prop['name']].append(np.nan)
+                batch_properties[prop['name']].extend([np.nan] * len(batch))
             else:
+                if prop['name'] in english_properties_names \
+                        and ignore_non_english_samples_for_english_properties is True:
+                    filtered_sequences = \
+                        [seq for seq, lang in zip(filtered_sequences, samples_language) if lang == 'en']
+                kwargs['batch_size'] = batch_size
                 try:
-                    value = run_available_kwargs(prop['method'], text=text, **kwargs)
-                    calculated_properties[prop['name']].append(value)
+                    if prop['name'] in BATCH_PROPERTIES:
+                        value = run_available_kwargs(func=prop['method'], text_batch=filtered_sequences, **kwargs)
+                    else:
+                        value = _batch_wrapper(text_batch=filtered_sequences, func=prop['method'], **kwargs)
+                    batch_properties[prop['name']].extend(value)
                 except ImportError as e:
                     warnings.warn(warning_message.format(prop['name'], str(e)))
-                    calculated_properties[prop['name']].append(np.nan)
+                    batch_properties[prop['name']].extend([np.nan] * len(batch))
                     import_warnings.add(prop['name'])
+
+            calculated_properties[prop['name']] = [prop if seq is not None else np.nan
+                                                   for seq, prop in zip(batch, batch_properties[prop['name']])]
 
         # Clear property caches:
         textblob_cache.clear()
