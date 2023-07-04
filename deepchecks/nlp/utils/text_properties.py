@@ -31,7 +31,7 @@ from typing_extensions import TypedDict
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
-from deepchecks.utils.strings import format_list, truncate_string
+from deepchecks.utils.strings import format_list
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 
