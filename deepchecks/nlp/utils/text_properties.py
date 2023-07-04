@@ -367,33 +367,36 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
         # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
         # If text is longer than classifier context window, sample it:
         text_list_to_predict = []
-        reduced_batch_size = batch_size  # Initialize the reduced batch size
 
-        while reduced_batch_size >= 1:
+        for text in text_batch:
+            if len(text) > MAX_CHARS:
+                sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
+                text_to_use = ''
+                for sentence in sentences:
+                    if len(text_to_use) + len(sentence) > MAX_CHARS:
+                        break
+                    text_to_use += sentence + '. '
+
+                # if even one sentence is too long, use part of the first one:
+                if len(text_to_use) == 0:
+                    text_to_use = cut_string(sentences[0], MAX_CHARS)
+                text_list_to_predict.append(text_to_use)
+            else:
+                text_list_to_predict.append(text)
+
+        results = []
+        remaining_texts = text_list_to_predict[:]
+        reduced_batch_size = batch_size
+
+        while remaining_texts:
             try:
-                for text in text_batch:
-                    if len(text) > MAX_CHARS:
-                        sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
-                        text_to_use = ''
-                        for sentence in sentences:
-                            if len(text_to_use) + len(sentence) > MAX_CHARS:
-                                break
-                            text_to_use += sentence + '. '
-
-                        # if even one sentence is too long, use part of the first one:
-                        if len(text_to_use) == 0:
-                            text_to_use = cut_string(sentences[0], MAX_CHARS)
-                        text_list_to_predict.append(text_to_use)
-                    else:
-                        text_list_to_predict.append(text)
-
-                v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
-                results = []
+                text_list_to_predict_batch = remaining_texts[:reduced_batch_size]
+                v_list = classifier(text_list_to_predict_batch, batch_size=reduced_batch_size)
 
                 for v in v_list:
                     if not v:
                         results.append(np.nan)
-                    if kind == 'toxicity':
+                    elif kind == 'toxicity':
                         results.append(v['score'])
                     elif kind == 'fluency':
                         results.append(v['score'] if v['label'] == 'LABEL_1' else 1 - v['score'])
@@ -402,11 +405,14 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
                     else:
                         raise ValueError('Unsupported value for "kind" parameter')
 
+                remaining_texts = remaining_texts[reduced_batch_size:]
+                reduced_batch_size = min(reduced_batch_size, len(remaining_texts))
+
                 return results  # Return the results if prediction is successful
 
             except Exception:  # pylint: disable=broad-except
-                reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
-                text_list_to_predict = []  # Clear the list of texts to predict for retry
+                reduced_batch_size = max(reduced_batch_size // 2, 1)
+                results.extend([np.nan] * reduced_batch_size)
 
         return [np.nan] * batch_size  # Prediction failed, return NaN values for the original batch size
 
@@ -634,7 +640,7 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
 
 
 def _batch_wrapper(text_batch: Sequence[str], func: Callable, **kwargs) -> List[Any]:
-    """A utility function to wrap the non-batched properties with batches."""
+    """Wrap the non-batched properties execution with batches API."""
     results = []
     for text in text_batch:
         results.append(run_available_kwargs(func, text=text, **kwargs))
@@ -902,47 +908,45 @@ def calculate_builtin_properties(
     )
     import_warnings = set()
 
-    with tqdm(total=int(len(raw_text)//batch_size)) as pbar:
-        for i in range(0, len(raw_text), batch_size):
-            batch = raw_text[i:i + batch_size]
-            batch_properties = defaultdict(list)
-            pbar.update(1)
+    for i in tqdm(range(0, len(raw_text), batch_size)):
+        batch = raw_text[i:i + batch_size]
+        batch_properties = defaultdict(list)
 
-            # filtering out empty sequences
-            filtered_sequences = [seq for seq in batch if pd.isna(seq) is False]
+        # filtering out empty sequences
+        filtered_sequences = [seq for seq in batch if pd.isna(seq) is False]
 
-            samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
-            if is_language_property_requested:
-                batch_properties['Language'].extend(samples_language)
-            kwargs['language_property_result'] = samples_language  # Pass the language property to other properties
+        samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
+        if is_language_property_requested:
+            batch_properties['Language'].extend(samples_language)
+        kwargs['language_property_result'] = samples_language  # Pass the language property to other properties
 
-            for prop in text_properties:
-                if prop['name'] in import_warnings:  # Skip properties that failed to import:
+        for prop in text_properties:
+            if prop['name'] in import_warnings:  # Skip properties that failed to import:
+                batch_properties[prop['name']].extend([np.nan] * len(batch))
+            else:
+                if prop['name'] in english_properties_names \
+                        and ignore_non_english_samples_for_english_properties is True:
+                    filtered_sequences = \
+                        [seq for seq, lang in zip(filtered_sequences, samples_language) if lang == 'en']
+                kwargs['batch_size'] = batch_size
+                try:
+                    if prop['name'] in BATCH_PROPERTIES:
+                        value = run_available_kwargs(func=prop['method'], text_batch=filtered_sequences, **kwargs)
+                    else:
+                        value = _batch_wrapper(text_batch=filtered_sequences, func=prop['method'], **kwargs)
+                    batch_properties[prop['name']].extend(value)
+                except ImportError as e:
+                    warnings.warn(warning_message.format(prop['name'], str(e)))
                     batch_properties[prop['name']].extend([np.nan] * len(batch))
-                else:
-                    if prop['name'] in english_properties_names \
-                            and ignore_non_english_samples_for_english_properties is True:
-                        filtered_sequences = \
-                            [seq for seq, lang in zip(filtered_sequences, samples_language) if lang == 'en']
-                    kwargs['batch_size'] = batch_size
-                    try:
-                        if prop['name'] in BATCH_PROPERTIES:
-                            value = run_available_kwargs(func=prop['method'], text_batch=filtered_sequences, **kwargs)
-                        else:
-                            value = _batch_wrapper(text_batch=filtered_sequences, func=prop['method'], **kwargs)
-                        batch_properties[prop['name']].extend(value)
-                    except ImportError as e:
-                        warnings.warn(warning_message.format(prop['name'], str(e)))
-                        batch_properties[prop['name']].extend([np.nan] * len(batch))
-                        import_warnings.add(prop['name'])
+                    import_warnings.add(prop['name'])
 
-                calculated_properties[prop['name']] = [prop if seq is not None else np.nan
-                                                       for seq, prop in zip(batch, batch_properties[prop['name']])]
+            calculated_properties[prop['name']] = [prop if seq is not None else np.nan
+                                                   for seq, prop in zip(batch, batch_properties[prop['name']])]
 
-            # Clear property caches:
-            textblob_cache.clear()
-            words_cache.clear()
-            sentences_cache.clear()
+        # Clear property caches:
+        textblob_cache.clear()
+        words_cache.clear()
+        sentences_cache.clear()
 
     # Clean all remaining RAM:
     gc.collect()
