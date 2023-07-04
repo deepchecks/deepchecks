@@ -25,12 +25,12 @@ import textblob
 from nltk import corpus
 from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
+from tqdm import tqdm
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
-from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.strings import format_list, truncate_string
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
@@ -365,40 +365,51 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
         # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
         # If text is longer than classifier context window, sample it:
         text_list_to_predict = []
-        for text in text_batch:
-            if len(text) > MAX_CHARS:
-                sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
-                text_to_use = ''
-                for sentence in sentences:
-                    if len(text_to_use) + len(sentence) > MAX_CHARS:
-                        break
-                    text_to_use += sentence + '. '
+        reduced_batch_size = batch_size  # Initialize the reduced batch size
 
-                # if even one sentence is too long, use part of the first one:
-                if len(text_to_use) == 0:
-                    text_to_use = cut_string(sentences[0], MAX_CHARS)
-                text_list_to_predict.append(text_to_use)
-            else:
-                text_list_to_predict.append(text)
+        while reduced_batch_size >= 1:
+            try:
+                for text in text_batch:
+                    if len(text) > MAX_CHARS:
+                        sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
+                        text_to_use = ''
+                        for sentence in sentences:
+                            if len(text_to_use) + len(sentence) > MAX_CHARS:
+                                break
+                            text_to_use += sentence + '. '
 
-        v_list = classifier(text_list_to_predict, batch_size=batch_size)
-        results = []
+                        # if even one sentence is too long, use part of the first one:
+                        if len(text_to_use) == 0:
+                            text_to_use = cut_string(sentences[0], MAX_CHARS)
+                        text_list_to_predict.append(text_to_use)
+                    else:
+                        text_list_to_predict.append(text)
 
-        for v in v_list:
-            if not v:
-                results.append(np.nan)
-            if kind == 'toxicity':
-                results.append(v['score'])
-            elif kind == 'fluency':
-                results.append(v['score'] if v['label'] == 'LABEL_1' else 1 - v['score'])
-            elif kind == 'formality':
-                results.append(v['score'] if v['label'] == 'formal' else 1 - v['score'])
-            else:
-                raise ValueError('Unsupported value for "kind" parameter')
+                v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
+                results = []
+
+                for v in v_list:
+                    if not v:
+                        results.append(np.nan)
+                    if kind == 'toxicity':
+                        results.append(v['score'])
+                    elif kind == 'fluency':
+                        results.append(v['score'] if v['label'] == 'LABEL_1' else 1 - v['score'])
+                    elif kind == 'formality':
+                        results.append(v['score'] if v['label'] == 'formal' else 1 - v['score'])
+                    else:
+                        raise ValueError('Unsupported value for "kind" parameter')
+
+                return results  # Return the results if prediction is successful
+
+            except Exception:  # pylint: disable=broad-except
+                reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
+                text_list_to_predict = []  # Clear the list of texts to predict for retry
+
+        return [np.nan] * batch_size  # Prediction failed, return NaN values for the original batch size
+
     except Exception:  # pylint: disable=broad-except
-        return [np.nan] * batch_size # TODO: Handle exceptions here
-    else:
-        return results
+        return [np.nan] * batch_size
 
 
 TOXICITY_MODEL_NAME = 'unitary/toxic-bert'
@@ -889,56 +900,47 @@ def calculate_builtin_properties(
     )
     import_warnings = set()
 
-    progress_bar = create_progress_bar(
-        total=len(raw_text) // batch_size,
-        name='Text Samples Calculation',
-        unit='Text Sample'
-    )
-    for i in range(0, len(raw_text), batch_size):
-        batch = raw_text[i:i + batch_size]
-        batch_properties = defaultdict(list)
+    with tqdm(total=int(len(raw_text)//batch_size)) as pbar:
+        for i in range(0, len(raw_text), batch_size):
+            batch = raw_text[i:i + batch_size]
+            batch_properties = defaultdict(list)
+            pbar.update(1)
 
-        progress_bar.update(1)
-        progress_bar.set_postfix(
-            {'Sample': truncate_string(batch[0], max_length=20) if batch[0] else 'EMPTY STRING'},
-            refresh=False
-        )
+            # filtering out empty sequences
+            filtered_sequences = [seq for seq in batch if pd.isna(seq) is False]
 
-        # filtering out empty sequences
-        filtered_sequences = [seq for seq in batch if pd.isna(seq) is False]
+            samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
+            if is_language_property_requested:
+                batch_properties['Language'].extend(samples_language)
+            kwargs['language_property_result'] = samples_language  # Pass the language property result to other properties
 
-        samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
-        if is_language_property_requested:
-            batch_properties['Language'].extend(samples_language)
-        kwargs['language_property_result'] = samples_language  # Pass the language property result to other properties
-
-        for prop in text_properties:
-            if prop['name'] in import_warnings:  # Skip properties that failed to import:
-                batch_properties[prop['name']].extend([np.nan] * len(batch))
-            else:
-                if prop['name'] in english_properties_names \
-                        and ignore_non_english_samples_for_english_properties is True:
-                    filtered_sequences = \
-                        [seq for seq, lang in zip(filtered_sequences, samples_language) if lang == 'en']
-                kwargs['batch_size'] = batch_size
-                try:
-                    if prop['name'] in BATCH_PROPERTIES:
-                        value = run_available_kwargs(func=prop['method'], text_batch=filtered_sequences, **kwargs)
-                    else:
-                        value = _batch_wrapper(text_batch=filtered_sequences, func=prop['method'], **kwargs)
-                    batch_properties[prop['name']].extend(value)
-                except ImportError as e:
-                    warnings.warn(warning_message.format(prop['name'], str(e)))
+            for prop in text_properties:
+                if prop['name'] in import_warnings:  # Skip properties that failed to import:
                     batch_properties[prop['name']].extend([np.nan] * len(batch))
-                    import_warnings.add(prop['name'])
+                else:
+                    if prop['name'] in english_properties_names \
+                            and ignore_non_english_samples_for_english_properties is True:
+                        filtered_sequences = \
+                            [seq for seq, lang in zip(filtered_sequences, samples_language) if lang == 'en']
+                    kwargs['batch_size'] = batch_size
+                    try:
+                        if prop['name'] in BATCH_PROPERTIES:
+                            value = run_available_kwargs(func=prop['method'], text_batch=filtered_sequences, **kwargs)
+                        else:
+                            value = _batch_wrapper(text_batch=filtered_sequences, func=prop['method'], **kwargs)
+                        batch_properties[prop['name']].extend(value)
+                    except ImportError as e:
+                        warnings.warn(warning_message.format(prop['name'], str(e)))
+                        batch_properties[prop['name']].extend([np.nan] * len(batch))
+                        import_warnings.add(prop['name'])
 
-            calculated_properties[prop['name']] = [prop if seq is not None else np.nan
-                                                   for seq, prop in zip(batch, batch_properties[prop['name']])]
+                calculated_properties[prop['name']] = [prop if seq is not None else np.nan
+                                                       for seq, prop in zip(batch, batch_properties[prop['name']])]
 
-        # Clear property caches:
-        textblob_cache.clear()
-        words_cache.clear()
-        sentences_cache.clear()
+            # Clear property caches:
+            textblob_cache.clear()
+            words_cache.clear()
+            sentences_cache.clear()
 
     # Clean all remaining RAM:
     gc.collect()
