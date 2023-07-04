@@ -37,7 +37,8 @@ __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 
 from deepchecks.utils.validation import is_sequence_not_str
 
-MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
+MODELS_STORAGE = pathlib.Path(
+    '/home/ec2-user/anaconda3/envs/python3/lib/python3.10/site-packages/deepchecks/nlp/utils/.nlp-models')
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
 MAX_CHARS = 512  # Bert accepts max of 512 tokens, so without counting tokens we go for the lower bound.
@@ -363,58 +364,70 @@ def subjectivity(text: str) -> float:
 
 def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) -> Sequence[float]:
     """Return prediction of huggingface Pipeline classifier."""
-    try:
-        # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
-        # If text is longer than classifier context window, sample it:
-        text_list_to_predict = []
-        reduced_batch_size = batch_size  # Initialize the reduced batch size
+    # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
+    # If text is longer than classifier context window, sample it:
+    text_list_to_predict = []
+    reduced_batch_size = batch_size  # Initialize the reduced batch size
 
-        for text in text_batch:
-            if len(text) > MAX_CHARS:
-                sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
-                text_to_use = ''
-                for sentence in sentences:
-                    if len(text_to_use) + len(sentence) > MAX_CHARS:
-                        break
-                    text_to_use += sentence + '. '
+    for text in text_batch:
+        if len(text) > MAX_CHARS:
+            sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
+            text_to_use = ''
+            for sentence in sentences:
+                if len(text_to_use) + len(sentence) > MAX_CHARS:
+                    break
+                text_to_use += sentence + '. '
 
-                # if even one sentence is too long, use part of the first one:
-                if len(text_to_use) == 0:
-                    text_to_use = cut_string(sentences[0], MAX_CHARS)
-                text_list_to_predict.append(text_to_use)
-            else:
-                text_list_to_predict.append(text)
+            # if even one sentence is too long, use part of the first one:
+            if len(text_to_use) == 0:
+                text_to_use = cut_string(sentences[0], MAX_CHARS)
+            text_list_to_predict.append(text_to_use)
+        else:
+            text_list_to_predict.append(text)
 
-        while reduced_batch_size >= 1:
-            try:
-                v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
+    while reduced_batch_size >= 1:
+        try:
+            if reduced_batch_size == 1:
                 results = []
-
-                for v in v_list:
-                    if not v:
+                for text in text_list_to_predict:
+                    try:
+                        v = classifier(text)
+                        if not v:
+                            results.append(np.nan)
+                        elif kind == 'toxicity':
+                            results.append(v['score'])
+                        elif kind == 'fluency':
+                            results.append(v['score'] if v['label'] == 'LABEL_1' else 1 - v['score'])
+                        elif kind == 'formality':
+                            results.append(v['score'] if v['label'] == 'formal' else 1 - v['score'])
+                        else:
+                            raise ValueError('Unsupported value for "kind" parameter')
+                    except Exception:
                         results.append(np.nan)
-                    if kind == 'toxicity':
-                        results.append(v['score'])
-                    elif kind == 'fluency':
-                        results.append(v['score'] if v['label'] == 'LABEL_1' else 1 - v['score'])
-                    elif kind == 'formality':
-                        results.append(v['score'] if v['label'] == 'formal' else 1 - v['score'])
-                    else:
-                        raise ValueError('Unsupported value for "kind" parameter')
-
                 return results  # Return the results if prediction is successful
 
-            except Exception:  # pylint: disable=broad-except
-                reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
-                text_list_to_predict = []  # Clear the list of texts to predict for retry
+            v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
+            results = []
 
-        return [np.nan] * batch_size  # Prediction failed, return NaN values for the original batch size
+            for v in v_list:
+                if not v:
+                    results.append(np.nan)
+                elif kind == 'toxicity':
+                    results.append(v['score'])
+                elif kind == 'fluency':
+                    results.append(v['score'] if v['label'] == 'LABEL_1' else 1 - v['score'])
+                elif kind == 'formality':
+                    results.append(v['score'] if v['label'] == 'formal' else 1 - v['score'])
+                else:
+                    raise ValueError('Unsupported value for "kind" parameter')
 
-    except Exception:  # pylint: disable=broad-except
-        return [np.nan] * batch_size  # TODO: Handle exceptions here
+            return results  # Return the results if prediction is successful
 
-    except Exception:  # pylint: disable=broad-except
-        return [np.nan] * batch_size
+        except Exception:  # pylint: disable=broad-except
+            reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
+            text_list_to_predict = []  # Clear the list of texts to predict for retry
+
+    return [np.nan] * batch_size  # Prediction failed, return NaN values for the original batch size
 
 
 TOXICITY_MODEL_NAME = 'unitary/toxic-bert'
