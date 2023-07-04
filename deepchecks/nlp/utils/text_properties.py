@@ -367,6 +367,7 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
         # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
         # If text is longer than classifier context window, sample it:
         text_list_to_predict = []
+        reduced_batch_size = batch_size  # Initialize the reduced batch size
 
         for text in text_batch:
             if len(text) > MAX_CHARS:
@@ -384,19 +385,15 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
             else:
                 text_list_to_predict.append(text)
 
-        results = []
-        remaining_texts = text_list_to_predict[:]
-        reduced_batch_size = batch_size
-
-        while remaining_texts:
+        while reduced_batch_size >= 1:
             try:
-                text_list_to_predict_batch = remaining_texts[:reduced_batch_size]
-                v_list = classifier(text_list_to_predict_batch, batch_size=reduced_batch_size)
+                v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
+                results = []
 
                 for v in v_list:
                     if not v:
                         results.append(np.nan)
-                    elif kind == 'toxicity':
+                    if kind == 'toxicity':
                         results.append(v['score'])
                     elif kind == 'fluency':
                         results.append(v['score'] if v['label'] == 'LABEL_1' else 1 - v['score'])
@@ -405,16 +402,16 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
                     else:
                         raise ValueError('Unsupported value for "kind" parameter')
 
-                remaining_texts = remaining_texts[reduced_batch_size:]
-                reduced_batch_size = min(reduced_batch_size, len(remaining_texts))
-
                 return results  # Return the results if prediction is successful
 
             except Exception:  # pylint: disable=broad-except
-                reduced_batch_size = max(reduced_batch_size // 2, 1)
-                results.extend([np.nan] * reduced_batch_size)
+                reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
+                text_list_to_predict = []  # Clear the list of texts to predict for retry
 
         return [np.nan] * batch_size  # Prediction failed, return NaN values for the original batch size
+
+    except Exception:  # pylint: disable=broad-except
+        return [np.nan] * batch_size  # TODO: Handle exceptions here
 
     except Exception:  # pylint: disable=broad-except
         return [np.nan] * batch_size
@@ -940,8 +937,8 @@ def calculate_builtin_properties(
                     batch_properties[prop['name']].extend([np.nan] * len(batch))
                     import_warnings.add(prop['name'])
 
-            calculated_properties[prop['name']] = [prop if seq is not None else np.nan
-                                                   for seq, prop in zip(batch, batch_properties[prop['name']])]
+            calculated_properties[prop['name']].extend([prop if seq is not None else np.nan
+                                                        for seq, prop in zip(batch, batch_properties[prop['name']])])
 
         # Clear property caches:
         textblob_cache.clear()
