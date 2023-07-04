@@ -167,7 +167,8 @@ def get_transformer_model(
         # TODO: quantize if 'quantize_model' is True
         return transformers.AutoModelForSequenceClassification.from_pretrained(
             model_name,
-            cache_dir=models_storage
+            cache_dir=models_storage,
+            device_map=device
         )
 
     onnx = _import_optional_property_dependency(
@@ -188,12 +189,13 @@ def get_transformer_model(
         model_path = models_storage / 'onnx' / model_name
 
         if model_path.exists():
-            return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
+            return onnx.ORTModelForSequenceClassification.from_pretrained(model_path, device_map=device)
 
         model = onnx.ORTModelForSequenceClassification.from_pretrained(
             model_name,
             export=True,
-            cache_dir=models_storage
+            cache_dir=models_storage,
+            device_map=device
         )
         # NOTE:
         # 'optimum', after exporting/converting a model to the ONNX format,
@@ -205,7 +207,7 @@ def get_transformer_model(
     model_path = models_storage / 'onnx' / 'quantized' / model_name
 
     if model_path.exists():
-        return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
+        return onnx.ORTModelForSequenceClassification.from_pretrained(model_path, device_map=device)
 
     not_quantized_model = get_transformer_model(
         property_name,
@@ -215,7 +217,7 @@ def get_transformer_model(
         models_storage=models_storage
     )
 
-    quantizer = onnx.ORTQuantizer.from_pretrained(not_quantized_model)
+    quantizer = onnx.ORTQuantizer.from_pretrained(not_quantized_model, device_map=device)
 
     quantizer.quantize(
         save_dir=model_path,
@@ -225,7 +227,7 @@ def get_transformer_model(
             per_channel=False
         )
     )
-    return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
+    return onnx.ORTModelForSequenceClassification.from_pretrained(model_path, device_map=device)
 
 
 def get_transformer_pipeline(
@@ -236,7 +238,7 @@ def get_transformer_pipeline(
 ):
     """Return a transformers pipeline for the given model name."""
     transformers = _import_optional_property_dependency('transformers', property_name=property_name)
-    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
+    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=device)
     model = get_transformer_model(
         property_name=property_name,
         model_name=model_name,
@@ -912,7 +914,7 @@ def calculate_builtin_properties(
             samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
             if is_language_property_requested:
                 batch_properties['Language'].extend(samples_language)
-            kwargs['language_property_result'] = samples_language  # Pass the language property result to other properties
+            kwargs['language_property_result'] = samples_language  # Pass the language property to other properties
 
             for prop in text_properties:
                 if prop['name'] in import_warnings:  # Skip properties that failed to import:
