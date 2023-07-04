@@ -53,10 +53,7 @@ class SamplePerformance(SingleDatasetCheck):
         self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
-        """Run check."""
-        if self.n_samples ==None:
-            dataset = context.get_data_by_kind(dataset_kind)
-
+        
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         model = context.model
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
