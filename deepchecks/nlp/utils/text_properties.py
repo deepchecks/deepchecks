@@ -37,8 +37,7 @@ __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 
 from deepchecks.utils.validation import is_sequence_not_str
 
-MODELS_STORAGE = pathlib.Path(
-    '/home/ec2-user/anaconda3/envs/python3/lib/python3.10/site-packages/deepchecks/nlp/utils/.nlp-models')
+MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
 MAX_CHARS = 512  # Bert accepts max of 512 tokens, so without counting tokens we go for the lower bound.
@@ -402,7 +401,7 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
                             results.append(v['score'] if v['label'] == 'formal' else 1 - v['score'])
                         else:
                             raise ValueError('Unsupported value for "kind" parameter')
-                    except Exception:
+                    except Exception:  # pylint: disable=broad-except
                         results.append(np.nan)
                 return results  # Return the results if prediction is successful
 
