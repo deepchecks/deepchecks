@@ -20,6 +20,7 @@ from deepchecks.tabular.utils.task_type import TaskType
 
 __all__ = ['UserDataset', 'ItemDataset','InteractionDataset']
 
+TDataset = t.TypeVar('TDataset','InteractionDataset','UserDataset','ItemDataset')
 class UserDataset(Dataset):
 
     _user_index_name: t.Optional[t.Hashable]
@@ -151,14 +152,14 @@ class ItemDataset(Dataset):
 class InteractionDataset(Dataset):
     _user_index_name: t.Optional[t.Hashable]
     _item_index_name: t.Optional[t.Hashable]
-    _rating_name: t.Optional[t.Hashable]
+    _interaction_column_name: t.Optional[t.Hashable]
 
     def __init__(
             self,
             df: t.Any,
             user_index_name: t.Optional[t.Hashable] = None,
             item_index_name: t.Optional[t.Hashable] = None,
-            rating_name: t.Optional[t.Hashable] = None,
+            interaction_column_name: t.Optional[t.Hashable] = None,
             features: t.Optional[t.Sequence[t.Hashable]] = None,
             cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
             index_name: t.Optional[t.Hashable] = None,
@@ -186,13 +187,13 @@ class InteractionDataset(Dataset):
         )
         self._user_index_name = user_index_name
         self._item_index_name = item_index_name
-        self._rating_name = rating_name
+        self._interaction_column_name = interaction_column_name
 
     def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
         dataset = super().copy(new_data)
         dataset._user_index_name = self._user_index_name
         dataset._item_index_name = self._item_index_name
-        dataset._rating_name = self._rating_name
+        dataset._interaction_column_name = self._interaction_column_name
 
         return dataset
 
@@ -205,8 +206,8 @@ class InteractionDataset(Dataset):
         return self._item_index_name
     
     @property
-    def rating_name(self) -> t.Optional[t.Hashable]:
-        return self._rating_name
+    def interaction_column_name(self) -> t.Optional[t.Hashable]:
+        return self._interaction_column_name
     @property
     def user_index_to_ordinal(self) -> t.Optional[dict]:
         if self.user_index_name is None:
