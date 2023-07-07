@@ -70,102 +70,109 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
         train_dataset.assert_datetime()
         train_date = train_dataset.datetime_col
         test_date = test_dataset.datetime_col
+
         if self.validation_per_user==False:
-            max_train_date = max(train_date)
-            min_test_date = min(test_date)
+            _, max_train_date = min(train_date), max(train_date)
+            min_test_date, max_test_date = min(test_date), max(test_date)
+        
             dates_leaked = sum(date < max_train_date for date in test_date)
             if dates_leaked > 0:
                 leakage_ratio = dates_leaked / test_dataset.n_samples
-                return_value = leakage_ratio
-                text = f'{format_percent(leakage_ratio)} of test data samples are in the date range ' \
-                        f'{format_datetime(min_test_date)} - {format_datetime(max_train_date)}'\
-                        f', which occurs before last training data date ({format_datetime(max_train_date)})'
-                display.append(text)
-                fig = go.Figure()
-                # Add trace for the first list
-                fig.add_trace(go.Scatter(
-                    x=sorted(train_date.tolist()),
-                    y=[1] * len(train_date.tolist()),  # Use a constant y-value for all points in list1
-                    mode='markers',
-                    name='Train timestamps',
-                    marker=dict(
-                        color='blue'
-                    )
-                ))
-
-                # Add trace for the second list
-                fig.add_trace(go.Scatter(
-                    x=sorted(test_date.tolist()),
-                    y=[2] * len(train_date.tolist()),  # Use a different constant y-value for all points in list2
-                    mode='markers',
-                    name='Validation timestamps',
-                    marker=dict(
-                        color='red'
-                    )
-                ))
-
-                # Set the layout
-                fig.update_layout(
-                    title='Temporal Comparison of train and validation timestamps.',
-                    yaxis=dict(
-                        showticklabels=False,
-                        range=[0, 3]  # Adjust the range according to the number of lists
-                    ),
-                    height=300  # Adjust the height as needed
+            else:
+                leakage_ratio = 0
+            fig = go.Figure()
+            # Add trace for the first list
+            fig.add_trace(go.Scatter(
+                x=sorted(train_date.tolist()),
+                y=[1] * len(train_date.tolist()),  # Use a constant y-value for all points in list1
+                mode='markers',
+                name='Train timestamps',
+                marker=dict(
+                    color='blue'
                 )
-                # Show the plot
-                display.append(fig)
+            ))
 
-                
+            # Add trace for the second list
+            fig.add_trace(go.Scatter(
+                x=sorted(test_date.tolist()),
+                y=[2] * len(train_date.tolist()),  # Use a different constant y-value for all points in list2
+                mode='markers',
+                name='Validation timestamps',
+                marker=dict(
+                    color='red'
+                )
+            ))
+            
+            # Add a Marker for max train date
+            fig.add_trace(go.Scatter(x=[max_train_date,max_train_date], y=[0,1], name='Max Train Timestamp',
+                                    line=dict(color='blue', width=2, dash='dot')))
+            
+            # Add a Marker for min test date
+            fig.add_trace(go.Scatter(x=[min_test_date,min_test_date], y=[3,2], name='Min Test Timestamp',
+                                    line=dict(color='red', width=2, dash='dot')))
+            # Set the layout
+            fig.update_layout(
+                title='Temporal Comparison of train and validation timestamps.',
+                yaxis=dict(
+                    range=[0, 3],  # Adjust the range according to the number of lists
+                    tickvals=[1,2],
+                    ticktext=['Train','Validation']
+                ),
+                xaxis_title="Timestamps",
+                yaxis_title="Set",
+                height=400  # Adjust the height as needed
+            )
+                        # Show the plot
+            text = f'{format_percent(leakage_ratio)} of test data samples are in the date range ' \
+            f'{format_datetime(min_test_date)} - {format_datetime(max_test_date)}'\
+            f', which occurs before last training data date ({format_datetime(max_train_date)})'
+            display.append(text)
+            display.append(fig)
+            
+            return_value={'max_train_date': max_train_date,
+                          'min_test_date' : min_test_date
+                          }    
         else:
             user_id =train_dataset.user_index_name
             train_grouped = train_dataset.data.groupby(user_id)
             test_grouped = test_dataset.data.groupby(user_id)
-
             leakage_ratios = []
             
             for user_id, train_group in train_grouped:
-                if user_id in test_grouped:
-                    test_group = test_grouped.get_group(user_id)
-                    train_group.assert_datetime()
-                    max_train_date = max(train_date)
-                    min_test_date = min(test_date)
-                    dates_leaked = sum(date < max_train_date for date in test_date)
+                if user_id in list(test_grouped.groups.keys()):
+                    
+                    train_date = train_group['timestamp']
+                    _, max_train_date = min(train_date), max(train_date)
 
+                    test_group = test_grouped.get_group(user_id)
+                    test_date = test_group['timestamp']
+ 
+                    dates_leaked = sum(date < max_train_date for date in test_date)
+                    print(dates_leaked)
                     if dates_leaked > 0:
                         leakage_ratio = dates_leaked / len(test_group)
                         leakage_ratios.append(leakage_ratio)
-
-                        text = f'{format_percent(leakage_ratio)} of test data samples for user {user_id} are in the date range ' \
-                                f'{format_datetime(min_test_date)} - {format_datetime(max_train_date)}'\
-                                f', which occurs before the last  training data date ({format_datetime(max_train_date)})'
-                        display.append(text)
-
+                else:
+                    continue
             if len(leakage_ratios) > 0:
-                overall_leakage_ratio = sum(leakage_ratios) / len(leakage_ratios)
-                return_value = overall_leakage_ratio
-                display = '\n'.join(display)
+                average_leakage_ratio = sum(leakage_ratios) / len(leakage_ratios)
+                text = f'There is an average leak of {format_percent(average_leakage_ratio)} per user. In other words, {format_percent(average_leakage_ratio)} of the  validation set of a user, appears before the maximum timestamp of the training set.'
+                display.append(text)
+                
+                fig = go.Figure()
+                fig.add_trace(go.Bar(x=['Leakage Percentage'], y=[100*average_leakage_ratio],width=0.3))
+
+                fig.update_layout(
+                    title_text="Leaky User Overview",
+                    yaxis_title="Proportion (%)"
+                    )
+
+                display.append(fig)
             else:
-                display = None
-                return_value = 0
+                average_leakage_ratio = 0
+                display = None   
 
-            
-            
+            # Display the figure
+            return_value={'average_leakage_ratio' : average_leakage_ratio}   
+        
         return CheckResult(value=return_value, header='Date Train-Test Leakage (overlap)', display=display)
-
-    
-    def add_condition_leakage_ratio_less_or_equal(self, max_ratio: float = 0):
-        """Add condition - require leakage ratio be less or equal to the threshold.
-
-        Parameters
-        ----------
-        max_ratio : float , default: 0
-            Maximum ratio of leakage.
-        """
-        def max_ratio_condition(result: float) -> ConditionResult:
-            details = f'Found {format_percent(result)} leaked dates' if result > 0 else 'No leaked dates found'
-            category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
-            return ConditionResult(category, details)
-
-        return self.add_condition(f'Date leakage ratio is less or equal to {format_percent(max_ratio)}',
-                                  max_ratio_condition)
