@@ -367,6 +367,7 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
     # If text is longer than classifier context window, sample it:
     text_list_to_predict = []
     reduced_batch_size = batch_size  # Initialize the reduced batch size
+    retry_count = 0
 
     for text in text_batch:
         if len(text) > MAX_CHARS:
@@ -386,7 +387,7 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
 
     while reduced_batch_size >= 1:
         try:
-            if reduced_batch_size == 1:
+            if reduced_batch_size == 1 or retry_count == 3:
                 results = []
                 for text in text_list_to_predict:
                     try:
@@ -425,6 +426,7 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
         except Exception:  # pylint: disable=broad-except
             reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
             text_list_to_predict = []  # Clear the list of texts to predict for retry
+            retry_count += 1
 
     return [np.nan] * batch_size  # Prediction failed, return NaN values for the original batch size
 
