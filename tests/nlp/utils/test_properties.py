@@ -190,15 +190,19 @@ def test_batch_size_change(tweet_emotion_train_test_textdata):
 
     # Act
     for batch in batch_sizes:
-        result = calculate_builtin_properties(test_text, include_properties=['Average Words Per Sentence'],
+        result = calculate_builtin_properties(test_text, include_properties=['Average Words Per Sentence',
+                                                                             'Unique Noun Count'],
                                               batch_size=batch)[0]
-        result_none_text = calculate_builtin_properties([None], include_properties=['Average Words Per Sentence'],
+        result_none_text = calculate_builtin_properties([None], include_properties=['Average Words Per Sentence',
+                                                                                    'Unique Noun Count'],
                                                         batch_size=batch)[0]
 
         # Assert
         assert_that(result['Average Words Per Sentence'][0: 10], equal_to([5.667, 7.0, 11.0, 12.0, 8.0, 19.0, 3.0, 9.0,
                                                                            11.5, 7.333]))
+        assert_that(result['Unique Noun Count'][0: 10], equal_to([9, 2, 3, 3, 4, 10, np.nan, 2, 7, 5]))
         assert_that(result_none_text['Average Words Per Sentence'], equal_to([np.nan]))
+        assert_that(result_none_text['Unique Noun Count'], equal_to([np.nan]))
 
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):
