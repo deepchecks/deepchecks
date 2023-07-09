@@ -922,21 +922,25 @@ def calculate_builtin_properties(
         batch_properties = defaultdict(list)
 
         # filtering out empty sequences
-        filtered_sequences = [seq for seq in batch if pd.isna(seq) is False]
+        nan_indices = set([i for i, seq in enumerate(batch) if pd.isna(seq) is True])
+        filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
 
         samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
         if is_language_property_requested:
             batch_properties['Language'].extend(samples_language)
         kwargs['language_property_result'] = samples_language  # Pass the language property to other properties
 
+        non_english_indices = set()
+        if ignore_non_english_samples_for_english_properties:
+            non_english_indices = set([i for i, (seq, lang) in enumerate(zip(filtered_sequences, samples_language))
+                                       if lang != 'en'])
         for prop in text_properties:
             if prop['name'] in import_warnings:  # Skip properties that failed to import:
                 batch_properties[prop['name']].extend([np.nan] * len(batch))
             else:
                 if prop['name'] in english_properties_names \
                         and ignore_non_english_samples_for_english_properties is True:
-                    filtered_sequences = \
-                        [seq for seq, lang in zip(filtered_sequences, samples_language) if lang == 'en']
+                    filtered_sequences = [e for i, e in enumerate(filtered_sequences) if i not in non_english_indices]
                 kwargs['batch_size'] = batch_size
                 try:
                     if prop['name'] in BATCH_PROPERTIES:
@@ -949,8 +953,16 @@ def calculate_builtin_properties(
                     batch_properties[prop['name']].extend([np.nan] * len(batch))
                     import_warnings.add(prop['name'])
 
-            calculated_properties[prop['name']].extend([prop if seq is not None else np.nan
-                                                        for seq, prop in zip(batch, batch_properties[prop['name']])])
+            result_index = 0
+
+            for index, seq in enumerate(batch):
+                if index in nan_indices or (index in non_english_indices and
+                                            ignore_non_english_samples_for_english_properties and
+                                            prop['name'] in english_properties_names):
+                    calculated_properties[prop['name']].append(np.nan)
+                else:
+                    calculated_properties[prop['name']].append(batch_properties[prop['name']][result_index])
+                    result_index += 1
 
         # Clear property caches:
         textblob_cache.clear()
