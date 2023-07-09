@@ -942,7 +942,7 @@ def calculate_builtin_properties(
         non_english_indices = set()
         if ignore_non_english_samples_for_english_properties:
             non_english_indices = {i for i, (seq, lang) in enumerate(zip(filtered_sequences, samples_language))
-                                       if lang != 'en'}
+                                   if lang != 'en'}
         for prop in text_properties:
             if prop['name'] in import_warnings:  # Skip properties that failed to import:
                 batch_properties[prop['name']].extend([np.nan] * len(batch))
