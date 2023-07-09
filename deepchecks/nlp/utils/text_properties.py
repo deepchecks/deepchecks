@@ -651,7 +651,11 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
 def _batch_wrapper(text_batch: Sequence[str], func: Callable, **kwargs) -> List[Any]:
     """Wrap the non-batched properties execution with batches API."""
     results = []
-    for text in text_batch:
+    language_property_result = []
+    if 'language_property_result' in kwargs:
+        language_property_result = kwargs.pop('language_property_result')
+    for i, text in enumerate(text_batch):
+        kwargs['language_property_result'] = language_property_result[i] if i < len(language_property_result) else None
         results.append(run_available_kwargs(func, text=text, **kwargs))
 
     return results
@@ -811,7 +815,7 @@ def calculate_builtin_properties(
         ignore_non_english_samples_for_english_properties: bool = True,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
-        batch_size: Optional[int] = 1
+        batch_size: Optional[int] = 16
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
 
@@ -854,6 +858,8 @@ def calculate_builtin_properties(
         A directory to store the models.
         If not provided, models will be stored in `DEEPCHECKS_LIB_PATH/nlp/.nlp-models`.
         Also, if a folder already contains relevant resources they are not re-downloaded.
+    batch_size : int, default 8
+        The batch size.
 
     Returns
     -------
@@ -928,6 +934,7 @@ def calculate_builtin_properties(
         samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
         if is_language_property_requested:
             batch_properties['Language'].extend(samples_language)
+            calculated_properties['Language'].extend(samples_language)
         kwargs['language_property_result'] = samples_language  # Pass the language property to other properties
 
         non_english_indices = set()
