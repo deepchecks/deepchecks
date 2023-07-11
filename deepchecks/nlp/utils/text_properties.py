@@ -373,6 +373,7 @@ def _parse_prediction_results(v, kind):
     else:
         raise ValueError('Unsupported value for "kind" parameter')
 
+
 def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) -> Sequence[float]:
     """Return prediction of huggingface Pipeline classifier."""
     # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
@@ -969,6 +970,8 @@ def calculate_builtin_properties(
                 else:
                     calculated_properties[prop['name']].append(batch_properties[prop['name']][result_index])
                     result_index += 1
+
+            filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
 
         # Clear property caches:
         textblob_cache.clear()
