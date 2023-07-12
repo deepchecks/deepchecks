@@ -361,25 +361,13 @@ def subjectivity(text: str) -> float:
     return textblob_cache.get(hash_key).subjectivity
 
 
-def _parse_prediction_results(v, kind):
-    if not v:
-        return np.nan
-    elif kind == 'toxicity':
-        return v['score']
-    elif kind == 'fluency':
-        return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
-    elif kind == 'formality':
-        return v['score'] if v['label'] == 'formal' else 1 - v['score']
-    else:
-        raise ValueError('Unsupported value for "kind" parameter')
-
-
-def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) -> Sequence[float]:
+def predict_on_batch(text_batch: Sequence[str], classifier,
+                     output_formatter: Callable[[Dict[str, Any]], float]) -> Sequence[float]:
     """Return prediction of huggingface Pipeline classifier."""
     # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
     # If text is longer than classifier context window, sample it:
     text_list_to_predict = []
-    reduced_batch_size = batch_size  # Initialize the reduced batch size
+    reduced_batch_size = len(text_batch)  # Initialize the reduced batch size
     retry_count = 0
 
     for text in text_batch:
@@ -405,7 +393,7 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
                 for text in text_list_to_predict:
                     try:
                         v = classifier(text)
-                        results.append(_parse_prediction_results(v, kind))
+                        results.append(output_formatter(v))
                     except Exception:  # pylint: disable=broad-except
                         results.append(np.nan)
                 return results  # Return the results if prediction is successful
@@ -414,7 +402,7 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
             results = []
 
             for v in v_list:
-                results.append(_parse_prediction_results(v, kind))
+                results.append(output_formatter(v))
 
             return results  # Return the results if prediction is successful
 
@@ -423,7 +411,7 @@ def _predict(text_batch: Sequence[str], classifier, kind: str, batch_size: int) 
             text_list_to_predict = []  # Clear the list of texts to predict for retry
             retry_count += 1
 
-    return [np.nan] * batch_size  # Prediction failed, return NaN values for the original batch size
+    return [np.nan] * len(text_batch)  # Prediction failed, return NaN values for the original batch size
 
 
 TOXICITY_MODEL_NAME = 'unitary/toxic-bert'
@@ -433,7 +421,6 @@ FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
 
 def toxicity(
         text_batch: Sequence[str],
-        batch_size: int = 1,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         toxicity_classifier: Optional[object] = None
@@ -442,12 +429,15 @@ def toxicity(
     if toxicity_classifier is None:
         toxicity_classifier = get_transformer_pipeline(
             property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text_batch, toxicity_classifier, 'toxicity', batch_size)
+
+    def output_formatter(v):
+        return v['score']
+
+    return predict_on_batch(text_batch, toxicity_classifier, output_formatter)
 
 
 def fluency(
         text_batch: Sequence[str],
-        batch_size: int = 1,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         fluency_classifier: Optional[object] = None
@@ -456,12 +446,15 @@ def fluency(
     if fluency_classifier is None:
         fluency_classifier = get_transformer_pipeline(
             property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text_batch, fluency_classifier, 'fluency', batch_size)
+
+    def output_formatter(v):
+        return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
+
+    return predict_on_batch(text_batch, fluency_classifier, output_formatter)
 
 
 def formality(
         text_batch: Sequence[str],
-        batch_size: int = 1,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         formality_classifier: Optional[object] = None
@@ -470,7 +463,11 @@ def formality(
     if formality_classifier is None:
         formality_classifier = get_transformer_pipeline(
             property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text_batch, formality_classifier, 'formality', batch_size)
+
+    def output_formatter(v):
+        return v['score'] if v['label'] == 'formal' else 1 - v['score']
+
+    return predict_on_batch(text_batch, formality_classifier, output_formatter)
 
 
 def lexical_density(text: str) -> float:
