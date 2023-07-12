@@ -466,6 +466,26 @@ def test_properties_models_download_into_provided_directory():
     assert model_path.exists() and model_path.is_dir()
     assert onnx_model_path.exists() and onnx_model_path.is_dir()
 
+@pytest.mark.skipif(
+    'TEST_NLP_PROPERTIES_MODELS_DOWNLOAD' not in os.environ,
+    reason='The test takes too long to run, provide env var if you want to run it.'
+)
+def test_batch_only_properties_calculation_with_single_samples():
+    # Arrange
+    text = ['Explicit is better than implicit']
+
+    # Act
+    properties, properties_types = calculate_builtin_properties(
+        raw_text=text, batch_size=1,
+        include_properties=['Formality', 'Text Length']
+    )
+
+    # Assert
+    assert_that(properties, has_entries({
+        'Formality': contains_exactly(close_to(0.955, 0.01)),
+        'Text Length': contains_exactly(*[len(it) for it in text]),
+    }))  # type: ignore
+
 
 def test_english_only_properties_calculation_with_not_english_samples():
     # Arrange
