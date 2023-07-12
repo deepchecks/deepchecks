@@ -12,7 +12,6 @@
 import os
 import pathlib
 import timeit
-from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -53,6 +52,7 @@ def text_data_fixture():
         ]
     }
     return text_data
+
 
 # TODO: Fix test (problem with pytorch versions)
 # @patch('deepchecks.nlp.utils.text_properties.run_available_kwargs', mock_fn)
@@ -99,7 +99,7 @@ def test_average_word_length():
     result_empty_string = calculate_builtin_properties([''], include_properties=['Average Word Length'])[0]
 
     # Assert
-    assert_that(result['Average Word Length'], equal_to([19/5, 25/5, 30/7]))
+    assert_that(result['Average Word Length'], equal_to([19 / 5, 25 / 5, 30 / 7]))
     assert_that(result_none_text['Average Word Length'], equal_to([np.nan]))
     assert_that(result_empty_string['Average Word Length'], equal_to([0]))
 
@@ -129,13 +129,12 @@ def test_percentage_special_characters():
     result_empty_string = calculate_builtin_properties([''], include_properties=['% Special Characters'])[0]
 
     # Assert
-    assert_that(result['% Special Characters'], equal_to([2/25, 4/34, 0]))
+    assert_that(result['% Special Characters'], equal_to([2 / 25, 4 / 34, 0]))
     assert_that(result_none_text['% Special Characters'], equal_to([np.nan]))
     assert_that(result_empty_string['% Special Characters'], equal_to([0]))
 
 
 def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -151,7 +150,6 @@ def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
 
 
 def test_calculate_unique_noun_count_property(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -186,7 +184,7 @@ def test_batch_size_change(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
-    batch_sizes=[1, 8, 16, 32, 64]
+    batch_sizes = [1, 8, 16, 32, 64]
 
     # Act
     for batch in batch_sizes:
@@ -206,7 +204,6 @@ def test_batch_size_change(tweet_emotion_train_test_textdata):
 
 
 def test_calculate_readability_score_property(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -222,7 +219,6 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
 
 
 def test_calculate_count_unique_urls(manual_text_data_for_properties):
-
     # Arrange
     text_data = manual_text_data_for_properties['url_data']
 
@@ -236,7 +232,6 @@ def test_calculate_count_unique_urls(manual_text_data_for_properties):
 
 
 def test_calculate_count_urls(manual_text_data_for_properties):
-
     # Arrange
     text_data = manual_text_data_for_properties['url_data']
 
@@ -250,7 +245,6 @@ def test_calculate_count_urls(manual_text_data_for_properties):
 
 
 def test_calculate_count_unique_email_addresses(manual_text_data_for_properties):
-
     # Arrange
     text_data = manual_text_data_for_properties['email_data']
 
@@ -264,7 +258,6 @@ def test_calculate_count_unique_email_addresses(manual_text_data_for_properties)
 
 
 def test_calculate_count_email_addresses(manual_text_data_for_properties):
-
     # Arrange
     text_data = manual_text_data_for_properties['email_data']
 
@@ -278,7 +271,6 @@ def test_calculate_count_email_addresses(manual_text_data_for_properties):
 
 
 def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -293,7 +285,6 @@ def test_calculate_count_unique_syllables(tweet_emotion_train_test_textdata):
 
 
 def test_calculate_reading_time(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -309,7 +300,6 @@ def test_calculate_reading_time(tweet_emotion_train_test_textdata):
 
 
 def test_calculate_sentence_length(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -324,7 +314,6 @@ def test_calculate_sentence_length(tweet_emotion_train_test_textdata):
 
 
 def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
-
     # Arrange
     _, test = tweet_emotion_train_test_textdata
     test_text = test.text
@@ -351,7 +340,6 @@ def test_calcualte_is_english_property_without_language_precalculation():
 
 
 def test_include_properties():
-
     # Arrange
     test_text = ['This is simple sentence.']
     # Also check capitalization doesn't matter:
@@ -369,13 +357,13 @@ def test_include_properties():
                 raises(DeepchecksValueError))
 
     # Check that raises if property doesn't exist:
-    assert_that(calling(calculate_builtin_properties).with_args(test_text, include_properties=['Non Existent Property']),
-                raises(DeepchecksValueError,
-                       r'include_properties contains properties that were not found: \[\'non existent property\'\].'))
+    assert_that(
+        calling(calculate_builtin_properties).with_args(test_text, include_properties=['Non Existent Property']),
+        raises(DeepchecksValueError,
+               r'include_properties contains properties that were not found: \[\'non existent property\'\].'))
 
 
 def test_ignore_properties():
-
     # Arrange
     test_text = ['This is simple sentence.']
     expected_properties = ['Text Length', 'Average Word Length', 'Max Word Length',
@@ -467,6 +455,27 @@ def test_properties_models_download_into_provided_directory():
     assert onnx_model_path.exists() and onnx_model_path.is_dir()
 
 
+@pytest.mark.skipif(
+    'TEST_NLP_PROPERTIES_MODELS_DOWNLOAD' not in os.environ,
+    reason='The test takes too long to run, provide env var if you want to run it.'
+)
+def test_batch_only_properties_calculation_with_single_samples():
+    # Arrange
+    text = ['Explicit is better than implicit']
+
+    # Act
+    properties, properties_types = calculate_builtin_properties(
+        raw_text=text, batch_size=1,
+        include_properties=['Formality', 'Text Length']
+    )
+
+    # Assert
+    assert_that(properties, has_entries({
+        'Formality': contains_exactly(close_to(0.955, 0.01)),
+        'Text Length': contains_exactly(*[len(it) for it in text]),
+    }))  # type: ignore
+
+
 def test_english_only_properties_calculation_with_not_english_samples():
     # Arrange
     text = [
@@ -516,7 +525,6 @@ def test_english_only_properties_calculated_for_all_samples():
         'Language': 'categorical',
         'Text Length': 'numeric',
     }))  # type: ignore
-
 
 
 def test_sample_for_property():

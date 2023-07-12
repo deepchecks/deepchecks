@@ -392,7 +392,7 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
                 results = []
                 for text in text_list_to_predict:
                     try:
-                        v = classifier(text)
+                        v = classifier(text)[0]
                         results.append(output_formatter(v))
                     except Exception:  # pylint: disable=broad-except
                         results.append(np.nan)
