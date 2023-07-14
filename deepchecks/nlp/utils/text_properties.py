@@ -714,18 +714,25 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'Max Word Length': 'Maximum number of characters in a word',
     '% Special Characters': 'Percentage of special characters in the text',
     'Language': 'Language of the text, using the fasttext language detection model',
-    'Sentiment': 'Sentiment of the text, calculated using the TextBlob sentiment analysis model',
-    'Subjectivity': 'Subjectivity of the text, calculated using the TextBlob sentiment analysis model',
+    'Sentiment': 'Sentiment of the text, calculated using the TextBlob sentiment analysis model.'
+                 ' Ranging from -1 (negative) to 1 (positive)',
+    'Subjectivity': 'Subjectivity of the text, calculated using the TextBlob sentiment analysis model. Ranging from 0 '
+                    '(objective) to 1 (subjective)',
     'Average Words Per Sentence': 'Average number of words per sentence in the text',
-    'Readability Score': 'A score calculated based on Flesch reading-ease per text sample',
+    'Readability Score': 'How easy to read a text sample is, from 0 (hard to read) to 100 (easy).'
+                         ' Based on Flesch reading-ease score',
     'Lexical Density': 'Percentage of unique words in the text',
-    'Toxicity': 'Toxicity score using unitary/toxic-bert HuggingFace model',
-    'Fluency': 'Fluency score using prithivida/parrot_fluency_model HuggingFace model',
-    'Formality': 'Formality score using s-nlp/roberta-base-formality-ranker HuggingFace model',
+    'Toxicity': 'A measure of how harmful or offensive a text sample is (0 to 1), uses the Detoxify library '
+                'unitary/toxic-bert model',
+    'Fluency': 'A measure of the fluency of the text (0 to 1), using the prithivida/parrot_fluency_model'
+               ' model from the authors of the Parrot Paraphraser library',
+    'Formality': 'The formality / register of the text (0 to 1), using the s-nlp/roberta-base-formality-ranker'
+                 ' model by the Skolkovo Institute of Science and Technology',
     'Unique Noun Count': 'Number of unique noun words in the text',
     'URLs Count': 'Number of URLS per text sample',
     'Email Addresses Count': 'Number of email addresses per text sample',
     'Unique URLs Count': 'Number of unique URLS per text sample',
+    'Is English': 'Whether the text is in English (1) or not (0)',
     'Unique Email Addresses Count': 'Number of unique email addresses per text sample',
     'Unique Syllables Count': 'Number of unique syllables per text sample',
     'Reading Time': 'Time taken in seconds to read a text sample',
