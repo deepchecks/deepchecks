@@ -189,14 +189,13 @@ def get_transformer_model(
         model_path = models_storage / 'onnx' / model_name
 
         if model_path.exists():
-            return onnx.ORTModelForSequenceClassification.from_pretrained(model_path, device_map=device)
+            return onnx.ORTModelForSequenceClassification.from_pretrained(model_path).to(device or -1)
 
         model = onnx.ORTModelForSequenceClassification.from_pretrained(
             model_name,
             export=True,
             cache_dir=models_storage,
-            device_map=device
-        )
+        ).to(device or -1)
         # NOTE:
         # 'optimum', after exporting/converting a model to the ONNX format,
         # does not store it onto disk we need to save it now to not reconvert
@@ -207,7 +206,7 @@ def get_transformer_model(
     model_path = models_storage / 'onnx' / 'quantized' / model_name
 
     if model_path.exists():
-        return onnx.ORTModelForSequenceClassification.from_pretrained(model_path, device_map=device)
+        return onnx.ORTModelForSequenceClassification.from_pretrained(model_path).to(device or -1)
 
     not_quantized_model = get_transformer_model(
         property_name,
@@ -217,7 +216,7 @@ def get_transformer_model(
         models_storage=models_storage
     )
 
-    quantizer = onnx.ORTQuantizer.from_pretrained(not_quantized_model, device_map=device)
+    quantizer = onnx.ORTQuantizer.from_pretrained(not_quantized_model).to(device or -1)
 
     quantizer.quantize(
         save_dir=model_path,
@@ -227,7 +226,7 @@ def get_transformer_model(
             per_channel=False
         )
     )
-    return onnx.ORTModelForSequenceClassification.from_pretrained(model_path, device_map=device)
+    return onnx.ORTModelForSequenceClassification.from_pretrained(model_path).to(device or -1)
 
 
 def get_transformer_pipeline(
