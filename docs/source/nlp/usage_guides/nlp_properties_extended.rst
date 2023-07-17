@@ -33,6 +33,17 @@ maintained by the `Detoxify <https://github.com/unitaryai/detoxify>`__ team, bas
 architecture and trained on a large corpus of toxic comments. The model assigns a toxicity score to each text,
 ranging from 0 (not toxic) to 1 (very toxic).
 
+Examples
+~~~~~~~~
+
+================================  ========
+Text                              Toxicity
+================================  ========
+Hello! How can I help you today?  0.0007
+You have been a bad user!         0.301
+I hate you!                       0.951
+================================  ========
+
 Fluency
 -------
 
@@ -42,6 +53,17 @@ written English. The property uses a pre-trained model called
 `prithivida/parrot_fluency_model <https://huggingface.co/prithivida/parrot_fluency_model>`__ on HuggingFace, which
 was created by the authors of the `Parrot Paraphraser <https://github.com/PrithivirajDamodaran/Parrot_Paraphraser>`__
 library.
+
+Examples
+~~~~~~~~
+
+===============================================================================================================================================================  ========
+Text                                                                                                                                                             Fluency
+===============================================================================================================================================================  ========
+Natural language processing is an interdisciplinary subfield of linguistics, computer science, and artificial intelligence.                                      0.97
+Pass on what you have learned. Strength, mastery, hmm… but weakness, folly, failure, also. Yes, failure, most of all. The greatest teacher, failure is.          0.75
+Whispering dreams, forgotten desires, chaotic thoughts, dance with words, meaning elusive, swirling amidst.                                                      0.2
+===============================================================================================================================================================  ========
 
 Formality
 ---------
@@ -56,6 +78,17 @@ The model uses the roberta-base architecture, and was trained on
 `Rao and Tetreault, 2018 <https://aclanthology.org/N18-1012>`__ and online formality corpus from
 `Pavlick and Tetreault, 2016 <https://aclanthology.org/Q16-1005>`__.
 
+Examples
+~~~~~~~~
+
+================================================================  ========
+Text                                                              Formality
+================================================================  ========
+I hope this email finds you well                                  0.79
+I hope this email find you swell                                  0.28
+What's up doc?                                                    0.14
+================================================================  ========
+
 Avoided Answer
 --------------
 
@@ -63,6 +96,17 @@ The Avoided Answer property calculates the probability (0 to 1) of how likely it
 question.
 The property uses a pre-trained bert architecture model that was trained on a dataset of questions and LLM answers
 collected from various LLMs, where the model was trained to predict whether the answer is an avoidance or not.
+
+Examples
+~~~~~~~~
+
+============================================================================  ========
+Question                                                                      Avoided Answer
+============================================================================  ========
+The answer is 42                                                              0.001
+You should ask the appropriate authorities                                    0.681
+As a Large Language Model trained by Open AI, I can not answer this question  0.994
+============================================================================  ========
 
 Grounded in Context
 -------------------
@@ -86,3 +130,14 @@ The property is calculated by identifying key entities and quantities in the LLM
 and prices, and then identifying the same entities and quantities in the input given to the LLM.
 The property is calculated as the ratio of the number of entities/quantities in the LLM output that are also in the
 input, divided by the total number of entities/quantities in the LLM output.
+
+Examples
+~~~~~~~~
+
+======================================================================================================================  =====================================================  ===================
+LLM Input                                                                                                               LLM Output                                             Grounded in Context
+======================================================================================================================  =====================================================  ===================
+Michael Jordan (1963) is an American former professional basketball player and businessman. In what year was he born?   He was born in 1963.                                   1.0
+Michael Jordan (1963) is an American former professional basketball player and businessman. In what year was he born?   Michael Jeffrey Jordan was born in 1963                0.5
+Michael Jordan (1963) is an American former professional basketball player and businessman. In what year was he born?   He won many NBA championships with the Chicago Bulls   0.0
+======================================================================================================================  =====================================================  ===================
