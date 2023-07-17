@@ -8,12 +8,22 @@ Properties are one-dimensional values that are calculated on each text sample. F
 text characteristics such as the number of words in the text, or more complex properties such identifying if the
 text contains toxic language.
 
-Link Validly
-------------
+* `Link Validity <#link-validity>`__
+* `Readability Score <#readability-score>`__
+* `Toxicity <#toxicity>`__
+* `Fluency <#fluency>`__
+* `Formality <#formality>`__
+* `Avoided Answer <#avoided-answer>`__
+* `Grounded in Context <#grounded-in-context>`__
+
+Link Validity
+-------------
 
 The Link Validity property represents the ratio of number links in the text that are valid links, divided by the total
 number of links. A valid link is a link that returns a **200 OK** HTML status when sent a HTTP HEAD request. For text
 without links, the property will always return 1 (all links valid).
+
+`Back to Property List <#properties>`__
 
 Readability Score
 -----------------
@@ -24,6 +34,8 @@ calculated for each text sample. The score typically ranges from 0
 (very hard to read, requires intense concentration) to 100 (very easy to read) for english text, though in theory the
 score can range from -inf to 206.835 for arbitrary strings.
 
+`Back to Property List <#properties>`__
+
 Toxicity
 --------
 
@@ -32,6 +44,8 @@ called `unitary/toxic-bert <https://huggingface.co/unitary/toxic-bert>`__ on Hug
 maintained by the `Detoxify <https://github.com/unitaryai/detoxify>`__ team, based on the BERT
 architecture and trained on a large corpus of toxic comments. The model assigns a toxicity score to each text,
 ranging from 0 (not toxic) to 1 (very toxic).
+
+`Back to Property List <#properties>`__
 
 Examples
 ~~~~~~~~
@@ -53,6 +67,8 @@ written English. The property uses a pre-trained model called
 `prithivida/parrot_fluency_model <https://huggingface.co/prithivida/parrot_fluency_model>`__ on HuggingFace, which
 was created by the authors of the `Parrot Paraphraser <https://github.com/PrithivirajDamodaran/Parrot_Paraphraser>`__
 library.
+
+`Back to Property List <#properties>`__
 
 Examples
 ~~~~~~~~
@@ -78,6 +94,8 @@ The model uses the roberta-base architecture, and was trained on
 `Rao and Tetreault, 2018 <https://aclanthology.org/N18-1012>`__ and online formality corpus from
 `Pavlick and Tetreault, 2016 <https://aclanthology.org/Q16-1005>`__.
 
+`Back to Property List <#properties>`__
+
 Examples
 ~~~~~~~~
 
@@ -96,6 +114,8 @@ The Avoided Answer property calculates the probability (0 to 1) of how likely it
 question.
 The property uses a pre-trained bert architecture model that was trained on a dataset of questions and LLM answers
 collected from various LLMs, where the model was trained to predict whether the answer is an avoidance or not.
+
+`Back to Property List <#properties>`__
 
 Examples
 ~~~~~~~~
@@ -131,6 +151,8 @@ and prices, and then identifying the same entities and quantities in the input g
 The property is calculated as the ratio of the number of entities/quantities in the LLM output that are also in the
 input, divided by the total number of entities/quantities in the LLM output.
 
+`Back to Property List <#properties>`__
+
 Examples
 ~~~~~~~~
 
@@ -138,6 +160,6 @@ Examples
 LLM Input                                                                                                               LLM Output                                             Grounded in Context
 ======================================================================================================================  =====================================================  ===================
 Michael Jordan (1963) is an American former professional basketball player and businessman. In what year was he born?   He was born in 1963.                                   1.0
-Michael Jordan (1963) is an American former professional basketball player and businessman. In what year was he born?   Michael Jeffrey Jordan was born in 1963                0.5
-Michael Jordan (1963) is an American former professional basketball player and businessman. In what year was he born?   He won many NBA championships with the Chicago Bulls   0.0
+Michael Jordan (1963) is an American former professional basketball player and businessman. When was Michael born?      Michael Jeffrey Jordan was born in 1963                0.5
+Michael Jordan (1963) is an American former professional basketball player and businessman. What did he achieve?        He won many NBA championships with the Chicago Bulls   0.0
 ======================================================================================================================  =====================================================  ===================
