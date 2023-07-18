@@ -189,7 +189,7 @@ def test_properties(text_classification_dataset_mock):
     assert_that(properties.shape[1], equal_to(10))
     assert_that(properties.columns, contains_exactly(
         'Text Length', 'Average Word Length',
-        'Max Word Length', '% Special Characters', 'Language', 'Sentiment',
+        'Max Word Length', '% Special Characters', '% Punctuation', 'Language', 'Sentiment',
         'Subjectivity', 'Average Words Per Sentence', 'Readability Score', 'Lexical Density'
     ))
     assert_that(properties.iloc[0].values, contains_exactly(
