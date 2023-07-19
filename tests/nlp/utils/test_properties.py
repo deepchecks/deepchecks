@@ -121,7 +121,7 @@ def test_max_word_length():
 
 def test_percentage_special_characters():
     # Arrange
-    text = ['This is a, test sentence.', 'This is another !!! test sentence.', 'וואלק זה משפט בעברית אפילו יא ווראדי']
+    text = ['This is a, test sentence.', 'This is another <|> test sentence.', 'וואלק זה משפט בעברית אפילו יא ווראדי']
 
     # Act
     result = calculate_builtin_properties(text, include_properties=['% Special Characters'])[0]
@@ -129,9 +129,24 @@ def test_percentage_special_characters():
     result_empty_string = calculate_builtin_properties([''], include_properties=['% Special Characters'])[0]
 
     # Assert
-    assert_that(result['% Special Characters'], equal_to([2 / 25, 4 / 34, 0]))
+    assert_that(result['% Special Characters'], equal_to([0, 3 / 34, 0]))
     assert_that(result_none_text['% Special Characters'], equal_to([np.nan]))
     assert_that(result_empty_string['% Special Characters'], equal_to([0]))
+
+
+def test_percentage_punctuation():
+    # Arrange
+    text = ['This is a, test sentence.', 'This is another <|> test sentence.', 'וואלק זה משפט בעברית אפילו יא ווראדי']
+
+    # Act
+    result = calculate_builtin_properties(text, include_properties=['% Punctuation'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['% Punctuation'])[0]
+    result_empty_string = calculate_builtin_properties([''], include_properties=['% Punctuation'])[0]
+
+    # Assert
+    assert_that(result['% Punctuation'], equal_to([2 / 25, 4 / 34, 0]))
+    assert_that(result_none_text['% Punctuation'], equal_to([np.nan]))
+    assert_that(result_empty_string['% Punctuation'], equal_to([0]))
 
 
 def test_calculate_lexical_density_property(tweet_emotion_train_test_textdata):
@@ -367,7 +382,7 @@ def test_ignore_properties():
     # Arrange
     test_text = ['This is simple sentence.']
     expected_properties = ['Text Length', 'Average Word Length', 'Max Word Length',
-                           '% Special Characters', 'Language', 'Sentiment', 'Subjectivity',
+                           '% Special Characters', '% Punctuation', 'Language', 'Sentiment', 'Subjectivity',
                            'Lexical Density', 'Readability Score', 'Average Words Per Sentence']
 
     # Also check capitalization doesn't matter:

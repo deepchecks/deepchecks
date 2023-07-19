@@ -31,7 +31,7 @@ from typing_extensions import TypedDict
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.utils.function import run_available_kwargs
-from deepchecks.utils.strings import format_list
+from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 
@@ -41,6 +41,10 @@ MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
 MAX_CHARS = 512  # Bert accepts max of 512 tokens, so without counting tokens we go for the lower bound.
+# all SPECIAL_CHARACTERS - all string.punctuation except for <>@[]^_`{|}~ - all whitespace
+NON_PUNCTUATION_SPECIAL_CHARS = frozenset(set(SPECIAL_CHARACTERS) - set(r"""!"#$%&'()*+,-./:;=?\@""")
+                                          - set(string.whitespace))
+
 textblob_cache = {}
 words_cache = {}
 sentences_cache = {}
@@ -265,6 +269,11 @@ def average_word_length(text: str) -> float:
 
 def percentage_special_characters(text: str) -> float:
     """Return percentage of special characters (as float between 0 and 1)."""
+    return len([c for c in text if c in NON_PUNCTUATION_SPECIAL_CHARS]) / len(text) if len(text) != 0 else 0
+
+
+def percentage_punctuation(text: str) -> float:
+    """Return percentage of punctuation (as float between 0 and 1)."""
     return len([c for c in text if c in string.punctuation]) / len(text) if len(text) != 0 else 0
 
 
@@ -669,6 +678,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
         {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
         {'name': '% Special Characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
+        {'name': '% Punctuation', 'method': percentage_punctuation, 'output_type': 'numeric'},
         {'name': 'Language', 'method': language, 'output_type': 'categorical'},
         {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
         {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
@@ -711,7 +721,10 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'Text Length': 'Number of characters in the text',
     'Average Word Length': 'Average number of characters in a word',
     'Max Word Length': 'Maximum number of characters in a word',
-    '% Special Characters': 'Percentage of special characters in the text',
+    '% Special Characters': 'Percentage of special characters in the text. Special characters are non-alphanumeric '
+                            'unicode characters, excluding whitespaces and any of !\"#$%&\'()*+,-./:;=?\\@.',
+    '% Punctuation': 'Percentage of punctuation characters in the text. Punctuation characters are any of '
+                     '!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~',
     'Language': 'Language of the text, using the fasttext language detection model',
     'Sentiment': 'Sentiment of the text, calculated using the TextBlob sentiment analysis model.'
                  ' Ranging from -1 (negative) to 1 (positive)',
@@ -829,14 +842,14 @@ def calculate_builtin_properties(
     include_properties : List[str], default None
         The properties to calculate. If None, all default properties will be calculated. Cannot be used
         together with ignore_properties parameter. Available properties are:
-        ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
+        ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', '% Punctuation', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
         'Readability Score', 'Average Words Per Sentence', 'URLs Count', Unique URLs Count', 'Email Address Count',
         'Unique Email Address Count', 'Unique Syllables Count', 'Reading Time', 'Sentences Count',
         'Average Syllable Length']
         List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
-        '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
-        'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Words Per Sentence']
+        '% Special Characters', '% Punctuation', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency',
+        'Formality', 'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Words Per Sentence']
         To calculate all the default properties, the include_properties and ignore_properties parameters should
         be None. If you pass either include_properties or ignore_properties then only the properties specified
         in the list will be calculated or ignored.

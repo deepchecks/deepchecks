@@ -186,14 +186,14 @@ def test_properties(text_classification_dataset_mock):
     dataset.calculate_builtin_properties(include_long_calculation_properties=False)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
-    assert_that(properties.shape[1], equal_to(10))
+    assert_that(properties.shape[1], equal_to(11))
     assert_that(properties.columns, contains_exactly(
         'Text Length', 'Average Word Length',
-        'Max Word Length', '% Special Characters', 'Language', 'Sentiment',
+        'Max Word Length', '% Special Characters', '% Punctuation', 'Language', 'Sentiment',
         'Subjectivity', 'Average Words Per Sentence', 'Readability Score', 'Lexical Density'
     ))
     assert_that(properties.iloc[0].values, contains_exactly(
-        22, 3.6, 9, 0.0, 'en', 0.0, 0.0, 5.0, 100.24, 80.0
+        22, 3.6, 9, 0.0, 0.0, 'en', 0.0, 0.0, 5.0, 100.24, 80.0
     ))
 
 
