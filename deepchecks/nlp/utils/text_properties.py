@@ -718,8 +718,8 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'Subjectivity': 'Subjectivity of the text, calculated using the TextBlob sentiment analysis model. Ranging from 0 '
                     '(objective) to 1 (subjective)',
     'Average Words Per Sentence': 'Average number of words per sentence in the text',
-    'Readability Score': 'How easy to read a text sample is, from 0 (hard to read) to 100 (easy).'
-                         ' Based on Flesch reading-ease score',
+    'Readability Score': 'How easy to read a text sample is, typically ranges from around 0 (hard to read) to around '
+                         '100 (very easy). Based on Flesch reading-ease score',
     'Lexical Density': 'Percentage of unique words in the text',
     'Toxicity': 'A measure of how harmful or offensive a text sample is (0 to 1), uses the Detoxify library '
                 'unitary/toxic-bert model',

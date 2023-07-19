@@ -15,6 +15,7 @@ text contains toxic language.
 * `Formality <#formality>`__
 * `Avoided Answer <#avoided-answer>`__
 * `Grounded in Context <#grounded-in-context>`__
+* `Relevance <#relevance>`__
 
 Link Validity
 -------------
@@ -162,4 +163,53 @@ LLM Input                                                                       
 Michael Jordan (1963) is an American former professional basketball player and businessman. In what year was he born?   He was born in 1963.                                   1.0
 Michael Jordan (1963) is an American former professional basketball player and businessman. When was Michael born?      Michael Jeffrey Jordan was born in 1963                0.5
 Michael Jordan (1963) is an American former professional basketball player and businessman. What did he achieve?        He won many NBA championships with the Chicago Bulls   0.0
+======================================================================================================================  =====================================================  ===================
+
+
+Relevance
+---------
+
+The Relevance score is a measure of how relevant the LLM output is to the input, ranging from 0 (not relevant) to 1
+(fully relevant).
+In a Question Answering use-case, a relevant output is an output that addresses the question that was asked. It may not
+be a full answer - the model may reply that it cannot answer that, doesn't know, or may even be wrong; But an answer
+is considered relevant if the model understood the question and gave an answer that is based on that understanding,
+regardless of the correctness or the completeness of the answer.
+
+The Relevance Score is calculated by taking the maximum of 2 similar "tests", that try to measure how relevant the output is.
+The reason the maximum of these 2 tests is taken is that we aim to find at least 1 positive proof that the output is relevant,
+as these two tests are more prone to false negatives than false positives.
+
+The first test is the Mean Max Word Similarity. The test takes each meaningful word in the user's input (excluding "stop words",
+which are words that are not meaningful, such as "the", "a", "and", etc.), and looks for the closest word in the LLM output.
+Then, it takes the similarity score between the input word and the output word, and averages the scores for all the words
+in the input. The similarity score is the cosine similarity between the word embeddings of the input word and the output word.
+For instance, if the user's input is "What is the color of the sky?", and the LLM replies "The sky is blue", then the
+meaningful words in the input are "color" and "sky". The word "sky" in the input will be matched to the word "sky" in
+the output (with a similarity score of 1, as it is the same word), and the word "color" in the input will be matched to
+the word "blue" in the output (with a high similarity score of e.g. 0.9, as the words are semantically similar).
+The average of the similarity scores will be the Mean Max Word Similarity score.
+
+The second test is the Lowest Max Entity Similarity. The test takes each entity in the user's input, and looks for the
+closest entity in the LLM output. Then, it takes the similarity score between the input entity and the output entity,
+and returns the minimum the scores for all the entities in the input. The similarity score is the cosine similarity between the
+entity embeddings of the input entity and the output entity.
+For instance, if the user's input is "Where was the first World War II attack in the United States?", and the LLM replies "Pearl Harbour",
+then the entities in the input are "World War II" and "United States", and the only entity in the output is "Pearl Harbour".
+Both "World War II" and "United States" in the input will be matched to "Pearl Harbour" in the output with high similarity scores (e.g. 0.8 and 0.9),
+and the Lowest Max Entity Similarity score will be the minimum of the two scores (0.8).
+
+The reason for taking the mean of the Max Word Similarity and the minimum of the Max Entity Similarity is that for
+entities we expect to find a high match for each one, or else the output is not relevant enough. However, for regular
+words, we expect to find a match for only some of them, and the rest can be ignored.
+
+`Back to Property List <#properties>`__
+
+Examples
+~~~~~~~~
+======================================================================================================================  =====================================================  ===================
+User Input                                                                                                               LLM Output                                             Grounded in Context
+======================================================================================================================  =====================================================  ===================
+What is the color of the sky?                                                                                           The sky is blue                                        0.81
+Where was the first World War II attack in the United States?                                                           Pearl Harbor                                           0.84
 ======================================================================================================================  =====================================================  ===================
