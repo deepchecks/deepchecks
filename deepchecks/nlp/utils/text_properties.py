@@ -520,7 +520,7 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
         return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
-            _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
+            _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
             return np.nan
         cmudict_dict = corpus.cmudict.dict()
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
@@ -683,7 +683,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
         {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
         {'name': 'Average Words Per Sentence', 'method': average_words_per_sentence, 'output_type': 'numeric'},
-        {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
+        {'name': 'Reading Ease', 'method': readability_score, 'output_type': 'numeric'},
         {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
         {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
         {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
@@ -711,11 +711,11 @@ BATCH_PROPERTIES = ('Toxicity', 'Fluency', 'Formality')
 LARGE_SAMPLE_SIZE = 10_000
 
 ENGLISH_ONLY_PROPERTIES = (
-    'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Readability Score',
+    'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Reading Ease',
     'Unique Noun Count', 'Unique Syllables Count', 'Sentences Count', 'Average Syllable Length'
 )
 
-CMUDICT_PROPERTIES = ('Average Syllable Length', 'Unique Syllables Count', 'Readability Score')
+CMUDICT_PROPERTIES = ('Average Syllable Length', 'Unique Syllables Count', 'Reading Ease')
 
 TEXT_PROPERTIES_DESCRIPTION = {
     'Text Length': 'Number of characters in the text',
@@ -731,8 +731,8 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'Subjectivity': 'Subjectivity of the text, calculated using the TextBlob sentiment analysis model. Ranging from 0 '
                     '(objective) to 1 (subjective)',
     'Average Words Per Sentence': 'Average number of words per sentence in the text',
-    'Readability Score': 'How easy to read a text sample is, from 0 (hard to read) to 100 (easy).'
-                         ' Based on Flesch reading-ease score',
+    'Reading Ease': 'How easy to read a text sample is, typically ranges from around 0 (hard to read) to around '
+                    '100 (very easy). Based on Flesch reading-ease score',
     'Lexical Density': 'Percentage of unique words in the text',
     'Toxicity': 'A measure of how harmful or offensive a text sample is (0 to 1), uses the Detoxify library '
                 'unitary/toxic-bert model',
@@ -844,12 +844,12 @@ def calculate_builtin_properties(
         together with ignore_properties parameter. Available properties are:
         ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', '% Punctuation', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Readability Score', 'Average Words Per Sentence', 'URLs Count', Unique URLs Count', 'Email Address Count',
+        'Reading Ease', 'Average Words Per Sentence', 'URLs Count', Unique URLs Count', 'Email Address Count',
         'Unique Email Address Count', 'Unique Syllables Count', 'Reading Time', 'Sentences Count',
         'Average Syllable Length']
         List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
         '% Special Characters', '% Punctuation', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency',
-        'Formality', 'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Words Per Sentence']
+        'Formality', 'Lexical Density', 'Unique Noun Count', 'Reading Ease', 'Average Words Per Sentence']
         To calculate all the default properties, the include_properties and ignore_properties parameters should
         be None. If you pass either include_properties or ignore_properties then only the properties specified
         in the list will be calculated or ignored.

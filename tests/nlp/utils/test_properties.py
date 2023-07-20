@@ -224,13 +224,13 @@ def test_calculate_readability_score_property(tweet_emotion_train_test_textdata)
     test_text = test.text
 
     # Act
-    result = calculate_builtin_properties(test_text, include_properties=['Readability Score'])[0]
-    result_none_text = calculate_builtin_properties([None], include_properties=['Readability Score'])[0]
+    result = calculate_builtin_properties(test_text, include_properties=['Reading Ease'])[0]
+    result_none_text = calculate_builtin_properties([None], include_properties=['Reading Ease'])[0]
 
     # Assert
-    assert_that(result['Readability Score'][0: 10], equal_to([96.577, 97.001, 80.306, 67.755, 77.103, 71.782,
+    assert_that(result['Reading Ease'][0: 10], equal_to([96.577, 97.001, 80.306, 67.755, 77.103, 71.782,
                                                               np.nan, 75.5, 70.102, 95.564]))
-    assert_that(result_none_text['Readability Score'], equal_to([np.nan]))
+    assert_that(result_none_text['Reading Ease'], equal_to([np.nan]))
 
 
 def test_calculate_count_unique_urls(manual_text_data_for_properties):
@@ -383,7 +383,7 @@ def test_ignore_properties():
     test_text = ['This is simple sentence.']
     expected_properties = ['Text Length', 'Average Word Length', 'Max Word Length',
                            '% Special Characters', '% Punctuation', 'Language', 'Sentiment', 'Subjectivity',
-                           'Lexical Density', 'Readability Score', 'Average Words Per Sentence']
+                           'Lexical Density', 'Reading Ease', 'Average Words Per Sentence']
 
     # Also check capitalization doesn't matter:
     ignore_properties = ['Unique noun Count', 'toxicity', 'fluency', 'Formality']
