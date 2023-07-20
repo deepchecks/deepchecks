@@ -187,11 +187,21 @@ class WeakSegmentAbstract(abc.ABC):
         if feature_rank_for_search is None:
             feature_rank_for_search = np.asarray(data.columns)
 
-        weak_segments = pd.DataFrame(
-            columns=[score_title, 'Feature1', 'Feature1 Range', 'Feature2', 'Feature2 Range',
-                     '% of Data', 'Samples in Segment'])
-        n_features = min(len(feature_rank_for_search), self.n_top_features) if self.n_top_features is not None \
+        weak_segments = pd.DataFrame(columns=[
+            score_title, 
+            'Feature1', 
+            'Feature1 Range', 
+            'Feature2', 
+            'Feature2 Range',
+            'Nunber Of Samples',
+            '% of Data', 
+            'Samples in Segment'
+        ])
+        n_features = (
+            min(len(feature_rank_for_search), self.n_top_features) 
+            if self.n_top_features is not None
             else len(feature_rank_for_search)
+        )
         for i in range(n_features):
             for j in range(i + 1, n_features):
                 feature1, feature2 = feature_rank_for_search[[i, j]]
@@ -200,18 +210,34 @@ class WeakSegmentAbstract(abc.ABC):
                                                                                   dummy_model, scorer)
                 if weak_segment_score is None or len(weak_segment_filter.filters) == 0:
                     continue
+
                 data_of_segment = weak_segment_filter.filter(data)
-                data_size = round(100 * data_of_segment.shape[0] / data.shape[0], 2)
+                n_of_samples = data_of_segment.shape[0]
+                data_size = round(100 * n_of_samples / data.shape[0], 2)
                 filters = weak_segment_filter.filters
+
                 if len(filters.keys()) == 1:
-                    weak_segments.loc[len(weak_segments)] = [weak_segment_score, list(filters.keys())[0],
-                                                             tuple(list(filters.values())[0]), '',
-                                                             None, data_size, list(data_of_segment.index)]
+                    weak_segments.loc[len(weak_segments)] = [
+                        weak_segment_score,
+                        list(filters.keys())[0],
+                        tuple(list(filters.values())[0]),
+                        '',
+                        None,
+                        n_of_samples,
+                        data_size,
+                        list(data_of_segment.index)
+                    ]
                 else:
-                    weak_segments.loc[len(weak_segments)] = [weak_segment_score, feature1,
-                                                             tuple(filters[feature1]), feature2,
-                                                             tuple(filters[feature2]), data_size,
-                                                             list(data_of_segment.index)]
+                    weak_segments.loc[len(weak_segments)] = [
+                        weak_segment_score,
+                        feature1,
+                        tuple(filters[feature1]),
+                        feature2,
+                        tuple(filters[feature2]),
+                        n_of_samples,
+                        data_size,
+                        list(data_of_segment.index)
+                    ]
 
         # Drop duplicates without considering column 'Samples in Segment'
         result_no_duplicates = weak_segments.drop(columns='Samples in Segment').drop_duplicates()
