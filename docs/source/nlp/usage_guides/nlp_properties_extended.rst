@@ -9,7 +9,7 @@ text characteristics such as the number of words in the text, or more complex pr
 text contains toxic language.
 
 * `Link Validity <#link-validity>`__
-* `Readability Score <#readability-score>`__
+* `Reading Ease <#reading-ease>`__
 * `Toxicity <#toxicity>`__
 * `Fluency <#fluency>`__
 * `Formality <#formality>`__
@@ -25,7 +25,7 @@ without links, the property will always return 1 (all links valid).
 
 `Back to Property List <#properties>`__
 
-Readability Score
+Reading Ease
 -----------------
 
 A score calculated based on the
