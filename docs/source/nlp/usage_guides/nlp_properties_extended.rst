@@ -187,7 +187,7 @@ in the input. The similarity score is the cosine similarity between the word emb
 For instance, if the user's input is "What is the color of the sky?", and the LLM replies "The sky is blue", then the
 meaningful words in the input are "color" and "sky". The word "sky" in the input will be matched to the word "sky" in
 the output (with a similarity score of 1, as it is the same word), and the word "color" in the input will be matched to
-the word "blue" in the output (with a high similarity score of e.g. 0.9, as the words are semantically similar).
+the word "blue" in the output (with a high similarity score of e.g. 0.81, as the words are semantically similar).
 The average of the similarity scores will be the Mean Max Word Similarity score.
 
 The second test is the Lowest Max Entity Similarity. The test takes each entity in the user's input, and looks for the
@@ -196,7 +196,7 @@ and returns the minimum the scores for all the entities in the input. The simila
 entity embeddings of the input entity and the output entity.
 For instance, if the user's input is "Where was the first World War II attack in the United States?", and the LLM replies "Pearl Harbour",
 then the entities in the input are "World War II" and "United States", and the only entity in the output is "Pearl Harbour".
-Both "World War II" and "United States" in the input will be matched to "Pearl Harbour" in the output with high similarity scores (e.g. 0.8 and 0.9),
+Both "World War II" and "United States" in the input will be matched to "Pearl Harbour" in the output with high similarity scores (e.g. 0.8 and 0.84),
 and the Lowest Max Entity Similarity score will be the minimum of the two scores (0.8).
 
 The reason for taking the mean of the Max Word Similarity and the minimum of the Max Entity Similarity is that for
@@ -208,7 +208,7 @@ words, we expect to find a match for only some of them, and the rest can be igno
 Examples
 ~~~~~~~~
 ======================================================================================================================  =====================================================  ===================
-User Input                                                                                                               LLM Output                                             Grounded in Context
+User Input                                                                                                               LLM Output                                            Relevance
 ======================================================================================================================  =====================================================  ===================
 What is the color of the sky?                                                                                           The sky is blue                                        0.81
 Where was the first World War II attack in the United States?                                                           Pearl Harbor                                           0.84
