@@ -59,7 +59,6 @@ class SamplePerformance(SingleDatasetCheck):
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []
-        display = None
         for scorer in scorers:
             scorer_value = scorer(model, dataset)
             results.append([scorer.name, scorer_value])
@@ -68,12 +67,8 @@ class SamplePerformance(SingleDatasetCheck):
         if context.with_display:
             fig = px.bar(results_df,y='Value', x='Metric')
             
-        text = '''
-                The metrics are computed over {:,.0f} samples.
-               '''.format(self.n_samples)
-        display = [text,fig]
 
-        return CheckResult(results_df, header='Sample Performance', display=display)
+        return CheckResult(results_df, header='Sample Performance', display=fig)
 
     def config(
         self,
