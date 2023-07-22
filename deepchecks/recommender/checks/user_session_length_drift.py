@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the popularity bias check."""
+"""Module containing the popularity drift check."""
 import typing as t
 
 import pandas as pd
@@ -26,7 +26,7 @@ __all__ = ['UserSessionDrift']
 class UserSessionDrift(TrainTestCheck):
     """
     
-    Check for user session length bias in train and validation sets. This check compares the distribution of user session lengths between the train and validation sets to identify potential bias or discrepancies. It helps assess whether the two sets exhibit similar patterns in terms of user session lengths or if there are significant differences that could introduce bias in the recommender system.
+    Check for user session length drift in train and test sets. This check compares the distribution of user session lengths between the train and test sets to identify potential drift or discrepancies. It helps assess whether the two sets exhibit similar patterns in terms of user session lengths or if there are significant differences that could introduce drift in the recommender system.
     
     """
     def __init__(
@@ -106,7 +106,7 @@ class UserSessionDrift(TrainTestCheck):
 
         return CheckResult(
             value=drift_score,
-            header='Session Length Bias',
+            header='Session Length drift',
             display=drift_display,
         )
 
