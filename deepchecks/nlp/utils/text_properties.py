@@ -416,7 +416,6 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
 
         except Exception:  # pylint: disable=broad-except
             reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
-            text_list_to_predict = []  # Clear the list of texts to predict for retry
             retry_count += 1
 
     return [np.nan] * len(text_batch)  # Prediction failed, return NaN values for the original batch size
