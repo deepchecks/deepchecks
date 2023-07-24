@@ -125,6 +125,7 @@ def import_optional_property_dependency(
         package_name: Optional[str] = None,
         error_template: Optional[str] = None
 ):
+    """Import additional modules in runtime"""
     try:
         lib = importlib.import_module(module)
     except ImportError as error:
@@ -151,6 +152,7 @@ def get_transformer_pipeline(
         models_storage: Union[pathlib.Path, str, None] = None,
         use_cache=False
 ):
+    """Return a transformers pipeline for the given model name."""
     if use_cache:
         return _get_transformer_pipeline(property_name, model_name, device, models_storage)
     # __wrapped__ is simply the function without decoration, in our case - without caching
@@ -182,6 +184,7 @@ def _get_transformer_pipeline(
 
 
 def get_cmudict_dict(use_cache=False):
+    """Returns corpus as dict"""
     if use_cache:
         return _get_cmudict_dict()
     return _get_cmudict_dict.__wrapped__()
@@ -197,6 +200,7 @@ FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models
 
 
 def get_fasttext_model(models_storage: Union[pathlib.Path, str, None] = None, use_cache=False):
+    """Return fasttext model."""
     if use_cache:
         return _get_fasttext_model(models_storage)
     return _get_fasttext_model.__wrapped__(models_storage)
