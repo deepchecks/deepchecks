@@ -1,3 +1,14 @@
+# ----------------------------------------------------------------------------
+# Copyright (C) 2021-2023 Deepchecks (https://www.deepchecks.com)
+#
+# This file is part of Deepchecks.
+# Deepchecks is distributed under the terms of the GNU Affero General
+# Public License (version 3 or later).
+# You should have received a copy of the GNU Affero General Public License
+# along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
+# ----------------------------------------------------------------------------
+#
+"""Test for the properties model caching module"""
 from hamcrest import assert_that, equal_to, is_not
 
 from deepchecks.nlp.utils.text_properties import TOXICITY_MODEL_NAME
