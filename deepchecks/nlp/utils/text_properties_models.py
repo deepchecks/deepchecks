@@ -142,6 +142,7 @@ def get_transformer_pipeline(
 ):
     if use_cache:
         return _get_transformer_pipeline(property_name, model_name, device, models_storage)
+    # __wrapped__ is simply the function without decoration, in our case - without caching
     return _get_transformer_pipeline.__wrapped__(property_name, model_name, device, models_storage)
 
 
