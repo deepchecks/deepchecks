@@ -25,7 +25,7 @@ def test_segment_performance_diabetes(diabetes_split_dataset_and_model):
     _, val, model = diabetes_split_dataset_and_model
 
     # Act
-    result = WeakSegmentsPerformance().run(val, model)
+    result = WeakSegmentsPerformance(n_top_features=5).run(val, model)
     segments = result.value['weak_segments_list']
 
     # Assert
@@ -111,7 +111,7 @@ def test_regression_categorical_features_avocado(avocado_split_dataset_and_model
     _, val, model = avocado_split_dataset_and_model
 
     # Act
-    result = WeakSegmentsPerformance(random_state=42).run(val, model, feature_importance_timeout=0)
+    result = WeakSegmentsPerformance(random_state=42, n_top_features=5).run(val, model, feature_importance_timeout=0)
     segments = result.value['weak_segments_list']
 
     # Assert
@@ -140,7 +140,7 @@ def test_categorical_feat_target(adult_split_dataset_and_model):
     val.data['native-country'].iloc[0] = np.nan
     val.data['native-country'] = pd.Categorical(val.data['native-country'])
     val.data['income'] = pd.Categorical(val.data['income'])
-    check = WeakSegmentsPerformance()
+    check = WeakSegmentsPerformance(n_top_features=5)
 
     # Act
     result = check.run(val, model)

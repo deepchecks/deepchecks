@@ -66,6 +66,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         number of segments with the weakest performance to show.
     categorical_aggregation_threshold : float , default: 0.05
         For each categorical property, categories with frequency below threshold will be merged into "Other" category.
+    multiple_segments_per_property : bool , default: False
+        If True, will allow multiple segments per feature otherwise will only allow one segment per property.
     {additional_check_init_params:2*indent}
     """
 
@@ -76,6 +78,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             segment_minimum_size_ratio: float = 0.05,
             n_samples: Optional[int] = 10000,
             categorical_aggregation_threshold: float = 0.05,
+            multiple_segments_per_property: bool = False,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -86,6 +89,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.n_to_show = n_to_show
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
+        self.multiple_segments_per_property = multiple_segments_per_property
         self._properties_results = None
         self._sample_scores = None
         self._scorer_name = None
@@ -136,7 +140,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
 
         weak_segments = self._weak_segments_search(data=encoded_dataset.features_columns,
                                                    score_per_sample=score_per_sample_col,
-                                                   scorer_name=self._scorer_name)
+                                                   scorer_name=self._scorer_name,
+                                                   multiple_segments_per_feature=self.multiple_segments_per_property)
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
                                          'segments. Try increasing n_samples or supply additional properties.')

@@ -10,7 +10,7 @@
 #
 """Module of weak segments performance check."""
 import warnings
-from typing import TYPE_CHECKING, Callable, Dict, List, Union
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -49,7 +49,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         Columns to check, if none are given checks all columns except ignored ones.
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
-    n_top_features : int , default: 5
+    n_top_features : Optional[int] , default: 10
         Number of features to use for segment search. Top columns are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
@@ -73,13 +73,15 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     random_state : int, default: 42
         random seed for all check internals.
+    multiple_segments_per_feature : bool , default: True
+        If True, will allow multiple segments per feature otherwise will only allow one segment per feature.
     """
 
     def __init__(
             self,
             columns: Union[Hashable, List[Hashable], None] = None,
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
-            n_top_features: int = 5,
+            n_top_features: Optional[int] = 10,
             segment_minimum_size_ratio: float = 0.05,
             alternative_scorer: Dict[str, Union[str, Callable]] = None,
             loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
@@ -88,6 +90,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             categorical_aggregation_threshold: float = 0.05,
             n_to_show: int = 3,
             random_state: int = 42,
+            multiple_segments_per_feature: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -108,6 +111,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.loss_per_sample = loss_per_sample
         self.alternative_scorer = alternative_scorer
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
+        self.multiple_segments_per_feature = multiple_segments_per_feature
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -160,7 +164,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         weak_segments = self._weak_segments_search(data=encoded_dataset.data, score_per_sample=score_per_sample,
                                                    label_col=dataset_subset.label_col,
                                                    feature_rank_for_search=feature_rank,
-                                                   dummy_model=dummy_model, scorer=scorer)
+                                                   dummy_model=dummy_model, scorer=scorer,
+                                                   multiple_segments_per_feature=self.multiple_segments_per_feature)
 
         if len(weak_segments) == 0:
             raise DeepchecksProcessError('WeakSegmentsPerformance was unable to train an error model to find weak '
