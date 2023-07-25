@@ -125,7 +125,7 @@ def import_optional_property_dependency(
         package_name: Optional[str] = None,
         error_template: Optional[str] = None
 ):
-    """Import additional modules in runtime"""
+    """Import additional modules in runtime."""
     try:
         lib = importlib.import_module(module)
     except ImportError as error:
@@ -184,7 +184,7 @@ def _get_transformer_pipeline(
 
 
 def get_cmudict_dict(use_cache=False):
-    """Returns corpus as dict"""
+    """Return corpus as dict."""
     if use_cache:
         return _get_cmudict_dict()
     return _get_cmudict_dict.__wrapped__()
