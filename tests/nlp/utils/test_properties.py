@@ -18,8 +18,9 @@ import pytest
 from hamcrest import *
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text_properties import (MODELS_STORAGE, _sample_for_property, calculate_builtin_properties,
-                                                  get_transformer_model, is_english)
+from deepchecks.nlp.utils.text_properties import (_sample_for_property, calculate_builtin_properties,
+                                                  is_english)
+from deepchecks.nlp.utils.text_properties_models import MODELS_STORAGE, _get_transformer_model
 
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
@@ -419,7 +420,7 @@ def test_properties_models_download():
     model_download_time = timeit.timeit(
         stmt='fn()',
         number=1,
-        globals={'fn': lambda: get_transformer_model(
+        globals={'fn': lambda: _get_transformer_model(
             property_name='',
             model_name=model_name
         )}
@@ -431,7 +432,7 @@ def test_properties_models_download():
     assert onnx_model_path.exists() and onnx_model_path.is_dir()
 
     # Act
-    get_transformer_model(property_name='', model_name=model_name, quantize_model=True)
+    _get_transformer_model(property_name='', model_name=model_name, quantize_model=True)
 
     # Assert
     assert quantized_model_path.exists() and quantized_model_path.is_dir()
@@ -440,7 +441,7 @@ def test_properties_models_download():
     model_creation_time = timeit.timeit(
         stmt='fn()',
         number=1,
-        globals={'fn': lambda: get_transformer_model(
+        globals={'fn': lambda: _get_transformer_model(
             property_name='',
             model_name=model_name,
             quantize_model=True
@@ -462,7 +463,7 @@ def test_properties_models_download_into_provided_directory():
     onnx_model_path = MODELS_STORAGE / 'onnx' / model_name
 
     # Act
-    get_transformer_model(property_name='', model_name=model_name, models_storage=directory)
+    _get_transformer_model(property_name='', model_name=model_name, models_storage=directory)
 
     # Assert
     assert MODELS_STORAGE.exists() and MODELS_STORAGE.is_dir()
