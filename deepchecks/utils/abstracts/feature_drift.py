@@ -81,7 +81,7 @@ class FeatureDriftAbstract(abc.ABC):
                 ignore_na=self.ignore_na,
                 min_samples=self.min_samples,
                 with_display=with_display,
-                dataset_names=(test_dataframe_name, train_dataframe_name)
+                dataset_names=(train_dataframe_name, test_dataframe_name)
             )
 
             if value == 'not_enough_samples':
