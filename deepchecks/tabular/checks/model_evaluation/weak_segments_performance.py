@@ -74,7 +74,8 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     random_state : int, default: 42
         random seed for all check internals.
     multiple_segments_per_feature : bool , default: True
-        If True, will allow multiple segments per feature otherwise will only allow one segment per feature.
+        If True, will allow the same feature to be a segmenting feature in multiple segments,
+        otherwise each feature can appear in one segment at most.
     """
 
     def __init__(

@@ -161,14 +161,14 @@ def test_multilabel_just_dance(just_dance_train_test_textdata, just_dance_train_
 
     data = data.copy(rows_to_use=range(1000))
     probabilities = probabilities[:1000, :]
-    check = PropertySegmentsPerformance(multiple_segments_per_property=True)
+    check = PropertySegmentsPerformance()
 
     # Act
     result = check.run(data, probabilities=probabilities)
 
     # Assert
     assert_that(result.value['avg_score'], close_to(0.615, 0.001))
-    assert_that(len(result.value['weak_segments_list']), is_in([79, 80]))  # TODO: check why it's not always 80
+    assert_that(len(result.value['weak_segments_list']), equal_to(5))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.401, 0.01))
 
 

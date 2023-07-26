@@ -66,8 +66,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         number of segments with the weakest performance to show.
     categorical_aggregation_threshold : float , default: 0.05
         For each categorical property, categories with frequency below threshold will be merged into "Other" category.
-    multiple_segments_per_property : bool , default: False
-        If True, will allow multiple segments per feature otherwise will only allow one segment per property.
+    multiple_segments_per_property : bool , default: True
+        If True, will allow the same property to be a segmenting feature in multiple segments,
+        otherwise each property can appear in one segment at most.
     {additional_check_init_params:2*indent}
     """
 
@@ -78,7 +79,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             segment_minimum_size_ratio: float = 0.05,
             n_samples: Optional[int] = 10000,
             categorical_aggregation_threshold: float = 0.05,
-            multiple_segments_per_property: bool = False,
+            multiple_segments_per_property: bool = True,
             **kwargs
     ):
         super().__init__(**kwargs)

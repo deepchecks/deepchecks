@@ -64,6 +64,9 @@ text_data.properties.head(3)
 # ``categorical_aggregation_threshold``: By default the check will combine rare categories into a single category called
 # "Other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
+# ``multiple_segments_per_column``: If True, will allow the same property to be a segmenting feature in multiple
+# segments, otherwise each property can appear in one segment at most. False by default.
+#
 # see :class:`API reference <deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance>` for more details.
 
 from deepchecks.nlp.checks import UnderAnnotatedPropertySegments

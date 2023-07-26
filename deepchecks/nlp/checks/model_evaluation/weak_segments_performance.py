@@ -173,7 +173,8 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
     multiple_segments_per_property : bool , default: False
-        If True, will allow multiple segments per feature otherwise will only allow one segment per property.
+        If True, will allow the same property to be a segmenting feature in multiple segments,
+        otherwise each property can appear in one segment at most.
     """
 
     def __init__(self,
@@ -242,8 +243,9 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
         number of segments with the weakest performance to show.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
-    multiple_segments_column : bool , default: False
-        If True, will allow multiple segments per feature otherwise will only allow one segment per metadata column.
+    multiple_segments_column : bool , default: True
+        If True, will allow the same metadata column to be a segmenting column in multiple segments,
+        otherwise each metadata column can appear in one segment at most.
     """
 
     def __init__(self,
@@ -256,7 +258,7 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
                  n_samples: int = 5_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
-                 multiple_segments_column: bool = False,
+                 multiple_segments_column: bool = True,
                  **kwargs):
         super().__init__(segment_by='metadata',
                          columns=columns,

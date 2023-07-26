@@ -73,6 +73,9 @@ test_dataset.properties.head(3)
 # ``categorical_aggregation_threshold``: By default the check will combine rare categories into a single category called
 # "Other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
+# ``multiple_segments_per_column``: If True, will allow the same property to be a segmenting feature in
+# multiple segments,  otherwise each property can appear in one segment at most. False by default.
+#
 # see :class:`API reference <deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance>` for more details.
 
 from deepchecks.nlp.checks import PropertySegmentsPerformance
@@ -106,7 +109,6 @@ result.value['weak_segments_list'].head(3)
 
 # Let's add a condition and re-run the check:
 
-check = PropertySegmentsPerformance(alternative_scorer=scorer, segment_minimum_size_ratio=0.03)
 check.add_condition_segments_relative_performance_greater_than(0.1)
 result = check.run(test_dataset, probabilities=test_probas)
 result.show(show_additional_outputs=False)
