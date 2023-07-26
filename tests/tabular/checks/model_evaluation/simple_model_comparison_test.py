@@ -194,6 +194,23 @@ def test_condition_pass_for_multiclass_avg(iris_split_dataset_and_model):
     ))
 
 
+def test_condition_pass_for_custom_scorer(iris_dataset_single_class, iris_random_forest_single_class):
+    train_ds = iris_dataset_single_class
+    test_ds = iris_dataset_single_class
+    clf = iris_random_forest_single_class
+    # Arrange
+    check = SimpleModelComparison(scorers=['f1'], strategy='most_frequent').add_condition_gain_greater_than(0.43)
+    # Act X
+    result = check.run(train_ds, test_ds, clf)
+    # Assert
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=True,
+            details='Found metrics with perfect score, no gain is calculated: [\'f1\']',
+            name='Model performance gain over simple model is greater than 43%')
+    ))
+
+
 def test_condition_pass_for_multiclass_avg_with_classes(iris_split_dataset_and_model):
     train_ds, test_ds, clf = iris_split_dataset_and_model
     # Arrange
