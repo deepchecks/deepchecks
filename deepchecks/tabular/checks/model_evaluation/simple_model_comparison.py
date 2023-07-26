@@ -392,10 +392,9 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
     scorers_perfect = result['scorers_perfect']
 
     # If the depth of the nested scores dict is 2, average is not relevant and is set to True
-    if len(scores[list(scores.keys())[0]].keys()) == 2:
-        force_average = True
-    else:
-        force_average = False
+    inner_dict = scores[list(scores.keys())[0]]
+    inner_inner_dict = inner_dict[list(inner_dict.keys())[0]]
+    force_average = isinstance(inner_inner_dict, Number)
 
     passed_condition = True
     if task_type in [TaskType.MULTICLASS, TaskType.BINARY] and not average and not force_average:
