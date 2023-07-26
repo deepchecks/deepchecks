@@ -371,7 +371,8 @@ class SimpleModelComparison(TrainTestCheck):
             Used in classification models to limit condition only to given classes.
         average : bool , default: False
             Used in classification models to flag if to run condition on average of classes, or on
-            each class individually
+            each class individually. If any scorer that return a single value is used, this parameter
+            is ignored (will act as if average=True).
         """
         name = f'Model performance gain over simple model is greater than {format_percent(min_allowed_gain)}'
         if classes:
@@ -390,8 +391,13 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
     task_type = result['type']
     scorers_perfect = result['scorers_perfect']
 
+    # If the depth of the nested scores dict is 2, average is not relevant and is set to True
+    inner_dict = scores[list(scores.keys())[0]]
+    inner_inner_dict = inner_dict[list(inner_dict.keys())[0]]
+    force_average = isinstance(inner_inner_dict, Number)
+
     passed_condition = True
-    if task_type in [TaskType.MULTICLASS, TaskType.BINARY] and not average:
+    if task_type in [TaskType.MULTICLASS, TaskType.BINARY] and not average and not force_average:
         passed_metrics = {}
         failed_classes = defaultdict(dict)
         perfect_metrics = []
@@ -433,7 +439,7 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
         passed_metrics = {}
         failed_metrics = {}
         perfect_metrics = []
-        if task_type in [TaskType.MULTICLASS, TaskType.BINARY]:
+        if task_type in [TaskType.MULTICLASS, TaskType.BINARY] and not force_average:
             scores = average_scores(scores, include_classes)
         for metric, models_scores in scores.items():
             # If origin model is perfect, skip the gain calculation
