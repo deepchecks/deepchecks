@@ -2,8 +2,8 @@
 """
 .. _nlp__token_classification_quickstart:
 
-Test NLP Token Classification Tasks - Quickstart
-************************************************
+Token Classification Quickstart
+*******************************
 
 Deepchecks NLP tests your models during model development/research and before deploying to production. Using our
 testing package reduces model failures and saves tests development time. In this quickstart guide, you will learn how

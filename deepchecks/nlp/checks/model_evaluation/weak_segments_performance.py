@@ -37,7 +37,8 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
                  ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int],
                  segment_minimum_size_ratio: float, alternative_scorer: Dict[str, Union[str, Callable]],
                  score_per_sample: Union[np.ndarray, pd.Series, None], n_samples: int,
-                 categorical_aggregation_threshold: float, n_to_show: int, **kwargs):
+                 categorical_aggregation_threshold: float, n_to_show: int,
+                 multiple_segments_per_feature: bool = False, **kwargs):
         super().__init__(**kwargs)
         self.segment_by = segment_by
         self.columns = columns
@@ -49,6 +50,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         self.score_per_sample = score_per_sample
         self.alternative_scorer = alternative_scorer if alternative_scorer else None
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
+        self.multiple_segments_per_feature = multiple_segments_per_feature
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -107,7 +109,8 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         weak_segments = self._weak_segments_search(data=encoded_dataset.data, score_per_sample=score_per_sample,
                                                    label_col=pd.Series(original_label, index=score_per_sample.index),
                                                    feature_rank_for_search=np.asarray(encoded_dataset.features),
-                                                   dummy_model=dummy_model, scorer=scorer)
+                                                   dummy_model=dummy_model, scorer=scorer,
+                                                   multiple_segments_per_feature=self.multiple_segments_per_feature)
 
         if len(weak_segments) == 0:
             display_msg = 'WeakSegmentsPerformance was unable to train an error model to find weak segments.'\
@@ -169,18 +172,22 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
         number of segments with the weakest performance to show.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
+    multiple_segments_per_property : bool , default: False
+        If True, will allow the same property to be a segmenting feature in multiple segments,
+        otherwise each property can appear in one segment at most.
     """
 
     def __init__(self,
                  properties: Union[Hashable, List[Hashable], None] = None,
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
-                 n_top_properties: Optional[int] = 15,
+                 n_top_properties: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
                  alternative_scorer: Dict[str, Union[str, Callable]] = None,
                  score_per_sample: Union[np.ndarray, pd.Series, None] = None,
                  n_samples: int = 5_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
+                 multiple_segments_per_property: bool = False,
                  **kwargs):
         super().__init__(segment_by='properties',
                          columns=properties,
@@ -192,6 +199,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
                          score_per_sample=score_per_sample,
                          alternative_scorer=alternative_scorer,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
+                         multiple_segments_per_feature=multiple_segments_per_property,
                          **kwargs)
 
 
@@ -235,18 +243,22 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
         number of segments with the weakest performance to show.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
+    multiple_segments_column : bool , default: True
+        If True, will allow the same metadata column to be a segmenting column in multiple segments,
+        otherwise each metadata column can appear in one segment at most.
     """
 
     def __init__(self,
                  columns: Union[Hashable, List[Hashable], None] = None,
                  ignore_columns: Union[Hashable, List[Hashable], None] = None,
-                 n_top_columns: Optional[int] = 15,
+                 n_top_columns: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
                  alternative_scorer: Dict[str, Union[str, Callable]] = None,
                  score_per_sample: Union[np.ndarray, pd.Series, None] = None,
                  n_samples: int = 5_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
+                 multiple_segments_column: bool = True,
                  **kwargs):
         super().__init__(segment_by='metadata',
                          columns=columns,
@@ -258,4 +270,5 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
                          score_per_sample=score_per_sample,
                          alternative_scorer=alternative_scorer,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
+                         multiple_segments_per_feature=multiple_segments_column,
                          **kwargs)

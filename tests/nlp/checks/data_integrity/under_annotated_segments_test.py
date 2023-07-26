@@ -37,7 +37,7 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
     ))
 
     assert_that(result.value['avg_score'], close_to(0.5, 0.001))
-    assert_that(len(result.value['weak_segments_list']), close_to(33, 1))
+    assert_that(len(result.value['weak_segments_list']), close_to(6, 1))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.314, 0.01))
 
 
@@ -47,7 +47,8 @@ def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
     test = test.copy()
     test._label = np.asarray(list(test._label[:round(len(test._label) / 2)]) + [None] * round(len(test._label) / 2),
                              dtype=object)
-    check = UnderAnnotatedMetaDataSegments().add_condition_segments_relative_performance_greater_than()
+    check = UnderAnnotatedMetaDataSegments(multiple_segments_per_column=True).\
+        add_condition_segments_relative_performance_greater_than()
     # Act
     result = check.run(test)
     condition_result = check.conditions_decision(result)
@@ -77,7 +78,7 @@ def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_tex
     test._label = label
 
     # Act
-    result = UnderAnnotatedMetaDataSegments().run(test)
+    result = UnderAnnotatedMetaDataSegments(multiple_segments_per_column=True).run(test)
 
     # Assert
     assert_that(result.value['avg_score'], close_to(0.844, 0.001))
@@ -123,7 +124,7 @@ def test_token_classification_dataset(small_wikiann_train_test_text_data):
     ))
 
     assert_that(result.value['avg_score'], close_to(0.8, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(25))
+    assert_that(len(result.value['weak_segments_list']), equal_to(6))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.2, 0.01))
 
 
@@ -134,7 +135,8 @@ def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
     assert_that(data.is_multi_label_classification(), equal_to(True))
     data._label = np.asarray(list(data._label[:round(len(data._label) / 2)]) + [None] * round(len(data._label) / 2),
                              dtype=object)
-    check = UnderAnnotatedMetaDataSegments().add_condition_segments_relative_performance_greater_than()
+    check = UnderAnnotatedMetaDataSegments(multiple_segments_per_column=True).\
+        add_condition_segments_relative_performance_greater_than()
 
     # Act
     result = check.run(data)

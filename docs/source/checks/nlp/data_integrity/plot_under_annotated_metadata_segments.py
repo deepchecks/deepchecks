@@ -63,11 +63,15 @@ text_data.metadata.head(3)
 # ``categorical_aggregation_threshold``: By default the check will combine rare categories into a single category called
 # "Other". This parameter determines the frequency threshold for categories to be mapped into to the "other" category.
 #
+# ``multiple_segments_per_column``: If True, will allow the same metadata column to be a segmenting feature in multiple
+# segments, otherwise each metadata column can appear in one segment at most. True by default.
+#
 # see :class:`API reference <deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance>` for more details.
 
 from deepchecks.nlp.checks import UnderAnnotatedMetaDataSegments
 
-check = UnderAnnotatedMetaDataSegments(segment_minimum_size_ratio=0.07)
+check = UnderAnnotatedMetaDataSegments(segment_minimum_size_ratio=0.07,
+                                       multiple_segments_per_column=True)
 result = check.run(text_data)
 result.show()
 
@@ -96,7 +100,6 @@ result.value['weak_segments_list'].head(3)
 
 # Let's add a condition and re-run the check:
 
-check = UnderAnnotatedMetaDataSegments(segment_minimum_size_ratio=0.07)
 check.add_condition_segments_annotation_ratio_greater_than(0.7)
 result = check.run(text_data)
 result.show(show_additional_outputs=False)
