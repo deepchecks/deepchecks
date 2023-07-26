@@ -153,7 +153,7 @@ def language(
     return language_code
 
 
-def is_english(
+def english_text(
         text: str,
         lang_certainty_threshold: float = 0.8,
         fasttext_model: Optional[Dict[object, Any]] = None,
@@ -512,7 +512,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
 
 ALL_PROPERTIES: Tuple[TextProperty, ...] = \
     (
-        {'name': 'Is English', 'method': is_english, 'output_type': 'categorical'},
+        {'name': 'English Text', 'method': english_text, 'output_type': 'categorical'},
         {'name': 'URLs Count', 'method': urls_count, 'output_type': 'numeric'},
         {'name': 'Email Addresses Count', 'method': email_addresses_count, 'output_type': 'numeric'},
         {'name': 'Unique URLs Count', 'method': unique_urls_count, 'output_type': 'numeric'},
@@ -563,7 +563,7 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'URLs Count': 'Number of URLS per text sample',
     'Email Addresses Count': 'Number of email addresses per text sample',
     'Unique URLs Count': 'Number of unique URLS per text sample',
-    'Is English': 'Whether the text is in English (1) or not (0)',
+    'English Text': 'Whether the text is in English (1) or not (0)',
     'Unique Email Addresses Count': 'Number of unique email addresses per text sample',
     'Unique Syllables Count': 'Number of unique syllables per text sample',
     'Reading Time': 'Time taken in seconds to read a text sample',

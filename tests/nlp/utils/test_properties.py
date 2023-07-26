@@ -19,7 +19,7 @@ from hamcrest import *
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text_properties import (_sample_for_property, calculate_builtin_properties,
-                                                  is_english)
+                                                  english_text)
 from deepchecks.nlp.utils.text_properties_models import MODELS_STORAGE, _get_transformer_model
 
 
@@ -344,15 +344,15 @@ def test_calculate_average_syllable_count(tweet_emotion_train_test_textdata):
     assert_that(result_none_text['Average Syllable Length'], equal_to([np.nan]))
 
 
-def test_calcualte_is_english_property():
+def test_calcualte_english_text_property():
     data = ['This is a sentence in English.', 'Это предложение на русском языке.']
-    result = calculate_builtin_properties(data, include_properties=['Is English'])[0]
-    assert_that(result['Is English'], equal_to([True, False]))
+    result = calculate_builtin_properties(data, include_properties=['English Text'])[0]
+    assert_that(result['English Text'], equal_to([True, False]))
 
 
-def test_calcualte_is_english_property_without_language_precalculation():
+def test_calcualte_english_text_property_without_language_precalculation():
     data = ['This is a sentence in English.', 'Это предложение на русском языке.']
-    assert_that([is_english(data[0]), is_english(data[1])], equal_to([True, False]))
+    assert_that([english_text(data[0]), english_text(data[1])], equal_to([True, False]))
 
 
 def test_include_properties():
