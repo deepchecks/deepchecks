@@ -72,7 +72,7 @@ def test_tweet_emotion(tweet_emotion_train_test_textdata, tweet_emotion_train_te
     ))
 
     assert_that(result.value['avg_score'], close_to(0.708, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(2))
+    assert_that(len(result.value['weak_segments_list']), equal_to(6))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.305, 0.01))
 
 
@@ -149,7 +149,7 @@ def test_multilabel_dataset(multilabel_mock_dataset_and_probabilities):
                                                    'performance.'))
 
     assert_that(result.value['avg_score'], close_to(0.83, 0.001))
-    assert_that(len(result.value['weak_segments_list']), is_in([2, 3]))
+    assert_that(len(result.value['weak_segments_list']), is_in([5, 6]))
     # assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.695, 0.01))  # TODO:
 
 
