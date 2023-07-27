@@ -23,7 +23,7 @@ How are The Correlations Calculated?
 This check works with 2 types of features: categorical and numerical, and uses a different method to calculate the
 correlation for each combination of feature types:
 
-1. numerical-numerical: `Pearson's correlation coefficient <https://en.wikipedia.org/wiki/Pearson_correlation_coefficient>`__
+1. numerical-numerical: `Spearman's correlation coefficient <https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient>`__
 2. numerical-categorical: `Correlation ratio <https://en.wikipedia.org/wiki/Correlation_ratio>`__
 3. categorical-categorical: `Symmetric Theil's U <https://en.wikipedia.org/wiki/Uncertainty_coefficient>`__
 

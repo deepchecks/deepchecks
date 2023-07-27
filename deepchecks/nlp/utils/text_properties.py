@@ -10,36 +10,38 @@
 #
 """Module containing the text properties for the NLP module."""
 import gc
-import importlib
 import pathlib
 import re
 import string
 import warnings
+from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import requests
 import textblob
 from nltk import corpus
 from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
+from tqdm import tqdm
 from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
+from deepchecks.nlp.utils.text_properties_models import get_cmudict_dict, get_fasttext_model, get_transformer_pipeline
 from deepchecks.utils.function import run_available_kwargs
-from deepchecks.utils.ipython import create_progress_bar
-from deepchecks.utils.strings import format_list, truncate_string
+from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
 
 from deepchecks.utils.validation import is_sequence_not_str
 
-MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
-FASTTEXT_LANG_MODEL = 'https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin'
 DEFAULT_SENTENCE_SAMPLE_SIZE = 300
 MAX_CHARS = 512  # Bert accepts max of 512 tokens, so without counting tokens we go for the lower bound.
+# all SPECIAL_CHARACTERS - all string.punctuation except for <>@[]^_`{|}~ - all whitespace
+NON_PUNCTUATION_SPECIAL_CHARS = frozenset(set(SPECIAL_CHARACTERS) - set(r"""!"#$%&'()*+,-./:;=?\@""")
+                                          - set(string.whitespace))
+
 textblob_cache = {}
 words_cache = {}
 sentences_cache = {}
@@ -98,156 +100,10 @@ def _sample_for_property(text: str, mode: str = 'words', limit: int = 10000, ret
     return ' '.join(all_units) if not return_as_list else list(all_units)
 
 
-def _import_optional_property_dependency(
-        module: str,
-        property_name: str,
-        package_name: Optional[str] = None,
-        error_template: Optional[str] = None
-):
-    try:
-        lib = importlib.import_module(module)
-    except ImportError as error:
-        package_name = package_name or module.split('.', maxsplit=1)[0]
-        error_template = error_template or (
-            'property {property_name} requires the {package_name} python package. '
-            'To get it, run:\n'
-            '>> pip install {package_name}\n\n'
-            'You may install dependencies for all text properties by running:\n'
-            '>> pip install deepchecks[nlp-properties]\n'
-        )
-        raise ImportError(error_template.format(
-            property_name=property_name,
-            package_name=package_name
-        )) from error
-    else:
-        return lib
-
-
 def _warn_if_missing_nltk_dependencies(dependency: str, property_name: str):
     """Warn if NLTK dependency is missing."""
     warnings.warn(f'NLTK {dependency} not found, {property_name} cannot be calculated.'
                   ' Please check your internet connection.', UserWarning)
-
-
-def get_create_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
-    """Get the models storage directory and create it if needed."""
-    if models_storage is None:
-        models_storage = MODELS_STORAGE
-    else:
-        if isinstance(models_storage, str):
-            models_storage = pathlib.Path(models_storage)
-        if not isinstance(models_storage, pathlib.Path):
-            raise ValueError(
-                f'Unexpected type of the "models_storage" parameter - {type(models_storage)}'
-            )
-        if not models_storage.exists():
-            models_storage.mkdir(parents=True)
-        if not models_storage.is_dir():
-            raise ValueError('"model_storage" expected to be a directory')
-
-    return models_storage
-
-
-def get_transformer_model(
-        property_name: str,
-        model_name: str,
-        device: Optional[str] = None,
-        quantize_model: bool = False,
-        models_storage: Union[pathlib.Path, str, None] = None
-):
-    """Get the transformer model and decide if to use optimum.onnxruntime.
-
-    optimum.onnxruntime is used to optimize running times on CPU.
-    """
-    models_storage = get_create_model_storage(models_storage)
-
-    if device not in (None, 'cpu'):
-        transformers = _import_optional_property_dependency('transformers', property_name=property_name)
-        # TODO: quantize if 'quantize_model' is True
-        return transformers.AutoModelForSequenceClassification.from_pretrained(
-            model_name,
-            cache_dir=models_storage
-        )
-
-    onnx = _import_optional_property_dependency(
-        'optimum.onnxruntime',
-        property_name=property_name,
-        error_template=(
-            f'The device was set to {device} while computing the {property_name} property,'
-            'in which case deepchecks resorts to accelerating the inference by using optimum,'
-            'bit it is not installed. Either:\n'
-            '\t- Set the device according to your hardware;\n'
-            '\t- Install optimum by running "pip install optimum";\n'
-            '\t- Install all dependencies needed for text properties by running '
-            '"pip install deepchecks[nlp-properties]";\n'
-        )
-    )
-
-    if quantize_model is False:
-        model_path = models_storage / 'onnx' / model_name
-
-        if model_path.exists():
-            return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
-
-        model = onnx.ORTModelForSequenceClassification.from_pretrained(
-            model_name,
-            export=True,
-            cache_dir=models_storage
-        )
-        # NOTE:
-        # 'optimum', after exporting/converting a model to the ONNX format,
-        # does not store it onto disk we need to save it now to not reconvert
-        # it each time
-        model.save_pretrained(model_path)
-        return model
-
-    model_path = models_storage / 'onnx' / 'quantized' / model_name
-
-    if model_path.exists():
-        return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
-
-    not_quantized_model = get_transformer_model(
-        property_name,
-        model_name,
-        device,
-        quantize_model=False,
-        models_storage=models_storage
-    )
-
-    quantizer = onnx.ORTQuantizer.from_pretrained(not_quantized_model)
-
-    quantizer.quantize(
-        save_dir=model_path,
-        # TODO: make it possible to provide a config as a parameter
-        quantization_config=onnx.configuration.AutoQuantizationConfig.avx512_vnni(
-            is_static=False,
-            per_channel=False
-        )
-    )
-    return onnx.ORTModelForSequenceClassification.from_pretrained(model_path)
-
-
-def get_transformer_pipeline(
-        property_name: str,
-        model_name: str,
-        device: Optional[str] = None,
-        models_storage: Union[pathlib.Path, str, None] = None
-):
-    """Return a transformers pipeline for the given model name."""
-    transformers = _import_optional_property_dependency('transformers', property_name=property_name)
-    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-    model = get_transformer_model(
-        property_name=property_name,
-        model_name=model_name,
-        device=device,
-        models_storage=models_storage
-    )
-    return transformers.pipeline(
-        'text-classification',
-        model=model,
-        tokenizer=tokenizer,
-        device=device
-    )
 
 
 def text_length(text: str) -> int:
@@ -263,6 +119,11 @@ def average_word_length(text: str) -> float:
 
 def percentage_special_characters(text: str) -> float:
     """Return percentage of special characters (as float between 0 and 1)."""
+    return len([c for c in text if c in NON_PUNCTUATION_SPECIAL_CHARS]) / len(text) if len(text) != 0 else 0
+
+
+def percentage_punctuation(text: str) -> float:
+    """Return percentage of punctuation (as float between 0 and 1)."""
     return len([c for c in text if c in string.punctuation]) / len(text) if len(text) != 0 else 0
 
 
@@ -270,36 +131,6 @@ def max_word_length(text: str) -> int:
     """Return max word length."""
     words = _split_to_words_with_cache(text)
     return max(len(w) for w in words) if words else 0
-
-
-def _get_fasttext_model(models_storage: Union[pathlib.Path, str, None] = None):
-    """Return fasttext model."""
-    fasttext = _import_optional_property_dependency(module='fasttext', property_name='language')
-
-    model_name = FASTTEXT_LANG_MODEL.rsplit('/', maxsplit=1)[-1]
-    model_path = get_create_model_storage(models_storage)
-    model_path = model_path / 'fasttext'
-
-    if not model_path.exists():
-        model_path.mkdir(parents=True)
-
-    model_path = model_path / model_name
-
-    # Save the model to a file
-    if not model_path.exists():
-        response = requests.get(FASTTEXT_LANG_MODEL, timeout=240)
-        if response.status_code != 200:
-            raise RuntimeError('Failed to donwload fasttext model')
-        model_path.write_bytes(response.content)
-
-    # This weird code is to suppress a warning from fasttext about a deprecated function
-    try:
-        fasttext.FastText.eprint = lambda *args, **kwargs: None
-        fasttext_model = fasttext.load_model(str(model_path))
-    except Exception as exp:
-        raise exp
-
-    return fasttext_model
 
 
 def language(
@@ -310,15 +141,30 @@ def language(
     """Return text language, represented as a string."""
     if not text:
         return None
-    # Not recommended, takes a long time. Here only to enable to call this function from outside:
+    # Load the model if it wasn't received as a parameter. This is done to avoid loading the model
+    # each time the function is called.
     if fasttext_model is None:
-        fasttext_model = _get_fasttext_model()
+        fasttext_model = get_fasttext_model()
 
     # Predictions are the first prediction (k=1), only if the probability is above the threshold
     prediction = fasttext_model.predict(text.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)[0]
     # label is empty for detection below threshold:
     language_code = prediction[0].replace('__label__', '') if prediction else None
     return language_code
+
+
+def english_text(
+        text: str,
+        lang_certainty_threshold: float = 0.8,
+        fasttext_model: Optional[Dict[object, Any]] = None,
+        language_property_result: Optional[str] = None
+) -> Union[bool, None]:
+    """Return whether text is in English or not."""
+    if not text:
+        return None
+    if language_property_result is None:
+        language_property_result = language(text, lang_certainty_threshold, fasttext_model)
+    return language_property_result == 'en'
 
 
 def sentiment(text: str) -> float:
@@ -343,11 +189,16 @@ def subjectivity(text: str) -> float:
     return textblob_cache.get(hash_key).subjectivity
 
 
-def _predict(text: str, classifier, kind: str) -> float:
+def predict_on_batch(text_batch: Sequence[str], classifier,
+                     output_formatter: Callable[[Dict[str, Any]], float]) -> Sequence[float]:
     """Return prediction of huggingface Pipeline classifier."""
-    try:
-        # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
-        # If text is longer than classifier context window, sample it:
+    # TODO: make this way smarter, and not just a hack. Count tokens, for a start. Then not just sample sentences.
+    # If text is longer than classifier context window, sample it:
+    text_list_to_predict = []
+    reduced_batch_size = len(text_batch)  # Initialize the reduced batch size
+    retry_count = 0
+
+    for text in text_batch:
         if len(text) > MAX_CHARS:
             sentences = _sample_for_property(text, mode='sentences', limit=10, return_as_list=True)
             text_to_use = ''
@@ -359,28 +210,35 @@ def _predict(text: str, classifier, kind: str) -> float:
             # if even one sentence is too long, use part of the first one:
             if len(text_to_use) == 0:
                 text_to_use = cut_string(sentences[0], MAX_CHARS)
-            text = text_to_use
-
-        v = classifier(text)
-    except Exception:  # pylint: disable=broad-except
-        return np.nan
-    else:
-        if not v:
-            return np.nan
-        v = v[0]
-        if kind == 'toxicity':
-            return v['score']
-        elif kind == 'fluency':
-            label_value = 'LABEL_1'
-        elif kind == 'formality':
-            label_value = 'formal'
+            text_list_to_predict.append(text_to_use)
         else:
-            raise ValueError('Unsupported value for "kind" parameter')
-        return (
-            v['score']
-            if v['label'] == label_value
-            else 1 - v['score']
-        )
+            text_list_to_predict.append(text)
+
+    while reduced_batch_size >= 1:
+        try:
+            if reduced_batch_size == 1 or retry_count == 3:
+                results = []
+                for text in text_list_to_predict:
+                    try:
+                        v = classifier(text)[0]
+                        results.append(output_formatter(v))
+                    except Exception:  # pylint: disable=broad-except
+                        results.append(np.nan)
+                return results  # Return the results if prediction is successful
+
+            v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
+            results = []
+
+            for v in v_list:
+                results.append(output_formatter(v))
+
+            return results  # Return the results if prediction is successful
+
+        except Exception:  # pylint: disable=broad-except
+            reduced_batch_size = max(reduced_batch_size // 2, 1)  # Reduce the batch size by half
+            retry_count += 1
+
+    return [np.nan] * len(text_batch)  # Prediction failed, return NaN values for the original batch size
 
 
 TOXICITY_MODEL_NAME = 'unitary/toxic-bert'
@@ -389,42 +247,54 @@ FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
 
 
 def toxicity(
-        text: str,
+        text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         toxicity_classifier: Optional[object] = None
-) -> float:
+) -> Sequence[float]:
     """Return float representing toxicity."""
     if toxicity_classifier is None:
         toxicity_classifier = get_transformer_pipeline(
             property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text, toxicity_classifier, 'toxicity')
+
+    def output_formatter(v):
+        return v['score']
+
+    return predict_on_batch(text_batch, toxicity_classifier, output_formatter)
 
 
 def fluency(
-        text: str,
+        text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         fluency_classifier: Optional[object] = None
-) -> float:
+) -> Sequence[float]:
     """Return float representing fluency."""
     if fluency_classifier is None:
         fluency_classifier = get_transformer_pipeline(
             property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text, fluency_classifier, 'fluency')
+
+    def output_formatter(v):
+        return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
+
+    return predict_on_batch(text_batch, fluency_classifier, output_formatter)
 
 
 def formality(
-        text: str,
+        text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         formality_classifier: Optional[object] = None
-) -> float:
+) -> Sequence[float]:
     """Return float representing formality."""
     if formality_classifier is None:
         formality_classifier = get_transformer_pipeline(
             property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
-    return _predict(text, formality_classifier, 'formality')
+
+    def output_formatter(v):
+        return v['score'] if v['label'] == 'formal' else 1 - v['score']
+
+    return predict_on_batch(text_batch, formality_classifier, output_formatter)
 
 
 def lexical_density(text: str) -> float:
@@ -446,7 +316,7 @@ def lexical_density(text: str) -> float:
     return round(total_unique_words * 100 / len(all_words), 2)
 
 
-def unique_noun_count(text: str) -> int:
+def unique_noun_count(text: Sequence[str]) -> int:
     """Return the number of unique noun words in the text."""
     if pd.isna(text):
         return np.nan
@@ -469,7 +339,7 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
         return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
-            _warn_if_missing_nltk_dependencies('cmudict', 'Readability Score')
+            _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
             return np.nan
         cmudict_dict = corpus.cmudict.dict()
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
@@ -599,75 +469,101 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
     return round(syllable_count / sentence_count, 2)
 
 
+def _batch_wrapper(text_batch: Sequence[str], func: Callable, **kwargs) -> List[Any]:
+    """Wrap the non-batched properties execution with batches API."""
+    results = []
+    language_property_result = []
+    if 'language_property_result' in kwargs:
+        language_property_result = kwargs.pop('language_property_result')
+
+    language_property_exists = len(language_property_result) > 0
+
+    for i, text in enumerate(text_batch):
+        kwargs['language_property_result'] = language_property_result[i] if language_property_exists else None
+        results.append(run_available_kwargs(func, text=text, **kwargs))
+
+    return results
+
+
 class TextProperty(TypedDict):
     name: str
     method: Callable[..., Sequence[Any]]
     output_type: str
 
 
-DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = (
-    {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
-    {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
-    {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
-    {'name': '% Special Characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
-    {'name': 'Language', 'method': language, 'output_type': 'categorical'},
-    {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
-    {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
-    {'name': 'Average Words Per Sentence', 'method': average_words_per_sentence, 'output_type': 'numeric'},
-    {'name': 'Readability Score', 'method': readability_score, 'output_type': 'numeric'},
-    {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
-    {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
-    {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
-    {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
-    {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-)
+DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
+    (
+        {'name': 'Text Length', 'method': text_length, 'output_type': 'numeric'},
+        {'name': 'Average Word Length', 'method': average_word_length, 'output_type': 'numeric'},
+        {'name': 'Max Word Length', 'method': max_word_length, 'output_type': 'numeric'},
+        {'name': '% Special Characters', 'method': percentage_special_characters, 'output_type': 'numeric'},
+        {'name': '% Punctuation', 'method': percentage_punctuation, 'output_type': 'numeric'},
+        {'name': 'Language', 'method': language, 'output_type': 'categorical'},
+        {'name': 'Sentiment', 'method': sentiment, 'output_type': 'numeric'},
+        {'name': 'Subjectivity', 'method': subjectivity, 'output_type': 'numeric'},
+        {'name': 'Average Words Per Sentence', 'method': average_words_per_sentence, 'output_type': 'numeric'},
+        {'name': 'Reading Ease', 'method': readability_score, 'output_type': 'numeric'},
+        {'name': 'Lexical Density', 'method': lexical_density, 'output_type': 'numeric'},
+        {'name': 'Toxicity', 'method': toxicity, 'output_type': 'numeric'},
+        {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
+        {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
+        {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
+    )
 
-ALL_PROPERTIES: Tuple[TextProperty, ...] = (
-                                               {'name': 'URLs Count', 'method': urls_count, 'output_type': 'numeric'},
-                                               {'name': 'Email Addresses Count', 'method': email_addresses_count,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Unique URLs Count', 'method': unique_urls_count,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Unique Email Addresses Count',
-                                                'method': unique_email_addresses_count, 'output_type': 'numeric'},
-                                               {'name': 'Unique Syllables Count', 'method': unique_syllables_count,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Reading Time', 'method': reading_time,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Sentences Count', 'method': sentences_count,
-                                                'output_type': 'numeric'},
-                                               {'name': 'Average Syllable Length', 'method': average_syllable_length,
-                                                'output_type': 'numeric'},
-                                           ) + DEFAULT_PROPERTIES
+ALL_PROPERTIES: Tuple[TextProperty, ...] = \
+    (
+        {'name': 'English Text', 'method': english_text, 'output_type': 'categorical'},
+        {'name': 'URLs Count', 'method': urls_count, 'output_type': 'numeric'},
+        {'name': 'Email Addresses Count', 'method': email_addresses_count, 'output_type': 'numeric'},
+        {'name': 'Unique URLs Count', 'method': unique_urls_count, 'output_type': 'numeric'},
+        {'name': 'Unique Email Addresses Count', 'method': unique_email_addresses_count, 'output_type': 'numeric'},
+        {'name': 'Unique Syllables Count', 'method': unique_syllables_count, 'output_type': 'numeric'},
+        {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
+        {'name': 'Sentences Count', 'method': sentences_count, 'output_type': 'numeric'},
+        {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
+    ) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
+
+BATCH_PROPERTIES = ('Toxicity', 'Fluency', 'Formality')
+
 LARGE_SAMPLE_SIZE = 10_000
 
 ENGLISH_ONLY_PROPERTIES = (
-    'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Readability Score',
+    'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Reading Ease',
     'Unique Noun Count', 'Unique Syllables Count', 'Sentences Count', 'Average Syllable Length'
 )
 
-CMUDICT_PROPERTIES = ('Average Syllable Length', 'Unique Syllables Count', 'Readability Score')
+CMUDICT_PROPERTIES = ('Average Syllable Length', 'Unique Syllables Count', 'Reading Ease')
 
 TEXT_PROPERTIES_DESCRIPTION = {
     'Text Length': 'Number of characters in the text',
     'Average Word Length': 'Average number of characters in a word',
     'Max Word Length': 'Maximum number of characters in a word',
-    '% Special Characters': 'Percentage of special characters in the text',
+    '% Special Characters': 'Percentage of special characters in the text. Special characters are non-alphanumeric '
+                            'unicode characters, excluding whitespaces and any of !\"#$%&\'()*+,-./:;=?\\@.',
+    '% Punctuation': 'Percentage of punctuation characters in the text. Punctuation characters are any of '
+                     '!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~',
     'Language': 'Language of the text, using the fasttext language detection model',
-    'Sentiment': 'Sentiment of the text, calculated using the TextBlob sentiment analysis model',
-    'Subjectivity': 'Subjectivity of the text, calculated using the TextBlob sentiment analysis model',
+    'Sentiment': 'Sentiment of the text, calculated using the TextBlob sentiment analysis model.'
+                 ' Ranging from -1 (negative) to 1 (positive)',
+    'Subjectivity': 'Subjectivity of the text, calculated using the TextBlob sentiment analysis model. Ranging from 0 '
+                    '(objective) to 1 (subjective)',
     'Average Words Per Sentence': 'Average number of words per sentence in the text',
-    'Readability Score': 'A score calculated based on Flesch reading-ease per text sample',
+    'Reading Ease': 'How easy to read a text sample is, typically ranges from around 0 (hard to read) to around '
+                    '100 (very easy). Based on Flesch reading-ease score',
     'Lexical Density': 'Percentage of unique words in the text',
-    'Toxicity': 'Toxicity score using unitary/toxic-bert HuggingFace model',
-    'Fluency': 'Fluency score using prithivida/parrot_fluency_model HuggingFace model',
-    'Formality': 'Formality score using s-nlp/roberta-base-formality-ranker HuggingFace model',
+    'Toxicity': 'A measure of how harmful or offensive a text sample is (0 to 1), uses the Detoxify library '
+                'unitary/toxic-bert model',
+    'Fluency': 'A measure of the fluency of the text (0 to 1), using the prithivida/parrot_fluency_model'
+               ' model from the authors of the Parrot Paraphraser library',
+    'Formality': 'The formality / register of the text (0 to 1), using the s-nlp/roberta-base-formality-ranker'
+                 ' model by the Skolkovo Institute of Science and Technology',
     'Unique Noun Count': 'Number of unique noun words in the text',
     'URLs Count': 'Number of URLS per text sample',
     'Email Addresses Count': 'Number of email addresses per text sample',
     'Unique URLs Count': 'Number of unique URLS per text sample',
+    'English Text': 'Whether the text is in English (1) or not (0)',
     'Unique Email Addresses Count': 'Number of unique email addresses per text sample',
     'Unique Syllables Count': 'Number of unique syllables per text sample',
     'Reading Time': 'Time taken in seconds to read a text sample',
@@ -751,8 +647,11 @@ def calculate_builtin_properties(
         include_properties: Optional[List[str]] = None,
         ignore_properties: Optional[List[str]] = None,
         include_long_calculation_properties: bool = False,
+        ignore_non_english_samples_for_english_properties: bool = True,
         device: Optional[str] = None,
-        models_storage: Union[pathlib.Path, str, None] = None
+        models_storage: Union[pathlib.Path, str, None] = None,
+        batch_size: Optional[int] = 16,
+        cache_models: bool = False
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
 
@@ -763,16 +662,16 @@ def calculate_builtin_properties(
     include_properties : List[str], default None
         The properties to calculate. If None, all default properties will be calculated. Cannot be used
         together with ignore_properties parameter. Available properties are:
-        ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', 'Language',
+        ['Text Length', 'Average Word Length', 'Max Word Length', '% Special Characters', '% Punctuation', 'Language',
         'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
-        'Readability Score', 'Average Words Per Sentence', 'URLs Count', Unique URLs Count', 'Email Address Count',
+        'Reading Ease', 'Average Words Per Sentence', 'URLs Count', Unique URLs Count', 'Email Address Count',
         'Unique Email Address Count', 'Unique Syllables Count', 'Reading Time', 'Sentences Count',
         'Average Syllable Length']
         List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
-        '% Special Characters', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality',
-        'Lexical Density', 'Unique Noun Count', 'Readability Score', 'Average Words Per Sentence']
+        '% Special Characters', '% Punctuation', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency',
+        'Formality', 'Lexical Density', 'Unique Noun Count', 'Reading Ease', 'Average Words Per Sentence']
         To calculate all the default properties, the include_properties and ignore_properties parameters should
-        be None. If you pass either include_properties or ignore_properties then the only the properties specified
+        be None. If you pass either include_properties or ignore_properties then only the properties specified
         in the list will be calculated or ignored.
         Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
         take a long time to calculate. If include_long_calculation_properties is False, these properties will be
@@ -783,12 +682,22 @@ def calculate_builtin_properties(
     include_long_calculation_properties : bool, default False
         Whether to include properties that may take a long time to calculate. If False, these properties will be
         ignored, unless they are specified in the include_properties parameter explicitly.
+    ignore_non_english_samples_for_english_properties : bool, default True
+        Whether to ignore samples that are not in English when calculating English properties. If False, samples
+        that are not in English will be calculated as well. This parameter is ignored when calculating non-English
+        properties.
+        English-Only properties WILL NOT work properly on non-English samples, and this parameter should be used
+        only when you are sure that all the samples are in English.
     device : int, default None
         The device to use for the calculation. If None, the default device will be used.
     models_storage : Union[str, pathlib.Path, None], default None
         A directory to store the models.
         If not provided, models will be stored in `DEEPCHECKS_LIB_PATH/nlp/.nlp-models`.
         Also, if a folder already contains relevant resources they are not re-downloaded.
+    batch_size : int, default 8
+        The batch size.
+    cache_models : bool, default False
+        cache the models being used in this function, to save load time in next execution
 
     Returns
     -------
@@ -816,7 +725,7 @@ def calculate_builtin_properties(
 
     # Prepare kwargs for properties that require outside resources:
     if 'fasttext_model' not in kwargs:
-        kwargs['fasttext_model'] = _get_fasttext_model(models_storage=models_storage)
+        kwargs['fasttext_model'] = get_fasttext_model(models_storage=models_storage, use_cache=cache_models)
 
     if 'cmudict_dict' not in kwargs:
         properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(text_properties_names))
@@ -825,20 +734,22 @@ def calculate_builtin_properties(
                 _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
                 for prop in properties_requiring_cmudict:
                     calculated_properties[prop] = [np.nan] * len(raw_text)
-            cmudict_dict = corpus.cmudict.dict()
-            kwargs['cmudict_dict'] = cmudict_dict
+            kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
     if 'Toxicity' in text_properties_names and 'toxicity_classifier' not in kwargs:
         kwargs['toxicity_classifier'] = get_transformer_pipeline(
-            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device,
+            models_storage=models_storage, use_cache=cache_models)
 
     if 'Formality' in text_properties_names and 'formality_classifier' not in kwargs:
         kwargs['formality_classifier'] = get_transformer_pipeline(
-            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device,
+            models_storage=models_storage, use_cache=cache_models)
 
     if 'Fluency' in text_properties_names and 'fluency_classifier' not in kwargs:
         kwargs['fluency_classifier'] = get_transformer_pipeline(
-            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device,
+            models_storage=models_storage, use_cache=cache_models)
 
     is_language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
     # Remove language property from the list of properties to calculate as it will be calculated separately:
@@ -852,37 +763,55 @@ def calculate_builtin_properties(
     )
     import_warnings = set()
 
-    progress_bar = create_progress_bar(
-        iterable=list(raw_text),
-        name='Text Samples Calculation',
-        unit='Text Sample'
-    )
-    for text in progress_bar:
-        progress_bar.set_postfix(
-            {'Sample': truncate_string(text, max_length=20) if text else 'EMPTY STRING'},
-            refresh=False
-        )
-        if pd.isna(text):
-            for prop in text_properties:
-                calculated_properties[prop['name']].append(np.nan)
-            continue
-        sample_language = run_available_kwargs(language, text=text, **kwargs)
-        if is_language_property_requested:
-            calculated_properties['Language'].append(sample_language)
+    for i in tqdm(range(0, len(raw_text), batch_size)):
+        batch = raw_text[i:i + batch_size]
+        batch_properties = defaultdict(list)
 
+        # filtering out empty sequences
+        nan_indices = {i for i, seq in enumerate(batch) if pd.isna(seq) is True}
+        filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
+
+        samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
+        if is_language_property_requested:
+            batch_properties['Language'].extend(samples_language)
+            calculated_properties['Language'].extend(samples_language)
+        kwargs['language_property_result'] = samples_language  # Pass the language property to other properties
+
+        non_english_indices = set()
+        if ignore_non_english_samples_for_english_properties:
+            non_english_indices = {i for i, (seq, lang) in enumerate(zip(filtered_sequences, samples_language))
+                                   if lang != 'en'}
         for prop in text_properties:
             if prop['name'] in import_warnings:  # Skip properties that failed to import:
-                calculated_properties[prop['name']].append(np.nan)
-            elif sample_language != 'en' and prop['name'] in english_properties_names:
-                calculated_properties[prop['name']].append(np.nan)
+                batch_properties[prop['name']].extend([np.nan] * len(batch))
             else:
+                if prop['name'] in english_properties_names \
+                        and ignore_non_english_samples_for_english_properties is True:
+                    filtered_sequences = [e for i, e in enumerate(filtered_sequences) if i not in non_english_indices]
+                kwargs['batch_size'] = batch_size
                 try:
-                    value = run_available_kwargs(prop['method'], text=text, **kwargs)
-                    calculated_properties[prop['name']].append(value)
+                    if prop['name'] in BATCH_PROPERTIES:
+                        value = run_available_kwargs(func=prop['method'], text_batch=filtered_sequences, **kwargs)
+                    else:
+                        value = _batch_wrapper(text_batch=filtered_sequences, func=prop['method'], **kwargs)
+                    batch_properties[prop['name']].extend(value)
                 except ImportError as e:
                     warnings.warn(warning_message.format(prop['name'], str(e)))
-                    calculated_properties[prop['name']].append(np.nan)
+                    batch_properties[prop['name']].extend([np.nan] * len(batch))
                     import_warnings.add(prop['name'])
+
+            result_index = 0
+
+            for index, seq in enumerate(batch):
+                if index in nan_indices or (index in non_english_indices and
+                                            ignore_non_english_samples_for_english_properties and
+                                            prop['name'] in english_properties_names):
+                    calculated_properties[prop['name']].append(np.nan)
+                else:
+                    calculated_properties[prop['name']].append(batch_properties[prop['name']][result_index])
+                    result_index += 1
+
+            filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
 
         # Clear property caches:
         textblob_cache.clear()
@@ -890,7 +819,8 @@ def calculate_builtin_properties(
         sentences_cache.clear()
 
     # Clean all remaining RAM:
-    gc.collect()
+    if not cache_models:
+        gc.collect()
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')

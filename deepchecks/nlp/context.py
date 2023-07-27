@@ -343,7 +343,9 @@ class Context(BaseContext):
             # If in infer_observed_and_model_labels we didn't find classes on model, or user didn't pass any,
             # then using the observed
             self._model_classes = self._observed_classes
-            get_logger().warning('Could not find model\'s classes, using the observed classes')
+            get_logger().warning('Could not find model\'s classes, using the observed classes. '
+                                 'In order to make sure the classes used by the model are inferred correctly, '
+                                 'please use the model_classes argument')
         return self._model_classes
 
     @property

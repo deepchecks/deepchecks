@@ -60,7 +60,7 @@ def test_init_mismatched_task_type():
 
 def test_wrong_token_label_format():
     # Arrange
-    tokenized_text = [['a'] ,['b', 'b' ,'b'], ['c', 'c', 'c', 'c']]
+    tokenized_text = [['a'], ['b', 'b', 'b'], ['c', 'c', 'c', 'c']]
 
     label_structure_error = r'label must be a Sequence of Sequences of either strings or integers'
 
@@ -183,17 +183,17 @@ def test_properties(text_classification_dataset_mock):
     # Act & Assert
     assert_that(dataset._properties, equal_to(None))
     # TODO: Create test for the heavy properties
-    dataset.calculate_builtin_properties(include_long_calculation_properties = False)
+    dataset.calculate_builtin_properties(include_long_calculation_properties=False)
     properties = dataset.properties
     assert_that(properties.shape[0], equal_to(3))
-    assert_that(properties.shape[1], equal_to(10))
+    assert_that(properties.shape[1], equal_to(11))
     assert_that(properties.columns, contains_exactly(
         'Text Length', 'Average Word Length',
-        'Max Word Length', '% Special Characters', 'Language', 'Sentiment',
-        'Subjectivity', 'Average Words Per Sentence', 'Readability Score', 'Lexical Density'
+        'Max Word Length', '% Special Characters', '% Punctuation', 'Language', 'Sentiment',
+        'Subjectivity', 'Average Words Per Sentence', 'Reading Ease', 'Lexical Density'
     ))
     assert_that(properties.iloc[0].values, contains_exactly(
-        22, 3.6, 9, 0.0, 'en', 0.0, 0.0, 5.0, 100.24, 80.0
+        22, 3.6, 9, 0.0, 0.0, 'en', 0.0, 0.0, 5.0, 100.24, 80.0
     ))
 
 
@@ -272,6 +272,7 @@ def test_set_metadata_with_an_incorrect_list_of_categorical_columns(text_classif
             r"The following columns does not exist in Metadata - \['foo'\]"
         )
     )
+
 
 def test_load_metadata(text_classification_dataset_mock):
     # Arrange
@@ -410,3 +411,84 @@ def test_mixed_builtin_and_mixed_properties(text_classification_dataset_mock):
     # The custom property is not categorical as we passed an empty list, and the builtin property is not categorical
     # as defined internally.
     assert_that(dataset.categorical_properties, equal_to(['Language']))
+
+
+def test_describe_with_properties(text_multilabel_classification_dataset_mock, tweet_emotion_train_test_textdata):
+    # Arrange
+    dataset_without_properties = text_multilabel_classification_dataset_mock
+    dataset_with_properties, _ = tweet_emotion_train_test_textdata
+
+    # Act
+    figure_without_properties = dataset_without_properties.describe(n_properties_to_show=8)
+    figure_with_properties_one = dataset_with_properties.describe(n_properties_to_show=3)
+    figure_with_properties_two = dataset_with_properties.describe(properties_to_show=['Text Length',
+                                                                                      'Language'])
+    # Assert
+    assert_that(
+        calling(dataset_without_properties.describe).with_args(properties_to_show=['Property One']),
+        raises(DeepchecksValueError, 'No properties exist!')
+    )
+    assert_that(len(figure_without_properties.data), equal_to(2))
+    assert_that(len(figure_without_properties.layout.annotations), equal_to(1))
+    assert_that(figure_without_properties.data[0].type, equal_to('pie'))
+    assert_that(figure_without_properties.data[1].type, equal_to('table'))
+
+    assert_that(len(figure_with_properties_one.data), equal_to(5))
+    assert_that(len(figure_with_properties_one.layout.annotations), equal_to(16))
+    assert_that(figure_with_properties_one.data[0].type, equal_to('pie'))
+    assert_that(figure_with_properties_one.data[1].type, equal_to('table'))
+    assert_that(figure_with_properties_one.data[2].type, equal_to('scatter'))
+    assert_that(figure_with_properties_one.data[3].type, equal_to('scatter'))
+    assert_that(figure_with_properties_one.data[4].type, equal_to('scatter'))
+
+    assert_that(len(figure_with_properties_two.data), equal_to(4))
+    assert_that(len(figure_with_properties_two.layout.annotations), equal_to(7))
+    assert_that(figure_with_properties_two.data[0].type, equal_to('pie'))
+    assert_that(figure_with_properties_two.data[1].type, equal_to('table'))
+    assert_that(figure_with_properties_two.data[2].type, equal_to('scatter'))
+    assert_that(figure_with_properties_two.data[3].type, equal_to('bar'))
+
+
+def test_describe_with_multi_label_dataset(text_multilabel_classification_dataset_mock):
+    # Arrange
+    dataset = text_multilabel_classification_dataset_mock
+
+    # Act
+    figure = dataset.describe()
+
+    # Assert
+    assert_that(len(figure.data), equal_to(2))
+    assert_that(len(figure.layout.annotations), equal_to(1))
+    assert_that(figure.data[0].type, equal_to('pie'))
+    assert_that(figure.data[1].type, equal_to('table'))
+
+
+def test_describe_with_single_label_dataset(tweet_emotion_train_test_textdata):
+    # Arrange
+    dataset, _ = tweet_emotion_train_test_textdata
+
+    # Act
+    figure = dataset.describe(n_properties_to_show=2)
+
+    # Assert
+    assert_that(len(figure.data), equal_to(4))
+    # 1 for pie, 2 for scatter, 4*2 lines for mean, median, 10^th percentile and 90^th percentile
+    assert_that(len(figure.layout.annotations), equal_to(11))
+    assert_that(figure.data[0].type, equal_to('pie'))
+    assert_that(figure.data[1].type, equal_to('table'))
+    assert_that(figure.data[2].type, equal_to('scatter'))
+    assert_that(figure.data[3].type, equal_to('scatter'))
+
+
+def test_describe_with_token_classification_dataset(text_token_classification_dataset_mock):
+    # Arrange
+    dataset = text_token_classification_dataset_mock
+
+    # Act
+    figure = dataset.describe()
+
+    # Assert
+    assert_that(len(figure.data), equal_to(2))
+    assert_that(len(figure.layout.annotations), equal_to(1))
+    assert_that(figure.data[0].type, equal_to('pie'))
+    assert_that(figure.data[1].type, equal_to('table'))

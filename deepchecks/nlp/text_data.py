@@ -23,6 +23,7 @@ from deepchecks.nlp.input_validations import (ColumnTypes, validate_length_and_c
                                               validate_raw_text, validate_tokenized_text)
 from deepchecks.nlp.task_type import TaskType, TTextLabel
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
+from deepchecks.nlp.utils.text_data_plot import text_data_describe_plot
 from deepchecks.nlp.utils.text_embeddings import calculate_builtin_embeddings
 from deepchecks.nlp.utils.text_properties import calculate_builtin_properties, get_builtin_properties_types
 from deepchecks.utils.logger import get_logger
@@ -411,6 +412,7 @@ class TextData:
         include_properties: t.Optional[t.List[str]] = None,
         ignore_properties: t.Optional[t.List[str]] = None,
         include_long_calculation_properties: bool = False,
+        ignore_non_english_samples_for_english_properties: bool = True,
         device: t.Optional[str] = None
     ):
         """Calculate the default properties of the dataset.
@@ -426,6 +428,12 @@ class TextData:
         include_long_calculation_properties : bool, default False
             Whether to include properties that may take a long time to calculate. If False, these properties will be
             ignored.
+        ignore_non_english_samples_for_english_properties : bool, default True
+            Whether to ignore samples that are not in English when calculating English properties. If False, samples
+            that are not in English will be calculated as well. This parameter is ignored when calculating non-English
+            properties.
+            English-Only properties WILL NOT work properly on non-English samples, and this parameter should be used
+            only when you are sure that all the samples are in English.
         device : int, default None
             The device to use for the calculation. If None, the default device will be used.
         """
@@ -437,6 +445,7 @@ class TextData:
             include_properties=include_properties,
             ignore_properties=ignore_properties,
             include_long_calculation_properties=include_long_calculation_properties,
+            ignore_non_english_samples_for_english_properties=ignore_non_english_samples_for_english_properties,
             device=device
         )
 
@@ -527,6 +536,14 @@ class TextData:
     def categorical_properties(self) -> t.List[str]:
         """Return categorical properties names."""
         return self._cat_properties
+
+    @property
+    def numerical_properties(self) -> t.List[str]:
+        """Return numerical properties names."""
+        if self._properties is not None:
+            return [prop for prop in self._properties.columns if prop not in self._cat_properties]
+        else:
+            return []
 
     @property
     def task_type(self) -> t.Optional[TaskType]:
@@ -732,6 +749,60 @@ class TextData:
         if n_samples is None:
             return False
         return self.n_samples > n_samples
+
+    def describe(self, n_properties_to_show: t.Optional[int] = 4, properties_to_show: t.Optional[t.List[str]] = None,
+                 max_num_labels_to_show: t.Optional[int] = 5, model_classes: t.Optional[t.List[str]] = None):
+        """Provide holistic view of the data.
+
+        Generates the following plots:
+        1. Label distribution
+        2. Statistics about the data such as number of samples, annotation ratio, list of metadata columns, list of
+        text properties and so on.
+        3. Property distribution for the text properties defined either by n_properties_to_show or properties_to_show
+        parameter.
+
+        Parameters
+        ----------
+        n_properties_to_show : int, default: 4
+            Number of properties to consider for generating property distribution graphs. If properties_to_show
+            is provided, this value is ignored.
+        properties_to_show : List[str], default: None
+            List of property names to consider for generating property distribution graphs. If None, all the
+            properties are considered.
+        max_num_labels_to_show : int, default: 5
+            The threshold to display the maximum number of labels on the label distribution pie chart and
+            display rest of the labels under "Others" category.
+        model_classes : Optional[List[str]], default: None
+            List of classes names to use for multi-label display. Only used if the dataset is multi-label.
+
+        Returns
+        -------
+        Displays the Plotly Figure.
+        """
+        prop_names = []
+        all_properties_data = pd.DataFrame()
+        if self._properties is None and properties_to_show is not None:
+            raise DeepchecksValueError('No properties exist!')
+        elif self._properties is not None:
+            if properties_to_show is not None:
+                prop_names = [prop for prop in properties_to_show if prop in self.properties.columns]
+                if len(prop_names) != len(properties_to_show):
+                    raise DeepchecksValueError(f'{set(properties_to_show)-set(prop_names)} '
+                                               'properties does not exist in the TextData object')
+            else:
+                prop_names = list(self.properties.columns)[:n_properties_to_show]
+            all_properties_data = self.properties[prop_names]
+
+        fig = text_data_describe_plot(properties=all_properties_data, n_samples=self.n_samples,
+                                      is_multi_label=self.is_multi_label_classification(), task_type=self.task_type,
+                                      categorical_metadata=self.categorical_metadata,
+                                      numerical_metadata=self.numerical_metadata,
+                                      categorical_properties=self.categorical_properties,
+                                      numerical_properties=self.numerical_properties, label=self._label,
+                                      model_classes=model_classes,
+                                      max_num_labels_to_show=max_num_labels_to_show)
+
+        return fig
 
 
 @contextlib.contextmanager

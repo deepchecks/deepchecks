@@ -225,7 +225,9 @@ def get_font_with_size(text, desired_width):
     desired_width = max(100, desired_width)
     jump_size = 100
     while jump_size > 1:
-        if font.getsize(text)[0] < desired_width:
+        left, _, right, _ = font.getbbox(text)
+        width = right - left
+        if width < desired_width:
             font_size += jump_size
         else:
             jump_size = jump_size // 2
@@ -266,8 +268,8 @@ def prepare_thumbnail(
         # Takes the minimum factor in order for the image to not exceed the size in either width or height
         factor = min(width_factor, height_factor)
         size = (int(image.size[0] * factor), int(image.size[1] * factor))
-        # Resize the image
-        image = image.resize(size, pilimage.ANTIALIAS)
+        # Resize the image by Image.LANCZOS
+        image = image.resize(size, pilimage.LANCZOS)
     else:
         image = ensure_image(image, copy=False)
 

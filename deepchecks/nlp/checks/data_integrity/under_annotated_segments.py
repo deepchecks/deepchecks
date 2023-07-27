@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of the under annotated segments check."""
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 from deepchecks import ConditionCategory, ConditionResult
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
-from deepchecks.core.errors import DeepchecksProcessError
+from deepchecks.core.errors import NotEnoughSamplesError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp.utils.text import break_to_lines_and_trim
 from deepchecks.nlp.utils.weak_segments import get_relevant_data_table
@@ -30,6 +30,10 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['UnderAnnotatedMetaDataSegments', 'UnderAnnotatedPropertySegments']
 
 MAX_SAMPLES_IN_FIGURE = 1000
+# The threshold the UnderAnnotatedSegments considers the data to be well
+# annotated and skips the checks
+ANNOTATION_RATIO_THRESHOLD = 95.0
+MIN_TEXT_SAMPLES = 10  # Min samples to calculate under annotated segments
 
 
 class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
@@ -37,8 +41,8 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
 
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
                  ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: int,
-                 segment_minimum_size_ratio: float, n_samples: int,
-                 categorical_aggregation_threshold: float, n_to_show: int, **kwargs):
+                 segment_minimum_size_ratio: float, n_samples: int, n_to_show: int,
+                 categorical_aggregation_threshold: float, multiple_segments_per_feature: bool, **kwargs):
         super().__init__(**kwargs)
         self.segment_by = segment_by
         self.columns = columns
@@ -48,6 +52,8 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
+        self.annotation_ratio_threshold = ANNOTATION_RATIO_THRESHOLD
+        self.multiple_segments_per_feature = multiple_segments_per_feature
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
@@ -59,18 +65,30 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
                                                          n_top_features=self.n_top_features)
 
         score_per_sample = pd.Series([1 - is_label_none(x) for x in text_data.label], index=features.index)
+        annotation_ratio = round(score_per_sample.sum() * 100 / text_data.n_samples, 2)
+        if annotation_ratio > self.annotation_ratio_threshold:
+            display_msg = f'Under annotated {self.segment_by} segments check is skipped since your data ' \
+                          f'annotation ratio is > {self.annotation_ratio_threshold}%. Try increasing the ' \
+                          'annotation_ratio_threshold parameter.'
+            return CheckResult(value={'message': display_msg}, display=[display_msg])
+
+        if text_data.n_samples < MIN_TEXT_SAMPLES:
+            raise NotEnoughSamplesError(f'Not enough samples to calculate under annotated {self.segment_by} '
+                                        'segments. Minimum 10 samples required.')
+
         encoded_dataset = self._target_encode_categorical_features_fill_na(features, score_per_sample,
                                                                            cat_features)
 
         avg_score = round(score_per_sample.mean(), 3)
         weak_segments = self._weak_segments_search(data=encoded_dataset.features_columns,
                                                    score_per_sample=score_per_sample,
-                                                   scorer_name='Annotation Ratio')
+                                                   scorer_name='Annotation Ratio',
+                                                   multiple_segments_per_feature=self.multiple_segments_per_feature)
 
         if len(weak_segments) == 0:
-            raise DeepchecksProcessError('Check was unable to find under annotated segments. This is expected if '
-                                         'your data is well annotated. If this is not the case, try increasing '
-                                         f'n_samples or supply more {self.segment_by}.')
+            display_msg = 'Check was unable to find under annotated segments. Try ' \
+                          f'supplying more {self.segment_by}.'
+            return CheckResult(value={'message': display_msg}, display=[display_msg])
 
         check_result_value = self._generate_check_result_value(weak_segments, cat_features, avg_score)
         display_msg = f'Showcasing intersections of {self.segment_by} that result in the most ' \
@@ -223,7 +241,7 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
         Properties to check, if none are given checks all properties except ignored ones.
     ignore_properties : Union[Hashable, List[Hashable]] , default: None
         Properties to ignore, if none given checks based on properties variable
-    n_top_properties : int , default: 10
+    n_top_properties : Optional[int] , default: 10
         Number of properties to use for segment search. Top properties are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
@@ -234,16 +252,20 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
         number of segments with the weakest performance to show.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
+    multiple_segments_per_property : bool , default: False
+        If True, will allow the same property to be a segmenting feature in multiple segments,
+        otherwise each property can appear in one segment at most.
     """
 
     def __init__(self,
                  properties: Union[Hashable, List[Hashable], None] = None,
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
-                 n_top_properties: int = 15,
+                 n_top_properties: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
+                 multiple_segments_per_property: bool = False,
                  **kwargs):
         super().__init__(segment_by='properties',
                          columns=properties,
@@ -253,6 +275,7 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
+                         multiple_segments_per_feature=multiple_segments_per_property,
                          **kwargs)
 
 
@@ -274,7 +297,7 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
         Columns to check, if none are given checks all columns except ignored ones.
     ignore_columns : Union[Hashable, List[Hashable]] , default: None
         Columns to ignore, if none given checks based on columns variable
-    n_top_columns : int , default: 10
+    n_top_columns : Optional[int] , default: 10
         Number of features to use for segment search. Top columns are selected based on feature importance.
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
@@ -285,16 +308,20 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
         number of segments with the weakest performance to show.
     categorical_aggregation_threshold : float , default: 0.05
         In each categorical column, categories with frequency below threshold will be merged into "Other" category.
+     multiple_segments_per_column : bool , default: True
+        If True, will allow the same metadata column to be a segmenting column in multiple segments,
+        otherwise each metadata column can appear in one segment at most.
     """
 
     def __init__(self,
                  columns: Union[Hashable, List[Hashable], None] = None,
                  ignore_columns: Union[Hashable, List[Hashable], None] = None,
-                 n_top_columns: int = 10,
+                 n_top_columns: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
+                 multiple_segments_per_column: bool = True,
                  **kwargs):
         super().__init__(segment_by='metadata',
                          columns=columns,
@@ -304,4 +331,5 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
+                         multiple_segments_per_feature=multiple_segments_per_column,
                          **kwargs)

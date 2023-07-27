@@ -56,3 +56,21 @@ def test_detection(coco_visiondata_train):
     # Assert
     num_of_classes = len(coco_visiondata_train.get_observed_classes()) + 1  # plus no-overlapping
     assert_that(result.value.shape, le((num_of_classes, num_of_classes)))
+
+
+def test_confusion_matrix_report_display(mnist_visiondata_train):
+    # Arrange
+    check = ConfusionMatrixReport()
+
+    # Act
+    result = check.run(mnist_visiondata_train)
+
+    # Assert
+    assert_that(result.display[0], equal_to('Showing 10 of 10 classes:'))
+    assert_that(result.display[1],
+                equal_to('The overall accuracy of your model is: 97.45%.<br>Best accuracy achieved on samples with <b>'
+                         '0</b> label (100.0%).<br>Worst accuracy achieved on samples with <b>9</b> label (86.96%).'))
+    # First and second are the text descriptions and third is a heatmap
+    assert_that(len(result.display), equal_to(3))
+    assert_that(len(result.display[2].data), equal_to(1))
+    assert_that(result.display[2].data[0].type, equal_to('heatmap'))

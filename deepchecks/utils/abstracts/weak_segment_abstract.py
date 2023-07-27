@@ -170,8 +170,8 @@ class WeakSegmentAbstract(abc.ABC):
     def _weak_segments_search(self, data: pd.DataFrame, score_per_sample: pd.Series,
                               label_col: Optional[pd.Series] = None,
                               feature_rank_for_search: Optional[np.ndarray] = None,
-                              dummy_model: Optional[_DummyModel] = None,
-                              scorer: Optional[DeepcheckScorer] = None, scorer_name: Optional[str] = None) \
+                              dummy_model: Optional[_DummyModel] = None, scorer: Optional[DeepcheckScorer] = None,
+                              scorer_name: Optional[str] = None, multiple_segments_per_feature: bool = False) \
             -> pd.DataFrame:
         """Search for weak segments based on scorer."""
         # Remove samples with NaN score per sample
@@ -213,11 +213,24 @@ class WeakSegmentAbstract(abc.ABC):
                                                              tuple(filters[feature2]), data_size,
                                                              list(data_of_segment.index)]
 
-        # Drop duplicates without considering column 'Samples in Segment'
-        result_no_duplicates = weak_segments.drop(columns='Samples in Segment').drop_duplicates()
-        result_no_duplicates['Samples in Segment'] = weak_segments.loc[result_no_duplicates.index, 'Samples in Segment']
+        # Sort and drop relevant columns
+        weak_segments = weak_segments.sort_values(score_title).reset_index(drop=True)
+        if multiple_segments_per_feature:
+            result = weak_segments.drop(columns='Samples in Segment').drop_duplicates()
+            result['Samples in Segment'] = weak_segments.loc[result.index, 'Samples in Segment']
+        else:
+            used_features = set()
+            result = pd.DataFrame(columns=weak_segments.columns)
+            for _, row in weak_segments.iterrows():
+                if row['Feature1'] in used_features or row['Feature2'] in used_features:
+                    continue
 
-        return result_no_duplicates.sort_values(score_title).reset_index(drop=True)
+                result.loc[len(result)] = row
+                used_features.add(row['Feature1'])
+                if row['Feature2'] != '':
+                    used_features.add(row['Feature2'])
+
+        return result
 
     def _find_weak_segment(self, data: pd.DataFrame, features_for_segment: List[str], score_per_sample: pd.Series,
                            label_col: Optional[pd.Series] = None, dummy_model: Optional[_DummyModel] = None,
@@ -330,6 +343,9 @@ class WeakSegmentAbstract(abc.ABC):
         """
 
         def condition(result: Dict) -> ConditionResult:
+            if 'message' in result:
+                return ConditionResult(ConditionCategory.PASS, result['message'])
+
             weakest_segment_score = result['weak_segments_list'].iloc[0, 0]
             scorer_name = result['weak_segments_list'].columns[0].lower()
             msg = f'Found a segment with {scorer_name} of {format_number(weakest_segment_score, 3)} ' \

@@ -80,7 +80,7 @@ class TestTextClassification:
                 "Method": "Kolmogorov-Smirnov",
                 "Importance": None}),
             "% Special Characters": has_entries({
-                "Drift score": close_to(0.23, 0.01),
+                "Drift score": close_to(0.13, 0.01),
                 "Method": "Kolmogorov-Smirnov",
                 "Importance": None}),
             "Sentiment": has_entries({
@@ -137,7 +137,7 @@ class TestTokenClassification:
         assert_that(result.value, has_entries({
             'Max Word Length': has_entries({'Drift score': close_to(0.18, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
             'Average Word Length': has_entries({'Drift score': close_to(0.24, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
-            '% Special Characters': has_entries({'Drift score': close_to(0.16, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
+            '% Special Characters': has_entries({'Drift score': close_to(0.04, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
             'Text Length': has_entries({'Drift score': close_to(0.3, 0.01), 'Method': 'Kolmogorov-Smirnov'}),
             'Subjectivity': has_entries({'Drift score': None, 'Method': None}),
             'Sentiment': has_entries({'Drift score': None, 'Method': None})
