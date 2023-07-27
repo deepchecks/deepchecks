@@ -79,6 +79,17 @@ Using Pip
     pip install "deepchecks[nlp]" --upgrade
 
 
+Installing Properties
+---------------------
+deepchecks for NLP uses :ref:`text properties <nlp__properties_guide>` for some checks.
+In order for deepchecks to calculate the text properties of your data, there are additional dependencies that need to
+be installed. These can be installed using the following command:
+
+.. code-block:: bash
+
+    pip install "deepchecks[nlp-properties]" --upgrade
+
+
 Deepchecks For Computer Vision
 ===============================
 
