@@ -66,6 +66,22 @@ def test_check_on_clean_dataset(clean_dataset):
     ))  # type: ignore
 
 
+def test_check_on_dataset_with_emptt_sample():
+    # Arrange
+    data = TextData(raw_text=['', 'aa'])
+    check = SpecialCharacters().add_condition_samples_ratio_w_special_characters_less_or_equal(0)
+
+    # Act
+    result = check.run(dataset=data)
+
+    # Assert
+    assert_that(result.value, has_entries({
+        "samples_per_special_char": has_length(0),
+        "percent_of_samples_with_special_chars": equal_to(0),
+        'percent_special_chars_per_sample': has_length(2),
+    }))
+
+
 def test_check_on_samples_with_special_characters(dataset_with_special_characters):
     # Arrange
     check = SpecialCharacters().add_condition_samples_ratio_w_special_characters_less_or_equal(

@@ -102,6 +102,9 @@ class SpecialCharacters(SingleDatasetCheck):
                 continue
             if len(sample) > self.max_chars_to_review_per_sample:
                 sample = random.sample(sample, self.max_chars_to_review_per_sample)
+            if len(sample) == 0:
+                percent_special_chars_in_sample[idx] = 0
+                continue
             special_chars_in_sample = [char for char in sample if char in self.special_characters_deny_list]
             percent_special_chars_in_sample[idx] = len(special_chars_in_sample) / len(sample)
             for char in frozenset(special_chars_in_sample):

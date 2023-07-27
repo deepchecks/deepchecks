@@ -186,8 +186,11 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
                         text_lens.append(chunk_lens[idx])
                         idx += 1
 
-                    text_embedding = np.average(text_embeddings, axis=0, weights=text_lens)
-                    text_embedding = text_embedding / np.linalg.norm(text_embedding)  # normalizes length to 1
+                    if sum(text_lens) == 0:
+                        text_embedding = np.ones((EMBEDDING_DIM, )) * np.nan
+                    else:
+                        text_embedding = np.average(text_embeddings, axis=0, weights=text_lens)
+                        text_embedding = text_embedding / np.linalg.norm(text_embedding)  # normalizes length to 1
                 result_embeddings.append(text_embedding.tolist())
 
             return result_embeddings

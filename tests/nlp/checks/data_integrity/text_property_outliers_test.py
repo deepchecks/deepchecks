@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Test for the NLP TextPropertyOutliers check"""
-
+import numpy as np
 import pandas as pd
 from hamcrest import assert_that, close_to, equal_to
 
@@ -55,6 +55,32 @@ def test_tweet_emotion_properties(tweet_emotion_train_test_textdata):
 def test_tweet_emotion_condition(tweet_emotion_train_test_textdata):
     # Arrange
     _, test = tweet_emotion_train_test_textdata
+    check = TextPropertyOutliers().add_condition_outlier_ratio_less_or_equal()
+    # Act
+    result = check.run(test)
+    conditions_decisions = check.conditions_decision(result)
+
+    # Assert
+    assert_that(len(result.value['Sentiment']['indices']), equal_to(65))
+    assert_that(result.value['Sentiment']['lower_limit'], close_to(-0.90, 0.01))
+    assert_that(result.value['Sentiment']['upper_limit'], close_to(0.92, 0.01))
+
+    assert_that(
+        conditions_decisions[0],
+        equal_condition_result(
+            is_pass=False,
+            name='Outlier ratio in all properties is less or equal than 5%',
+            details='Found 1 properties with outlier ratios above threshold.</br>'
+                    'Property with highest ratio is Toxicity with outlier ratio of 16.43%'
+        )  # type: ignore
+    )
+
+
+def test_tweet_emotion_condition_property_with_nans(tweet_emotion_train_test_textdata):
+    # Arrange
+    _, test = tweet_emotion_train_test_textdata
+    test = test.copy()
+    test._properties['Subjectivity'] = test._properties['Subjectivity'] * np.nan
     check = TextPropertyOutliers().add_condition_outlier_ratio_less_or_equal()
     # Act
     result = check.run(test)

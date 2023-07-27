@@ -88,6 +88,8 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             labels = [tuple(np.where(row == 1)[0]) for row in dataset.label]
         elif dataset.task_type is TaskType.TEXT_CLASSIFICATION:
             labels = dataset.label
+        elif dataset.task_type is TaskType.OTHER:
+            raise DeepchecksValueError('Check is irrelevant when task type is not specified')
         else:
             raise DeepchecksValueError(f'Unknown task type - {dataset.task_type}')
         return labels
