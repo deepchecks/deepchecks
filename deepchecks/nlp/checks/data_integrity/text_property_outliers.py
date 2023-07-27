@@ -216,6 +216,8 @@ class TextPropertyOutliers(SingleDatasetCheck):
             for property_name, info in result.items():
                 if properties_to_ignore is not None and property_name in properties_to_ignore:
                     continue
+                if isinstance(info, str):
+                    continue
                 if info['outlier_ratio'] > threshold:
                     failed_properties.append(property_name)
                 if info['outlier_ratio'] > worst_ratio:
