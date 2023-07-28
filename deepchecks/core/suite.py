@@ -16,7 +16,7 @@ import json
 import pathlib
 import warnings
 from collections import OrderedDict
-from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
+from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast, overload
 
 import jsonpickle
 from bs4 import BeautifulSoup
@@ -33,6 +33,7 @@ from deepchecks.core.serialization.suite_result.html import SuiteResultSerialize
 from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as SuiteResultIPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import get_random_string, widget_to_html_string
 from deepchecks.utils.wandb_utils import wandb_run
 
@@ -116,6 +117,37 @@ class SuiteResult(DisplayableResult):
             if index in idx:
                 output.append(result)
         return output
+
+    def select_results_by_check_type(
+        self,
+        check_type: 'TCheckTypes'
+    ) -> List['check_types.BaseCheckResult']:
+        """Select results by check type(s).
+
+        Parameters
+        ==========
+        check_type : Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
+            a check type(s), results of which to return
+
+        Returns
+        =======
+        List['check_types.BaseCheckResult']:
+            list of results and failures
+
+        Examples
+        ========
+        >> from deepchecks.tabular.suites import data_integrity
+        >> from deepchecks.tabular.checks import IsSingleValue
+        >>
+        >> suite_result = data_integrity(...)
+        >> check_results = suite_result.select_results_by_check_type(IsSingleValue)
+        >>
+        """
+        return select_check_by_type(
+            checks=self.results,
+            check_type=check_type,
+            warning_template=f"Next check types are not part of a '{self.name}' suite result: %s"
+        )
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
@@ -580,6 +612,48 @@ class BaseSuite:
         self.checks.pop(index)
         return self
 
+    def select_checks_by_type(self, check_type: 'TCheckTypes') -> List[BaseCheck]:
+        """Select check instances by type(s).
+
+        Parameters
+        ==========
+        check_type : Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
+            check types
+
+        Returns
+        =======
+        List[BaseCheck]
+        """
+        return select_check_by_type(
+            checks=list(self.checks.values()),
+            check_type=check_type,
+            warning_template=f"Next check types are not part of a '{self.name}' suite: %s"
+        )
+
+    def remove_checks_by_type(self, check_type: 'TCheckTypes') -> List[BaseCheck]:
+        """Remove given check types from a suite.
+
+        Parameters
+        ==========
+        check_type : Union[Type[BaseCheck], Sequence[Type[BaseCheck]]]
+            check types
+
+        Returns
+        =======
+        List[BaseCheck] : list of removed check instances
+        """
+        checks = select_check_by_type(
+            checks=list(self.checks.values()),
+            check_type=check_type,
+            warning_template=f"Next check types are not part of a '{self.name}' suite: %s"
+        )
+        self.checks = OrderedDict({
+            k: v
+            for k, v in self.checks.items()
+            if v not in checks
+        })
+        return checks
+
     def to_json(self, indent: int = 3) -> str:
         """Serialize suite instance to JSON string."""
         conf = self.config()
@@ -692,3 +766,71 @@ def sort_check_results(
         check_results_index[index]
         for _, index in order
     ]
+
+
+TCheckTypes = Union[
+    Type['check_types.BaseCheck'],
+    Sequence[Type['check_types.BaseCheck']]
+]
+
+
+@overload
+def select_check_by_type(
+    checks: Sequence[BaseCheck],
+    check_type: TCheckTypes,
+    warning_template: Optional[str] = None
+) -> List[BaseCheck]:
+    ...
+
+
+@overload
+def select_check_by_type(
+    checks: Sequence['check_types.BaseCheckResult'],
+    check_type: TCheckTypes,
+    warning_template: Optional[str] = None
+) -> List['check_types.BaseCheckResult']:
+    ...
+
+
+def select_check_by_type(
+    checks: Union[
+        Sequence[BaseCheck],
+        Sequence['check_types.BaseCheckResult']
+    ],
+    check_type: TCheckTypes,
+    warning_template: Optional[str] = None
+) -> Union[
+    List[BaseCheck],
+    List['check_types.BaseCheckResult']
+]:
+    """Select check instances or check results by check type(s)."""
+    if isinstance(check_type, Sequence):
+        if len(check_type) == 0:
+            raise ValueError('Empty sequence is not allowed')
+        check_type = tuple(check_type)
+    elif isinstance(check_type, type) and issubclass(check_type, BaseCheck):
+        check_type = (check_type,)
+    else:
+        t = type(check_type).__name__
+        raise TypeError(f'Unsupported type of "check_type" parameter - {t}')
+
+    available_types = set()
+    output = []
+
+    for instance in checks:
+        if isinstance(instance, BaseCheck):
+            available_types.add(type(instance))
+            if isinstance(instance, check_type):
+                output.append(instance)
+        elif isinstance(instance, check_types.BaseCheckResult):
+            available_types.add(type(instance.check))
+            if isinstance(instance.check, check_type):
+                output.append(instance)
+
+    diff = set(check_type).difference(available_types)
+
+    if diff:
+        template = warning_template or 'Next check types are not present in sequence: %s'
+        get_logger().warning(template, ', '.join(it.__name__ for it in diff))
+
+    return output

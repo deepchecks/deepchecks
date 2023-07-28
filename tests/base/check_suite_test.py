@@ -12,7 +12,7 @@
 import random
 from typing import List
 
-from hamcrest import all_of, assert_that, calling, equal_to, has_entry, has_items, has_length, instance_of, is_, raises
+from hamcrest import all_of, assert_that, calling, equal_to, has_entry, has_length, instance_of, is_, raises, contains_exactly, same_instance, has_value, not_, has_property
 
 from deepchecks import __version__
 from deepchecks.core import CheckFailure, CheckResult, ConditionCategory, ConditionResult, SuiteResult
@@ -210,3 +210,159 @@ def test_config():
     conf_suite_mod = BaseSuite.from_config(suite_mod)
     assert_that(conf_suite_mod.name, equal_to('Model Evaluation Suite'))
     assert_that(conf_suite_mod.checks.values(), has_length(check_amount))
+
+
+def test_results_selection_by_check_type():
+    result1 = CheckResult(0, 'check1')
+    result1.check = tabular_checks.IsSingleValue()
+    result2 = CheckResult(0, 'check2')
+    result2.check = tabular_checks.IsSingleValue()
+    result3 = CheckResult(0, 'check3')
+    result3.check = tabular_checks.ColumnsInfo()
+    failure = CheckFailure(tabular_checks.ColumnsInfo(), DeepchecksValueError(''))
+
+    suite_result = SuiteResult('test', [result1, result2, result3, failure])
+
+    assert_that(
+        suite_result.select_results_by_check_type(tabular_checks.IsSingleValue),
+        contains_exactly(
+            same_instance(result1),
+            same_instance(result2)
+        )
+    )
+    assert_that(
+        suite_result.select_results_by_check_type(tabular_checks.ColumnsInfo),
+        contains_exactly(
+            same_instance(result3),
+            same_instance(failure)
+        )
+    )
+    assert_that(
+        suite_result.select_results_by_check_type((tabular_checks.ColumnsInfo, tabular_checks.IsSingleValue)),
+        contains_exactly(
+            same_instance(result1),
+            same_instance(result2),
+            same_instance(result3),
+            same_instance(failure)
+        )
+    )
+
+
+def test_not_existing_results_selection_by_check_type():
+    results = [
+        CheckResult(0, 'check1'),
+        CheckResult(0, 'check2'),
+        CheckResult(0, 'check3'),
+        CheckFailure(tabular_checks.ColumnsInfo(), DeepchecksValueError(''))
+    ]
+    results[0].check = tabular_checks.IsSingleValue()
+    results[1].check = tabular_checks.IsSingleValue()
+    results[2].check = tabular_checks.ColumnsInfo()
+
+    suite_result = SuiteResult('test', results)
+
+    assert_that(
+        suite_result.select_results_by_check_type(tabular_checks.DataDuplicates),
+        has_length(0)
+    )
+
+
+def test_suite_results_selection(iris_split_dataset_and_model_custom):
+    iris_train, iris_test, _ = iris_split_dataset_and_model_custom
+
+    suite = Suite(
+        "test",
+        tabular_checks.IsSingleValue(),
+        tabular_checks.ModelInfo()
+    )
+
+    suite_result = suite.run(
+        train_dataset=iris_train,
+        test_dataset=iris_test,
+    )
+
+    assert_that(
+        suite_result.select_results_by_check_type(tabular_checks.IsSingleValue),
+        contains_exactly(
+            has_property('header', 'Single Value in Column - Train Dataset'),
+            has_property('header', 'Single Value in Column - Test Dataset'),
+        )
+    )
+    assert_that(
+        suite_result.select_results_by_check_type(tabular_checks.ModelInfo),
+        contains_exactly(instance_of(CheckFailure))
+    )
+
+
+def test_check_selection_by_type():
+    suite = Suite(
+        "test",
+        tabular_checks.ColumnsInfo(),
+        tabular_checks.IsSingleValue(),
+        tabular_checks.DataDuplicates(),
+        tabular_checks.DatasetsSizeComparison(),
+        tabular_checks.DataDuplicates(),
+        tabular_checks.IdentifierLabelCorrelation(),
+    )
+
+    assert_that(
+        suite.select_checks_by_type(tabular_checks.IdentifierLabelCorrelation),
+        contains_exactly(
+            instance_of(tabular_checks.IdentifierLabelCorrelation)
+        )
+    )
+    assert_that(
+        suite.select_checks_by_type(tabular_checks.DataDuplicates),
+        contains_exactly(
+            instance_of(tabular_checks.DataDuplicates),
+            instance_of(tabular_checks.DataDuplicates)
+        )
+    )
+    assert_that(
+        suite.select_checks_by_type(tabular_checks.ColumnsInfo),
+        contains_exactly(
+            instance_of(tabular_checks.ColumnsInfo),
+        )
+    )
+
+
+def test_check_removal_by_type():
+    suite = Suite(
+        "test",
+        tabular_checks.ColumnsInfo(),
+        tabular_checks.IsSingleValue(),
+        tabular_checks.DataDuplicates(),
+        tabular_checks.DatasetsSizeComparison(),
+        tabular_checks.DataDuplicates(),
+        tabular_checks.IdentifierLabelCorrelation(),
+    )
+
+    initial_length = len(suite.checks)
+
+    assert_that(
+        suite.remove_checks_by_type(tabular_checks.IdentifierLabelCorrelation),
+        contains_exactly(
+            instance_of(tabular_checks.IdentifierLabelCorrelation)
+        )
+    )
+    assert_that(suite.checks, has_length(initial_length - 1))
+    assert_that(suite.checks, not_(has_value(instance_of(tabular_checks.IdentifierLabelCorrelation))))
+
+    assert_that(
+        suite.remove_checks_by_type(tabular_checks.DataDuplicates),
+        contains_exactly(
+            instance_of(tabular_checks.DataDuplicates),
+            instance_of(tabular_checks.DataDuplicates)
+        )
+    )
+    assert_that(suite.checks, has_length(initial_length - 3))
+    assert_that(suite.checks, not_(has_value(instance_of(tabular_checks.DataDuplicates))))
+
+    assert_that(
+        suite.remove_checks_by_type(tabular_checks.ColumnsInfo),
+        contains_exactly(
+            instance_of(tabular_checks.ColumnsInfo),
+        )
+    )
+    assert_that(suite.checks, has_length(initial_length - 4))
+    assert_that(suite.checks, not_(has_value(instance_of(tabular_checks.ColumnsInfo))))
