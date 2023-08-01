@@ -16,6 +16,8 @@ from .popularity_bias import PopularityBias
 from .prediction_popularity_drift import PredictionPopularityDrift
 from .sample_performance import SamplePerformance
 from .user_session_length_drift import UserSessionDrift
+from .segment_performance import SegmentPerformance
+from .product_association import ProductAssociation
 __all__ = ['LabelPopularityDrift',
            'OperationsAmountSegmentPerformance',
            'PopularityBias',
@@ -23,5 +25,7 @@ __all__ = ['LabelPopularityDrift',
            'SamplePerformance',
            'DateTrainTestLeakageOverlap',
            'ColdStartDetection',
-           'UserSessionDrift'
+           'UserSessionDrift',
+           'SegmentPerformance',
+           'ProductAssociation'
            ]
