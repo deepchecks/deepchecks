@@ -19,7 +19,7 @@ SDP = TypeVar('SDP', bound='ProductAssociation')
 
 class ProductAssociation(SingleDatasetCheck):
     """    
-    Check for performing non-directional product association analysis based on lift.It analyzes product associations within a given dataset in a non-directional way. It identifies co-occurrences of products within a specified time window to reveal potential product associations, used for recommendation systems and market basket analysis.
+    Check for performing non-directional product association analysis based on lift metric. It analyzes product associations within a given dataset in a non-directional way. It identifies co-occurrences of products within a specified time window (if exists) to reveal potential product associations, used for recommender systems.
 
     The analysis uses the lift metric to compare probabilities of product co-occurrences. Let say the
     probability of buying product X (e.g., ketchup) in a supermarket is 10%, and product Y (e.g., ground beef)
@@ -39,7 +39,7 @@ class ProductAssociation(SingleDatasetCheck):
 
     def __init__(self,
                  n_samples: Union[int,None] = 1_000_000,
-                 max_timestamp_delta : int = 3600,
+                 max_timestamp_delta : Union[int, None] = None,
                  random_state: int = 42,
                  **kwargs
     ):
@@ -62,11 +62,16 @@ class ProductAssociation(SingleDatasetCheck):
 
         filtered_interactions = pd.DataFrame(dataset.data)
         # Ommit cold start users by droping NaN because of the .shift
-        filtered_interactions[f'prev_{item_col}'] = filtered_interactions.groupby(user_col)[item_col].shift(1).astype("Int64")
+        filtered_interactions[f'prev_{item_col}'] = filtered_interactions.groupby(user_col)[item_col].shift(1).astype("Int64").dropna()
 
-        products_association_df = filtered_interactions[[f'prev_{item_col}',item_col]].dropna()
-
-        products_association_df['item_combination'] = products_association_df[[f'prev_{item_col}', item_col]].apply(lambda x: tuple(sorted(x)), axis=1)
+        if self.max_timestamp_delta is not None:
+            datetime_name = dataset.datetime_name
+            filtered_interactions[f'prev_{datetime_name}'] = filtered_interactions.groupby(user_col)[datetime_name].shift(1)
+            filtered_interactions[f'delta_{datetime_name}_seconds'] = (filtered_interactions[datetime_name] - filtered_interactions[f'prev_{datetime_name}']).dt.total_seconds()
+            filtered_interactions = filtered_interactions[filtered_interactions['delta_timestamp_seconds'] < self.max_timestamp_delta].drop([f'prev_{datetime_name}',f'{datetime_name}'],axis=1)
+                 
+        products_association_df = filtered_interactions[[f'prev_{item_col}', item_col]].copy()                                                                                                                               
+        products_association_df['item_combination'] = products_association_df.apply(lambda x: tuple(sorted(x)), axis=1)
 
         # Create a new DataFrame to count the non-directional co-occurrence of each pair
         association_counts = products_association_df.groupby(['item_combination']).size().reset_index(name='co-occurence')
@@ -87,10 +92,10 @@ class ProductAssociation(SingleDatasetCheck):
         association_counts[f'prev_{item_col}_prb'] = association_counts[f'prev_{item_col}'].apply(get_probability)
         association_counts[f'{item_col}_prb'] = association_counts[item_col].apply(get_probability)
         association_counts['lift_metric (%)'] = association_counts['co-occurence']/(association_counts[f'prev_{item_col}_prb']*association_counts[f'{item_col}_prb']*len(filtered_interactions)).astype(np.float16)
+        
         association_counts = association_counts[[f'prev_{item_col}', item_col,'co-occurence','lift_metric (%)']]
         movie_translation = item_df[[item_col,item_column_name]].set_index(item_col)[item_column_name].to_dict()
-
-
+        
         association_counts[f'prev_{item_col}']= association_counts[f'prev_{item_col}'].map(movie_translation)
         association_counts[item_col]= association_counts[item_col].map(movie_translation)
 
@@ -144,13 +149,12 @@ class ProductAssociation(SingleDatasetCheck):
             mode='lines'
         )
 
-
         # Combine nodes, edges, and edge labels traces
         fig = go.Figure(data=[edges_trace, nodes_trace])
 
         # Set plot layout
         fig.update_layout(
-            title_text='Movie Interaction Network based on Lift Metric',
+            title_text='Item Associations based on Lift Metric',
             showlegend=False,
             hovermode='closest',
             margin=dict(b=0, l=0, r=0, t=40),
@@ -158,4 +162,4 @@ class ProductAssociation(SingleDatasetCheck):
 
         # Show the interactive plot
 
-        return CheckResult(display_df, header='Product Association', display=[fig,display_df])
+        return CheckResult(association_counts, header='Product Association', display=[fig])
