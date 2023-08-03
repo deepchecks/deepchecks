@@ -148,7 +148,6 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
                     test_date = test_group['timestamp']
  
                     dates_leaked = sum(date < max_train_date for date in test_date)
-                    print(dates_leaked)
                     if dates_leaked > 0:
                         leakage_ratio = dates_leaked / len(test_group)
                         leakage_ratios.append(leakage_ratio)
