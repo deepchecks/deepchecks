@@ -27,12 +27,11 @@ __all__ = ['ColdStartDetection']
 
 
 class ColdStartDetection(SingleDatasetCheck):
-    """ Retrieve cold start users and items. \
-        Cold start entity refers to new entity who have limited or no historical data or interactions within a system or platform. \
-        They have not yet established a significant user/item history that can be leveraged for personalized recommendations or targeted actions. \
-        For the model, there can be some consequences fromincreaseduncertainty to the difficulty in personalization. \
-        From the business side, the consequences can be reduced user engagement,missed opportunities, and limited user understanding.
-        The model is trained on the remaining historical data for each user and then evaluated on the held-out interactions. \
+    """Retrieve cold start users and items, which are new entities with limited or no historical data or interactions in the system.
+
+    The proportion of cold start entities leads to increased uncertainty and difficulty in personalization.
+    This may result in reduced user engagement, missed opportunities, and limited user understanding.
+    The model is trained on the remaining historical data for each user and evaluated on the held-out interactions.
         
     Parameters
     ----------
