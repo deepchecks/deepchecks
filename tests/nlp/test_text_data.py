@@ -12,7 +12,7 @@
 """Test for the TextData object"""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, contains_exactly, equal_to, raises, none
+from hamcrest import assert_that, calling, contains_exactly, equal_to, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
