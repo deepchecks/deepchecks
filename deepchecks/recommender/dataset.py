@@ -78,7 +78,7 @@ class UserDataset(Dataset):
         """
         dataset = super().copy(new_data)
         dataset._user_index_name = self.user_index_name
-    
+
         return dataset
 
     @property
@@ -95,6 +95,7 @@ class ItemDataset(Dataset):
             self,
             df: t.Any,
             item_index_name: t.Optional[t.Hashable] = None,
+            item_column_name: t.Optional[t.Hashable] = None,
             features: t.Optional[t.Sequence[t.Hashable]] = None,
             cat_features: t.Optional[t.Sequence[t.Hashable]] = None,
             index_name: t.Optional[t.Hashable] = None,
@@ -113,6 +114,7 @@ class ItemDataset(Dataset):
             df=df,
             features=features,
             cat_features=cat_features,
+            label_type= TaskType.RECOMMENDETION,
             index_name=index_name,
             set_index_from_dataframe_index=set_index_from_dataframe_index,
             max_categorical_ratio=max_categorical_ratio,
@@ -120,6 +122,7 @@ class ItemDataset(Dataset):
             dataset_name=dataset_name,
         )
         self._item_index_name = item_index_name
+        self.item_column_name = item_column_name
 
     def copy(self: TDataset, new_data: pd.DataFrame) -> TDataset:
         """Create a copy of this Dataset with new data.
@@ -176,6 +179,7 @@ class InteractionDataset(Dataset):
         super().__init__(
             df=df,
             features=features,
+            label_type= TaskType.RECOMMENDETION,
             cat_features=cat_features,
             index_name=index_name,
             set_index_from_dataframe_index=set_index_from_dataframe_index,
@@ -200,11 +204,11 @@ class InteractionDataset(Dataset):
     @property
     def user_index_name(self) -> t.Optional[t.Hashable]:
         return self._user_index_name
-    
+
     @property
     def item_index_name(self) -> t.Optional[t.Hashable]:
         return self._item_index_name
-    
+
     @property
     def interaction_column_name(self) -> t.Optional[t.Hashable]:
         return self._interaction_column_name
@@ -213,3 +217,18 @@ class InteractionDataset(Dataset):
         if self.user_index_name is None:
             return None
         return dict(zip(self.user_index_name, range(len(self.user_index_name))))
+
+    def __add__(self, other: 'InteractionDataset') -> 'InteractionDataset':
+        # Concatenate the dataframes
+        combined_df = pd.concat([self.data, other.data], ignore_index=True)
+        # Create a new dataset instance with the combined dataframe
+        combined_dataset = InteractionDataset(combined_df,
+                                              user_index_name=self._user_index_name,
+                                              item_index_name=self._item_index_name,
+                                              interaction_column_name=self._interaction_column_name,
+                                              features=self.features,
+                                              cat_features=self.cat_features,
+                                              index_name=self.index_name,
+                                              datetime_name=self.datetime_name)
+
+        return combined_dataset
