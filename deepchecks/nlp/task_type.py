@@ -15,9 +15,10 @@ from enum import Enum
 __all__ = ['TaskType', 'TTokenLabel', 'TClassLabel', 'TTextLabel']
 
 TSingleLabel = t.Union[int, str]
+TNoneLabel = t.Sequence[None]
 TClassLabel = t.Sequence[t.Union[TSingleLabel, t.Tuple[TSingleLabel]]]
 TTokenLabel = t.Sequence[t.Sequence[t.Union[str, int]]]
-TTextLabel = t.Union[TClassLabel, TTokenLabel]
+TTextLabel = t.Union[TClassLabel, TTokenLabel, TNoneLabel]
 
 
 class TaskType(Enum):

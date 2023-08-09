@@ -49,7 +49,7 @@ def validate_raw_text(raw_text: Optional[Sequence[str]]):
 def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, expected_size: int,
                           tokenized_text: Optional[Sequence[Sequence[str]]]) -> Optional[TTextLabel]:
     """Validate and process label to accepted formats."""
-    if labels is None or is_sequence_not_str(labels) and all(x is None for x in labels):
+    if labels is None or is_sequence_not_str(labels) and all(pd.isnull(x) for x in labels):
         return None
 
     if not is_sequence_not_str(labels):

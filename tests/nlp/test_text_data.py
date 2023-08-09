@@ -12,7 +12,7 @@
 """Test for the TextData object"""
 import numpy as np
 import pandas as pd
-from hamcrest import assert_that, calling, contains_exactly, equal_to, raises
+from hamcrest import assert_that, calling, contains_exactly, equal_to, raises, none
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.text_data import TextData
@@ -56,6 +56,27 @@ def test_init_mismatched_task_type():
         raises(DeepchecksValueError,
                r'multilabel was identified. It must be a Sequence of Sequences of 0 or 1.')
     )
+
+
+def test_init_no_labels():
+    """Test the TextData object when no labels are provided"""
+
+    # Arrange
+    text = ['I think therefore I am', 'I am therefore I think', 'I am']
+    label = [None, None, None]
+
+    # Act & Assert
+    text_data = TextData(raw_text=text, label=label, task_type='text_classification')
+    assert_that(text_data.has_label(), equal_to(False))
+    assert_that(text_data.is_multi_label_classification(), equal_to(False))
+
+    # np.nan label
+    label = [np.nan, np.nan, np.nan]
+
+    # Act & Assert
+    text_data = TextData(raw_text=text, label=label, task_type='text_classification')
+    assert_that(text_data.has_label(), equal_to(False))
+    assert_that(text_data.is_multi_label_classification(), equal_to(False))
 
 
 def test_wrong_token_label_format():
