@@ -71,7 +71,7 @@ def test_init_no_labels():
     assert_that(text_data.is_multi_label_classification(), equal_to(False))
 
     # np.nan label
-    label = [np.nan, np.nan, np.nan]
+    label = [np.nan, pd.NA, np.nan]
 
     # Act & Assert
     text_data = TextData(raw_text=text, label=label, task_type='text_classification')
