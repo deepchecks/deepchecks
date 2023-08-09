@@ -46,10 +46,28 @@ def validate_raw_text(raw_text: Optional[Sequence[str]]):
         raise DeepchecksValueError(error_string)
 
 
+def label_is_null(input_label):
+    """Check if label is null for different possible input types."""
+    if input_label is None:
+        return True
+    if is_sequence_not_str(input_label):
+        if isinstance(input_label, pd.Series):
+            first_element = input_label.iloc[0]
+        else:
+            first_element = input_label[0]
+
+        if is_sequence_not_str(first_element):
+            return all(pd.isnull(x).all() for x in input_label)
+        else:
+            return all(pd.isnull(x) for x in input_label)
+    else:
+        return False
+
+
 def validate_modify_label(labels: Optional[TTextLabel], task_type: TaskType, expected_size: int,
                           tokenized_text: Optional[Sequence[Sequence[str]]]) -> Optional[TTextLabel]:
     """Validate and process label to accepted formats."""
-    if labels is None or is_sequence_not_str(labels) and all(pd.isnull(x) for x in labels):
+    if label_is_null(labels):
         return None
 
     if not is_sequence_not_str(labels):
