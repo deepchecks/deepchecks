@@ -47,10 +47,12 @@ def validate_raw_text(raw_text: Optional[Sequence[str]]):
 
 
 def label_is_null(input_label):
-    """Check if label is null for different possible input types."""
+    """Check if the label is null for different possible input types."""
     if input_label is None:
         return True
     if is_sequence_not_str(input_label):
+        if len(input_label) == 0:
+            return True
         if isinstance(input_label, pd.Series):
             first_element = input_label.iloc[0]
         else:
