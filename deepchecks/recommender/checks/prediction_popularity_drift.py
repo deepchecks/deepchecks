@@ -14,23 +14,19 @@ import typing as t
 import pandas as pd
 
 from deepchecks.core import CheckResult
-from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.recommender import Context
-from deepchecks.tabular import TrainTestCheck
+from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 __all__ = ['PredictionPopularityDrift']
 
-class PredictionPopularityDrift(TrainTestCheck):
+class PredictionPopularityDrift(SingleDatasetCheck):
     """
-    Calculate prediction popularity drift between train dataset and test dataset, using statistical measures.
+    Compute popularity drift between predictions and true labels, using statistical measures.
 
-    Check calculates a drift score for the prediction in the test dataset, by comparing its distribution to the train
-    dataset.
-    For classification tasks, by default the drift score will be computed on the predicted probability of the positive
-    (1) class for binary classification tasks, and on the predicted class itself for multiclass tasks. This behavior can
-    be controlled using the `drift_mode` parameter.
+    Check calculates a drift score for the prediction in the test dataset, by comparing its
+    distribution to the predictions.
 
     For numerical columns, we use the Kolmogorov-Smirnov statistic.
     See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
@@ -53,61 +49,53 @@ class PredictionPopularityDrift(TrainTestCheck):
 
     Parameters
     ----------
-    drift_mode: str, default: 'auto'
-        For classification task, controls whether to compute drift on the predicted probabilities or the predicted
-        classes. For regression task this parameter may be ignored.
-        If set to 'auto', compute drift on the predicted class if the task is multiclass, and on
-        the predicted probability of the positive class if binary. Set to 'proba' to force drift on the predicted
-        probabilities, and 'prediction' to force drift on the predicted classes. If set to 'proba', on a multiclass
-        task, drift would be calculated on each class independently.
-        If balance_classes=True, then 'auto' will calculate drift on the predicted class even if the label is binary
     margin_quantile_filter: float, default: 0.025
-        float in range [0,0.5), representing which margins (high and low quantiles) of the distribution will be filtered
-        out of the EMD calculation. This is done in order for extreme values not to affect the calculation
+        float in range [0,0.5), representing which margins (high and low quantiles)
+        of the distribution will be filtered out of the EMD calculation.
+        This is done in order for extreme values not to affect the calculation
         disproportionally. This filter is applied to both distributions, in both margins.
     min_category_size_ratio: float, default 0.01
-        minimum size ratio for categories. Categories with size ratio lower than this number are binned
-        into an "Other" category. Ignored if balance_classes=True.
+        minimum size ratio for categories. Categories with size ratio lower than this number
+        are binned into an "Other" category. Ignored if balance_classes=True.
     max_num_categories_for_drift: int, default: None
-        Only relevant if drift is calculated for classification predictions. Max number of allowed categories.
-        If there are more, they are binned into an "Other" category.
+        Only relevant if drift is calculated for classification predictions.
+        Max number of allowed categories. If there are more, they are binned into
+        an "Other" category.
     max_num_categories_for_display: int, default: 10
         Max number of categories to show in plot.
     show_categories_by: str, default: 'largest_difference'
-        Specify which categories to show for categorical features' graphs, as the number of shown categories is limited
-        by max_num_categories_for_display. Possible values:
-        - 'train_largest': Show the largest train categories.
-        - 'test_largest': Show the largest test categories.
+        Specify which categories to show for categorical features' graphs,
+        as the number of shown categories is limited by max_num_categories_for_display.
+        Possible values:
+        - 'train_largest': Show the largest prediction categories.
+        - 'test_largest': Show the largest labels categories.
         - 'largest_difference': Show the largest difference between categories.
     numerical_drift_method: str, default: "KS"
         decides which method to use on numerical variables. Possible values are:
         "EMD" for Earth Mover's Distance (EMD), "KS" for Kolmogorov-Smirnov (KS).
-    categorical_drift_method: str, default: "cramers_v"
-        decides which method to use on categorical variables. Possible values are:
-        "cramers_v" for Cramer's V, "PSI" for Population Stability Index (PSI).
     balance_classes: bool, default: False
-        If True, all categories will have an equal weight in the Cramer's V score. This is useful when the categorical
-        variable is highly imbalanced, and we want to be alerted on changes in proportion to the category size,
-        and not only to the entire dataset. Must have categorical_drift_method = "cramers_v" and
+        If True, all categories will have an equal weight in the Cramer's V score.
+        This is useful when the categorical variable is highly imbalanced, and we want
+        to be alerted on changes in proportion to the category size, and not only to the
+        entire dataset. Must have categorical_drift_method = "cramers_v" and
         drift_mode = "auto" or "prediction".
         If True, the variable frequency plot will be created with a log scale in the y-axis.
     ignore_na: bool, default True
-        For categorical columns only. If True, ignores nones for categorical drift. If False, considers none as a
-        separate category. For numerical columns we always ignore nones.
+        For categorical columns only. If True, ignores nones for categorical drift.
+        If False, considers none as a separate category.
+        For numerical columns we always ignore nones.
     aggregation_method: t.Optional[str], default: "max"
-        Argument for the reduce_output functionality, decides how to aggregate the drift scores of different classes
-        (for classification tasks) into a single score, when drift is computed on the class probabilities. Possible
-        values are:
+        Argument for the reduce_output functionality, decides how to aggregate the drift scores
+        of different classes (for classification tasks) into a single score,
+        when drift is computed on the class probabilities. Possible values are:
         'max': Maximum of all the class drift scores.
-        'weighted': Weighted mean based on the class sizes in the train data set.
+        'weighted': Weighted mean based on the class sizes in the prediction data set.
         'mean': Mean of all drift scores.
         None: No averaging. Return a dict with a drift score for each class.
-    max_classes_to_display: int, default: 3
-        Max number of classes to show in the display when drift is computed on the class probabilities for
-        classification tasks.
     min_samples : int , default: 10
-        Minimum number of samples required to calculate the drift score. If there are not enough samples for either
-        train or test, the check will raise a ``NotEnoughSamplesError`` exception.
+        Minimum number of samples required to calculate the drift score. If there are not enough
+        samples for either predictions or labels,
+        the check will raise a ``NotEnoughSamplesError`` exception.
     n_samples : int , default: 100_000
         number of samples to use for this check.
     random_state : int, default: 42
@@ -147,34 +135,32 @@ class PredictionPopularityDrift(TrainTestCheck):
         if self.aggregation_method not in ('weighted', 'mean', 'none', None, 'max'):
             raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "max", None')
 
-    def run_logic(self, context: Context) -> CheckResult:
+    def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Calculate drift for all columns.
 
         Returns
         -------
         CheckResult
             value: drift score.
-            display: label distribution graph, comparing the train and test distributions.
+            display: distribution graph, comparing the predictions and true labels distributions.
         """
-        train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
-        test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
-        train_predictions = train_dataset.label_col.tolist()
-        test_predictions = test_dataset.label_col.tolist()
-        
-        # Compute item popularity for the training dataset
+        test_labels = context.get_data_by_kind(dataset_kind).label_col
+        sample_size = min(self.n_samples, len(test_labels))
+
+        test_labels = test_labels.sample(sample_size, random_state=self.random_state)
+        test_predictions = context.model.predictions
+
         interaction_dataset  = context._interaction_dataset
         item_id = interaction_dataset.item_index_name
         item_popularity = interaction_dataset.data[item_id].value_counts().to_dict()
 
-        train_popularity = [item_popularity[item] for sublist in train_predictions for item in sublist]
-        test_popularity =  [item_popularity[item] for sublist in test_predictions for item in sublist]
+        prediction_popularity = [item_popularity[item] for sublist in test_predictions for item in sublist if item in item_popularity ]
+        label_popularity =  [item_popularity[item] for sublist in test_labels for item in sublist if item in item_popularity ]
 
-
-
-        drift_score, method, drift_display = calc_drift_and_plot(
-            train_column=pd.Series(train_popularity),
-            test_column=pd.Series(test_popularity),
+        drift_score, _, drift_display = calc_drift_and_plot(
+            train_column=pd.Series(prediction_popularity),
+            test_column=pd.Series(label_popularity),
             value_name='Prediction Popularity',
             column_type='numerical',
             plot_title='Prediction Popularity Drift',
@@ -189,41 +175,12 @@ class PredictionPopularityDrift(TrainTestCheck):
             ignore_na=self.ignore_na,
             min_samples=self.min_samples,
             raise_min_samples_error=True,
-            dataset_names=('Train', 'Test'),
+            dataset_names=('Prediction', 'True Labels'),
             with_display=context.with_display,
         )
-
 
         return CheckResult(
             value=drift_score,
             header='Prediction Popularity Drift',
             display=drift_display,
         )
-
-    def add_condition_drift_score_less_than(self, max_allowed_score: float = 0.15):
-        """
-        Add condition - require drift score to be less than a certain threshold.
-
-        The industry standard for PSI limit is above 0.2.
-        There are no common industry standards for other drift methods, such as Cramer's V,
-        Kolmogorov-Smirnov and Earth Mover's Distance.
-        The threshold was lowered by 25% compared to feature drift defaults due to the higher importance of prediction
-        drift.
-
-        Parameters
-        ----------
-        max_allowed_categorical_score: float , default: 0.15
-            the max threshold for the categorical variable drift score
-        max_allowed_numeric_score: float ,  default: 0.15
-            the max threshold for the numeric variable drift score
-        Returns
-        -------
-        ConditionResult
-            False if any column has passed the max threshold, True otherwise
-        """
-
-        def condition(result: float) -> ConditionResult:
-            category = ConditionCategory.FAIL if result > max_allowed_score else ConditionCategory.PASS
-            return ConditionResult(category, f'The drift score was {result}')
-
-        return self.add_condition(f'drift score less than {max_allowed_score}', condition)
