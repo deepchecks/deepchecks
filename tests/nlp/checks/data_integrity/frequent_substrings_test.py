@@ -61,6 +61,14 @@ def dataset_with_similar_frequent_substrings():
     )
 
 
+@pytest.fixture
+def dataset_with_empty_string():
+    return TextData(
+        raw_text=[
+            ''
+        ]
+    )
+
 # =================
 # ----- Tests -----
 # =================
@@ -118,5 +126,22 @@ def test_with_similar_frequent_substrings(dataset_with_similar_frequent_substrin
     assert_that(conditions_decision[0], equal_condition_result(
         is_pass=False,
         details='Found 3 substrings with ratio above threshold',
+        name=f'There should be not more than {min_substrings} frequent substrings'
+    ))
+
+
+def test_with_empty_string(dataset_with_empty_string):
+    # Arrange
+    min_substrings = 1
+    check = (FrequentSubstrings().add_condition_zero_result())
+
+    # Act
+    result = check.run(dataset=dataset_with_empty_string)
+    conditions_decision = check.conditions_decision(result)
+
+    # Assert
+    assert_that(conditions_decision[0], equal_condition_result(
+        is_pass=True,
+        details='Found 0 substrings with ratio above threshold',
         name=f'There should be not more than {min_substrings} frequent substrings'
     ))
