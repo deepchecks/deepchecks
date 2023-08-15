@@ -411,7 +411,7 @@ def test_ignore_properties():
 )
 def test_properties_models_download():
     # Arrange
-    model_name = 'unitary/toxic-bert'
+    model_name = 'SkolkovoInstitute/roberta_toxicity_classifier'
     model_path = MODELS_STORAGE / f"models--{model_name.replace('/', '--')}"
     onnx_model_path = MODELS_STORAGE / 'onnx' / model_name
     quantized_model_path = MODELS_STORAGE / 'onnx' / 'quantized' / model_name
@@ -458,7 +458,7 @@ def test_properties_models_download():
 )
 def test_properties_models_download_into_provided_directory():
     directory = pathlib.Path(__file__).absolute().parent / '.models'
-    model_name = 'unitary/toxic-bert'
+    model_name = 'SkolkovoInstitute/roberta_toxicity_classifier'
     model_path = MODELS_STORAGE / f"models--{model_name.replace('/', '--')}"
     onnx_model_path = MODELS_STORAGE / 'onnx' / model_name
 
@@ -482,12 +482,14 @@ def test_batch_only_properties_calculation_with_single_samples():
     # Act
     properties, properties_types = calculate_builtin_properties(
         raw_text=text, batch_size=1,
-        include_properties=['Formality', 'Text Length']
+        include_properties=['Formality', 'Text Length', 'Toxicity', 'Fluency'],
     )
 
     # Assert
     assert_that(properties, has_entries({
         'Formality': contains_exactly(close_to(0.955, 0.01)),
+        'Toxicity': contains_exactly(close_to(0.01, 0.01)),
+        'Fluency': contains_exactly(close_to(0.96, 0.01)),
         'Text Length': contains_exactly(*[len(it) for it in text]),
     }))  # type: ignore
 
