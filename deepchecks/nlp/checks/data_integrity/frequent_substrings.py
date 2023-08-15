@@ -18,7 +18,6 @@ import pandas as pd
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
-from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
 
@@ -27,6 +26,11 @@ __all__ = ['FrequentSubstrings']
 
 class FrequentSubstrings(SingleDatasetCheck):
     """Checks for frequent substrings in the dataset.
+
+    From the given dataset, substrings of varying lengths (n-grams) are extracted.
+    The frequencies of these n-grams are calculated and only substrings exceeding a defined minimum length are retained.
+    The substrings are then sorted by their frequencies and the most frequent substrings are identified.
+    Finally, peak substrings and those surpassing a significance level are displayed.
 
     Parameters
     ----------
@@ -44,7 +48,7 @@ class FrequentSubstrings(SingleDatasetCheck):
         Frequency above which samples are considered significant.
     frequency_margin: float, default: 0.02
         Maximum allowed difference for considering longer substrings.
-    min_diff : float, optional, default=0.05
+    min_relative_change : float, optional, default=0.05
         Minimum difference threshold below which differences are set to 0.
 
     """
@@ -58,7 +62,7 @@ class FrequentSubstrings(SingleDatasetCheck):
         min_substring_ratio: float = 0.05,
         significant_substring_ratio: float = 0.3,
         frequency_margin=0.02,
-        min_diff=0.05,
+        min_relative_change=0.05,
         **kwargs
     ):
         super().__init__(**kwargs)
@@ -69,7 +73,7 @@ class FrequentSubstrings(SingleDatasetCheck):
         self.min_substring_ratio = min_substring_ratio
         self.significant_substring_ratio = significant_substring_ratio
         self.frequency_margin = frequency_margin
-        self.min_diff = min_diff
+        self.min_relative_change = min_relative_change
 
     @staticmethod
     def _get_ngrams(text, n):
@@ -123,7 +127,7 @@ class FrequentSubstrings(SingleDatasetCheck):
         and `self.min_substring_ratio` as the threshold for deciding which n-grams
         are frequent enough to be included in the results.
         """
-        ngram_info = defaultdict(lambda: {'freq': 0, 'original_indexes': list(), 'filtered_indexes': list()})
+        ngram_info = defaultdict(lambda: {'freq': 0, 'original_indexes': [], 'filtered_indexes': []})
         filtered_samples = set()
 
         for index, item in enumerate(data):
@@ -264,44 +268,55 @@ class FrequentSubstrings(SingleDatasetCheck):
 
     def _identify_peak_cut(self, df):
         """
-        Identifies the index where the difference between consecutive
-        frequencies is maximal, given a threshold.
+        Identify the index at which there's a maximum relative change (peak) in the 'Frequency' column.
 
-        Parameters:
-        -----------
+        The function calculates the absolute difference between consecutive values in the 'Frequency' column
+        and divides this by the previous row's value to find the relative change or ratio. If the relative
+        change is below a certain threshold (`self.min_relative_change`), it is set to zero. The index of the maximum
+        relative change (peak) is returned.
+
+        Parameters
+        ----------
         df : pd.DataFrame
-            Sorted Dataframe containing frequency information. Expected to have a
-            column named 'Frequency' representing frequencies of occurrences.
+            Input dataframe with a 'Frequency' column.
 
-        Returns:
-        --------
+        Returns
+        -------
         int
-            If a peak difference greater than 0 is found, returns the index
-            where this peak difference occurs. If no such peak difference exists,
-            returns the last index.
+            The index of the maximum relative change in the 'Frequency' column. If no significant peak is
+            found, returns the length of the dataframe.
         """
-        # diff = df['Frequency'].diff().abs()
-        # ratio = diff.div(df.shift(1))
-        # ratio = ratio.fillna(0)
-
-        # freq = pd.Series([600, 610, 620, 650])
-        # diff = freq.diff().abs()
-        # ratio = diff.div(freq.shift(1))
-        # pd.DataFrame({'freq': freq, 'diff': diff, 'ratio': ratio})
-
-        df['diff'] = df['Frequency'].diff().abs()
-        df[df['diff'] <= self.min_diff]['diff'] = 0
-        max_peak = df['diff'].max()
+        diff = df['Frequency'].diff().abs()
+        ratio = diff.div(df['Frequency'].shift(1))
+        ratio[ratio <= self.min_relative_change] = 0
+        max_peak = ratio.max()
         if max_peak == 0:
             return len(df)
-        return list(df[df['diff'] == max_peak].index)[0]
+        return list(ratio[ratio == max_peak].index)[0]
 
-    def _isolate_significant_substrings(self, df):
+    def _filter_peak_and_significant(self, df):
+        """
+        Filter the dataframe to retain only the significant substrings.
+
+        The function first identifies the cut-off index based on the significance ratio. Then, it identifies
+        a cut-off based on the peak in the frequency ratio. The final dataframe is truncated using the maximum
+        of these two cut-off indices.
+
+        Parameters
+        ----------
+        df : DataFrame
+            The input dataframe expected to have a 'Frequency' column.
+
+        Returns
+        -------
+        DataFrame
+            A truncated dataframe containing only the significant substrings based on the established criteria.
+        """
         if len(df) == 1:
             return df
         significant_cut_ind = self._get_significant_cut_ind(df)
         peak_cut_ind = self._identify_peak_cut(df)
-        return df[:max(significant_cut_ind, peak_cut_ind)].drop(columns=['diff'])
+        return df[:max(significant_cut_ind, peak_cut_ind)]
 
     def run_logic(self, context: Context, dataset_kind):
         """Run check.
@@ -323,7 +338,9 @@ class FrequentSubstrings(SingleDatasetCheck):
         DeepchecksValueError
             If the Dataset is empty.
         """
-        dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
+        dataset = context.get_data_by_kind(dataset_kind)
+        num_samples = len(dataset)
+        dataset = dataset.sample(self.n_samples, random_state=self.random_state)
         dataset = t.cast(TextData, dataset)
         if dataset.n_samples == 0:
             raise DeepchecksValueError('Dataset cannot be empty')
@@ -341,19 +358,33 @@ class FrequentSubstrings(SingleDatasetCheck):
             df = pd.DataFrame({
                 'Text': [item[0] for item in sorted_substrings],
                 'Frequency': [item[1]['freq'] for item in sorted_substrings],
-                '% In data': [format_percent(item[1]['freq']) for item in sorted_substrings],
                 'Sample IDs': [item[1]['original_indexes'] for item in sorted_substrings]
             })
 
-            df = self._isolate_significant_substrings(df)
+            df = self._filter_peak_and_significant(df)
+
+            if self.n_samples < num_samples:
+                dataset = context.get_data_by_kind(dataset_kind)
+                dataset = t.cast(TextData, dataset).text
+                for substring_index, substring in enumerate(df['Text']):
+                    indexes = []
+                    for sample_index, sample in enumerate(dataset):
+                        if substring in sample:
+                            indexes.append(sample_index)
+                    df.at[substring_index, 'Sample IDs'] = indexes
+                    df.at[substring_index, 'Frequency'] = len(indexes) / len(dataset)
+                df = df.sort_values(by=['Frequency', 'Text'], ascending=False)
+
             df['Number of Samples'] = df['Sample IDs'].str.len()
+            df['% In data'] = df['Frequency'].apply(format_percent)
 
             value = df.to_dict()
-            percent_of_frequent = len(set(sum(df['Sample IDs'], [])))/dataset.n_samples
+            percent_of_frequent = len(set(sum(df['Sample IDs'], [])))/len(dataset)
             if context.with_display:
                 display = [
                     f'{format_percent(percent_of_frequent)} of data samples share common substrings.',
-                    'Each row in the table shows an example of a frequent substring and the number of times it appears.',
+                    'Each row in the table shows an example of a frequent substring '
+                    'and the number of times it appears.',
                     df[['Text', 'Number of Samples', '% In data']].iloc[slice(0, self.n_to_show)]
                 ]
             else:
