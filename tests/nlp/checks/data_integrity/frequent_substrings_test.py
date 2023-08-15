@@ -69,6 +69,7 @@ def dataset_with_empty_string():
         ]
     )
 
+
 # =================
 # ----- Tests -----
 # =================
@@ -77,8 +78,9 @@ def dataset_with_empty_string():
 def test_without_frequent_substrings(dataset_without_frequent_substrings):
     # Arrange
     min_substrings = 1
-    threshold = 0.5
-    check = FrequentSubstrings(min_threshold=threshold).add_condition_zero_result(min_substrings=min_substrings)
+    min_substring_ratio = 0.5
+    check = (FrequentSubstrings(min_substring_ratio=min_substring_ratio)
+             .add_condition_zero_result(min_substrings=min_substrings))
 
     # Act
     result = check.run(dataset=dataset_without_frequent_substrings)
@@ -88,52 +90,76 @@ def test_without_frequent_substrings(dataset_without_frequent_substrings):
     assert_that(conditions_decision[0], equal_condition_result(
         is_pass=True,
         details='Found 0 substrings with ratio above threshold',
-        name=f'There should be not more than {min_substrings} frequent substrings'
+        name=f'No more than {min_substrings} substrings with ratio above {min_substring_ratio}'
     ))
+    assert_that(result.value, equal_to({}))
 
 
 def test_with_equal_frequent_substrings(dataset_with_equal_frequent_substrings):
     # Arrange
     min_substrings = 1
-    threshold = 0.05
-    check = FrequentSubstrings(min_threshold=threshold).add_condition_zero_result(min_substrings=min_substrings)
+    min_substring_ratio = 0.05
+    check = (FrequentSubstrings(min_substring_ratio=min_substring_ratio).
+             add_condition_zero_result(min_substrings=min_substrings))
 
     # Act
     result = check.run(dataset=dataset_with_equal_frequent_substrings)
     conditions_decision = check.conditions_decision(result)
 
     # Assert
+    expected_value = {'Text': {0: 'Simple is better than',
+                               1: 'Explicit is better than',
+                               2: 'Do not worry be happy'},
+                      'Frequency': {0: 0.3333333333333333,
+                                    1: 0.3333333333333333,
+                                    2: 0.3333333333333333},
+                      '% In data': {0: '33.33%',
+                                    1: '33.33%',
+                                    2: '33.33%'},
+                      'Sample IDs': {0: [3, 4],
+                                     1: [0, 2],
+                                     2: [1, 5]},
+                      'Number of Samples': {0: 2, 1: 2, 2: 2}}
     assert_that(conditions_decision[0], equal_condition_result(
         is_pass=False,
         details='Found 3 substrings with ratio above threshold',
-        name=f'There should be not more than {min_substrings} frequent substrings'
+        name=f'No more than {min_substrings} substrings with ratio above {min_substring_ratio}'
     ))
+    assert_result_value(result.value, expected_value)
 
 
 def test_with_similar_frequent_substrings(dataset_with_similar_frequent_substrings):
     # Arrange
     min_substrings = 1
-    threshold = 0.05
-    significant_threshold = 0.3
-    check = (FrequentSubstrings(min_threshold=threshold, significant_threshold=significant_threshold).
-             add_condition_zero_result(min_substrings=min_substrings))
+    min_substring_ratio = 0.05
+    check = (FrequentSubstrings(min_substring_ratio=min_substring_ratio, significant_substring_ratio=0.2).
+             add_condition_zero_result(min_substrings=1))
 
     # Act
     result = check.run(dataset=dataset_with_similar_frequent_substrings)
     conditions_decision = check.conditions_decision(result)
 
     # Assert
+    expected_value = {'Text': {0: 'Do not worry be',
+                               1: 'Explicit is better than',
+                               2: 'Simple is better than complex'},
+                      'Frequency': {0: 0.5, 1: 0.4, 2: 0.2},
+                      '% In data': {0: '50%', 1: '40%', 2: '20%'},
+                      'Sample IDs': {0: [0, 3, 5, 8, 9], 1: [0, 1, 4, 6], 2: [2, 7]},
+                      'Number of Samples': {0: 5, 1: 4, 2: 2}}
     assert_that(conditions_decision[0], equal_condition_result(
         is_pass=False,
         details='Found 3 substrings with ratio above threshold',
-        name=f'There should be not more than {min_substrings} frequent substrings'
+        name=f'No more than {min_substrings} substrings with ratio above {min_substring_ratio}'
     ))
+    assert_result_value(result.value, expected_value)
 
 
 def test_with_empty_string(dataset_with_empty_string):
     # Arrange
     min_substrings = 1
-    check = (FrequentSubstrings().add_condition_zero_result())
+    min_substring_ratio = 0.05
+    check = (FrequentSubstrings(min_substring_ratio=min_substring_ratio).add_condition_zero_result())
 
     # Act
     result = check.run(dataset=dataset_with_empty_string)
@@ -143,5 +169,27 @@ def test_with_empty_string(dataset_with_empty_string):
     assert_that(conditions_decision[0], equal_condition_result(
         is_pass=True,
         details='Found 0 substrings with ratio above threshold',
-        name=f'There should be not more than {min_substrings} frequent substrings'
+        name=f'No more than {min_substrings} substrings with ratio above {min_substring_ratio}'
     ))
+    assert_that(result.value, equal_to({}))
+
+
+# ===========================
+# ----- Assertion utils -----
+# ===========================
+
+
+def assert_result_value(result_value, expected_value=None):
+    assert_that(result_value, instance_of(dict))
+    assert_that(result_value, has_entries({
+        'Text': instance_of(dict),
+        'Frequency': instance_of(dict),
+        '% In data': instance_of(dict),
+        'Sample IDs': instance_of(dict),
+        'Number of Samples': instance_of(dict),
+    }))
+    if expected_value is not None:
+        assert_that(len(result_value), equal_to(len(expected_value)))
+        for key in result_value.keys():
+            assert_that(sorted(list(result_value[key].values())),
+                        equal_to(sorted(list(expected_value[key].values()))))
