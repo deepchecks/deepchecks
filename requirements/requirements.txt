@@ -4,6 +4,7 @@ scikit-learn>=0.23.2
 jsonpickle>=2
 PyNomaly>=0.3.3
 prince
+networkx
 # require for python 3.8+
 ipython>=7.15.0,<8; python_version >= '3.8'
 ipykernel>=5.3.0; python_version >= '3.8'
