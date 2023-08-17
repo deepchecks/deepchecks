@@ -128,3 +128,8 @@ benchmarks/results
 
 # ignore user_id
 .user_id
+
+# ignore dataset
+ml-latest-small/
+ml-latest-small.zip
+
