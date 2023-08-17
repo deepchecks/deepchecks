@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the single dataset performance check for recommender system."""
-from typing import TYPE_CHECKING, Callable, List, Mapping, Optional, TypeVar, Union
+from typing import Callable, List, Mapping, Optional, TypeVar, Union
 import plotly.express as px
 
 import pandas as pd
@@ -18,13 +18,10 @@ from deepchecks.core import CheckResult
 from deepchecks.recommender import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
 
-if TYPE_CHECKING:
-    from deepchecks.core.checks import CheckConfig
-
 __all__ = ['SamplePerformance']
 
-
 SDP = TypeVar('SDP', bound='SamplePerformance')
+
 
 class SamplePerformance(SingleDatasetCheck):
     """Summarize given recommender system model performance based on selected scorers.
@@ -42,7 +39,7 @@ class SamplePerformance(SingleDatasetCheck):
 
     def __init__(self,
                  scorers: Optional[Union[Mapping[str, Union[str, Callable]], List[str]]] = None,
-                 n_samples: Union[int,None] = 1_000_000,
+                 n_samples: Union[int, None] = 1_000_000,
                  random_state: int = 42,
                  **kwargs):
         super().__init__(**kwargs)
@@ -51,7 +48,7 @@ class SamplePerformance(SingleDatasetCheck):
         self.random_state = random_state
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
-
+        """Run check."""
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples,
                                                                 random_state=self.random_state)
         model = context.model
@@ -64,7 +61,6 @@ class SamplePerformance(SingleDatasetCheck):
         results_df = pd.DataFrame(results, columns=['Metric', 'Value'])
 
         if context.with_display:
-            fig = px.bar(results_df,y='Value', x='Metric')
-
+            fig = px.bar(results_df, y='Value', x='Metric')
 
         return CheckResult(results_df, header='Sample Performance', display=fig)

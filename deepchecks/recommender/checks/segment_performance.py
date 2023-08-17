@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
-from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Union, cast
+from typing import Callable, Dict, List, Optional, Union, cast
 
 import numpy as np
 import plotly.express as px
@@ -21,9 +21,6 @@ from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
-
-if TYPE_CHECKING:
-    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['SegmentPerformance']
 
@@ -61,7 +58,7 @@ class SegmentPerformance(SingleDatasetCheck):
         self,
         feature_1: Optional[Hashable] = None,
         feature_2: Optional[Hashable] = None,
-        alternative_scorer: Dict[str,str] = None,
+        alternative_scorer: Dict[str, str] = None,
         max_segments: int = 10,
         n_samples: int = 1_000_000,
         random_state: int = 42,
@@ -83,6 +80,7 @@ class SegmentPerformance(SingleDatasetCheck):
 
         self.max_segments = max_segments
         self.alternative_scorer = alternative_scorer
+
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)

@@ -18,7 +18,6 @@ import pandas as pd
 from deepchecks.core import CheckResult
 from deepchecks.core.check_result import DisplayMap
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksProcessError, DeepchecksValueError
-from deepchecks.recommender.dataset import RecDataset
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.context import _DummyModel
 from deepchecks.tabular.utils.task_type import TaskType

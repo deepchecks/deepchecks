@@ -15,12 +15,11 @@ import numpy as np
 import pandas as pd
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.recommender.dataset import ItemDataset, RecDataset
+from deepchecks.recommender.dataset import ItemDataset, UserDataset, InteractionDataset
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.context import Context as TabularContext
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils.scorers import DeepcheckScorer
-from deepchecks.tabular.utils.task_inference import get_all_labels
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.validation import is_sequence_not_str
@@ -107,8 +106,38 @@ class _DummyModel:
 
 
 class Scorer(DeepcheckScorer):
+    """
+    A custom scoring class for evaluating recommendation system models.
 
-    AGGREGATE_METRICS = ['personalization', 'prediction_coverage']
+    Args:
+        metric (callable or str or dict): The metric to use for scoring. Can be a callable function,
+            a string representing a metric function name from the 'ranking' module, or a dictionary
+            containing the metric name.
+        name (str): The name of the scorer.
+        to_avg (bool, optional): Whether to average the scores across samples. Defaults to True.
+        **kwargs: Additional keyword arguments to be passed to the metric function.
+
+    Attributes:
+        per_sample_metric (callable): The metric function to be used for per-sample scoring.
+        to_avg (bool): Indicates whether scores should be averaged.
+        metric_kwargs (dict): Additional keyword arguments for the metric function.
+
+    Methods:
+        run_rec_metric(y_true, y_pred): Runs the recommendation metric on the provided true labels
+            and predicted recommendations.
+        __call__(model, dataset): Computes the score of the model on the given dataset.
+        _run_score(model, data, label_col): Computes the score of the model on the provided data
+            using the label column.
+
+    Note:
+        This class assumes that the 'DeepcheckScorer' class is its parent class.
+
+    Example:
+        scorer = Scorer(metric='precision_at_k', name='Precision@K', to_avg=True, k=5)
+        model = YourRecommendationModel()
+        dataset = YourDataset()
+        score = scorer(model, dataset)
+    """
 
     def __init__(self, metric, name, to_avg=True, **kwargs):
         if isinstance(metric, t.Callable):
@@ -125,21 +154,22 @@ class Scorer(DeepcheckScorer):
         self.metric_kwargs = kwargs
 
     def run_rec_metric(self, y_true, y_pred):
+        """
+        Calculate the recommendation metric on the provided true labels and predicted recommendations.
 
-        # To support metrics such as 'personalization' that are not per sample.
-        if self.name in self.AGGREGATE_METRICS:
-            return run_available_kwargs(self.per_sample_metric, relevant_items=y_true, recommendations=y_pred,
-                                        **self.metric_kwargs)
+        Args:
+            y_true: True labels representing the relevance of items.
+            y_pred: Predicted recommendations by the model.
 
-        scores = [run_available_kwargs(self.per_sample_metric,
-                                       relevant_items=label if is_sequence_not_str(label) else [label],
-                                       relevant_item=label,
-                                       recommendation=pred,
-                                       **self.metric_kwargs)
-                  for label, pred in zip(y_true, y_pred)]
-        return scores
+        Returns:
+            Metric scores calculated based on the provided inputs.
+        """
+        return run_available_kwargs(self.per_sample_metric,
+                                    relevant_items=y_true,
+                                    recommendations=y_pred,
+                                    **self.metric_kwargs)
 
-    def __call__(self, model, dataset: RecDataset):
+    def __call__(self, model, dataset: t.Union[UserDataset, ItemDataset, InteractionDataset]):
         dataset_without_nulls = self.filter_nulls(dataset)
         y_true = dataset_without_nulls.label_col
         y_pred = model.predict(dataset_without_nulls.features_columns)
@@ -149,6 +179,17 @@ class Scorer(DeepcheckScorer):
         return scores
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
+        """
+        Compute the score of the model on the provided data using the label column.
+
+        Args:
+            model: The recommendation model to be evaluated.
+            data: Data to be used for prediction.
+            label_col: True labels representing the relevance of items.
+
+        Returns:
+            The computed score based on the provided model, data, and label column.
+        """
         y_pred = model.predict(data)
         scores = self.run_rec_metric(label_col, y_pred)
         if self.to_avg:
@@ -180,9 +221,10 @@ class Context(TabularContext):
 
     def __init__(
         self,
-        train: RecDataset = None,
-        test: RecDataset = None,
+        train: t.Union[UserDataset, ItemDataset, InteractionDataset] = None,
+        test: t.Union[UserDataset, ItemDataset, InteractionDataset] = None,
         item_dataset: t.Optional[ItemDataset] = None,
+        interaction_dataset: t.Optional[InteractionDataset] = None,
         feature_importance: t.Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
@@ -192,7 +234,10 @@ class Context(TabularContext):
     ):
         model = _DummyModel(train=train, test=test, y_pred_train=y_pred_train, y_pred_test=y_pred_test)
         self._item_dataset = item_dataset
+        self._interaction_dataset = interaction_dataset
         self._item_popularity = None
+        self._y_pred_train = y_pred_train
+        self._y_pred_test = y_pred_test
         super().__init__(train=train,
                          test=test,
                          feature_importance=feature_importance,
@@ -202,6 +247,12 @@ class Context(TabularContext):
         self._model = model
 
     def get_scorer_kwargs(self) -> t.Dict:
+        """
+        Get keyword arguments for configuring scorers.
+
+        Returns:
+            dict: A dictionary containing keyword arguments for configuring scorers.
+        """
         if self._item_dataset is not None:
             item_to_index = self._item_dataset.item_index_to_ordinal
         else:
@@ -220,9 +271,20 @@ class Context(TabularContext):
 
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
                                            t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
+        """
+        Get a list of Scorer instances based on specified or default scorers.
+
+        Args:
+            scorers (Union[Mapping[str, Union[str, Callable]], List[str]], optional):
+                A mapping of scorer names to scorer functions or a list of scorer names. Defaults to None.
+            use_avg_defaults (bool, optional):
+                Whether to use average defaults for scorers. Defaults to True.
+
+        Returns:
+            list: A list of Scorer instances.
+        """
         if scorers is None:
-            return [Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs()),
-                    Scorer('rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())]
+            return [Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())]
         if isinstance(scorers, t.Mapping):
             scorers = [Scorer(scorer, name, to_avg=use_avg_defaults, **self.get_scorer_kwargs())
                        for name, scorer in scorers.items()]
@@ -233,21 +295,42 @@ class Context(TabularContext):
 
     def get_single_scorer(self, scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
                           use_avg_defaults=True) -> DeepcheckScorer:
+        """
+        Get a single Scorer instance based on a specified or default scorer.
+
+        Args:
+            scorer (Mapping[str, Union[str, Callable]], optional):
+                A mapping of scorer names to scorer functions. Defaults to None.
+            use_avg_defaults (bool, optional):
+                Whether to use average defaults for scorers. Defaults to True.
+
+        Returns:
+            DeepcheckScorer: A Scorer instance.
+        """
         if scorer is None:
             return Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
         return Scorer(scorer, to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
 
     @property
     def model_classes(self) -> t.List:
-        """Return ordered list of possible label classes for classification tasks or None for regression."""
+        """
+        Return ordered list of possible label classes for classification tasks or None for regression.
+
+        Returns:
+            list: An ordered list of possible label classes or None.
+        """
         if self._model_classes is None:
             return self.observed_classes
         return self._model_classes
 
     @property
     def observed_classes(self) -> t.List:
-        """Return the observed classes in both train and test. None for regression."""
-        # If did not cache yet the observed classes than calculate them
+        """
+        Return the observed classes in both train and test sets.
+
+        Returns:
+            list: A list of observed classes.
+        """
         if self._observed_classes is None:
             if is_sequence_not_str(self.train.label_col.iloc[0]):
                 labels = [item for sublist in self.train.label_col for item in sublist]
@@ -258,7 +341,12 @@ class Context(TabularContext):
 
     @property
     def item_popularity(self) -> t.List:
-        # Compute item popularity based on appearance in the train set
+        """
+        Return item popularity based on appearance in the train set.
+
+        Returns:
+            list: A list of item popularity values.
+        """
         if self._item_popularity is None:
             if is_sequence_not_str(self.train.label_col.iloc[0]):
                 self._item_popularity = pd.Series([item for sublist in self.train.label_col for item in sublist])\
@@ -266,3 +354,17 @@ class Context(TabularContext):
             else:
                 self._item_popularity = self.train.label_col.value_counts(ascending=False).to_dict()
         return self._item_popularity
+
+    @property
+    def get_item_dataset(self):
+        """Return interaction dataset."""
+        if self._item_dataset is None:
+            return self._item_dataset
+        return self._item_dataset
+
+    @property
+    def get_interaction_dataset(self):
+        """Return interaction dataset."""
+        if self._interaction_dataset is None:
+            return self._interaction_dataset
+        return self._interaction_dataset

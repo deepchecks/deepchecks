@@ -13,13 +13,13 @@ from typing import Union
 
 import numpy as np
 import pandas as pd
-from deepchecks.utils.validation import is_sequence_not_str
 from sklearn import metrics
 from sklearn.preprocessing import LabelBinarizer
 
-from deepchecks.recommender import RecDataset, ranking
+from deepchecks.recommender import ranking
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.utils.task_type import TaskType
+from deepchecks.utils.validation import is_sequence_not_str
 
 
 def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,

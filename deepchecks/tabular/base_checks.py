@@ -28,10 +28,9 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.typing import BasicModel
-
+from deepchecks.recommender.context import Context as RecContext
 if TYPE_CHECKING:
-    from deepchecks.recommender.dataset import RecDataset, ItemDataset
-
+    from deepchecks.recommender import InteractionDataset, ItemDataset
 __all__ = [
     'SingleDatasetCheck',
     'TrainTestCheck',
@@ -45,77 +44,13 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
 
     context_type = None
 
-    @t.overload
     @docstrings
     def run(
         self,
-        dataset: t.Union[Dataset, pd.DataFrame],
-        model: t.Optional[BasicModel] = None,
-        feature_importance: t.Optional[pd.Series] = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = 120,
-        with_display: bool = True,
-        y_pred: t.Optional[np.ndarray] = None,
-        y_proba: t.Optional[np.ndarray] = None,
-        model_classes: t.Optional[t.List] = None
-    ) -> CheckResult:
-        """Run check.
-
-        Parameters
-        ----------
-        dataset: t.Union[Dataset, pd.DataFrame]
-            Dataset or DataFrame object, representing data an estimator was fitted on
-        model: t.Optional[BasicModel], default: None
-            A scikit-learn-compatible fitted estimator instance
-        feature_importance: pd.Series , default: None
-            pass manual features importance
-        feature_importance_force_permutation : bool , default: False
-            force calculation of permutation features importance
-        feature_importance_timeout : int , default: 120
-            timeout in second for the permutation features importance calculation
-        y_pred: Optional[np.ndarray] , default: None
-            Array of the model prediction over the dataset.
-        y_proba: Optional[np.ndarray] , default: None
-            Array of the model prediction probabilities over the dataset.
-        model_classes: Optional[List] , default: None
-            For classification: list of classes known to the model
-        """
-
-    @t.overload
-    @docstrings
-    def run(
-        self,
-        dataset: 'RecDataset',
-        item_dataset: t.Optional['ItemDataset'] = None,
-        feature_importance: t.Optional[pd.Series] = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = 120,
-        with_display: bool = True,
-        y_pred: t.Optional[np.ndarray] = None,
-    ) -> CheckResult:
-        """Run check.
-
-        Parameters
-        ----------
-        dataset: RecDataset
-            RecDataset object (dataset object for recommendation systems), representing data an estimator was fitted on
-        item_dataset: Optional[ItemDataset] , default: None
-            ItemDataset object representing data on the various items that are being recommended. 
-        feature_importance: pd.Series , default: None
-            pass manual features importance
-        feature_importance_force_permutation : bool , default: False
-            force calculation of permutation features importance
-        feature_importance_timeout : int , default: 120
-            timeout in second for the permutation features importance calculation
-        y_pred: Optional[np.ndarray] , default: None
-            Array of the model prediction over the dataset.
-        """
-
-    def run(
-        self,
-        dataset: t.Union[Dataset, pd.DataFrame, 'RecDataset'],
+        dataset: t.Union[Dataset, pd.DataFrame, 'InteractionDataset'],
         model: t.Optional[BasicModel] = None,
         item_dataset: t.Optional['ItemDataset'] = None,
+        interaction_dataset: t.Optional['InteractionDataset'] = None,
         feature_importance: t.Optional[pd.Series] = None,
         feature_importance_force_permutation: bool = False,
         feature_importance_timeout: int = 120,
@@ -128,9 +63,23 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         y_proba_test: t.Optional[np.ndarray] = None,
         model_classes: t.Optional[t.List] = None,
     ) -> CheckResult:
-        from deepchecks.recommender.context import Context as RecContext
-        from deepchecks.recommender.dataset import RecDataset
+        """Run check.
 
+        Parameters
+        ----------
+        dataset: InteractionDataset
+            InteractionDataset object representing data about the various interactions between users and items.
+        item_dataset: Optional[ItemDataset], default: None
+            ItemDataset object representing  various items' data that are being recommended.
+        feature_importance: pd.Series , default: None
+            pass manual features importance
+        feature_importance_force_permutation : bool , default: False
+            force calculation of permutation features importance
+        feature_importance_timeout : int , default: 120
+            timeout in second for the permutation features importance calculation
+        y_pred: Optional[np.ndarray] , default: None
+            Array of the model prediction over the dataset.
+        """
         if dataset.label_type != TaskType.RECOMMENDETION and item_dataset is not None:
             raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
 
@@ -161,6 +110,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             context = self.context_type(  # pylint: disable=not-callable
                 train=dataset,
                 item_dataset=item_dataset,
+                interaction_dataset=interaction_dataset,
                 feature_importance=feature_importance,
                 feature_importance_force_permutation=feature_importance_force_permutation,
                 feature_importance_timeout=feature_importance_timeout,
@@ -198,12 +148,11 @@ class TrainTestCheck(TrainTestBaseCheck):
 
     context_type = None
 
-    @t.overload
     @docstrings
     def run(
         self,
-        train_dataset: t.Union[Dataset, pd.DataFrame],
-        test_dataset: t.Union[Dataset, pd.DataFrame],
+        train_dataset: t.Union[Dataset, pd.DataFrame, 'InteractionDataset'],
+        test_dataset: t.Union[Dataset, pd.DataFrame, 'InteractionDataset'],
         model: t.Optional[BasicModel] = None,
         item_dataset: t.Optional['ItemDataset'] = None,
         feature_importance: t.Optional[pd.Series] = None,
@@ -228,61 +177,6 @@ class TrainTestCheck(TrainTestBaseCheck):
             A scikit-learn-compatible fitted estimator instance
         {additional_context_params:2*indent}
         """
-
-    @t.overload
-    @docstrings
-    def run(
-        self,
-        train_dataset: 'RecDataset',
-        test_dataset: 'RecDataset',
-        item_dataset: t.Optional['ItemDataset'] = None,
-        feature_importance: t.Optional[pd.Series] = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = 120,
-        with_display: bool = True,
-        y_pred_train: t.Optional[np.ndarray] = None,
-        y_pred_test: t.Optional[np.ndarray] = None,
-    ) -> CheckResult:
-        """Run check.
-
-        Parameters
-        ----------
-        train: RecDataset
-            RecDataset object (dataset object for recommendation systems), representing data an estimator was fitted on
-        test: RecDataset
-            RecDataset object (dataset object for recommendation systems), representing data an estimator was fitted on
-        feature_importance: pd.Series , default: None
-            pass manual features importance
-        feature_importance_force_permutation : bool , default: False
-            force calculation of permutation features importance
-        feature_importance_timeout : int , default: 120
-            timeout in second for the permutation features importance calculation
-        y_pred_train: Optional[np.ndarray] , default: None
-            Array of the model prediction over the train dataset.
-        y_pred_test: Optional[np.ndarray] , default: None
-            Array of the model prediction over the test dataset.
-        """
-
-    @docstrings
-    def run(
-        self,
-        train_dataset: t.Union[Dataset, pd.DataFrame, 'RecDataset'],
-        test_dataset: t.Union[Dataset, pd.DataFrame, 'RecDataset'],
-        model: t.Optional[BasicModel] = None,
-        item_dataset: t.Optional['ItemDataset'] = None,
-        feature_importance: t.Optional[pd.Series] = None,
-        feature_importance_force_permutation: bool = False,
-        feature_importance_timeout: int = 120,
-        with_display: bool = True,
-        y_pred_train: t.Optional[np.ndarray] = None,
-        y_pred_test: t.Optional[np.ndarray] = None,
-        y_proba_train: t.Optional[np.ndarray] = None,
-        y_proba_test: t.Optional[np.ndarray] = None,
-        model_classes: t.Optional[t.List] = None
-    ) -> CheckResult:
-        from deepchecks.recommender.context import Context as RecContext
-        from deepchecks.recommender.dataset import RecDataset
-        
         if train_dataset.label_type != TaskType.RECOMMENDETION and item_dataset is not None:
             raise DeepchecksNotSupportedError('item_dataset is not supported for tabular datasets.')
 
@@ -319,7 +213,6 @@ class TrainTestCheck(TrainTestBaseCheck):
                 model_classes=model_classes
             )
 
-       
         result = self.run_logic(context)
         context.finalize_check_result(result, self)
         return result

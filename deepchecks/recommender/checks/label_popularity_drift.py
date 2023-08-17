@@ -20,8 +20,9 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 __all__ = ['LabelPopularityDrift']
 
+
 class LabelPopularityDrift(SingleDatasetCheck):
-    """ Compute popularity drift between train points and test labels, using statistical measures.
+    """Compute popularity drift between train points and test labels, using statistical measures.
 
     Check calculates a drift score for the popularity of the trained instances, by comparing its
     distribution to the true labels.
@@ -101,6 +102,7 @@ class LabelPopularityDrift(SingleDatasetCheck):
     random_state : int, default: 42
         random seed for all check internals.
     """
+
     def __init__(
             self,
             margin_quantile_filter: float = 0.025,
@@ -136,27 +138,26 @@ class LabelPopularityDrift(SingleDatasetCheck):
             raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "max", None')
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
-        """Calculate drift for all columns.
+        """Compute popularity drift.
 
         Returns
         -------
         CheckResult
             value: drift score.
-            display: distribution graph, comparing the predictions and true labels distributions.
+            display: distribution graph, comparing popularity distribution of fitted items and true labels.
         """
-
         test_labels = context.get_data_by_kind(dataset_kind).label_col
         sample_size = min(self.n_samples, len(test_labels))
 
         test_labels = test_labels.sample(sample_size, random_state=self.random_state)
 
-        interaction_dataset  = context._interaction_dataset
+        interaction_dataset = context.get_interaction_dataset
         item_id = interaction_dataset.item_index_name
         item_popularity = interaction_dataset.data[item_id].value_counts().to_dict()
         train_items = interaction_dataset.data[item_id].unique()
 
         train_popularity = [item_popularity[item] for item in train_items]
-        label_popularity = [item_popularity[item] for sublist in test_labels for item in sublist if item in item_popularity]
+        label_popularity = [item_popularity[item] for sub in test_labels for item in sub if item in item_popularity]
 
         drift_score, _, drift_display = calc_drift_and_plot(
             train_column=pd.Series(train_popularity),

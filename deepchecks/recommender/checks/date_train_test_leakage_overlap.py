@@ -18,6 +18,7 @@ import pandas as pd
 import plotly.graph_objects as go
 __all__ = ['DateTrainTestLeakageOverlap']
 
+
 class DateTrainTestLeakageOverlap(TrainTestCheck):
     """Ensure there's no overlap between training and testing data based on dates.
 
@@ -93,13 +94,17 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
                 line=dict(color='red')
             ))
             # Add Markers for max_train_date and min_test_date
-            fig.add_trace(go.Scatter(x=[max(train_date), max(train_date)], y=[0, 1],
-                                    name='Max Train Timestamp',
-                                    line=dict(color='blue', width=2, dash='dot')))
+            fig.add_trace(go.Scatter(
+                x=[max(train_date), max(train_date)], y=[0, 1],
+                name='Max Train Timestamp',
+                line=dict(color='blue', width=2, dash='dot'))
+            )
 
-            fig.add_trace(go.Scatter(x=[min(test_date), min(test_date)], y=[3, 2],
-                                    name='Min Test Timestamp',
-                                    line=dict(color='red', width=2, dash='dot')))
+            fig.add_trace(go.Scatter(
+                x=[min(test_date), min(test_date)], y=[3, 2],
+                name='Min Test Timestamp',
+                line=dict(color='red', width=2, dash='dot'))
+            )
 
             fig.update_layout(
                 title='Temporal Comparison of train and validation timestamps.',
@@ -108,21 +113,22 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
                     tickvals=[1, 2],
                     ticktext=['Train', 'Validation']
                 ),
-        xaxis=dict(
-            title="Timestamps",
-            type='date',  # Set the x-axis type to 'date' for proper date formatting
-            tickformat='%Y-%m-%d',  # Customize the date format as needed
-        ),
-                xaxis_title="Timestamps",
-                yaxis_title="Set",
+                xaxis=dict(
+                    title='Timestamps',
+                    type='date',  # Set the x-axis type to 'date' for proper date formatting
+                    tickformat='%Y-%m-%d',  # Customize the date format as needed
+                ),
+                xaxis_title='Timestamps',
+                yaxis_title='Set',
                 height=400
             )
 
             text = f'{format_percent(leakage_ratio)} of test data samples are in the date range '\
                 f'{format_datetime(min_test_date)} - {format_datetime(max_test_date)}'\
                 f', which occurs before last training data date ({format_datetime(max_train_date)})'
-        return CheckResult(value={'max_train_date': max_train_date,
-                                  'min_test_date': min_test_date
-                                 },
+        return CheckResult(value={
+                                'max_train_date': max_train_date,
+                                'min_test_date': min_test_date
+                                },
                            header='Date Train-Test Leakage (overlap)',
-                           display=[text,fig])
+                           display=[text, fig])

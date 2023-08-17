@@ -9,7 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module of ColdStartDetection check."""
-from typing import TYPE_CHECKING, TypeVar, Union
+from typing import TypeVar, Union
 import plotly.graph_objects as go
 import networkx as nx
 import pandas as pd
@@ -17,12 +17,11 @@ from deepchecks.core import CheckResult
 from deepchecks.recommender import Context
 from deepchecks.tabular.base_checks import SingleDatasetCheck
 import numpy as np
-if TYPE_CHECKING:
-    from deepchecks.core.checks import CheckConfig
 
 __all__ = ['ProductAssociation']
 
 SDP = TypeVar('SDP', bound='ProductAssociation')
+
 
 class ProductAssociation(SingleDatasetCheck):
     """
@@ -48,16 +47,15 @@ class ProductAssociation(SingleDatasetCheck):
     """
 
     def __init__(self,
-                 n_samples: Union[int,None] = 1_000_000,
+                 n_samples: Union[int, None] = 1_000_000,
                  max_timestamp_delta : Union[int, None] = None,
                  random_state: int = 42,
-                 **kwargs
-    ):
+                 **kwargs):
+
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.max_timestamp_delta = max_timestamp_delta
         self.random_state = random_state
-
 
     def vizualize_graph(self, association_df: pd.DataFrame) -> go.Figure:
         """
@@ -73,9 +71,9 @@ class ProductAssociation(SingleDatasetCheck):
 
         # Add edges to the graph based on the lift metric above the threshold
         for _, row in association_df.iterrows():
-            net.add_edge(row['reference'], row['possible recommandation'], weight=row['lift_metric (%)'])
+            net.add_edge(row['reference'], row['highly associated items'], weight=row['lift_metric (%)'])
         # Set node positions using a spring layout
-        pos = nx.spring_layout(net,k=1.2,seed=32)
+        pos = nx.spring_layout(net, k=1.2, seed=32)
         # Create Plotly nodes
         nodes_trace = go.Scatter(
             x=[pos[node][0] for node in net.nodes()],
@@ -85,10 +83,10 @@ class ProductAssociation(SingleDatasetCheck):
             textposition='top center',
             hoverinfo='text',
             marker={
-                'showscale':True,
-                'color':list(dict(net.degree).values()),
-                'size':20,
-                'line_width':2,
+                'showscale': True,
+                'color': list(dict(net.degree).values()),
+                'size': 20,
+                'line_width': 2,
                 'colorbar_title': 'Node Degree'  # Set the colorbar title
 
             },
@@ -108,10 +106,10 @@ class ProductAssociation(SingleDatasetCheck):
         edges_trace = go.Scatter(
             x=edge_x,
             y=edge_y,
-            line={'width':0.5,
-                  'color':'gray'},
+            line={'width': 0.5,
+                  'color': 'gray'},
             textposition='top center',
-            hoverinfo='text',  # Show hovertext
+            hoverinfo='text',
             mode='lines',
             showlegend=False
 
@@ -146,10 +144,10 @@ class ProductAssociation(SingleDatasetCheck):
         return data
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
-
+        """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
 
-        item_dataset = context._item_dataset
+        item_dataset = context.get_item_dataset
         item_column_name = item_dataset.item_column_name
         item_df = item_dataset.data
 
@@ -157,26 +155,27 @@ class ProductAssociation(SingleDatasetCheck):
         item_col = dataset.item_index_name
 
         interactions = pd.DataFrame(dataset.data)
-        # Ommit cold start users by droping NaN because of the .shift
+        # Exclude cold start users by dropping NaN due to the .shift method
         interactions[f'prev_{item_col}'] = interactions.groupby(user_col)[item_col].shift(1)
-        interactions[f'prev_{item_col}'] = interactions[f'prev_{item_col}'].astype("Int64").dropna()
+        interactions[f'prev_{item_col}'] = interactions[f'prev_{item_col}'].astype('Int64').dropna()
 
         if self.max_timestamp_delta is not None:
-            datetime_name = dataset.datetime_name
+            ts_name = dataset.datetime_name
             grouped_interactions = interactions.groupby(user_col)
-            interactions[f'prev_{datetime_name}'] = grouped_interactions[datetime_name].shift(1)
-            interactions[f'delta_{datetime_name}_seconds'] = (interactions[datetime_name] - interactions[f'prev_{datetime_name}']).dt.total_seconds()
-            interactions = interactions[interactions['delta_timestamp_seconds'] < self.max_timestamp_delta].drop([f'prev_{datetime_name}',f'{datetime_name}'],axis=1)
+            interactions[f'prev_{ts_name}'] = grouped_interactions[ts_name].shift(1)
+            interactions['delta_sec'] = (interactions[ts_name] - interactions[f'prev_{ts_name}']).dt.total_seconds()
+            interactions = interactions[interactions['delta_sec'] < self.max_timestamp_delta]
+            interactions = interactions.drop([f'prev_{ts_name}', f'{ts_name}', 'delta_sec'], axis=1)
 
         association_df = interactions[[f'prev_{item_col}', item_col]].copy()
-        association_df['item_combination'] = self.sort_and_combine_items(association_df)
+        association_df['item_combo'] = self.sort_and_combine_items(association_df)
 
         # Create a new DataFrame to count the non-directional co-occurrence of each pair
-        association_counts = association_df.groupby(['item_combination']).size().reset_index(name='co-occurence')
+        association_counts = association_df.groupby(['item_combo']).size().reset_index(name='co-occurrence')
         # Use the apply method to unpack the tuples into separate columns
-        association_counts[f'prev_{item_col}'], association_counts[item_col] = zip(*association_counts['item_combination'])
+        association_counts[f'prev_{item_col}'], association_counts[item_col] = zip(*association_counts['item_combo'])
         # Drop the original 'tuple_column'
-        association_counts.drop(columns=['item_combination'], inplace=True)
+        association_counts.drop(columns=['item_combo'], inplace=True)
 
         prob_df = interactions.groupby(item_col).size().reset_index(name='popularity')
         prob_df['probability'] = prob_df['popularity']/len(interactions)
@@ -189,23 +188,28 @@ class ProductAssociation(SingleDatasetCheck):
         # Add popularity columns to the DataFrame
         association_counts[f'prev_{item_col}_prb'] = association_counts[f'prev_{item_col}'].apply(get_probability)
         association_counts[f'{item_col}_prb'] = association_counts[item_col].apply(get_probability)
-        association_counts['lift_metric (%)'] = association_counts['co-occurence']/(association_counts[f'prev_{item_col}_prb']*association_counts[f'{item_col}_prb']*len(interactions)).astype(np.float16)
+        co_occurence = association_counts['co-occurrence']/len(interactions)
+        joint_prob = association_counts[f'prev_{item_col}_prb']*association_counts[f'{item_col}_prb']
+        association_counts['lift_metric (%)'] = (co_occurence/joint_prob).astype(np.float16)
 
-        association_counts = association_counts[[f'prev_{item_col}', item_col,'co-occurence','lift_metric (%)']]
-        movie_translation = item_df[[item_col,item_column_name]].set_index(item_col)[item_column_name].to_dict()
+        association_counts = association_counts[[f'prev_{item_col}', item_col, 'co-occurrence', 'lift_metric (%)']]
+        movie_translation = item_df[[item_col, item_column_name]].set_index(item_col)[item_column_name].to_dict()
 
-        association_counts[f'prev_{item_col}']= association_counts[f'prev_{item_col}'].map(movie_translation)
-        association_counts[item_col]= association_counts[item_col].map(movie_translation)
+        association_counts[f'prev_{item_col}'] = association_counts[f'prev_{item_col}'].map(movie_translation)
+        association_counts[item_col] = association_counts[item_col].map(movie_translation)
 
-        association_counts = association_counts.sort_values(['co-occurence','lift_metric (%)'],ascending=[False,False]).rename({f'prev_{item_col}':'reference',
-        item_col:'possible recommandation'},axis=1)
+        association_counts.sort_values(['co-occurrence', 'lift_metric (%)'], ascending=[False, False], inplace=True)
+        association_counts.rename(columns={f'prev_{item_col}': 'reference'}, inplace=True)
+        association_counts.rename(columns={item_col: 'highly associated items'}, inplace=True)
         display_df = association_counts.head(20)
         fig = self.vizualize_graph(display_df)
         # Show the interactive plot
         text = '''
                 This graph illustrates best item association using the lift metric.
-                The spring layout visually arranges items in 2D space for representation, while node color highlight their significance, indicating the node degree.
+                The spring layout visually arranges items in 2D space for representation, while node color highlight
+                their significance, indicating the node degree.
                 The values, resulting from the layout algorithm in the axis, lack direct physical meaning.
-                The absolute values may not carry significant interpretation; instead, the relative distances between nodes matter more for graph visualization.
+                The absolute values may not carry significant interpretation; instead, the relative distances
+                 between nodes matter more for graph visualization.
                '''
-        return CheckResult(association_counts, header='Product Association', display=[text,fig])
+        return CheckResult(association_counts, header='Product Association', display=[text, fig])

@@ -21,8 +21,9 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 __all__ = ['UserSessionDrift']
 
+
 class UserSessionDrift(TrainTestCheck):
-    """ Check for user session length drift in train and test sets.
+    """Check for user session length drift in train and test sets.
 
     This check compares the distribution of user session lengths between the train and test sets.
     It helps to identify potential drift or discrepancies, but also assess whether the two sets
@@ -30,6 +31,7 @@ class UserSessionDrift(TrainTestCheck):
     differences that could introduce drift in the recommender system.
 
     """
+
     def __init__(
             self,
             margin_quantile_filter: float = 0.025,
@@ -65,15 +67,14 @@ class UserSessionDrift(TrainTestCheck):
             raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "max", None')
 
     def run_logic(self, context: Context) -> CheckResult:
-        """Calculate drift for all columns.
+        """Calculate drift for users' session length.
 
         Returns
         -------
         CheckResult
             value: drift score.
-            display: label distribution graph, comparing the train and test distributions.
+            display: distribution graph, comparing the distribution of train and test session length.
         """
-
         train_dataset = context.train
         test_dataset = context.test
 
@@ -82,7 +83,6 @@ class UserSessionDrift(TrainTestCheck):
 
         train_users_nb_interactions = train_dataset.data[user_col].value_counts().tolist()
         test_users_nb_interactions = test_dataset.data[user_col].value_counts().tolist()
-
 
         drift_score, _, drift_display = calc_drift_and_plot(
             train_column=pd.Series(train_users_nb_interactions),
@@ -105,4 +105,4 @@ class UserSessionDrift(TrainTestCheck):
             with_display=context.with_display,
         )
 
-        return CheckResult(value=drift_score,header='Session Length drift',display=drift_display)
+        return CheckResult(value=drift_score, header='Session Length drift', display=drift_display)

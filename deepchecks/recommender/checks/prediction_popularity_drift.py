@@ -21,9 +21,9 @@ from deepchecks.utils.distribution.drift import calc_drift_and_plot
 
 __all__ = ['PredictionPopularityDrift']
 
+
 class PredictionPopularityDrift(SingleDatasetCheck):
-    """
-    Compute popularity drift between predictions and true labels, using statistical measures.
+    """Compute popularity drift between predictions and true labels, using statistical measures.
 
     Check calculates a drift score for the prediction in the test dataset, by comparing its
     distribution to the predictions.
@@ -101,6 +101,7 @@ class PredictionPopularityDrift(SingleDatasetCheck):
     random_state : int, default: 42
         random seed for all check internals.
     """
+
     def __init__(
             self,
             margin_quantile_filter: float = 0.025,
@@ -136,30 +137,29 @@ class PredictionPopularityDrift(SingleDatasetCheck):
             raise DeepchecksValueError('aggregation_method must be one of "weighted", "mean", "max", None')
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
-        """Calculate drift for all columns.
+        """Compute popularity drift.
 
         Returns
         -------
         CheckResult
             value: drift score.
-            display: distribution graph, comparing the predictions and true labels distributions.
+            display: distribution graph, comparing the  popularity distribution of predictions and true labels.
         """
-
         test_labels = context.get_data_by_kind(dataset_kind).label_col
         sample_size = min(self.n_samples, len(test_labels))
 
         test_labels = test_labels.sample(sample_size, random_state=self.random_state)
-        test_predictions = context.model.predictions
+        test_pred = context.model.predictions
 
-        interaction_dataset  = context._interaction_dataset
+        interaction_dataset = context.get_interaction_dataset
         item_id = interaction_dataset.item_index_name
         item_popularity = interaction_dataset.data[item_id].value_counts().to_dict()
 
-        prediction_popularity = [item_popularity[item] for sublist in test_predictions for item in sublist if item in item_popularity ]
-        label_popularity =  [item_popularity[item] for sublist in test_labels for item in sublist if item in item_popularity ]
+        pred_popularity = [item_popularity[item] for sub in test_pred for item in sub if item in item_popularity]
+        label_popularity = [item_popularity[item] for sub in test_labels for item in sub if item in item_popularity]
 
         drift_score, _, drift_display = calc_drift_and_plot(
-            train_column=pd.Series(prediction_popularity),
+            train_column=pd.Series(pred_popularity),
             test_column=pd.Series(label_popularity),
             value_name='Prediction Popularity',
             column_type='numerical',
