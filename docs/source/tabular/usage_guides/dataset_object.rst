@@ -147,7 +147,7 @@ Inferring Categorical Features
 
 .. warning::
     It is highly recommended to explicitly state the categorical features or define their column type to be ``category``.
-    Otherwise, the inherent limitations of the automatic may cause inconsistencies (misdetection, different detection between
+    Otherwise, the inherent limitations of the automatic type detection may cause inconsistencies (misdetection, different detection between
     train and test, etc.) and require tuning and adaptions.
 
 If the parameter ``cat_features`` was not passed explicitly, the following inference logic 
