@@ -56,7 +56,7 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
         """
         train_date = context.train.datetime_col
         test_date = context.test.datetime_col
-
+        display = []
         if self.validation_per_user is False:
             _, max_train_date = min(train_date), max(train_date)
             min_test_date, max_test_date = min(test_date), max(test_date)
@@ -126,9 +126,56 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
             text = f'{format_percent(leakage_ratio)} of test data samples are in the date range '\
                 f'{format_datetime(min_test_date)} - {format_datetime(max_test_date)}'\
                 f', which occurs before last training data date ({format_datetime(max_train_date)})'
-        return CheckResult(value={
-                                'max_train_date': max_train_date,
-                                'min_test_date': min_test_date
-                                },
+            display.append(text)
+            return_value = {
+                          'max_train_date': max_train_date,
+                          'min_test_date': min_test_date
+                            }
+            display.append(fig)
+        else:
+            user_id = context.train.user_index_name
+            train_grouped = context.train.data.groupby(user_id)
+            test_grouped = context.test.data.groupby(user_id)
+            leakage_ratios = []
+
+            for user_id, train_group in train_grouped:
+                if user_id in list(test_grouped.groups.keys()):
+
+                    train_date = train_group['timestamp']
+                    _, max_train_date = min(train_date), max(train_date)
+
+                    test_group = test_grouped.get_group(user_id)
+                    test_date = test_group['timestamp']
+
+                    dates_leaked = sum(date < max_train_date for date in test_date)
+                    if dates_leaked > 0:
+                        leakage_ratio = dates_leaked / len(test_group)
+                        leakage_ratios.append(leakage_ratio)
+                else:
+                    continue
+            if len(leakage_ratios) > 0:
+                average_leakage_ratio = sum(leakage_ratios) / len(leakage_ratios)
+                text = f'There is an average leak of {format_percent(average_leakage_ratio)} per user.\
+                    In other words, {format_percent(average_leakage_ratio)} of the  validation set of a user\
+                    appears before the maximum timestamp of the training set.'
+                display.append(text)
+
+                fig = go.Figure()
+                fig.add_trace(go.Bar(x=['Leakage Percentage'], y=[100*average_leakage_ratio], width=0.3))
+
+                fig.update_layout(
+                    title_text='Leaky User Overview',
+                    yaxis_title='Proportion (%)'
+                    )
+
+                display.append(fig)
+            else:
+                average_leakage_ratio = 0
+                text = 'No leak between users.'
+                display.append(text)
+
+            return_value = {'average_leakage_ratio' : average_leakage_ratio}
+
+        return CheckResult(value=return_value,
                            header='Date Train-Test Leakage (overlap)',
-                           display=[text, fig])
+                           display=display)
