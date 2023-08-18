@@ -16,6 +16,8 @@ from .prediction_popularity_drift import PredictionPopularityDrift
 from .sample_performance import SamplePerformance
 from .user_session_length_drift import UserSessionDrift
 from .segment_performance import SegmentPerformance
+from .weak_segments_performance import WeakSegmentsPerformance
+
 from .product_association import ProductAssociation
 __all__ = ['LabelPopularityDrift',
            'PredictionPopularityDrift',
@@ -24,5 +26,6 @@ __all__ = ['LabelPopularityDrift',
            'ColdStartDetection',
            'UserSessionDrift',
            'SegmentPerformance',
+           'WeakSegmentsPerformance',
            'ProductAssociation'
            ]
