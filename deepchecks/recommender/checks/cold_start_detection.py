@@ -10,11 +10,13 @@
 #
 """Module of ColdStartDetection check."""
 import pandas as pd
-from deepchecks.core import CheckResult
 from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.recommender import Context, InteractionDataset
 from deepchecks.utils.dataframes import select_from_dataframe
+from deepchecks.utils.strings import format_percent
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 import plotly.express as px
+
 
 __all__ = ['ColdStartDetection']
 
@@ -70,4 +72,28 @@ class ColdStartDetection(SingleDatasetCheck):
             fig.update_traces(width=0.6)
             fig.update_layout(yaxis_range=[0, 100])  # Set the range of y-axis to 0 and 100
 
-        return CheckResult(cold_start_users_pct, display=fig)
+        return CheckResult({
+                           'cold_start_users_pct': cold_start_users_pct,
+                           'cold_start_items_pct': cold_start_items_pct}
+                           ,
+                           display=fig)
+
+    def add_condition_greater_than(self,
+                                   min_cold_start_entity: float = 0.7):
+        """Add condition - the selected metrics scores are greater than the threshold.
+
+        Parameters
+        ----------
+        min_cold_start_entity: float
+            The minimum cold start entity proportion allowed.
+        """
+
+        def condition(check_result):
+            cold_start_entity_pct = check_result['cold_start_users_pct']+check_result['cold_start_items_pct']
+            pct = format_percent(cold_start_entity_pct)
+            if cold_start_entity_pct < min_cold_start_entity:
+                return ConditionResult(ConditionCategory.PASS, f'Your dataset contains {pct} cold start entities')
+            else:
+                return ConditionResult(ConditionCategory.FAIL, f'Your dataset contains {pct} cold start entities')
+        threshold_format = format_percent(min_cold_start_entity)
+        return self.add_condition(f'Cold start entity proportion is less or equal to {threshold_format}', condition)
