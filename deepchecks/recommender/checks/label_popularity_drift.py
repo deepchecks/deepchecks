@@ -12,11 +12,12 @@
 import typing as t
 import pandas as pd
 
-from deepchecks.core import CheckResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.recommender import Context
 from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.strings import format_number
 
 __all__ = ['LabelPopularityDrift']
 
@@ -162,9 +163,9 @@ class LabelPopularityDrift(SingleDatasetCheck):
         drift_score, _, drift_display = calc_drift_and_plot(
             train_column=pd.Series(train_popularity),
             test_column=pd.Series(label_popularity),
-            value_name='Prediction Popularity',
+            value_name='Label Popularity',
             column_type='numerical',
-            plot_title='Prediction Popularity Drift',
+            plot_title='Label Popularity Drift',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,
@@ -176,7 +177,7 @@ class LabelPopularityDrift(SingleDatasetCheck):
             ignore_na=self.ignore_na,
             min_samples=self.min_samples,
             raise_min_samples_error=True,
-            dataset_names=('Prediction', 'True Labels'),
+            dataset_names=('Trained Items', 'True Labels'),
             with_display=context.with_display
         )
 
@@ -185,3 +186,34 @@ class LabelPopularityDrift(SingleDatasetCheck):
             header='Label Popularity Drift',
             display=drift_display,
         )
+
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+                                            max_allowed_numeric_score: float = 0.15):
+        """
+        Add condition - require drift score to be less than a certain threshold.
+
+        The industry standard for PSI limit is above 0.2.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
+
+        Parameters
+        ----------
+        max_allowed_categorical_score: float , default: 0.15
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.15
+            the max threshold for the numeric variable drift score
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
+        """
+
+        def condition(result: t.Dict) -> ConditionResult:
+            drift_score = result
+            details = f'the popularity drift score is equal to {format_number(drift_score)}'
+            category = ConditionCategory.FAIL if drift_score > max_allowed_categorical_score else ConditionCategory.PASS
+            return ConditionResult(category, details)
+
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
+                                  condition)
