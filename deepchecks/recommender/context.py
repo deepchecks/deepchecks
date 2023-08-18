@@ -139,7 +139,7 @@ class Scorer(DeepcheckScorer):
         score = scorer(model, dataset)
     """
 
-    def __init__(self, metric, name, to_avg=True, **kwargs):
+    def __init__(self, metric, name, to_avg=True, k=None, **kwargs):
         if isinstance(metric, t.Callable):
             self.per_sample_metric = metric
         elif isinstance(metric, str):
@@ -152,6 +152,7 @@ class Scorer(DeepcheckScorer):
         super().__init__(self.per_sample_metric, name=name, model_classes=None, observed_classes=None)
         self.to_avg = to_avg
         self.metric_kwargs = kwargs
+        self.k = k
 
     def run_rec_metric(self, y_true, y_pred):
         """
@@ -167,6 +168,7 @@ class Scorer(DeepcheckScorer):
         return run_available_kwargs(self.per_sample_metric,
                                     relevant_items=y_true,
                                     recommendations=y_pred,
+                                    k=self.k,
                                     **self.metric_kwargs)
 
     def __call__(self, model, dataset: t.Union[UserDataset, ItemDataset, InteractionDataset]):
@@ -270,7 +272,7 @@ class Context(TabularContext):
                 if self._item_dataset is not None else None}
 
     def get_scorers(self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]],
-                                           t.List[str]] = None, use_avg_defaults=True) -> t.List[Scorer]:
+                                           t.List[str]] = None, use_avg_defaults=True, k=10) -> t.List[Scorer]:
         """
         Get a list of Scorer instances based on specified or default scorers.
 
@@ -286,15 +288,15 @@ class Context(TabularContext):
         if scorers is None:
             return [Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())]
         if isinstance(scorers, t.Mapping):
-            scorers = [Scorer(scorer, name, to_avg=use_avg_defaults, **self.get_scorer_kwargs())
+            scorers = [Scorer(scorer, name, to_avg=use_avg_defaults, k=k, **self.get_scorer_kwargs())
                        for name, scorer in scorers.items()]
         else:
-            scorers = [Scorer(scorer, to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
+            scorers = [Scorer(scorer, to_avg=use_avg_defaults, name=None, k=k, **self.get_scorer_kwargs())
                        for scorer in scorers]
         return scorers
 
     def get_single_scorer(self, scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
-                          use_avg_defaults=True) -> DeepcheckScorer:
+                          use_avg_defaults=True, k=10) -> DeepcheckScorer:
         """
         Get a single Scorer instance based on a specified or default scorer.
 
@@ -309,7 +311,7 @@ class Context(TabularContext):
         """
         if scorer is None:
             return Scorer('reciprocal_rank', to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
-        return Scorer(scorer, to_avg=use_avg_defaults, name=None, **self.get_scorer_kwargs())
+        return Scorer(scorer, to_avg=use_avg_defaults, name=None, k=k, **self.get_scorer_kwargs())
 
     @property
     def model_classes(self) -> t.List:
