@@ -8,16 +8,16 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the popularity drift check."""
+"""Module containing the session length drift check."""
 import typing as t
 
 import pandas as pd
-
-from deepchecks.core import CheckResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.recommender import Context
 from deepchecks.tabular import TrainTestCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
+from deepchecks.utils.strings import format_number
 
 __all__ = ['UserSessionDrift']
 
@@ -106,3 +106,34 @@ class UserSessionDrift(TrainTestCheck):
         )
 
         return CheckResult(value=drift_score, header='Session Length drift', display=drift_display)
+
+    def add_condition_drift_score_less_than(self, max_allowed_categorical_score: float = 0.15,
+                                            max_allowed_numeric_score: float = 0.15):
+        """
+        Add condition - require drift score to be less than a certain threshold.
+
+        The industry standard for PSI limit is above 0.2.
+        There are no common industry standards for other drift methods, such as Cramer's V,
+        Kolmogorov-Smirnov and Earth Mover's Distance.
+
+        Parameters
+        ----------
+        max_allowed_categorical_score: float , default: 0.15
+            the max threshold for the categorical variable drift score
+        max_allowed_numeric_score: float ,  default: 0.15
+            the max threshold for the numeric variable drift score
+        Returns
+        -------
+        ConditionResult
+            False if any column has passed the max threshold, True otherwise
+        """
+
+        def condition(result: t.Dict) -> ConditionResult:
+            drift_score = result
+            details = f'the session length drift score is equal to {format_number(drift_score)}'
+            category = ConditionCategory.FAIL if drift_score > max_allowed_categorical_score else ConditionCategory.PASS
+            return ConditionResult(category, details)
+
+        return self.add_condition(f'categorical drift score < {max_allowed_categorical_score} and '
+                                  f'numerical drift score < {max_allowed_numeric_score}',
+                                  condition)
