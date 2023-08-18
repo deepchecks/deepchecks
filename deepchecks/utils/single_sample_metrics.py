@@ -27,9 +27,9 @@ def calculate_per_sample_loss(model, task_type: TaskType, dataset: Dataset,
     """Calculate error per sample for a given model and a dataset."""
     if task_type == TaskType.RECOMMENDETION:
         if is_sequence_not_str(dataset.label_col):
-            scorer = ranking.reciprocal_rank
+            scorer = ranking.f1_k
         else:
-            scorer = ranking.mean_reciprocal_rank
+            scorer = ranking.mean_average_f1_at_k
         return pd.Series([scorer(y, y_pred) for y, y_pred in
                           zip(model.predict(dataset.features_columns), dataset.label_col)], index=dataset.data.index)
     if task_type == TaskType.REGRESSION:
