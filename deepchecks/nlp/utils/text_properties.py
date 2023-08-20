@@ -11,6 +11,7 @@
 """Module containing the text properties for the NLP module."""
 import gc
 import pathlib
+import pickle as pkl
 import re
 import string
 import warnings
@@ -241,6 +242,7 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
     return [np.nan] * len(text_batch)  # Prediction failed, return NaN values for the original batch size
 
 
+TOXICITY_CALIBRATOR = pathlib.Path(__file__).absolute().parent / 'assets' / 'toxicity_calibrator.pkl'
 TOXICITY_MODEL_NAME = 'SkolkovoInstitute/roberta_toxicity_classifier'
 FLUENCY_MODEL_NAME = 'prithivida/parrot_fluency_model'
 FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
@@ -257,8 +259,22 @@ def toxicity(
         toxicity_classifier = get_transformer_pipeline(
             property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
 
+    class UnitModel:
+        """A model that does nothing."""
+
+        @staticmethod
+        def predict(x):
+            return x
+
+    try:
+        with open(TOXICITY_CALIBRATOR, 'rb') as f:
+            toxicity_calibrator = pkl.load(f)
+    except Exception:  # pylint: disable=broad-except
+        toxicity_calibrator = UnitModel()
+
     def output_formatter(v):
-        return v['score'] if (v['label'] == 'toxic') else 1 - v['score']
+        score = v['score'] if (v['label'] == 'toxic') else 1 - v['score']
+        return toxicity_calibrator.predict([score])[0]
 
     return predict_on_batch(text_batch, toxicity_classifier, output_formatter)
 
