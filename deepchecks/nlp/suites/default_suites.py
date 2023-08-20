@@ -16,11 +16,11 @@ It is possible to customize these suites by editing the checks and conditions in
 """
 
 from deepchecks.nlp import Suite
-from deepchecks.nlp.checks import (ConflictingLabels, LabelDrift, MetadataSegmentsPerformance, PredictionDrift,
-                                   PropertyDrift, PropertyLabelCorrelation, PropertySegmentsPerformance,
-                                   SpecialCharacters, TextDuplicates, TextEmbeddingsDrift, TextPropertyOutliers,
-                                   TrainTestPerformance, TrainTestSamplesMix, UnderAnnotatedMetaDataSegments,
-                                   UnderAnnotatedPropertySegments, UnknownTokens)
+from deepchecks.nlp.checks import (ConflictingLabels, FrequentSubstrings, LabelDrift, MetadataSegmentsPerformance,
+                                   PredictionDrift, PropertyDrift, PropertyLabelCorrelation,
+                                   PropertySegmentsPerformance, SpecialCharacters, TextDuplicates, TextEmbeddingsDrift,
+                                   TextPropertyOutliers, TrainTestPerformance, TrainTestSamplesMix,
+                                   UnderAnnotatedMetaDataSegments, UnderAnnotatedPropertySegments, UnknownTokens)
 
 __all__ = ['data_integrity', 'train_test_validation',
            'model_evaluation', 'full_suite']
@@ -67,6 +67,7 @@ def data_integrity(n_samples: int = None,
         ConflictingLabels(**kwargs).add_condition_ratio_of_conflicting_labels_less_or_equal(),
         TextDuplicates(**kwargs).add_condition_ratio_less_or_equal(),
         SpecialCharacters(**kwargs).add_condition_samples_ratio_w_special_characters_less_or_equal(),
+        FrequentSubstrings(**kwargs).add_condition_zero_result(),
 
     )
 
