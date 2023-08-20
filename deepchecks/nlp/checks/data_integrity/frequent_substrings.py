@@ -9,16 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the Frequent Substrings check."""
-import typing as t
 from collections import defaultdict
 from typing import Dict
 
 import pandas as pd
+import re
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
-from deepchecks.nlp.text_data import TextData
 from deepchecks.utils.strings import format_percent
 
 __all__ = ['FrequentSubstrings']
@@ -27,29 +26,37 @@ __all__ = ['FrequentSubstrings']
 class FrequentSubstrings(SingleDatasetCheck):
     """Checks for frequent substrings in the dataset.
 
-    From the given dataset, substrings of varying lengths (n-grams) are extracted.
+    Substrings of varying lengths (n-grams) are extracted from the dataset text samples.
     The frequencies of these n-grams are calculated and only substrings exceeding a defined minimum length are retained.
     The substrings are then sorted by their frequencies and the most frequent substrings are identified.
-    Finally, peak substrings and those surpassing a significance level are displayed.
+    Finally, the substrings with the highest frequency and those surpassing a significance level are displayed.
 
     Parameters
     ----------
     n_to_show : int, default: 5
         Number of most frequent substrings to show.
-    n_samples : int, default: 10_000_000
+    n_samples : int, default: 10_000
         Number of samples to use for this check.
     random_state : int, default: 42
         Random seed for all check internals.
+    n_sentences : int, default: 5
+        The number of sentences to extract from the beginning and end of the text content.
     min_ngram_length: int, default: 4
         Minimum amount of words for a substring to be considered a frequent substring.
     min_substring_ratio: float, default: 0.05
         Minimum frequency required for a substring to be considered "frequent".
     significant_substring_ratio: float, default: 0.3
-        Frequency above which samples are considered significant.
+        Frequency above which samples are considered significant. Substrings
+        meeting or exceeding this ratio will always be returned, regardless of
+        other parameters and conditions.
     frequency_margin: float, default: 0.02
-        Maximum allowed difference for considering longer substrings.
+        Defines the tolerance level for selecting longer overlapping substrings. If a longer substring
+        has a frequency that's less than a shorter overlapping substring but the difference is within
+        the specified frequency_margin, the longer substring is still preferred.
     min_relative_change : float, optional, default=0.05
-        Minimum difference threshold below which differences are set to 0.
+        Defines the threshold for relative change. If the computed relative
+        change falls below this specified threshold, it is
+        considered insignificant and is thus set to zero.
 
     """
 
@@ -58,6 +65,7 @@ class FrequentSubstrings(SingleDatasetCheck):
         n_to_show: int = 5,
         n_samples: int = 10_000,
         random_state: int = 42,
+        n_sentences: int = 5,
         min_ngram_length: int = 4,
         min_substring_ratio: float = 0.05,
         significant_substring_ratio: float = 0.3,
@@ -69,6 +77,7 @@ class FrequentSubstrings(SingleDatasetCheck):
         self.n_to_show = n_to_show
         self.n_samples = n_samples
         self.random_state = random_state
+        self.n_sentences = n_sentences
         self.min_ngram_length = min_ngram_length
         self.min_substring_ratio = min_substring_ratio
         self.significant_substring_ratio = significant_substring_ratio
@@ -91,8 +100,56 @@ class FrequentSubstrings(SingleDatasetCheck):
         --------
         List of n-grams.
         """
+        if not isinstance(text, str):
+            return []
         words = text.split()
-        return [' '.join(words[i:i + n]) for i in range(len(words) - n + 1)]
+        chars = r'(?<=,[.!?]\/)'
+        ngrams = []
+        for i in range(len(words) - n + 1):
+            flag = True
+            ngram = words[i:i + n]
+            for char in chars:
+                if char in ngram:
+                    flag = False
+                    break
+            if flag:
+                ngrams.append(' '.join(ngram))
+        return ngrams
+
+    @staticmethod
+    def _split_sentences(text):
+        """
+        Split a given text into sentences.
+
+        Args:
+            text (str): The input text to be split into sentences.
+
+        Returns:
+            list of str: A list of sentences extracted from the input text.
+        """
+        if not isinstance(text, str):
+            return []
+        return re.split(r'(?<=[.!?])\s+', text)
+
+    def _get_n_sentences(self, data):
+        """
+        Extract a specified number of sentences from each item in the input data.
+
+        This function processes each item in the input data, splitting its text content into sentences,
+        and then selects a certain number of sentences from the beginning and end of the content.
+
+        Args:
+            data (list of tuple): The input data, where each tuple contains item information.
+
+        Returns:
+            list of tuple: Processed data with selected sentences for each item.
+        """
+        for index, item in enumerate(data):
+            sentences = self._split_sentences(item[1])
+            if len(sentences) > self.n_sentences*2:
+                sentences = sentences[:self.n_sentences] + sentences[-self.n_sentences:]
+            data[index] = (item[0], ' '.join(sentences))
+        return data
 
     def _calculate_ngram_frequencies(self, data, n, num_samples):
         """
@@ -339,12 +396,12 @@ class FrequentSubstrings(SingleDatasetCheck):
             If the Dataset is empty.
         """
         dataset = context.get_data_by_kind(dataset_kind)
-        num_samples = len(dataset)
-        dataset = dataset.sample(self.n_samples, random_state=self.random_state)
-        dataset = t.cast(TextData, dataset)
-        if dataset.n_samples == 0:
+        dataset_sampled = dataset.sample(self.n_samples, random_state=self.random_state)
+        if dataset_sampled.n_samples == 0:
             raise DeepchecksValueError('Dataset cannot be empty')
-        data = list(zip(dataset.get_original_text_indexes(), dataset.text))
+        data = list(zip(dataset_sampled.get_original_text_indexes(), dataset_sampled.text))
+
+        data = self._get_n_sentences(data)
 
         substrings_dict = self._find_frequent_substrings(data)
         substrings_dict = self._eliminate_overlapping_substrings(substrings_dict)
@@ -363,9 +420,7 @@ class FrequentSubstrings(SingleDatasetCheck):
 
             df = self._filter_peak_and_significant(df)
 
-            if self.n_samples < num_samples:
-                dataset = context.get_data_by_kind(dataset_kind)
-                dataset = t.cast(TextData, dataset).text
+            if self.n_samples < len(dataset):
                 for substring_index, substring in enumerate(df['Text']):
                     indexes = []
                     for sample_index, sample in enumerate(dataset):
