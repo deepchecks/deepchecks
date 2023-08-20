@@ -17,10 +17,10 @@ This notebook provides an overview for using and understanding the frequent subs
 Why check for frequent substrings?
 ===================================
 
-The purpose of the "FrequentSubstrings" check is to identify recurring substrings within the Dataset.
+The purpose of the ``FrequentSubstrings`` check is to identify recurring substrings within the Dataset.
 These commonly occurring substrings can signal potential issues within the data pipeline that demand consideration.
 Furthermore, these substrings might impact the model's performance and,
-in certain scenarios, it might be necessary to eliminate them from the dataset.
+in certain scenarios, it might be necessary to remove them from the dataset.
 
 Substrings of varying lengths (n-grams) are extracted from the dataset text samples.
 The frequencies of these n-grams are calculated and only substrings exceeding a defined minimum length are retained.
