@@ -241,7 +241,7 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
     return [np.nan] * len(text_batch)  # Prediction failed, return NaN values for the original batch size
 
 
-TOXICITY_MODEL_NAME = 'unitary/toxic-bert'
+TOXICITY_MODEL_NAME = 'SkolkovoInstitute/roberta_toxicity_classifier'
 FLUENCY_MODEL_NAME = 'prithivida/parrot_fluency_model'
 FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
 
@@ -258,7 +258,7 @@ def toxicity(
             property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
 
     def output_formatter(v):
-        return v['score']
+        return v['score'] if (v['label'] == 'toxic') else 1 - v['score']
 
     return predict_on_batch(text_batch, toxicity_classifier, output_formatter)
 
