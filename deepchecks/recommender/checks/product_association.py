@@ -193,10 +193,10 @@ class ProductAssociation(SingleDatasetCheck):
         association_counts['lift_metric (%)'] = (co_occurence/joint_prob).astype(np.float16)
 
         association_counts = association_counts[[f'prev_{item_col}', item_col, 'co-occurrence', 'lift_metric (%)']]
-        movie_translation = item_df[[item_col, item_column_name]].set_index(item_col)[item_column_name].to_dict()
+        item_translation = item_df[[item_col, item_column_name]].set_index(item_col)[item_column_name].to_dict()
 
-        association_counts[f'prev_{item_col}'] = association_counts[f'prev_{item_col}'].map(movie_translation)
-        association_counts[item_col] = association_counts[item_col].map(movie_translation)
+        association_counts[f'prev_{item_col}'] = association_counts[f'prev_{item_col}'].map(item_translation)
+        association_counts[item_col] = association_counts[item_col].map(item_translation)
 
         association_counts.sort_values(['co-occurrence', 'lift_metric (%)'], ascending=[False, False], inplace=True)
         association_counts.rename(columns={f'prev_{item_col}': 'reference'}, inplace=True)
