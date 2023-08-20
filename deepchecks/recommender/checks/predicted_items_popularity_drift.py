@@ -8,7 +8,7 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the prediction popularity drift check."""
+"""Module containing the predicted items popularity drift check."""
 import typing as t
 
 import pandas as pd
@@ -20,10 +20,10 @@ from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 
-__all__ = ['PredictionPopularityDrift']
+__all__ = ['PredictedItemsPopularityDrift']
 
 
-class PredictionPopularityDrift(SingleDatasetCheck):
+class PredictedItemsPopularityDrift(SingleDatasetCheck):
     """Compute popularity drift between predictions and true labels, using statistical measures.
 
     Check calculates a drift score for the prediction in the test dataset, by comparing its
