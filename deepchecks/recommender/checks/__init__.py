@@ -20,7 +20,7 @@ from .weak_segments_performance import WeakSegmentsPerformance
 
 from .product_association import ProductAssociation
 __all__ = ['LabelPopularityDrift',
-           'PredictionPopularityDrift',
+           'PredictedItemsPopularityDrift',
            'SamplePerformance',
            'DateTrainTestLeakageOverlap',
            'ColdStartDetection',
