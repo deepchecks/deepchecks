@@ -162,9 +162,9 @@ class PredictedItemsPopularityDrift(SingleDatasetCheck):
         drift_score, _, drift_display = calc_drift_and_plot(
             train_column=pd.Series(pred_popularity),
             test_column=pd.Series(label_popularity),
-            value_name='Prediction Popularity',
+            value_name='Predicted Items Popularity',
             column_type='numerical',
-            plot_title='Prediction Popularity Drift',
+            plot_title='Predicted Items Popularity Drift',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,
@@ -176,13 +176,13 @@ class PredictedItemsPopularityDrift(SingleDatasetCheck):
             ignore_na=self.ignore_na,
             min_samples=self.min_samples,
             raise_min_samples_error=True,
-            dataset_names=('Prediction', 'True Labels'),
+            dataset_names=('Predicted Items', 'True items'),
             with_display=context.with_display,
         )
 
         return CheckResult(
             value=drift_score,
-            header='Prediction Popularity Drift',
+            header='Predicted Items Popularity Drift',
             display=drift_display,
         )
 
@@ -209,7 +209,7 @@ class PredictedItemsPopularityDrift(SingleDatasetCheck):
 
         def condition(result: t.Dict) -> ConditionResult:
             drift_score = result
-            details = f'the popularity drift score is equal to {format_number(drift_score)}'
+            details = f'the predicted items popularity drift score is equal to {format_number(drift_score)}'
             category = ConditionCategory.FAIL if drift_score > max_allowed_categorical_score else ConditionCategory.PASS
             return ConditionResult(category, details)
 
