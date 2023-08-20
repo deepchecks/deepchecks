@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the Frequent Substrings check."""
+import re
 from collections import defaultdict
 from typing import Dict
 
 import pandas as pd
-import re
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -69,8 +69,8 @@ class FrequentSubstrings(SingleDatasetCheck):
         min_ngram_length: int = 4,
         min_substring_ratio: float = 0.05,
         significant_substring_ratio: float = 0.3,
-        frequency_margin=0.02,
-        min_relative_change=0.05,
+        frequency_margin: float = 0.02,
+        min_relative_change: float = 0.05,
         **kwargs
     ):
         super().__init__(**kwargs)
