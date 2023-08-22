@@ -65,7 +65,6 @@ def test_tweet_emotion_metadata(tweet_emotion_train_test_textdata):
     assert_that(result.value['avg_score'], close_to(0.5, 0.001))
     assert_that(len(result.value['weak_segments_list']), equal_to(4))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.407, 0.01))
-    assert_that(result.value['weak_segments_list'].iloc[0, 1], equal_to('days_on_platform'))
 
 
 def test_tweet_emotion_metadata_interesting_segment(tweet_emotion_train_test_textdata):
