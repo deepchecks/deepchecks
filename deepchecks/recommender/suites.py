@@ -25,9 +25,8 @@ from deepchecks.tabular.checks import (FeatureDrift, FeatureFeatureCorrelation, 
 __all__ = ['recsys_suite']
 
 
-
 def recsys_suite(is_comparative: bool = True,
-                     **kwargs) -> Suite:
+                 **kwargs) -> Suite:
     """Suite for testing the model in production.
 
     The suite contains checks for evaluating the model's performance. Checks for detecting drift and checks for data
@@ -122,7 +121,7 @@ def recsys_suite(is_comparative: bool = True,
         WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         PercentOfNulls(**kwargs),
         OperationsAmountSegmentPerformance(**kwargs),
-        PopularityBias(**kwargs).add_condition_drift_score_less_than(),   
+        PopularityBias(**kwargs).add_condition_drift_score_less_than(),
         SamplePerformance(**kwargs),
         ScatterPerformance(**kwargs)
     ]

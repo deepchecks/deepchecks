@@ -8,8 +8,9 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-"""Module containing the label popularity drift check."""
+"""Module containing the predicted items popularity drift check."""
 import typing as t
+
 import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
@@ -19,14 +20,14 @@ from deepchecks.tabular import SingleDatasetCheck
 from deepchecks.utils.distribution.drift import calc_drift_and_plot
 from deepchecks.utils.strings import format_number
 
-__all__ = ['LabelPopularityDrift']
+__all__ = ['PredictedItemsPopularityDrift']
 
 
-class LabelPopularityDrift(SingleDatasetCheck):
-    """Compute popularity drift between train points and test labels, using statistical measures.
+class PredictedItemsPopularityDrift(SingleDatasetCheck):
+    """Compute popularity drift between predictions and true labels, using statistical measures.
 
-    Check calculates a drift score for the popularity of the trained instances, by comparing its
-    distribution to the true labels.
+    Check calculates a drift score for the prediction in the test dataset, by comparing its
+    distribution to the predictions.
 
     For numerical columns, we use the Kolmogorov-Smirnov statistic.
     See https://en.wikipedia.org/wiki/Kolmogorov%E2%80%93Smirnov_test
@@ -38,14 +39,12 @@ class LabelPopularityDrift(SingleDatasetCheck):
     We also support Population Stability Index (PSI).
     See https://www.lexjansen.com/wuss/2017/47_Final_Paper_PDF.pdf.
 
-    For categorical predictions, it is recommended to use Cramer's V, unless your variable i
-    ncludes categories with a small number of samples (common practice is categories with less than 5 samples).
-    However, in cases of a variable with many categories with few samples,
-    it is still recommended to use Cramer's V.
+    For categorical predictions, it is recommended to use Cramer's V, unless your variable includes categories with a
+    small number of samples (common practice is categories with less than 5 samples).
+    However, in cases of a variable with many categories with few samples, it is still recommended to use Cramer's V.
 
-    **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V,
-    together with setting the ``balance_classes`` parameter to ``True``.
-    This also requires setting the ``drift_mode`` parameter to
+    **Note:** In case of highly imbalanced classes, it is recommended to use Cramer's V, together with setting
+    the ``balance_classes`` parameter to ``True``. This also requires setting the ``drift_mode`` parameter to
     ``auto`` (default) or ``'prediction'``.
 
 
@@ -145,27 +144,27 @@ class LabelPopularityDrift(SingleDatasetCheck):
         -------
         CheckResult
             value: drift score.
-            display: distribution graph, comparing popularity distribution of fitted items and true labels.
+            display: distribution graph, comparing the  popularity distribution of predictions and true labels.
         """
         test_labels = context.get_data_by_kind(dataset_kind).label_col
         sample_size = min(self.n_samples, len(test_labels))
 
         test_labels = test_labels.sample(sample_size, random_state=self.random_state)
+        test_pred = context.model.predictions
 
         interaction_dataset = context.get_interaction_dataset
         item_id = interaction_dataset.item_index_name
         item_popularity = interaction_dataset.data[item_id].value_counts().to_dict()
-        train_items = interaction_dataset.data[item_id].unique()
 
-        train_popularity = [item_popularity[item] for item in train_items]
+        pred_popularity = [item_popularity[item] for sub in test_pred for item in sub if item in item_popularity]
         label_popularity = [item_popularity[item] for sub in test_labels for item in sub if item in item_popularity]
 
         drift_score, _, drift_display = calc_drift_and_plot(
-            train_column=pd.Series(train_popularity),
+            train_column=pd.Series(pred_popularity),
             test_column=pd.Series(label_popularity),
-            value_name='Label Popularity',
+            value_name='Predicted Items Popularity',
             column_type='numerical',
-            plot_title='Label Popularity Drift',
+            plot_title='Predicted Items Popularity Drift',
             margin_quantile_filter=self.margin_quantile_filter,
             max_num_categories_for_drift=self.max_num_categories_for_drift,
             min_category_size_ratio=self.min_category_size_ratio,
@@ -177,13 +176,13 @@ class LabelPopularityDrift(SingleDatasetCheck):
             ignore_na=self.ignore_na,
             min_samples=self.min_samples,
             raise_min_samples_error=True,
-            dataset_names=('Trained Items', 'True Labels'),
-            with_display=context.with_display
+            dataset_names=('Predicted Items', 'True items'),
+            with_display=context.with_display,
         )
 
         return CheckResult(
             value=drift_score,
-            header='Label Popularity Drift',
+            header='Predicted Items Popularity Drift',
             display=drift_display,
         )
 
@@ -210,7 +209,7 @@ class LabelPopularityDrift(SingleDatasetCheck):
 
         def condition(result: t.Dict) -> ConditionResult:
             drift_score = result
-            details = f'the popularity drift score is equal to {format_number(drift_score)}'
+            details = f'the predicted items popularity drift score is equal to {format_number(drift_score)}'
             category = ConditionCategory.FAIL if drift_score > max_allowed_categorical_score else ConditionCategory.PASS
             return ConditionResult(category, details)
 

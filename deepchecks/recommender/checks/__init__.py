@@ -8,18 +8,24 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
-
+"""Module contains checks for recommender systems."""
+from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
+from .cold_start_detection import ColdStartDetection
 from .label_popularity_drift import LabelPopularityDrift
-from .operations_amount_segment_performance import OperationsAmountSegmentPerformance
-from .popularity_bias import PopularityBias
-from .prediction_popularity_drift import PredictionPopularityDrift
+from .predicted_items_popularity_drift import PredictedItemsPopularityDrift
 from .sample_performance import SamplePerformance
-from .scatter_performance import ScatterPerformance
+from .user_session_length_drift import UserSessionDrift
+from .segment_performance import SegmentPerformance
+from .weak_segments_performance import WeakSegmentsPerformance
 
+from .product_association import ProductAssociation
 __all__ = ['LabelPopularityDrift',
-           'OperationsAmountSegmentPerformance',
-           'PopularityBias',
-           'PredictionPopularityDrift',
-           'ScatterPerformance',
+           'PredictedItemsPopularityDrift',
            'SamplePerformance',
+           'DateTrainTestLeakageOverlap',
+           'ColdStartDetection',
+           'UserSessionDrift',
+           'SegmentPerformance',
+           'WeakSegmentsPerformance',
+           'ProductAssociation'
            ]
