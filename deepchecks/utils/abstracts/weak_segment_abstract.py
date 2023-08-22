@@ -249,7 +249,7 @@ class WeakSegmentAbstract(abc.ABC):
         if version.parse(sklearn.__version__) < version.parse('1.0.0'):
             criterion = ['mae']
         else:
-            criterion = ['squared_error', 'absolute_error']
+            criterion = ['absolute_error']
         search_space = {
             'max_depth': [5],
             'min_weight_fraction_leaf': [self.segment_minimum_size_ratio],
