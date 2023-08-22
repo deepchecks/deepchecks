@@ -247,9 +247,9 @@ class WeakSegmentAbstract(abc.ABC):
         the worst leaf of it is extracted and returned as a deepchecks filter.
         """
         if version.parse(sklearn.__version__) < version.parse('1.0.0'):
-            criterion = ['mae']
+            criterion = ['mse', 'mae']
         else:
-            criterion = ['absolute_error']
+            criterion = ['squared_error', 'absolute_error']
         search_space = {
             'max_depth': [5],
             'min_weight_fraction_leaf': [self.segment_minimum_size_ratio],
