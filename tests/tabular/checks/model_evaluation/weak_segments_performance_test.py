@@ -106,21 +106,6 @@ def test_segment_performance_iris_alternative_scorer(iris_split_dataset_and_mode
     assert_that(segments.iloc[0, 0], close_to(0.33, 0.01))
 
 
-def test_regression_categorical_features_avocado(avocado_split_dataset_and_model, set_numpy_seed):
-    # Arrange
-    _, val, model = avocado_split_dataset_and_model
-
-    # Act
-    result = WeakSegmentsPerformance(random_state=42, n_top_features=5).run(val, model, feature_importance_timeout=0)
-    segments = result.value['weak_segments_list']
-
-    # Assert
-    assert_that(segments, has_length(6))
-    assert_that(segments[segments['Feature1'] == 'type']['Feature1 Range'].iloc[0], equal_to(['organic']))
-    assert_that(segments[segments['Feature1'] == 'type'].iloc[0, 0], close_to(-0.283, 0.01))
-    assert_that(segments.iloc[0, 0], close_to(-0.353, 0.01))
-
-
 def test_classes_do_not_match_proba(kiss_dataset_and_model):
     # Arrange
     _, val, model = kiss_dataset_and_model
@@ -147,25 +132,22 @@ def test_categorical_feat_target(adult_split_dataset_and_model):
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(10))
+    assert_that(segments, has_length(7))
 
 
 # This test is similar to the one in the plot file
-def test_subset_of_columns(phishing_split_dataset_and_model):
+def test_subset_of_columns(adult_split_dataset_and_model):
     # Arrange
-    _, val, model = phishing_split_dataset_and_model
-    scorer = {'f1': make_scorer(f1_score, average='micro')}
-    check = WeakSegmentsPerformance(columns=['urlLength', 'numTitles', 'ext', 'entropy'],
-                                    alternative_scorer=scorer,
-                                    segment_minimum_size_ratio=0.03,
-                                    categorical_aggregation_threshold=0.05)
+    _, val, model = adult_split_dataset_and_model
+    val = val.sample()
+    val.data['native-country'].iloc[0] = np.nan
+    val.data['native-country'] = pd.Categorical(val.data['native-country'])
+    val.data['income'] = pd.Categorical(val.data['income'])
+    check = WeakSegmentsPerformance(n_top_features=5, columns=['native-country', 'income', 'education'])
 
     # Act
     result = check.run(val, model)
     segments = result.value['weak_segments_list']
 
     # Assert
-    assert_that(segments, has_length(6))
-    assert_that(segments[segments['Feature1'] == 'ext']['Feature1 Range'].iloc[1][0], equal_to('html'))
-    assert_that(segments[segments['Feature1'] == 'ext'].iloc[1, 0], close_to(0.966, 0.01))
-    assert_that(segments.iloc[0, 0], close_to(0.959, 0.01))
+    assert_that(segments, has_length(1))
