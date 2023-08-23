@@ -10,6 +10,7 @@
 #
 """Module containing the text properties models for the NLP module."""
 import importlib
+import importlib.util
 import pathlib
 from functools import lru_cache
 from typing import Optional, Union
@@ -169,6 +170,9 @@ def _get_transformer_pipeline(
     """Return a transformers pipeline for the given model name."""
     transformers = import_optional_property_dependency('transformers', property_name=property_name)
     tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=device)
+    # device_map=auto if accelerate is installed
+    accelerate_is_installed = importlib.util.find_spec('accelerate') is not None
+    pipeline_kwargs = {'device_map': 'auto'} if accelerate_is_installed else {'device': device}
     model = _get_transformer_model(
         property_name=property_name,
         model_name=model_name,
@@ -179,7 +183,7 @@ def _get_transformer_pipeline(
         'text-classification',
         model=model,
         tokenizer=tokenizer,
-        device=device
+        **pipeline_kwargs
     )
 
 
