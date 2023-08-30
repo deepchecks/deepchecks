@@ -34,3 +34,4 @@ matplotlib>=3.3.4
 pyzmq<24.0.0
 beautifulsoup4>=4.11.1
 requests>=2.22.0
+jupyter-server>=2.7.2 # not directly required, pinned by Snyk to avoid a vulnerability
