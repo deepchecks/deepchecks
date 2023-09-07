@@ -1,4 +1,5 @@
-2.2.0>pandas>=1.1.5
+pandas>=1.1.5
+pandas<2.2.0
 numpy>=1.19
 scikit-learn>=0.23.2
 jsonpickle>=2
