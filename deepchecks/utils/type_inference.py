@@ -15,7 +15,7 @@ import typing as t
 
 import numpy as np
 import pandas as pd
-from pandas.core.dtypes.common import is_datetime_or_timedelta_dtype, is_float_dtype, is_numeric_dtype
+from pandas.core.dtypes.common import is_datetime64_any_dtype, is_float_dtype, is_numeric_dtype
 from typing_extensions import Literal
 
 from deepchecks.utils.logger import get_logger
@@ -157,7 +157,7 @@ def get_column_type(column: pd.Series) -> Literal['float', 'int', 'string', 'tim
         return 'float'
     elif is_numeric_dtype(column):
         return 'int'
-    elif is_datetime_or_timedelta_dtype(column):
+    elif is_datetime64_any_dtype(column):
         return 'time'
 
     try:
