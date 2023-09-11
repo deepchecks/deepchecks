@@ -9,13 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the text properties models for the NLP module."""
-import importlib
-import importlib.util
 import pathlib
+import warnings
 from functools import lru_cache
+from importlib import import_module
+from importlib.util import find_spec
 from typing import Optional, Union
 
 import requests
+import torch
 from nltk import corpus
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
@@ -40,86 +42,6 @@ def get_create_model_storage(models_storage: Union[pathlib.Path, str, None] = No
     return models_storage
 
 
-def _get_transformer_model(
-        property_name: str,
-        model_name: str,
-        device: Optional[str] = None,
-        quantize_model: bool = False,
-        models_storage: Union[pathlib.Path, str, None] = None
-):
-    """Get the transformer model and decide if to use optimum.onnxruntime.
-
-    optimum.onnxruntime is used to optimize running times on CPU.
-    """
-    models_storage = get_create_model_storage(models_storage)
-
-    if device not in (None, 'cpu'):
-        transformers = import_optional_property_dependency('transformers', property_name=property_name)
-        # TODO: quantize if 'quantize_model' is True
-        return transformers.AutoModelForSequenceClassification.from_pretrained(
-            model_name,
-            cache_dir=models_storage,
-            device_map=device
-        )
-
-    onnx = import_optional_property_dependency(
-        'optimum.onnxruntime',
-        property_name=property_name,
-        error_template=(
-            f'The device was set to {device} while computing the {property_name} property,'
-            'in which case deepchecks resorts to accelerating the inference by using optimum,'
-            'bit it is not installed. Either:\n'
-            '\t- Set the device according to your hardware;\n'
-            '\t- Install optimum by running "pip install optimum";\n'
-            '\t- Install all dependencies needed for text properties by running '
-            '"pip install deepchecks[nlp-properties]";\n'
-        )
-    )
-
-    if quantize_model is False:
-        model_path = models_storage / 'onnx' / model_name
-
-        if model_path.exists():
-            return onnx.ORTModelForSequenceClassification.from_pretrained(model_path).to(device or -1)
-
-        model = onnx.ORTModelForSequenceClassification.from_pretrained(
-            model_name,
-            export=True,
-            cache_dir=models_storage,
-        ).to(device or -1)
-        # NOTE:
-        # 'optimum', after exporting/converting a model to the ONNX format,
-        # does not store it onto disk we need to save it now to not reconvert
-        # it each time
-        model.save_pretrained(model_path)
-        return model
-
-    model_path = models_storage / 'onnx' / 'quantized' / model_name
-
-    if model_path.exists():
-        return onnx.ORTModelForSequenceClassification.from_pretrained(model_path).to(device or -1)
-
-    not_quantized_model = _get_transformer_model(
-        property_name,
-        model_name,
-        device,
-        quantize_model=False,
-        models_storage=models_storage
-    )
-
-    quantizer = onnx.ORTQuantizer.from_pretrained(not_quantized_model).to(device or -1)
-
-    quantizer.quantize(
-        save_dir=model_path,
-        # TODO: make it possible to provide a config as a parameter
-        quantization_config=onnx.configuration.AutoQuantizationConfig.avx512_vnni(
-            is_static=False,
-            per_channel=False
-        )
-    )
-    return onnx.ORTModelForSequenceClassification.from_pretrained(model_path).to(device or -1)
-
-
 def import_optional_property_dependency(
         module: str,
         property_name: str,
@@ -128,7 +50,7 @@ def import_optional_property_dependency(
 ):
     """Import additional modules in runtime."""
     try:
-        lib = importlib.import_module(module)
+        lib = import_module(module)
     except ImportError as error:
         package_name = package_name or module.split('.', maxsplit=1)[0]
         error_template = error_template or (
@@ -151,40 +73,52 @@ def get_transformer_pipeline(
         model_name: str,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
+        quantize_model: bool = True,
         use_cache=False
 ):
-    """Return a transformers pipeline for the given model name."""
+    """Return a transformers' pipeline for the given model name."""
+    transformers = import_optional_property_dependency('transformers', property_name=property_name)
     if use_cache:
-        return _get_transformer_pipeline(property_name, model_name, device, models_storage)
-    # __wrapped__ is simply the function without decoration, in our case - without caching
-    return _get_transformer_pipeline.__wrapped__(property_name, model_name, device, models_storage)
+        model, tokenizer = _get_transformer_model_and_tokenizer(property_name, model_name,
+                                                                models_storage, quantize_model)
+    else:
+        # __wrapped__ is simply the function without decoration, in our case - without caching
+        model, tokenizer = _get_transformer_model_and_tokenizer.__wrapped__(property_name, model_name,
+                                                                            models_storage, quantize_model)
+
+    pipeline_kwargs = {'device_map': 'auto'} if find_spec('accelerate') is not None else {'device': device}
+    return transformers.pipeline('text-classification', model=model, tokenizer=tokenizer, **pipeline_kwargs)
 
 
 @lru_cache(maxsize=5)
-def _get_transformer_pipeline(
+def _get_transformer_model_and_tokenizer(
         property_name: str,
         model_name: str,
-        device: Optional[str] = None,
-        models_storage: Union[pathlib.Path, str, None] = None
+        models_storage: Union[pathlib.Path, str, None] = None,
+        quantize_model: bool = True,
 ):
-    """Return a transformers pipeline for the given model name."""
+    """Return a transformers' model and tokenizer in cpu memory."""
     transformers = import_optional_property_dependency('transformers', property_name=property_name)
-    tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=device)
-    # device_map=auto if accelerate is installed
-    accelerate_is_installed = importlib.util.find_spec('accelerate') is not None
-    pipeline_kwargs = {'device_map': 'auto'} if accelerate_is_installed else {'device': device}
-    model = _get_transformer_model(
-        property_name=property_name,
-        model_name=model_name,
-        device=device,
-        models_storage=models_storage
-    )
-    return transformers.pipeline(
-        'text-classification',
-        model=model,
-        tokenizer=tokenizer,
-        **pipeline_kwargs
-    )
+    models_storage = get_create_model_storage(models_storage=models_storage)
+    model_path = models_storage / model_name
+
+    model_kwargs = dict(device_map=None)
+    if quantize_model:
+        model_kwargs['load_in_8bit'] = True
+        model_kwargs['torch_dtype'] = torch.float32
+
+    if model_path.exists():
+        tokenizer = transformers.AutoTokenizer.from_pretrained(model_path, device_map=None)
+        model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path, **model_kwargs)
+    else:
+        model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name, **model_kwargs)
+        model.save_pretrained(model_path)
+
+        tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=None)
+        tokenizer.save_pretrained(model_path)
+
+    model.eval()
+    return model, tokenizer
 
 
 def get_cmudict_dict(use_cache=False):

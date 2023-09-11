@@ -16,6 +16,7 @@ import re
 import string
 import warnings
 from collections import defaultdict
+from importlib.util import find_spec
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -257,7 +258,7 @@ def toxicity(
     """Return float representing toxicity."""
     if toxicity_classifier is None:
         toxicity_classifier = get_transformer_pipeline(
-            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, models_storage=models_storage)
 
     class UnitModel:
         """A model that does nothing."""
@@ -288,7 +289,7 @@ def fluency(
     """Return float representing fluency."""
     if fluency_classifier is None:
         fluency_classifier = get_transformer_pipeline(
-            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='fluency', model_name=FLUENCY_MODEL_NAME, models_storage=models_storage)
 
     def output_formatter(v):
         return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
@@ -305,7 +306,7 @@ def formality(
     """Return float representing formality."""
     if formality_classifier is None:
         formality_classifier = get_transformer_pipeline(
-            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='formality', model_name=FORMALITY_MODEL_NAME, models_storage=models_storage)
 
     def output_formatter(v):
         return v['score'] if v['label'] == 'formal' else 1 - v['score']
@@ -658,7 +659,8 @@ def calculate_builtin_properties(
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         batch_size: Optional[int] = 16,
-        cache_models: bool = False
+        cache_models: bool = False,
+        quantize_models: bool = True,
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
 
@@ -707,6 +709,9 @@ def calculate_builtin_properties(
         If True, will store the models in CPU RAM memory. This will speed up the calculation, but will take up
         more memory. If device is not CPU, the models will be moved from CPU RAM memory to relevant device before
         calculation.
+    quantize_models : bool, default True
+        If True, will quantize the models to reduce their size and speed up the calculation. Requires the
+        accelerate library to be installed.
 
     Returns
     -------
@@ -715,6 +720,10 @@ def calculate_builtin_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
+    if quantize_models and find_spec('accelerate') is None:
+        warnings.warn('Quantization requires the accelerate package to be installed. Calculating without quantization.')
+        quantize_models = False
+
     text_properties = _select_properties(
         include_properties=include_properties,
         ignore_properties=ignore_properties,
@@ -741,20 +750,20 @@ def calculate_builtin_properties(
                 calculated_properties[prop] = [np.nan] * len(raw_text)
         kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
-    if 'Toxicity' in properties_types and 'toxicity_classifier' not in kwargs:
+    if 'Toxicity' in properties_types:
         kwargs['toxicity_classifier'] = get_transformer_pipeline(
             property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models)
+            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
 
     if 'Formality' in properties_types and 'formality_classifier' not in kwargs:
         kwargs['formality_classifier'] = get_transformer_pipeline(
             property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models)
+            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
 
     if 'Fluency' in properties_types and 'fluency_classifier' not in kwargs:
         kwargs['fluency_classifier'] = get_transformer_pipeline(
             property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models)
+            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
 
     # Remove language property from the list of properties to calculate as it will be calculated separately:
     text_properties = [prop for prop in text_properties if prop['name'] != 'Language']
@@ -823,10 +832,6 @@ def calculate_builtin_properties(
         words_cache.clear()
         sentences_cache.clear()
 
-    # Clean all remaining RAM:
-    if not cache_models:
-        gc.collect()
-
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 
@@ -835,6 +840,15 @@ def calculate_builtin_properties(
         for k, v in properties_types.items()
         if k in calculated_properties
     }
+
+    if cache_models:
+        # Move the transformers models to CPU RAM memory
+        for model_name in ['toxicity_classifier', 'formality_classifier', 'fluency_classifier']:
+            if model_name in kwargs:
+                kwargs[model_name].model.to('cpu')
+    else:
+        # Clean all remaining RAM:
+        gc.collect()
 
     return calculated_properties, properties_types
 
