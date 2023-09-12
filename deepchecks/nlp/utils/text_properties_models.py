@@ -11,6 +11,7 @@
 """Module containing the text properties models for the NLP module."""
 import logging
 import pathlib
+import warnings
 from contextlib import contextmanager
 from functools import lru_cache
 from importlib import import_module
@@ -94,14 +95,18 @@ def get_transformer_pipeline(
 
 @contextmanager
 def _log_suppressor():
-    user_log_level = transformers_logging.get_verbosity()
-    transformers_logging.set_verbosity_error()
+    user_transformer_log_level = transformers_logging.get_verbosity()
+    user_logger_level = logging.getLogger('transformers').getEffectiveLevel()
     is_progress_bar_enabled = transformers_logging.is_progress_bar_enabled()
-    transformers_logging.disable_progress_bar()
 
-    logging.getLogger('transformers').setLevel(logging.ERROR)
-    yield
-    transformers_logging.set_verbosity(user_log_level)
+    transformers_logging.set_verbosity_error()
+    logging.getLogger("transformers").setLevel(50)
+    transformers_logging.disable_progress_bar()
+    with warnings.catch_warnings():
+        yield
+
+    transformers_logging.set_verbosity(user_transformer_log_level)
+    logging.getLogger("transformers").setLevel(user_logger_level)
     if is_progress_bar_enabled:
         transformers_logging.enable_progress_bar()
 
@@ -119,21 +124,23 @@ def _get_transformer_model_and_tokenizer(
 
     with _log_suppressor():
         model_kwargs = dict(device_map=None)
+        tokenizer_kwargs = dict(device_map=None)
         if quantize_model:
+            model_path = models_storage / 'quantized' / model_name
             model_kwargs['load_in_8bit'] = True
             model_kwargs['torch_dtype'] = torch.float16
-            model_path = models_storage / 'quantized' / model_name
+            tokenizer_kwargs['torch_dtype'] = torch.float16
         else:
             model_path = models_storage / model_name
 
         if model_path.exists():
-            tokenizer = transformers.AutoTokenizer.from_pretrained(model_path, device_map=None)
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_path, **tokenizer_kwargs)
             model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path, **model_kwargs)
         else:
             model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name, **model_kwargs)
             model.save_pretrained(model_path)
 
-            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=None)
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, **tokenizer_kwargs)
             tokenizer.save_pretrained(model_path)
 
     model.eval()
