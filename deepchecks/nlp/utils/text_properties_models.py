@@ -10,7 +10,6 @@
 #
 """Module containing the text properties models for the NLP module."""
 import pathlib
-import warnings
 from functools import lru_cache
 from importlib import import_module
 from importlib.util import find_spec
@@ -100,12 +99,14 @@ def _get_transformer_model_and_tokenizer(
     """Return a transformers' model and tokenizer in cpu memory."""
     transformers = import_optional_property_dependency('transformers', property_name=property_name)
     models_storage = get_create_model_storage(models_storage=models_storage)
-    model_path = models_storage / model_name
 
     model_kwargs = dict(device_map=None)
     if quantize_model:
         model_kwargs['load_in_8bit'] = True
         model_kwargs['torch_dtype'] = torch.float32
+        model_path = models_storage / 'quantized' / model_name
+    else:
+        model_path = models_storage / model_name
 
     if model_path.exists():
         tokenizer = transformers.AutoTokenizer.from_pretrained(model_path, device_map=None)

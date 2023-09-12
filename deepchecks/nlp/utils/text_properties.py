@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the text properties for the NLP module."""
-import gc
 import pathlib
 import pickle as pkl
 import re
@@ -22,6 +21,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 import numpy as np
 import pandas as pd
 import textblob
+import torch.cuda
 from nltk import corpus
 from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
@@ -32,6 +32,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.nlp.utils.text_properties_models import get_cmudict_dict, get_fasttext_model, get_transformer_pipeline
 from deepchecks.utils.function import run_available_kwargs
+from deepchecks.utils.gpu_utils import empty_gpu
 from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
@@ -258,7 +259,7 @@ def toxicity(
     """Return float representing toxicity."""
     if toxicity_classifier is None:
         toxicity_classifier = get_transformer_pipeline(
-            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, models_storage=models_storage)
+            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, models_storage=models_storage, device=device)
 
     class UnitModel:
         """A model that does nothing."""
@@ -289,7 +290,7 @@ def fluency(
     """Return float representing fluency."""
     if fluency_classifier is None:
         fluency_classifier = get_transformer_pipeline(
-            property_name='fluency', model_name=FLUENCY_MODEL_NAME, models_storage=models_storage)
+            property_name='fluency', model_name=FLUENCY_MODEL_NAME, models_storage=models_storage, device=device)
 
     def output_formatter(v):
         return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
@@ -306,7 +307,7 @@ def formality(
     """Return float representing formality."""
     if formality_classifier is None:
         formality_classifier = get_transformer_pipeline(
-            property_name='formality', model_name=FORMALITY_MODEL_NAME, models_storage=models_storage)
+            property_name='formality', model_name=FORMALITY_MODEL_NAME, models_storage=models_storage, device=device)
 
     def output_formatter(v):
         return v['score'] if v['label'] == 'formal' else 1 - v['score']
@@ -711,7 +712,7 @@ def calculate_builtin_properties(
         calculation.
     quantize_models : bool, default True
         If True, will quantize the models to reduce their size and speed up the calculation. Requires the
-        accelerate library to be installed.
+        accelerate and bitsandbytes libraries to be installed as well as the availability of GPU.
 
     Returns
     -------
@@ -720,9 +721,14 @@ def calculate_builtin_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
-    if quantize_models and find_spec('accelerate') is None:
-        warnings.warn('Quantization requires the accelerate package to be installed. Calculating without quantization.')
-        quantize_models = False
+    if quantize_models:
+        if find_spec('accelerate') is None or find_spec('bitsandbytes') is None:
+            warnings.warn('Quantization requires the accelerate and bitsandbytes libraries to be installed. '
+                          'Calculating without quantization.')
+            quantize_models = False
+        if not torch.cuda.is_available():
+            warnings.warn('GPU is required for the quantization process. Calculating without quantization.')
+            quantize_models = False
 
     text_properties = _select_properties(
         include_properties=include_properties,
@@ -831,6 +837,7 @@ def calculate_builtin_properties(
         textblob_cache.clear()
         words_cache.clear()
         sentences_cache.clear()
+        empty_gpu(device)
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
@@ -846,9 +853,9 @@ def calculate_builtin_properties(
         for model_name in ['toxicity_classifier', 'formality_classifier', 'fluency_classifier']:
             if model_name in kwargs:
                 kwargs[model_name].model.to('cpu')
-    else:
-        # Clean all remaining RAM:
-        gc.collect()
+
+    # Clean all remaining RAM:
+    empty_gpu(device)
 
     return calculated_properties, properties_types
 

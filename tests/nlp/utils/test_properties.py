@@ -15,12 +15,13 @@ import timeit
 
 import numpy as np
 import pytest
+import uuid
 from hamcrest import *
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text_properties import (_sample_for_property, calculate_builtin_properties,
                                                   english_text)
-from deepchecks.nlp.utils.text_properties_models import MODELS_STORAGE, _get_transformer_model
+from deepchecks.nlp.utils.text_properties_models import MODELS_STORAGE, _get_transformer_model_and_tokenizer
 
 
 def mock_fn(*args, **kwargs):  # pylint: disable=unused-argument
@@ -412,39 +413,33 @@ def test_ignore_properties():
 def test_properties_models_download():
     # Arrange
     model_name = 'SkolkovoInstitute/roberta_toxicity_classifier'
-    model_path = MODELS_STORAGE / f"models--{model_name.replace('/', '--')}"
-    onnx_model_path = MODELS_STORAGE / 'onnx' / model_name
-    quantized_model_path = MODELS_STORAGE / 'onnx' / 'quantized' / model_name
+    model_path = MODELS_STORAGE / str(uuid.uuid4()) / model_name
 
     # Act
     model_download_time = timeit.timeit(
         stmt='fn()',
         number=1,
-        globals={'fn': lambda: _get_transformer_model(
+        globals={'fn': lambda: _get_transformer_model_and_tokenizer(
             property_name='',
-            model_name=model_name
+            model_name=model_name,
+            models_storage=model_path,
+            quantize_model=False
         )}
     )
 
     # Assert
     assert MODELS_STORAGE.exists() and MODELS_STORAGE.is_dir()
     assert model_path.exists() and model_path.is_dir()
-    assert onnx_model_path.exists() and onnx_model_path.is_dir()
-
-    # Act
-    _get_transformer_model(property_name='', model_name=model_name, quantize_model=True)
-
-    # Assert
-    assert quantized_model_path.exists() and quantized_model_path.is_dir()
 
     # Act
     model_creation_time = timeit.timeit(
         stmt='fn()',
         number=1,
-        globals={'fn': lambda: _get_transformer_model(
+        globals={'fn': lambda: _get_transformer_model_and_tokenizer(
             property_name='',
             model_name=model_name,
-            quantize_model=True
+            models_storage=model_path,
+            quantize_model=False
         )}
     )
 
@@ -456,19 +451,41 @@ def test_properties_models_download():
     'TEST_NLP_PROPERTIES_MODELS_DOWNLOAD' not in os.environ,
     reason='The test takes too long to run, provide env var if you want to run it.'
 )
-def test_properties_models_download_into_provided_directory():
-    directory = pathlib.Path(__file__).absolute().parent / '.models'
+def test_properties_models_download_quantized():
+    directory = pathlib.Path(__file__).absolute().parent / '.nlp-models' / 'quantized'
     model_name = 'SkolkovoInstitute/roberta_toxicity_classifier'
-    model_path = MODELS_STORAGE / f"models--{model_name.replace('/', '--')}"
-    onnx_model_path = MODELS_STORAGE / 'onnx' / model_name
+    model_path = directory / model_name
 
     # Act
-    _get_transformer_model(property_name='', model_name=model_name, models_storage=directory)
+    _get_transformer_model_and_tokenizer(property_name='', model_name=model_name, quantize_model=True)
 
     # Assert
-    assert MODELS_STORAGE.exists() and MODELS_STORAGE.is_dir()
+    assert directory.exists() and directory.is_dir()
     assert model_path.exists() and model_path.is_dir()
-    assert onnx_model_path.exists() and onnx_model_path.is_dir()
+
+
+@pytest.mark.skipif(
+    'TEST_NLP_PROPERTIES_MODELS_DOWNLOAD' not in os.environ,
+    reason='The test takes too long to run, provide env var if you want to run it.'
+)
+def test_batch_only_properties_calculation_with_single_samples_quantized():
+    # Arrange
+    text = ['Explicit is better than implicit']
+
+    # Act
+    properties, properties_types = calculate_builtin_properties(
+        raw_text=text, batch_size=1,
+        include_properties=['Formality', 'Text Length', 'Toxicity', 'Fluency'],
+        quantize_models=True
+    )
+
+    # Assert
+    assert_that(properties, has_entries({
+        'Formality': contains_exactly(close_to(0.955, 0.01)),
+        'Toxicity': contains_exactly(close_to(0.01, 0.01)),
+        'Fluency': contains_exactly(close_to(0.96, 0.01)),
+        'Text Length': contains_exactly(*[len(it) for it in text]),
+    }))  # type: ignore
 
 
 @pytest.mark.skipif(
@@ -483,6 +500,7 @@ def test_batch_only_properties_calculation_with_single_samples():
     properties, properties_types = calculate_builtin_properties(
         raw_text=text, batch_size=1,
         include_properties=['Formality', 'Text Length', 'Toxicity', 'Fluency'],
+        quantize_models=False
     )
 
     # Assert
