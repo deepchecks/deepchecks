@@ -613,16 +613,18 @@ def _select_properties(
     ignore_properties = [prop.lower() for prop in ignore_properties] if ignore_properties else None
 
     if include_properties is not None:
-        properties = [prop for prop in ALL_PROPERTIES if prop['name'].lower() in include_properties]
+        properties = [prop for prop in ALL_PROPERTIES if
+                      prop['name'].lower() in include_properties]  # pylint: disable=unsupported-membership-test
         if len(properties) < len(include_properties):
             not_found_properties = sorted(set(include_properties) - set(prop['name'].lower() for prop in properties))
             raise DeepchecksValueError('include_properties contains properties that were not found: '
                                        f'{not_found_properties}.')
     elif ignore_properties is not None:
-        properties = [prop for prop in DEFAULT_PROPERTIES if prop['name'].lower() not in ignore_properties]
+        properties = [prop for prop in DEFAULT_PROPERTIES if
+                      prop['name'].lower() not in ignore_properties]  # pylint: disable=unsupported-membership-test
         if len(properties) + len(ignore_properties) != len(DEFAULT_PROPERTIES):
-            not_found_properties = \
-                [prop for prop in ignore_properties if prop not in [prop['name'] for prop in DEFAULT_PROPERTIES]]
+            default_property_names = [prop['name'].lower() for prop in DEFAULT_PROPERTIES]
+            not_found_properties = [prop for prop in list(ignore_properties) if prop not in default_property_names]
             raise DeepchecksValueError('ignore_properties contains properties that were not found: '
                                        f'{not_found_properties}.')
     else:
