@@ -55,7 +55,7 @@ def test_boosting_xgb_classifier(iris_split_dataset_and_model_xgb):
     test_scores = result.value['test']
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
-    assert_that(mean(train_scores), close_to(0.9855, 0.001))
+    assert_that(mean(train_scores), close_to(0.99, 0.001))
     assert_that(mean(test_scores), close_to(0.985, 0.001))
     assert_that(result.display, has_length(greater_than(0)))
 
@@ -72,7 +72,7 @@ def test_boosting_xgb_classifier_without_display(iris_split_dataset_and_model_xg
     test_scores = result.value['test']
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
-    assert_that(mean(train_scores), close_to(0.9855, 0.001))
+    assert_that(mean(train_scores), close_to(0.99, 0.001))
     assert_that(mean(test_scores), close_to(0.985, 0.001))
     assert_that(result.display, has_length(0))
 
@@ -159,8 +159,8 @@ def test_boosting_regressor_xgb(diabetes_split_dataset_and_model_xgb):
     test_scores = result.value['test']
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
-    assert_that(mean(train_scores), close_to(-22.47, 0.01))
-    assert_that(mean(test_scores), close_to(-59.68, 0.01))
+    assert_that(mean(train_scores), close_to(-22.67, 0.01))
+    assert_that(mean(test_scores), close_to(-66.99, 0.01))
 
 
 def test_boosting_regressor_lgbm(diabetes_split_dataset_and_model_lgbm):

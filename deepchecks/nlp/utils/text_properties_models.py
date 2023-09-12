@@ -10,6 +10,7 @@
 #
 """Module containing the text properties models for the NLP module."""
 import pathlib
+from contextlib import contextmanager
 from functools import lru_cache
 from importlib import import_module
 from importlib.util import find_spec
@@ -18,6 +19,7 @@ from typing import Optional, Union
 import requests
 import torch
 from nltk import corpus
+from transformers.utils import logging as transformers_logging
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
 
@@ -89,6 +91,14 @@ def get_transformer_pipeline(
     return transformers.pipeline('text-classification', model=model, tokenizer=tokenizer, **pipeline_kwargs)
 
 
+@contextmanager
+def _log_suppressor():
+    user_log_level = transformers_logging.get_verbosity()
+    transformers_logging.set_verbosity_error()
+    yield
+    transformers_logging.set_verbosity(user_log_level)
+
+
 @lru_cache(maxsize=5)
 def _get_transformer_model_and_tokenizer(
         property_name: str,
@@ -100,23 +110,24 @@ def _get_transformer_model_and_tokenizer(
     transformers = import_optional_property_dependency('transformers', property_name=property_name)
     models_storage = get_create_model_storage(models_storage=models_storage)
 
-    model_kwargs = dict(device_map=None)
-    if quantize_model:
-        model_kwargs['load_in_8bit'] = True
-        model_kwargs['torch_dtype'] = torch.float32
-        model_path = models_storage / 'quantized' / model_name
-    else:
-        model_path = models_storage / model_name
+    with _log_suppressor():
+        model_kwargs = dict(device_map=None)
+        if quantize_model:
+            model_kwargs['load_in_8bit'] = True
+            model_kwargs['torch_dtype'] = torch.float16
+            model_path = models_storage / 'quantized' / model_name
+        else:
+            model_path = models_storage / model_name
 
-    if model_path.exists():
-        tokenizer = transformers.AutoTokenizer.from_pretrained(model_path, device_map=None)
-        model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path, **model_kwargs)
-    else:
-        model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name, **model_kwargs)
-        model.save_pretrained(model_path)
+        if model_path.exists():
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_path, device_map=None)
+            model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path, **model_kwargs)
+        else:
+            model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name, **model_kwargs)
+            model.save_pretrained(model_path)
 
-        tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=None)
-        tokenizer.save_pretrained(model_path)
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=None)
+            tokenizer.save_pretrained(model_path)
 
     model.eval()
     return model, tokenizer

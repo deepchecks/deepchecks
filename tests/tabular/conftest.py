@@ -226,7 +226,7 @@ def diabetes_split_dataset_and_model_custom(diabetes, diabetes_model):
 @pytest.fixture(scope='session')
 def diabetes_split_dataset_and_model_xgb(diabetes):
     train, test = diabetes
-    clf = XGBRegressor(random_state=0, n_estimators=20)
+    clf = XGBRegressor(random_state=0)
     clf.fit(train.data[train.features], train.data[train.label_name])
     return train, test, clf
 
@@ -311,7 +311,7 @@ def iris_split_dataset_and_model_custom(iris_split_dataset_and_model) -> Tuple[D
 def iris_split_dataset_and_model_xgb(iris_split_dataset) -> Tuple[Dataset, Dataset, XGBClassifier]:
     """Return Iris train and val datasets and trained AdaBoostClassifier model."""
     train_ds, test_ds = iris_split_dataset
-    clf = XGBClassifier(random_state=0, n_estimators=20)
+    clf = XGBClassifier(random_state=0)
     clf.fit(train_ds.features_columns, train_ds.label_col)
     return train_ds, test_ds, clf
 
