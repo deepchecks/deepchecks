@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the text properties models for the NLP module."""
+import logging
 import pathlib
 from contextlib import contextmanager
 from functools import lru_cache
@@ -95,8 +96,14 @@ def get_transformer_pipeline(
 def _log_suppressor():
     user_log_level = transformers_logging.get_verbosity()
     transformers_logging.set_verbosity_error()
+    is_progress_bar_enabled = transformers_logging.is_progress_bar_enabled()
+    transformers_logging.disable_progress_bar()
+
+    logging.getLogger('transformers').setLevel(logging.ERROR)
     yield
     transformers_logging.set_verbosity(user_log_level)
+    if is_progress_bar_enabled:
+        transformers_logging.enable_progress_bar()
 
 
 @lru_cache(maxsize=5)
