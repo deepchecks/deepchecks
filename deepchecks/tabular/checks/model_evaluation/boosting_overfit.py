@@ -119,17 +119,23 @@ class PartialBoostingModel:
     def n_estimators(cls, model):
         model = get_model_of_pipeline(model)
         model_class = model.__class__.__name__
+        n_estimator = None
         if model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
                            'GradientBoostingRegressor']:
-            return len(model.estimators_)
+            n_estimator = len(model.estimators_)
         elif model_class in ['LGBMClassifier', 'LGBMRegressor']:
-            return model.n_estimators
+            n_estimator = model.n_estimators
         elif model_class in ['XGBClassifier', 'XGBRegressor']:
-            return model.n_estimators
+            n_estimator = model.n_estimators
         elif model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
-            return model.tree_count_
+            n_estimator = model.tree_count_
         else:
             cls._raise_not_supported_model_error(model_class=model_class)
+
+        if n_estimator is None:
+            raise ModelValidationError('Could not extract number of estimators from model')
+
+        return n_estimator
 
 
 class BoostingOverfit(TrainTestCheck):
