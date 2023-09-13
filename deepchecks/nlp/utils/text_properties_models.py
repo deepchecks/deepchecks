@@ -126,7 +126,6 @@ def get_transformer_loader_params(model_name: str,
         model_path = models_storage / 'quantized' / model_name
         model_kwargs['load_in_8bit'] = True
         model_kwargs['torch_dtype'] = torch.float16
-        # tokenizer_kwargs['torch_dtype'] = torch.float16
     else:
         model_path = models_storage / model_name
 
@@ -154,9 +153,7 @@ def _get_transformer_model_and_tokenizer(
             model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name, **model_kwargs)
             model.save_pretrained(model_path)
 
-            # tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, **tokenizer_kwargs)
-            print(model_name)
-            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=None)
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, **tokenizer_kwargs)
             tokenizer.save_pretrained(model_path)
 
     model.eval()
