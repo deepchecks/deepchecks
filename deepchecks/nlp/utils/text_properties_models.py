@@ -126,7 +126,7 @@ def get_transformer_loader_params(model_name: str,
         model_path = models_storage / 'quantized' / model_name
         model_kwargs['load_in_8bit'] = True
         model_kwargs['torch_dtype'] = torch.float16
-        tokenizer_kwargs['torch_dtype'] = torch.float16
+        # tokenizer_kwargs['torch_dtype'] = torch.float16
     else:
         model_path = models_storage / model_name
 
