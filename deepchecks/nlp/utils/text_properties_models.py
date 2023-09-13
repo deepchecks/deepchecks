@@ -115,6 +115,24 @@ def _log_suppressor():
         transformers_logging.enable_progress_bar()
 
 
+def get_transformer_loader_params(model_name: str,
+                                  models_storage: Union[pathlib.Path, str, None] = None,
+                                  quantize_model: bool = True, ):
+    """Return the params for transformers' model and tokenizer auto classification loaders."""
+    models_storage = get_create_model_storage(models_storage=models_storage)
+    model_kwargs = dict(device_map=None)
+    tokenizer_kwargs = dict(device_map=None)
+    if quantize_model:
+        model_path = models_storage / 'quantized' / model_name
+        model_kwargs['load_in_8bit'] = True
+        model_kwargs['torch_dtype'] = torch.float16
+        tokenizer_kwargs['torch_dtype'] = torch.float16
+    else:
+        model_path = models_storage / model_name
+
+    return model_path, model_kwargs, tokenizer_kwargs
+
+
 @lru_cache(maxsize=5)
 def _get_transformer_model_and_tokenizer(
         property_name: str,
@@ -124,18 +142,10 @@ def _get_transformer_model_and_tokenizer(
 ):
     """Return a transformers' model and tokenizer in cpu memory."""
     transformers = import_optional_property_dependency('transformers', property_name=property_name)
-    models_storage = get_create_model_storage(models_storage=models_storage)
 
     with _log_suppressor():
-        model_kwargs = dict(device_map=None)
-        tokenizer_kwargs = dict(device_map=None)
-        if quantize_model:
-            model_path = models_storage / 'quantized' / model_name
-            model_kwargs['load_in_8bit'] = True
-            model_kwargs['torch_dtype'] = torch.float16
-            tokenizer_kwargs['torch_dtype'] = torch.float16
-        else:
-            model_path = models_storage / model_name
+        model_path, model_kwargs, tokenizer_kwargs = get_transformer_loader_params(model_name, models_storage,
+                                                                                   quantize_model)
 
         if model_path.exists():
             tokenizer = transformers.AutoTokenizer.from_pretrained(model_path, **tokenizer_kwargs)
