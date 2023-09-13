@@ -101,15 +101,15 @@ def _log_suppressor():
     is_progress_bar_enabled = transformers_logging.is_progress_bar_enabled()
 
     transformers_logging.set_verbosity_error()
-    logging.getLogger( __name__).setLevel(50)
+    logging.getLogger(__name__).setLevel(50)
     transformers_logging.disable_progress_bar()
-    logging.getLogger("transformers").setLevel(50)
+    logging.getLogger('transformers').setLevel(50)
 
     with warnings.catch_warnings():
         yield
 
     transformers_logging.set_verbosity(user_transformer_log_level)
-    logging.getLogger("transformers").setLevel(user_logger_level)
+    logging.getLogger('transformers').setLevel(user_logger_level)
     logging.getLogger(__name__).setLevel(deepchecks_logger_level)
     if is_progress_bar_enabled:
         transformers_logging.enable_progress_bar()
