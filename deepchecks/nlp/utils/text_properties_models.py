@@ -155,6 +155,7 @@ def _get_transformer_model_and_tokenizer(
             model.save_pretrained(model_path)
 
             # tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, **tokenizer_kwargs)
+            print(model_name)
             tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=None)
             tokenizer.save_pretrained(model_path)
 
