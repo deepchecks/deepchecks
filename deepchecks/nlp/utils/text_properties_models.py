@@ -154,7 +154,8 @@ def _get_transformer_model_and_tokenizer(
             model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name, **model_kwargs)
             model.save_pretrained(model_path)
 
-            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, **tokenizer_kwargs)
+            # tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, **tokenizer_kwargs)
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, device_map=None)
             tokenizer.save_pretrained(model_path)
 
     model.eval()
