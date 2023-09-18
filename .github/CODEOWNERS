@@ -6,17 +6,17 @@
 
 *       @deepchecks/deepchecks-team
 
-/docs/ @ItayGabbay @shir22 @noamzbr
+/docs/ @shir22 @noamzbr
 /docs/source/examples/ @deepchecks/deepchecks-team
 
-.github @ItayGabbay
+.github @noamzbr
 
 README.rst @shir22
 
-requirements/ @ItayGabbay
-deepchecks/core/ @deepchecks/dev-team
-tests/base @deepchecks/dev-team
-tests/serialization @deepchecks/dev-team
+requirements/ @noamzbr
+deepchecks/core/ @deepchecks/algo-team
+tests/base @deepchecks/algo-team
+tests/serialization @deepchecks/algo-team
 
 deepchecks/core/check_utils/ @deepchecks/algo-team
 deepchecks/utils/distribution @deepchecks/algo-team
