@@ -146,6 +146,7 @@ def test_boosting_regressor(diabetes, diabetes_model):
     assert_that(mean(train_scores), close_to(-44.52, 0.01))
     assert_that(mean(test_scores), close_to(-59.35, 0.01))
 
+
 def test_boosting_regressor_xgb(diabetes_split_dataset_and_model_xgb):
     # Arrange
     train, test, model = diabetes_split_dataset_and_model_xgb
@@ -192,7 +193,6 @@ def test_boosting_regressor_cat(diabetes_split_dataset_and_model_cat):
     assert_that(test_scores, has_length(20))
     assert_that(mean(train_scores), close_to(-35.49, 0.01))
     assert_that(mean(test_scores), close_to(-59.04, 0.01))
-
 
 
 def test_boosting_classifier_with_metric(iris):
