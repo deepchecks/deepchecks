@@ -12,8 +12,10 @@
 from typing import Dict, List, Optional, Union
 
 import pandas as pd
+from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import FixResult, TrainTestCheckFixMixin
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular._shared_docs import docstrings
@@ -26,7 +28,7 @@ __all__ = ['NewCategoryTrainTest']
 
 
 @docstrings
-class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
+class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin, TrainTestCheckFixMixin):
     """Find new categories in the test set.
 
     Parameters
@@ -126,7 +128,7 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
             display = result_data.copy()
             display['Ratio of New Categories'] = display['Ratio of New Categories'].apply(format_percent)
             display['# New Categories'] = display['# New Categories'].apply(format_number)
-            display['New Categories Names'] = display['New categories']. \
+            display['Examples'] = display['New categories']. \
                 apply(lambda x: x[:self.max_new_categories_to_show])
             display.drop('New categories', axis=1, inplace=True)
             display = display.iloc[:self.max_features_to_show, :]
@@ -194,3 +196,52 @@ class NewCategoryTrainTest(TrainTestCheck, ReduceFeatureMixin):
 
         return self.add_condition(
             f'Ratio of samples with a new category is less or equal to {format_percent(max_ratio)}', condition)
+
+    @docstrings
+    @merge_args(TrainTestCheck.run)
+    def fix(self, *args, check_result: CheckResult = None, fix_method: str = 'move_to_train',
+            max_ratio: float = 0, percentage_to_move: float = 0.5, **kwargs) -> FixResult:
+        """Run fix.
+
+        Parameters
+        ----------
+        {additional_context_params:2*indent}
+        check_result : CheckResult
+            CheckResult object.
+        fix_method : str, default: 'move_to_train'
+            Method to fix the problem. Possible values: 'drop_features', 'replace_with_nones', 'move_to_train'.
+        max_ratio : float, default: 0
+            Maximum ratio of samples with new categories.
+        percentage_to_move : float, default: 0.5
+            Percentage of samples with new categories to move to train.
+        """
+        context = self.get_context(*args, **kwargs)
+
+        if check_result is None:
+            check_result = self.run_logic(context)
+
+        train, test = context.train, context.test
+        train_data, test_data = train.data, test.data
+        cols_to_fix = check_result.value[check_result.value['Ratio of New Categories'] > max_ratio].index
+
+        if fix_method == 'drop_features':
+            train_data = train_data.drop(columns=cols_to_fix)
+            test_data = test_data.drop(columns=cols_to_fix)
+        elif fix_method == 'replace_with_nones':
+            new_categories_cols = check_result.value['New categories']
+            for col in cols_to_fix:
+                new_categories = new_categories_cols[col]
+                value_map = {x: None for x in new_categories}
+                train_data[col] = train_data[col].replace(value_map)
+                test_data[col] = test_data[col].replace(value_map)
+        elif fix_method == 'move_to_train':
+            # The following code takes the samples with new categories and moves 0.5 of them from test to train:
+            for col in cols_to_fix:
+                new_categories = check_result.value['New categories'][col]
+                new_categories_train = test_data[test_data[col].isin(new_categories)].sample(frac=percentage_to_move)
+                train_data = train_data.append(new_categories_train)
+                test_data = test_data.drop(new_categories_train.index)
+        else:
+            raise ValueError(f'Fix method {fix_method} is not supported')
+
+        return FixResult(fixed_train=train.copy(train_data), fixed_test=test.copy(test_data))

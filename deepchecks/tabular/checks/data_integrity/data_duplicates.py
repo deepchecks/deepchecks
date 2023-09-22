@@ -12,10 +12,14 @@
 from typing import List, Union
 
 import numpy as np
+from merge_args import merge_args
+from typing_extensions import Literal
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError
+from deepchecks.core.fix_classes import FixResult, SingleDatasetCheckFixMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.utils.abstracts.data_duplicates import DataDuplicatesAbstract
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_list, format_percent
@@ -24,7 +28,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['DataDuplicates']
 
 
-class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
+class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract, SingleDatasetCheckFixMixin):
     """Checks for duplicate samples in the dataset.
 
     Parameters
@@ -44,13 +48,13 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
     """
 
     def __init__(
-        self,
-        columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_to_show: int = 5,
-        n_samples: int = 10_000_000,
-        random_state: int = 42,
-        **kwargs
+            self,
+            columns: Union[Hashable, List[Hashable], None] = None,
+            ignore_columns: Union[Hashable, List[Hashable], None] = None,
+            n_to_show: int = 5,
+            n_samples: int = 10_000_000,
+            random_state: int = 42,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -118,3 +122,30 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
             display = None
 
         return CheckResult(value=percent_duplicate, display=display)
+
+    @docstrings
+    @merge_args(SingleDatasetCheck.run)
+    def fix(self, *args, keep: Literal['first', 'last', False] = 'first', **kwargs) \
+            -> FixResult:
+        """Run fix.
+
+        Parameters
+        ----------
+        {additional_context_params:2*indent}
+        keep : Literal['first', 'last', False], default: 'first'
+            Whether to keep the first or last duplicate row.
+            If False, all duplicates will be removed.
+
+        Returns
+        -------
+        Dataset
+            Dataset with fixed duplicates.
+        """
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+
+        data = dataset.data.copy()
+        data = select_from_dataframe(data, self.columns, self.ignore_columns)
+        data.drop_duplicates(inplace=True, keep=keep)
+
+        return FixResult(fixed_train=dataset.copy(data))

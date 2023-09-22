@@ -96,7 +96,6 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             with_display=with_display,
             y_pred_train=y_pred_train,
             y_proba_train=y_proba_train,
-            y_proba_test=y_proba_test,
             model_classes=model_classes
         )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)

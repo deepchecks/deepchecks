@@ -12,9 +12,12 @@
 from typing import List, Union
 
 import pandas as pd
+from merge_args import merge_args
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.fix_classes import FixResult, TrainTestCheckFixMixin
 from deepchecks.tabular import Context, TrainTestCheck
+from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_df
 from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
@@ -24,7 +27,7 @@ from deepchecks.utils.typing import Hashable
 __all__ = ['StringMismatchComparison']
 
 
-class StringMismatchComparison(TrainTestCheck):
+class StringMismatchComparison(TrainTestCheck, TrainTestCheckFixMixin):
     """Detect different variants of string categories between the same categorical column in two datasets.
 
     This check compares the same categorical column within a dataset and baseline and checks whether there are
@@ -162,6 +165,47 @@ class StringMismatchComparison(TrainTestCheck):
         """
         name = f'Ratio of new variants in test data is less or equal to {format_percent(ratio)}'
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
+
+    @docstrings
+    @merge_args(TrainTestCheck.run)
+    def fix(self, *args, check_result: CheckResult = None, **kwargs) -> FixResult:
+        """Run fix.
+
+        Parameters
+        ----------
+        {additional_context_params:2*indent}
+        check_result : CheckResult, default: None
+            CheckResult object to use for fixing the dataset.
+
+        Returns
+        -------
+        Dataset
+            Dataset with fixed duplicates.
+        """
+        context = self.get_context(*args, **kwargs)
+
+        if check_result is None:
+            check_result = self.run_logic(context)
+
+        train, test = context.train, context.test
+        train_data, test_data = train.data, test.data
+
+        for col, variants in check_result.value.items():
+            # We take the most common form from train data:
+            value_counts = train_data[col].value_counts()
+            for details in variants.values():
+                all_variants = set(details['variants_only_in_train'] + details['commons'] +
+                                   details['variants_only_in_test'])
+
+                train_variants = sorted([variant for variant in all_variants if variant in value_counts.index])
+                most_common_variant = value_counts[train_variants].sort_values(ascending=False).index[0]
+
+                value_map = {variant: most_common_variant for variant in all_variants}
+
+                train_data[col] = train_data[col].replace(value_map)
+                test_data[col] = test_data[col].replace(value_map)
+
+        return FixResult(fixed_train=train.copy(train_data), fixed_test=test.copy(test_data))
 
 
 def _condition_percent_limit(result, ratio: float):

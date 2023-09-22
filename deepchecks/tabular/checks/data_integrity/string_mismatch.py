@@ -14,8 +14,10 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Union
 
 import pandas as pd
+from merge_args import merge_args
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult, DatasetKind
+from deepchecks.core.fix_classes import FixResult, SingleDatasetCheckFixMixin
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular._shared_docs import docstrings
@@ -29,7 +31,7 @@ __all__ = ['StringMismatch']
 
 
 @docstrings
-class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
+class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin, SingleDatasetCheckFixMixin):
     """Detect different variants of string categories (e.g. "mislabeled" vs "mis-labeled") in a categorical column.
 
     This check tests all the categorical columns within a dataset and search for variants of similar strings.
@@ -56,14 +58,14 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
     """
 
     def __init__(
-        self,
-        columns: Union[Hashable, List[Hashable], None] = None,
-        ignore_columns: Union[Hashable, List[Hashable], None] = None,
-        n_top_columns: int = 10,
-        aggregation_method: Optional[str] = 'max',
-        n_samples: int = 1_000_000,
-        random_state: int = 42,
-        **kwargs
+            self,
+            columns: Union[Hashable, List[Hashable], None] = None,
+            ignore_columns: Union[Hashable, List[Hashable], None] = None,
+            n_top_columns: int = 10,
+            aggregation_method: Optional[str] = 'max',
+            n_samples: int = 1_000_000,
+            random_state: int = 42,
+            **kwargs
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -177,6 +179,39 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
 
         name = f'Ratio of variants is less or equal to {format_percent(max_ratio)}'
         return self.add_condition(name, condition, max_ratio=max_ratio)
+
+    @docstrings
+    @merge_args(SingleDatasetCheck.run)
+    def fix(self, *args, check_result: CheckResult = None, **kwargs) -> FixResult:
+        """Run fix.
+
+        Parameters
+        ----------
+        {additional_context_params:2*indent}
+        check_result : CheckResult, default: None
+            CheckResult object to use for fixing the dataset.
+
+        Returns
+        -------
+        Dataset
+            Dataset with fixed duplicates.
+        """
+        context = self.get_context(*args, **kwargs)
+        dataset = context.train
+
+        if check_result is None:
+            check_result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
+
+        data = dataset.data.copy()
+
+        for col, variants in check_result.value['columns'].items():
+            for details in variants.values():
+                most_common_variant = sorted([(var['variant'], var['percent']) for var in details],
+                                             key=lambda x: x[1], reverse=True)[0][0]
+                value_map = {variant: most_common_variant for variant in [var['variant'] for var in details]}
+                data[col] = data[col].replace(value_map)
+
+        return FixResult(fixed_train=dataset.copy(data))
 
 
 def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
