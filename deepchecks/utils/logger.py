@@ -26,7 +26,7 @@ _logger.setLevel(logging.INFO)
 
 
 def get_logger() -> logging.Logger:
-    """Retutn the deepchecks logger."""
+    """Return the deepchecks logger."""
     return _logger
 
 

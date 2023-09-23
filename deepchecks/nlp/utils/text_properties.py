@@ -14,6 +14,7 @@ import pathlib
 import pickle as pkl
 import re
 import string
+import time
 import warnings
 from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
@@ -31,6 +32,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.nlp.utils.text_properties_models import get_cmudict_dict, get_fasttext_model, get_transformer_pipeline
 from deepchecks.utils.function import run_available_kwargs
+from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
@@ -779,9 +781,13 @@ def calculate_builtin_properties(
     )
     import_warnings = set()
 
+    get_logger().info(f"After loading OSS props models")
+
     for i in tqdm(range(0, len(raw_text), batch_size)):
         batch = raw_text[i:i + batch_size]
         batch_properties = defaultdict(list)
+
+        get_logger().info(f"OSS Props - Start processing batch num: {i}, batch size: {batch_size}, batch len {len(batch)}")
 
         # filtering out empty sequences
         nan_indices = {i for i, seq in enumerate(batch) if pd.isna(seq) is True}
@@ -798,6 +804,7 @@ def calculate_builtin_properties(
             non_english_indices = {i for i, (seq, lang) in enumerate(zip(filtered_sequences, samples_language))
                                    if lang != 'en'}
         for prop in text_properties:
+            start_time = time.time()
             if prop['name'] in import_warnings:  # Skip properties that failed to import:
                 batch_properties[prop['name']].extend([np.nan] * len(batch))
             else:
@@ -828,6 +835,9 @@ def calculate_builtin_properties(
                     result_index += 1
 
             filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
+
+            get_logger().info(f"OSS prop: {prop}, took {int(time.time()-start_time)} seconds, batch num: {i}, "
+                              f"batch size: {batch_size}, batch len {len(batch)}")
 
         # Clear property caches:
         textblob_cache.clear()
