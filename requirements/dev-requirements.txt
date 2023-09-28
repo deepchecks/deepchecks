@@ -32,9 +32,9 @@ kaleido  # optional dependency, used by plotly to transform figures into images
 
 # YoloV5
 matplotlib>=3.2.2
-numpy>=1.18.5
+numpy>=1.22.2
 opencv-python>=4.1.2
-Pillow>=7.1.2
+Pillow>=10.0.1
 PyYAML>=5.3.1
 requests>=2.23.0
 # Remove the <=1.10.1 dependency below once sklearn's issue is fixed. The higher version causes
@@ -51,3 +51,7 @@ datasets
 textblob
 transformers
 sentence-transformers
+ipython>=8.10.0 # not directly required, pinned by Snyk to avoid a vulnerability
+jupyter-server>=2.7.2 # not directly required, pinned by Snyk to avoid a vulnerability
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
+tornado>=6.3.3 # not directly required, pinned by Snyk to avoid a vulnerability
