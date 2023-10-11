@@ -9,17 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the text properties for the NLP module."""
-import gc
 import pathlib
+import pickle as pkl
 import re
 import string
 import warnings
 from collections import defaultdict
+from importlib.util import find_spec
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
 import textblob
+import torch.cuda
 from nltk import corpus
 from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
@@ -30,6 +32,7 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.nlp.utils.text_properties_models import get_cmudict_dict, get_fasttext_model, get_transformer_pipeline
 from deepchecks.utils.function import run_available_kwargs
+from deepchecks.utils.gpu_utils import empty_gpu
 from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
@@ -241,7 +244,8 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
     return [np.nan] * len(text_batch)  # Prediction failed, return NaN values for the original batch size
 
 
-TOXICITY_MODEL_NAME = 'unitary/toxic-bert'
+TOXICITY_CALIBRATOR = pathlib.Path(__file__).absolute().parent / 'assets' / 'toxicity_calibrator.pkl'
+TOXICITY_MODEL_NAME = 'SkolkovoInstitute/roberta_toxicity_classifier'
 FLUENCY_MODEL_NAME = 'prithivida/parrot_fluency_model'
 FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
 
@@ -255,10 +259,24 @@ def toxicity(
     """Return float representing toxicity."""
     if toxicity_classifier is None:
         toxicity_classifier = get_transformer_pipeline(
-            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, models_storage=models_storage, device=device)
+
+    class UnitModel:
+        """A model that does nothing."""
+
+        @staticmethod
+        def predict(x):
+            return x
+
+    try:
+        with open(TOXICITY_CALIBRATOR, 'rb') as f:
+            toxicity_calibrator = pkl.load(f)
+    except Exception:  # pylint: disable=broad-except
+        toxicity_calibrator = UnitModel()
 
     def output_formatter(v):
-        return v['score']
+        score = v['score'] if (v['label'] == 'toxic') else 1 - v['score']
+        return toxicity_calibrator.predict([score])[0]
 
     return predict_on_batch(text_batch, toxicity_classifier, output_formatter)
 
@@ -272,7 +290,7 @@ def fluency(
     """Return float representing fluency."""
     if fluency_classifier is None:
         fluency_classifier = get_transformer_pipeline(
-            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='fluency', model_name=FLUENCY_MODEL_NAME, models_storage=models_storage, device=device)
 
     def output_formatter(v):
         return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
@@ -289,7 +307,7 @@ def formality(
     """Return float representing formality."""
     if formality_classifier is None:
         formality_classifier = get_transformer_pipeline(
-            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device, models_storage=models_storage)
+            property_name='formality', model_name=FORMALITY_MODEL_NAME, models_storage=models_storage, device=device)
 
     def output_formatter(v):
         return v['score'] if v['label'] == 'formal' else 1 - v['score']
@@ -553,8 +571,8 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'Reading Ease': 'How easy to read a text sample is, typically ranges from around 0 (hard to read) to around '
                     '100 (very easy). Based on Flesch reading-ease score',
     'Lexical Density': 'Percentage of unique words in the text',
-    'Toxicity': 'A measure of how harmful or offensive a text sample is (0 to 1), uses the Detoxify library '
-                'unitary/toxic-bert model',
+    'Toxicity': 'A measure of how harmful or offensive a text sample is (0 to 1), '
+                'uses the SkolkovoInstitute/roberta_toxicity_classifier model',
     'Fluency': 'A measure of the fluency of the text (0 to 1), using the prithivida/parrot_fluency_model'
                ' model from the authors of the Parrot Paraphraser library',
     'Formality': 'The formality / register of the text (0 to 1), using the s-nlp/roberta-base-formality-ranker'
@@ -573,17 +591,13 @@ TEXT_PROPERTIES_DESCRIPTION = {
 
 
 def _select_properties(
-        *,
         n_of_samples: int,
         include_properties: Optional[List[str]] = None,
         ignore_properties: Optional[List[str]] = None,
         include_long_calculation_properties: bool = False,
         device: Optional[str] = None,
 ) -> Sequence[TextProperty]:
-    """Select properties."""
-    all_properties = ALL_PROPERTIES
-    default_properties = DEFAULT_PROPERTIES
-
+    """Select properties to calculate based on provided parameters."""
     if include_properties is not None and ignore_properties is not None:
         raise ValueError('Cannot use properties and ignore_properties parameters together.')
     if include_properties is not None:
@@ -599,47 +613,44 @@ def _select_properties(
     ignore_properties = [prop.lower() for prop in ignore_properties] if ignore_properties else None
 
     if include_properties is not None:
-        properties = [prop for prop in all_properties if prop['name'].lower() in include_properties]
+        properties = [prop for prop in ALL_PROPERTIES if
+                      prop['name'].lower() in include_properties]  # pylint: disable=unsupported-membership-test
         if len(properties) < len(include_properties):
             not_found_properties = sorted(set(include_properties) - set(prop['name'].lower() for prop in properties))
             raise DeepchecksValueError('include_properties contains properties that were not found: '
                                        f'{not_found_properties}.')
     elif ignore_properties is not None:
-        properties = [prop for prop in default_properties if prop['name'].lower() not in ignore_properties]
-        if len(properties) + len(ignore_properties) != len(default_properties):
-            not_found_properties = \
-                [prop for prop in ignore_properties if prop not in [prop['name'] for prop in default_properties]]
+        properties = [prop for prop in DEFAULT_PROPERTIES if
+                      prop['name'].lower() not in ignore_properties]  # pylint: disable=unsupported-membership-test
+        if len(properties) + len(ignore_properties) != len(DEFAULT_PROPERTIES):
+            default_property_names = [prop['name'].lower() for prop in DEFAULT_PROPERTIES]
+            not_found_properties = [prop for prop in list(ignore_properties) if prop not in default_property_names]
             raise DeepchecksValueError('ignore_properties contains properties that were not found: '
                                        f'{not_found_properties}.')
     else:
-        properties = default_properties
+        properties = DEFAULT_PROPERTIES
 
     # include_long_calculation_properties is only applicable when include_properties is None
-    if not include_long_calculation_properties and include_properties is None:
+    if include_properties is None and not include_long_calculation_properties:
         return [
             prop for prop in properties
             if prop['name'] not in LONG_RUN_PROPERTIES
         ]
-
-    heavy_properties = [
-        prop for prop in properties
-        if prop['name'] in LONG_RUN_PROPERTIES
-    ]
-
-    if heavy_properties and n_of_samples > LARGE_SAMPLE_SIZE:
-        h_prop_names = [
-            prop['name']
-            for prop in heavy_properties
+    else:
+        heavy_properties = [
+            prop['name'] for prop in properties
+            if prop['name'] in LONG_RUN_PROPERTIES
         ]
-        warning_message = (
-            f'Calculating the properties {h_prop_names} on a large dataset may take a long time. '
-            'Consider using a smaller sample size or running this code on better hardware.'
-        )
-        if device is None or device == 'cpu':
-            warning_message += ' Consider using a GPU or a similar device to run these properties.'
-        warnings.warn(warning_message, UserWarning)
+        if heavy_properties and n_of_samples > LARGE_SAMPLE_SIZE:
+            warning_message = (
+                f'Calculating the properties {heavy_properties} on a large dataset may take a long time. '
+                'Consider using a smaller sample size or running this code on better hardware.'
+            )
+            if device is None or device == 'cpu':
+                warning_message += ' Consider using a GPU or a similar device to run these properties.'
+            warnings.warn(warning_message, UserWarning)
 
-    return properties
+        return properties
 
 
 def calculate_builtin_properties(
@@ -651,7 +662,8 @@ def calculate_builtin_properties(
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
         batch_size: Optional[int] = 16,
-        cache_models: bool = False
+        cache_models: bool = False,
+        quantize_models: bool = True,
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
 
@@ -697,7 +709,12 @@ def calculate_builtin_properties(
     batch_size : int, default 8
         The batch size.
     cache_models : bool, default False
-        cache the models being used in this function, to save load time in next execution
+        If True, will store the models in CPU RAM memory. This will speed up the calculation, but will take up
+        more memory. If device is not CPU, the models will be moved from CPU RAM memory to relevant device before
+        calculation.
+    quantize_models : bool, default True
+        If True, will quantize the models to reduce their size and speed up the calculation. Requires the
+        accelerate and bitsandbytes libraries to be installed as well as the availability of GPU.
 
     Returns
     -------
@@ -706,6 +723,15 @@ def calculate_builtin_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
+    if quantize_models:
+        if find_spec('accelerate') is None or find_spec('bitsandbytes') is None:
+            warnings.warn('Quantization requires the accelerate and bitsandbytes libraries to be installed. '
+                          'Calculating without quantization.')
+            quantize_models = False
+        if not torch.cuda.is_available():
+            warnings.warn('GPU is required for the quantization process. Calculating without quantization.')
+            quantize_models = False
+
     text_properties = _select_properties(
         include_properties=include_properties,
         ignore_properties=ignore_properties,
@@ -719,42 +745,36 @@ def calculate_builtin_properties(
     }
 
     kwargs = dict(device=device, models_storage=models_storage)
-    english_properties_names = set(ENGLISH_ONLY_PROPERTIES)
-    text_properties_names = [it['name'] for it in text_properties]
-    calculated_properties = {k: [] for k in text_properties_names}
+    calculated_properties = {k: [] for k in properties_types.keys()}
 
     # Prepare kwargs for properties that require outside resources:
-    if 'fasttext_model' not in kwargs:
-        kwargs['fasttext_model'] = get_fasttext_model(models_storage=models_storage, use_cache=cache_models)
+    kwargs['fasttext_model'] = get_fasttext_model(models_storage=models_storage, use_cache=cache_models)
 
-    if 'cmudict_dict' not in kwargs:
-        properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(text_properties_names))
-        if properties_requiring_cmudict:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
-                for prop in properties_requiring_cmudict:
-                    calculated_properties[prop] = [np.nan] * len(raw_text)
-            kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
+    properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(properties_types.keys()))
+    if properties_requiring_cmudict:
+        if not nltk_download('cmudict', quiet=True):
+            _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
+            for prop in properties_requiring_cmudict:
+                calculated_properties[prop] = [np.nan] * len(raw_text)
+        kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
-    if 'Toxicity' in text_properties_names and 'toxicity_classifier' not in kwargs:
+    if 'Toxicity' in properties_types:
         kwargs['toxicity_classifier'] = get_transformer_pipeline(
             property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models)
+            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
 
-    if 'Formality' in text_properties_names and 'formality_classifier' not in kwargs:
+    if 'Formality' in properties_types and 'formality_classifier' not in kwargs:
         kwargs['formality_classifier'] = get_transformer_pipeline(
             property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models)
+            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
 
-    if 'Fluency' in text_properties_names and 'fluency_classifier' not in kwargs:
+    if 'Fluency' in properties_types and 'fluency_classifier' not in kwargs:
         kwargs['fluency_classifier'] = get_transformer_pipeline(
             property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models)
+            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
 
-    is_language_property_requested = 'Language' in [prop['name'] for prop in text_properties]
     # Remove language property from the list of properties to calculate as it will be calculated separately:
-    if is_language_property_requested:
-        text_properties = [prop for prop in text_properties if prop['name'] != 'Language']
+    text_properties = [prop for prop in text_properties if prop['name'] != 'Language']
 
     warning_message = (
         'Failed to calculate property {0}. '
@@ -763,6 +783,7 @@ def calculate_builtin_properties(
     )
     import_warnings = set()
 
+    # Calculate all properties for a specific batch than continue to the next batch
     for i in tqdm(range(0, len(raw_text), batch_size)):
         batch = raw_text[i:i + batch_size]
         batch_properties = defaultdict(list)
@@ -772,55 +793,53 @@ def calculate_builtin_properties(
         filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
 
         samples_language = _batch_wrapper(text_batch=filtered_sequences, func=language, **kwargs)
-        if is_language_property_requested:
+        if 'Language' in properties_types:
             batch_properties['Language'].extend(samples_language)
             calculated_properties['Language'].extend(samples_language)
         kwargs['language_property_result'] = samples_language  # Pass the language property to other properties
+        kwargs['batch_size'] = batch_size
 
         non_english_indices = set()
         if ignore_non_english_samples_for_english_properties:
             non_english_indices = {i for i, (seq, lang) in enumerate(zip(filtered_sequences, samples_language))
                                    if lang != 'en'}
+
         for prop in text_properties:
             if prop['name'] in import_warnings:  # Skip properties that failed to import:
                 batch_properties[prop['name']].extend([np.nan] * len(batch))
-            else:
-                if prop['name'] in english_properties_names \
-                        and ignore_non_english_samples_for_english_properties is True:
-                    filtered_sequences = [e for i, e in enumerate(filtered_sequences) if i not in non_english_indices]
-                kwargs['batch_size'] = batch_size
-                try:
-                    if prop['name'] in BATCH_PROPERTIES:
-                        value = run_available_kwargs(func=prop['method'], text_batch=filtered_sequences, **kwargs)
-                    else:
-                        value = _batch_wrapper(text_batch=filtered_sequences, func=prop['method'], **kwargs)
-                    batch_properties[prop['name']].extend(value)
-                except ImportError as e:
-                    warnings.warn(warning_message.format(prop['name'], str(e)))
-                    batch_properties[prop['name']].extend([np.nan] * len(batch))
-                    import_warnings.add(prop['name'])
+                continue
 
+            sequences_to_use = list(filtered_sequences)
+            if prop['name'] in ENGLISH_ONLY_PROPERTIES and ignore_non_english_samples_for_english_properties:
+                sequences_to_use = [e for i, e in enumerate(sequences_to_use) if i not in non_english_indices]
+            try:
+                if prop['name'] in BATCH_PROPERTIES:
+                    value = run_available_kwargs(text_batch=sequences_to_use, func=prop['method'], **kwargs)
+                else:
+                    value = _batch_wrapper(text_batch=sequences_to_use, func=prop['method'], **kwargs)
+                batch_properties[prop['name']].extend(value)
+            except ImportError as e:
+                warnings.warn(warning_message.format(prop['name'], str(e)))
+                batch_properties[prop['name']].extend([np.nan] * len(batch))
+                import_warnings.add(prop['name'])
+                continue
+
+            # Fill in nan values for samples that were filtered out:
             result_index = 0
-
             for index, seq in enumerate(batch):
                 if index in nan_indices or (index in non_english_indices and
                                             ignore_non_english_samples_for_english_properties and
-                                            prop['name'] in english_properties_names):
+                                            prop['name'] in ENGLISH_ONLY_PROPERTIES):
                     calculated_properties[prop['name']].append(np.nan)
                 else:
                     calculated_properties[prop['name']].append(batch_properties[prop['name']][result_index])
                     result_index += 1
 
-            filtered_sequences = [e for i, e in enumerate(batch) if i not in nan_indices]
-
         # Clear property caches:
         textblob_cache.clear()
         words_cache.clear()
         sentences_cache.clear()
-
-    # Clean all remaining RAM:
-    if not cache_models:
-        gc.collect()
+        empty_gpu(device)
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
@@ -830,6 +849,15 @@ def calculate_builtin_properties(
         for k, v in properties_types.items()
         if k in calculated_properties
     }
+
+    if cache_models:
+        # Move the transformers models to CPU RAM memory
+        for model_name in ['toxicity_classifier', 'formality_classifier', 'fluency_classifier']:
+            if model_name in kwargs:
+                kwargs[model_name].model.to('cpu')
+
+    # Clean all remaining RAM:
+    empty_gpu(device)
 
     return calculated_properties, properties_types
 

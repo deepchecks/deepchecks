@@ -71,7 +71,7 @@ text_data.properties.head(3)
 
 from deepchecks.nlp.checks import UnderAnnotatedPropertySegments
 
-check = UnderAnnotatedPropertySegments(segment_minimum_size_ratio=0.04)
+check = UnderAnnotatedPropertySegments()
 result = check.run(text_data)
 result.show()
 
@@ -100,7 +100,7 @@ result.value['weak_segments_list'].head(3)
 
 # Let's add a condition and re-run the check:
 
-check = UnderAnnotatedPropertySegments(segment_minimum_size_ratio=0.04)
+check = UnderAnnotatedPropertySegments()
 check.add_condition_segments_annotation_ratio_greater_than(0.7)
 result = check.run(text_data)
 result.show(show_additional_outputs=False)

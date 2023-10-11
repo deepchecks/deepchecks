@@ -58,6 +58,27 @@ def test_init_mismatched_task_type():
     )
 
 
+def test_init_no_labels():
+    """Test the TextData object when no labels are provided"""
+
+    # Arrange
+    text = ['I think therefore I am', 'I am therefore I think', 'I am']
+    label = [None, None, None]
+
+    # Act & Assert
+    text_data = TextData(raw_text=text, label=label, task_type='text_classification')
+    assert_that(text_data.has_label(), equal_to(False))
+    assert_that(text_data.is_multi_label_classification(), equal_to(False))
+
+    # np.nan label
+    label = [np.nan, pd.NA, np.nan]
+
+    # Act & Assert
+    text_data = TextData(raw_text=text, label=label, task_type='text_classification')
+    assert_that(text_data.has_label(), equal_to(False))
+    assert_that(text_data.is_multi_label_classification(), equal_to(False))
+
+
 def test_wrong_token_label_format():
     # Arrange
     tokenized_text = [['a'], ['b', 'b', 'b'], ['c', 'c', 'c', 'c']]

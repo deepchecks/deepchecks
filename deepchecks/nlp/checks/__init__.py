@@ -10,9 +10,10 @@
 #
 """Module importing all nlp checks."""
 
-from deepchecks.nlp.checks.data_integrity import (ConflictingLabels, PropertyLabelCorrelation, SpecialCharacters,
-                                                  TextDuplicates, TextPropertyOutliers, UnderAnnotatedMetaDataSegments,
-                                                  UnderAnnotatedPropertySegments, UnknownTokens)
+from deepchecks.nlp.checks.data_integrity import (ConflictingLabels, FrequentSubstrings, PropertyLabelCorrelation,
+                                                  SpecialCharacters, TextDuplicates, TextPropertyOutliers,
+                                                  UnderAnnotatedMetaDataSegments, UnderAnnotatedPropertySegments,
+                                                  UnknownTokens)
 from deepchecks.nlp.checks.model_evaluation import (ConfusionMatrixReport, MetadataSegmentsPerformance, PredictionDrift,
                                                     PropertySegmentsPerformance, SingleDatasetPerformance,
                                                     TrainTestPerformance)
@@ -29,6 +30,7 @@ __all__ = [
     'UnknownTokens',
     'UnderAnnotatedMetaDataSegments',
     'UnderAnnotatedPropertySegments',
+    'FrequentSubstrings',
 
     # Model Evaluation
     'SingleDatasetPerformance',

@@ -11,6 +11,7 @@
 """Module importing all nlp checks."""
 
 from .conflicting_labels import ConflictingLabels
+from .frequent_substrings import FrequentSubstrings
 from .property_label_correlation import PropertyLabelCorrelation
 from .special_characters import SpecialCharacters
 from .text_duplicates import TextDuplicates
@@ -27,4 +28,5 @@ __all__ = [
     'UnknownTokens',
     'UnderAnnotatedMetaDataSegments',
     'UnderAnnotatedPropertySegments',
+    'FrequentSubstrings',
 ]

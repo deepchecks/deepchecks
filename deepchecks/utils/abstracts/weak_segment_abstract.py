@@ -254,7 +254,8 @@ class WeakSegmentAbstract(abc.ABC):
             'max_depth': [5],
             'min_weight_fraction_leaf': [self.segment_minimum_size_ratio],
             'min_samples_leaf': [5],
-            'criterion': criterion
+            'criterion': criterion,
+            'min_impurity_decrease': [0.003],
         }
 
         # In a given tree finds the leaf with the worst score (the rest are ignored)

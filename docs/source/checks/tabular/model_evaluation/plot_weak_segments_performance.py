@@ -45,7 +45,7 @@ The check contains several steps:
 # Generate data & model
 # =====================
 
-from deepchecks.tabular.datasets.classification.phishing import (
+from deepchecks.tabular.datasets.classification.lending_club import (
     load_data, load_fitted_model)
 
 _, test_ds = load_data()
@@ -84,10 +84,7 @@ from deepchecks.tabular.checks import WeakSegmentsPerformance
 from sklearn.metrics import make_scorer, f1_score
 
 scorer = {'f1': make_scorer(f1_score, average='micro')}
-check = WeakSegmentsPerformance(columns=['urlLength', 'numTitles', 'ext', 'entropy'],
-                                alternative_scorer=scorer,
-                                segment_minimum_size_ratio=0.03,
-                                categorical_aggregation_threshold=0.05)
+check = WeakSegmentsPerformance()
 result = check.run(test_ds, model)
 result.show()
 
@@ -97,7 +94,8 @@ result.show()
 #
 # We see in the results that the check indeed found several segments on which the model performance is below average.
 # In the heatmap display we can see model performance on the weakest segments and their environment with respect to the
-# two features that are relevant to the segment. In order to get the full list of weak segments found we will inspect
+# two features that are relevant to the segment. We can switch between several such segments using the tabs on the top.
+# In order to get the full list of weak segments found we will inspect
 # the ``result.value`` attribute. Shown below are the 3 segments with the worst performance.
 
 
@@ -109,7 +107,7 @@ result.value['weak_segments_list'].head(3)
 #
 # We can add a condition that will validate the model's performance on the weakest segment detected is above a certain
 # threshold. A scenario where this can be useful is when we want to make sure that the model is not under performing
-# on a subset of the data that is of interest to us, for example for specific age or gender groups.
+# on a subset of the data that is of interest to us, for example specific age or gender groups.
 
 # Let's add a condition and re-run the check:
 

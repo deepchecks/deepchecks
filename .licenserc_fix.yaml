@@ -35,6 +35,11 @@ header:
     - 'CITATION.cff'
     - 'deepchecks/core/resources/requirejs.min.js'
     - '.all-contributorsrc'
+    - 'deepchecks/vision/fonts/quicksand/SIL Open Font License.txt'
+    - 'extensive_testing/'
+    - 'requirements/'
+    - 'spelling-allowlist.txt'
+    - 'tests/'
   comment: on-failure
 
 dependency:
