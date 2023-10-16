@@ -135,24 +135,25 @@ def _get_transformer_model_and_tokenizer(
     with _log_suppressor():
         models_storage = get_create_model_storage(models_storage=models_storage)
         model_path = models_storage / model_name
+        model_path_exists = model_path.exists()
 
         if use_onnx_model:
             optimum = import_optional_property_dependency('optimum', property_name=property_name)
             classifier_cls = optimum.onnxruntime.ORTModelForSequenceClassification
-            if model_path.exists():
+            if model_path_exists:
                 model = classifier_cls.from_pretrained(model_path, provider="CUDAExecutionProvider")
             else:
                 model = classifier_cls.from_pretrained(model_name, provider="CUDAExecutionProvider")
                 model.save_pretrained(model_path)
         else:
-            if model_path.exists():
+            if model_path_exists:
                 model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path)
             else:
                 model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name)
                 model.save_pretrained(model_path)
             model.eval()
 
-        if model_path.exists():
+        if model_path_exists:
             tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
         else:
             tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
