@@ -268,9 +268,6 @@ def toxicity(
             property_name='toxicity', model_name=model_name, device=device,
             models_storage=models_storage, use_onnx_model=use_onnx_models)
 
-    print(f'pipe device is {toxicity_classifier.device}')
-    warnings.warn(f'pipe device is {toxicity_classifier.device}', UserWarning)
-
     class UnitModel:
         """A model that does nothing."""
 
@@ -725,8 +722,6 @@ def calculate_builtin_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
-    warnings.warn(f'device is {device}', UserWarning)
-    print(f'device is {device}')
     use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
     text_properties = _select_properties(
         include_properties=include_properties,
@@ -754,8 +749,6 @@ def calculate_builtin_properties(
                 calculated_properties[prop] = [np.nan] * len(raw_text)
         kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
-    print(f'device is {device}')
-    warnings.warn(f'device is {device}', UserWarning)
     if 'Toxicity' in properties_types and 'toxicity_classifier' not in kwargs:
         model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
         kwargs['toxicity_classifier'] = get_transformer_pipeline(
@@ -784,8 +777,6 @@ def calculate_builtin_properties(
     )
     import_warnings = set()
 
-    print(f'device is {device}')
-    warnings.warn(f'device is {device}', UserWarning)
     # Calculate all properties for a specific batch than continue to the next batch
     for i in tqdm(range(0, len(raw_text), batch_size)):
         batch = raw_text[i:i + batch_size]
@@ -844,8 +835,6 @@ def calculate_builtin_properties(
         sentences_cache.clear()
         empty_gpu(device)
 
-    print(f'device is {device}')
-    warnings.warn(f'device is {device}', UserWarning)
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 

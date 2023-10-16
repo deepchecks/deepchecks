@@ -93,13 +93,8 @@ def get_transformer_pipeline(
 
     if use_onnx_model:
         onnx_pipe = import_optional_property_dependency('optimum.pipelines', property_name=property_name)
-        print(f'device is {device}')
-        warnings.warn(f'device is {device}', UserWarning)
-        pipe = onnx_pipe.pipeline('text-classification', model=model, tokenizer=tokenizer,
+        return onnx_pipe.pipeline('text-classification', model=model, tokenizer=tokenizer,
                                   accelerator='ort', device=device)
-        print(f'pipe device is {pipe.device}')
-        warnings.warn(f'pipe device is {pipe.device}', UserWarning)
-        return pipe
     else:
         transformers = import_optional_property_dependency('transformers', property_name=property_name)
         return transformers.pipeline('text-classification', model=model, tokenizer=tokenizer, device=device)
