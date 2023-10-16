@@ -104,11 +104,9 @@ def get_transformer_pipeline(
 def _log_suppressor():
     user_transformer_log_level = transformers_logging.get_verbosity()
     user_logger_level = logging.getLogger('transformers').getEffectiveLevel()
-    deepchecks_logger_level = logging.getLogger(__name__).getEffectiveLevel()
     is_progress_bar_enabled = transformers_logging.is_progress_bar_enabled()
 
     transformers_logging.set_verbosity_error()
-    logging.getLogger(__name__).setLevel(50)
     transformers_logging.disable_progress_bar()
     logging.getLogger('transformers').setLevel(50)
 
@@ -117,7 +115,6 @@ def _log_suppressor():
 
     transformers_logging.set_verbosity(user_transformer_log_level)
     logging.getLogger('transformers').setLevel(user_logger_level)
-    logging.getLogger(__name__).setLevel(deepchecks_logger_level)
     if is_progress_bar_enabled:
         transformers_logging.enable_progress_bar()
 
@@ -132,32 +129,32 @@ def _get_transformer_model_and_tokenizer(
     """Return a transformers' model and tokenizer in cpu memory."""
     transformers = import_optional_property_dependency('transformers', property_name=property_name)
 
-    with _log_suppressor():
-        models_storage = get_create_model_storage(models_storage=models_storage)
-        model_path = models_storage / model_name
-        model_path_exists = model_path.exists()
+    # with _log_suppressor():
+    models_storage = get_create_model_storage(models_storage=models_storage)
+    model_path = models_storage / model_name
+    model_path_exists = model_path.exists()
 
-        if use_onnx_model:
-            onnx_runtime = import_optional_property_dependency('optimum.onnxruntime', property_name=property_name)
-            classifier_cls = onnx_runtime.ORTModelForSequenceClassification
-            if model_path_exists:
-                model = classifier_cls.from_pretrained(model_path, provider="CUDAExecutionProvider")
-            else:
-                model = classifier_cls.from_pretrained(model_name, provider="CUDAExecutionProvider")
-                model.save_pretrained(model_path)
-        else:
-            if model_path_exists:
-                model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path)
-            else:
-                model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name)
-                model.save_pretrained(model_path)
-            model.eval()
-
+    if use_onnx_model:
+        onnx_runtime = import_optional_property_dependency('optimum.onnxruntime', property_name=property_name)
+        classifier_cls = onnx_runtime.ORTModelForSequenceClassification
         if model_path_exists:
-            tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
+            model = classifier_cls.from_pretrained(model_path, provider="CUDAExecutionProvider")
         else:
-            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-            tokenizer.save_pretrained(model_path)
+            model = classifier_cls.from_pretrained(model_name, provider="CUDAExecutionProvider")
+            model.save_pretrained(model_path)
+    else:
+        if model_path_exists:
+            model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path)
+        else:
+            model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name)
+            model.save_pretrained(model_path)
+        model.eval()
+
+    if model_path_exists:
+        tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
+    else:
+        tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
+        tokenizer.save_pretrained(model_path)
 
     return model, tokenizer
 
