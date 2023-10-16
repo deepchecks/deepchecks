@@ -738,7 +738,6 @@ def calculate_builtin_properties(
         A dictionary with the property name as key and the property's type as value.
     """
     use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
-
     text_properties = _select_properties(
         include_properties=include_properties,
         ignore_properties=ignore_properties,

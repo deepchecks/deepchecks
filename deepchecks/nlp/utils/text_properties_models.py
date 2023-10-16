@@ -140,9 +140,9 @@ def _get_transformer_model_and_tokenizer(
             optimum = import_optional_property_dependency('optimum', property_name=property_name)
             classifier_cls = optimum.onnxruntime.ORTModelForSequenceClassification
             if model_path.exists():
-                model = classifier_cls(model_path, provider="CUDAExecutionProvider")
+                model = classifier_cls.from_pretrained(model_path, provider="CUDAExecutionProvider")
             else:
-                model = classifier_cls(model_name, provider="CUDAExecutionProvider")
+                model = classifier_cls.from_pretrained(model_name, provider="CUDAExecutionProvider")
                 model.save_pretrained(model_path)
         else:
             if model_path.exists():
