@@ -257,11 +257,12 @@ def toxicity(
         text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
-        use_onnx_models: bool = False,
+        use_onnx_models: bool = True,
         toxicity_classifier: Optional[object] = None
 ) -> Sequence[float]:
     """Return float representing toxicity."""
     if toxicity_classifier is None:
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
         model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
         toxicity_classifier = get_transformer_pipeline(
             property_name='toxicity', model_name=model_name, device=device,
@@ -291,11 +292,12 @@ def fluency(
         text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
-        use_onnx_models: bool = False,
+        use_onnx_models: bool = True,
         fluency_classifier: Optional[object] = None
 ) -> Sequence[float]:
     """Return float representing fluency."""
     if fluency_classifier is None:
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
         model_name = FLUENCY_MODEL_NAME_ONNX if use_onnx_models else FLUENCY_MODEL_NAME
         fluency_classifier = get_transformer_pipeline(
             property_name='fluency', model_name=model_name, device=device,
@@ -311,11 +313,12 @@ def formality(
         text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
-        use_onnx_models: bool = False,
+        use_onnx_models: bool = True,
         formality_classifier: Optional[object] = None
 ) -> Sequence[float]:
     """Return float representing formality."""
     if formality_classifier is None:
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
         model_name = FORMALITY_MODEL_NAME_ONNX if use_onnx_models else FORMALITY_MODEL_NAME
         formality_classifier = get_transformer_pipeline(
             property_name='formality', model_name=model_name, device=device,
@@ -734,14 +737,7 @@ def calculate_builtin_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
-    if use_onnx_models:
-        if find_spec('optimum') is None or find_spec('onnxruntime') is None:
-            warnings.warn('Onnx models require the optimum[onnxruntime-gpu] library to be installed. '
-                          'Calculating using the default models.')
-            use_onnx_models = False
-        if not torch.cuda.is_available():
-            warnings.warn('GPU is required for the onnx models. Calculating using the default models.')
-            use_onnx_models = False
+    use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
 
     text_properties = _select_properties(
         include_properties=include_properties,
@@ -874,6 +870,19 @@ def calculate_builtin_properties(
     empty_gpu(device)
 
     return calculated_properties, properties_types
+
+
+def _validate_onnx_model_availability(use_onnx_models: bool):
+    if not use_onnx_models:
+        return False
+    if find_spec('optimum') is None or find_spec('onnxruntime') is None:
+        warnings.warn('Onnx models require the optimum[onnxruntime-gpu] library to be installed. '
+                      'Calculating using the default models.')
+        return False
+    if not torch.cuda.is_available():
+        warnings.warn('GPU is required for the onnx models. Calculating using the default models.')
+        return False
+    return True
 
 
 def get_builtin_properties_types():

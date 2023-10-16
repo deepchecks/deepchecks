@@ -76,7 +76,7 @@ def get_transformer_pipeline(
         model_name: str,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
-        use_onnx_model: bool = True,
+        use_onnx_model: bool = False,
         use_cache=False
 ):
     """Return a transformers' pipeline for the given model name."""
