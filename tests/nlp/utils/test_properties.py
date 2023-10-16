@@ -20,7 +20,7 @@ from hamcrest import *
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text_properties import (_sample_for_property, calculate_builtin_properties,
-                                                  english_text)
+                                                  english_text, TOXICITY_MODEL_NAME_ONNX)
 from deepchecks.nlp.utils.text_properties_models import MODELS_STORAGE, _get_transformer_model_and_tokenizer
 
 
@@ -423,7 +423,7 @@ def test_properties_models_download():
             property_name='',
             model_name=model_name,
             models_storage=model_path,
-            quantize_model=False
+            use_onnx_model=False
         )}
     )
 
@@ -439,7 +439,7 @@ def test_properties_models_download():
             property_name='',
             model_name=model_name,
             models_storage=model_path,
-            quantize_model=False
+            use_onnx_model=False
         )}
     )
 
@@ -451,13 +451,13 @@ def test_properties_models_download():
     'TEST_NLP_PROPERTIES_MODELS_DOWNLOAD' not in os.environ,
     reason='The test takes too long to run, provide env var if you want to run it.'
 )
-def test_properties_models_download_quantized():
-    directory = pathlib.Path(__file__).absolute().parent / '.nlp-models' / 'quantized'
-    model_name = 'SkolkovoInstitute/roberta_toxicity_classifier'
+def test_properties_models_download_onnx():
+    directory = pathlib.Path(__file__).absolute().parent / '.nlp-models'
+    model_name = TOXICITY_MODEL_NAME_ONNX
     model_path = directory / model_name
 
     # Act
-    _get_transformer_model_and_tokenizer(property_name='', model_name=model_name, quantize_model=True)
+    _get_transformer_model_and_tokenizer(property_name='', model_name=model_name, use_onnx_model=True)
 
     # Assert
     assert directory.exists() and directory.is_dir()
@@ -468,7 +468,7 @@ def test_properties_models_download_quantized():
     'TEST_NLP_PROPERTIES_MODELS_DOWNLOAD' not in os.environ,
     reason='The test takes too long to run, provide env var if you want to run it.'
 )
-def test_batch_only_properties_calculation_with_single_samples_quantized():
+def test_batch_only_properties_calculation_with_single_samples_onnx():
     # Arrange
     text = ['Explicit is better than implicit']
 
@@ -476,7 +476,7 @@ def test_batch_only_properties_calculation_with_single_samples_quantized():
     properties, properties_types = calculate_builtin_properties(
         raw_text=text, batch_size=1,
         include_properties=['Formality', 'Text Length', 'Toxicity', 'Fluency'],
-        quantize_models=True
+        use_onnx_models=True
     )
 
     # Assert
@@ -500,7 +500,7 @@ def test_batch_only_properties_calculation_with_single_samples():
     properties, properties_types = calculate_builtin_properties(
         raw_text=text, batch_size=1,
         include_properties=['Formality', 'Text Length', 'Toxicity', 'Fluency'],
-        quantize_models=False
+        use_onnx_models=False
     )
 
     # Assert
