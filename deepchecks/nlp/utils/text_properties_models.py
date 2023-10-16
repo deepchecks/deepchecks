@@ -92,9 +92,9 @@ def get_transformer_pipeline(
                                                                             models_storage, use_onnx_model)
 
     if use_onnx_model:
-        optimum = import_optional_property_dependency('optimum', property_name=property_name)
-        return optimum.pipelines.pipeline('text-classification', model=model, tokenizer=tokenizer,
-                                          accelerator='ort', device=device)
+        onnx_pipe = import_optional_property_dependency('optimum.pipelines', property_name=property_name)
+        return onnx_pipe.pipeline('text-classification', model=model, tokenizer=tokenizer,
+                                  accelerator='ort', device=device)
     else:
         transformers = import_optional_property_dependency('transformers', property_name=property_name)
         return transformers.pipeline('text-classification', model=model, tokenizer=tokenizer, device=device)
@@ -138,8 +138,8 @@ def _get_transformer_model_and_tokenizer(
         model_path_exists = model_path.exists()
 
         if use_onnx_model:
-            optimum = import_optional_property_dependency('optimum', property_name=property_name)
-            classifier_cls = optimum.onnxruntime.ORTModelForSequenceClassification
+            onnx_runtime = import_optional_property_dependency('optimum.onnxruntime', property_name=property_name)
+            classifier_cls = onnx_runtime.ORTModelForSequenceClassification
             if model_path_exists:
                 model = classifier_cls.from_pretrained(model_path, provider="CUDAExecutionProvider")
             else:
