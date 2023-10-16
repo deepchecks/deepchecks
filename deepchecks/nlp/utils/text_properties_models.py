@@ -93,8 +93,13 @@ def get_transformer_pipeline(
 
     if use_onnx_model:
         onnx_pipe = import_optional_property_dependency('optimum.pipelines', property_name=property_name)
-        return onnx_pipe.pipeline('text-classification', model=model, tokenizer=tokenizer,
+        print(f'device is {device}')
+        warnings.warn(f'device is {device}', UserWarning)
+        pipe = onnx_pipe.pipeline('text-classification', model=model, tokenizer=tokenizer,
                                   accelerator='ort', device=device)
+        print(f'pipe device is {pipe.device}')
+        warnings.warn(f'pipe device is {pipe.device}', UserWarning)
+        return pipe
     else:
         transformers = import_optional_property_dependency('transformers', property_name=property_name)
         return transformers.pipeline('text-classification', model=model, tokenizer=tokenizer, device=device)
@@ -129,34 +134,34 @@ def _get_transformer_model_and_tokenizer(
     """Return a transformers' model and tokenizer in cpu memory."""
     transformers = import_optional_property_dependency('transformers', property_name=property_name)
 
-    # with _log_suppressor():
-    models_storage = get_create_model_storage(models_storage=models_storage)
-    model_path = models_storage / model_name
-    model_path_exists = model_path.exists()
+    with _log_suppressor():
+        models_storage = get_create_model_storage(models_storage=models_storage)
+        model_path = models_storage / model_name
+        model_path_exists = model_path.exists()
 
-    if use_onnx_model:
-        onnx_runtime = import_optional_property_dependency('optimum.onnxruntime', property_name=property_name)
-        classifier_cls = onnx_runtime.ORTModelForSequenceClassification
-        if model_path_exists:
-            model = classifier_cls.from_pretrained(model_path, provider="CUDAExecutionProvider")
+        if use_onnx_model:
+            onnx_runtime = import_optional_property_dependency('optimum.onnxruntime', property_name=property_name)
+            classifier_cls = onnx_runtime.ORTModelForSequenceClassification
+            if model_path_exists:
+                model = classifier_cls.from_pretrained(model_path, provider="CUDAExecutionProvider")
+            else:
+                model = classifier_cls.from_pretrained(model_name, provider="CUDAExecutionProvider")
+                model.save_pretrained(model_path)
         else:
-            model = classifier_cls.from_pretrained(model_name, provider="CUDAExecutionProvider")
-            model.save_pretrained(model_path)
-    else:
+            if model_path_exists:
+                model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path)
+            else:
+                model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name)
+                model.save_pretrained(model_path)
+            model.eval()
+
         if model_path_exists:
-            model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path)
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
         else:
-            model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name)
-            model.save_pretrained(model_path)
-        model.eval()
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
+            tokenizer.save_pretrained(model_path)
 
-    if model_path_exists:
-        tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
-    else:
-        tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
-        tokenizer.save_pretrained(model_path)
-
-    return model, tokenizer
+        return model, tokenizer
 
 
 def get_cmudict_dict(use_cache=False):
