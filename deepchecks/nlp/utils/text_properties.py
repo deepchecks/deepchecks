@@ -262,7 +262,7 @@ def toxicity(
 ) -> Sequence[float]:
     """Return float representing toxicity."""
     if toxicity_classifier is None:
-        use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models, device)
         model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
         toxicity_classifier = get_transformer_pipeline(
             property_name='toxicity', model_name=model_name, device=device,
@@ -297,7 +297,7 @@ def fluency(
 ) -> Sequence[float]:
     """Return float representing fluency."""
     if fluency_classifier is None:
-        use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models, device)
         model_name = FLUENCY_MODEL_NAME_ONNX if use_onnx_models else FLUENCY_MODEL_NAME
         fluency_classifier = get_transformer_pipeline(
             property_name='fluency', model_name=model_name, device=device,
@@ -318,7 +318,7 @@ def formality(
 ) -> Sequence[float]:
     """Return float representing formality."""
     if formality_classifier is None:
-        use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models, device)
         model_name = FORMALITY_MODEL_NAME_ONNX if use_onnx_models else FORMALITY_MODEL_NAME
         formality_classifier = get_transformer_pipeline(
             property_name='formality', model_name=model_name, device=device,
@@ -722,7 +722,7 @@ def calculate_builtin_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
-    use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
+    use_onnx_models = _validate_onnx_model_availability(use_onnx_models, device)
     text_properties = _select_properties(
         include_properties=include_properties,
         ignore_properties=ignore_properties,
@@ -868,7 +868,7 @@ def _warn_long_compute(device, properties_types, n_samples, use_onnx_models):
         warnings.warn(warning_message, UserWarning)
 
 
-def _validate_onnx_model_availability(use_onnx_models: bool):
+def _validate_onnx_model_availability(use_onnx_models: bool, device: Optional[str]):
     if not use_onnx_models:
         return False
     if find_spec('optimum') is None or find_spec('onnxruntime') is None:
@@ -877,6 +877,9 @@ def _validate_onnx_model_availability(use_onnx_models: bool):
         return False
     if not torch.cuda.is_available():
         warnings.warn('GPU is required for the onnx models. Calculating using the default models.')
+        return False
+    if device is not None and device.lower() == 'cpu':
+        warnings.warn('Onnx models are not supported on device CPU. Calculating using the default models.')
         return False
     return True
 

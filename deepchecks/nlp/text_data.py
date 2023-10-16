@@ -10,6 +10,7 @@
 #
 """The dataset module containing the tabular Dataset class and its functions."""
 import contextlib
+import pathlib
 import typing as t
 import warnings
 from numbers import Number
@@ -385,9 +386,9 @@ class TextData:
         return self._numeric_metadata
 
     def set_metadata(
-        self,
-        metadata: pd.DataFrame,
-        categorical_metadata: t.Optional[t.Sequence[str]] = None
+            self,
+            metadata: pd.DataFrame,
+            categorical_metadata: t.Optional[t.Sequence[str]] = None
     ):
         """Set the metadata of the dataset."""
         if self._metadata is not None:
@@ -408,34 +409,65 @@ class TextData:
         self._numeric_metadata = column_types.numerical_columns
 
     def calculate_builtin_properties(
-        self,
-        include_properties: t.Optional[t.List[str]] = None,
-        ignore_properties: t.Optional[t.List[str]] = None,
-        include_long_calculation_properties: bool = False,
-        ignore_non_english_samples_for_english_properties: bool = True,
-        device: t.Optional[str] = None
+            self,
+            include_properties: t.Optional[t.List[str]] = None,
+            ignore_properties: t.Optional[t.List[str]] = None,
+            include_long_calculation_properties: bool = False,
+            ignore_non_english_samples_for_english_properties: bool = True,
+            device: t.Optional[str] = None,
+            models_storage: t.Union[pathlib.Path, str, None] = None,
+            batch_size: t.Optional[int] = 16,
+            cache_models: bool = False,
+            use_onnx_models: bool = True,
     ):
         """Calculate the default properties of the dataset.
 
         Parameters
         ----------
         include_properties : List[str], default None
-            The properties to calculate. If None, all default properties will be calculated. Cannot be used together
-            with ignore_properties parameter.
+            The properties to calculate. If None, all default properties will be calculated. Cannot be used
+            together with ignore_properties parameter. Available properties are:
+            ['Text Length', 'Average Word Length', 'Max Word Length',
+            '% Special Characters', '% Punctuation', 'Language',
+            'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency', 'Formality', 'Lexical Density', 'Unique Noun Count',
+            'Reading Ease', 'Average Words Per Sentence', 'URLs Count', Unique URLs Count', 'Email Address Count',
+            'Unique Email Address Count', 'Unique Syllables Count', 'Reading Time', 'Sentences Count',
+            'Average Syllable Length']
+            List of default properties are: ['Text Length', 'Average Word Length', 'Max Word Length',
+            '% Special Characters', '% Punctuation', 'Language', 'Sentiment', 'Subjectivity', 'Toxicity', 'Fluency',
+            'Formality', 'Lexical Density', 'Unique Noun Count', 'Reading Ease', 'Average Words Per Sentence']
+            To calculate all the default properties, the include_properties and ignore_properties parameters should
+            be None. If you pass either include_properties or ignore_properties then only the properties specified
+            in the list will be calculated or ignored.
+            Note that the properties ['Toxicity', 'Fluency', 'Formality', 'Language', 'Unique Noun Count'] may
+            take a long time to calculate. If include_long_calculation_properties is False, these properties will be
+            ignored, even if they are in the include_properties parameter.
         ignore_properties : List[str], default None
-            The properties to ignore. If None, no properties will be ignored. Cannot be used together with
-            properties parameter.
+            The properties to ignore from the list of default properties. If None, no properties will be ignored and
+            all the default properties will be calculated. Cannot be used together with include_properties parameter.
         include_long_calculation_properties : bool, default False
             Whether to include properties that may take a long time to calculate. If False, these properties will be
-            ignored.
+            ignored, unless they are specified in the include_properties parameter explicitly.
         ignore_non_english_samples_for_english_properties : bool, default True
             Whether to ignore samples that are not in English when calculating English properties. If False, samples
             that are not in English will be calculated as well. This parameter is ignored when calculating non-English
             properties.
             English-Only properties WILL NOT work properly on non-English samples, and this parameter should be used
             only when you are sure that all the samples are in English.
-        device : int, default None
-            The device to use for the calculation. If None, the default device will be used.
+        device : Optional[str], default None
+            The device to use for the calculation. If None, the default device will be used. For onnx based models it is
+            recommended to set device to None for optimized performance.
+        models_storage : Union[str, pathlib.Path, None], default None
+            A directory to store the models.
+            If not provided, models will be stored in `DEEPCHECKS_LIB_PATH/nlp/.nlp-models`.
+            Also, if a folder already contains relevant resources they are not re-downloaded.
+        batch_size : int, default 8
+            The batch size.
+        cache_models : bool, default False
+            If True, will store the models in device RAM memory. This will speed up the calculation for future calls.
+        use_onnx_models : bool, default True
+            If True, will use onnx gpu optimized models for the calculation. Requires the optimum[onnxruntime-gpu]
+            library to be installed as well as the availability of GPU.
         """
         if self._properties is not None:
             warnings.warn('Properties already exist, overwriting them', UserWarning)
@@ -446,16 +478,20 @@ class TextData:
             ignore_properties=ignore_properties,
             include_long_calculation_properties=include_long_calculation_properties,
             ignore_non_english_samples_for_english_properties=ignore_non_english_samples_for_english_properties,
-            device=device
+            device=device,
+            models_storage=models_storage,
+            batch_size=batch_size,
+            cache_models=cache_models,
+            use_onnx_models=use_onnx_models,
         )
 
         self._properties = pd.DataFrame(properties, index=self.get_original_text_indexes())
         self._cat_properties = [k for k, v in properties_types.items() if v == 'categorical']
 
     def set_properties(
-        self,
-        properties: pd.DataFrame,
-        categorical_properties: t.Optional[t.Sequence[str]] = None
+            self,
+            properties: pd.DataFrame,
+            categorical_properties: t.Optional[t.Sequence[str]] = None
     ):
         """Set the properties of the dataset."""
         if self._properties is not None:
@@ -787,7 +823,7 @@ class TextData:
             if properties_to_show is not None:
                 prop_names = [prop for prop in properties_to_show if prop in self.properties.columns]
                 if len(prop_names) != len(properties_to_show):
-                    raise DeepchecksValueError(f'{set(properties_to_show)-set(prop_names)} '
+                    raise DeepchecksValueError(f'{set(properties_to_show) - set(prop_names)} '
                                                'properties does not exist in the TextData object')
             else:
                 prop_names = list(self.properties.columns)[:n_properties_to_show]

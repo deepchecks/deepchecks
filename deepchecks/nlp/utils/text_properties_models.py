@@ -15,11 +15,9 @@ import warnings
 from contextlib import contextmanager
 from functools import lru_cache
 from importlib import import_module
-from importlib.util import find_spec
 from typing import Optional, Union
 
 import requests
-import torch
 from nltk import corpus
 from transformers.utils import logging as transformers_logging
 
@@ -138,9 +136,9 @@ def _get_transformer_model_and_tokenizer(
             onnx_runtime = import_optional_property_dependency('optimum.onnxruntime', property_name=property_name)
             classifier_cls = onnx_runtime.ORTModelForSequenceClassification
             if model_path_exists:
-                model = classifier_cls.from_pretrained(model_path, provider="CUDAExecutionProvider")
+                model = classifier_cls.from_pretrained(model_path, provider='CUDAExecutionProvider')
             else:
-                model = classifier_cls.from_pretrained(model_name, provider="CUDAExecutionProvider")
+                model = classifier_cls.from_pretrained(model_name, provider='CUDAExecutionProvider')
                 model.save_pretrained(model_path)
         else:
             if model_path_exists:
