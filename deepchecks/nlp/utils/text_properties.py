@@ -268,6 +268,9 @@ def toxicity(
             property_name='toxicity', model_name=model_name, device=device,
             models_storage=models_storage, use_onnx_model=use_onnx_models)
 
+    print(f'pipe device is {toxicity_classifier.device}')
+    warnings.warn(f'pipe device is {toxicity_classifier.device}', UserWarning)
+
     class UnitModel:
         """A model that does nothing."""
 
