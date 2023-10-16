@@ -606,11 +606,9 @@ TEXT_PROPERTIES_DESCRIPTION = {
 
 
 def _select_properties(
-        n_of_samples: int,
         include_properties: Optional[List[str]] = None,
         ignore_properties: Optional[List[str]] = None,
         include_long_calculation_properties: bool = False,
-        device: Optional[str] = None,
 ) -> Sequence[TextProperty]:
     """Select properties to calculate based on provided parameters."""
     if include_properties is not None and ignore_properties is not None:
@@ -651,21 +649,8 @@ def _select_properties(
             prop for prop in properties
             if prop['name'] not in LONG_RUN_PROPERTIES
         ]
-    else:
-        heavy_properties = [
-            prop['name'] for prop in properties
-            if prop['name'] in LONG_RUN_PROPERTIES
-        ]
-        if heavy_properties and n_of_samples > LARGE_SAMPLE_SIZE:
-            warning_message = (
-                f'Calculating the properties {heavy_properties} on a large dataset may take a long time. '
-                'Consider using a smaller sample size or running this code on better hardware.'
-            )
-            if device is None or device == 'cpu':
-                warning_message += ' Consider using a GPU or a similar device to run these properties.'
-            warnings.warn(warning_message, UserWarning)
 
-        return properties
+    return properties
 
 
 def calculate_builtin_properties(
@@ -715,7 +700,7 @@ def calculate_builtin_properties(
         properties.
         English-Only properties WILL NOT work properly on non-English samples, and this parameter should be used
         only when you are sure that all the samples are in English.
-    device : int, default None
+    device : Optional[str], default None
         The device to use for the calculation. If None, the default device will be used. For onnx based models it is
         recommended to set device to None for optimized performance.
     models_storage : Union[str, pathlib.Path, None], default None
@@ -737,18 +722,19 @@ def calculate_builtin_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
+    print(f'device is {device}')
     use_onnx_models = _validate_onnx_model_availability(use_onnx_models)
     text_properties = _select_properties(
         include_properties=include_properties,
         ignore_properties=ignore_properties,
-        device=device,
-        include_long_calculation_properties=include_long_calculation_properties,
-        n_of_samples=len(raw_text)
+        include_long_calculation_properties=include_long_calculation_properties
     )
+
     properties_types = {
         it['name']: it['output_type']
         for it in text_properties
     }
+    _warn_long_compute(device, properties_types, len(raw_text), use_onnx_models)
 
     kwargs = dict(device=device, models_storage=models_storage)
     calculated_properties = {k: [] for k in properties_types.keys()}
@@ -764,6 +750,7 @@ def calculate_builtin_properties(
                 calculated_properties[prop] = [np.nan] * len(raw_text)
         kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
+    print(f'device is {device}')
     if 'Toxicity' in properties_types and 'toxicity_classifier' not in kwargs:
         model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
         kwargs['toxicity_classifier'] = get_transformer_pipeline(
@@ -792,6 +779,7 @@ def calculate_builtin_properties(
     )
     import_warnings = set()
 
+    print(f'device is {device}')
     # Calculate all properties for a specific batch than continue to the next batch
     for i in tqdm(range(0, len(raw_text), batch_size)):
         batch = raw_text[i:i + batch_size]
@@ -850,6 +838,7 @@ def calculate_builtin_properties(
         sentences_cache.clear()
         empty_gpu(device)
 
+    print(f'device is {device}')
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
 
@@ -869,6 +858,18 @@ def calculate_builtin_properties(
     empty_gpu(device)
 
     return calculated_properties, properties_types
+
+
+def _warn_long_compute(device, properties_types, n_samples, use_onnx_models):
+    heavy_properties = [prop for prop in properties_types.keys() if prop in LONG_RUN_PROPERTIES]
+    if len(heavy_properties) and n_samples > LARGE_SAMPLE_SIZE:
+        warning_message = (
+            f'Calculating the properties {heavy_properties} on a large dataset may take a long time. '
+            'Consider using a smaller sample size or running this code on better hardware.'
+        )
+        if device == 'cpu' or (device is None and not use_onnx_models):
+            warning_message += ' Consider using a GPU or a similar device to run these properties.'
+        warnings.warn(warning_message, UserWarning)
 
 
 def _validate_onnx_model_availability(use_onnx_models: bool):
