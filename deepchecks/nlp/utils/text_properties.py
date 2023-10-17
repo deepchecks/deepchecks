@@ -833,7 +833,6 @@ def calculate_builtin_properties(
         textblob_cache.clear()
         words_cache.clear()
         sentences_cache.clear()
-        empty_gpu(device)
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
@@ -843,15 +842,6 @@ def calculate_builtin_properties(
         for k, v in properties_types.items()
         if k in calculated_properties
     }
-
-    if cache_models:
-        # Move the transformers models to CPU RAM memory
-        for model_name in ['toxicity_classifier', 'formality_classifier', 'fluency_classifier']:
-            if model_name in kwargs:
-                kwargs[model_name].model.to('cpu')
-
-    # Clean all remaining RAM:
-    empty_gpu(device)
 
     return calculated_properties, properties_types
 
