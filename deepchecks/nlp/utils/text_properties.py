@@ -32,7 +32,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.nlp.utils.text_properties_models import get_cmudict_dict, get_fasttext_model, get_transformer_pipeline
 from deepchecks.utils.function import run_available_kwargs
-from deepchecks.utils.gpu_utils import empty_gpu
 from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
@@ -833,7 +832,6 @@ def calculate_builtin_properties(
         textblob_cache.clear()
         words_cache.clear()
         sentences_cache.clear()
-        empty_gpu(device)
 
     if not calculated_properties:
         raise RuntimeError('Failed to calculate any of the properties.')
@@ -843,15 +841,6 @@ def calculate_builtin_properties(
         for k, v in properties_types.items()
         if k in calculated_properties
     }
-
-    if cache_models:
-        # Move the transformers models to CPU RAM memory
-        for model_name in ['toxicity_classifier', 'formality_classifier', 'fluency_classifier']:
-            if model_name in kwargs:
-                kwargs[model_name].model.to('cpu')
-
-    # Clean all remaining RAM:
-    empty_gpu(device)
 
     return calculated_properties, properties_types
 
