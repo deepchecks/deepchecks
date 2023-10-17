@@ -15,11 +15,9 @@ import warnings
 from contextlib import contextmanager
 from functools import lru_cache
 from importlib import import_module
-from importlib.util import find_spec
 from typing import Optional, Union
 
 import requests
-import torch
 from nltk import corpus
 from transformers.utils import logging as transformers_logging
 
@@ -76,32 +74,37 @@ def get_transformer_pipeline(
         model_name: str,
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
-        quantize_model: bool = True,
+        use_onnx_model: bool = False,
         use_cache=False
 ):
     """Return a transformers' pipeline for the given model name."""
-    transformers = import_optional_property_dependency('transformers', property_name=property_name)
+    if use_onnx_model and 'onnx' not in model_name.lower():
+        raise ValueError("use_onnx_model=True, but model_name is not for a 'onnx' model")
+
     if use_cache:
         model, tokenizer = _get_transformer_model_and_tokenizer(property_name, model_name,
-                                                                models_storage, quantize_model)
+                                                                models_storage, use_onnx_model)
     else:
         # __wrapped__ is simply the function without decoration, in our case - without caching
         model, tokenizer = _get_transformer_model_and_tokenizer.__wrapped__(property_name, model_name,
-                                                                            models_storage, quantize_model)
+                                                                            models_storage, use_onnx_model)
 
-    pipeline_kwargs = {'device_map': 'auto'} if find_spec('accelerate') is not None else {'device': device}
-    return transformers.pipeline('text-classification', model=model, tokenizer=tokenizer, **pipeline_kwargs)
+    if use_onnx_model:
+        onnx_pipe = import_optional_property_dependency('optimum.pipelines', property_name=property_name)
+        return onnx_pipe.pipeline('text-classification', model=model, tokenizer=tokenizer,
+                                  accelerator='ort', device=device)
+    else:
+        transformers = import_optional_property_dependency('transformers', property_name=property_name)
+        return transformers.pipeline('text-classification', model=model, tokenizer=tokenizer, device=device)
 
 
 @contextmanager
 def _log_suppressor():
     user_transformer_log_level = transformers_logging.get_verbosity()
     user_logger_level = logging.getLogger('transformers').getEffectiveLevel()
-    deepchecks_logger_level = logging.getLogger(__name__).getEffectiveLevel()
     is_progress_bar_enabled = transformers_logging.is_progress_bar_enabled()
 
     transformers_logging.set_verbosity_error()
-    logging.getLogger(__name__).setLevel(50)
     transformers_logging.disable_progress_bar()
     logging.getLogger('transformers').setLevel(50)
 
@@ -110,26 +113,8 @@ def _log_suppressor():
 
     transformers_logging.set_verbosity(user_transformer_log_level)
     logging.getLogger('transformers').setLevel(user_logger_level)
-    logging.getLogger(__name__).setLevel(deepchecks_logger_level)
     if is_progress_bar_enabled:
         transformers_logging.enable_progress_bar()
-
-
-def get_transformer_loader_params(model_name: str,
-                                  models_storage: Union[pathlib.Path, str, None] = None,
-                                  quantize_model: bool = True, ):
-    """Return the params for transformers' model and tokenizer auto classification loaders."""
-    models_storage = get_create_model_storage(models_storage=models_storage)
-    model_kwargs = dict(device_map=None)
-    tokenizer_kwargs = dict(device_map=None)
-    if quantize_model:
-        model_path = models_storage / 'quantized' / model_name
-        model_kwargs['load_in_8bit'] = True
-        model_kwargs['torch_dtype'] = torch.float16
-    else:
-        model_path = models_storage / model_name
-
-    return model_path, model_kwargs, tokenizer_kwargs
 
 
 @lru_cache(maxsize=5)
@@ -137,27 +122,39 @@ def _get_transformer_model_and_tokenizer(
         property_name: str,
         model_name: str,
         models_storage: Union[pathlib.Path, str, None] = None,
-        quantize_model: bool = True,
+        use_onnx_model: bool = True,
 ):
     """Return a transformers' model and tokenizer in cpu memory."""
     transformers = import_optional_property_dependency('transformers', property_name=property_name)
 
     with _log_suppressor():
-        model_path, model_kwargs, tokenizer_kwargs = get_transformer_loader_params(model_name, models_storage,
-                                                                                   quantize_model)
+        models_storage = get_create_model_storage(models_storage=models_storage)
+        model_path = models_storage / model_name
+        model_path_exists = model_path.exists()
 
-        if model_path.exists():
-            tokenizer = transformers.AutoTokenizer.from_pretrained(model_path, **tokenizer_kwargs)
-            model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path, **model_kwargs)
+        if use_onnx_model:
+            onnx_runtime = import_optional_property_dependency('optimum.onnxruntime', property_name=property_name)
+            classifier_cls = onnx_runtime.ORTModelForSequenceClassification
+            if model_path_exists:
+                model = classifier_cls.from_pretrained(model_path, provider='CUDAExecutionProvider')
+            else:
+                model = classifier_cls.from_pretrained(model_name, provider='CUDAExecutionProvider')
+                model.save_pretrained(model_path)
         else:
-            model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name, **model_kwargs)
-            model.save_pretrained(model_path)
+            if model_path_exists:
+                model = transformers.AutoModelForSequenceClassification.from_pretrained(model_path)
+            else:
+                model = transformers.AutoModelForSequenceClassification.from_pretrained(model_name)
+                model.save_pretrained(model_path)
+            model.eval()
 
-            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, **tokenizer_kwargs)
+        if model_path_exists:
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_path)
+        else:
+            tokenizer = transformers.AutoTokenizer.from_pretrained(model_name)
             tokenizer.save_pretrained(model_path)
 
-    model.eval()
-    return model, tokenizer
+        return model, tokenizer
 
 
 def get_cmudict_dict(use_cache=False):

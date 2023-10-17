@@ -246,20 +246,27 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
 
 TOXICITY_CALIBRATOR = pathlib.Path(__file__).absolute().parent / 'assets' / 'toxicity_calibrator.pkl'
 TOXICITY_MODEL_NAME = 'SkolkovoInstitute/roberta_toxicity_classifier'
+TOXICITY_MODEL_NAME_ONNX = 'Deepchecks/roberta_toxicity_classifier_onnx'
 FLUENCY_MODEL_NAME = 'prithivida/parrot_fluency_model'
+FLUENCY_MODEL_NAME_ONNX = 'Deepchecks/parrot_fluency_model_onnx'
 FORMALITY_MODEL_NAME = 's-nlp/roberta-base-formality-ranker'
+FORMALITY_MODEL_NAME_ONNX = 'Deepchecks/roberta_base_formality_ranker_onnx'
 
 
 def toxicity(
         text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
+        use_onnx_models: bool = True,
         toxicity_classifier: Optional[object] = None
 ) -> Sequence[float]:
     """Return float representing toxicity."""
     if toxicity_classifier is None:
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models, device)
+        model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
         toxicity_classifier = get_transformer_pipeline(
-            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, models_storage=models_storage, device=device)
+            property_name='toxicity', model_name=model_name, device=device,
+            models_storage=models_storage, use_onnx_model=use_onnx_models)
 
     class UnitModel:
         """A model that does nothing."""
@@ -285,12 +292,16 @@ def fluency(
         text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
+        use_onnx_models: bool = True,
         fluency_classifier: Optional[object] = None
 ) -> Sequence[float]:
     """Return float representing fluency."""
     if fluency_classifier is None:
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models, device)
+        model_name = FLUENCY_MODEL_NAME_ONNX if use_onnx_models else FLUENCY_MODEL_NAME
         fluency_classifier = get_transformer_pipeline(
-            property_name='fluency', model_name=FLUENCY_MODEL_NAME, models_storage=models_storage, device=device)
+            property_name='fluency', model_name=model_name, device=device,
+            models_storage=models_storage, use_onnx_model=use_onnx_models)
 
     def output_formatter(v):
         return v['score'] if v['label'] == 'LABEL_1' else 1 - v['score']
@@ -302,12 +313,16 @@ def formality(
         text_batch: Sequence[str],
         device: Optional[str] = None,
         models_storage: Union[pathlib.Path, str, None] = None,
+        use_onnx_models: bool = True,
         formality_classifier: Optional[object] = None
 ) -> Sequence[float]:
     """Return float representing formality."""
     if formality_classifier is None:
+        use_onnx_models = _validate_onnx_model_availability(use_onnx_models, device)
+        model_name = FORMALITY_MODEL_NAME_ONNX if use_onnx_models else FORMALITY_MODEL_NAME
         formality_classifier = get_transformer_pipeline(
-            property_name='formality', model_name=FORMALITY_MODEL_NAME, models_storage=models_storage, device=device)
+            property_name='formality', model_name=model_name, device=device,
+            models_storage=models_storage, use_onnx_model=use_onnx_models)
 
     def output_formatter(v):
         return v['score'] if v['label'] == 'formal' else 1 - v['score']
@@ -591,11 +606,9 @@ TEXT_PROPERTIES_DESCRIPTION = {
 
 
 def _select_properties(
-        n_of_samples: int,
         include_properties: Optional[List[str]] = None,
         ignore_properties: Optional[List[str]] = None,
         include_long_calculation_properties: bool = False,
-        device: Optional[str] = None,
 ) -> Sequence[TextProperty]:
     """Select properties to calculate based on provided parameters."""
     if include_properties is not None and ignore_properties is not None:
@@ -636,21 +649,8 @@ def _select_properties(
             prop for prop in properties
             if prop['name'] not in LONG_RUN_PROPERTIES
         ]
-    else:
-        heavy_properties = [
-            prop['name'] for prop in properties
-            if prop['name'] in LONG_RUN_PROPERTIES
-        ]
-        if heavy_properties and n_of_samples > LARGE_SAMPLE_SIZE:
-            warning_message = (
-                f'Calculating the properties {heavy_properties} on a large dataset may take a long time. '
-                'Consider using a smaller sample size or running this code on better hardware.'
-            )
-            if device is None or device == 'cpu':
-                warning_message += ' Consider using a GPU or a similar device to run these properties.'
-            warnings.warn(warning_message, UserWarning)
 
-        return properties
+    return properties
 
 
 def calculate_builtin_properties(
@@ -663,7 +663,7 @@ def calculate_builtin_properties(
         models_storage: Union[pathlib.Path, str, None] = None,
         batch_size: Optional[int] = 16,
         cache_models: bool = False,
-        quantize_models: bool = True,
+        use_onnx_models: bool = True,
 ) -> Tuple[Dict[str, List[float]], Dict[str, str]]:
     """Calculate properties on provided text samples.
 
@@ -700,8 +700,9 @@ def calculate_builtin_properties(
         properties.
         English-Only properties WILL NOT work properly on non-English samples, and this parameter should be used
         only when you are sure that all the samples are in English.
-    device : int, default None
-        The device to use for the calculation. If None, the default device will be used.
+    device : Optional[str], default None
+        The device to use for the calculation. If None, the default device will be used. For onnx based models it is
+        recommended to set device to None for optimized performance.
     models_storage : Union[str, pathlib.Path, None], default None
         A directory to store the models.
         If not provided, models will be stored in `DEEPCHECKS_LIB_PATH/nlp/.nlp-models`.
@@ -709,12 +710,10 @@ def calculate_builtin_properties(
     batch_size : int, default 8
         The batch size.
     cache_models : bool, default False
-        If True, will store the models in CPU RAM memory. This will speed up the calculation, but will take up
-        more memory. If device is not CPU, the models will be moved from CPU RAM memory to relevant device before
-        calculation.
-    quantize_models : bool, default True
-        If True, will quantize the models to reduce their size and speed up the calculation. Requires the
-        accelerate and bitsandbytes libraries to be installed as well as the availability of GPU.
+        If True, will store the models in device RAM memory. This will speed up the calculation for future calls.
+    use_onnx_models : bool, default True
+        If True, will use onnx gpu optimized models for the calculation. Requires the optimum[onnxruntime-gpu] library
+        to be installed as well as the availability of GPU.
 
     Returns
     -------
@@ -723,26 +722,18 @@ def calculate_builtin_properties(
     Dict[str, str]
         A dictionary with the property name as key and the property's type as value.
     """
-    if quantize_models:
-        if find_spec('accelerate') is None or find_spec('bitsandbytes') is None:
-            warnings.warn('Quantization requires the accelerate and bitsandbytes libraries to be installed. '
-                          'Calculating without quantization.')
-            quantize_models = False
-        if not torch.cuda.is_available():
-            warnings.warn('GPU is required for the quantization process. Calculating without quantization.')
-            quantize_models = False
-
+    use_onnx_models = _validate_onnx_model_availability(use_onnx_models, device)
     text_properties = _select_properties(
         include_properties=include_properties,
         ignore_properties=ignore_properties,
-        device=device,
-        include_long_calculation_properties=include_long_calculation_properties,
-        n_of_samples=len(raw_text)
+        include_long_calculation_properties=include_long_calculation_properties
     )
+
     properties_types = {
         it['name']: it['output_type']
         for it in text_properties
     }
+    _warn_long_compute(device, properties_types, len(raw_text), use_onnx_models)
 
     kwargs = dict(device=device, models_storage=models_storage)
     calculated_properties = {k: [] for k in properties_types.keys()}
@@ -758,20 +749,23 @@ def calculate_builtin_properties(
                 calculated_properties[prop] = [np.nan] * len(raw_text)
         kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
-    if 'Toxicity' in properties_types:
+    if 'Toxicity' in properties_types and 'toxicity_classifier' not in kwargs:
+        model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
         kwargs['toxicity_classifier'] = get_transformer_pipeline(
-            property_name='toxicity', model_name=TOXICITY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
+            property_name='toxicity', model_name=model_name, device=device,
+            models_storage=models_storage, use_cache=cache_models, use_onnx_model=use_onnx_models)
 
     if 'Formality' in properties_types and 'formality_classifier' not in kwargs:
+        model_name = FORMALITY_MODEL_NAME_ONNX if use_onnx_models else FORMALITY_MODEL_NAME
         kwargs['formality_classifier'] = get_transformer_pipeline(
-            property_name='formality', model_name=FORMALITY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
+            property_name='formality', model_name=model_name, device=device,
+            models_storage=models_storage, use_cache=cache_models, use_onnx_model=use_onnx_models)
 
     if 'Fluency' in properties_types and 'fluency_classifier' not in kwargs:
+        model_name = FLUENCY_MODEL_NAME_ONNX if use_onnx_models else FLUENCY_MODEL_NAME
         kwargs['fluency_classifier'] = get_transformer_pipeline(
-            property_name='fluency', model_name=FLUENCY_MODEL_NAME, device=device,
-            models_storage=models_storage, use_cache=cache_models, quantize_model=quantize_models)
+            property_name='fluency', model_name=model_name, device=device,
+            models_storage=models_storage, use_cache=cache_models, use_onnx_model=use_onnx_models)
 
     # Remove language property from the list of properties to calculate as it will be calculated separately:
     text_properties = [prop for prop in text_properties if prop['name'] != 'Language']
@@ -860,6 +854,34 @@ def calculate_builtin_properties(
     empty_gpu(device)
 
     return calculated_properties, properties_types
+
+
+def _warn_long_compute(device, properties_types, n_samples, use_onnx_models):
+    heavy_properties = [prop for prop in properties_types.keys() if prop in LONG_RUN_PROPERTIES]
+    if len(heavy_properties) and n_samples > LARGE_SAMPLE_SIZE:
+        warning_message = (
+            f'Calculating the properties {heavy_properties} on a large dataset may take a long time. '
+            'Consider using a smaller sample size or running this code on better hardware.'
+        )
+        if device == 'cpu' or (device is None and not use_onnx_models):
+            warning_message += ' Consider using a GPU or a similar device to run these properties.'
+        warnings.warn(warning_message, UserWarning)
+
+
+def _validate_onnx_model_availability(use_onnx_models: bool, device: Optional[str]):
+    if not use_onnx_models:
+        return False
+    if find_spec('optimum') is None or find_spec('onnxruntime') is None:
+        warnings.warn('Onnx models require the optimum[onnxruntime-gpu] library to be installed. '
+                      'Calculating using the default models.')
+        return False
+    if not torch.cuda.is_available():
+        warnings.warn('GPU is required for the onnx models. Calculating using the default models.')
+        return False
+    if device is not None and device.lower() == 'cpu':
+        warnings.warn('Onnx models are not supported on device CPU. Calculating using the default models.')
+        return False
+    return True
 
 
 def get_builtin_properties_types():
