@@ -32,7 +32,6 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
 from deepchecks.nlp.utils.text_properties_models import get_cmudict_dict, get_fasttext_model, get_transformer_pipeline
 from deepchecks.utils.function import run_available_kwargs
-from deepchecks.utils.gpu_utils import empty_gpu
 from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
 __all__ = ['calculate_builtin_properties', 'get_builtin_properties_types']
