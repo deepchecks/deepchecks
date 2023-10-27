@@ -114,9 +114,6 @@ class ClassPerformance(TrainTestCheck):
             labels_per_class = dataset.get_cache()['labels']
             metrics_df['Number of samples'] = metrics_df['Class Name'].map(labels_per_class.get)
             results.append(metrics_df)
-            print('-------')
-            print(dataset_kind)
-            print(metrics_df)
 
         results_df = pd.concat(results)
         results_df = results_df[['Dataset', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
