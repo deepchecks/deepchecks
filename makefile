@@ -19,7 +19,7 @@ ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
-TESTDIR = $(shell realpath tests/vision)
+TESTDIR = $(shell realpath tests)
 ENV = $(shell realpath venv)
 repo = pypi
 
@@ -55,7 +55,7 @@ SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 
 
 # Test and Analyize
-TEST_CODE := tests/vision
+TEST_CODE := tests
 
 PYLINT_LOG = .pylint.log
 
@@ -229,7 +229,7 @@ test: requirements dev-requirements
 	@if [ ! -z $(args) ]; then \
 		$(PYTEST) $(args); \
 	else \
-		$(PYTEST) $(TESTDIR) -s; \
+		$(PYTEST) $(TESTDIR); \
 	fi;
 
 
