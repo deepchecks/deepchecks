@@ -77,6 +77,7 @@ def test_mnist_largest(mnist_visiondata_train, mnist_visiondata_test):
 
 def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
+    print('Smallest')
     check = ClassPerformance(n_to_show=2, show_only='smallest')
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)

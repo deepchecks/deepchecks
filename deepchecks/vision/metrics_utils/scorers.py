@@ -166,6 +166,9 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     result_list = []
     for metric, scores in results.items():
+        print('Metric Results to Dict')
+        print(metric, scores.items() if isinstance(scores, dict) else enumerate(scores))
+
         if isinstance(scores, Number):
             result_list.append([metric, pd.NA, pd.NA, scores])
         elif len(scores) == 1:
