@@ -166,9 +166,6 @@ def metric_results_to_df(results: dict, dataset: VisionData) -> pd.DataFrame:
     """Get dict of metric name to tensor of classes scores, and convert it to dataframe."""
     result_list = []
     for metric, scores in results.items():
-        print('Metric Results to Dict')
-        print(metric, scores.items() if isinstance(scores, dict) else enumerate(scores))
-
         if isinstance(scores, Number):
             result_list.append([metric, pd.NA, pd.NA, scores])
         elif len(scores) == 1:
@@ -241,5 +238,5 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
         tests_metrics_df = tests_metrics_df.sort_values(by='Value', ascending=True)
     else:
         raise ValueError(f'Unknown show_only value: {show_only}')
-
+    print(tests_metrics_df)
     return tests_metrics_df.head(n_to_show)['Class'].to_list()
