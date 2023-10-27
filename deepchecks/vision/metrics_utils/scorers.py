@@ -238,5 +238,4 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
         tests_metrics_df = tests_metrics_df.sort_values(by='Value', ascending=True)
     else:
         raise ValueError(f'Unknown show_only value: {show_only}')
-    print(tests_metrics_df)
     return tests_metrics_df.head(n_to_show)['Class'].to_list()

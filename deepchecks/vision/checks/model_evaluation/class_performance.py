@@ -118,9 +118,7 @@ class ClassPerformance(TrainTestCheck):
         results_df = pd.concat(results)
         results_df = results_df[['Dataset', 'Metric', 'Class', 'Class Name', 'Number of samples', 'Value']]
         results_df = results_df.sort_values(by=['Dataset', 'Value'], ascending=False)
-        print(results_df)
-        print(results_df[(results_df['Dataset'] == 'Test') & 
-                         (results_df['Metric'] == 'Precision')].sort_values(by=['Number of samples'], ascending=True))
+
         if context.with_display:
             if self.class_list_to_show is not None:
                 display_df = results_df.loc[results_df['Class'].isin(self.class_list_to_show)]
