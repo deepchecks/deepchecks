@@ -55,7 +55,7 @@ SOURCES := $(or $(PACKAGE), $(wildcard *.py))
 
 
 # Test and Analyize
-TEST_CODE := tests/
+TEST_CODE := tests/vision
 
 PYLINT_LOG = .pylint.log
 
@@ -229,7 +229,7 @@ test: requirements dev-requirements
 	@if [ ! -z $(args) ]; then \
 		$(PYTEST) $(args); \
 	else \
-		$(PYTEST) $(TESTDIR); \
+		$(PYTEST) $(TESTDIR) -s; \
 	fi;
 
 
