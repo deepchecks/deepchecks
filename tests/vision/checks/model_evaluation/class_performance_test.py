@@ -85,6 +85,7 @@ def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
     # Assert
     assert_that(result.display, has_length(1))
     figure = t.cast(BaseFigure, result.display[0])
+    print(figure.data)
     assert_that(figure, instance_of(BaseFigure))
     assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
     assert_that(figure.data[0]['y'][1], close_to(0.937, 0.01))
@@ -106,6 +107,7 @@ def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
 
 def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
+    print('ALT------')
     scorers = {'p': CustomClassificationScorer('precision_per_class'),
                'r': CustomClassificationScorer('recall_per_class')}
     check = ClassPerformance(n_to_show=2, show_only='smallest', scorers=scorers) \
@@ -117,6 +119,7 @@ def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
     assert_that(result.display, has_length(1))
     figure = t.cast(BaseFigure, result.display[0])
     assert_that(figure, instance_of(BaseFigure))
+    print(figure.data)
     assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
     assert_that(figure.data[0]['y'][1], close_to(0.937, 0.01))
     assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
