@@ -229,7 +229,7 @@ test: requirements dev-requirements
 	@if [ ! -z $(args) ]; then \
 		$(PYTEST) $(args); \
 	else \
-		$(PYTEST) $(TESTDIR); \
+		$(PYTEST) $(TESTDIR) -s; \
 	fi;
 
 
