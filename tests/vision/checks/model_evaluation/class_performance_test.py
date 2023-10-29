@@ -85,8 +85,9 @@ def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
     # Assert
     assert_that(result.display, has_length(1))
     figure = t.cast(BaseFigure, result.display[0])
-    # print(figure.data[0])
-    # print(figure.data[1])
+    print(figure.data[0])
+    print(figure.data[1])
+    print(result.value)
     assert_that(figure, instance_of(BaseFigure))
     if figure.data[0]['x'][0] == '3':
         assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))

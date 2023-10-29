@@ -132,7 +132,7 @@ class ClassPerformance(TrainTestCheck):
                 display_df = results_df.loc[rows]
             else:
                 display_df = results_df
-            print(display_df)
+
             fig = (
                 px.histogram(
                     display_df,
