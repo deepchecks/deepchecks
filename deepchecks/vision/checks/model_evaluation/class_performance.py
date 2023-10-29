@@ -96,7 +96,6 @@ class ClassPerformance(TrainTestCheck):
 
         if not self.metric_to_show_by:
             self.metric_to_show_by = list(self._data_metrics[DatasetKind.TRAIN].keys())[0]
-            print(self.metric_to_show_by)
 
     def update(self, context: Context, batch: BatchWrapper, dataset_kind: DatasetKind):
         """Update the metrics by passing the batch to ignite metric update method."""
@@ -133,7 +132,7 @@ class ClassPerformance(TrainTestCheck):
                 display_df = results_df.loc[rows]
             else:
                 display_df = results_df
-
+            print(display_df)
             fig = (
                 px.histogram(
                     display_df,
