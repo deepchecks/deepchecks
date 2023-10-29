@@ -92,6 +92,7 @@ def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
                                                           'sum of Value=%{y}<extra></extra>'))
     assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
     assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
+    print(figure.data[0])
     print(figure.data[1])
     assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
                                                           'sum of Value=%{y}<extra></extra>'))
@@ -124,6 +125,7 @@ def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
                                                           'sum of Value=%{y}<extra></extra>'))
     assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
     assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
+    print(figure.data[0])
     print(figure.data[1])
     assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
                                                           'sum of Value=%{y}<extra></extra>'))
