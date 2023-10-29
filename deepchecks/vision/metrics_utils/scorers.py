@@ -116,7 +116,7 @@ def get_scorers_dict(
         Scorers list
     """
     task_type = dataset.task_type
-    print(task_type, alternative_scorers)
+
     if alternative_scorers:
         # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
         # instance for several checks.

@@ -77,7 +77,6 @@ from tests.base.utils import equal_condition_result
 
 def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
     # Arrange
-    print('Smallest')
     check = ClassPerformance(n_to_show=2, show_only='smallest')
     # Act
     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
@@ -85,21 +84,30 @@ def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
     # Assert
     assert_that(result.display, has_length(1))
     figure = t.cast(BaseFigure, result.display[0])
-    print(figure.data[0])
-    print(figure.data[1])
-    print(result.value)
     assert_that(figure, instance_of(BaseFigure))
+    # Special handling added when the class = 3 appears due to the numpy version > 1.25
     if figure.data[0]['x'][0] == '3':
         assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-        
-    assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-    assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
-    assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
-                                                          'sum of Value=%{y}<extra></extra>'))
-    assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
-    assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
-    assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
-                                                          'sum of Value=%{y}<extra></extra>'))
+        assert_that(figure.data[0]['y'][1], close_to(1, 0.01))
+        assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
+                                                            'sum of Value=%{y}<extra></extra>'))
+
+        assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
+        assert_that(figure.data[1]['y'][1], close_to(0.9375, 0.01))
+        assert_that(figure.data[1]['hovertemplate'],
+                    equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
+                             'sum of Value=%{y}<extra></extra>'))
+    else:
+        assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
+        assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
+        assert_that(figure.data[0]['hovertemplate'],
+                    equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
+                             'sum of Value=%{y}<extra></extra>'))
+        assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
+        assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
+        assert_that(figure.data[1]['hovertemplate'],
+                    equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
+                             'sum of Value=%{y}<extra></extra>'))
 
     value = result.value
     assert_that(set(value['Class']), has_length(10))
@@ -110,46 +118,58 @@ def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
     assert_that(max(value[value['Dataset'] == 'Train']['Value']), equal_to(1.0))
 
 
-# def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
-#     # Arrange
-#     scorers = {'p': CustomClassificationScorer('precision_per_class'),
-#                'r': CustomClassificationScorer('recall_per_class')}
-#     check = ClassPerformance(n_to_show=2, show_only='smallest', scorers=scorers) \
-#         .add_condition_test_performance_greater_than(1)
-#     # Act
-#     result = check.run(mnist_visiondata_train, mnist_visiondata_test)
+def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
+    # Arrange
+    scorers = {'p': CustomClassificationScorer('precision_per_class'),
+               'r': CustomClassificationScorer('recall_per_class')}
+    check = ClassPerformance(n_to_show=2, show_only='smallest', scorers=scorers) \
+        .add_condition_test_performance_greater_than(1)
+    # Act
+    result = check.run(mnist_visiondata_train, mnist_visiondata_test)
 
-#     # Assert
-#     assert_that(result.display, has_length(1))
-#     figure = t.cast(BaseFigure, result.display[0])
-#     print(figure.data[0])
-#     print(figure.data[1])
-#     assert_that(figure, instance_of(BaseFigure))
-#     assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-#     assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
-#     assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
-#                                                           'sum of Value=%{y}<extra></extra>'))
-#     assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
-#     assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
-#     assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=r<br>Class Name=%{x}<br>'
-#                                                           'sum of Value=%{y}<extra></extra>'))
+    # Assert
+    assert_that(result.display, has_length(1))
+    figure = t.cast(BaseFigure, result.display[0])
+    assert_that(figure, instance_of(BaseFigure))
+    if figure.data[0]['x'][0] == '3':
+        assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
+        assert_that(figure.data[0]['y'][1], close_to(1.0, 0.01))
+        assert_that(figure.data[0]['hovertemplate'],
+                    equal_to('Dataset=Train<br>Metric=r<br>Class Name=%{x}<br>'
+                             'sum of Value=%{y}<extra></extra>'))
+        assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
+        assert_that(figure.data[1]['y'][1], close_to(0.9375, 0.01))
+        assert_that(figure.data[1]['hovertemplate'],
+                    equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
+                             'sum of Value=%{y}<extra></extra>'))
+    else:
+        assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
+        assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
+        assert_that(figure.data[0]['hovertemplate'],
+                    equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
+                             'sum of Value=%{y}<extra></extra>'))
+        assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
+        assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
+        assert_that(figure.data[1]['hovertemplate'],
+                    equal_to('Dataset=Train<br>Metric=r<br>Class Name=%{x}<br>'
+                             'sum of Value=%{y}<extra></extra>'))
 
-#     value = result.value
-#     assert_that(set(value['Class']), has_length(10))
-#     assert_that(value, has_length(40))
-#     assert_that(min(value[value['Dataset'] == 'Test']['Value']), close_to(0.9375, 0.01))
-#     assert_that(min(value[value['Dataset'] == 'Train']['Value']), close_to(0.869, 0.01))
-#     assert_that(max(value[value['Dataset'] == 'Test']['Value']), equal_to(1.0))
-#     assert_that(max(value[value['Dataset'] == 'Train']['Value']), equal_to(1.0))
+    value = result.value
+    assert_that(set(value['Class']), has_length(10))
+    assert_that(value, has_length(40))
+    assert_that(min(value[value['Dataset'] == 'Test']['Value']), close_to(0.9375, 0.01))
+    assert_that(min(value[value['Dataset'] == 'Train']['Value']), close_to(0.869, 0.01))
+    assert_that(max(value[value['Dataset'] == 'Test']['Value']), equal_to(1.0))
+    assert_that(max(value[value['Dataset'] == 'Train']['Value']), equal_to(1.0))
 
-#     assert_that(result.conditions_results, has_items(
-#         equal_condition_result(
-#             is_pass=False,
-#             details=re.compile(
-#                 r'Found 20 scores below threshold.\nFound minimum score for r metric of value 0.93 for class \d.'),
-#             name='Scores are greater than 1'
-#         )
-#     ))
+    assert_that(result.conditions_results, has_items(
+        equal_condition_result(
+            is_pass=False,
+            details=re.compile(
+                r'Found 20 scores below threshold.\nFound minimum score for r metric of value 0.93 for class \d.'),
+            name='Scores are greater than 1'
+        )
+    ))
 
 
 # def test_coco_best(coco_visiondata_train, coco_visiondata_test):
