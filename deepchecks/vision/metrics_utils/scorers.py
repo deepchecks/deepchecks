@@ -116,6 +116,7 @@ def get_scorers_dict(
         Scorers list
     """
     task_type = dataset.task_type
+
     if alternative_scorers:
         # For alternative scorers we create a copy since in suites we are running in parallel, so we can't use the same
         # instance for several checks.
@@ -225,7 +226,6 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
 
     tests_metrics_df = metrics_df[(metrics_df[column_to_filter_by] == column_filter_value) &
                                   (metrics_df['Metric'] == metric_to_show_by)]
-
     if show_only == 'largest':
         tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=False)
     elif show_only == 'smallest':
