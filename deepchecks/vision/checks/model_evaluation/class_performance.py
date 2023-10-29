@@ -129,7 +129,6 @@ class ClassPerformance(TrainTestCheck):
                     self.n_to_show,
                     self.show_only
                 ))
-                print(rows)
                 display_df = results_df.loc[rows]
             else:
                 display_df = results_df
