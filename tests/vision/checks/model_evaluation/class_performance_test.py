@@ -85,30 +85,14 @@ def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
     assert_that(result.display, has_length(1))
     figure = t.cast(BaseFigure, result.display[0])
     assert_that(figure, instance_of(BaseFigure))
-    # Special handling added when the class = 3 appears due to the numpy version > 1.25
-    if figure.data[0]['x'][0] == '3':
-        assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-        assert_that(figure.data[0]['y'][1], close_to(1, 0.01))
-        assert_that(figure.data[0]['hovertemplate'],
-                    equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
-                             'sum of Value=%{y}<extra></extra>'))
-
-        assert_that(figure.data[1]['y'][0], close_to(0.954, 0.01))
-        assert_that(figure.data[1]['y'][1], close_to(0.9375, 0.01))
-        assert_that(figure.data[1]['hovertemplate'],
-                    equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
-                             'sum of Value=%{y}<extra></extra>'))
-    else:
-        assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-        assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
-        assert_that(figure.data[0]['hovertemplate'],
-                    equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
-                             'sum of Value=%{y}<extra></extra>'))
-        assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
-        assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
-        assert_that(figure.data[1]['hovertemplate'],
-                    equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
-                             'sum of Value=%{y}<extra></extra>'))
+    assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
+    assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
+    assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
+                                                          'sum of Value=%{y}<extra></extra>'))
+    assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
+    assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
+    assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Recall<br>Class Name=%{x}<br>'
+                                                          'sum of Value=%{y}<extra></extra>'))
 
     value = result.value
     assert_that(set(value['Class']), has_length(10))
@@ -132,29 +116,14 @@ def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
     assert_that(result.display, has_length(1))
     figure = t.cast(BaseFigure, result.display[0])
     assert_that(figure, instance_of(BaseFigure))
-    if figure.data[0]['x'][0] == '3':
-        assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-        assert_that(figure.data[0]['y'][1], close_to(1.0, 0.01))
-        assert_that(figure.data[0]['hovertemplate'],
-                    equal_to('Dataset=Train<br>Metric=r<br>Class Name=%{x}<br>'
-                             'sum of Value=%{y}<extra></extra>'))
-
-        assert_that(figure.data[1]['y'][0], close_to(0.954, 0.01))
-        assert_that(figure.data[1]['y'][1], close_to(0.9375, 0.01))
-        assert_that(figure.data[1]['hovertemplate'],
-                    equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
-                             'sum of Value=%{y}<extra></extra>'))
-    else:
-        assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-        assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
-        assert_that(figure.data[0]['hovertemplate'],
-                    equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
-                             'sum of Value=%{y}<extra></extra>'))
-        assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
-        assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
-        assert_that(figure.data[1]['hovertemplate'],
-                    equal_to('Dataset=Train<br>Metric=r<br>Class Name=%{x}<br>'
-                             'sum of Value=%{y}<extra></extra>'))
+    assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
+    assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
+    assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
+                                                          'sum of Value=%{y}<extra></extra>'))
+    assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
+    assert_that(figure.data[1]['y'][1], close_to(1, 0.01))
+    assert_that(figure.data[1]['hovertemplate'], equal_to('Dataset=Train<br>Metric=r<br>Class Name=%{x}<br>'
+                                                          'sum of Value=%{y}<extra></extra>'))
 
     value = result.value
     assert_that(set(value['Class']), has_length(10))

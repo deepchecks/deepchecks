@@ -227,15 +227,15 @@ def filter_classes_for_display(metrics_df: pd.DataFrame,
     tests_metrics_df = metrics_df[(metrics_df[column_to_filter_by] == column_filter_value) &
                                   (metrics_df['Metric'] == metric_to_show_by)]
     if show_only == 'largest':
-        tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=False)
+        tests_metrics_df = tests_metrics_df.sort_values(by=['Number of samples', 'Value', 'Class'], ascending=False)
     elif show_only == 'smallest':
-        tests_metrics_df = tests_metrics_df.sort_values(by='Number of samples', ascending=True)
+        tests_metrics_df = tests_metrics_df.sort_values(by=['Number of samples', 'Value', 'Class'], ascending=True)
     elif show_only == 'random':
         tests_metrics_df = tests_metrics_df.sample(frac=1)
     elif show_only == 'best':
-        tests_metrics_df = tests_metrics_df.sort_values(by='Value', ascending=False)
+        tests_metrics_df = tests_metrics_df.sort_values(by=['Value', 'Number of samples'], ascending=False)
     elif show_only == 'worst':
-        tests_metrics_df = tests_metrics_df.sort_values(by='Value', ascending=True)
+        tests_metrics_df = tests_metrics_df.sort_values(by=['Value', 'Number of samples'], ascending=True)
     else:
         raise ValueError(f'Unknown show_only value: {show_only}')
 
