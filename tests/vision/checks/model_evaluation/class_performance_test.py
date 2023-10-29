@@ -86,7 +86,7 @@ def test_mnist_smallest(mnist_visiondata_train, mnist_visiondata_test):
     figure = t.cast(BaseFigure, result.display[0])
     assert_that(figure, instance_of(BaseFigure))
     assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-    assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
+    assert_that(figure.data[0]['y'][1], close_to(0.937, 0.01))
     assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=Precision<br>Class Name=%{x}<br>'
                                                           'sum of Value=%{y}<extra></extra>'))
     assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))
@@ -117,7 +117,7 @@ def test_mnist_alt(mnist_visiondata_train, mnist_visiondata_test):
     figure = t.cast(BaseFigure, result.display[0])
     assert_that(figure, instance_of(BaseFigure))
     assert_that(figure.data[0]['y'][0], close_to(1.0, 0.01))
-    assert_that(figure.data[0]['y'][1], close_to(0.9375, 0.01))
+    assert_that(figure.data[0]['y'][1], close_to(0.937, 0.01))
     assert_that(figure.data[0]['hovertemplate'], equal_to('Dataset=Train<br>Metric=p<br>Class Name=%{x}<br>'
                                                           'sum of Value=%{y}<extra></extra>'))
     assert_that(figure.data[1]['y'][0], close_to(1.0, 0.01))

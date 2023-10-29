@@ -19,7 +19,7 @@ ext_py := $(shell which python3 || which python)
 
 # Override by putting in commandline python=XXX when needed.
 python = $(shell echo ${ext_py} | rev | cut -d '/' -f 1 | rev)
-TESTDIR = $(shell realpath tests/vision)
+TESTDIR = $(shell realpath tests)
 ENV = $(shell realpath venv)
 repo = pypi
 
