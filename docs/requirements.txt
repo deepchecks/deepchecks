@@ -16,3 +16,4 @@ sphinx-reredirects>=0.0.1
 sphinx-design>=0.3.0
 #ipywidgets @ git+https://github.com/deepchecks/ipywidgets.git@8ac487b64ffd48dbeaa0a47d1997be27f6052dbc
 docutils
+tornado>=6.3.3 # not directly required, pinned by Snyk to avoid a vulnerability
