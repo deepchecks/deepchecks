@@ -35,3 +35,4 @@ matplotlib>=3.3.4
 beautifulsoup4>=4.11.1
 requests>=2.22.0
 jupyter-server>=2.7.2; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
+pillow>=10.0.0 # not directly required, pinned by Snyk to avoid a vulnerability
