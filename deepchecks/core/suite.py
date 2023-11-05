@@ -106,14 +106,20 @@ class SuiteResult(DisplayableResult):
             else:
                 raise TypeError(f'Unknown type of result - {type(result).__name__}')
 
-    def select_results(self, idx: Set[int]) -> List[Union[
+    def select_results(self, idx: Set[int] = None, names: Set[str] = None) -> List[Union[
         'check_types.CheckResult',
         'check_types.CheckFailure'
     ]]:
-        """Select results by indexes."""
+        """Select results either by indexes or result header names."""
+        if idx is None and names is None:
+            raise DeepchecksNotSupportedError('Either idx or names should be passed')
+        if idx and names:
+            raise DeepchecksNotSupportedError('Only one of idx or names should be passed')
         output = []
         for index, result in enumerate(self.results):
-            if index in idx:
+            if idx and index in idx:
+                output.append(result)
+            elif names and result.get_header() in names:
                 output.append(result)
         return output
 
