@@ -110,7 +110,22 @@ class SuiteResult(DisplayableResult):
         'check_types.CheckResult',
         'check_types.CheckFailure'
     ]]:
-        """Select results either by indexes or result header names."""
+        """Select results either by indexes or result header names.
+
+        Parameters
+        ----------
+        idx : Set[int], default None
+            The list of indexes to filter the check results from the results list. If
+            names is None, then this parameter is required.
+        names : Set[str], default None
+            The list of names denoting the header of the check results. If idx is None,
+            this parameter is required. Both idx and names cannot be passed.
+
+        Returns
+        -------
+        List[Union['check_types.CheckResult', 'check_types.CheckFailure']] :
+            A list of check results filtered either by the indexes or by their names.
+        """
         if idx is None and names is None:
             raise DeepchecksNotSupportedError('Either idx or names should be passed')
         if idx and names:
