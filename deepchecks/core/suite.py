@@ -119,7 +119,7 @@ class SuiteResult(DisplayableResult):
         for index, result in enumerate(self.results):
             if idx and index in idx:
                 output.append(result)
-            elif names and (result.get_header() in names or result.get_metadata()['name'] in names):
+            elif names and result.get_header() in names:
                 output.append(result)
         return output
 

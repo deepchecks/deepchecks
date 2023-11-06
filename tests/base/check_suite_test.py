@@ -16,7 +16,7 @@ from hamcrest import all_of, assert_that, calling, equal_to, has_entry, has_item
 
 from deepchecks import __version__
 from deepchecks.core import CheckFailure, CheckResult, ConditionCategory, ConditionResult, SuiteResult
-from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError, DeepchecksNotSupportedError
 from deepchecks.core.suite import BaseSuite
 from deepchecks.tabular import SingleDatasetCheck, Suite, TrainTestCheck
 from deepchecks.tabular import checks as tabular_checks
@@ -51,6 +51,43 @@ def test_run_suite_with_incorrect_args():
         raises(DeepchecksValueError, r"At least one dataset \(or model\) must be passed to the method!")
     )
 
+def test_select_results_with_and_without_args_from_suite_result():
+    # Arrange
+    result1 = CheckResult(0, 'check1')
+    result1.conditions_results = [ConditionResult(ConditionCategory.PASS)]
+    result2 = CheckResult(0, 'check2')
+    result2.conditions_results = [ConditionResult(ConditionCategory.FAIL)]
+    args = {"idx": [1, 2], "names": ['check1', 'check2']}
+
+    # Act & Assert
+    assert_that(
+        calling(SuiteResult('test', [result1]).select_results).with_args(),
+        raises(DeepchecksNotSupportedError, r"Either idx or names should be passed")
+    )
+    assert_that(
+        calling(SuiteResult('test', [result1, result2]).select_results).with_args(**args),
+        raises(DeepchecksNotSupportedError, r"Only one of idx or names should be passed")
+    )
+
+def test_select_results_with_indexes_and_names_from_suite_result():
+    # Arrange
+    result1 = CheckResult(0, 'check1')
+    result1.conditions_results = [ConditionResult(ConditionCategory.PASS)]
+    result2 = CheckResult(0, 'check2')
+    result2.conditions_results = [ConditionResult(ConditionCategory.PASS)]
+    result3 = CheckResult(0, 'check3')
+    result3.conditions_results = [ConditionResult(ConditionCategory.PASS)]
+
+    # Act & Assert
+    suite_results_by_indexes = SuiteResult('test', [result1, result2, result3]).select_results(idx=[0, 2])
+    suite_results_by_name = SuiteResult('test', [result1, result2, result3]).select_results(names=['check1'])
+    
+    assert_that(len(suite_results_by_name), equal_to(1))
+    assert_that(len(suite_results_by_indexes), equal_to(2))
+    assert_that(suite_results_by_name[0].get_header(), equal_to('check1'))
+
+    assert_that(suite_results_by_indexes[0].get_header(), equal_to('check1'))
+    assert_that(suite_results_by_indexes[1].get_header(), equal_to('check3'))
 
 def test_add_check_to_the_suite():
     number_of_checks = random.randint(0, 50)
