@@ -12,15 +12,15 @@
 import os
 import pathlib
 import timeit
+import uuid
 
 import numpy as np
 import pytest
-import uuid
 from hamcrest import *
 
 from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.nlp.utils.text_properties import (_sample_for_property, calculate_builtin_properties,
-                                                  english_text, TOXICITY_MODEL_NAME_ONNX)
+from deepchecks.nlp.utils.text_properties import (TOXICITY_MODEL_NAME_ONNX, _sample_for_property,
+                                                  calculate_builtin_properties, english_text)
 from deepchecks.nlp.utils.text_properties_models import MODELS_STORAGE, _get_transformer_model_and_tokenizer
 
 

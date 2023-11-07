@@ -130,12 +130,12 @@ class SuiteResult(DisplayableResult):
             raise DeepchecksNotSupportedError('Either idx or names should be passed')
         if idx and names:
             raise DeepchecksNotSupportedError('Only one of idx or names should be passed')
-        output = []
-        for index, result in enumerate(self.results):
-            if idx and index in idx:
-                output.append(result)
-            elif names and result.get_header() in names:
-                output.append(result)
+
+        if names:
+            names = [name.lower().replace('_', ' ').strip() for name in names]
+            output = [result for name in names for result in self.results if result.get_header().lower() == name]
+        else:
+            output = [result for index, result in enumerate(self.results) if index in idx]
         return output
 
     def __repr__(self):

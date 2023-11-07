@@ -10,7 +10,7 @@
 #
 """Contains unit tests for the confusion_matrix_report check."""
 import numpy as np
-from hamcrest import assert_that, calling, greater_than, has_length, raises, equal_to
+from hamcrest import assert_that, calling, equal_to, greater_than, has_length, raises
 
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError, ModelValidationError
