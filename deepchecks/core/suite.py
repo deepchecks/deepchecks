@@ -106,15 +106,36 @@ class SuiteResult(DisplayableResult):
             else:
                 raise TypeError(f'Unknown type of result - {type(result).__name__}')
 
-    def select_results(self, idx: Set[int]) -> List[Union[
+    def select_results(self, idx: Set[int] = None, names: Set[str] = None) -> List[Union[
         'check_types.CheckResult',
         'check_types.CheckFailure'
     ]]:
-        """Select results by indexes."""
-        output = []
-        for index, result in enumerate(self.results):
-            if index in idx:
-                output.append(result)
+        """Select results either by indexes or result header names.
+
+        Parameters
+        ----------
+        idx : Set[int], default None
+            The list of indexes to filter the check results from the results list. If
+            names is None, then this parameter is required.
+        names : Set[str], default None
+            The list of names denoting the header of the check results. If idx is None,
+            this parameter is required. Both idx and names cannot be passed.
+
+        Returns
+        -------
+        List[Union['check_types.CheckResult', 'check_types.CheckFailure']] :
+            A list of check results filtered either by the indexes or by their names.
+        """
+        if idx is None and names is None:
+            raise DeepchecksNotSupportedError('Either idx or names should be passed')
+        if idx and names:
+            raise DeepchecksNotSupportedError('Only one of idx or names should be passed')
+
+        if names:
+            names = [name.lower().replace('_', ' ').strip() for name in names]
+            output = [result for name in names for result in self.results if result.get_header().lower() == name]
+        else:
+            output = [result for index, result in enumerate(self.results) if index in idx]
         return output
 
     def __repr__(self):
