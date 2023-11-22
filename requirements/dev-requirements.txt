@@ -55,6 +55,6 @@ transformers
 sentence-transformers
 
 # Avoid Vulnerabilities
-tornado>=6.3.3; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
+tornado>=6.3.3
 pyarrow>=14.0.1; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
 umap-learn==0.5.4
