@@ -47,7 +47,8 @@ wandb>=0.12.15,<0.13.0
 beautifulsoup4>=4.11.1
 
 # NLP
-nltk>=3.8.1 # not directly required, pinned by Snyk to avoid a vulnerability
+nlkt<=3.6.7; python_version < '3.7'
+nltk>=3.8.1; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
 datasets
 textblob
 transformers
