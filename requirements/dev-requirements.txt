@@ -47,7 +47,7 @@ wandb>=0.12.15,<0.13.0
 beautifulsoup4>=4.11.1
 
 # NLP
-nltk<=3.6.7
+nltk<=3.8.1
 datasets
 textblob
 transformers
