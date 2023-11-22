@@ -23,9 +23,9 @@ EMBEDDING_DIM = 1536
 EMBEDDING_CTX_LENGTH = 8191
 EMBEDDING_ENCODING = 'cl100k_base'
 
-PATTERN_SPECIAL_CHARS = re.compile("[!@#$%^&*()_+{}\|:\"<>?~`\-=\[\]\;',.\/]")
-PATTERN_SPACE_CHARS = re.compile(r"\s")
-PATTERN_BR_CHARS = re.compile("<br />")
+PATTERN_SPECIAL_CHARS = re.compile(r"[!@#$%^&*()_+{}|:\"<>?~`\-=\[\]\;',.\/]")
+PATTERN_SPACE_CHARS = re.compile(r'\s')
+PATTERN_BR_CHARS = re.compile(r'<br />')
 
 
 def batched(iterable, n):
@@ -209,24 +209,21 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
         np.save(file_path, embeddings)
     return embeddings
 
-    
 def _clean_special_chars(text: str) -> str:
     """
-    Remove special characters, replaces space characters with a
-    single space, and replaces line break characters with a space in a given text.
-    
+    Remove special characters, replaces space characters with space.
+
     Parameters
     ----------
     text : str
         The `text` parameter is a string that represents the input text that needs to be cleaned.
-    
+
     Returns
     -------
-        str
+        text
             Cleaned text string
-    
     """
-    text = PATTERN_SPECIAL_CHARS.sub("", text)
-    text = PATTERN_SPACE_CHARS.sub(" ", text)
-    text = PATTERN_BR_CHARS.sub(" ", text)
+    text = PATTERN_SPECIAL_CHARS.sub('', text)
+    text = PATTERN_SPACE_CHARS.sub(' ', text)
+    text = PATTERN_BR_CHARS.sub(' ', text)
     return text
