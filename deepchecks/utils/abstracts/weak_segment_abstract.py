@@ -213,24 +213,48 @@ class WeakSegmentAbstract(abc.ABC):
                                                              tuple(filters[feature2]), data_size,
                                                              list(data_of_segment.index)]
 
-        # Sort and drop relevant columns
-        weak_segments = weak_segments.sort_values(score_title).reset_index(drop=True)
-        if multiple_segments_per_feature:
-            result = weak_segments.drop(columns='Samples in Segment').drop_duplicates()
-            result['Samples in Segment'] = weak_segments.loc[result.index, 'Samples in Segment']
-        else:
-            used_features = set()
-            result = pd.DataFrame(columns=weak_segments.columns)
-            for _, row in weak_segments.iterrows():
-                if row['Feature1'] in used_features or row['Feature2'] in used_features:
-                    continue
+        # Filter and adapt the weak segments results
+        result = pd.DataFrame(columns=weak_segments.columns)
+        used_features = set()
+        for _, row in weak_segments.sort_values(score_title).iterrows():
+            new_row = row.copy()
+            if not multiple_segments_per_feature and \
+                    (row['Feature1'] in used_features or row['Feature2'] in used_features):
+                continue
 
-                result.loc[len(result)] = row
-                used_features.add(row['Feature1'])
-                if row['Feature2'] != '':
-                    used_features.add(row['Feature2'])
+            # Make sure segments based on categorical features are based only on a single category
+            if row['Feature1'] in self.encoder_mapping:
+                unique_values_in_range = [x for x in self.encoder_mapping[row['Feature1']]['encoded_value'].values if
+                                          (x > row['Feature1 Range'][0] and x < row['Feature1 Range'][1])]
+                if len(unique_values_in_range) > 1:
+                    subset = data.loc[new_row['Samples in Segment']]
+                    value_segment_size = [len(subset[subset[row['Feature1']] == x]) for x in unique_values_in_range]
+                    if max(value_segment_size) < len(data) * self.segment_minimum_size_ratio:
+                        continue
+                    value_to_use = unique_values_in_range[np.argmax(value_segment_size)]
+                    new_row['Samples in Segment'] = list(subset[subset[row['Feature1']] == value_to_use].index)
+                    new_row['% of Data'] = round(100 * len(new_row['Samples in Segment']) / len(data), 2)
+                    new_row['Feature1 Range'] = [value_to_use - 0.5, value_to_use + 0.5]
 
-        return result
+            if row['Feature2'] != '' and row['Feature2'] in self.encoder_mapping:
+                unique_values_in_range = [x for x in self.encoder_mapping[row['Feature2']]['encoded_value'].values if
+                                          (x > row['Feature2 Range'][0] and x < row['Feature2 Range'][1])]
+                if len(unique_values_in_range) > 1:
+                    subset = data.loc[new_row['Samples in Segment']]
+                    value_segment_size = [len(subset[subset[row['Feature2']] == x]) for x in unique_values_in_range]
+                    if max(value_segment_size) < len(data) * self.segment_minimum_size_ratio:
+                        continue
+                    value_to_use = unique_values_in_range[np.argmax(value_segment_size)]
+                    new_row['Samples in Segment'] = list(subset[subset[row['Feature2']] == value_to_use].index)
+                    new_row['% of Data'] = round(100 * len(new_row['Samples in Segment']) / len(data), 2)
+                    new_row['Feature2 Range'] = [value_to_use - 0.5, value_to_use + 0.5]
+
+            result.loc[len(result)] = row
+            used_features.add(row['Feature1'])
+            if row['Feature2'] != '':
+                used_features.add(row['Feature2'])
+
+        return result.drop_duplicates(subset=['Feature1', 'Feature2'])
 
     def _find_weak_segment(self, data: pd.DataFrame, features_for_segment: List[str], score_per_sample: pd.Series,
                            label_col: Optional[pd.Series] = None, dummy_model: Optional[_DummyModel] = None,
