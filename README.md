@@ -112,7 +112,7 @@ pip install deepchecks-installer
 deepchecks-installer install-monitoring
 ```
 
-This will automatically download the necessary dependencies, run the installation prcoess
+This will automatically download the necessary dependencies, run the installation process
 and then start the application locally.
 
 The installation will take a few minutes. Then you can open the deployment url (default is http://localhost),
@@ -218,7 +218,7 @@ At its core, Deepchecks has a wide variety of built-in Checks and Suites (lists 
 for all data types (Tabular, NLP, Vision), 
 These includes checks for validating your model's performance (e.g. identify weak segments), the data's 
 distribution (e.g. detect drifts or leakages), data integrity (e.g. find conflicting labels) and more.
-These checks results can be run manually (e.g. during research) or trigerred automatically (e.g. during CI
+These checks results can be run manually (e.g. during research) or triggered automatically (e.g. during CI
 and production monitoring) and enable automatically making informed decisions regarding your model pipelines' 
 production-readiness, and behavior over time.
 --->
@@ -233,7 +233,7 @@ production-readiness, and behavior over time.
 
 - All of the Checks and the framework for customizing them are implemented inside 
   the Deepchecks Testing Python package (this repo).
-- Each check tests for a specific potential problem. Deepchecks has many preimplemented checks for
+- Each check tests for a specific potential problem. Deepchecks has many pre-implemented checks for
   finding issues with the model's performance (e.g. identifying weak segments), 
   data distribution (e.g. detect drifts or leakages) and data integrity (e.g. find conflicting labels).
 - Customizable: each check has many configurable parameters, and custom checks can easily be implemented.
@@ -253,7 +253,7 @@ production-readiness, and behavior over time.
 <!---
 These checks can be run manually (e.g. during research) or automatically triggered (with CI processes or in scheduled runs for production monitoring).
 The check's results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
-processed with code (using their json output), and inspected and colloaborated upon with a dynamic UI 
+processed with code (using their json output), and inspected and collaborated upon with a dynamic UI 
 (for examining test results and for production monitoring).
 Optional conditions can be added to each check, to automatically validate whether it passed or not.
 --->
