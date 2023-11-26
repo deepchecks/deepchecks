@@ -9,6 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for working with pre-built classification datasets."""
-from . import adult, breast_cancer, iris, phishing
+from deepchecks.tabular.datasets.classification import adult, breast_cancer, iris, phishing
 
 __all__ = ['breast_cancer', 'iris', 'phishing', 'adult', 'lending_club']

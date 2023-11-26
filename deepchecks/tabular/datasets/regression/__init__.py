@@ -9,6 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for working with pre-built regression datasets."""
-from . import airbnb, avocado, wine_quality
+from deepchecks.tabular.datasets.regression import airbnb, avocado, wine_quality
 
 __all__ = ['avocado', 'wine_quality', 'airbnb']

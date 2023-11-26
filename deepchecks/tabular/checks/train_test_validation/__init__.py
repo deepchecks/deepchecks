@@ -11,23 +11,24 @@
 """Module contains checks of train test validation checks."""
 
 from deepchecks.tabular.checks.data_integrity.identifier_label_correlation import IdentifierLabelCorrelation
-
-from .category_mismatch_train_test import CategoryMismatchTrainTest
-from .datasets_size_comparison import DatasetsSizeComparison
-from .date_train_test_leakage_duplicates import DateTrainTestLeakageDuplicates
-from .date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
-from .feature_drift import FeatureDrift
-from .feature_label_correlation_change import FeatureLabelCorrelationChange
-from .index_leakage import IndexTrainTestLeakage
-from .label_drift import LabelDrift
-from .multivariate_drift import MultivariateDrift
-from .new_category_train_test import NewCategoryTrainTest
-from .new_label_train_test import NewLabelTrainTest
-from .string_mismatch_comparison import StringMismatchComparison
-from .train_test_feature_drift import TrainTestFeatureDrift
-from .train_test_label_drift import TrainTestLabelDrift
-from .train_test_samples_mix import TrainTestSamplesMix
-from .whole_dataset_drift import WholeDatasetDrift
+from deepchecks.tabular.checks.train_test_validation.category_mismatch_train_test import CategoryMismatchTrainTest
+from deepchecks.tabular.checks.train_test_validation.datasets_size_comparison import DatasetsSizeComparison
+from deepchecks.tabular.checks.train_test_validation.date_train_test_leakage_duplicates import \
+    DateTrainTestLeakageDuplicates
+from deepchecks.tabular.checks.train_test_validation.date_train_test_leakage_overlap import DateTrainTestLeakageOverlap
+from deepchecks.tabular.checks.train_test_validation.feature_drift import FeatureDrift
+from deepchecks.tabular.checks.train_test_validation.feature_label_correlation_change import \
+    FeatureLabelCorrelationChange
+from deepchecks.tabular.checks.train_test_validation.index_leakage import IndexTrainTestLeakage
+from deepchecks.tabular.checks.train_test_validation.label_drift import LabelDrift
+from deepchecks.tabular.checks.train_test_validation.multivariate_drift import MultivariateDrift
+from deepchecks.tabular.checks.train_test_validation.new_category_train_test import NewCategoryTrainTest
+from deepchecks.tabular.checks.train_test_validation.new_label_train_test import NewLabelTrainTest
+from deepchecks.tabular.checks.train_test_validation.string_mismatch_comparison import StringMismatchComparison
+from deepchecks.tabular.checks.train_test_validation.train_test_feature_drift import TrainTestFeatureDrift
+from deepchecks.tabular.checks.train_test_validation.train_test_label_drift import TrainTestLabelDrift
+from deepchecks.tabular.checks.train_test_validation.train_test_samples_mix import TrainTestSamplesMix
+from deepchecks.tabular.checks.train_test_validation.whole_dataset_drift import WholeDatasetDrift
 
 __all__ = [
     'CategoryMismatchTrainTest',
