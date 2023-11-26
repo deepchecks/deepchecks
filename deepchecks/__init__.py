@@ -131,12 +131,12 @@ class _SubstituteModule(types.ModuleType):
             deprecation_warning = 'Ability to import base tabular functionality from the `deepchecks` package ' \
                                   'directly is deprecated, please import from `deepchecks.tabular` instead'
 
-            if os.environ.get('FAIL_ON_DEEPCHECKS_DEPRECATION_WARNINGS') == 'true':
-                raise DeprecationWarning(deprecation_warning)
-            warnings.warn(
-                deprecation_warning,
-                DeprecationWarning
-            )
+            # if os.environ.get('FAIL_ON_DEEPCHECKS_DEPRECATION_WARNINGS') == 'true':
+            #     raise DeprecationWarning(deprecation_warning)
+            # warnings.warn(
+            #     deprecation_warning,
+            #     DeprecationWarning
+            # )
         return object.__getattribute__(self, name)
 
 
