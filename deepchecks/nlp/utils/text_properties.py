@@ -152,6 +152,9 @@ def language(
     prediction = fasttext_model.predict(text.replace('\n', ' '), k=1, threshold=lang_certainty_threshold)[0]
     # label is empty for detection below threshold:
     language_code = prediction[0].replace('__label__', '') if prediction else None
+
+    if language_code == 'eng':  # both are english but different labels
+        return 'en'
     return language_code
 
 
