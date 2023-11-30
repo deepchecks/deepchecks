@@ -348,7 +348,7 @@ def lexical_density(text: str) -> float:
     if len(all_words) == 0:
         return np.nan
     total_unique_words = len(set(all_words))
-    return round(total_unique_words * 100 / len(all_words), 2)
+    return round(total_unique_words / len(all_words), 2)
 
 
 def unique_noun_count(text: Sequence[str]) -> int:
@@ -587,7 +587,7 @@ TEXT_PROPERTIES_DESCRIPTION = {
     'Average Words Per Sentence': 'Average number of words per sentence in the text',
     'Reading Ease': 'How easy to read a text sample is, typically ranges from around 0 (hard to read) to around '
                     '100 (very easy). Based on Flesch reading-ease score',
-    'Lexical Density': 'Percentage of unique words in the text',
+    'Lexical Density': 'Ratio of unique words in the text',
     'Toxicity': 'A measure of how harmful or offensive a text sample is (0 to 1), '
                 'uses the SkolkovoInstitute/roberta_toxicity_classifier model',
     'Fluency': 'A measure of the fluency of the text (0 to 1), using the prithivida/parrot_fluency_model'
