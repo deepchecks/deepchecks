@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains checks of model evaluation."""
-
 from .boosting_overfit import BoostingOverfit
 from .calibration_score import CalibrationScore
 from .confusion_matrix_report import ConfusionMatrixReport
