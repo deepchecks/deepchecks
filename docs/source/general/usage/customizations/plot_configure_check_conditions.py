@@ -1,27 +1,27 @@
-# # -*- coding: utf-8 -*-
-# """
+# -*- coding: utf-8 -*-
+"""
 
-# .. _configure_check_conditions:
+.. _configure_check_conditions:
 
-# Configure Check Conditions
-# **************************
+Configure Check Conditions
+**************************
 
-# The following guide includes different options for configuring a check's condition(s):
+The following guide includes different options for configuring a check's condition(s):
 
-# * `Add Condition <#add-condition>`__
-# * `Remove / Edit a Condition <#remove-edit-a-condition>`__
-# * `Add a Custom Condition <#add-a-custom-condition>`__
-# * `Set Custom Condition Category <#set-custom-condition-category>`__
+* `Add Condition <#add-condition>`__
+* `Remove / Edit a Condition <#remove-edit-a-condition>`__
+* `Add a Custom Condition <#add-a-custom-condition>`__
+* `Set Custom Condition Category <#set-custom-condition-category>`__
 
-# Add Condition
-# =============
-# In order to add a condition to an existing check, we can use any of the pre-defined
-# conditions for that check. The naming convention for the methods that add the
-# condition is ``add_condition_...``.
+Add Condition
+=============
+In order to add a condition to an existing check, we can use any of the pre-defined
+conditions for that check. The naming convention for the methods that add the
+condition is ``add_condition_...``.
 
-# If you want to create and add your custom condition logic for parsing the check's
-# result value, see `Add a Custom Condition <#add-a-custom-condition>`__.
-# """
+If you want to create and add your custom condition logic for parsing the check's
+result value, see `Add a Custom Condition <#add-a-custom-condition>`__.
+"""
 
 # #%%
 # # Add a condition to a new check
