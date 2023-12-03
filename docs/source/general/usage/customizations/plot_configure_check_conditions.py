@@ -29,7 +29,6 @@ result value, see `Add a Custom Condition <#add-a-custom-condition>`__.
 
 from deepchecks.tabular.checks import DatasetsSizeComparison
 
-
 check = DatasetsSizeComparison().add_condition_test_size_greater_or_equal(1000)
 check
 
