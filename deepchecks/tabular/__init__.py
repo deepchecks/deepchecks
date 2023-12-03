@@ -9,11 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Package for tabular functionality."""
-from deepchecks.tabular.base_checks import ModelComparisonCheck, ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
-from deepchecks.tabular.context import Context
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.model_base import ModelComparisonContext, ModelComparisonSuite
-from deepchecks.tabular.suite import Suite
+from .base_checks import ModelComparisonCheck, ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
+from .context import Context
+from .dataset import Dataset
+from .model_base import ModelComparisonContext, ModelComparisonSuite
+from .suite import Suite
 
 __all__ = [
     "Dataset",
