@@ -10,10 +10,9 @@
 #
 """Module containing metrics utils."""
 
-from deepchecks.tabular.metric_utils.scorers import (DEFAULT_BINARY_SCORERS, DEFAULT_MULTICLASS_SCORERS,
-                                                     DEFAULT_REGRESSION_SCORERS, DEFAULT_SCORERS_DICT,
-                                                     MULTICLASS_SCORERS_NON_AVERAGE, DeepcheckScorer, TaskType,
-                                                     get_default_scorers, init_validate_scorers)
+from .scorers import (DEFAULT_BINARY_SCORERS, DEFAULT_MULTICLASS_SCORERS, DEFAULT_REGRESSION_SCORERS,
+                      DEFAULT_SCORERS_DICT, MULTICLASS_SCORERS_NON_AVERAGE, DeepcheckScorer, TaskType,
+                      get_default_scorers, init_validate_scorers)
 
 __all__ = [
     'TaskType',

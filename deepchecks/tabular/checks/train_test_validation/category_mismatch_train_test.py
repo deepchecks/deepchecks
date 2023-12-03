@@ -10,7 +10,7 @@
 """The category mismatch train-test check module."""
 import warnings
 
-from deepchecks.tabular.checks.train_test_validation.new_category_train_test import NewCategoryTrainTest
+from .new_category_train_test import NewCategoryTrainTest
 
 
 class CategoryMismatchTrainTest(NewCategoryTrainTest):

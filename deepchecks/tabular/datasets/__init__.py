@@ -9,6 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module for working with pre-built datasets."""
-from deepchecks.tabular.datasets import classification, regression
+from . import classification, regression
 
 __all__ = ['classification', 'regression']
