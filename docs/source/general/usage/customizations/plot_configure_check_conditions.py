@@ -153,7 +153,7 @@ check = DatasetsSizeComparison().add_condition(condition_name, custom_condition)
 # runs the condition for us automatically and prints out a Conditions Summary table
 # (for all the conditions defined on the checks within the suite):
 
-from deepchecks.tabular.suite import Suite
+from deepchecks.tabular import Suite
 
 # Using suite to run check & condition
 suite = Suite('Suite for Condition',
