@@ -1,186 +1,187 @@
-# -*- coding: utf-8 -*-
-"""
+# # -*- coding: utf-8 -*-
+# """
 
-.. _configure_check_conditions:
+# .. _configure_check_conditions:
 
-Configure Check Conditions
-**************************
+# Configure Check Conditions
+# **************************
 
-The following guide includes different options for configuring a check's condition(s):
+# The following guide includes different options for configuring a check's condition(s):
 
-* `Add Condition <#add-condition>`__
-* `Remove / Edit a Condition <#remove-edit-a-condition>`__
-* `Add a Custom Condition <#add-a-custom-condition>`__
-* `Set Custom Condition Category <#set-custom-condition-category>`__
+# * `Add Condition <#add-condition>`__
+# * `Remove / Edit a Condition <#remove-edit-a-condition>`__
+# * `Add a Custom Condition <#add-a-custom-condition>`__
+# * `Set Custom Condition Category <#set-custom-condition-category>`__
 
-Add Condition
-=============
-In order to add a condition to an existing check, we can use any of the pre-defined
-conditions for that check. The naming convention for the methods that add the
-condition is ``add_condition_...``.
+# Add Condition
+# =============
+# In order to add a condition to an existing check, we can use any of the pre-defined
+# conditions for that check. The naming convention for the methods that add the
+# condition is ``add_condition_...``.
 
-If you want to create and add your custom condition logic for parsing the check's
-result value, see `Add a Custom Condition <#add-a-custom-condition>`__.
-"""
+# If you want to create and add your custom condition logic for parsing the check's
+# result value, see `Add a Custom Condition <#add-a-custom-condition>`__.
+# """
 
-#%%
-# Add a condition to a new check
-# ------------------------------
+# #%%
+# # Add a condition to a new check
+# # ------------------------------
 
-from deepchecks.tabular.checks import DatasetsSizeComparison
+# from deepchecks.tabular.checks import DatasetsSizeComparison
 
-check = DatasetsSizeComparison().add_condition_test_size_greater_or_equal(1000)
-check
 
-#%%
-# Conditions are used mainly in the context of a Suite, and displayed in the
-# Conditions Summary table. For example how to run in a suite you can look at
-# `Add a Custom Condition <#add-a-custom-condition>`__ or if you would like to
-# run the conditions outside of suite you can execute:
+# check = DatasetsSizeComparison().add_condition_test_size_greater_or_equal(1000)
+# check
 
-import pandas as pd
+# #%%
+# # Conditions are used mainly in the context of a Suite, and displayed in the
+# # Conditions Summary table. For example how to run in a suite you can look at
+# # `Add a Custom Condition <#add-a-custom-condition>`__ or if you would like to
+# # run the conditions outside of suite you can execute:
 
-from deepchecks.tabular import Dataset
+# import pandas as pd
 
-# Dummy data
-train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}))
-test_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3]}))
+# from deepchecks.tabular import Dataset
 
-condition_results = check.conditions_decision(check.run(train_dataset, test_dataset))
-condition_results
+# # Dummy data
+# train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}))
+# test_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3]}))
 
-#%%
-# Add a condition to a check in a suite
-# -------------------------------------
-# If we want to add a conditon to a check within an existing suite, we should first
-# find the Check's ID within the suite, and then add the condition to it, by running
-# the relevant ``add_condition_`` method on that check's instance. See the next section
-# to understand how to do so.
-#
-# The condition will then be appended to the list of conditions on that check (or be
-# the first one if no conditions are defined), and each condition will be evaluated
-# separately when running the suite.
+# condition_results = check.conditions_decision(check.run(train_dataset, test_dataset))
+# condition_results
 
-#%%
-# Remove / Edit a Condition
-# =========================
-# Deepchecks provides different kinds of default suites, which come with pre-defined
-# conditions. You may want to remove a condition in case it isn't needed for you, or
-# you may want to change the condition's parameters (since conditions functions are immutable).
-#
-# To remove a condition, start by printing the Suite and identifing the Check's ID,
-# and the Condition's ID:
+# #%%
+# # Add a condition to a check in a suite
+# # -------------------------------------
+# # If we want to add a conditon to a check within an existing suite, we should first
+# # find the Check's ID within the suite, and then add the condition to it, by running
+# # the relevant ``add_condition_`` method on that check's instance. See the next section
+# # to understand how to do so.
+# #
+# # The condition will then be appended to the list of conditions on that check (or be
+# # the first one if no conditions are defined), and each condition will be evaluated
+# # separately when running the suite.
 
-from deepchecks.tabular.suites import train_test_validation
+# #%%
+# # Remove / Edit a Condition
+# # =========================
+# # Deepchecks provides different kinds of default suites, which come with pre-defined
+# # conditions. You may want to remove a condition in case it isn't needed for you, or
+# # you may want to change the condition's parameters (since conditions functions are immutable).
+# #
+# # To remove a condition, start by printing the Suite and identifing the Check's ID,
+# # and the Condition's ID:
 
-suite = train_test_validation()
-suite
+# from deepchecks.tabular.suites import train_test_validation
 
-#%%
-# After we found the IDs we can remove the Condition:
+# suite = train_test_validation()
+# suite
 
-# Access check by id
-check = suite[8]
-# Remove condition by id
-check.remove_condition(0)
+# #%%
+# # After we found the IDs we can remove the Condition:
 
-suite
+# # Access check by id
+# check = suite[8]
+# # Remove condition by id
+# check.remove_condition(0)
 
-#%%
-# Now if we want we can also re-add the Condition using the built-in methods on the check,
-# with a different parameter.
+# suite
 
-# Re-add the condition with new parameter
-check.add_condition_feature_pps_difference_less_than(0.01)
+# #%%
+# # Now if we want we can also re-add the Condition using the built-in methods on the check,
+# # with a different parameter.
 
-suite
+# # Re-add the condition with new parameter
+# check.add_condition_feature_pps_difference_less_than(0.01)
 
-#%%
-# Add a Custom Condition
-# ======================
-# In order to write conditions we first have to know what value a given check produces.
-#
-# Let's look at the check ``DatasetsSizeComparison`` and see it's return value in
-# order to write a condition for it.
+# suite
 
-import pandas as pd
+# #%%
+# # Add a Custom Condition
+# # ======================
+# # In order to write conditions we first have to know what value a given check produces.
+# #
+# # Let's look at the check ``DatasetsSizeComparison`` and see it's return value in
+# # order to write a condition for it.
 
-from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import DatasetsSizeComparison
+# import pandas as pd
 
-# We'll use dummy data for the purpose of this demonstration
-train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}))
-test_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3]}))
+# from deepchecks.tabular import Dataset
+# from deepchecks.tabular.checks import DatasetsSizeComparison
 
-result = DatasetsSizeComparison().run(train_dataset, test_dataset)
-result.value
+# # We'll use dummy data for the purpose of this demonstration
+# train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}))
+# test_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3]}))
 
-#%%
-# Now we know what the return value looks like. Let's add a new condition that validates
-# that the ratio between the train and test datasets size is inside a given range. To
-# create condition we need to use the ``add_condition`` method of the check which accepts
-# a condition name and a function. This function receives the value of the ``CheckResult``
-# that we saw above and should return either a boolean or a ``ConditionResult`` containing
-# a boolean and optional extra info that will be displayed in the Conditions Summary table.
-#
-# *Note: When implementing a condition in a custom check, you may want to add a method
-# ``add_condition_x()`` to allow any consumer of your check to apply the condition
-# (possibly with given parameters). For examples look at implemented Checks' source code*
+# result = DatasetsSizeComparison().run(train_dataset, test_dataset)
+# result.value
 
-from deepchecks.core import ConditionResult
+# #%%
+# # Now we know what the return value looks like. Let's add a new condition that validates
+# # that the ratio between the train and test datasets size is inside a given range. To
+# # create condition we need to use the ``add_condition`` method of the check which accepts
+# # a condition name and a function. This function receives the value of the ``CheckResult``
+# # that we saw above and should return either a boolean or a ``ConditionResult`` containing
+# # a boolean and optional extra info that will be displayed in the Conditions Summary table.
+# #
+# # *Note: When implementing a condition in a custom check, you may want to add a method
+# # ``add_condition_x()`` to allow any consumer of your check to apply the condition
+# # (possibly with given parameters). For examples look at implemented Checks' source code*
 
-# Our parameters for the condition
-low_threshold = 0.4
-high_threshold = 0.6
+# from deepchecks.core import ConditionResult
 
-# Create the condition function
-def custom_condition(value: dict, low=low_threshold, high=high_threshold): 
-    ratio = value['Test'] / value['Train']
-    if low <= ratio <= high:
-        return ConditionResult(ConditionCategory.PASS)
-    else:
-        # Note: if you doesn't care about the extra info, you can return directly a boolean
-        return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}')
+# # Our parameters for the condition
+# low_threshold = 0.4
+# high_threshold = 0.6
 
-# Create the condition name
-condition_name = f'Test-Train ratio is between {low_threshold} to {high_threshold}'
+# # Create the condition function
+# def custom_condition(value: dict, low=low_threshold, high=high_threshold): 
+#     ratio = value['Test'] / value['Train']
+#     if low <= ratio <= high:
+#         return ConditionResult(ConditionCategory.PASS)
+#     else:
+#         # Note: if you doesn't care about the extra info, you can return directly a boolean
+#         return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}')
 
-# Create check instance with the condition 
-check = DatasetsSizeComparison().add_condition(condition_name, custom_condition)
+# # Create the condition name
+# condition_name = f'Test-Train ratio is between {low_threshold} to {high_threshold}'
 
-#%%
-# Now we will use a Suite to demonstrate the action of the condition, since the suite
-# runs the condition for us automatically and prints out a Conditions Summary table
-# (for all the conditions defined on the checks within the suite):
+# # Create check instance with the condition 
+# check = DatasetsSizeComparison().add_condition(condition_name, custom_condition)
 
-from deepchecks.tabular import Suite
+# #%%
+# # Now we will use a Suite to demonstrate the action of the condition, since the suite
+# # runs the condition for us automatically and prints out a Conditions Summary table
+# # (for all the conditions defined on the checks within the suite):
 
-# Using suite to run check & condition
-suite = Suite('Suite for Condition',
-    check
-)
+# from deepchecks.tabular import Suite
 
-suite.run(train_dataset, test_dataset)
+# # Using suite to run check & condition
+# suite = Suite('Suite for Condition',
+#     check
+# )
 
-#%%
-# Set Custom Condition Category
-# =============================
-# When writing your own condition logic, you can decide to mark a condition result
-# as either fail or warn, by passing the category to the ConditionResult object.
-# For example we can even write condition which sets the category based on severity of the result:
+# suite.run(train_dataset, test_dataset)
 
-from deepchecks.core import ConditionCategory, ConditionResult
+# #%%
+# # Set Custom Condition Category
+# # =============================
+# # When writing your own condition logic, you can decide to mark a condition result
+# # as either fail or warn, by passing the category to the ConditionResult object.
+# # For example we can even write condition which sets the category based on severity of the result:
 
-# Our parameters for the condition
-low_threshold = 0.3
-high_threshold = 0.7
+# from deepchecks.core import ConditionCategory, ConditionResult
 
-# Create the condition function for check `DatasetsSizeComparison`
-def custom_condition(value: dict): 
-    ratio = value['Test'] / value['Train']
-    if low_threshold <= ratio <= high_threshold:
-        return ConditionResult(ConditionCategory.PASS)
-    elif ratio < low_threshold:
-        return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}', ConditionCategory.FAIL)
-    else:
-        return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}', ConditionCategory.WARN)
+# # Our parameters for the condition
+# low_threshold = 0.3
+# high_threshold = 0.7
+
+# # Create the condition function for check `DatasetsSizeComparison`
+# def custom_condition(value: dict): 
+#     ratio = value['Test'] / value['Train']
+#     if low_threshold <= ratio <= high_threshold:
+#         return ConditionResult(ConditionCategory.PASS)
+#     elif ratio < low_threshold:
+#         return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}', ConditionCategory.FAIL)
+#     else:
+#         return ConditionResult(ConditionCategory.FAIL, f'Test-Train ratio is {ratio:.2}', ConditionCategory.WARN)
