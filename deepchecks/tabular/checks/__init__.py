@@ -11,15 +11,15 @@
 """Module importing all tabular checks."""
 from deepchecks.tabular.checks.data_integrity import PercentOfNulls
 
-from .data_integrity import (ClassImbalance, ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
+from deepchecks.tabular.checks.data_integrity import (ClassImbalance, ColumnsInfo, ConflictingLabels, DataDuplicates, FeatureFeatureCorrelation,
                              FeatureLabelCorrelation, IsSingleValue, MixedDataTypes, MixedNulls, OutlierSampleDetection,
                              SpecialCharacters, StringLengthOutOfBounds, StringMismatch)
-from .model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelInferenceTime, ModelInfo,
+from deepchecks.tabular.checks.model_evaluation import (BoostingOverfit, CalibrationScore, ConfusionMatrixReport, ModelInferenceTime, ModelInfo,
                                MultiModelPerformanceReport, PredictionDrift, RegressionErrorDistribution,
                                RegressionSystematicError, RocReport, SegmentPerformance, SimpleModelComparison,
                                SingleDatasetPerformance, TrainTestPerformance, TrainTestPredictionDrift, UnusedFeatures,
                                WeakSegmentsPerformance)
-from .train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
+from deepchecks.tabular.checks.train_test_validation import (CategoryMismatchTrainTest, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
                                     DateTrainTestLeakageOverlap, FeatureDrift, FeatureLabelCorrelationChange,
                                     IdentifierLabelCorrelation, IndexTrainTestLeakage, LabelDrift, MultivariateDrift,
                                     NewCategoryTrainTest, NewLabelTrainTest, StringMismatchComparison,
