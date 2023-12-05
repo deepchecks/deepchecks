@@ -214,7 +214,7 @@ def test_properties(text_classification_dataset_mock):
         'Subjectivity', 'Average Words Per Sentence', 'Reading Ease', 'Lexical Density'
     ))
     assert_that(properties.iloc[0].values, contains_exactly(
-        22, 3.6, 9, 0.0, 0.0, 'en', 0.0, 0.0, 5.0, 100.24, 80.0
+        22, 3.6, 9, 0.0, 0.0, 'en', 0.0, 0.0, 5.0, 100.24, 0.8
     ))
 
 
