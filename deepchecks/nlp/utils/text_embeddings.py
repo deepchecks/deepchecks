@@ -209,6 +209,7 @@ def calculate_builtin_embeddings(text: np.array, model: str = 'miniLM',
         np.save(file_path, embeddings)
     return embeddings
 
+
 def _clean_special_chars(text: str) -> str:
     """
     Remove special characters, replaces space characters with space.
