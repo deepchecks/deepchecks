@@ -114,7 +114,7 @@ class WeakSegmentAbstract(abc.ABC):
                     segment_data = data[
                         np.asarray(feature1.between(segments_f1[f1_idx], segments_f1[f1_idx + 1])) * np.asarray(
                             feature2.between(segments_f2[f2_idx], segments_f2[f2_idx + 1]))]
-                    if segment_data.empty:
+                    if segment_data.empty or (len(segment_data) < self.segment_minimum_size_ratio * len(data)):
                         scores[f2_idx, f1_idx] = np.NaN
                         counts[f2_idx, f1_idx] = 0
                     else:
