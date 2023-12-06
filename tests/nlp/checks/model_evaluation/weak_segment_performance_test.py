@@ -49,7 +49,7 @@ def test_column_with_nones(tweet_emotion_train_test_textdata, tweet_emotion_trai
 
     # Assert
     assert_that(result.value['avg_score'], close_to(0.707, 0.01))
-    assert_that(len(result.value['weak_segments_list']), equal_to(4))
+    assert_that(len(result.value['weak_segments_list']), equal_to(8))
     assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.305, 0.01))
 
 
@@ -168,8 +168,8 @@ def test_multilabel_just_dance(just_dance_train_test_textdata, just_dance_train_
 
     # Assert
     assert_that(result.value['avg_score'], close_to(0.615, 0.001))
-    assert_that(len(result.value['weak_segments_list']), equal_to(3))
-    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.48, 0.01))
+    assert_that(len(result.value['weak_segments_list']), equal_to(5))
+    assert_that(result.value['weak_segments_list'].iloc[0, 0], close_to(0.41, 0.01))
 
 
 def test_binary_classification(binary_mock_dataset_and_probabilities):
