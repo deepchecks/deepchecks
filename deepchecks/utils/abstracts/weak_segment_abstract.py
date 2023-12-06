@@ -114,7 +114,7 @@ class WeakSegmentAbstract(abc.ABC):
                     segment_data = data[
                         np.asarray(feature1.between(segments_f1[f1_idx], segments_f1[f1_idx + 1])) * np.asarray(
                             feature2.between(segments_f2[f2_idx], segments_f2[f2_idx + 1]))]
-                    if segment_data.empty or (len(segment_data) < self.segment_minimum_size_ratio * len(data)):
+                    if segment_data.empty:
                         scores[f2_idx, f1_idx] = np.NaN
                         counts[f2_idx, f1_idx] = 0
                     else:
@@ -246,13 +246,20 @@ class WeakSegmentAbstract(abc.ABC):
         After all the iterations are done, the tree with the best score (the one with the worst leaf) is selected, and
         the worst leaf of it is extracted and returned as a deepchecks filter.
         """
+        # Remove rows with na values in the relevant columns
+        data_for_search = data[features_for_segment].dropna()
+        segment_minimum_size_ratio = self.segment_minimum_size_ratio * len(data) / len(data_for_search)
+        score_per_sample_for_search = score_per_sample.loc[data_for_search.index]
+        if label_col is not None:
+            label_col_for_search = label_col.loc[data_for_search.index]
+
         if version.parse(sklearn.__version__) < version.parse('1.0.0'):
             criterion = ['mse', 'mae']
         else:
             criterion = ['squared_error', 'absolute_error']
         search_space = {
             'max_depth': [5],
-            'min_weight_fraction_leaf': [self.segment_minimum_size_ratio],
+            'min_weight_fraction_leaf': [segment_minimum_size_ratio],
             'min_samples_leaf': [5],
             'criterion': criterion,
             'min_impurity_decrease': [0.003],
@@ -264,10 +271,10 @@ class WeakSegmentAbstract(abc.ABC):
             min_score, min_score_leaf_filter = np.inf, None
             for leaf_filter in leaves_filters:
                 if scorer is not None and dummy_model is not None and label_col is not None:
-                    leaf_data, leaf_labels = leaf_filter.filter(data, label_col)
+                    leaf_data, leaf_labels = leaf_filter.filter(data_for_search, label_col_for_search)
                     leaf_score = scorer.run_on_data_and_label(dummy_model, leaf_data, leaf_labels)
                 else:  # if no scorer is provided, use the average loss_per_sample of samples in the leaf as the score
-                    leaf_score = score_per_sample[list(leaf_filter.filter(data).index)].mean()
+                    leaf_score = score_per_sample_for_search[list(leaf_filter.filter(data_for_search).index)].mean()
 
                 if leaf_score < min_score:
                     min_score, min_score_leaf_filter = leaf_score, leaf_filter
@@ -285,7 +292,7 @@ class WeakSegmentAbstract(abc.ABC):
         grid_searcher = GridSearchCV(DecisionTreeRegressor(random_state=random_state),
                                      scoring=neg_worst_segment_score, param_grid=search_space, n_jobs=-1, cv=3)
         try:
-            grid_searcher.fit(data[features_for_segment], score_per_sample)
+            grid_searcher.fit(data_for_search, score_per_sample_for_search)
             # Get the worst leaf filter out of the selected tree
             segment_score, segment_filter = get_worst_leaf_filter(grid_searcher.best_estimator_.tree_)
         except ValueError:
