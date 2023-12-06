@@ -9,8 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module for calculating embeddings for text."""
-import sys
 import re
+import sys
 import warnings
 from itertools import islice
 from typing import Optional
