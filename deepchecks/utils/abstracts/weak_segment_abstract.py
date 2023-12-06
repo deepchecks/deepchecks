@@ -248,6 +248,8 @@ class WeakSegmentAbstract(abc.ABC):
         """
         # Remove rows with na values in the relevant columns
         data_for_search = data[features_for_segment].dropna()
+        if len(data_for_search) == 0:
+            return None, None
         segment_minimum_size_ratio = self.segment_minimum_size_ratio * len(data) / len(data_for_search)
         score_per_sample_for_search = score_per_sample.loc[data_for_search.index]
         if label_col is not None:
