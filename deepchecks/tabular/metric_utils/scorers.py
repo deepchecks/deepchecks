@@ -257,7 +257,10 @@ class DeepcheckScorer:
                 self.user_model = user_model
                 self.model_classes = model_classes
                 self.is_binary = self.model_classes and len(self.model_classes) == 2
-                self.predictions = pd.Series(self.user_model.predict(data).squeeze(), index=data.index)
+                predictions = self.user_model.predict(data)
+                if len(data) > 1:
+                    predictions = predictions.squeeze()
+                self.predictions = pd.Series(predictions, index=data.index)
 
             def predict(self, data: pd.DataFrame) -> np.ndarray:
                 """Convert labels to 0/1 if model is a binary classifier."""
