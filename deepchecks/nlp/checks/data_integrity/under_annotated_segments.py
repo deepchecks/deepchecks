@@ -42,6 +42,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
                  ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: int,
                  segment_minimum_size_ratio: float, n_samples: int, n_to_show: int,
+                 max_categories_weak_segment: Optional[int],
                  categorical_aggregation_threshold: float, multiple_segments_per_feature: bool, **kwargs):
         super().__init__(**kwargs)
         self.segment_by = segment_by
@@ -49,6 +50,7 @@ class UnderAnnotatedSegments(SingleDatasetCheck, WeakSegmentAbstract):
         self.ignore_columns = ignore_columns
         self.n_top_features = n_top_features
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
+        self.max_categories_weak_segment = max_categories_weak_segment
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
@@ -246,6 +248,9 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
+    max_categories_weak_segment: Optional[int] , default: None
+        Maximum number of categories that can be included in a weak segment per categorical feature.
+        If None, the number of categories is not limited.
     n_samples : int , default: 10_000
         Maximum number of samples to use for this check.
     n_to_show : int , default: 3
@@ -262,6 +267,7 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
                  n_top_properties: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
+                 max_categories_weak_segment: Optional[int] = None,
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
@@ -272,6 +278,7 @@ class UnderAnnotatedPropertySegments(UnderAnnotatedSegments):
                          ignore_columns=ignore_properties,
                          n_top_features=n_top_properties,
                          segment_minimum_size_ratio=segment_minimum_size_ratio,
+                         max_categories_weak_segment=max_categories_weak_segment,
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,
@@ -302,6 +309,9 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
+    max_categories_weak_segment: Optional[int] , default: None
+        Maximum number of categories that can be included in a weak segment per categorical feature.
+        If None, the number of categories is not limited.
     n_samples : int , default: 10_000
         Maximum number of samples to use for this check.
     n_to_show : int , default: 3
@@ -318,6 +328,7 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
                  ignore_columns: Union[Hashable, List[Hashable], None] = None,
                  n_top_columns: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
+                 max_categories_weak_segment: Optional[int] = None,
                  n_samples: int = 10_000,
                  categorical_aggregation_threshold: float = 0.05,
                  n_to_show: int = 3,
@@ -328,6 +339,7 @@ class UnderAnnotatedMetaDataSegments(UnderAnnotatedSegments):
                          ignore_columns=ignore_columns,
                          n_top_features=n_top_columns,
                          segment_minimum_size_ratio=segment_minimum_size_ratio,
+                         max_categories_weak_segment=max_categories_weak_segment,
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          categorical_aggregation_threshold=categorical_aggregation_threshold,

@@ -54,6 +54,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
+    max_categories_weak_segment: Optional[int] , default: None
+        Maximum number of categories that can be included in a weak segment per categorical feature.
+        If None, the number of categories is not limited.
     alternative_scorer : Dict[str, Union[str, Callable]] , default: None
         Scorer to use as performance measure, either function or sklearn scorer name.
         If None, a default scorer (per the model type) will be used.
@@ -84,6 +87,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             ignore_columns: Union[Hashable, List[Hashable], None] = None,
             n_top_features: Optional[int] = 10,
             segment_minimum_size_ratio: float = 0.05,
+            max_categories_weak_segment: Optional[int] = None,
             alternative_scorer: Dict[str, Union[str, Callable]] = None,
             loss_per_sample: Union[np.ndarray, pd.Series, None] = None,
             score_per_sample: Union[np.ndarray, pd.Series, None] = None,
@@ -105,6 +109,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.ignore_columns = ignore_columns
         self.n_top_features = n_top_features
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
+        self.max_categories_weak_segment = max_categories_weak_segment
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.random_state = random_state

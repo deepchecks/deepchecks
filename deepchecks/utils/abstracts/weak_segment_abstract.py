@@ -40,6 +40,7 @@ class WeakSegmentAbstract(abc.ABC):
     categorical_aggregation_threshold: float = 0.05
     min_category_size_ratio: float = 0.01
     segment_minimum_size_ratio: float = 0.05
+    max_categories_weak_segment: Optional[int] = None
     random_state: int = 42
     add_condition: Callable[..., Any]
 
@@ -226,10 +227,10 @@ class WeakSegmentAbstract(abc.ABC):
                 continue
 
             # Make sure segments based on categorical features are based only on a single category
-            if row['Feature1'] in self.encoder_mapping:
+            if self.max_categories_weak_segment is not None and row['Feature1'] in self.encoder_mapping:
                 unique_values_in_range = [x for x in self.encoder_mapping[row['Feature1']]['encoded_value'].values if
-                                          (x > row['Feature1 Range'][0] and x < row['Feature1 Range'][1])]
-                if len(unique_values_in_range) > 1:
+                                          row['Feature1 Range'][1] > x > row['Feature1 Range'][0]]
+                if len(unique_values_in_range) > self.max_categories_weak_segment:
                     subset = data.loc[new_row['Samples in Segment']]
                     value_segment_size = [len(subset[subset[row['Feature1']] == x]) for x in unique_values_in_range]
                     # If all sub segments are too small, remove feature 2 filter
@@ -252,10 +253,11 @@ class WeakSegmentAbstract(abc.ABC):
                     else:
                         new_row[score_title] = score_per_sample[list(subset.index)].mean()
 
-            if new_row['Feature2'] != '' and row['Feature2'] in self.encoder_mapping:
+            if self.max_categories_weak_segment is not None and \
+                    new_row['Feature2'] != '' and row['Feature2'] in self.encoder_mapping:
                 unique_values_in_range = [x for x in self.encoder_mapping[row['Feature2']]['encoded_value'].values if
-                                          (x > row['Feature2 Range'][0] and x < row['Feature2 Range'][1])]
-                if len(unique_values_in_range) > 1:
+                                          row['Feature2 Range'][1] > x > row['Feature2 Range'][0]]
+                if len(unique_values_in_range) > self.max_categories_weak_segment:
                     subset = data.loc[new_row['Samples in Segment']]
                     value_segment_size = [len(subset[subset[row['Feature2']] == x]) for x in unique_values_in_range]
                     # Feature 1 cannot be empty so if feature 2 do not have a large enough segment, ignore the row
@@ -273,9 +275,9 @@ class WeakSegmentAbstract(abc.ABC):
                         new_row[score_title] = score_per_sample[list(subset.index)].mean()
 
             result.loc[len(result)] = new_row
-            used_features.add(row['Feature1'])
+            used_features.add(new_row['Feature1'])
             if new_row['Feature2'] != '':
-                used_features.add(row['Feature2'])
+                used_features.add(new_row['Feature2'])
 
         return result.sort_values(score_title).drop_duplicates(subset=['Feature1', 'Feature2'])
 

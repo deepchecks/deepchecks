@@ -35,7 +35,8 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
 
     def __init__(self, segment_by: str, columns: Union[Hashable, List[Hashable], None],
                  ignore_columns: Union[Hashable, List[Hashable], None], n_top_features: Optional[int],
-                 segment_minimum_size_ratio: float, alternative_scorer: Dict[str, Union[str, Callable]],
+                 segment_minimum_size_ratio: float, max_categories_weak_segment: Optional[int],
+                 alternative_scorer: Dict[str, Union[str, Callable]],
                  score_per_sample: Union[np.ndarray, pd.Series, None], n_samples: int,
                  categorical_aggregation_threshold: float, n_to_show: int,
                  multiple_segments_per_feature: bool = False, **kwargs):
@@ -45,6 +46,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
         self.ignore_columns = ignore_columns
         self.n_top_features = n_top_features
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
+        self.max_categories_weak_segment = max_categories_weak_segment
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.score_per_sample = score_per_sample
@@ -113,7 +115,7 @@ class WeakSegmentsAbstractText(SingleDatasetCheck, WeakSegmentAbstract):
                                                    multiple_segments_per_feature=self.multiple_segments_per_feature)
 
         if len(weak_segments) == 0:
-            display_msg = 'WeakSegmentsPerformance was unable to train an error model to find weak segments.'\
+            display_msg = 'WeakSegmentsPerformance was unable to train an error model to find weak segments.' \
                           f'Try supplying additional {self.segment_by}.'
             return CheckResult(value={'message': display_msg}, display=[display_msg])
 
@@ -158,6 +160,9 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
+    max_categories_weak_segment: Optional[int] , default: None
+        Maximum number of categories that can be included in a weak segment per categorical feature.
+        If None, the number of categories is not limited.
     alternative_scorer : Dict[str, Union[str, Callable]] , default: None
         Scorer to use as performance measure, either function or sklearn scorer name.
         If None, a default scorer (per the model type) will be used.
@@ -182,6 +187,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
                  ignore_properties: Union[Hashable, List[Hashable], None] = None,
                  n_top_properties: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
+                 max_categories_weak_segment: Optional[int] = None,
                  alternative_scorer: Dict[str, Union[str, Callable]] = None,
                  score_per_sample: Union[np.ndarray, pd.Series, None] = None,
                  n_samples: int = 5_000,
@@ -194,6 +200,7 @@ class PropertySegmentsPerformance(WeakSegmentsAbstractText):
                          ignore_columns=ignore_properties,
                          n_top_features=n_top_properties,
                          segment_minimum_size_ratio=segment_minimum_size_ratio,
+                         max_categories_weak_segment=max_categories_weak_segment,
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          score_per_sample=score_per_sample,
@@ -229,6 +236,9 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
+    max_categories_weak_segment: Optional[int] , default: None
+        Maximum number of categories that can be included in a weak segment per categorical feature.
+        If None, the number of categories is not limited.
     alternative_scorer : Dict[str, Union[str, Callable]] , default: None
         Scorer to use as performance measure, either function or sklearn scorer name.
         If None, a default scorer (per the model type) will be used.
@@ -253,6 +263,7 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
                  ignore_columns: Union[Hashable, List[Hashable], None] = None,
                  n_top_columns: Optional[int] = 10,
                  segment_minimum_size_ratio: float = 0.05,
+                 max_categories_weak_segment: Optional[int] = None,
                  alternative_scorer: Dict[str, Union[str, Callable]] = None,
                  score_per_sample: Union[np.ndarray, pd.Series, None] = None,
                  n_samples: int = 5_000,
@@ -265,6 +276,7 @@ class MetadataSegmentsPerformance(WeakSegmentsAbstractText):
                          ignore_columns=ignore_columns,
                          n_top_features=n_top_columns,
                          segment_minimum_size_ratio=segment_minimum_size_ratio,
+                         max_categories_weak_segment=max_categories_weak_segment,
                          n_samples=n_samples,
                          n_to_show=n_to_show,
                          score_per_sample=score_per_sample,
