@@ -40,6 +40,7 @@ class WeakSegmentAbstract(abc.ABC):
     categorical_aggregation_threshold: float = 0.05
     min_category_size_ratio: float = 0.01
     segment_minimum_size_ratio: float = 0.05
+    max_categories_weak_segment: Optional[int] = None
     random_state: int = 42
     add_condition: Callable[..., Any]
 
@@ -195,6 +196,9 @@ class WeakSegmentAbstract(abc.ABC):
         for i in range(n_features):
             for j in range(i + 1, n_features):
                 feature1, feature2 = feature_rank_for_search[[i, j]]
+                # Categorical feature come first
+                if feature1 not in self.encoder_mapping and feature2 in self.encoder_mapping:
+                    feature2, feature1 = feature_rank_for_search[[i, j]]
                 weak_segment_score, weak_segment_filter = self._find_weak_segment(data, [feature1, feature2],
                                                                                   score_per_sample, label_col,
                                                                                   dummy_model, scorer)
@@ -213,24 +217,69 @@ class WeakSegmentAbstract(abc.ABC):
                                                              tuple(filters[feature2]), data_size,
                                                              list(data_of_segment.index)]
 
-        # Sort and drop relevant columns
-        weak_segments = weak_segments.sort_values(score_title).reset_index(drop=True)
-        if multiple_segments_per_feature:
-            result = weak_segments.drop(columns='Samples in Segment').drop_duplicates()
-            result['Samples in Segment'] = weak_segments.loc[result.index, 'Samples in Segment']
-        else:
-            used_features = set()
-            result = pd.DataFrame(columns=weak_segments.columns)
-            for _, row in weak_segments.iterrows():
-                if row['Feature1'] in used_features or row['Feature2'] in used_features:
-                    continue
+        # Filter and adapt the weak segments results
+        result = pd.DataFrame(columns=weak_segments.columns)
+        used_features = set()
+        for _, row in weak_segments.sort_values(score_title).iterrows():
+            new_row = row.copy()
+            if not multiple_segments_per_feature and \
+                    (row['Feature1'] in used_features or row['Feature2'] in used_features):
+                continue
 
-                result.loc[len(result)] = row
-                used_features.add(row['Feature1'])
-                if row['Feature2'] != '':
-                    used_features.add(row['Feature2'])
+            # Make sure segments based on categorical features are based only on a single category
+            if self.max_categories_weak_segment is not None and row['Feature1'] in self.encoder_mapping:
+                unique_values_in_range = [x for x in self.encoder_mapping[row['Feature1']]['encoded_value'].values if
+                                          row['Feature1 Range'][1] > x > row['Feature1 Range'][0]]
+                if len(unique_values_in_range) > self.max_categories_weak_segment:
+                    subset = data.loc[new_row['Samples in Segment']]
+                    value_segment_size = [len(subset[subset[row['Feature1']] == x]) for x in unique_values_in_range]
+                    # If all sub segments are too small, remove feature 2 filter
+                    if max(value_segment_size) < len(data) * self.segment_minimum_size_ratio and row['Feature2'] != '':
+                        subset = data
+                        value_segment_size = [len(data[data[row['Feature1']] == x]) for x in unique_values_in_range]
+                        new_row['Feature2'] = ''
+                        new_row['Feature2 Range'] = None
+                    if max(value_segment_size) < len(data) * self.segment_minimum_size_ratio:
+                        continue
 
-        return result
+                    value_to_use = unique_values_in_range[np.argmax(value_segment_size)]
+                    subset = subset[subset[row['Feature1']] == value_to_use]
+                    new_row['Samples in Segment'] = list(subset.index)
+                    new_row['% of Data'] = round(100 * len(new_row['Samples in Segment']) / len(data), 2)
+                    new_row['Feature1 Range'] = [value_to_use - 0.5, value_to_use + 0.5]
+                    if dummy_model is not None and label_col is not None and scorer is not None:
+                        new_row[score_title] = scorer.run_on_data_and_label(dummy_model,
+                                                                            subset, label_col[list(subset.index)])
+                    else:
+                        new_row[score_title] = score_per_sample[list(subset.index)].mean()
+
+            if self.max_categories_weak_segment is not None and \
+                    new_row['Feature2'] != '' and row['Feature2'] in self.encoder_mapping:
+                unique_values_in_range = [x for x in self.encoder_mapping[row['Feature2']]['encoded_value'].values if
+                                          row['Feature2 Range'][1] > x > row['Feature2 Range'][0]]
+                if len(unique_values_in_range) > self.max_categories_weak_segment:
+                    subset = data.loc[new_row['Samples in Segment']]
+                    value_segment_size = [len(subset[subset[row['Feature2']] == x]) for x in unique_values_in_range]
+                    # Feature 1 cannot be empty so if feature 2 do not have a large enough segment, ignore the row
+                    if max(value_segment_size) < len(data) * self.segment_minimum_size_ratio:
+                        continue
+                    value_to_use = unique_values_in_range[np.argmax(value_segment_size)]
+                    subset = subset[subset[row['Feature2']] == value_to_use]
+                    new_row['Samples in Segment'] = list(subset.index)
+                    new_row['% of Data'] = round(100 * len(new_row['Samples in Segment']) / len(data), 2)
+                    new_row['Feature2 Range'] = [value_to_use - 0.5, value_to_use + 0.5]
+                    if dummy_model is not None and label_col is not None and scorer is not None:
+                        new_row[score_title] = scorer.run_on_data_and_label(dummy_model,
+                                                                            subset, label_col[list(subset.index)])
+                    else:
+                        new_row[score_title] = score_per_sample[list(subset.index)].mean()
+
+            result.loc[len(result)] = new_row
+            used_features.add(new_row['Feature1'])
+            if new_row['Feature2'] != '':
+                used_features.add(new_row['Feature2'])
+
+        return result.sort_values(score_title).drop_duplicates(subset=['Feature1', 'Feature2'])
 
     def _find_weak_segment(self, data: pd.DataFrame, features_for_segment: List[str], score_per_sample: pd.Series,
                            label_col: Optional[pd.Series] = None, dummy_model: Optional[_DummyModel] = None,

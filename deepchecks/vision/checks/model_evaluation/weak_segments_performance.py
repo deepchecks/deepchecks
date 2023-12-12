@@ -60,6 +60,9 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
     segment_minimum_size_ratio: float , default: 0.05
         Minimum size ratio for segments. Will only search for segments of
         size >= segment_minimum_size_ratio * data_size.
+    max_categories_weak_segment: Optional[int] , default: None
+        Maximum number of categories that can be included in a weak segment per categorical feature.
+        If None, the number of categories is not limited.
     n_samples : Optional[int] , default: 10_000
         number of samples to use for this check.
     n_to_show : int , default: 3
@@ -77,6 +80,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
             image_properties: List[Dict[str, Any]] = None,
             n_to_show: int = 3,
             segment_minimum_size_ratio: float = 0.05,
+            max_categories_weak_segment: Optional[int] = None,
             n_samples: Optional[int] = 10000,
             categorical_aggregation_threshold: float = 0.05,
             multiple_segments_per_property: bool = True,
@@ -89,6 +93,7 @@ class WeakSegmentsPerformance(SingleDatasetCheck, WeakSegmentAbstract):
         self.n_samples = n_samples
         self.n_to_show = n_to_show
         self.segment_minimum_size_ratio = segment_minimum_size_ratio
+        self.max_categories_weak_segment = max_categories_weak_segment
         self.categorical_aggregation_threshold = categorical_aggregation_threshold
         self.multiple_segments_per_property = multiple_segments_per_property
         self._properties_results = None
