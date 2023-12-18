@@ -442,7 +442,7 @@ class SuiteResult(DisplayableResult):
         return cast(List[check_types.CheckFailure], self.select_results(self.failures))
 
     def get_not_passed_checks(self, fail_if_warning=True) -> List['check_types.CheckResult']:
-        """Get all the check results that have not passing condition.
+        """Get all the check results that have not passing condition. This does not include checks that failed to run.
 
         Parameters
         ----------
@@ -464,7 +464,7 @@ class SuiteResult(DisplayableResult):
         ]
 
     def get_passed_checks(self, fail_if_warning=True) -> List['check_types.CheckResult']:
-        """Get all the check results that have passing condition.
+        """Get all the check results that have passing condition. This does not include checks that failed to run.
 
         Parameters
         ----------
