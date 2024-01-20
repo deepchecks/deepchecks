@@ -5,10 +5,10 @@ sphinx-copybutton>=0.4.0
 sphinx-gallery>=0.10.1,<=0.14.0
 sphinxcontrib-applehelp>=1.0.2,<1.0.8
 sphinxcontrib-devhelp>=1.0.2,<1.0.6
-sphinxcontrib-htmlhelp>=2.0.0
-sphinxcontrib-jsmath>=1.0.1
-sphinxcontrib-qthelp>=1.0.3
-sphinxcontrib-serializinghtml>=1.1.5
+sphinxcontrib-htmlhelp>=2.0.0,<2.0.5
+sphinxcontrib-jsmath==1.0.1
+sphinxcontrib-qthelp>=1.0.3,<1.0.7
+sphinxcontrib-serializinghtml>=1.1.5,<1.1.10
 readthedocs-sphinx-search
 numpydoc>=1.1.0
 pypandoc>=1.7.2
