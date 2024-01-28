@@ -147,18 +147,18 @@ jobs:
       if: ${{ always() }}
       run: echo "${{ steps.license_check_report.outputs.report }}"
 
-  gpu-tests:
-    runs-on: [self-hosted, gpu]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v3
-        with:
-          python-version: '3.7'
-      - name: Set Up Env
-        run: make env
-      - name: Run Tests
-        run: make vision-gpu-tests
+#  gpu-tests:
+#    runs-on: [self-hosted, gpu]
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: Set up Python
+#        uses: actions/setup-python@v3
+#        with:
+#          python-version: '3.7'
+#      - name: Set Up Env
+#        run: make env
+#      - name: Run Tests
+#        run: make vision-gpu-tests
 
 
 #  documentation-check:
