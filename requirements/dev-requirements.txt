@@ -8,7 +8,7 @@ flake8-eradicate
 flake8-rst
 isort
 
-pytest 
+pytest~=7.4.0
 pytest-cov
 pyhamcrest
 nbval 
