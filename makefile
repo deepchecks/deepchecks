@@ -164,6 +164,7 @@ vision-torch-tf-setup: env
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
 			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
 		$(PIP) install -q "tensorflow==2.11.0"; \
+	fi;
 
 	@$(PIP) install -q "tensorflow-hub==0.12.0";
 
