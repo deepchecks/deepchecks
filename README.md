@@ -19,7 +19,7 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main) 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-42-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
+[![All Contributors](https://img.shields.io/badge/all_contributors-43-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
 <!-- ALL-CONTRIBUTORS-BADGE:END --> 
 
 <!---
@@ -362,6 +362,9 @@ key](https://allcontributors.org/docs/en/emoji-key)):
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/thewchan"><img src="https://avatars.githubusercontent.com/u/49702524?v=4?s=100" width="100px;" alt="Matt Chan"/><br /><sub><b>Matt Chan</b></sub></a><br /><a href="#code-thewchan" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/hjain5164"><img src="https://avatars.githubusercontent.com/u/20479605?v=4?s=100" width="100px;" alt="Harsh Jain"/><br /><sub><b>Harsh Jain</b></sub></a><br /><a href="#code-hjain5164" title="Code">💻</a> <a href="#doc-hjain5164" title="Documentation">📖</a> <a href="#bug-hjain5164" title="Bug reports">🐛</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/arterm-sedov"><img src="https://avatars.githubusercontent.com/u/66188814?v=4?s=100" width="100px;" alt="arterm-sedov"/><br /><sub><b>arterm-sedov</b></sub></a><br /><a href="#doc-arterm-sedov" title="Documentation">📖</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.kaggle.com/rayanaay"><img src="https://avatars.githubusercontent.com/u/55285736?v=4?s=100" width="100px;" alt="AIT ALI YAHIA Rayane"/><br /><sub><b>AIT ALI YAHIA Rayane</b></sub></a><br /><a href="#code-RayanAAY-ops" title="Code">💻</a> <a href="#ideas-RayanAAY-ops" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
