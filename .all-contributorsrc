@@ -426,6 +426,16 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "RayanAAY-ops",
+      "name": "AIT ALI YAHIA Rayane",
+      "avatar_url": "https://avatars.githubusercontent.com/u/55285736?v=4",
+      "profile": "https://www.kaggle.com/rayanaay",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "projectName": "deepchecks",
