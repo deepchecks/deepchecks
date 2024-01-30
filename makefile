@@ -159,16 +159,11 @@ vision-torch-tf-setup: env
 		 	"torch==1.10.2+cu111" "torchvision==0.11.3+cu111" \
 		 	 -f https://download.pytorch.org/whl/cu111/torch_stable.html; \
 		$(PIP) install -q "tensorflow-gpu==2.11.0"; \
-	elif [ $(OS) = "Linux" ]; \
-	then \
+	else \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
 			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
 		$(PIP) install -q "tensorflow==2.11.0"; \
-	else \
-		$(PIP) install -q torch "torchvision==0.11.3"; \
-		$(PIP) install -q "tensorflow==2.11.0"; \
-	fi;
 
 	@$(PIP) install -q "tensorflow-hub==0.12.0";
 
