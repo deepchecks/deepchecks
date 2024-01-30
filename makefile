@@ -157,13 +157,13 @@ vision-torch-tf-setup: env
 	then \
 		$(PIP) install -q\
 		 	"torch==1.10.2+cu111" "torchvision==0.11.3+cu111" \
-		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
+		 	 -f https://download.pytorch.org/whl/cu111/torch_stable.html; \
 		$(PIP) install -q "tensorflow-gpu==2.11.0"; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
-			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
+			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
 		$(PIP) install -q "tensorflow==2.11.0"; \
 	else \
 		$(PIP) install -q torch "torchvision==0.11.3"; \
@@ -242,7 +242,7 @@ test-win:
 	@$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
-			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
+			-f https://download.pytorch.org/whl/cpu/torch_stable.html;
 	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
 	@$(PIP_WIN) install -q "tensorflow==2.11.0";
 	@$(PIP_WIN) install -U pip
