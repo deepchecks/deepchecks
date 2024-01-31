@@ -261,7 +261,7 @@ test-tabular-only: env
 	@$(PIP) install -q \
 		wheel setuptools \
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE)
-    @$(PIP) install -q \
+	@$(PIP) install -q \
 		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 	$(PYTEST) -vvv $(TESTDIR)/tabular
