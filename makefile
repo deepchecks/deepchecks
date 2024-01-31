@@ -157,13 +157,13 @@ vision-torch-tf-setup: env
 	then \
 		$(PIP) install -q\
 		 	"torch==1.10.2+cu111" "torchvision==0.11.3+cu111" \
-		 	 -f https://download.pytorch.org/whl/cu111/torch_stable.html; \
+		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 		$(PIP) install -q "tensorflow-gpu==2.11.0"; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
-			-f https://download.pytorch.org/whl/cpu/torch_stable.html; \
+			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
 		$(PIP) install -q "tensorflow==2.11.0"; \
 	else \
 		$(PIP) install -q torch "torchvision==0.11.3"; \
@@ -201,6 +201,10 @@ dev-requirements: $(ENV)
 	@echo "####  installing development dependencies, it could take some time, please wait! ####"
 	@$(PIP) install -q -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 
+dev-nlp-requirements: $(ENV)
+	@echo "####  installing nlp development dependencies, it could take some time, please wait! ####"
+	@$(PIP) install -q -r $(REQUIRE_DIR)/dev-nlp-$(REQUIRE_FILE)
+
 ### Static Analysis ######################################################
 
 .PHONY: validate pylint docstring
@@ -225,7 +229,7 @@ docstring: dev-requirements
 .PHONY: test coverage
 
 
-test: requirements dev-requirements
+test: requirements dev-requirements dev-nlp-requirements
 	@if [ ! -z $(args) ]; then \
 		$(PYTEST) $(args); \
 	else \
@@ -242,7 +246,7 @@ test-win:
 	@$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) install -q\
 			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
-			-f https://download.pytorch.org/whl/cpu/torch_stable.html;
+			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
 	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
 	@$(PIP_WIN) install -q "tensorflow==2.11.0";
 	@$(PIP_WIN) install -U pip
@@ -251,7 +255,8 @@ test-win:
 		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/nlp-prop-$(REQUIRE_FILE)  \
-		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
+		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/dev-nlp-$(REQUIRE_FILE)
 	@$(PIP_WIN) install -e .
 	python -m pytest -vvv $(WIN_TESTDIR)
 
@@ -266,7 +271,7 @@ test-tabular-only: env
 	$(PYTEST) -vvv $(TESTDIR)/tabular
 
 
-coverage: requirements dev-requirements
+coverage: requirements dev-requirements dev-nlp-requirements
 	$(COVERAGE) run --source deepchecks/,tests/ --omit */assets/* -m pytest
 
 coveralls: coverage
@@ -292,7 +297,7 @@ tox: requirements dev-requirements
 	$(TOX)
 
 
-freeze: requirements dev-requirements
+freeze: requirements dev-requirements dev-nlp-requirements
 	@$(PIP) freeze
 
 
@@ -393,7 +398,7 @@ test-release: dist test-upload
 .PHONY: docs validate-examples website dev-docs gen-static-notebooks license-check links-check
 
 
-docs: requirements doc-requirements dev-requirements develop $(DOCS_SRC)
+docs: requirements doc-requirements dev-requirements dev-nlp-requirements develop $(DOCS_SRC)
 	@export WANDB_MODE=offline
 	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 	@echo ""
