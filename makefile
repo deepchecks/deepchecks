@@ -271,7 +271,7 @@ test-tabular-only: env
 	$(PYTEST) -vvv $(TESTDIR)/tabular
 
 
-coverage: requirements dev-requirements
+coverage: requirements dev-requirements dev-nlp-requirements
 	$(COVERAGE) run --source deepchecks/,tests/ --omit */assets/* -m pytest
 
 coveralls: coverage
