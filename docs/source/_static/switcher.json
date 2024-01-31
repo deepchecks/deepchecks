@@ -6,10 +6,14 @@
   },
   {
     "version": "stable",
-    "name": "0.17 (stable)",
+    "name": "0.18 (stable)",
     "url": "https://docs.deepchecks.com/stable/"
   },
-    {
+  {
+    "version": "0.18",
+    "url": "https://docs.deepchecks.com/0.18/"
+  },
+  {
     "version": "0.17",
     "url": "https://docs.deepchecks.com/0.17/"
   },
@@ -32,17 +36,5 @@
   {
     "version": "0.10",
     "url": "https://docs.deepchecks.com/0.10/"
-  },
-  {
-    "version": "0.9",
-    "url": "https://docs.deepchecks.com/0.9/"
-  },
-  {
-    "version": "0.8",
-    "url": "https://docs.deepchecks.com/0.8/"
-  },
-  {
-    "version": "0.7",
-    "url": "https://docs.deepchecks.com/0.7/"
   }
 ]
