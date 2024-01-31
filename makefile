@@ -201,6 +201,10 @@ dev-requirements: $(ENV)
 	@echo "####  installing development dependencies, it could take some time, please wait! ####"
 	@$(PIP) install -q -r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 
+dev-nlp-requirements: $(ENV)
+	@echo "####  installing nlp development dependencies, it could take some time, please wait! ####"
+	@$(PIP) install -q -r $(REQUIRE_DIR)/dev-nlp-$(REQUIRE_FILE)
+
 ### Static Analysis ######################################################
 
 .PHONY: validate pylint docstring
@@ -225,7 +229,7 @@ docstring: dev-requirements
 .PHONY: test coverage
 
 
-test: requirements dev-requirements
+test: requirements dev-requirements dev-nlp-requirements
 	@if [ ! -z $(args) ]; then \
 		$(PYTEST) $(args); \
 	else \
@@ -251,7 +255,8 @@ test-win:
 		-r $(REQUIRE_DIR)/vision-$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/nlp-$(REQUIRE_FILE)  \
 		-r $(REQUIRE_DIR)/nlp-prop-$(REQUIRE_FILE)  \
-		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
+		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE) \
+		-r $(REQUIRE_DIR)/dev-nlp-$(REQUIRE_FILE)
 	@$(PIP_WIN) install -e .
 	python -m pytest -vvv $(WIN_TESTDIR)
 
@@ -260,8 +265,7 @@ test-tabular-only: env
 	@$(PIP) install -U pip
 	@$(PIP) install -q \
 		wheel setuptools \
-		-r $(REQUIRE_DIR)/$(REQUIRE_FILE)
-	@$(PIP) install -q \
+		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
 	$(PYTEST) -vvv $(TESTDIR)/tabular
@@ -293,7 +297,7 @@ tox: requirements dev-requirements
 	$(TOX)
 
 
-freeze: requirements dev-requirements
+freeze: requirements dev-requirements dev-nlp-requirements
 	@$(PIP) freeze
 
 
@@ -394,7 +398,7 @@ test-release: dist test-upload
 .PHONY: docs validate-examples website dev-docs gen-static-notebooks license-check links-check
 
 
-docs: requirements doc-requirements dev-requirements develop $(DOCS_SRC)
+docs: requirements doc-requirements dev-requirements dev-nlp-requirements develop $(DOCS_SRC)
 	@export WANDB_MODE=offline
 	cd $(DOCS) && make html SPHINXBUILD=$(SPHINX_BUILD) SPHINXOPTS=$(SPHINXOPTS)
 	@echo ""
