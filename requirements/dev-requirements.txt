@@ -51,8 +51,9 @@ nltk<=3.6.7; python_version < '3.7'
 nltk>=3.8.1; python_version >= '3.7' # not directly required, pinned by Snyk to avoid a vulnerability
 datasets
 textblob
-transformers
-sentence-transformers
+transformers~=4.36.2
+torch==1.10.2+cpu
+sentence_transformers~=2.2.2
 
 # Avoid Vulnerabilities
 tornado>=6.3.3; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
