@@ -214,7 +214,10 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
 
             # if even one sentence is too long, use part of the first one:
             if len(text_to_use) == 0:
-                text_to_use = cut_string(sentences[0], MAX_CHARS)
+                if len(sentences) > 0:
+                    text_to_use = cut_string(sentences[0], MAX_CHARS)
+                else:
+                    text_to_use = None
             text_list_to_predict.append(text_to_use)
         else:
             text_list_to_predict.append(text)
@@ -224,11 +227,14 @@ def predict_on_batch(text_batch: Sequence[str], classifier,
             if reduced_batch_size == 1 or retry_count == 3:
                 results = []
                 for text in text_list_to_predict:
-                    try:
-                        v = classifier(text)[0]
-                        results.append(output_formatter(v))
-                    except Exception:  # pylint: disable=broad-except
+                    if text is None:
                         results.append(np.nan)
+                    else:
+                        try:
+                            v = classifier(text)[0]
+                            results.append(output_formatter(v))
+                        except Exception:  # pylint: disable=broad-except
+                            results.append(np.nan)
                 return results  # Return the results if prediction is successful
 
             v_list = classifier(text_list_to_predict, batch_size=reduced_batch_size)
