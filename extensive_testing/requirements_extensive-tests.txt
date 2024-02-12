@@ -4,3 +4,4 @@ boto3
 fsspec
 s3fs
 joblib
+aiobotocore>=2.9.1 # not directly required, pinned by Snyk to avoid a vulnerability
