@@ -90,8 +90,10 @@ from deepchecks.tabular.dataset import Dataset
 
 __all__ = ['load_data_and_predictions', 'load_pre_calculated_feature_importance']
 
-_TRAIN_DATA_URL = 'https://raw.githubusercontent.com/deepchecks/deepchecks-datasets/8dd24134239b9df5d2a3a13cdce38cc22caaaaf4/airbnb_ref_data.csv'
-_TEST_DATA_URL = 'https://raw.githubusercontent.com/deepchecks/deepchecks-datasets/8dd24134239b9df5d2a3a13cdce38cc22caaaaf4/airbnb_prod_data.csv'
+_TRAIN_DATA_URL = ('https://raw.githubusercontent.com/deepchecks/deepchecks-datasets/'
+                   '8dd24134239b9df5d2a3a13cdce38cc22caaaaf4/airbnb_ref_data.csv')
+_TEST_DATA_URL = ('https://raw.githubusercontent.com/deepchecks/deepchecks-datasets/'
+                  '8dd24134239b9df5d2a3a13cdce38cc22caaaaf4/airbnb_prod_data.csv')
 _target = 'price'
 _predictions = 'predictions'
 _datetime = 'timestamp'
