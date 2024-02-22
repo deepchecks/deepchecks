@@ -365,7 +365,7 @@ key](https://allcontributors.org/docs/en/emoji-key)):
     </tr>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://www.kaggle.com/rayanaay"><img src="https://avatars.githubusercontent.com/u/55285736?v=4?s=100" width="100px;" alt="AIT ALI YAHIA Rayane"/><br /><sub><b>AIT ALI YAHIA Rayane</b></sub></a><br /><a href="#code-RayanAAY-ops" title="Code">💻</a> <a href="#ideas-RayanAAY-ops" title="Ideas, Planning, & Feedback">🤔</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/chris-santiago"><img src="https://avatars.githubusercontent.com/u/40875112?v=4?s=100" width="100px;" alt="Chris Santiago"/><br /><sub><b>Chris Santiago</b></sub></a><br /><a href="#bug-chris-santiago" title="Bug reports">🐛</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/chris-santiago"><img src="https://avatars.githubusercontent.com/u/40875112?v=4?s=100" width="100px;" alt="Chris Santiago"/><br /><sub><b>Chris Santiago</b></sub></a><br /><a href="#bug-chris-santiago" title="Bug reports">🐛</a> <a href="#code-chris-santiago" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
