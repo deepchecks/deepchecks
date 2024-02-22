@@ -436,6 +436,15 @@
         "code",
         "ideas"
       ]
+    },
+    {
+      "login": "chris-santiago",
+      "name": "Chris Santiago",
+      "avatar_url": "https://avatars.githubusercontent.com/u/40875112?v=4",
+      "profile": "https://github.com/chris-santiago",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "projectName": "deepchecks",
