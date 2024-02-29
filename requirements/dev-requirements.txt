@@ -32,10 +32,10 @@ kaleido  # optional dependency, used by plotly to transform figures into images
 
 # YoloV5
 matplotlib>=3.2.2
-numpy>=1.18.5
+numpy>=1.22.2
 opencv-python>=4.1.2
-pillow>=7.1.2; python_version < '3.8'
-pillow>=10.0.1; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
+pillow>=10.2.0; python_version < '3.8'
+pillow>=10.2.0; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
 PyYAML>=5.3.1
 requests>=2.23.0
 # Remove the <=1.10.1 dependency below once sklearn's issue is fixed. The higher version causes
@@ -52,3 +52,7 @@ pyarrow>=14.0.1; python_version >= '3.8' # not directly required, pinned by Snyk
 aiohttp>=3.9.0; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
 
 umap-learn==0.5.4
+fonttools>=4.43.0 # not directly required, pinned by Snyk to avoid a vulnerability
+ipython>=8.10.0 # not directly required, pinned by Snyk to avoid a vulnerability
+jupyter-server>=2.11.2 # not directly required, pinned by Snyk to avoid a vulnerability
+setuptools>=65.5.1 # not directly required, pinned by Snyk to avoid a vulnerability
