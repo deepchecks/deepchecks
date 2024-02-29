@@ -5,5 +5,5 @@ datasets
 textblob
 transformers<=4.36.2
 --find-links https://s3.amazonaws.com/pytorch/whl/torch_stable.html
-torch==1.10.2+cpu
+torch==1.13.1
 sentence_transformers<=2.2.2
