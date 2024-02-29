@@ -132,6 +132,10 @@ To create a virtual environment in python, run the following command:
 .. code:: bash
 
    python -m venv <name_of_your_virtual_environment>
+.. warning::
+
+   Be aware that Python versions 3.11 and 3.12 may encounter issues when installing development dependencies.
+
 
 Installing dependencies
 ------------------------
@@ -145,7 +149,7 @@ the dependencies for your virtual environment by running the following command:
 
    .. code:: bash
 
-      pip install -r .\requirements\requirements.txt
+      pip install -e .
 
 - To install development dependencies:
 
@@ -179,7 +183,7 @@ the dependencies for your virtual environment by running the following command:
    Once downloaded, you can run the following command to install the wheel file:
 
    .. code:: bash
-      
+
       pip install <name_of_your_wheel_file>.whl
 
 Once you have installed all the dependencies, you are ready to
@@ -198,14 +202,14 @@ To verify and execute all the unit tests, run the following command:
 If you want to execute specific tests, execute the commands as follows:
 
 .. code:: bash
-   
-   # Execute NLP tests 
+
+   # Execute NLP tests, (Test functionality not guaranteed)
    pytest .\tests\nlp\
 
-   # Execute vision tests 
+   # Execute vision tests, (Test functionality not guaranteed)
    pytest .\tests\vision\
-   
-   # Execute tabular tests 
+
+   # Execute tabular tests, (Works with Python 3.8, 3.9, 3.10)
    pytest .\tests\tabular\
 
 Coding Style
