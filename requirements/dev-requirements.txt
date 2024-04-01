@@ -34,8 +34,8 @@ kaleido  # optional dependency, used by plotly to transform figures into images
 matplotlib>=3.2.2
 numpy>=1.18.5
 opencv-python>=4.1.2
-pillow>=7.1.2; python_version < '3.8'
-pillow>=10.0.1; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
+pillow>=10.3.0; python_version < '3.8'
+pillow>=10.3.0; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
 PyYAML>=5.3.1
 requests>=2.23.0
 # Remove the <=1.10.1 dependency below once sklearn's issue is fixed. The higher version causes
