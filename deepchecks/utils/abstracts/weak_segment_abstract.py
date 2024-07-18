@@ -341,7 +341,7 @@ class WeakSegmentAbstract(abc.ABC):
         else:
             random_state = None
         grid_searcher = GridSearchCV(DecisionTreeRegressor(random_state=random_state),
-                                     scoring=neg_worst_segment_score, param_grid=search_space, n_jobs=-1, cv=3)
+                                     scoring=neg_worst_segment_score, param_grid=search_space, n_jobs=1, cv=3)
         try:
             grid_searcher.fit(data_for_search, score_per_sample_for_search)
             # Get the worst leaf filter out of the selected tree
