@@ -816,7 +816,8 @@ def calculate_builtin_properties(
                 sequences_to_use = [e for i, e in enumerate(sequences_to_use) if i not in non_english_indices]
             try:
                 if prop['name'] in BATCH_PROPERTIES:
-                    value = run_available_kwargs(text_batch=sequences_to_use, func=prop['method'], **kwargs)
+                    no_url_sequences = [clean_urls(seq) for seq in sequences_to_use]
+                    value = run_available_kwargs(text_batch=no_url_sequences, func=prop['method'], **kwargs)
                 else:
                     value = _batch_wrapper(text_batch=sequences_to_use, func=prop['method'], **kwargs)
                 batch_properties[prop['name']].extend(value)
@@ -895,3 +896,8 @@ def get_builtin_properties_types():
         prop['name']: prop['output_type']
         for prop in ALL_PROPERTIES
     }
+
+
+def clean_urls(text: str) -> str:
+    """Remove URLs from text."""
+    return re.sub(r'(https?\S+|ftps?\S+|www\S+)', '', text)
