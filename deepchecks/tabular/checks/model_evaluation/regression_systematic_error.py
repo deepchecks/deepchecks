@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """The RegressionSystematicError check module."""
-import warnings
 
-import plotly.graph_objects as go
-from sklearn.metrics import mean_squared_error
+import warnings
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 
-__all__ = ['RegressionSystematicError']
+import plotly.graph_objects as go
+from sklearn.metrics import mean_squared_error
+
+__all__ = ["RegressionSystematicError"]
 
 
 class RegressionSystematicError(SingleDatasetCheck):
@@ -33,14 +34,13 @@ class RegressionSystematicError(SingleDatasetCheck):
         random seed for all check internals.
     """
 
-    def __init__(
-        self,
-        n_samples: int = 1_000_000,
-        random_state: int = 42,
-        **kwargs
-    ):
-        warnings.warn('RegressionSystematicError check is deprecated and will be removed in future version,'
-                      ' please use RegressionErrorDistribution check instead.', DeprecationWarning, stacklevel=2)
+    def __init__(self, n_samples: int = 1_000_000, random_state: int = 42, **kwargs):
+        warnings.warn(
+            "RegressionSystematicError check is deprecated and will be removed in future version,"
+            " please use RegressionErrorDistribution check instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.random_state = random_state
@@ -72,27 +72,19 @@ class RegressionSystematicError(SingleDatasetCheck):
         if context.with_display:
             fig = (
                 go.Figure()
-                .add_trace(go.Box(
-                    x=diff,
-                    orientation='h',
-                    name='Model prediction error',
-                    hoverinfo='x',
-                    boxmean=True))
-                .update_layout(
-                    title_text='Box plot of the model prediction error',
-                    height=500
-                )
+                .add_trace(go.Box(x=diff, orientation="h", name="Model prediction error", hoverinfo="x", boxmean=True))
+                .update_layout(title_text="Box plot of the model prediction error", height=500)
             )
 
             display = [
-                'Non-zero mean of the error distribution indicated the presents '
-                'of systematic error in model predictions',
-                fig
+                "Non-zero mean of the error distribution indicated the presents "
+                "of systematic error in model predictions",
+                fig,
             ]
         else:
             display = None
 
-        return CheckResult(value={'rmse': rmse, 'mean_error': diff_mean}, display=display)
+        return CheckResult(value={"rmse": rmse, "mean_error": diff_mean}, display=display)
 
     def add_condition_systematic_error_ratio_to_rmse_less_than(self, max_ratio: float = 0.01):
         """Add condition - require the absolute mean systematic error is less than (max_ratio * RMSE).
@@ -102,13 +94,13 @@ class RegressionSystematicError(SingleDatasetCheck):
         max_ratio : float , default: 0.01
             Maximum ratio
         """
+
         def max_bias_condition(result: dict) -> ConditionResult:
-            rmse = result['rmse']
-            mean_error = result['mean_error']
+            rmse = result["rmse"]
+            mean_error = result["mean_error"]
             ratio = abs(mean_error) / rmse
-            details = f'Found bias ratio {format_number(ratio)}'
+            details = f"Found bias ratio {format_number(ratio)}"
             category = ConditionCategory.PASS if ratio < max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Bias ratio is less than {format_number(max_ratio)}',
-                                  max_bias_condition)
+        return self.add_condition(f"Bias ratio is less than {format_number(max_ratio)}", max_bias_condition)

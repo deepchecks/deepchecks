@@ -31,22 +31,22 @@ form, they are considered to be the same.
 
 """
 
-#%%
+# %%
 # Run the Check
 # =============
-
-import pandas as pd
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import StringMismatch
 
-data = {'col1': ['Deep', 'deep', 'deep!!!', '$deeP$', 'earth', 'foo', 'bar', 'foo?']}
+import pandas as pd
+
+data = {"col1": ["Deep", "deep", "deep!!!", "$deeP$", "earth", "foo", "bar", "foo?"]}
 df = pd.DataFrame(data=data)
-dataset = Dataset(df, cat_features=['col1'])
+dataset = Dataset(df, cat_features=["col1"])
 result = StringMismatch().run(dataset)
 result.show()
 
-#%%
+# %%
 # Define a Condition
 # ==================
 

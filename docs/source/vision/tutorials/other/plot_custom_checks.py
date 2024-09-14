@@ -62,9 +62,8 @@ For more examples of using the Context and Batch objects for different types of 
 Check Example
 --------------
 """
-import typing as t
 
-import numpy as np
+import typing as t
 
 from deepchecks.core.check_result import CheckResult
 from deepchecks.core.checks import DatasetKind
@@ -73,20 +72,22 @@ from deepchecks.vision.base_checks import TrainTestCheck
 from deepchecks.vision.context import Context
 from deepchecks.vision.vision_data.batch_wrapper import BatchWrapper
 
+import numpy as np
+
 
 def init_color_averages_dict() -> t.Dict[str, np.array]:
     """Initialize the color averages dicts."""
     return {
-            DatasetKind.TRAIN.value: np.zeros((3,), dtype=np.float64),
-            DatasetKind.TEST.value: np.zeros((3,), dtype=np.float64),
+        DatasetKind.TRAIN.value: np.zeros((3,), dtype=np.float64),
+        DatasetKind.TEST.value: np.zeros((3,), dtype=np.float64),
     }
 
 
 def init_pixel_counts_dict() -> t.Dict[str, int]:
     """Initialize the pixel counts dicts."""
     return {
-            DatasetKind.TRAIN.value: 0,
-            DatasetKind.TEST.value: 0,
+        DatasetKind.TRAIN.value: 0,
+        DatasetKind.TEST.value: 0,
     }
 
 
@@ -108,7 +109,7 @@ class ColorAveragesCheck(TrainTestCheck):
         """Init the check and enable customization of the channel_names."""
         super().__init__(**kwargs)
         if channel_names is None:
-            self.channel_names = ('R', 'G', 'B')
+            self.channel_names = ("R", "G", "B")
 
     def initialize_run(self, context: Context):
         """Initialize the color_averages dict and pixel counter dict."""
@@ -128,11 +129,14 @@ class ColorAveragesCheck(TrainTestCheck):
         for dataset_kind in DatasetKind:
             self._color_averages[dataset_kind.value] /= self._pixel_count[dataset_kind.value]
         # Return the color averages in a dict by channel name
-        return_value = {d_kind: dict(zip(self.channel_names, color_averages))
-                        for d_kind, color_averages in self._color_averages.items()}
+        return_value = {
+            d_kind: dict(zip(self.channel_names, color_averages))
+            for d_kind, color_averages in self._color_averages.items()
+        }
         return CheckResult(return_value)
 
-#%%
+
+# %%
 # Hooray! we just implemented a custom check. Next, we will run it on the COCO128 dataset:
 #
 # .. note::
@@ -142,13 +146,13 @@ class ColorAveragesCheck(TrainTestCheck):
 
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
-train_ds = load_dataset(train=True, object_type='VisionData')
-test_ds = load_dataset(train=False, object_type='VisionData')
+train_ds = load_dataset(train=True, object_type="VisionData")
+test_ds = load_dataset(train=False, object_type="VisionData")
 
 result = ColorAveragesCheck().run(train_ds, test_ds)
 result.show()
 
-#%%
+# %%
 # Our check ran successfully, but we got the print “Nothing found”. This is because we haven’t defined to the check
 # anything to display, so the default behavior is to print “Nothing found”. In order to access the value that we have
 # defined earlier we can use the “value” property on the result.
@@ -159,7 +163,7 @@ result.value
 # %% To see code references for more complex checks (that can receive parameters etc.), check out any of your
 # favorite checks from our :doc:`API ref <../../../api/deepchecks.vision>`.
 
-#%%
+# %%
 # Check Display
 # ========================
 #
@@ -181,7 +185,7 @@ class ColorAveragesCheck(TrainTestCheck):
         """Init the check and enable customization of the channel_names."""
         super().__init__(**kwargs)
         if channel_names is None:
-            self.channel_names = ('R', 'G', 'B')
+            self.channel_names = ("R", "G", "B")
 
     def initialize_run(self, context: Context):
         """Initialize the color_averages dict and pixel counter dict."""
@@ -201,20 +205,30 @@ class ColorAveragesCheck(TrainTestCheck):
         for dataset_kind in DatasetKind:
             self._color_averages[dataset_kind.value] /= self._pixel_count[dataset_kind.value]
         # Return the color averages in a dict by channel name
-        return_value = {d_kind: dict(zip(self.channel_names, color_averages))
-                        for d_kind, color_averages in self._color_averages.items()}
+        return_value = {
+            d_kind: dict(zip(self.channel_names, color_averages))
+            for d_kind, color_averages in self._color_averages.items()
+        }
 
         # **New Code Here**!!!
         # ========================
         # Display a histogram comparing train and test
         color_averages_df = pd.DataFrame(return_value).unstack().reset_index()
-        color_averages_df.columns = ['Dataset', 'Channel', 'Pixel Value']
-        fig = px.histogram(color_averages_df, x='Dataset', y='Pixel Value', color='Channel', barmode='group',
-                           histfunc='avg', color_discrete_sequence=['rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,0,255)'],
-                           title='Color Averages Histogram')
+        color_averages_df.columns = ["Dataset", "Channel", "Pixel Value"]
+        fig = px.histogram(
+            color_averages_df,
+            x="Dataset",
+            y="Pixel Value",
+            color="Channel",
+            barmode="group",
+            histfunc="avg",
+            color_discrete_sequence=["rgb(255,0,0)", "rgb(0,255,0)", "rgb(0,0,255)"],
+            title="Color Averages Histogram",
+        )
         return CheckResult(return_value, display=[fig])
 
-#%%
+
+# %%
 # Let check it out:
 
 result = ColorAveragesCheck().run(train_ds, test_ds)
@@ -243,7 +257,7 @@ class ColorAveragesCheck(TrainTestCheck):
         """Init the check and enable customization of the channel_names."""
         super().__init__(**kwargs)
         if channel_names is None:
-            self.channel_names = ('R', 'G', 'B')
+            self.channel_names = ("R", "G", "B")
 
     def initialize_run(self, context: Context):
         """Initialize the color_averages dict and pixel counter dict."""
@@ -263,15 +277,24 @@ class ColorAveragesCheck(TrainTestCheck):
         for dataset_kind in DatasetKind:
             self._color_averages[dataset_kind.value] /= self._pixel_count[dataset_kind.value]
         # Return the color averages in a dict by channel name
-        return_value = {d_kind: dict(zip(self.channel_names, color_averages))
-                        for d_kind, color_averages in self._color_averages.items()}
+        return_value = {
+            d_kind: dict(zip(self.channel_names, color_averages))
+            for d_kind, color_averages in self._color_averages.items()
+        }
 
         # Display a histogram comparing train and test
         color_averages_df = pd.DataFrame(return_value).unstack().reset_index()
-        color_averages_df.columns = ['Dataset', 'Channel', 'Pixel Value']
-        fig = px.histogram(color_averages_df, x='Dataset', y='Pixel Value', color='Channel', barmode='group',
-                           histfunc='avg', color_discrete_sequence=['rgb(255,0,0)', 'rgb(0,255,0)', 'rgb(0,0,255)'],
-                           title='Color Averages Histogram')
+        color_averages_df.columns = ["Dataset", "Channel", "Pixel Value"]
+        fig = px.histogram(
+            color_averages_df,
+            x="Dataset",
+            y="Pixel Value",
+            color="Channel",
+            barmode="group",
+            histfunc="avg",
+            color_discrete_sequence=["rgb(255,0,0)", "rgb(0,255,0)", "rgb(0,0,255)"],
+            title="Color Averages Histogram",
+        )
         return CheckResult(return_value, display=[fig])
 
     # **New Code Here**!!!
@@ -283,29 +306,37 @@ class ColorAveragesCheck(TrainTestCheck):
             failing_channels = []
             # Iterate over the color averages and verify that they haven't changed by more than change_ratio
             for channel in check_result.value[DatasetKind.TRAIN.value].keys():
-                if abs(check_result.value[DatasetKind.TRAIN.value][channel] -
-                       check_result.value[DatasetKind.TEST.value][channel]) > change_ratio:
+                if (
+                    abs(
+                        check_result.value[DatasetKind.TRAIN.value][channel]
+                        - check_result.value[DatasetKind.TEST.value][channel]
+                    )
+                    > change_ratio
+                ):
                     failing_channels.append(channel)
 
             # If there are failing channels, return a condition result with the failing channels
             if failing_channels:
-                return ConditionResult(ConditionCategory.FAIL, f'The color averages have changes by more than threshold in the channels'
-                                              f' {failing_channels}.')
+                return ConditionResult(
+                    ConditionCategory.FAIL,
+                    f"The color averages have changes by more than threshold in the channels" f" {failing_channels}.",
+                )
             else:
                 return ConditionResult(ConditionCategory.PASS)
 
-        return self.add_condition(f'Change in color averages not greater than {change_ratio:.2%}', condition)
+        return self.add_condition(f"Change in color averages not greater than {change_ratio:.2%}", condition)
 
-#%%
+
+# %%
 # Let check it out:
 result = ColorAveragesCheck().run(train_ds, test_ds)
 result.show()
 
-#%%
+# %%
 # And now our check we will alert us automatically if the color averages have changed by more than 10%!
 
 
-#%%
+# %%
 # Base Checks Types
 # ==================
 # Vision checks all inherit from one of the following classes:

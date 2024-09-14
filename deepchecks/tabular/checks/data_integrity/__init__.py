@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains all data integrity checks."""
+
 from .class_imbalance import ClassImbalance
 from .columns_info import ColumnsInfo
 from .conflicting_labels import ConflictingLabels
@@ -26,19 +27,19 @@ from .string_length_out_of_bounds import StringLengthOutOfBounds
 from .string_mismatch import StringMismatch
 
 __all__ = [
-    'ColumnsInfo',
-    'MixedNulls',
-    'StringMismatch',
-    'MixedDataTypes',
-    'IsSingleValue',
-    'SpecialCharacters',
-    'StringLengthOutOfBounds',
-    'DataDuplicates',
-    'ConflictingLabels',
-    'ClassImbalance',
-    'OutlierSampleDetection',
-    'FeatureLabelCorrelation',
-    'FeatureFeatureCorrelation',
-    'IdentifierLabelCorrelation',
-    'PercentOfNulls'
+    "ColumnsInfo",
+    "MixedNulls",
+    "StringMismatch",
+    "MixedDataTypes",
+    "IsSingleValue",
+    "SpecialCharacters",
+    "StringLengthOutOfBounds",
+    "DataDuplicates",
+    "ConflictingLabels",
+    "ClassImbalance",
+    "OutlierSampleDetection",
+    "FeatureLabelCorrelation",
+    "FeatureFeatureCorrelation",
+    "IdentifierLabelCorrelation",
+    "PercentOfNulls",
 ]

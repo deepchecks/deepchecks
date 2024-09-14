@@ -38,16 +38,18 @@ on the prediction output.
 """
 
 
-#%%
+# %%
 # Get Data and Predictions
 # ========================
 #
 # For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
 # happiness, anger, sadness and optimism.
 
-import numpy as np
 from deepchecks.nlp.checks import PredictionDrift
 from deepchecks.nlp.datasets.classification import tweet_emotion
+
+import numpy as np
+
 np.random.seed(42)
 
 train_ds, test_ds = tweet_emotion.load_data()
@@ -55,15 +57,15 @@ train_ds, test_ds = tweet_emotion.load_data()
 # Load precalculated model predictions:
 train_preds, test_preds = tweet_emotion.load_precalculated_predictions(as_train_test=True)
 
-#%%
+# %%
 # Let's see how our data looks like:
 
 train_ds.head()
 
-#%%
+# %%
 # Let's introduce drift into the data by dropping 50% of the "anger" tweets from the train dataset:
 
-angry_tweets = np.argwhere(train_ds.label == 'anger').flatten()  # Get all angry tweets
+angry_tweets = np.argwhere(train_ds.label == "anger").flatten()  # Get all angry tweets
 # Select 50% of those to keep with the other tweets:
 angry_tweets_to_ignore = np.random.choice(angry_tweets, size=len(angry_tweets) // 2, replace=False)
 indices_to_keep = [x for x in range(len(train_ds)) if x not in angry_tweets_to_ignore]  # All indices to keep
@@ -72,18 +74,19 @@ indices_to_keep = [x for x in range(len(train_ds)) if x not in angry_tweets_to_i
 train_ds = train_ds.copy(rows_to_use=indices_to_keep)
 train_preds = train_preds[indices_to_keep]
 
-#%%
+# %%
 # Run Check
 # =========
 #
 
 check = PredictionDrift()
-result = check.run(train_dataset=train_ds, test_dataset=test_ds,
-                   train_predictions=train_preds, test_predictions=test_preds)
+result = check.run(
+    train_dataset=train_ds, test_dataset=test_ds, train_predictions=train_preds, test_predictions=test_preds
+)
 
 result
 
-#%%
+# %%
 # We can see that we found drift in the distribution of the predictions, and that the drift is mainly in the "anger"
 # class. This makes sense, as we dropped 50% of the "anger" tweets from the train dataset, and so the model is now
 # predicting less "anger" tweets in the test dataset.
@@ -93,17 +96,17 @@ result
 # To force this behavior, set the ``drift_mode`` parameter to ``proba``.
 
 # First let's get the probabilities for our data, instead of the predictions:
-train_probas, test_probas = tweet_emotion.load_precalculated_predictions(pred_format='probabilities')
+train_probas, test_probas = tweet_emotion.load_precalculated_predictions(pred_format="probabilities")
 train_probas = train_probas[indices_to_keep]  # Filter the probabilities again
 
-check = PredictionDrift(drift_mode='proba')
-result = check.run(train_dataset=train_ds, test_dataset=test_ds,
-                   train_probabilities=train_probas, test_probabilities=test_probas)
+check = PredictionDrift(drift_mode="proba")
+result = check.run(
+    train_dataset=train_ds, test_dataset=test_ds, train_probabilities=train_probas, test_probabilities=test_probas
+)
 
 result
 
-#%%
+# %%
 # This time, we can see there's small drift in each class. The "anger" class drift is actually probably caused by low
 # sample size, and not by drift in the data itself, as we did not change the data within the class, but only changed
 # the prevalence of the class in the data.
-

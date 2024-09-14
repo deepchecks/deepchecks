@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """module for different utility functions/types."""
+
 import typing as t
 
 __all__ = ["to_ordional_enumeration"]

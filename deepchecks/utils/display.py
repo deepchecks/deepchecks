@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module with display utility functions."""
+
 import base64
 
 from deepchecks.utils.logger import get_logger
 
-__all__ = ['imagetag', 'display_in_gui']
+__all__ = ["imagetag", "display_in_gui"]
 
 import sys
 from io import StringIO
@@ -23,20 +24,23 @@ import pkg_resources
 
 def imagetag(img: bytes) -> str:
     """Return html image tag with embedded image."""
-    png = base64.b64encode(img).decode('ascii')
+    png = base64.b64encode(img).decode("ascii")
     return f'<img src="data:image/png;base64,{png}"/>'
 
 
 def display_in_gui(result):
     """Display suite result or check result in a new python gui window."""
     try:
-        required = {'pyqt5', 'pyqtwebengine'}
+        required = {"pyqt5", "pyqtwebengine"}
         # List of all packages installed (key is always in all small case!)
         installed = {pkg.key for pkg in list(pkg_resources.working_set)}
         missing = required - installed
         if missing:
-            get_logger().warning('Missing packages in order to display result in GUI. either run "pip install %s"'
-                                 ' or use "result.save_as_html()" to save result', {' '.join(missing)})
+            get_logger().warning(
+                'Missing packages in order to display result in GUI. either run "pip install %s"'
+                ' or use "result.save_as_html()" to save result',
+                {" ".join(missing)},
+            )
             return
         from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
         from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
@@ -44,7 +48,7 @@ def display_in_gui(result):
         app = QApplication(sys.argv)
 
         web = QWebEngineView()
-        web.setWindowTitle('deepchecks')
+        web.setWindowTitle("deepchecks")
         web.setGeometry(0, 0, 1200, 1200)
 
         html_out = StringIO()
@@ -54,5 +58,6 @@ def display_in_gui(result):
 
         sys.exit(app.exec_())
     except Exception:  # pylint: disable=broad-except
-        get_logger().error('Unable to show result, run in an interactive environment'
-                           ' or use "result.save_as_html()" to save result')
+        get_logger().error(
+            "Unable to show result, run in an interactive environment" ' or use "result.save_as_html()" to save result'
+        )

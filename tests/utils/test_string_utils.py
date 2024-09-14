@@ -10,27 +10,27 @@
 #
 from datetime import datetime
 
-from hamcrest import assert_that, calling, equal_to, instance_of, matches_regexp, raises
-
 from deepchecks.utils.strings import format_datetime, truncate_string
+
+from hamcrest import assert_that, calling, equal_to, instance_of, matches_regexp, raises
 
 
 def test_get_ellipsis():
-    result = truncate_string('1234', 3)
-    assert_that(result, equal_to('123...'))
-    result = truncate_string('1234', 4)
-    assert_that(result, equal_to('1234'))
+    result = truncate_string("1234", 3)
+    assert_that(result, equal_to("123..."))
+    result = truncate_string("1234", 4)
+    assert_that(result, equal_to("1234"))
 
 
 def test_datetime_instance_format():
     now = datetime.now()
     result = format_datetime(now)
     # %Y/%m/%d %H:%M:%S.%f %Z%z
-    pattern = rf'{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}:{now.second}.{now.microsecond}'
+    pattern = rf"{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}:{now.second}.{now.microsecond}"
     assert_that(
         result,
         instance_of(str),
-        matches_regexp(pattern) # type: ignore
+        matches_regexp(pattern),  # type: ignore
     )
 
 
@@ -39,11 +39,11 @@ def test_integer_timestamp_format():
     timestamp = int(now.timestamp())
     result = format_datetime(timestamp)
     # %Y/%m/%d %H:%M:%S.%f %Z%z
-    pattern = rf'{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}:{now.second}.{now.microsecond}'
+    pattern = rf"{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}:{now.second}.{now.microsecond}"
     assert_that(
         result,
         instance_of(str),
-        matches_regexp(pattern) # type: ignore
+        matches_regexp(pattern),  # type: ignore
     )
 
 
@@ -52,11 +52,11 @@ def test_float_timestamp_format():
     timestamp = now.timestamp()
     result = format_datetime(timestamp)
     # %Y/%m/%d %H:%M:%S.%f %Z%z
-    pattern = rf'{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}:{now.second}.{now.microsecond}'
+    pattern = rf"{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}:{now.second}.{now.microsecond}"
     assert_that(
         result,
         instance_of(str),
-        matches_regexp(pattern) # type: ignore
+        matches_regexp(pattern),  # type: ignore
     )
 
 
@@ -64,23 +64,21 @@ def test_round_timestamp():
     now = datetime.now()
     now = now.replace(second=0, microsecond=0)
     result = format_datetime(now)
-    pattern = rf'{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}'
+    pattern = rf"{now.year}/{now.month}/{now.day} {now.hour}:{now.minute}"
     assert_that(
         result,
         instance_of(str),
-        matches_regexp(pattern) # type: ignore
+        matches_regexp(pattern),  # type: ignore
     )
 
     now = now.replace(hour=0, minute=0)
-    pattern = rf'{now.year}/{now.month}/{now.day}'
+    pattern = rf"{now.year}/{now.month}/{now.day}"
     assert_that(
         result,
         instance_of(str),
-        matches_regexp(pattern) # type: ignore
+        matches_regexp(pattern),  # type: ignore
     )
 
+
 def test_format_datetime_with_unsupported_value_type():
-    assert_that(
-        calling(format_datetime).with_args('hello'),
-        raises(ValueError, r'Unsupported value type - str')
-    )
+    assert_that(calling(format_datetime).with_args("hello"), raises(ValueError, r"Unsupported value type - str"))

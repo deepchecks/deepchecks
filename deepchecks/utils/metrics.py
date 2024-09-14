@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module with methods for general metrics."""
+
 from typing import Union
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics._scorer import _BaseScorer
 
-__all__ = ['get_gain', 'get_scorer_name', 'averaging_mechanism', 'is_label_none']
+__all__ = ["get_gain", "get_scorer_name", "averaging_mechanism", "is_label_none"]
 
 from deepchecks.core.errors import DeepchecksValueError
 
@@ -41,8 +42,8 @@ def get_gain(base_score, score, perfect_score, max_gain):
 def get_scorer_name(scorer) -> str:
     """Get scorer name from a scorer."""
     if isinstance(scorer, str):
-        return scorer[:scorer.index('_per_class')] if scorer.endswith('_per_class') else scorer
-    if hasattr(scorer, '__name__'):
+        return scorer[: scorer.index("_per_class")] if scorer.endswith("_per_class") else scorer
+    if hasattr(scorer, "__name__"):
         return scorer.__name__
     if isinstance(scorer, _BaseScorer):
         return scorer._score_func.__name__  # pylint: disable=protected-access
@@ -71,21 +72,21 @@ def averaging_mechanism(averaging_method: str, scores_per_class, weights=None) -
     score : Union[np.ndarray, float]
         The score for the given metric.
     """
-    if averaging_method == 'binary':
+    if averaging_method == "binary":
         if len(scores_per_class) != 2:
             raise DeepchecksValueError('Averaging method "binary" can only be used in binary classification.')
         return scores_per_class[1]
-    elif averaging_method == 'per_class':
+    elif averaging_method == "per_class":
         return np.asarray(scores_per_class)
-    elif averaging_method == 'macro':
+    elif averaging_method == "macro":
         # Classes that did not appear in the data are not considered as part of macro averaging.
         return np.mean(scores_per_class) if weights is None else np.mean(scores_per_class[weights != 0])
-    elif averaging_method == 'weighted':
+    elif averaging_method == "weighted":
         if weights is None:
-            raise DeepchecksValueError('Weights are required in order to apply weighted averaging method.')
+            raise DeepchecksValueError("Weights are required in order to apply weighted averaging method.")
         return np.multiply(scores_per_class, weights).sum() / sum(weights)
     else:
-        raise DeepchecksValueError(f'Unknown averaging {averaging_method}')
+        raise DeepchecksValueError(f"Unknown averaging {averaging_method}")
 
 
 def is_label_none(label):

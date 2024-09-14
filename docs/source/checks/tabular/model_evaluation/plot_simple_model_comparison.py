@@ -38,17 +38,16 @@ The simple models are:
   can be customized using the ``max_depth`` parameter.
 """
 
-#%%
+# %%
 # Generate data & model
 # =====================
 
-from deepchecks.tabular.datasets.classification.phishing import (
-    load_data, load_fitted_model)
+from deepchecks.tabular.datasets.classification.phishing import load_data, load_fitted_model
 
 train_dataset, test_dataset = load_data()
 model = load_fitted_model()
 
-#%%
+# %%
 # Run the check
 # =============
 # We will run the check with the **tree** model type. The check will use the default
@@ -62,10 +61,10 @@ model = load_fitted_model()
 from deepchecks.tabular.checks import SimpleModelComparison
 
 # Using tree model as a simple model, and changing the tree depth from the default 3 to 5
-check = SimpleModelComparison(strategy='tree', max_depth=5)
+check = SimpleModelComparison(strategy="tree", max_depth=5)
 check.run(train_dataset, test_dataset, model)
 
-#%%
+# %%
 # Observe the check's output
 # --------------------------
 # We can see in the results that the check calculates the score for each class in
@@ -87,7 +86,7 @@ check = SimpleModelComparison()
 result = check.run(train_dataset, test_dataset, model)
 result.value
 
-#%%
+# %%
 # Define a condition
 # ==================
 # We can define on our check a condition that will validate our model is better than
@@ -106,11 +105,11 @@ result.value
 #
 # Let's add a condition to the check and see what happens when it fails:
 
-check = SimpleModelComparison(strategy='tree')
+check = SimpleModelComparison(strategy="tree")
 check.add_condition_gain_greater_than(0.9)
 result = check.run(train_dataset, test_dataset, model)
 result.show(show_additional_outputs=False)
 
-#%%
+# %%
 # We detected that for class "1" our gain did not passed the target gain we
 # defined, therefore it failed.

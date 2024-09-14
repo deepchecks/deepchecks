@@ -42,7 +42,7 @@ The check performs several steps:
    performance on data segments surrounding them.
 """
 
-#%%
+# %%
 # Generate Dataset
 # =================
 #
@@ -55,24 +55,24 @@ The check performs several steps:
 from deepchecks.vision.checks import WeakSegmentsPerformance
 from deepchecks.vision.datasets.detection import coco_torch as coco
 
-coco_data = coco.load_dataset(train=False, object_type='VisionData')
+coco_data = coco.load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 # Run the check
 # =============
 check = WeakSegmentsPerformance()
 result = check.run(coco_data)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
 
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Observe the check's output
 # --------------------------
 #
@@ -82,20 +82,23 @@ result
 # the ``result.value`` attribute. Shown below are the 3 segments with the worst performance.
 
 
-result.value['weak_segments_list'].head(3)
+result.value["weak_segments_list"].head(3)
 
-#%%
+# %%
 # Now we will run a check with properties and minimum segment size ratio (the minimal fraction of the data to be
 # considered as a segment) different from the defaults.
 from deepchecks.vision.utils.image_properties import brightness, texture_level
-properties = [{'name': 'brightness', 'method': brightness, 'output_type': 'numerical'},
-              {'name': ' texture', 'method': texture_level, 'output_type': 'numerical'}]
+
+properties = [
+    {"name": "brightness", "method": brightness, "output_type": "numerical"},
+    {"name": " texture", "method": texture_level, "output_type": "numerical"},
+]
 check = WeakSegmentsPerformance(segment_minimum_size_ratio=0.03, image_properties=properties)
 result = check.run(coco_data)
 result.show()
 
 
-#%%
+# %%
 # Define a condition
 # ==================
 #

@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Contain functions for configuring the deepchecks logger."""
+
 import logging
 
-__all__ = ['get_logger', 'get_verbosity', 'set_verbosity']
+__all__ = ["get_logger", "get_verbosity", "set_verbosity"]
 
 import warnings
 
-_logger = logging.getLogger('deepchecks')
+_logger = logging.getLogger("deepchecks")
 
 _stream_handler = logging.StreamHandler()
 _stream_handler.setLevel(logging.INFO)
-_formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+_formatter = logging.Formatter("%(name)s - %(levelname)s - %(message)s")
 _stream_handler.setFormatter(_formatter)
 _logger.addHandler(_stream_handler)  # for some reason kaggle needs it
 _logger.setLevel(logging.INFO)
@@ -56,8 +57,4 @@ def set_verbosity(level: int):
     """
     _logger.setLevel(level)
     if level >= logging.ERROR:
-        warnings.filterwarnings(
-            action='ignore',
-            message=r'.*',
-            module=r'deepchecks.*'
-        )
+        warnings.filterwarnings(action="ignore", message=r".*", module=r"deepchecks.*")

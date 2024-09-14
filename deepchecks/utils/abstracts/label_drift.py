@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """The base abstract functionality for label drift checks."""
+
 import abc
 import typing as t
-
-import pandas as pd
-from typing_extensions import Self
 
 from deepchecks import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
 
-__all__ = ['LabelDriftAbstract']
+import pandas as pd
+from typing_extensions import Self
+
+__all__ = ["LabelDriftAbstract"]
 
 
 class LabelDriftAbstract(abc.ABC):
@@ -30,7 +31,7 @@ class LabelDriftAbstract(abc.ABC):
     min_category_size_ratio: float
     max_num_categories_for_display: t.Optional[int]
     show_categories_by: str
-    numerical_drift_method: str = 'KS'
+    numerical_drift_method: str = "KS"
     categorical_drift_method: str
     balance_classes: bool
     ignore_na: bool
@@ -39,9 +40,15 @@ class LabelDriftAbstract(abc.ABC):
     random_state: int
     add_condition: t.Callable[..., t.Any]
 
-    def _calculate_label_drift(self, train_column, test_column, label_name: str, column_type: str, with_display: bool,
-                               dataset_names: t.Optional[t.Tuple[str, str]]) -> CheckResult:
-
+    def _calculate_label_drift(
+        self,
+        train_column,
+        test_column,
+        label_name: str,
+        column_type: str,
+        with_display: bool,
+        dataset_names: t.Optional[t.Tuple[str, str]],
+    ) -> CheckResult:
         drift_score, method, display = calc_drift_and_plot(
             train_column=pd.Series(train_column),
             test_column=pd.Series(test_column),
@@ -59,22 +66,24 @@ class LabelDriftAbstract(abc.ABC):
             min_samples=self.min_samples,
             raise_min_samples_error=True,
             with_display=with_display,
-            dataset_names=dataset_names
+            dataset_names=dataset_names,
         )
 
-        values_dict = {'Drift score': drift_score, 'Method': method}
+        values_dict = {"Drift score": drift_score, "Method": method}
 
         if with_display:
-            displays = ["""<span>
+            displays = [
+                """<span>
                         The Drift score is a measure for the difference between two distributions, in this check -
                         the test and train distributions.<br> The check shows the drift score
                         and distributions for the label. </span>""",
-                        get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
-                        display]
+                get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
+                display,
+            ]
         else:
             displays = None
 
-        return CheckResult(value=values_dict, display=displays, header='Label Drift')
+        return CheckResult(value=values_dict, display=displays, header="Label Drift")
 
     def add_condition_drift_score_less_than(self, max_allowed_drift_score: float = 0.15) -> Self:
         """
@@ -95,11 +104,11 @@ class LabelDriftAbstract(abc.ABC):
         """
 
         def condition(result: t.Dict) -> ConditionResult:
-            drift_score = result['Drift score']
-            method = result['Method']
+            drift_score = result["Drift score"]
+            method = result["Method"]
 
-            details = f'Label\'s drift score {method} is {format_number(drift_score)}'
+            details = f"Label's drift score {method} is {format_number(drift_score)}"
             category = ConditionCategory.FAIL if drift_score > max_allowed_drift_score else ConditionCategory.PASS
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Label drift score < {max_allowed_drift_score}', condition)
+        return self.add_condition(f"Label drift score < {max_allowed_drift_score}", condition)

@@ -22,11 +22,11 @@ Kurtosis is a measure of the shape of the distribution, helping us understand if
 Systematic error, otherwise known as the error bias, is the mean prediction error of the model.
 """
 
-#%%
+# %%
 # Run the check
 # =============
 
-#%%
+# %%
 # Generate data & model
 # ----------------------
 from sklearn.datasets import load_diabetes
@@ -37,9 +37,9 @@ diabetes_df = load_diabetes(return_X_y=False, as_frame=True).frame
 train_df, test_df = train_test_split(diabetes_df, test_size=0.33, random_state=42)
 
 clf = GradientBoostingRegressor(random_state=0)
-clf.fit(train_df.drop('target', axis=1), train_df['target'])
+clf.fit(train_df.drop("target", axis=1), train_df["target"])
 
-#%%
+# %%
 # Run the check (normal distribution)
 # ---------------------------------------
 # Since the following distribution resembles the normal distribution, both
@@ -48,18 +48,18 @@ clf.fit(train_df.drop('target', axis=1), train_df['target'])
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import RegressionErrorDistribution
 
-test = Dataset(test_df, label='target', cat_features=['sex'])
+test = Dataset(test_df, label="target", cat_features=["sex"])
 check = RegressionErrorDistribution()
 check.run(test, clf)
 
-#%%
+# %%
 # Skewing the data & rerun the check
 # ----------------------------------
 
 test.data[test.label_name] = 150
 check.run(test, clf)
 
-#%%
+# %%
 # Define a condition
 # ==================
 # After artificially skewing the target variable, both the kurtosis value and the systematic error

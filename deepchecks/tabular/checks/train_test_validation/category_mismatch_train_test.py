@@ -8,6 +8,7 @@
 # ----------------------------------------------------------------------------
 #
 """The category mismatch train-test check module."""
+
 import warnings
 
 from .new_category_train_test import NewCategoryTrainTest
@@ -18,7 +19,6 @@ class CategoryMismatchTrainTest(NewCategoryTrainTest):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        warnings.warn('CategoryMismatchTrainTest is deprecated, use NewCategoryTrainTest instead',
-                      DeprecationWarning)
+        warnings.warn("CategoryMismatchTrainTest is deprecated, use NewCategoryTrainTest instead", DeprecationWarning)
 
     pass

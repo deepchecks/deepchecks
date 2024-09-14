@@ -9,8 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module of preprocessing functions."""
+
 import copy
 import warnings
+
 # pylint: disable=invalid-name,unused-argument
 from collections import Counter
 from typing import List, Tuple, Union
@@ -19,21 +21,25 @@ import numpy as np
 import pandas as pd
 
 with warnings.catch_warnings():
-    warnings.simplefilter(action='ignore', category=FutureWarning)
+    warnings.simplefilter(action="ignore", category=FutureWarning)
     from category_encoders import OneHotEncoder
-
-from sklearn.base import BaseEstimator, TransformerMixin
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import MinMaxScaler
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.distribution.rare_category_encoder import RareCategoryEncoder
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['ScaledNumerics', 'preprocess_2_cat_cols_to_same_bins', 'value_frequency',
-           'convert_multi_label_to_multi_class']
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import MinMaxScaler
 
-OTHER_CATEGORY_NAME = 'Other rare categories'
+__all__ = [
+    "ScaledNumerics",
+    "preprocess_2_cat_cols_to_same_bins",
+    "value_frequency",
+    "convert_multi_label_to_multi_class",
+]
+
+OTHER_CATEGORY_NAME = "Other rare categories"
 
 
 class ScaledNumerics(TransformerMixin, BaseEstimator):
@@ -66,17 +72,18 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
         X = X.apply(ScaledNumerics._impute_whole_series_to_zero, axis=0)
 
         if self.cat_columns:
-            self.categorical_imputer = SimpleImputer(strategy='most_frequent')
+            self.categorical_imputer = SimpleImputer(strategy="most_frequent")
             self.categorical_imputer.fit(X[self.cat_columns])
         if self.not_cat_columns:
-            self.numeric_imputer = SimpleImputer(strategy='mean')
+            self.numeric_imputer = SimpleImputer(strategy="mean")
             self.numeric_imputer.fit(X[self.not_cat_columns])
             self.scaler = MinMaxScaler()
             self.scaler.fit(X[self.not_cat_columns])
 
         # Replace non-common categories with special value:
-        self.rare_category_encoder = RareCategoryEncoder(max_num_categories=self.max_num_categories,
-                                                         cols=self.cat_columns)
+        self.rare_category_encoder = RareCategoryEncoder(
+            max_num_categories=self.max_num_categories, cols=self.cat_columns
+        )
         self.rare_category_encoder.fit(X)
 
         # One-hot encode categorical features:
@@ -114,10 +121,13 @@ class ScaledNumerics(TransformerMixin, BaseEstimator):
             return s
 
 
-def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist2: Union[np.ndarray, pd.Series],
-                                       min_category_size_ratio: float = 0., max_num_categories: int = None,
-                                       sort_by: str = 'dist1'
-                                       ) -> Tuple[np.ndarray, np.ndarray, List]:
+def preprocess_2_cat_cols_to_same_bins(
+    dist1: Union[np.ndarray, pd.Series],
+    dist2: Union[np.ndarray, pd.Series],
+    min_category_size_ratio: float = 0.0,
+    max_num_categories: int = None,
+    sort_by: str = "dist1",
+) -> Tuple[np.ndarray, np.ndarray, List]:
     """
     Preprocess distributions to the same bins.
 
@@ -165,19 +175,24 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
     categories_list = list(set(dist1_counter.keys()) | (set(dist2_counter.keys())))
 
     if max_num_categories is not None and len(categories_list) > max_num_categories:
-        if sort_by == 'dist1':
+        if sort_by == "dist1":
             sort_by_counter = dist1_counter
-        elif sort_by == 'dist2':
+        elif sort_by == "dist2":
             sort_by_counter = dist2_counter
-        elif sort_by == 'difference':
-            sort_by_counter = Counter({key: abs(dist1_counter[key] - dist2_counter[key])
-                                       for key in set(dist1_counter.keys()).union(dist2_counter.keys())})
+        elif sort_by == "difference":
+            sort_by_counter = Counter(
+                {
+                    key: abs(dist1_counter[key] - dist2_counter[key])
+                    for key in set(dist1_counter.keys()).union(dist2_counter.keys())
+                }
+            )
         else:
-            raise DeepchecksValueError(f'sort_by got unexpected value: {sort_by}')
+            raise DeepchecksValueError(f"sort_by got unexpected value: {sort_by}")
 
         # Not using most_common func of Counter as it's not deterministic for equal values
         categories_list = [x[0] for x in sorted(sort_by_counter.items(), key=lambda x: (-x[1], x[0]))][
-                          :max_num_categories]
+            :max_num_categories
+        ]
         dist1_counter = Counter({k: dist1_counter[k] for k in categories_list})
         dist1_counter[OTHER_CATEGORY_NAME] = size_dist1 - sum(dist1_counter.values())
         dist2_counter = Counter({k: dist2_counter[k] for k in categories_list})
@@ -189,8 +204,9 @@ def preprocess_2_cat_cols_to_same_bins(dist1: Union[np.ndarray, pd.Series], dist
             dist2_counter[OTHER_CATEGORY_NAME] += dist2_counter[cat]
             categories_list.remove(cat)
 
-    if dist1_counter[OTHER_CATEGORY_NAME] > (min_category_size_ratio * size_dist1) or \
-            dist2_counter[OTHER_CATEGORY_NAME] > (min_category_size_ratio * size_dist2):
+    if dist1_counter[OTHER_CATEGORY_NAME] > (min_category_size_ratio * size_dist1) or dist2_counter[
+        OTHER_CATEGORY_NAME
+    ] > (min_category_size_ratio * size_dist2):
         categories_list.append(OTHER_CATEGORY_NAME)
 
     # aligns both counts to the same index

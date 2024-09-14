@@ -9,41 +9,43 @@
 # ----------------------------------------------------------------------------
 #
 """The base abstract functionality for prediction drift checks."""
+
 import abc
 import typing as t
-
-import numpy as np
-import pandas as pd
 
 from deepchecks import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.utils.distribution.drift import calc_drift_and_plot, get_drift_plot_sidenote
 from deepchecks.utils.strings import format_number
 
-__all__ = ['PredictionDriftAbstract']
+import numpy as np
+import pandas as pd
+
+__all__ = ["PredictionDriftAbstract"]
 
 
 class PredictionDriftAbstract(abc.ABC):
     """Base class for prediction drift checks."""
 
-    drift_mode: str = 'auto'
+    drift_mode: str = "auto"
     margin_quantile_filter: float = 0.025
     max_num_categories_for_drift: int = None
     min_category_size_ratio: float = 0.01
     max_num_categories_for_display: int = 10
-    show_categories_by: str = 'largest_difference'
-    numerical_drift_method: str = 'KS'
-    categorical_drift_method: str = 'cramers_v'
+    show_categories_by: str = "largest_difference"
+    numerical_drift_method: str = "KS"
+    categorical_drift_method: str = "cramers_v"
     balance_classes: bool = False
     ignore_na: bool = True
-    aggregation_method: t.Optional[str] = 'max'
+    aggregation_method: t.Optional[str] = "max"
     max_classes_to_display: int = 3
     min_samples: t.Optional[int] = 10
     n_samples: int = 100_000
     random_state: int = 42
     add_condition: t.Callable[..., t.Any]
 
-    def _prediction_drift(self, train_prediction, test_prediction, model_classes, with_display,
-                          proba_drift, cat_plot) -> CheckResult:
+    def _prediction_drift(
+        self, train_prediction, test_prediction, model_classes, with_display, proba_drift, cat_plot
+    ) -> CheckResult:
         """Calculate prediction drift.
 
         Args:
@@ -75,8 +77,11 @@ class PredictionDriftAbstract(abc.ABC):
             # Get the classes in the same order as the model's predictions
             train_converted_from_proba = train_prediction.argmax(axis=1)
             test_converted_from_proba = test_prediction.argmax(axis=1)
-            samples_per_class = pd.Series(np.concatenate([train_converted_from_proba, test_converted_from_proba], axis=0
-                                                         ).squeeze()).value_counts().sort_index()
+            samples_per_class = (
+                pd.Series(np.concatenate([train_converted_from_proba, test_converted_from_proba], axis=0).squeeze())
+                .value_counts()
+                .sort_index()
+            )
 
             # If label exists, get classes from it and map the samples_per_class index to these classes
             if model_classes is not None:
@@ -88,23 +93,27 @@ class PredictionDriftAbstract(abc.ABC):
             samples_per_class = samples_per_class.to_dict()
         else:
             # Get the classes in the same order as the model's predictions
-            samples_per_class = pd.Series(np.concatenate([train_prediction, test_prediction], axis=0
-                                                         ).squeeze()).value_counts().to_dict()
+            samples_per_class = (
+                pd.Series(np.concatenate([train_prediction, test_prediction], axis=0).squeeze())
+                .value_counts()
+                .to_dict()
+            )
             classes = list(sorted(samples_per_class.keys()))
 
-        has_min_samples = hasattr(self, 'min_samples')
+        has_min_samples = hasattr(self, "min_samples")
         additional_kwargs = {}
         if has_min_samples:
-            additional_kwargs['min_samples'] = self.min_samples
+            additional_kwargs["min_samples"] = self.min_samples
 
         for class_idx in range(train_prediction.shape[1]):
             class_name = classes[class_idx]
             drift_score_dict[class_name], method, drift_display_dict[class_name] = calc_drift_and_plot(
                 train_column=pd.Series(train_prediction[:, class_idx].flatten()),
                 test_column=pd.Series(test_prediction[:, class_idx].flatten()),
-                value_name='model predictions' if not proba_drift else
-                f'predicted probabilities for class {class_name}',
-                column_type='categorical' if cat_plot else 'numerical',
+                value_name="model predictions"
+                if not proba_drift
+                else f"predicted probabilities for class {class_name}",
+                column_type="categorical" if cat_plot else "numerical",
                 margin_quantile_filter=self.margin_quantile_filter,
                 max_num_categories_for_drift=self.max_num_categories_for_drift,
                 min_category_size_ratio=self.min_category_size_ratio,
@@ -116,29 +125,38 @@ class PredictionDriftAbstract(abc.ABC):
                 ignore_na=self.ignore_na,
                 raise_min_samples_error=has_min_samples,
                 with_display=with_display,
-                **additional_kwargs
+                **additional_kwargs,
             )
 
         if with_display:
-            headnote = [f"""<span>
+            headnote = [
+                f"""<span>
                 The Drift score is a measure for the difference between two distributions, in this check - the test
                 and train distributions.<br> The check shows the drift score and distributions for the predicted
                 {'class probabilities' if proba_drift else 'classes'}.
-            </span>""", get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by)]
+            </span>""",
+                get_drift_plot_sidenote(self.max_num_categories_for_display, self.show_categories_by),
+            ]
 
             # sort classes by their drift score
-            displays = headnote + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()),
-                                                        reverse=True)][:self.max_classes_to_display]
+            displays = (
+                headnote
+                + [x for _, x in sorted(zip(drift_score_dict.values(), drift_display_dict.values()), reverse=True)][
+                    : self.max_classes_to_display
+                ]
+            )
         else:
             displays = None
 
         # Return float if single value (happens by default) or the whole dict if computing on probabilities for
         # multi-class tasks.
         values_dict = {
-            'Drift score': drift_score_dict if len(drift_score_dict) > 1 else list(drift_score_dict.values())[0],
-            'Method': method, 'Samples per class': samples_per_class}
+            "Drift score": drift_score_dict if len(drift_score_dict) > 1 else list(drift_score_dict.values())[0],
+            "Method": method,
+            "Samples per class": samples_per_class,
+        }
 
-        return CheckResult(value=values_dict, display=displays, header='Prediction Drift')
+        return CheckResult(value=values_dict, display=displays, header="Prediction Drift")
 
     def add_condition_drift_score_less_than(self, max_allowed_drift_score: float = 0.15):
         """
@@ -159,23 +177,25 @@ class PredictionDriftAbstract(abc.ABC):
         """
 
         def condition(result: t.Dict) -> ConditionResult:
-            drift_score_dict = result['Drift score']
+            drift_score_dict = result["Drift score"]
             # Move to dict for easier looping
             if not isinstance(drift_score_dict, dict):
                 drift_score_dict = {0: drift_score_dict}
-            method = result['Method']
+            method = result["Method"]
             has_failed = {}
             drift_score = 0
             for class_name, drift_score in drift_score_dict.items():
                 has_failed[class_name] = drift_score > max_allowed_drift_score
 
             if len(has_failed) == 1:
-                details = f'Found model prediction {method} drift score of {format_number(drift_score)}'
+                details = f"Found model prediction {method} drift score of {format_number(drift_score)}"
             else:
-                details = f'Found {sum(has_failed.values())} classes with model predicted probability {method} drift' \
-                          f' score above threshold: {max_allowed_drift_score}.'
+                details = (
+                    f"Found {sum(has_failed.values())} classes with model predicted probability {method} drift"
+                    f" score above threshold: {max_allowed_drift_score}."
+                )
 
             category = ConditionCategory.FAIL if any(has_failed.values()) else ConditionCategory.PASS
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Prediction drift score < {max_allowed_drift_score}', condition)
+        return self.add_condition(f"Prediction drift score < {max_allowed_drift_score}", condition)

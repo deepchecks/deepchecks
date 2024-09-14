@@ -10,7 +10,7 @@ deepchecks.vision
 .. autosummary::
     :toctree: generated
     :caption: Modules
-    
+
     checks
     suites
     datasets

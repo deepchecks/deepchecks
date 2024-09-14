@@ -67,7 +67,8 @@ result.show()
 # We can also use a different tokenizer, such as the GPT2 tokenizer, to see how the results change.
 
 from transformers import AutoTokenizer
-tokenizer = AutoTokenizer.from_pretrained('gpt2')
+
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
 
 UnknownTokens(tokenizer=tokenizer).run(dataset)
 
@@ -87,11 +88,11 @@ UnknownTokens(tokenizer=tokenizer).run(dataset)
 
 from pprint import pprint
 
-unknown_word_details = result.value['unknown_word_details']
+unknown_word_details = result.value["unknown_word_details"]
 first_unknown_word = list(unknown_word_details.keys())[0]
 print(f"Unknown word: {first_unknown_word}")
 
-word_indexes = unknown_word_details[first_unknown_word]['indexes']
+word_indexes = unknown_word_details[first_unknown_word]["indexes"]
 pprint(dataset.text[word_indexes].tolist())
 
 # %%

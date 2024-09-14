@@ -51,9 +51,8 @@ A dataset containing comments, metadata and labels for a multilabel category cla
 from deepchecks.nlp import TextData
 from deepchecks.nlp.datasets.classification import just_dance_comment_analysis
 
-data = just_dance_comment_analysis.load_data(data_format='DataFrame',
-                                             as_train_test=False)
-metadata_cols = ['likes', 'dateComment']
+data = just_dance_comment_analysis.load_data(data_format="DataFrame", as_train_test=False)
+metadata_cols = ["likes", "dateComment"]
 data.head(2)
 
 # %%
@@ -64,11 +63,15 @@ data.head(2)
 # also properties and metadata. It stores
 # cache to save time between repeated computations and contains functionalities for input validations and sampling.
 
-label_cols = data.drop(columns=['originalText'] + metadata_cols)
+label_cols = data.drop(columns=["originalText"] + metadata_cols)
 class_names = label_cols.columns.to_list()
-dataset = TextData(data['originalText'], label=label_cols.to_numpy().astype(int),
-                   task_type='text_classification',
-                   metadata=data[metadata_cols], categorical_metadata=[])
+dataset = TextData(
+    data["originalText"],
+    label=label_cols.to_numpy().astype(int),
+    task_type="text_classification",
+    metadata=data[metadata_cols],
+    categorical_metadata=[],
+)
 
 # %%
 # Calculating Properties
@@ -87,7 +90,7 @@ dataset = TextData(data['originalText'], label=label_cols.to_numpy().astype(int)
 # dataset.calculate_builtin_properties(include_long_calculation_properties=True, device=device)
 
 properties = just_dance_comment_analysis.load_properties(as_train_test=False)
-dataset.set_properties(properties, categorical_properties=['Language'])
+dataset.set_properties(properties, categorical_properties=["Language"])
 dataset.properties.head(2)
 
 # %%
@@ -151,10 +154,9 @@ data_integrity_suite.run(dataset, model_classes=class_names)
 from deepchecks.nlp.suites import train_test_validation
 
 train_ds, test_ds = just_dance_comment_analysis.load_data(
-    data_format='TextData', as_train_test=True,
-    include_embeddings=True, include_properties=True)
-train_test_validation(n_samples=1000).run(train_ds, test_ds,
-                                          model_classes=class_names)
+    data_format="TextData", as_train_test=True, include_embeddings=True, include_properties=True
+)
+train_test_validation(n_samples=1000).run(train_ds, test_ds, model_classes=class_names)
 
 # %%
 # Train Test Validation #1: Properties Drift
@@ -189,22 +191,25 @@ train_test_validation(n_samples=1000).run(train_ds, test_ds,
 # The suite below, the :mod:`model_evaluation <deepchecks.nlp.suites>` suite, is designed to be run after a model has
 # been trained and requires model predictions which can be supplied via the relevant arguments in the ``run`` function.
 
-train_preds, test_preds = just_dance_comment_analysis.\
-    load_precalculated_predictions(pred_format='predictions',
-                                   as_train_test=True)
-train_probas, test_probas = just_dance_comment_analysis.\
-    load_precalculated_predictions(pred_format='probabilities',
-                                   as_train_test=True)
+train_preds, test_preds = just_dance_comment_analysis.load_precalculated_predictions(
+    pred_format="predictions", as_train_test=True
+)
+train_probas, test_probas = just_dance_comment_analysis.load_precalculated_predictions(
+    pred_format="probabilities", as_train_test=True
+)
 
 from deepchecks.nlp.suites import model_evaluation
 
 suite = model_evaluation(n_samples=1000)
-result = suite.run(train_ds, test_ds,
-                   train_predictions=train_preds,
-                   test_predictions=test_preds,
-                   train_probabilities=train_probas,
-                   test_probabilities=test_probas,
-                   model_classes=class_names)
+result = suite.run(
+    train_ds,
+    test_ds,
+    train_predictions=train_preds,
+    test_predictions=test_preds,
+    train_probabilities=train_probas,
+    test_probabilities=test_probas,
+    model_classes=class_names,
+)
 result.show()
 
 # %%
@@ -245,7 +250,7 @@ result.show()
 # used for further analysis, create custom visualizations or to set custom conditions.
 #
 
-result.value['weak_segments_list'].head(3)
+result.value["weak_segments_list"].head(3)
 
 # %%
 # You can find the full list of available NLP checks in the

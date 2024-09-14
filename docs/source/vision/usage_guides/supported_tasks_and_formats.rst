@@ -199,4 +199,3 @@ The advanced option: Add custom metrics and properties for the
 predictions and labels provided and run additional checks.
 For more information on how to do so, see the
 :ref:`vision__custom_check` tutorial.
-

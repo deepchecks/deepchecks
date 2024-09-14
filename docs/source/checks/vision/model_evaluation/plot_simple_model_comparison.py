@@ -43,7 +43,7 @@ on your data.
 This checks applies only to classification datasets.
 """
 
-#%%
+# %%
 # Generate Dataset
 # ----------------
 #
@@ -56,33 +56,33 @@ This checks applies only to classification datasets.
 from deepchecks.vision.checks import SimpleModelComparison
 from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
-#%%
+# %%
 
 
-train_ds = mnist.load_dataset(train=True, object_type='VisionData')
-test_ds = mnist.load_dataset(train=False, object_type='VisionData')
+train_ds = mnist.load_dataset(train=True, object_type="VisionData")
+test_ds = mnist.load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 # Run the check
 # -------------
 # We will run the check with the prior model type. The check will use the default
 # classification metrics - precision and recall. This can be overridden by
 # providing an alternative scorer using the ``scorers``` parameter.
 
-check = SimpleModelComparison(strategy='stratified')
+check = SimpleModelComparison(strategy="stratified")
 result = check.run(train_ds, test_ds)
 
-#%%
+# %%
 result.show()
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Observe the check's output
 # --------------------------
 # We can see in the results that the check calculates the score for each class
@@ -93,9 +93,9 @@ result.show()
 #
 # The value is a dataframe that contains the metrics' values for each class and dataset:
 
-result.value.sort_values(by=['Class', 'Metric']).head(10)
+result.value.sort_values(by=["Class", "Metric"]).head(10)
 
-#%%
+# %%
 # Define a condition
 # ==================
 # We can define on our check a condition that will validate our model is better than
@@ -114,11 +114,11 @@ result.value.sort_values(by=['Class', 'Metric']).head(10)
 #
 # Let's add a condition to the check and see what happens when it fails:
 
-check = SimpleModelComparison(strategy='stratified')
+check = SimpleModelComparison(strategy="stratified")
 check.add_condition_gain_greater_than(min_allowed_gain=0.99)
 result = check.run(train_ds, test_ds)
 result.show()
 
-#%%
+# %%
 # We detected that for several classes our gain did not passed the target gain we
 # defined, therefore it failed.

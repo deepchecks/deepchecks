@@ -22,8 +22,11 @@ Right reserved to P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis.
 Modeling wine preferences by data mining from physicochemical properties.
 In Decision Support Systems, Elsevier, 47(4):547-553, 2009.
 """
+
 import typing as t
 from urllib.request import urlopen
+
+from deepchecks.tabular.dataset import Dataset
 
 import joblib
 import pandas as pd
@@ -35,23 +38,32 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from deepchecks.tabular.dataset import Dataset
-
-__all__ = ['load_data', 'load_fitted_model']
-_MODEL_URL = 'https://ndownloader.figshare.com/files/36146916'
-_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/36146853'
-_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/36146856'
-_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/36146859'
-_MODEL_VERSION = '1.0.2'
-_target = 'quality'
+__all__ = ["load_data", "load_fitted_model"]
+_MODEL_URL = "https://ndownloader.figshare.com/files/36146916"
+_FULL_DATA_URL = "https://ndownloader.figshare.com/files/36146853"
+_TRAIN_DATA_URL = "https://ndownloader.figshare.com/files/36146856"
+_TEST_DATA_URL = "https://ndownloader.figshare.com/files/36146859"
+_MODEL_VERSION = "1.0.2"
+_target = "quality"
 _CAT_FEATURES = []
-_NUM_FEATURES = ['fixed acidity', 'volatile acidity', 'citric acid', 'residual sugar',
-                 'chlorides', 'free sulfur dioxide', 'total sulfur dioxide', 'density',
-                 'pH', 'sulphates', 'alcohol']
+_NUM_FEATURES = [
+    "fixed acidity",
+    "volatile acidity",
+    "citric acid",
+    "residual sugar",
+    "chlorides",
+    "free sulfur dioxide",
+    "total sulfur dioxide",
+    "density",
+    "pH",
+    "sulphates",
+    "alcohol",
+]
 
 
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+def load_data(
+    data_format: str = "Dataset", as_train_test: bool = True
+) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Wine Quality dataset (regression).
 
     Parameters
@@ -76,7 +88,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     if not as_train_test:
         dataset = pd.read_csv(_FULL_DATA_URL)
 
-        if data_format == 'Dataset':
+        if data_format == "Dataset":
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES)
 
         return dataset
@@ -84,7 +96,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         train = pd.read_csv(_TRAIN_DATA_URL)
         test = pd.read_csv(_TEST_DATA_URL)
 
-        if data_format == 'Dataset':
+        if data_format == "Dataset":
             train = Dataset(train, label=_target, cat_features=_CAT_FEATURES)
             test = Dataset(test, label=_target, cat_features=_CAT_FEATURES)
 
@@ -112,15 +124,23 @@ def load_fitted_model(pretrained=True):
 
 def _build_model():
     """Build the model to fit."""
-    return Pipeline(steps=[
-        ('preprocessor',
-         ColumnTransformer(transformers=[('num',
-                                          Pipeline(steps=[('imputer',
-                                                           SimpleImputer(strategy='median')),
-                                                          ('scaler',
-                                                           StandardScaler())]),
-                                          _NUM_FEATURES),
-                                         ('cat', OneHotEncoder(),
-                                          _CAT_FEATURES)])),
-        ('classifier', RandomForestRegressor(random_state=0, max_depth=7, n_estimators=30))
-    ])
+    return Pipeline(
+        steps=[
+            (
+                "preprocessor",
+                ColumnTransformer(
+                    transformers=[
+                        (
+                            "num",
+                            Pipeline(
+                                steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]
+                            ),
+                            _NUM_FEATURES,
+                        ),
+                        ("cat", OneHotEncoder(), _CAT_FEATURES),
+                    ]
+                ),
+            ),
+            ("classifier", RandomForestRegressor(random_state=0, max_depth=7, n_estimators=30)),
+        ]
+    )

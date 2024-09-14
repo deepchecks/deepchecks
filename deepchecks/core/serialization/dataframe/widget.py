@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing widget serializer for the pandas.DataFrame type."""
-import typing as t
 
-import pandas as pd
-from ipywidgets import HTML
-from pandas.io.formats.style import Styler
+import typing as t
 
 from deepchecks.core.serialization.abc import WidgetSerializer
 
 from . import html
 
-__all__ = ['DataFrameSerializer']
+import pandas as pd
+from ipywidgets import HTML
+from pandas.io.formats.style import Styler
+
+__all__ = ["DataFrameSerializer"]
 
 
 DataFrameOrStyler = t.Union[pd.DataFrame, Styler]
@@ -36,9 +37,7 @@ class DataFrameSerializer(WidgetSerializer[DataFrameOrStyler]):
 
     def __init__(self, value: DataFrameOrStyler, **kwargs):
         if not isinstance(value, (pd.DataFrame, Styler)):
-            raise TypeError(
-                f'Expected "Union[DataFrame, Styler]" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "Union[DataFrame, Styler]" but got "{type(value).__name__}"')
         super().__init__(value=value)
         self._html_serializer = html.DataFrameSerializer(self.value)
 

@@ -9,14 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """Module of RareCategoryEncoder."""
+
 from collections import defaultdict
 from typing import List, Optional
 
-import pandas as pd
-
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['RareCategoryEncoder']
+import pandas as pd
+
+__all__ = ["RareCategoryEncoder"]
 
 
 class RareCategoryEncoder:
@@ -33,13 +34,9 @@ class RareCategoryEncoder:
         Columns to limit the encoder to work on. If non are given will work on all columns given in `fit`
     """
 
-    DEFAULT_OTHER_VALUE = 'OTHER_RARE_CATEGORY'
+    DEFAULT_OTHER_VALUE = "OTHER_RARE_CATEGORY"
 
-    def __init__(
-        self,
-        max_num_categories: int = 10,
-        cols: Optional[List[Hashable]] = None
-    ):
+    def __init__(self, max_num_categories: int = 10, cols: Optional[List[Hashable]] = None):
         self.max_num_categories = max_num_categories
         self.cols = cols
         self._col_mapping = None
@@ -76,7 +73,7 @@ class RareCategoryEncoder:
             transformed data
         """
         if self._col_mapping is None:
-            raise RuntimeError('Cannot transform without fitting first')
+            raise RuntimeError("Cannot transform without fitting first")
 
         if self.cols is not None:
             data = data.copy()

@@ -9,16 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains class_imbalance check."""
-import typing as t
 
-import plotly.express as px
+import typing as t
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['ClassImbalance']
+import plotly.express as px
+
+__all__ = ["ClassImbalance"]
 
 
 class ClassImbalance(SingleDatasetCheck):
@@ -33,12 +34,7 @@ class ClassImbalance(SingleDatasetCheck):
         the number of unique values.
     """
 
-    def __init__(
-            self,
-            n_top_labels: int = 5,
-            ignore_nan: bool = True,
-            **kwargs
-    ):
+    def __init__(self, n_top_labels: int = 5, ignore_nan: bool = True, **kwargs):
         super().__init__(**kwargs)
         self.n_top_labels = n_top_labels
         self.ignore_nan = ignore_nan
@@ -63,8 +59,8 @@ class ClassImbalance(SingleDatasetCheck):
         if context.with_display:
             vc_ser_plot = vc_ser.head(self.n_top_labels).copy()
             xaxis_layout = dict(
-                title='Class',
-                type='category',
+                title="Class",
+                type="category",
                 # NOTE:
                 # the range, in this case, is needed to fix a problem with
                 # too wide bars when there are only one or two of them in
@@ -72,20 +68,24 @@ class ClassImbalance(SingleDatasetCheck):
                 # The min value of the range (range(min, max)) is bigger because
                 # otherwise bars will not be centralized on the plot, they will
                 # appear on the left part of the plot (that is probably because of zero)
-                range=(-3, len(vc_ser.index) + 2)
+                range=(-3, len(vc_ser.index) + 2),
             )
-            fig = px.bar(vc_ser_plot, x=vc_ser_plot.index, y=vc_ser_plot.values,
-                         text=vc_ser_plot.values.astype(str),
-                         title='Class Label Distribution').update_layout(
-                yaxis_title='Frequency', height=400,
-                xaxis=xaxis_layout)
-            fig.update_traces(textposition='outside')
+            fig = px.bar(
+                vc_ser_plot,
+                x=vc_ser_plot.index,
+                y=vc_ser_plot.values,
+                text=vc_ser_plot.values.astype(str),
+                title="Class Label Distribution",
+            ).update_layout(yaxis_title="Frequency", height=400, xaxis=xaxis_layout)
+            fig.update_traces(textposition="outside")
             fig.update_layout(yaxis_range=[0, 1])
             if self.n_top_labels < len(vc_ser):
-                text = f'* showing only the top {self.n_top_labels} labels, you can change it ' \
-                       f'by using n_top_labels param'
+                text = (
+                    f"* showing only the top {self.n_top_labels} labels, you can change it "
+                    f"by using n_top_labels param"
+                )
             else:
-                text = ''
+                text = ""
             display = [fig, text]
         else:
             display = None
@@ -102,12 +102,14 @@ class ClassImbalance(SingleDatasetCheck):
         class_imbalance_ratio_th: float, default: 0.1
             threshold for least frequent label to most frequent label.
         """
-        name = 'The ratio between least frequent label to most frequent label ' \
-               f'is less than or equal {class_imbalance_ratio_th}'
+        name = (
+            "The ratio between least frequent label to most frequent label "
+            f"is less than or equal {class_imbalance_ratio_th}"
+        )
 
         def threshold_condition(result: t.Dict[Hashable, float]) -> ConditionResult:
             class_ratio = result[list(result.keys())[-1]] / result[list(result.keys())[0]]
-            details = f'The ratio between least to most frequent label is {format_number(class_ratio)}'
+            details = f"The ratio between least to most frequent label is {format_number(class_ratio)}"
             if class_ratio >= class_imbalance_ratio_th:
                 return ConditionResult(ConditionCategory.WARN, details)
 

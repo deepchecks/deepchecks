@@ -53,14 +53,14 @@ the context object, which has the following optional members:
 - **model**: the model
 
 When writing your run_logic() function, you can access the train and test datasets using the context object.
-For more examples of using the Context object for different types of base checks, see the 
+For more examples of using the Context object for different types of base checks, see the
 :ref:`tabular__custom_check_templates` guide.
 
 Check Example
 -------------
 """
 
-#%%
+# %%
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
@@ -68,43 +68,44 @@ from deepchecks.tabular import Context, Dataset, TrainTestCheck
 
 class DatasetSizeComparison(TrainTestCheck):
     """Check which compares the sizes of train and test datasets."""
-    
+
     def run_logic(self, context: Context) -> CheckResult:
         ## Check logic
         train_size = context.train.n_samples
         test_size = context.test.n_samples
-        
+
         ## Return value as check result
-        return_value = {'train_size': train_size, 'test_size': test_size}
+        return_value = {"train_size": train_size, "test_size": test_size}
         return CheckResult(return_value)
 
-#%%
+
+# %%
 # Hooray! we just implemented a custom check. Now let's create two Datasets and try to run it:
 
 import pandas as pd
 
 # We'll use dummy data for the purpose of this demonstration
-train_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3,4,5,6,7,8,9]}), label=None)
-test_dataset = Dataset(pd.DataFrame(data={'x': [1,2,3]}), label=None)
+train_dataset = Dataset(pd.DataFrame(data={"x": [1, 2, 3, 4, 5, 6, 7, 8, 9]}), label=None)
+test_dataset = Dataset(pd.DataFrame(data={"x": [1, 2, 3]}), label=None)
 
 result = DatasetSizeComparison().run(train_dataset, test_dataset)
 result
 
-#%%
+# %%
 # Our check ran successfully but we got the print "Nothing found". This is
 # because we haven't defined to the check anything to display, so the default
 # behavior is to print "Nothing found". In order to access the value that
 # we have defined earlier we can use the "value" property on the result.
 
-#%%
+# %%
 
 result.value
 
-#%%
+# %%
 # To see code references for more complex checks (that can receive parameters
 # etc.), check out any of your favorite checks from our `API Reference <../../../api/deepchecks.tabular.checks.html>`__.
 
-#%%
+# %%
 # Check Display
 # =============
 # Most of the times we will want our checks to have a visual display that will
@@ -117,39 +118,40 @@ result.value
 #
 # *Good to know: ``display`` can receive a single object to display or a list of objects*
 
-import matplotlib.pyplot as plt
-
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, Dataset, TrainTestCheck
+
+import matplotlib.pyplot as plt
 
 
 class DatasetSizeComparison(TrainTestCheck):
     """Check which compares the sizes of train and test datasets."""
-    
+
     def run_logic(self, context: Context) -> CheckResult:
         ## Check logic
         train_size = context.train.n_samples
         test_size = context.test.n_samples
-        
+
         ## Create the check result value
-        sizes = {'Train': train_size, 'Test': test_size}
-        sizes_df_for_display =  pd.DataFrame(sizes, index=['Size'])
-        
+        sizes = {"Train": train_size, "Test": test_size}
+        sizes_df_for_display = pd.DataFrame(sizes, index=["Size"])
+
         ## Display function of matplotlib graph:
         def graph_display():
-            plt.bar(sizes.keys(), sizes.values(), color='green')
+            plt.bar(sizes.keys(), sizes.values(), color="green")
             plt.xlabel("Dataset")
             plt.ylabel("Size")
             plt.title("Datasets Size Comparison")
-        
+
         return CheckResult(sizes, display=[sizes_df_for_display, graph_display])
 
-#%%
+
+# %%
 # Let us check it out
 
 DatasetSizeComparison().run(train_dataset, test_dataset)
 
-#%%
+# %%
 # Voila!
 # ------
 # Now we have a check that prints a graph and has a value. We can add this

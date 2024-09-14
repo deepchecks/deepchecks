@@ -9,27 +9,38 @@
 # ----------------------------------------------------------------------------
 #
 """Contain functions for handling dataframes in checks."""
-import typing as t
 
-import numpy as np
-import pandas as pd
-from pandas.core.dtypes.common import is_float_dtype, is_integer_dtype, is_numeric_dtype
+import typing as t
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.type_inference import infer_categorical_features
 from deepchecks.utils.typing import Hashable
 from deepchecks.utils.validation import ensure_hashable_or_mutable_sequence
 
-__all__ = ['validate_columns_exist', 'select_from_dataframe', 'un_numpy', 'generalized_corrwith',
-           'floatify_dataframe', 'floatify_series', 'default_fill_na_per_column_type',
-           'is_float_column', 'default_fill_na_series',
-           'cast_categorical_to_object_dtype', 'hide_index_for_display']
+import numpy as np
+import pandas as pd
+from pandas.core.dtypes.common import is_float_dtype, is_integer_dtype, is_numeric_dtype
+
+__all__ = [
+    "validate_columns_exist",
+    "select_from_dataframe",
+    "un_numpy",
+    "generalized_corrwith",
+    "floatify_dataframe",
+    "floatify_series",
+    "default_fill_na_per_column_type",
+    "is_float_column",
+    "default_fill_na_series",
+    "cast_categorical_to_object_dtype",
+    "hide_index_for_display",
+]
 
 
-def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Optional[t.Union[pd.Series, t.List]]) \
-        -> pd.DataFrame:
+def default_fill_na_per_column_type(
+    df: pd.DataFrame, cat_features: t.Optional[t.Union[pd.Series, t.List]]
+) -> pd.DataFrame:
     """Fill NaN values per column type."""
-    pd.set_option('mode.chained_assignment', None)
+    pd.set_option("mode.chained_assignment", None)
     if cat_features is None:
         cat_features = infer_categorical_features(df)
 
@@ -43,10 +54,10 @@ def default_fill_na_per_column_type(df: pd.DataFrame, cat_features: t.Optional[t
 
 def default_fill_na_series(col: pd.Series, is_cat_column: t.Optional[bool] = None) -> t.Optional[pd.Series]:
     """Fill NaN values based on column type if possible otherwise returns None."""
-    if is_cat_column and 'None' not in col.astype('object').dropna().unique():
-        return col.astype('object').fillna('None')
+    if is_cat_column and "None" not in col.astype("object").dropna().unique():
+        return col.astype("object").fillna("None")
     elif is_numeric_dtype(col):
-        return col.astype('float64').fillna(np.nan)
+        return col.astype("float64").fillna(np.nan)
 
     common_values_list = col.mode()
     if isinstance(common_values_list, pd.Series) and len(common_values_list) > 0:
@@ -70,7 +81,7 @@ def floatify_dataframe(df: pd.DataFrame):
     dtype_dict = df.dtypes.to_dict()
     for col_name, dtype in dtype_dict.items():
         if is_integer_dtype(dtype):
-            dtype_dict[col_name] = 'float'
+            dtype_dict[col_name] = "float"
     return df.astype(dtype_dict)
 
 
@@ -122,9 +133,7 @@ def un_numpy(val):
 
 
 def validate_columns_exist(
-        df: pd.DataFrame,
-        columns: t.Union[Hashable, t.List[Hashable]],
-        raise_error: bool = True
+    df: pd.DataFrame, columns: t.Union[Hashable, t.List[Hashable]], raise_error: bool = True
 ) -> bool:
     """Validate given columns exist in dataframe.
 
@@ -144,7 +153,7 @@ def validate_columns_exist(
         If receives empty list of 'columns'.
         If not all elements within 'columns' list are hashable.
     """
-    error_message = 'columns - expected to receive not empty list of hashable values!'
+    error_message = "columns - expected to receive not empty list of hashable values!"
     columns = ensure_hashable_or_mutable_sequence(columns, message=error_message)
 
     is_empty = len(columns) == 0
@@ -158,16 +167,16 @@ def validate_columns_exist(
     all_columns_present = len(difference) == 0
 
     if raise_error and not all_columns_present:
-        stringified_columns = ','.join(map(str, difference))
-        raise DeepchecksValueError(f'Given columns do not exist in dataset: {stringified_columns}')
+        stringified_columns = ",".join(map(str, difference))
+        raise DeepchecksValueError(f"Given columns do not exist in dataset: {stringified_columns}")
 
     return all_columns_present
 
 
 def select_from_dataframe(
-        df: pd.DataFrame,
-        columns: t.Union[Hashable, t.List[Hashable], None] = None,
-        ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None
+    df: pd.DataFrame,
+    columns: t.Union[Hashable, t.List[Hashable], None] = None,
+    ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
 ) -> pd.DataFrame:
     """Filter DataFrame columns by given params.
 
@@ -192,8 +201,7 @@ def select_from_dataframe(
     """
     if columns is not None and ignore_columns is not None:
         raise DeepchecksValueError(
-            'Cannot receive both parameters "columns" and "ignore", '
-            'only one must be used at most'
+            'Cannot receive both parameters "columns" and "ignore", ' "only one must be used at most"
         )
     elif columns is not None:
         columns = ensure_hashable_or_mutable_sequence(columns)
@@ -202,7 +210,7 @@ def select_from_dataframe(
     elif ignore_columns is not None:
         ignore_columns = ensure_hashable_or_mutable_sequence(ignore_columns)
         validate_columns_exist(df, ignore_columns)
-        return df.drop(labels=ignore_columns, axis='columns')
+        return df.drop(labels=ignore_columns, axis="columns")
     else:
         return df
 
@@ -257,15 +265,15 @@ def cast_categorical_to_object_dtype(df: pd.DataFrame) -> pd.DataFrame:
     # NOTE:
     # pandas have bug with groupby on category dtypes,
     # so until it fixed, change dtypes manually
-    categorical_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
+    categorical_columns = df.dtypes[df.dtypes == "category"].index.tolist()
     if categorical_columns:
-        df = df.astype({c: 'object' for c in categorical_columns})
+        df = df.astype({c: "object" for c in categorical_columns})
     return df
 
 
-def hide_index_for_display(df: t.Union[pd.DataFrame, pd.io.formats.style.Styler]) -> pd.io.formats.style.Styler:
+def hide_index_for_display(df: t.Any) -> t.Any:
     """Hide the index of a dataframe for display."""
     styler = df.style if isinstance(df, pd.DataFrame) else df
-    if hasattr(styler, 'hide'):
-        return styler.hide(axis='index')
+    if hasattr(styler, "hide"):
+        return styler.hide(axis="index")
     return styler.hide_index()

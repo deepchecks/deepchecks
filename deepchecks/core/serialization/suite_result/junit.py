@@ -9,21 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing JUnit serializer for the SuiteResult type."""
+
 import re
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from typing import Dict, List, Union
 
-from six import u
-
-from deepchecks.core import check_result as check_types
-from deepchecks.core import suite
+from deepchecks.core import check_result as check_types, suite
 from deepchecks.core.serialization.abc import JunitSerializer
 from deepchecks.core.serialization.check_failure.junit import FAILURE, SKIPPED, CheckFailureSerializer
 from deepchecks.core.serialization.check_result.junit import CheckResultSerializer
 
-__all__ = ['SuiteResultSerializer']
+from six import u
+
+__all__ = ["SuiteResultSerializer"]
 
 
 def _clean_illegal_xml_chars(string_to_clean):
@@ -57,13 +57,13 @@ def _clean_illegal_xml_chars(string_to_clean):
         (0x10FFFE, 0x10FFFF),
     ]
 
-    illegal_ranges = [f'{chr(low)}-{chr(high)}' for (low, high) in illegal_unichrs if low < sys.maxunicode]
+    illegal_ranges = [f"{chr(low)}-{chr(high)}" for (low, high) in illegal_unichrs if low < sys.maxunicode]
 
-    illegal_xml_re = re.compile(u('[%s]') % u('').join(illegal_ranges))
-    return illegal_xml_re.sub('', string_to_clean)
+    illegal_xml_re = re.compile(u("[%s]") % u("").join(illegal_ranges))
+    return illegal_xml_re.sub("", string_to_clean)
 
 
-class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
+class SuiteResultSerializer(JunitSerializer["suite.SuiteResult"]):
     """Serializes any SuiteResult instance into Junit format.
 
     Parameters
@@ -72,19 +72,13 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
         SuiteResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'suite.SuiteResult', **kwargs):
+    def __init__(self, value: "suite.SuiteResult", **kwargs):
         if not isinstance(value, suite.SuiteResult):
-            raise TypeError(
-                f'Expected "SuiteResult" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "SuiteResult" but got "{type(value).__name__}"')
         super().__init__(value=value)
 
     def serialize(
-        self,
-        failure_tag: str = 'failure',
-        encoding: str = 'utf-8',
-        return_xml: bool = False,
-        **kwargs
+        self, failure_tag: str = "failure", encoding: str = "utf-8", return_xml: bool = False, **kwargs
     ) -> Union[str, ET.Element]:
         """Serialize a SuiteResult instance into Junit format. This can then be output as a str or a XML object.
 
@@ -106,7 +100,7 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
         Union[str, ET.Element]
         """
         if failure_tag not in [FAILURE, SKIPPED]:
-            raise ValueError(f'failure_tag must be one of {FAILURE} or {SKIPPED}')
+            raise ValueError(f"failure_tag must be one of {FAILURE} or {SKIPPED}")
 
         results = self._serialize_test_cases(encoding, failure_tag)
 
@@ -143,29 +137,39 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
 
         for this_suite in results.keys():
             attributes = {
-                'name': this_suite
-                , 'errors': '0'
-                , 'tests': str(len(results[this_suite]))
-                , 'timestamp': datetime.now().replace(microsecond=0).isoformat()
+                "name": this_suite,
+                "errors": "0",
+                "tests": str(len(results[this_suite])),
+                "timestamp": datetime.now().replace(microsecond=0).isoformat(),
             }
 
-            if failure_tag == f'{FAILURE}':
-                attributes.update({'failures': str(
-                    sum(list(results[this_suite][i])[0].tag == FAILURE for i in range(len(results[this_suite]))))})
-            elif failure_tag == f'{SKIPPED}':
-                attributes.update({'skipped': str(
-                    sum(list(results[this_suite][i])[0].tag == SKIPPED for i in range(len(results[this_suite]))))})
-                attributes.update({'failures': '0'})
+            if failure_tag == f"{FAILURE}":
+                attributes.update(
+                    {
+                        "failures": str(
+                            sum(list(results[this_suite][i])[0].tag == FAILURE for i in range(len(results[this_suite])))
+                        )
+                    }
+                )
+            elif failure_tag == f"{SKIPPED}":
+                attributes.update(
+                    {
+                        "skipped": str(
+                            sum(list(results[this_suite][i])[0].tag == SKIPPED for i in range(len(results[this_suite])))
+                        )
+                    }
+                )
+                attributes.update({"failures": "0"})
 
-            suite_time = sum([int(this_result.attrib['time']) for this_result in results[this_suite]])
+            suite_time = sum([int(this_result.attrib["time"]) for this_result in results[this_suite]])
             run_time += suite_time
 
-            attributes.update({'time': str(suite_time)})
+            attributes.update({"time": str(suite_time)})
 
-            test_suite = ET.SubElement(root, 'testsuite', attrib=attributes)
+            test_suite = ET.SubElement(root, "testsuite", attrib=attributes)
             test_suite.extend(results[this_suite])
 
-        root.attrib['time'] = str(run_time)
+        root.attrib["time"] = str(run_time)
 
         return root
 
@@ -186,19 +190,15 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
         """
         count = sum([len(value) for key, value in results.items()])
 
-        attributes = {
-            'name': self.value.name
-            , 'errors': '0'
-            , 'tests': str(count)
-        }
+        attributes = {"name": self.value.name, "errors": "0", "tests": str(count)}
 
-        if failure_tag == f'{FAILURE}':
-            attributes.update({'failures': str(len(self.value.failures))})
-        elif failure_tag == f'{SKIPPED}':
-            attributes.update({'skipped': str(len(self.value.failures))})
-            attributes.update({'failures': '0'})
+        if failure_tag == f"{FAILURE}":
+            attributes.update({"failures": str(len(self.value.failures))})
+        elif failure_tag == f"{SKIPPED}":
+            attributes.update({"skipped": str(len(self.value.failures))})
+            attributes.update({"failures": "0"})
 
-        root = ET.Element('testsuites', attrib=attributes)
+        root = ET.Element("testsuites", attrib=attributes)
 
         return root
 
@@ -225,13 +225,14 @@ class SuiteResultSerializer(JunitSerializer['suite.SuiteResult']):
             elif isinstance(it, check_types.CheckFailure):
                 result = CheckFailureSerializer(it).serialize(encoding=encoding, failure_tag=failure_tag)
             else:
-                raise TypeError(f'Unknown result type - {type(it)}')
+                raise TypeError(f"Unknown result type - {type(it)}")
 
-            if 'checks' in result.attrib['classname'].split('.'):
-                test_suite_name = result.attrib['classname'].split('.')[
-                    result.attrib['classname'].split('.').index('checks') + 1]
+            if "checks" in result.attrib["classname"].split("."):
+                test_suite_name = result.attrib["classname"].split(".")[
+                    result.attrib["classname"].split(".").index("checks") + 1
+                ]
             else:
-                test_suite_name = 'checks'
+                test_suite_name = "checks"
 
             if test_suite_name not in results:
                 results[test_suite_name] = [result]

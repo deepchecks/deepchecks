@@ -9,15 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """module contains base logic for the train-test samples mix checks."""
+
 import abc
 import typing as t
-
-from typing_extensions import Self
 
 from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.utils.strings import format_percent
 
-__all__ = ['TrainTestSamplesMixAbstract']
+from typing_extensions import Self
+
+__all__ = ["TrainTestSamplesMixAbstract"]
 
 
 class TrainTestSamplesMixAbstract(abc.ABC):
@@ -34,18 +35,19 @@ class TrainTestSamplesMixAbstract(abc.ABC):
         max_ratio : float , default: 0.05
             Max allowed ratio of test data samples to appear in train data
         """
+
         def condition(result: dict) -> ConditionResult:
-            ratio = result['ratio']
+            ratio = result["ratio"]
             details = (
-                f'Percent of test data samples that appear in train data: {format_percent(ratio)}'
+                f"Percent of test data samples that appear in train data: {format_percent(ratio)}"
                 if ratio
-                else 'No samples mix found'
+                else "No samples mix found"
             )
             category = ConditionCategory.PASS if ratio <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
         return self.add_condition(
-            f'Percentage of test data samples that appear in train data '
-            f'is less or equal to {format_percent(max_ratio)}',
-            condition
+            f"Percentage of test data samples that appear in train data "
+            f"is less or equal to {format_percent(max_ratio)}",
+            condition,
         )

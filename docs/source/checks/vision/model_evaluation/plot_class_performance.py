@@ -40,7 +40,7 @@ In addition to the default metrics, the check supports custom metrics, as detail
 These can be passed as a list using the scorers parameter of the check, which will override the default metrics.
 """
 
-#%%
+# %%
 # Imports
 # -------
 #
@@ -53,17 +53,17 @@ These can be passed as a list using the scorers parameter of the check, which wi
 from deepchecks.vision.checks import ClassPerformance
 from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
-#%%
+# %%
 # Classification Performance Report
 # =================================
 # Generate Dataset
 # -----------------
 
 
-train_ds = mnist.load_dataset(train=True, object_type='VisionData')
-test_ds = mnist.load_dataset(train=False, object_type='VisionData')
+train_ds = mnist.load_dataset(train=True, object_type="VisionData")
+test_ds = mnist.load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 # Run the check
 # -------------
 
@@ -71,17 +71,17 @@ check = ClassPerformance()
 result = check.run(train_ds, test_ds)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 #
 # .. code-block:: python
 #
 #    result.show_in_window()
 
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Object Detection Class Performance
 # ==================================
 # For object detection tasks - the default metric that is being calculated it the
@@ -97,47 +97,47 @@ result
 
 from deepchecks.vision.datasets.detection import coco_torch as coco
 
-#%%
+# %%
 # Generate Dataset
 # ----------------
 # We generate a sample dataset of 128 images from the `COCO dataset <https://cocodataset.org/#home>`__,
 # and using the `YOLOv5 model <https://github.com/ultralytics/yolov5>`__.
 
-train_ds = coco.load_dataset(train=True, object_type='VisionData')
-test_ds = coco.load_dataset(train=False, object_type='VisionData')
+train_ds = coco.load_dataset(train=True, object_type="VisionData")
+test_ds = coco.load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 # Run the check
 # -------------
 
-check = ClassPerformance(show_only='best')
+check = ClassPerformance(show_only="best")
 result = check.run(train_ds, test_ds)
 result.show()
 
-#%%
+# %%
 # If you have a GPU, you can speed up this check by calling:
 
 # check.run(train_ds, test_ds, yolo, device=<your GPU>)
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 # result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Define a Condition
 # ==================
 # We can also define a condition to validate that our model performance is above a certain threshold.
 # The condition is defined as a function that takes the results of the check as input and
 # returns a ConditionResult object.
 
-check = ClassPerformance(show_only='worst')
+check = ClassPerformance(show_only="worst")
 check.add_condition_test_performance_greater_than(0.2)
 result = check.run(train_ds, test_ds)
 result.show()
 
 
-#%%
+# %%
 # We detected that for several classes our model performance is below the threshold.

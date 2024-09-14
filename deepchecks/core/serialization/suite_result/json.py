@@ -9,18 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing JSON serializer for the SuiteResult type."""
+
 import typing as t
 
-from deepchecks.core import check_result as check_types
-from deepchecks.core import suite
+from deepchecks.core import check_result as check_types, suite
 from deepchecks.core.serialization.abc import JsonSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer
 
-__all__ = ['SuiteResultSerializer']
+__all__ = ["SuiteResultSerializer"]
 
 
-class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
+class SuiteResultSerializer(JsonSerializer["suite.SuiteResult"]):
     """Serializes any SuiteResult instance into JSON format.
 
     Parameters
@@ -29,18 +29,12 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
         SuiteResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'suite.SuiteResult', **kwargs):
+    def __init__(self, value: "suite.SuiteResult", **kwargs):
         if not isinstance(value, suite.SuiteResult):
-            raise TypeError(
-                f'Expected "SuiteResult" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "SuiteResult" but got "{type(value).__name__}"')
         super().__init__(value=value)
 
-    def serialize(
-        self,
-        with_display: bool = True,
-        **kwargs
-    ) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
+    def serialize(self, with_display: bool = True, **kwargs) -> t.Union[t.Dict[t.Any, t.Any], t.List[t.Any]]:
         """Serialize a SuiteResult instance into JSON format.
 
         Parameters
@@ -64,6 +58,6 @@ class SuiteResultSerializer(JsonSerializer['suite.SuiteResult']):
             elif isinstance(it, check_types.CheckFailure):
                 results.append(CheckFailureSerializer(it).serialize())
             else:
-                raise TypeError(f'Unknown result type - {type(it)}')
+                raise TypeError(f"Unknown result type - {type(it)}")
 
-        return {'name': self.value.name, 'results': results, 'type' : 'SuiteResult'}
+        return {"name": self.value.name, "results": results, "type": "SuiteResult"}

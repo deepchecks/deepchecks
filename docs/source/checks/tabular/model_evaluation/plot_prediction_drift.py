@@ -37,29 +37,26 @@ This check detects prediction drift by using :ref:`univariate measures <drift_de
 on the prediction output.
 """
 
-#%%
-
-
-from sklearn.preprocessing import LabelEncoder
+# %%
 
 from deepchecks.tabular.checks import PredictionDrift
 from deepchecks.tabular.datasets.classification import adult
 
-#%%
+# %%
 # Generate data
 # =============
 
-label_name = 'income'
+label_name = "income"
 train_ds, test_ds = adult.load_data()
 
-#%%
+# %%
 # Introducing drift:
 
-test_ds.data['education-num'] = 13
-test_ds.data['education'] = ' Bachelors'
+test_ds.data["education-num"] = 13
+test_ds.data["education"] = " Bachelors"
 
 
-#%%
+# %%
 # Build Model
 # ===========
 
@@ -70,7 +67,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder
 
-#%%
+# %%
 
 
 numeric_transformer = SimpleImputer()
@@ -89,7 +86,7 @@ preprocessor = ColumnTransformer(
 model = Pipeline(steps=[("preprocessing", preprocessor), ("model", RandomForestClassifier(max_depth=5, n_jobs=-1))])
 model = model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
 
-#%%
+# %%
 # Run check
 # =========
 
@@ -97,11 +94,11 @@ check = PredictionDrift()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
 result
 
-#%%
+# %%
 # The prediction drift check can also calculate drift on the predicted classes rather than the probabilities. This is
 # the default behavior for multiclass tasks. To force this behavior for binary tasks, set the ``drift_mode`` parameter
 # to ``prediction``.
 
-check = PredictionDrift(drift_mode='prediction')
+check = PredictionDrift(drift_mode="prediction")
 result = check.run(train_dataset=train_ds, test_dataset=test_ds, model=model)
 result

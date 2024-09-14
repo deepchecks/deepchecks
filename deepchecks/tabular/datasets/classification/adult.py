@@ -101,8 +101,11 @@ Description:
          - Target
          - The target variable, whether the person makes over 50K a year.
 """
+
 import typing as t
 from urllib.request import urlopen
+
+from deepchecks.tabular.dataset import Dataset
 
 import joblib
 import pandas as pd
@@ -113,25 +116,46 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
-from deepchecks.tabular.dataset import Dataset
+__all__ = ["load_data", "load_fitted_model"]
 
-__all__ = ['load_data', 'load_fitted_model']
-
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122753'
-_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/34516457'
-_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/34516448'
-_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/34516454'
-_MODEL_VERSION = '1.0.2'
-_FEATURES = ['age', 'workclass', 'fnlwgt', 'education', 'education-num', 'marital-status', 'occupation', 'relationship',
-             'race', 'sex', 'capital-gain', 'capital-loss', 'hours-per-week', 'native-country']
-_target = 'income'
-_CAT_FEATURES = ['workclass', 'education', 'marital-status', 'occupation', 'relationship', 'race', 'sex',
-                 'native-country']
+_MODEL_URL = "https://figshare.com/ndownloader/files/35122753"
+_FULL_DATA_URL = "https://ndownloader.figshare.com/files/34516457"
+_TRAIN_DATA_URL = "https://ndownloader.figshare.com/files/34516448"
+_TEST_DATA_URL = "https://ndownloader.figshare.com/files/34516454"
+_MODEL_VERSION = "1.0.2"
+_FEATURES = [
+    "age",
+    "workclass",
+    "fnlwgt",
+    "education",
+    "education-num",
+    "marital-status",
+    "occupation",
+    "relationship",
+    "race",
+    "sex",
+    "capital-gain",
+    "capital-loss",
+    "hours-per-week",
+    "native-country",
+]
+_target = "income"
+_CAT_FEATURES = [
+    "workclass",
+    "education",
+    "marital-status",
+    "occupation",
+    "relationship",
+    "race",
+    "sex",
+    "native-country",
+]
 _NUM_FEATURES = sorted(list(set(_FEATURES) - set(_CAT_FEATURES)))
 
 
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+def load_data(
+    data_format: str = "Dataset", as_train_test: bool = True
+) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Adult dataset (classification).
 
     Parameters
@@ -156,12 +180,12 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     """
     if not as_train_test:
         dataset = pd.read_csv(_FULL_DATA_URL, names=_FEATURES + [_target])
-        dataset['income'] = dataset['income'].str.replace('.', '', regex=True)      # fix label inconsistency
+        dataset["income"] = dataset["income"].str.replace(".", "", regex=True)  # fix label inconsistency
 
-        if data_format == 'Dataset':
+        if data_format == "Dataset":
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES)
             return dataset
-        elif data_format == 'Dataframe':
+        elif data_format == "Dataframe":
             return dataset
         else:
             raise ValueError('data_format must be either "Dataset" or "Dataframe"')
@@ -170,11 +194,11 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         test = pd.read_csv(_TEST_DATA_URL, skiprows=1, names=_FEATURES + [_target])
         test[_target] = test[_target].str[:-1]
 
-        if data_format == 'Dataset':
+        if data_format == "Dataset":
             train = Dataset(train, label=_target, cat_features=_CAT_FEATURES)
             test = Dataset(test, label=_target, cat_features=_CAT_FEATURES)
             return train, test
-        elif data_format == 'Dataframe':
+        elif data_format == "Dataframe":
             return train, test
         else:
             raise ValueError('data_format must be either "Dataset" or "Dataframe"')
@@ -203,20 +227,20 @@ def _build_model():
     """Build the model to fit."""
     numeric_transformer = SimpleImputer()
     categorical_transformer = Pipeline(
-        steps=[('imputer', SimpleImputer(strategy='most_frequent')), ('encoder', OrdinalEncoder())]
+        steps=[("imputer", SimpleImputer(strategy="most_frequent")), ("encoder", OrdinalEncoder())]
     )
 
     preprocessor = ColumnTransformer(
         transformers=[
-            ('num', numeric_transformer, _NUM_FEATURES),
-            ('cat', categorical_transformer, _CAT_FEATURES),
+            ("num", numeric_transformer, _NUM_FEATURES),
+            ("cat", categorical_transformer, _CAT_FEATURES),
         ]
     )
 
     model = Pipeline(
         steps=[
-            ('preprocessing', preprocessor),
-            ('model', RandomForestClassifier(max_depth=5, n_jobs=-1, random_state=0))
+            ("preprocessing", preprocessor),
+            ("model", RandomForestClassifier(max_depth=5, n_jobs=-1, random_state=0)),
         ]
     )
 

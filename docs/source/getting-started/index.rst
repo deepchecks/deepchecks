@@ -8,4 +8,3 @@ Getting Started
 
     welcome
     installation
-    

@@ -9,14 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """The index_leakage check module."""
-import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 
-__all__ = ['IndexTrainTestLeakage']
+import pandas as pd
+
+__all__ = ["IndexTrainTestLeakage"]
 
 
 class IndexTrainTestLeakage(TrainTestCheck):
@@ -32,10 +33,7 @@ class IndexTrainTestLeakage(TrainTestCheck):
         random seed for all check internals.
     """
 
-    def __init__(self, n_to_show: int = 5,
-                 n_samples: int = 10_000_000,
-                 random_state: int = 42,
-                 **kwargs):
+    def __init__(self, n_to_show: int = 5, n_samples: int = 10_000_000, random_state: int = 42, **kwargs):
         super().__init__(**kwargs)
         self.n_index_to_show = n_to_show
         self.n_samples = n_samples
@@ -66,9 +64,10 @@ class IndexTrainTestLeakage(TrainTestCheck):
         if len(index_intersection) > 0:
             size_in_test = len(index_intersection) / test_dataset.n_samples
             if context.with_display:
-                text = f'{size_in_test:.1%} of test data indexes appear in training data'
-                table = pd.DataFrame([[list(index_intersection)[:self.n_index_to_show]]],
-                                     index=['Sample of test indexes in train:'])
+                text = f"{size_in_test:.1%} of test data indexes appear in training data"
+                table = pd.DataFrame(
+                    [[list(index_intersection)[: self.n_index_to_show]]], index=["Sample of test indexes in train:"]
+                )
                 display = [text, table]
             else:
                 display = None
@@ -76,7 +75,7 @@ class IndexTrainTestLeakage(TrainTestCheck):
             size_in_test = 0
             display = None
 
-        return CheckResult(value=size_in_test, header='Index Train-Test Leakage', display=display)
+        return CheckResult(value=size_in_test, header="Index Train-Test Leakage", display=display)
 
     def add_condition_ratio_less_or_equal(self, max_ratio: float = 0):
         """Add condition - require index leakage ratio to be less or equal to threshold.
@@ -86,10 +85,12 @@ class IndexTrainTestLeakage(TrainTestCheck):
         max_ratio : float , default: 0
             Maximum ratio of index leakage.
         """
+
         def max_ratio_condition(result: float) -> ConditionResult:
-            details = f'Found {format_percent(result)} of index leakage' if result > 0 else 'No index leakage found'
+            details = f"Found {format_percent(result)} of index leakage" if result > 0 else "No index leakage found"
             category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Ratio of leaking indices is less or equal to {format_percent(max_ratio)}',
-                                  max_ratio_condition)
+        return self.add_condition(
+            f"Ratio of leaking indices is less or equal to {format_percent(max_ratio)}", max_ratio_condition
+        )

@@ -9,18 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """The calibration score check module."""
-import typing as t
 
-import plotly.graph_objects as go
-from sklearn.calibration import calibration_curve
-from sklearn.metrics import brier_score_loss
+import typing as t
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksNotSupportedError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.typing import ClassificationModel
 
-__all__ = ['CalibrationScore']
+import plotly.graph_objects as go
+from sklearn.calibration import calibration_curve
+from sklearn.metrics import brier_score_loss
+
+__all__ = ["CalibrationScore"]
 
 
 class CalibrationScore(SingleDatasetCheck):
@@ -34,12 +35,7 @@ class CalibrationScore(SingleDatasetCheck):
         random seed for all check internals.
     """
 
-    def __init__(
-        self,
-        n_samples: int = 1_000_000,
-        random_state: int = 42,
-        **kwargs
-    ):
+    def __init__(self, n_samples: int = 1_000_000, random_state: int = 42, **kwargs):
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.random_state = random_state
@@ -65,10 +61,12 @@ class CalibrationScore(SingleDatasetCheck):
         model = t.cast(ClassificationModel, context.model)
 
         # Expect predict_proba to return in order of the sorted classes.
-        if not hasattr(context.model, 'predict_proba'):
-            raise DeepchecksNotSupportedError('Predicted probabilities not supplied. The calibration score check '
-                                              'tests the calibration of the predicted probabilities, rather'
-                                              ' than the predicted classes.')
+        if not hasattr(context.model, "predict_proba"):
+            raise DeepchecksNotSupportedError(
+                "Predicted probabilities not supplied. The calibration score check "
+                "tests the calibration of the predicted probabilities, rather"
+                " than the predicted classes."
+            )
         y_pred = model.predict_proba(ds_x)
 
         briers_scores = {}
@@ -84,53 +82,61 @@ class CalibrationScore(SingleDatasetCheck):
         if context.with_display:
             fig = go.Figure()
 
-            fig.add_trace(go.Scatter(
-                x=[0, 1],
-                y=[0, 1],
-                line_width=2, line_dash='dash',
-                name='Perfectly calibrated',
-            ))
+            fig.add_trace(
+                go.Scatter(
+                    x=[0, 1],
+                    y=[0, 1],
+                    line_width=2,
+                    line_dash="dash",
+                    name="Perfectly calibrated",
+                )
+            )
 
             if len(dataset_classes) == 2:
                 # Calibration curve must get labels of {0, 1} therefore in order to support other labels, apply mapping
                 ds_y = ds_y.apply(lambda x: 0 if x == dataset_classes[0] else 1)
                 fraction_of_positives, mean_predicted_value = calibration_curve(ds_y, y_pred[:, 1], n_bins=10)
 
-                fig.add_trace(go.Scatter(
-                    x=mean_predicted_value,
-                    y=fraction_of_positives,
-                    mode='lines+markers',
-                    name=f'(brier:{briers_scores[0]:9.4f})',
-                ))
+                fig.add_trace(
+                    go.Scatter(
+                        x=mean_predicted_value,
+                        y=fraction_of_positives,
+                        mode="lines+markers",
+                        name=f"(brier:{briers_scores[0]:9.4f})",
+                    )
+                )
             else:
                 for class_index, class_name in enumerate(dataset_classes):
                     prob_pos = y_pred[:, class_index]
 
-                    fraction_of_positives, mean_predicted_value = \
-                        calibration_curve(ds_y == class_name, prob_pos, n_bins=10)
+                    fraction_of_positives, mean_predicted_value = calibration_curve(
+                        ds_y == class_name, prob_pos, n_bins=10
+                    )
 
-                    fig.add_trace(go.Scatter(
-                        x=mean_predicted_value,
-                        y=fraction_of_positives,
-                        mode='lines+markers',
-                        name=f'{class_name} (brier:{briers_scores[class_name]:9.4f})',
-                    ))
+                    fig.add_trace(
+                        go.Scatter(
+                            x=mean_predicted_value,
+                            y=fraction_of_positives,
+                            mode="lines+markers",
+                            name=f"{class_name} (brier:{briers_scores[class_name]:9.4f})",
+                        )
+                    )
 
-            fig.update_layout(
-                title_text='Calibration plots (reliability curve)',
-                height=500
+            fig.update_layout(title_text="Calibration plots (reliability curve)", height=500)
+            fig.update_yaxes(title="Fraction of positives")
+            fig.update_xaxes(title="Mean predicted value")
+
+            calibration_text = (
+                "Calibration curves (also known as reliability diagrams) compare how well the "
+                "probabilistic predictions of a binary classifier are calibrated. It plots the true "
+                "frequency of the positive label against its predicted probability, for binned predictions."
             )
-            fig.update_yaxes(title='Fraction of positives')
-            fig.update_xaxes(title='Mean predicted value')
-
-            calibration_text = 'Calibration curves (also known as reliability diagrams) compare how well the ' \
-                'probabilistic predictions of a binary classifier are calibrated. It plots the true ' \
-                'frequency of the positive label against its predicted probability, for binned predictions.'
-            brier_text = 'The Brier score metric may be used to assess how well a classifier is calibrated. For more ' \
-                'info, please visit https://en.wikipedia.org/wiki/Brier_score'
+            brier_text = (
+                "The Brier score metric may be used to assess how well a classifier is calibrated. For more "
+                "info, please visit https://en.wikipedia.org/wiki/Brier_score"
+            )
             display = [calibration_text, fig, brier_text]
         else:
             display = None
 
-        return CheckResult(briers_scores, header='Calibration Metric',
-                           display=display)
+        return CheckResult(briers_scores, header="Calibration Metric", display=display)

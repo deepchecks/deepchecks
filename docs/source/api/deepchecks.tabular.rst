@@ -10,7 +10,7 @@ deepchecks.tabular
 .. autosummary::
     :toctree: generated
     :caption: Modules
-    
+
     checks
     suites
     datasets
@@ -19,7 +19,7 @@ deepchecks.tabular
     utils
 
 .. rubric:: Classes
-    
+
 .. autoclass:: Dataset
     :members:
     :inherited-members:

@@ -234,5 +234,3 @@ We will demonstrate the last option via the pytorch interface.
     vision_data = VisionData(data_loader, task_type='classification')
     # Visualize the data and verify it is in the correct format
     vision_data.head()
-
-

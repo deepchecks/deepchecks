@@ -10,11 +10,12 @@
 #
 # pylint: disable=invalid-hash-returned,invalid-name,unnecessary-ellipsis
 """Type definitions."""
+
 from typing import List
 
 from typing_extensions import Protocol, runtime_checkable
 
-__all__ = ['Hashable', 'BasicModel', 'ClassificationModel']
+__all__ = ["Hashable", "BasicModel", "ClassificationModel"]
 
 
 @runtime_checkable

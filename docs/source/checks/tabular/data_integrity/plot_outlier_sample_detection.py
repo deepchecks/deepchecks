@@ -32,11 +32,11 @@ feature and for categorical features it is an indicator for whether the values a
 # Imports
 # =======
 
-import pandas as pd
-from sklearn.datasets import load_iris
-
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import OutlierSampleDetection
+
+import pandas as pd
+from sklearn.datasets import load_iris
 
 # %%
 # Prepare data

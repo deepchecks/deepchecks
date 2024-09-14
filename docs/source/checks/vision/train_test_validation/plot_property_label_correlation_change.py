@@ -73,7 +73,7 @@ no predictive power) and 1 (feature can fully predict the label alone).
 
 The process of calculating the PPS is the following:
 """
-#%%
+# %%
 # 1. Extract from the data only the label and the feature being tested
 # 2. Drop samples with missing values
 # 3. Keep 5000 (this is configurable parameter) samples from the data
@@ -99,11 +99,11 @@ The process of calculating the PPS is the following:
 # or the following blog post: `RIP correlation. Introducing the Predictive Power Score
 # <https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598>`__
 
-#%%
+# %%
 # Run the check on a Classification task
 # ======================================
 
-#%%
+# %%
 # Loading data (MNIST)
 # --------------------
 #
@@ -113,14 +113,15 @@ The process of calculating the PPS is the following:
 #
 #       from deepchecks.vision.datasets.classification.mnist_tensorflow import load_dataset
 
-import numpy as np
 from deepchecks.vision.checks import PropertyLabelCorrelationChange
 from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
-train_ds = load_dataset(train=True, object_type='VisionData')
-test_ds = load_dataset(train=False, object_type='VisionData')
+import numpy as np
 
-#%%
+train_ds = load_dataset(train=True, object_type="VisionData")
+test_ds = load_dataset(train=False, object_type="VisionData")
+
+# %%
 # Insert bias
 # -----------
 # Let's see what happens when we insert bias into the dataset.
@@ -134,23 +135,25 @@ def generate_collate_function_with_leakage(collate_fn, mod):
     def collate_function_with_leakage(batch):
         """Create function which inverse the data normalization."""
         batch_dict = collate_fn(batch)
-        images = batch_dict['images']
-        labels = batch_dict['labels']
+        images = batch_dict["images"]
+        labels = batch_dict["labels"]
         # add some label/index correlation
         for i, label in enumerate(labels):
             if i % mod != 0:
                 images[i] = np.ones(images[i].shape) * int(i % 3 + 1) * int(label)
 
-        batch_dict['images'] = images
+        batch_dict["images"] = images
         return batch_dict
+
     return collate_function_with_leakage
 
-#%%
+
+# %%
 
 train_ds._batch_loader.collate_fn = generate_collate_function_with_leakage(train_ds._batch_loader.collate_fn, 9)
 test_ds._batch_loader.collate_fn = generate_collate_function_with_leakage(test_ds._batch_loader.collate_fn, 2)
 
-#%%
+# %%
 # Run the check
 # -------------
 
@@ -158,14 +161,14 @@ check = PropertyLabelCorrelationChange()
 result = check.run(train_ds, test_ds)
 result.show()
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # We can see that the check detected the bias we inserted, and that the
 # brightness property of the image has a high PPS in train and then nearly none in test, implying that there might have
 # been some leakage in the train dataset.
@@ -173,7 +176,7 @@ result.show()
 # Run the check on an Object Detection task
 # =========================================
 
-#%%
+# %%
 # Loading data (COCO)
 # --------------------
 #
@@ -185,10 +188,10 @@ result.show()
 
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
-train_ds = load_dataset(train=True, object_type='VisionData')
-test_ds = load_dataset(train=False, object_type='VisionData')
+train_ds = load_dataset(train=True, object_type="VisionData")
+test_ds = load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 # Insert bias
 # -----------
 # Let's now see what happens when we insert bias into the dataset.
@@ -199,20 +202,23 @@ test_ds = load_dataset(train=False, object_type='VisionData')
 
 # Increase the pixel values of all bounding boxes by the labels value:
 
+
 def generate_collate_function_with_leakage_coco(collate_fn, mod):
     def collate_function_with_leakage_coco(batch):
         import numpy as np
+
         batch_dict = collate_fn(batch)
-        images = batch_dict['images']
-        labels = batch_dict['labels']
+        images = batch_dict["images"]
+        labels = batch_dict["labels"]
         ret = [np.array(x) for x in images]
         for i, labels in enumerate(labels):
             if i % mod != 0:
                 for label in labels:
                     x, y, w, h = np.array(label[1:]).astype(int)
-                    ret[i][y:y+h, x:x+w] = (ret[i][y:y+h, x:x+w] * int(label[0])).clip(min=200, max=255)
-        batch_dict['images'] = ret
+                    ret[i][y: y + h, x: x + w] = (ret[i][y: y + h, x: x + w] * int(label[0])).clip(min=200, max=255)
+        batch_dict["images"] = ret
         return batch_dict
+
     return collate_function_with_leakage_coco
 
 
@@ -220,7 +226,7 @@ train_ds._batch_loader.collate_fn = generate_collate_function_with_leakage_coco(
 test_ds._batch_loader.collate_fn = generate_collate_function_with_leakage_coco(test_ds._batch_loader.collate_fn, 2)
 
 
-#%%
+# %%
 # Run the check
 # -------------
 
@@ -228,7 +234,7 @@ check = PropertyLabelCorrelationChange(per_class=False)
 result = check.run(train_ds, test_ds)
 result.show()
 
-#%%
+# %%
 # We can see that the check detected the bias we inserted, and that the PPS of the brightness
 # property has changed, implying that there might have been some leakage in the train dataset.
 #
@@ -236,8 +242,8 @@ result.show()
 # ==================
 # We can define on our check a condition that will validate that our pps scores aren't
 # too high. The check has 2 possible built-in conditions:
-# 
-# ``add_condition_feature_pps_difference_not_greater_than`` - Validate that the difference in 
+#
+# ``add_condition_feature_pps_difference_not_greater_than`` - Validate that the difference in
 # the PPS between train and test is not larger than defined amount (default 0.2)
 #
 # ``add_condition_feature_pps_in_train_not_greater_than`` - Validate that the PPS scores on
@@ -245,7 +251,10 @@ result.show()
 #
 # Let's add the conditions, and re-run the check:
 
-check = PropertyLabelCorrelationChange(per_class=False).add_condition_property_pps_difference_less_than(0.1) \
-        .add_condition_property_pps_in_train_less_than()
+check = (
+    PropertyLabelCorrelationChange(per_class=False)
+    .add_condition_property_pps_difference_less_than(0.1)
+    .add_condition_property_pps_in_train_less_than()
+)
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result.show(show_additional_outputs=False)

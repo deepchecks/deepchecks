@@ -9,10 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Test task type inference"""
-from hamcrest import assert_that, equal_to, has_items, is_
 
 from deepchecks.tabular import Context
 from deepchecks.tabular.utils.task_type import TaskType
+
+from hamcrest import assert_that, equal_to, has_items, is_
 
 # pylint: disable=protected-access
 
@@ -36,7 +37,10 @@ def test_infer_task_type_multiclass(iris_split_dataset_and_model_rf):
 
 
 def test_infer_task_type_regression(diabetes, diabetes_model):
-    train_ds, _, = diabetes
+    (
+        train_ds,
+        _,
+    ) = diabetes
 
     context = Context(train_ds, model=diabetes_model)
 
@@ -49,7 +53,10 @@ def test_task_type_not_sklearn_regression(diabetes):
         def predict(self, x):
             return [0] * len(x)
 
-    train_ds, _, = diabetes
+    (
+        train_ds,
+        _,
+    ) = diabetes
 
     context = Context(train_ds, model=RegressionModel())
 

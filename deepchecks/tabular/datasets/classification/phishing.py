@@ -122,8 +122,11 @@ Description:
          - Feature
          - The ratio of scriptLength to specialChars (`= scriptLength / specialChars`)
 """
+
 import typing as t
 from urllib.request import urlopen
+
+from deepchecks.tabular.dataset import Dataset
 
 import joblib
 import pandas as pd
@@ -134,26 +137,43 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 
-from deepchecks.tabular.dataset import Dataset
+__all__ = ["load_data", "load_fitted_model"]
 
-__all__ = ['load_data', 'load_fitted_model']
+_MODEL_URL = "https://figshare.com/ndownloader/files/35122765"
+_FULL_DATA_URL = "https://figshare.com/ndownloader/files/33079757"
+_TRAIN_DATA_URL = "https://ndownloader.figshare.com/files/33079781"
+_TEST_DATA_URL = "https://ndownloader.figshare.com/files/33079787"
+_MODEL_VERSION = "1.0.2"
+_target = "target"
+_CAT_FEATURES = ["ext"]
+_NON_FEATURES = ["month", "has_ip", "urlIsLive"]
+_NUM_FEATURES = [
+    "urlLength",
+    "numDigits",
+    "numParams",
+    "num_%20",
+    "num_@",
+    "entropy",
+    "hasHttp",
+    "hasHttps",
+    "dsr",
+    "dse",
+    "bodyLength",
+    "numTitles",
+    "numImages",
+    "numLinks",
+    "specialChars",
+    "scriptLength",
+    "sbr",
+    "bscr",
+    "sscr",
+]
+_DATE_COL = "scrape_date"
 
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122765'
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/33079757'
-_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33079781'
-_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33079787'
-_MODEL_VERSION = '1.0.2'
-_target = 'target'
-_CAT_FEATURES = ['ext']
-_NON_FEATURES = ['month', 'has_ip', 'urlIsLive']
-_NUM_FEATURES = ['urlLength', 'numDigits', 'numParams', 'num_%20', 'num_@', 'entropy', 'hasHttp', 'hasHttps', 'dsr',
-                 'dse', 'bodyLength', 'numTitles', 'numImages', 'numLinks', 'specialChars', 'scriptLength', 'sbr',
-                 'bscr', 'sscr']
-_DATE_COL = 'scrape_date'
 
-
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+def load_data(
+    data_format: str = "Dataset", as_train_test: bool = True
+) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the phishing url dataset (classification).
 
     Parameters
@@ -177,7 +197,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     if not as_train_test:
         dataset = pd.read_csv(_FULL_DATA_URL, index_col=0)
 
-        if data_format == 'Dataset':
+        if data_format == "Dataset":
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES, datetime_name=_DATE_COL)
 
         return dataset
@@ -185,7 +205,7 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         train = pd.read_csv(_TRAIN_DATA_URL, index_col=0)
         test = pd.read_csv(_TEST_DATA_URL, index_col=0)
 
-        if data_format == 'Dataset':
+        if data_format == "Dataset":
             train = Dataset(train, label=_target, cat_features=_CAT_FEATURES, datetime_name=_DATE_COL)
             test = Dataset(test, label=_target, cat_features=_CAT_FEATURES, datetime_name=_DATE_COL)
 
@@ -215,19 +235,14 @@ class UrlDatasetProcessor:
     """A custom processing pipeline for the phishing URLs dataset."""
 
     def _cols_to_scale(self, df: pd.DataFrame) -> t.List[object]:
-        return [
-            i
-            for i, x in df.dtypes.items()
-            if pd.api.types.is_numeric_dtype(x) and i != _target
-        ]
+        return [i for i, x in df.dtypes.items() if pd.api.types.is_numeric_dtype(x) and i != _target]
 
     def _shared_preprocess(self, df: pd.DataFrame) -> pd.DataFrame:
         df = df.copy()
-        df[_DATE_COL] = pd.to_datetime(
-            df[_DATE_COL], format='%Y-%m-%d')
+        df[_DATE_COL] = pd.to_datetime(df[_DATE_COL], format="%Y-%m-%d")
         df = df.set_index(keys=_DATE_COL, drop=True)
         df = df.drop(_NON_FEATURES, axis=1)
-        df = pd.get_dummies(df, columns=['ext'])
+        df = pd.get_dummies(df, columns=["ext"])
         return df
 
     def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -245,9 +260,7 @@ class UrlDatasetProcessor:
             df[self.scale_cols] = self.scaler.transform(df[self.scale_cols])
             return df
         except AttributeError as e:
-            raise Exception(
-                'UrlDatasetProcessor is unfitted! Call fit_transform() first!'
-            ) from e
+            raise Exception("UrlDatasetProcessor is unfitted! Call fit_transform() first!") from e
 
 
 def get_url_preprocessor():
@@ -257,15 +270,26 @@ def get_url_preprocessor():
 
 def _build_model():
     """Build the model to fit."""
-    return Pipeline(steps=[
-        ('preprocessing',
-         ColumnTransformer(transformers=[('num', SimpleImputer(),
-                                          _NUM_FEATURES),
-                                         ('cat',
-                                          Pipeline(steps=[('imputer',
-                                                           SimpleImputer(strategy='most_frequent')),
-                                                          ('encoder',
-                                                           OneHotEncoder())]),
-                                          _CAT_FEATURES)])),
-        ('model',
-         RandomForestClassifier(criterion='entropy', n_estimators=40, random_state=0))])
+    return Pipeline(
+        steps=[
+            (
+                "preprocessing",
+                ColumnTransformer(
+                    transformers=[
+                        ("num", SimpleImputer(), _NUM_FEATURES),
+                        (
+                            "cat",
+                            Pipeline(
+                                steps=[
+                                    ("imputer", SimpleImputer(strategy="most_frequent")),
+                                    ("encoder", OneHotEncoder()),
+                                ]
+                            ),
+                            _CAT_FEATURES,
+                        ),
+                    ]
+                ),
+            ),
+            ("model", RandomForestClassifier(criterion="entropy", n_estimators=40, random_state=0)),
+        ]
+    )

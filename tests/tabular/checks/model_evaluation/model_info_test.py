@@ -9,19 +9,22 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for Model Info."""
-from hamcrest import assert_that, calling, has_entries, raises
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
 
 from deepchecks.core.errors import ModelValidationError
 from deepchecks.tabular.checks.model_evaluation.model_info import ModelInfo
 
+from hamcrest import assert_that, calling, has_entries, raises
+from sklearn.impute import SimpleImputer
+from sklearn.pipeline import Pipeline
+
 
 def assert_model_result(result):
-    assert_that(result.value, has_entries(type='AdaBoostClassifier',
-                                          params=has_entries(algorithm='SAMME.R',
-                                                             learning_rate=1,
-                                                             n_estimators=50)))
+    assert_that(
+        result.value,
+        has_entries(
+            type="AdaBoostClassifier", params=has_entries(algorithm="SAMME.R", learning_rate=1, n_estimators=50)
+        ),
+    )
 
 
 def test_model_info_function(iris_adaboost):
@@ -43,8 +46,7 @@ def test_model_info_object(iris_adaboost):
 
 def test_model_info_pipeline(iris_adaboost):
     # Arrange
-    simple_pipeline = Pipeline([('nan_handling', SimpleImputer(strategy='most_frequent')),
-                                ('adaboost', iris_adaboost)])
+    simple_pipeline = Pipeline([("nan_handling", SimpleImputer(strategy="most_frequent")), ("adaboost", iris_adaboost)])
     # Act
     result = ModelInfo().run(simple_pipeline)
     # Assert
@@ -54,8 +56,9 @@ def test_model_info_pipeline(iris_adaboost):
 def test_model_info_wrong_input():
     # Act
     assert_that(
-        calling(ModelInfo().run).with_args('some string'),
+        calling(ModelInfo().run).with_args("some string"),
         raises(
             ModelValidationError,
-            r'Model supplied does not meets the minimal interface requirements. Read more about .*')
+            r"Model supplied does not meets the minimal interface requirements. Read more about .*",
+        ),
     )

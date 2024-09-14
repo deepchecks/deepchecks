@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing ipywidget serializer for the CheckFailuer type."""
-from ipywidgets import HTML, VBox
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
@@ -17,10 +16,12 @@ from deepchecks.core.serialization.common import normalize_widget_style
 
 from . import html
 
-__all__ = ['CheckFailureSerializer']
+from ipywidgets import HTML, VBox
+
+__all__ = ["CheckFailureSerializer"]
 
 
-class CheckFailureSerializer(WidgetSerializer['check_types.CheckFailure']):
+class CheckFailureSerializer(WidgetSerializer["check_types.CheckFailure"]):
     """Serializes any CheckFailure instance into an ipywidgets.Widget instance.
 
     Parameters
@@ -29,11 +30,9 @@ class CheckFailureSerializer(WidgetSerializer['check_types.CheckFailure']):
         CheckFailure instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'check_types.CheckFailure', **kwargs):
+    def __init__(self, value: "check_types.CheckFailure", **kwargs):
         if not isinstance(value, check_types.CheckFailure):
-            raise TypeError(
-                f'Expected "CheckFailure" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "CheckFailure" but got "{type(value).__name__}"')
         super().__init__(value=value)
         self._html_serializer = html.CheckFailureSerializer(self.value)
 
@@ -47,11 +46,9 @@ class CheckFailureSerializer(WidgetSerializer['check_types.CheckFailure']):
         # Need this in order to create kernel see https://github.com/jupyter-widgets/ipywidgets/issues/3729
         import ipykernel.ipkernel  # pylint: disable=unused-import,import-outside-toplevel # noqa: F401
 
-        return normalize_widget_style(VBox(children=(
-            self.prepare_header(),
-            self.prepare_summary(),
-            self.prepare_error_message()
-        )))
+        return normalize_widget_style(
+            VBox(children=(self.prepare_header(), self.prepare_summary(), self.prepare_error_message()))
+        )
 
     def prepare_header(self) -> HTML:
         """Prepare header widget.

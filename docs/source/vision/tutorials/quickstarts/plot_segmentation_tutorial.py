@@ -49,15 +49,15 @@ from deepchecks.vision.datasets.segmentation.segmentation_coco import CocoSegmen
 train_dataset = CocoSegmentationDataset.load_or_download(train=True)
 test_dataset = CocoSegmentationDataset.load_or_download(train=False)
 
-#%%
+# %%
 # Visualize the dataset
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Let's see how our data looks like.
 
-print(f'Number of training images: {len(train_dataset)}')
-print(f'Number of test images: {len(test_dataset)}')
-print(f'Example output of an image shape: {train_dataset[0][0].shape}')
-print(f'Example output of a label shape: {train_dataset[0][1].shape}')
+print(f"Number of training images: {len(train_dataset)}")
+print(f"Number of test images: {len(test_dataset)}")
+print(f"Example output of an image shape: {train_dataset[0][0].shape}")
+print(f"Example output of a label shape: {train_dataset[0][1].shape}")
 
 # %%
 # Downloading a Pre-trained Model
@@ -68,7 +68,7 @@ print(f'Example output of a label shape: {train_dataset[0][1].shape}')
 
 model = load_model(pretrained=True)
 
-#%%
+# %%
 # Implementing the VisionData class
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The checks in the package validate the model & data by calculating various quantities over the data, labels and
@@ -85,9 +85,11 @@ model = load_model(pretrained=True)
 # In pytorch, the collate function is used to transform the output batch to any custom format, and we'll use that
 # in order to transform the batch to the correct format for the checks.
 
+from deepchecks.vision.vision_data import BatchOutputFormat
+
 import torch
 import torchvision.transforms.functional as F
-from deepchecks.vision.vision_data import BatchOutputFormat
+
 
 def deepchecks_collate_fn(batch) -> BatchOutputFormat:
     """Return a batch of images, labels and predictions for a batch of data. The expected format is a dictionary with
@@ -100,37 +102,61 @@ def deepchecks_collate_fn(batch) -> BatchOutputFormat:
     # images:
     images = [tensor.numpy().transpose((1, 2, 0)) for tensor in batch[0]]
 
-    #labels:
+    # labels:
     labels = batch[1]
 
-    #predictions:
-    normalized_batch = [F.normalize(img.unsqueeze(0).float() / 255,
-                                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) for img in batch[0]]
+    # predictions:
+    normalized_batch = [
+        F.normalize(img.unsqueeze(0).float() / 255, mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        for img in batch[0]
+    ]
     predictions = [model(img)["out"].squeeze(0).detach() for img in normalized_batch]
     predictions = [torch.nn.functional.softmax(pred, dim=0) for pred in predictions]
 
     return BatchOutputFormat(images=images, labels=labels, predictions=predictions)
 
+
 # %%
 # The label_map is a dictionary that maps the class id to the class name, for display purposes.
-LABEL_MAP = {0: 'background', 1: 'airplane', 2: 'bicycle', 3: 'bird', 4: 'boat', 5: 'bottle', 6: 'bus', 7: 'car',
-             8: 'cat', 9: 'chair', 10: 'cow', 11: 'dining table', 12: 'dog', 13: 'horse', 14: 'motorcycle',
-             15: 'person', 16: 'potted plant', 17: 'sheep', 18: 'couch', 19: 'train', 20: 'tv'}
+LABEL_MAP = {
+    0: "background",
+    1: "airplane",
+    2: "bicycle",
+    3: "bird",
+    4: "boat",
+    5: "bottle",
+    6: "bus",
+    7: "car",
+    8: "cat",
+    9: "chair",
+    10: "cow",
+    11: "dining table",
+    12: "dog",
+    13: "horse",
+    14: "motorcycle",
+    15: "person",
+    16: "potted plant",
+    17: "sheep",
+    18: "couch",
+    19: "train",
+    20: "tv",
+}
 
-#%%
+# %%
 # Now that we have our updated collate function, we can create the dataloader in the deepchecks format, and use it
 # to create a VisionData object:
 
-from torch.utils.data import DataLoader
 from deepchecks.vision import VisionData
+
+from torch.utils.data import DataLoader
 
 train_loader = DataLoader(dataset=train_dataset, shuffle=True, collate_fn=deepchecks_collate_fn)
 test_loader = DataLoader(dataset=test_dataset, shuffle=True, collate_fn=deepchecks_collate_fn)
 
-training_data = VisionData(batch_loader=train_loader, task_type='semantic_segmentation', label_map=LABEL_MAP)
-test_data = VisionData(batch_loader=test_loader, task_type='semantic_segmentation', label_map=LABEL_MAP)
+training_data = VisionData(batch_loader=train_loader, task_type="semantic_segmentation", label_map=LABEL_MAP)
+test_data = VisionData(batch_loader=test_loader, task_type="semantic_segmentation", label_map=LABEL_MAP)
 
-#%%
+# %%
 # Making sure our data is in the correct format:
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
@@ -158,7 +184,7 @@ result = suite.run(training_data, test_data)
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # The results can be saved as a html file with the following code:
 
-result.save_as_html('output.html')
+result.save_as_html("output.html")
 
 # %%
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:

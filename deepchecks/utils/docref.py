@@ -9,18 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Documentation reference utilities."""
+
 import typing as t
 
 from deepchecks import __version__
 
-__all__ = ['doclink']
+__all__ = ["doclink"]
 
 # TODO:
 links = {
-    'default': {
-        'supported-metrics-by-string': 'https://docs.deepchecks.com/stable/general/guides/metrics_guide.html#list-of-supported-strings', # pylint: disable=line-too-long  # noqa
-        'supported-prediction-format': 'https://docs.deepchecks.com/stable/tabular/usage_guides/supported_models.html#supported-tasks-and-predictions-format', # pylint: disable=line-too-long  # noqa
-        'supported-predictions-format-nlp': 'https://docs.deepchecks.com/stable/nlp/usage_guides/supported_tasks.html#supported-labels-and-predictions-format', # pylint: disable=line-too-long  # noqa
+    "default": {
+        "supported-metrics-by-string": "https://docs.deepchecks.com/stable/general/guides/metrics_guide.html#list-of-supported-strings",  # pylint: disable=line-too-long  # noqa
+        "supported-prediction-format": "https://docs.deepchecks.com/stable/tabular/usage_guides/supported_models.html#supported-tasks-and-predictions-format",  # pylint: disable=line-too-long  # noqa
+        "supported-predictions-format-nlp": "https://docs.deepchecks.com/stable/nlp/usage_guides/supported_tasks.html#supported-labels-and-predictions-format",  # pylint: disable=line-too-long  # noqa
     },
     # '0.0.1': {},  # noqa
     # '0.0.2': {},  # noqa
@@ -28,10 +29,10 @@ links = {
 
 
 def doclink(
-        name: str,
-        default_link: t.Optional[str] = None,
-        template: t.Optional[str] = None,
-        package_version: str = __version__
+    name: str,
+    default_link: t.Optional[str] = None,
+    template: t.Optional[str] = None,
+    package_version: str = __version__,
 ) -> str:
     """Get documentation link.
 
@@ -51,19 +52,11 @@ def doclink(
     str
         The template text incorporated with the relevant link
     """
-    index = (
-        links[package_version]
-        if package_version in links
-        else (links.get('default') or {})
-    )
+    index = links[package_version] if package_version in links else (links.get("default") or {})
 
     link = index.get(name) or default_link
 
     if link is None:
-        return ''
+        return ""
 
-    return (
-        link
-        if template is None
-        else template.format(link=link)
-    )
+    return link if template is None else template.format(link=link)

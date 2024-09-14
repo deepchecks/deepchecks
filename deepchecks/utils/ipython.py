@@ -10,11 +10,14 @@
 #
 # pylint: disable=assignment-from-none,broad-except,import-outside-toplevel
 """Utils module containing useful global functions."""
+
 import logging
 import os
 import time
 import typing as t
 from functools import lru_cache
+
+from deepchecks.utils.logger import get_verbosity
 
 import plotly.io as pio
 import tqdm
@@ -24,20 +27,18 @@ from IPython.display import display
 from IPython.terminal.interactiveshell import TerminalInteractiveShell
 from tqdm.notebook import tqdm as tqdm_notebook
 
-from deepchecks.utils.logger import get_verbosity
-
 __all__ = [
-    'is_notebook',
-    'is_headless',
-    'create_progress_bar',
-    'is_colab_env',
-    'is_kaggle_env',
-    'is_databricks_env',
-    'is_sagemaker_env',
-    'is_terminal_interactive_shell',
-    'is_zmq_interactive_shell',
-    'ProgressBarGroup',
-    'is_sphinx'
+    "is_notebook",
+    "is_headless",
+    "create_progress_bar",
+    "is_colab_env",
+    "is_kaggle_env",
+    "is_databricks_env",
+    "is_sagemaker_env",
+    "is_terminal_interactive_shell",
+    "is_zmq_interactive_shell",
+    "ProgressBarGroup",
+    "is_sphinx",
 ]
 
 
@@ -52,7 +53,7 @@ def is_notebook() -> bool:
     """
     try:
         shell = get_ipython()
-        return hasattr(shell, 'config')
+        return hasattr(shell, "config")
     except NameError:
         return False  # Probably standard Python interpreter
 
@@ -65,7 +66,7 @@ def is_sphinx() -> bool:
     bool
         True if we are in a sphinx gallery context, False otherwise
     """
-    return pio.renderers.default.startswith('sphinx_gallery')
+    return pio.renderers.default.startswith("sphinx_gallery")
 
 
 @lru_cache(maxsize=None)
@@ -108,25 +109,25 @@ def is_headless() -> bool:
 @lru_cache(maxsize=None)
 def is_colab_env() -> bool:
     """Check if we are in the google colab environment."""
-    return 'google.colab' in str(get_ipython())
+    return "google.colab" in str(get_ipython())
 
 
 @lru_cache(maxsize=None)
 def is_kaggle_env() -> bool:
     """Check if we are in the kaggle environment."""
-    return os.environ.get('KAGGLE_KERNEL_RUN_TYPE') is not None
+    return os.environ.get("KAGGLE_KERNEL_RUN_TYPE") is not None
 
 
 @lru_cache(maxsize=None)
 def is_databricks_env() -> bool:
     """Check if we are in the databricks environment."""
-    return 'DATABRICKS_RUNTIME_VERSION' in os.environ
+    return "DATABRICKS_RUNTIME_VERSION" in os.environ
 
 
 @lru_cache(maxsize=None)
 def is_sagemaker_env() -> bool:
     """Check if we are in the AWS Sagemaker environment."""
-    return 'AWS_PATH' in os.environ
+    return "AWS_PATH" in os.environ
 
 
 class HtmlProgressBar:
@@ -176,8 +177,8 @@ class HtmlProgressBar:
         self._metadata = self._inital_metadata.copy()
         self._progress_bar = None
         self._current_item_index = 0
-        display({'text/html': self.STYLE}, raw=True)
-        self._display_handler = display({'text/html': ''}, raw=True, display_id=True)
+        display({"text/html": self.STYLE}, raw=True)
+        self._display_handler = display({"text/html": ""}, raw=True, display_id=True)
         self._disable = disable
         self._reuse_counter = 0
 
@@ -221,20 +222,17 @@ class HtmlProgressBar:
             item=self._current_item_index,
             total=self._total,
             seconds_passed=self._seconds_passed,
-            metadata=self._metadata
+            metadata=self._metadata,
         )
-        self._display_handler.update(
-            {'text/html': self.progress_bar},
-            raw=True
-        )
+        self._display_handler.update({"text/html": self.progress_bar}, raw=True)
 
     def close(self):
         """Close progress bar."""
-        self._display_handler.update({'text/html': ''}, raw=True)
+        self._display_handler.update({"text/html": ""}, raw=True)
 
     def clean(self):
         """Clean display cell."""
-        self._display_handler.update({'text/html': ''}, raw=True)
+        self._display_handler.update({"text/html": ""}, raw=True)
 
     def set_postfix(self, data: t.Mapping[str, t.Any], refresh: bool = True):
         """Set postfix."""
@@ -254,34 +252,25 @@ class HtmlProgressBar:
 
     @classmethod
     def create_label(
-        cls,
-        item: int,
-        total: int,
-        seconds_passed: int,
-        metadata: t.Optional[t.Mapping[str, t.Any]] = None
+        cls, item: int, total: int, seconds_passed: int, metadata: t.Optional[t.Mapping[str, t.Any]] = None
     ):
         """Create progress bar label."""
         minutes = seconds_passed // 60
         seconds = seconds_passed - (minutes * 60)
-        minutes = f'0{minutes}' if minutes < 10 else str(minutes)
-        seconds = f'0{seconds}' if seconds < 10 else str(seconds)
+        minutes = f"0{minutes}" if minutes < 10 else str(minutes)
+        seconds = f"0{seconds}" if seconds < 10 else str(seconds)
 
         if metadata:
-            metadata_string = ', '.join(f'{k}={str(v)}' for k, v in metadata.items())
-            metadata_string = f', {metadata_string}'
+            metadata_string = ", ".join(f"{k}={str(v)}" for k, v in metadata.items())
+            metadata_string = f", {metadata_string}"
         else:
-            metadata_string = ''
+            metadata_string = ""
 
-        return f'{item}/{total} [Time: {minutes}:{seconds}{metadata_string}]'
+        return f"{item}/{total} [Time: {minutes}:{seconds}{metadata_string}]"
 
     @classmethod
     def create_progress_bar(
-        cls,
-        title: str,
-        item: int,
-        total: int,
-        seconds_passed: int,
-        metadata: t.Optional[t.Mapping[str, t.Any]] = None
+        cls, title: str, item: int, total: int, seconds_passed: int, metadata: t.Optional[t.Mapping[str, t.Any]] = None
     ) -> str:
         """Create progress bar."""
         return f"""
@@ -305,20 +294,14 @@ def create_progress_bar(
     unit: str,
     total: t.Optional[int] = None,
     iterable: t.Optional[t.Sequence[t.Any]] = None,
-) -> t.Union[
-    tqdm_notebook,
-    HtmlProgressBar,
-    tqdm.tqdm
-]:
+) -> t.Union[tqdm_notebook, HtmlProgressBar, tqdm.tqdm]:
     """Create a progress bar instance."""
     if iterable is not None:
         iterlen = len(iterable)
     elif total is not None:
         iterlen = total
     else:
-        raise ValueError(
-            'at least one of the parameters iterable | total must be not None'
-        )
+        raise ValueError("at least one of the parameters iterable | total must be not None")
 
     is_disabled = get_verbosity() >= logging.WARNING
 
@@ -329,17 +312,17 @@ def create_progress_bar(
             total=iterlen,
             iterable=iterable or range(iterlen),
             display_immediately=True,
-            disable=is_disabled
+            disable=is_disabled,
         )
     else:
         barlen = iterlen if iterlen > 5 else 5
-        rbar = ' {n_fmt}/{total_fmt} [Time: {elapsed}{postfix}]'
-        bar_format = f'{{desc}}:\n|{{bar:{barlen}}}|{rbar}'
+        rbar = " {n_fmt}/{total_fmt} [Time: {elapsed}{postfix}]"
+        bar_format = f"{{desc}}:\n|{{bar:{barlen}}}|{rbar}"
         return tqdm.tqdm(
             iterable=iterable,
             total=total,
             desc=name,
-            unit=f' {unit}',
+            unit=f" {unit}",
             leave=False,
             bar_format=bar_format,
             disable=is_disabled,
@@ -349,12 +332,8 @@ def create_progress_bar(
 class DummyProgressBar:
     """Dummy progress bar that has only one step."""
 
-    def __init__(self, name: str, unit: str = '') -> None:
-        self.pb = create_progress_bar(
-            iterable=list(range(1)),
-            name=name,
-            unit=unit
-        )
+    def __init__(self, name: str, unit: str = "") -> None:
+        self.pb = create_progress_bar(iterable=list(range(1)), name=name, unit=unit)
 
     def __enter__(self, *args, **kwargs):
         """Enter context."""
@@ -373,12 +352,7 @@ class ProgressBarGroup:
     group will be closed simultaneously.
     """
 
-    register: t.List[t.Union[
-        DummyProgressBar,
-        tqdm_notebook,
-        HtmlProgressBar,
-        tqdm.tqdm
-    ]]
+    register: t.List[t.Union[DummyProgressBar, tqdm_notebook, HtmlProgressBar, tqdm.tqdm]]
 
     def __init__(self) -> None:
         self.register = []
@@ -389,36 +363,17 @@ class ProgressBarGroup:
         unit: str,
         total: t.Optional[int] = None,
         iterable: t.Optional[t.Sequence[t.Any]] = None,
-    ) -> t.Union[
-        tqdm_notebook,
-        HtmlProgressBar,
-        tqdm.tqdm
-    ]:
+    ) -> t.Union[tqdm_notebook, HtmlProgressBar, tqdm.tqdm]:
         """Create progress bar instance."""
-        pb = create_progress_bar(
-            name=name,
-            unit=unit,
-            total=total,
-            iterable=iterable
-        )
-        pb.__original_close__, pb.close = (
-            pb.close,
-            lambda *args, s=pb, **kwargs: s.refresh()
-        )
+        pb = create_progress_bar(name=name, unit=unit, total=total, iterable=iterable)
+        pb.__original_close__, pb.close = (pb.close, lambda *args, s=pb, **kwargs: s.refresh())
         self.register.append(pb)
         return pb
 
-    def create_dummy(
-        self,
-        name: str,
-        unit: str = ''
-    ) -> DummyProgressBar:
+    def create_dummy(self, name: str, unit: str = "") -> DummyProgressBar:
         """Create dummy progress bar instance."""
         dpb = DummyProgressBar(name=name, unit=unit)
-        dpb.__original_close__, dpb.pb.close = (
-            dpb.pb.close,
-            lambda *args, s=dpb.pb, **kwargs: s.refresh()
-        )
+        dpb.__original_close__, dpb.pb.close = (dpb.pb.close, lambda *args, s=dpb.pb, **kwargs: s.refresh())
         self.register.append(dpb)
         return dpb
 
@@ -429,5 +384,5 @@ class ProgressBarGroup:
     def __exit__(self, *args, **kwargs):
         """Enter context and close all progress bars.."""
         for pb in self.register:
-            if hasattr(pb, '__original_close__'):
+            if hasattr(pb, "__original_close__"):
                 pb.__original_close__()

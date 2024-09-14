@@ -9,19 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing junit serializer for the CheckFailure type."""
+
 import xml.etree.ElementTree as ET
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import JunitSerializer
 
-__all__ = ['CheckFailureSerializer']
+__all__ = ["CheckFailureSerializer"]
 
 
-FAILURE = 'failure'
-SKIPPED = 'skipped'
+FAILURE = "failure"
+SKIPPED = "skipped"
 
 
-class CheckFailureSerializer(JunitSerializer['check_types.CheckFailure']):
+class CheckFailureSerializer(JunitSerializer["check_types.CheckFailure"]):
     """Serializes any CheckFailure instance into JUnit format.
 
     Parameters
@@ -30,11 +31,9 @@ class CheckFailureSerializer(JunitSerializer['check_types.CheckFailure']):
         CheckFailure instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'check_types.CheckFailure', **kwargs):
+    def __init__(self, value: "check_types.CheckFailure", **kwargs):
         if not isinstance(value, check_types.CheckFailure):
-            raise TypeError(
-                f'Expected "CheckFailure" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "CheckFailure" but got "{type(value).__name__}"')
         super().__init__(value=value)
 
     def serialize(self, failure_tag: str = FAILURE, **kwargs) -> ET.Element:
@@ -58,18 +57,18 @@ class CheckFailureSerializer(JunitSerializer['check_types.CheckFailure']):
         ET.Element
         """
         if failure_tag not in [FAILURE, SKIPPED]:
-            raise ValueError(f'failure_tag must be one of {FAILURE} or {SKIPPED}')
+            raise ValueError(f"failure_tag must be one of {FAILURE} or {SKIPPED}")
 
         attributes = {
-            'classname': self.value.check.__class__.__module__ + '.' + self.value.check.__class__.__name__
-            , 'name': self.value.get_header()
-            , 'time': str(self.value.run_time)
+            "classname": self.value.check.__class__.__module__ + "." + self.value.check.__class__.__name__,
+            "name": self.value.get_header(),
+            "time": str(self.value.run_time),
         }
 
-        root = ET.Element('testcase', attrib=attributes)
-        attrs = {'type': failure_tag, 'message': str(self.value.exception)}
+        root = ET.Element("testcase", attrib=attributes)
+        attrs = {"type": failure_tag, "message": str(self.value.exception)}
         failure_element = ET.Element(failure_tag, attrs)
-        failure_element.text = self.value.check.metadata().get('summary', '')
+        failure_element.text = self.value.check.metadata().get("summary", "")
 
         root.append(failure_element)
 

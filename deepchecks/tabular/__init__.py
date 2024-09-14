@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Package for tabular functionality."""
+
 from .base_checks import ModelComparisonCheck, ModelOnlyCheck, SingleDatasetCheck, TrainTestCheck
 from .context import Context
 from .dataset import Dataset

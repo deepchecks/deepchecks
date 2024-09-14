@@ -9,16 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Module for tabular base checks."""
+
 import abc
 import warnings
 from typing import List, Mapping, Optional, Union
 
-import numpy as np
-import pandas as pd
-
 from deepchecks.core.check_result import CheckFailure, CheckResult
-from deepchecks.core.checks import (BaseCheck, DatasetKind, ModelOnlyBaseCheck, SingleDatasetBaseCheck,
-                                    TrainTestBaseCheck)
+from deepchecks.core.checks import (
+    BaseCheck,
+    DatasetKind,
+    ModelOnlyBaseCheck,
+    SingleDatasetBaseCheck,
+    TrainTestBaseCheck,
+)
 from deepchecks.core.errors import DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular import deprecation_warnings  # pylint: disable=unused-import # noqa: F401
 from deepchecks.tabular._shared_docs import docstrings
@@ -27,12 +30,10 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.model_base import ModelComparisonContext
 from deepchecks.utils.typing import BasicModel
 
-__all__ = [
-    'SingleDatasetCheck',
-    'TrainTestCheck',
-    'ModelOnlyCheck',
-    'ModelComparisonCheck'
-]
+import numpy as np
+import pandas as pd
+
+__all__ = ["SingleDatasetCheck", "TrainTestCheck", "ModelOnlyCheck", "ModelComparisonCheck"]
 
 
 class SingleDatasetCheck(SingleDatasetBaseCheck):
@@ -55,7 +56,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
-        model_classes: Optional[List] = None
+        model_classes: Optional[List] = None,
     ) -> CheckResult:
         """Run check.
 
@@ -69,20 +70,22 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
         """
         assert self.context_type is not None
         if y_pred_train is not None:
-            warnings.warn('y_pred_train is deprecated, please use y_pred instead.', DeprecationWarning, stacklevel=2)
+            warnings.warn("y_pred_train is deprecated, please use y_pred instead.", DeprecationWarning, stacklevel=2)
         if (y_pred_train is not None) and (y_pred is not None):
-            raise DeepchecksValueError('Cannot accept both y_pred_train and y_pred, please pass the data only'
-                                       ' to y_pred.')
+            raise DeepchecksValueError(
+                "Cannot accept both y_pred_train and y_pred, please pass the data only" " to y_pred."
+            )
         if y_proba_train is not None:
-            warnings.warn('y_proba_train is deprecated, please use y_proba instead.', DeprecationWarning, stacklevel=2)
+            warnings.warn("y_proba_train is deprecated, please use y_proba instead.", DeprecationWarning, stacklevel=2)
         if (y_pred_train is not None) and (y_pred is not None):
-            raise DeepchecksValueError('Cannot accept both y_proba_train and y_proba, please pass the data only'
-                                       ' to y_proba.')
+            raise DeepchecksValueError(
+                "Cannot accept both y_proba_train and y_proba, please pass the data only" " to y_proba."
+            )
 
         if y_pred_test is not None:
-            warnings.warn('y_pred_test is deprecated and ignored.', DeprecationWarning, stacklevel=2)
+            warnings.warn("y_pred_test is deprecated and ignored.", DeprecationWarning, stacklevel=2)
         if y_proba_test is not None:
-            warnings.warn('y_proba_test is deprecated and ignored.', DeprecationWarning, stacklevel=2)
+            warnings.warn("y_proba_test is deprecated and ignored.", DeprecationWarning, stacklevel=2)
 
         y_pred_train = y_pred_train if y_pred_train is not None else y_pred
         y_proba_train = y_proba_train if y_proba_train is not None else y_proba
@@ -97,7 +100,7 @@ class SingleDatasetCheck(SingleDatasetBaseCheck):
             y_pred_train=y_pred_train,
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
-            model_classes=model_classes
+            model_classes=model_classes,
         )
         result = self.run_logic(context, dataset_kind=DatasetKind.TRAIN)
         context.finalize_check_result(result, self, DatasetKind.TRAIN)
@@ -131,7 +134,7 @@ class TrainTestCheck(TrainTestBaseCheck):
         y_pred_test: Optional[np.ndarray] = None,
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
-        model_classes: Optional[List] = None
+        model_classes: Optional[List] = None,
     ) -> CheckResult:
         """Run check.
 
@@ -158,7 +161,7 @@ class TrainTestCheck(TrainTestBaseCheck):
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
             with_display=with_display,
-            model_classes=model_classes
+            model_classes=model_classes,
         )
         result = self.run_logic(context)
         context.finalize_check_result(result, self)
@@ -206,7 +209,7 @@ class ModelOnlyCheck(ModelOnlyBaseCheck):
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
-            with_display=with_display
+            with_display=with_display,
         )
         result = self.run_logic(context)
         context.finalize_check_result(result, self)
@@ -229,7 +232,7 @@ class ModelComparisonCheck(BaseCheck):
         self,
         train_datasets: Union[Dataset, List[Dataset]],
         test_datasets: Union[Dataset, List[Dataset]],
-        models: Union[List[BasicModel], Mapping[str, BasicModel]]
+        models: Union[List[BasicModel], Mapping[str, BasicModel]],
     ) -> CheckResult:
         """Initialize context and pass to check logic.
 

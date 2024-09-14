@@ -10,6 +10,7 @@
 #
 # pylint: disable=unused-argument
 """Module with check/suite result display strategy in different envs."""
+
 import abc
 import html
 import io
@@ -19,21 +20,21 @@ import typing as t
 from multiprocessing import get_context, process
 from tempfile import NamedTemporaryFile
 
-from IPython.core.display import display, display_html
-from ipywidgets import Widget
-
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
 from deepchecks.utils.ipython import is_colab_env, is_databricks_env, is_kaggle_env, is_sagemaker_env, is_sphinx
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.strings import create_new_file_name, get_random_string, widget_to_html, widget_to_html_string
 
+from IPython.core.display import display, display_html
+from ipywidgets import Widget
+
 if t.TYPE_CHECKING:
-    from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
+    pass  # pylint: disable=unused-import
 
-__all__ = ['DisplayableResult', 'save_as_html', 'display_in_gui']
+__all__ = ["DisplayableResult", "save_as_html", "display_in_gui"]
 
 
-T = t.TypeVar('T')
+T = t.TypeVar("T")
 
 
 class DisplayableResult(abc.ABC):
@@ -57,12 +58,7 @@ class DisplayableResult(abc.ABC):
         """Return HtmlSerializer instance."""
         raise NotImplementedError()
 
-    def show(
-        self,
-        as_widget: bool = True,
-        unique_id: t.Optional[str] = None,
-        **kwargs
-    ) -> t.Optional[HTMLFormatter]:
+    def show(self, as_widget: bool = True, unique_id: t.Optional[str] = None, **kwargs) -> t.Optional[HTMLFormatter]:
         """Display result.
 
         Parameters
@@ -105,22 +101,12 @@ class DisplayableResult(abc.ABC):
         elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
-            display_html(self.widget_serializer.serialize(
-                output_id=unique_id,
-                **kwargs
-            ))
+            display_html(self.widget_serializer.serialize(output_id=unique_id, **kwargs))
         else:
-            display(*self.ipython_serializer.serialize(
-                output_id=unique_id,
-                **kwargs
-            ))
+            display(*self.ipython_serializer.serialize(output_id=unique_id, **kwargs))
 
     def show_in_iframe(
-        self,
-        as_widget: bool = True,
-        unique_id: t.Optional[str] = None,
-        connected: bool = False,
-        **kwargs
+        self, as_widget: bool = True, unique_id: t.Optional[str] = None, connected: bool = False, **kwargs
     ):
         """Display result in an iframe.
 
@@ -154,27 +140,25 @@ class DisplayableResult(abc.ABC):
             display_html(iframe(srcdoc=content), raw=True)
         else:
             display_html(
-                iframe(srcdoc=self.html_serializer.serialize(
-                    output_id=output_id,
-                    full_html=True,
-                    include_requirejs=True,
-                    include_plotlyjs=True,
-                    is_for_iframe_with_srcdoc=True,
-                    connected=connected,
-                    **kwargs
-                )),
-                raw=True
+                iframe(
+                    srcdoc=self.html_serializer.serialize(
+                        output_id=output_id,
+                        full_html=True,
+                        include_requirejs=True,
+                        include_plotlyjs=True,
+                        is_for_iframe_with_srcdoc=True,
+                        connected=connected,
+                        **kwargs,
+                    )
+                ),
+                raw=True,
             )
 
     def show_in_window(self, **kwargs):
         """Display result in a separate window."""
         display_in_gui(self)
 
-    def show_not_interactive(
-        self,
-        unique_id: t.Optional[str] = None,
-        **kwargs
-    ):
+    def show_not_interactive(self, unique_id: t.Optional[str] = None, **kwargs):
         """Display the not interactive version of result output.
 
         In this case, ipywidgets will not be used and plotly
@@ -188,11 +172,7 @@ class DisplayableResult(abc.ABC):
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
-        display(*self.ipython_serializer.serialize(
-            output_id=unique_id,
-            plotly_to_image=True,
-            **kwargs
-        ))
+        display(*self.ipython_serializer.serialize(output_id=unique_id, plotly_to_image=True, **kwargs))
 
     def _ipython_display_(self, **kwargs):
         """Display result.."""
@@ -208,14 +188,8 @@ class DisplayableResult(abc.ABC):
         """Serialize result into a json string."""
         raise NotImplementedError()
 
-
-
     @abc.abstractmethod
-    def save_as_html(
-        self,
-        file: t.Union[str, io.TextIOWrapper, None] = None,
-        **kwargs
-    ) -> t.Optional[str]:
+    def save_as_html(self, file: t.Union[str, io.TextIOWrapper, None] = None, **kwargs) -> t.Optional[str]:
         """Save a result to an HTML file.
 
         Parameters
@@ -235,6 +209,7 @@ def _open_file_in_window(filename: t.Union[str, pathlib.Path], exit_after: bool 
     from PyQt5.QtCore import QUrl  # pylint: disable=import-outside-toplevel
     from PyQt5.QtWebEngineWidgets import QWebEngineView  # pylint: disable=import-outside-toplevel
     from PyQt5.QtWidgets import QApplication  # pylint: disable=import-outside-toplevel
+
     filepath = pathlib.Path(filename) if isinstance(filename, str) else filename
     try:
         app = QApplication.instance()
@@ -242,7 +217,7 @@ def _open_file_in_window(filename: t.Union[str, pathlib.Path], exit_after: bool 
             app = QApplication([])
             app.lastWindowClosed.connect(app.quit)
         web = QWebEngineView()
-        web.setWindowTitle('deepchecks')
+        web.setWindowTitle("deepchecks")
         web.setGeometry(0, 0, 1200, 1200)
         web.load(QUrl.fromLocalFile(str(filepath)))
         web.show()
@@ -261,34 +236,34 @@ def display_in_gui(result: DisplayableResult):
         from PyQt5.QtWidgets import QApplication  # pylint: disable=W0611,C0415 # noqa
     except ImportError:
         get_logger().error(
-            'Missing packages in order to display result in GUI, '
+            "Missing packages in order to display result in GUI, "
             'either run "pip install pyqt5, pyqtwebengine" '
             'or use "result.save_as_html()" to save result'
         )
     else:
-        with NamedTemporaryFile(suffix='.html', prefix='deepchecks-', delete=False) as file:
+        with NamedTemporaryFile(suffix=".html", prefix="deepchecks-", delete=False) as file:
             result.save_as_html(io.TextIOWrapper(file))
             filepath = file.name
 
         # If running under "__filename__ == __main__" then we can spawn a new process. Else run the function directly.
-        if getattr(process.current_process(), '_inheriting', False):
+        if getattr(process.current_process(), "_inheriting", False):
             _open_file_in_window(filepath)
         else:
-            ctx = get_context('spawn')
+            ctx = get_context("spawn")
             ctx.Process(target=_open_file_in_window, args=(str(filepath),)).start()
 
 
 def get_result_name(result) -> str:
     """Get Check/Suite result instance name."""
-    if hasattr(result, 'name'):
+    if hasattr(result, "name"):
         return result.name
-    elif hasattr(result, 'get_header') and callable(getattr(result, 'get_header')):
+    elif hasattr(result, "get_header") and callable(result.get_header):
         return result.get_header()
     else:
         return type(result).__name__
 
 
-T = t.TypeVar('T')
+T = t.TypeVar("T")
 
 
 def save_as_html(
@@ -296,7 +271,7 @@ def save_as_html(
     file: t.Union[str, io.TextIOWrapper, None] = None,
     requirejs: bool = True,
     connected: bool = False,
-    **kwargs
+    **kwargs,
 ) -> t.Optional[str]:
     """Save a result to an HTML file.
 
@@ -321,7 +296,7 @@ def save_as_html(
         name of newly create file
     """
     if file is None:
-        file = 'output.html'
+        file = "output.html"
     if isinstance(file, str):
         file = create_new_file_name(file)
 
@@ -335,21 +310,17 @@ def save_as_html(
         )
     elif isinstance(serializer, HtmlSerializer):
         html = serializer.serialize(  # pylint: disable=redefined-outer-name
-            full_html=True,
-            include_requirejs=requirejs,
-            include_plotlyjs=True,
-            connected=connected,
-            **kwargs
+            full_html=True, include_requirejs=requirejs, include_plotlyjs=True, connected=connected, **kwargs
         )
         if isinstance(file, str):
-            with open(file, 'w', encoding='utf-8') as f:
+            with open(file, "w", encoding="utf-8") as f:
                 f.write(html)
         elif isinstance(file, io.TextIOWrapper):
             file.write(html)
         else:
             raise TypeError(f'Unsupported type of "file" parameter - {type(file)}')
     else:
-        raise TypeError(f'Unsupported serializer type - {type(serializer)}')
+        raise TypeError(f"Unsupported serializer type - {type(serializer)}")
 
     if isinstance(file, str):
         return file
@@ -358,46 +329,29 @@ def save_as_html(
 def iframe(
     *,
     id: t.Optional[str] = None,  # pylint: disable=redefined-builtin
-    height: str = '600px',
-    width: str = '100%',
-    allow: str = 'fullscreen',
-    frameborder: str = '0',
+    height: str = "600px",
+    width: str = "100%",
+    allow: str = "fullscreen",
+    frameborder: str = "0",
     with_fullscreen_btn: bool = True,
-    **attributes
+    **attributes,
 ) -> str:
     """Return html iframe tag."""
     if id is None:
-        id = f'deepchecks-result-iframe-{get_random_string()}'
+        id = f"deepchecks-result-iframe-{get_random_string()}"
 
-    attributes = {
-        'id': id,
-        'height': height,
-        'width': width,
-        'allow': allow,
-        'frameborder': frameborder,
-        **attributes
-    }
-    attributes = {
-        k: v
-        for k, v
-        in attributes.items()
-        if v is not None
-    }
+    attributes = {"id": id, "height": height, "width": width, "allow": allow, "frameborder": frameborder, **attributes}
+    attributes = {k: v for k, v in attributes.items() if v is not None}
 
-    if 'srcdoc' in attributes:
-        attributes['srcdoc'] = html.escape(attributes['srcdoc'])
+    if "srcdoc" in attributes:
+        attributes["srcdoc"] = html.escape(attributes["srcdoc"])
 
-    attributes = '\n'.join([
-        f'{k}="{v}"'
-        for k, v in attributes.items()
-    ])
+    attributes = "\n".join([f'{k}="{v}"' for k, v in attributes.items()])
 
     if not with_fullscreen_btn:
-        return f'<iframe {attributes}></iframe>'
+        return f"<iframe {attributes}></iframe>"
 
-    fullscreen_script = (
-        f"document.querySelector('#{id}').requestFullscreen();"
-    )
+    fullscreen_script = f"document.querySelector('#{id}').requestFullscreen();"
     return f"""
         <div style="display: flex; justify-content: flex-end; padding: 1rem 2rem 1rem 2rem;">
             <button onclick="{fullscreen_script}" >

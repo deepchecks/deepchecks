@@ -9,10 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Data Duplicates check."""
-from typing import List, Union
 
-import pandas as pd
-from typing_extensions import TypedDict
+from typing import List, Union
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -21,7 +19,10 @@ from deepchecks.utils.dataframes import cast_categorical_to_object_dtype
 from deepchecks.utils.strings import format_list
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['ConflictingLabels']
+import pandas as pd
+from typing_extensions import TypedDict
+
+__all__ = ["ConflictingLabels"]
 
 
 class ResultValue(TypedDict):
@@ -55,7 +56,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         n_to_show: int = 5,
         n_samples: int = 10_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -77,8 +78,9 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         dataset = context.get_data_by_kind(dataset_kind)
         context.assert_classification_task()
 
-        dataset = dataset.sample(self.n_samples, random_state=self.random_state
-                                 ).select(self.columns, self.ignore_columns, keep_label=True)
+        dataset = dataset.sample(self.n_samples, random_state=self.random_state).select(
+            self.columns, self.ignore_columns, keep_label=True
+        )
         features = dataset.features
         label_name = dataset.label_name
 
@@ -88,18 +90,18 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         df = cast_categorical_to_object_dtype(dataset.data.copy())
 
         # Get index in order to use in the display
-        index_col_name = '_dc_index'
+        index_col_name = "_dc_index"
         df[index_col_name] = df.index
         # Group by features
         group_unique_data = df.groupby(features, dropna=False).agg(list)
         # Calculate count per feature-group
-        group_unique_data['count'] = group_unique_data[index_col_name].apply(len)
+        group_unique_data["count"] = group_unique_data[index_col_name].apply(len)
         # Sort by count
-        group_unique_data = group_unique_data.sort_values(by='count', ascending=False)
+        group_unique_data = group_unique_data.sort_values(by="count", ascending=False)
 
         num_ambiguous = 0
-        ambiguous_label_name = 'Observed Labels'
-        indices_name = 'Instances'
+        ambiguous_label_name = "Observed Labels"
+        indices_name = "Instances"
         samples = []
         display_samples = []
 
@@ -107,7 +109,7 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             ambiguous_labels = set(group_data[label_name])
             if len(ambiguous_labels) == 1:
                 continue
-            num_ambiguous += group_data['count']
+            num_ambiguous += group_data["count"]
             samples.append(group_data[index_col_name])
 
             if context.with_display is True:
@@ -123,13 +125,13 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
         if len(display_samples) == 0:
             display = None
         else:
-            display = pd.DataFrame.from_records(display_samples[:self.n_to_show])
+            display = pd.DataFrame.from_records(display_samples[: self.n_to_show])
             display.set_index([ambiguous_label_name, indices_name], inplace=True)
             display = [
-                'Each row in the table shows an example of a data sample '
-                'and the its observed labels as found in the dataset. '
-                f'Showing top {display.shape[0]} of {len(display_samples)}',
-                display
+                "Each row in the table shows an example of a data sample "
+                "and the its observed labels as found in the dataset. "
+                f"Showing top {display.shape[0]} of {len(display_samples)}",
+                display,
             ]
 
         return CheckResult(
@@ -137,5 +139,5 @@ class ConflictingLabels(SingleDatasetCheck, ConflictingLabelsAbstract):
             value=ResultValue(
                 percent_of_conflicting_samples=num_ambiguous / dataset.n_samples,
                 samples_indices=samples,
-            )
+            ),
         )

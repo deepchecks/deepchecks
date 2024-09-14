@@ -28,12 +28,13 @@ We will run the check on the adult dataset which can be downloaded from the
 `deepchecks.tabular.datasets`, and introduce to it some data type mixing in order to show the check's result.
 """
 
+from deepchecks.tabular.datasets.classification import adult
+
 import numpy as np
 import pandas as pd
 
-from deepchecks.tabular.datasets.classification import adult
-
 # Prepare functions to insert mixed data types
+
 
 def insert_new_values_types(col: pd.Series, ratio_to_replace: float, values_list):
     col = col.to_numpy().astype(object)
@@ -44,11 +45,11 @@ def insert_new_values_types(col: pd.Series, ratio_to_replace: float, values_list
 
 
 def insert_string_types(col: pd.Series, ratio_to_replace):
-    return insert_new_values_types(col, ratio_to_replace, ['a', 'b', 'c'])
+    return insert_new_values_types(col, ratio_to_replace, ["a", "b", "c"])
 
 
 def insert_numeric_string_types(col: pd.Series, ratio_to_replace):
-    return insert_new_values_types(col, ratio_to_replace, ['1.0', '1', '10394.33'])
+    return insert_new_values_types(col, ratio_to_replace, ["1.0", "1", "10394.33"])
 
 
 def insert_number_types(col: pd.Series, ratio_to_replace):
@@ -56,22 +57,22 @@ def insert_number_types(col: pd.Series, ratio_to_replace):
 
 
 # Load dataset and insert some data type mixing
-adult_df, _ = adult.load_data(as_train_test=True, data_format='Dataframe')
-adult_df['workclass'] = insert_numeric_string_types(adult_df['workclass'], ratio_to_replace=0.01)
-adult_df['education'] = insert_number_types(adult_df['education'], ratio_to_replace=0.1)
-adult_df['age'] = insert_string_types(adult_df['age'], ratio_to_replace=0.5)
+adult_df, _ = adult.load_data(as_train_test=True, data_format="Dataframe")
+adult_df["workclass"] = insert_numeric_string_types(adult_df["workclass"], ratio_to_replace=0.01)
+adult_df["education"] = insert_number_types(adult_df["education"], ratio_to_replace=0.1)
+adult_df["age"] = insert_string_types(adult_df["age"], ratio_to_replace=0.5)
 
-#%%
+# %%
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import MixedDataTypes
 
-adult_dataset = Dataset(adult_df, cat_features=['workclass', 'education'])
+adult_dataset = Dataset(adult_df, cat_features=["workclass", "education"])
 check = MixedDataTypes()
 result = check.run(adult_dataset)
 result
 
-#%%
+# %%
 # Define a Condition
 # ==================
 # We can define a condition that enforces the ratio of the "rare type" (the less common type, either numeric or string)

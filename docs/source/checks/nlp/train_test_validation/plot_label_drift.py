@@ -31,26 +31,26 @@ on the label.
 
 """
 
-#%%
-from deepchecks.nlp.datasets.classification import tweet_emotion
+# %%
 from deepchecks.nlp.checks import LabelDrift
+from deepchecks.nlp.datasets.classification import tweet_emotion
 
-#%%
+# %%
 # Load Data
 # ==========
 # For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
 # happiness, anger, sadness and optimism.
 train_ds, test_ds = tweet_emotion.load_data()
 
-#%%
+# %%
 # Let's see how our data looks like:
 train_ds.head()
 
-#%%
+# %%
 # Run Check
 # ===============================
 
-#%%
+# %%
 # As there's natural drift in this dataset, we can expect to see some drift in the "optimism" label:
 
 check = LabelDrift()

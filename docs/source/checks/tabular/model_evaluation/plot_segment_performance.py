@@ -6,7 +6,7 @@ Segment Performance
 *******************
 """
 
-#%%
+# %%
 # Load data
 # =========
 # The dataset is the adult dataset which can be downloaded from the UCI machine learning repository.
@@ -16,22 +16,22 @@ Segment Performance
 
 from deepchecks.tabular.datasets.classification import adult
 
-#%%
+# %%
 # Create Dataset
 # ==============
 
 train_ds, validation_ds = adult.load_data()
 
 
-#%%
+# %%
 # Classification Model
 # ====================
 
 model = adult.load_fitted_model()
 model
 
-#%%
+# %%
 
 from deepchecks.tabular.checks import SegmentPerformance
 
-SegmentPerformance(feature_1='workclass', feature_2='hours-per-week').run(validation_ds, model)
+SegmentPerformance(feature_1="workclass", feature_2="hours-per-week").run(validation_ds, model)

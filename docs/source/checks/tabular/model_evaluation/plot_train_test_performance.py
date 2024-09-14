@@ -27,7 +27,7 @@ The default scorers that are used are F1, Precision, and Recall for Classificati
 and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression.
 """
 
-#%%
+# %%
 # Generate data & model
 # ======================
 
@@ -36,7 +36,7 @@ from deepchecks.tabular.datasets.classification.iris import load_data, load_fitt
 train_dataset, test_dataset = load_data()
 model = load_fitted_model()
 
-#%%
+# %%
 # Run the check
 # ==============
 #
@@ -45,11 +45,11 @@ model = load_fitted_model()
 
 from deepchecks.tabular.checks import TrainTestPerformance
 
-check = TrainTestPerformance(scorers=['recall_per_class', 'precision_per_class', 'f1_macro', 'f1_micro'])
+check = TrainTestPerformance(scorers=["recall_per_class", "precision_per_class", "f1_macro", "f1_micro"])
 result = check.run(train_dataset, test_dataset, model)
 result.show()
 
-#%%
+# %%
 # Define a condition
 # ===================
 # We can define on our check a condition that will validate that our model doesn't degrade
@@ -61,10 +61,10 @@ check.add_condition_train_test_relative_degradation_less_than(0.15)
 result = check.run(train_dataset, test_dataset, model)
 result.show(show_additional_outputs=False)
 
-#%%
+# %%
 # We detected that for class "2" the Recall score result is degraded by more than 15%
 
-#%%
+# %%
 # Using a custom scorer
 # =======================
 # In addition to the built-in scorers, we can define our own scorer based on sklearn api
@@ -74,6 +74,6 @@ from sklearn.metrics import fbeta_score, make_scorer
 
 fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1, 2], average=None, beta=0.2)
 
-check = TrainTestPerformance(scorers={'my scorer': fbeta_scorer, 'recall': 'recall_per_class'})
+check = TrainTestPerformance(scorers={"my scorer": fbeta_scorer, "recall": "recall_per_class"})
 result = check.run(train_dataset, test_dataset, model)
 result.show()

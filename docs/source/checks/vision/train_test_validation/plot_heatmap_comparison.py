@@ -51,7 +51,7 @@ Run the Check on a Classification Task (MNIST)
 ==============================================
 """
 
-#%%
+# %%
 # Imports
 # -------
 #
@@ -63,15 +63,15 @@ Run the Check on a Classification Task (MNIST)
 
 from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
-#%%
+# %%
 # Loading Data
 # ------------
 
 
-mnist_data_train = load_dataset(train=True, batch_size=64, object_type='VisionData')
-mnist_data_test = load_dataset(train=False, batch_size=64, object_type='VisionData')
+mnist_data_train = load_dataset(train=True, batch_size=64, object_type="VisionData")
+mnist_data_test = load_dataset(train=False, batch_size=64, object_type="VisionData")
 
-#%%
+# %%
 
 from deepchecks.vision.checks import HeatmapComparison
 
@@ -79,14 +79,14 @@ check = HeatmapComparison()
 result = check.run(mnist_data_train, mnist_data_test)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Run the Check on an Object Detection Task (Coco)
 # ================================================
 #
@@ -98,25 +98,25 @@ result
 
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
-train_ds = load_dataset(train=True, object_type='VisionData')
-test_ds = load_dataset(train=False, object_type='VisionData')
+train_ds = load_dataset(train=True, object_type="VisionData")
+test_ds = load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 
 check = HeatmapComparison()
 result = check.run(train_ds, test_ds)
 result
 
-#%%
+# %%
 # Limit to Specific Classes
 # =========================
 # The check can be limited to compare the bounding box coverage for a specific set
 # of classes. We'll use that to inspect only objects labeled as human (class_id 0)
 
-check = HeatmapComparison(classes_to_display=['person'])
+check = HeatmapComparison(classes_to_display=["person"])
 result = check.run(train_ds, test_ds)
 result
 
-#%%
+# %%
 # We can see a significant increased abundance of humans in the test data, located
 # in the images lower center!

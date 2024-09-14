@@ -9,23 +9,21 @@
 # ----------------------------------------------------------------------------
 #
 """Module with display utility functions."""
+
 import base64
 import typing as t
 
-__all__ = ['imagetag', 'linktag']
+__all__ = ["imagetag", "linktag"]
 
 
 def imagetag(img: bytes) -> str:
     """Return html image tag with embedded image."""
-    png = base64.b64encode(img).decode('ascii')
+    png = base64.b64encode(img).decode("ascii")
     return f'<img src="data:image/png;base64,{png}"/>'
 
 
 def linktag(
-    text: str,
-    style: t.Optional[t.Dict[str, t.Any]] = None,
-    is_for_iframe_with_srcdoc : bool = False,
-    **kwargs
+    text: str, style: t.Optional[t.Dict[str, t.Any]] = None, is_for_iframe_with_srcdoc: bool = False, **kwargs
 ) -> str:
     """Return html a tag.
 
@@ -44,15 +42,11 @@ def linktag(
     -------
     str
     """
-    if is_for_iframe_with_srcdoc and kwargs.get('href', '').startswith('#'):
-        kwargs['href'] = f'about:srcdoc{kwargs["href"]}'
+    if is_for_iframe_with_srcdoc and kwargs.get("href", "").startswith("#"):
+        kwargs["href"] = f'about:srcdoc{kwargs["href"]}'
 
     if style is not None:
-        kwargs['style'] = '\n'.join([
-            f'{k}: {v};'
-            for k, v in style.items()
-            if v is not None
-        ])
+        kwargs["style"] = "\n".join([f"{k}: {v};" for k, v in style.items() if v is not None])
 
-    attrs = ' '.join([f'{k}="{v}"' for k, v in kwargs.items()])
-    return f'<a {attrs}>{text}</a>'
+    attrs = " ".join([f'{k}="{v}"' for k, v in kwargs.items()])
+    return f"<a {attrs}>{text}</a>"

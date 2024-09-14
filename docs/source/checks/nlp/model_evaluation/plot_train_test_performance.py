@@ -27,18 +27,18 @@ The default scorers are F1, Precision, and Recall for Classification,
 and F1 Macro, Recall Macro and Precision Macro for Token Classification. See more about the supported task types at the
 :ref:`nlp__supported_tasks` guide.
 """
-import numpy as np
 
-#%%
+# %%
 # Load data & predictions
 # =======================
-
 from deepchecks.nlp.datasets.classification.tweet_emotion import load_data, load_precalculated_predictions
 
-train_dataset, test_dataset = load_data()
-train_preds, test_preds = load_precalculated_predictions('predictions')
+import numpy as np
 
-#%%
+train_dataset, test_dataset = load_data()
+train_preds, test_preds = load_precalculated_predictions("predictions")
+
+# %%
 # Run the check
 # ==============
 #
@@ -47,11 +47,11 @@ train_preds, test_preds = load_precalculated_predictions('predictions')
 
 from deepchecks.nlp.checks import TrainTestPerformance
 
-check = TrainTestPerformance(scorers=['recall_per_class', 'precision_per_class', 'f1_macro', 'f1_micro'])
+check = TrainTestPerformance(scorers=["recall_per_class", "precision_per_class", "f1_macro", "f1_micro"])
 result = check.run(train_dataset, test_dataset, train_predictions=train_preds, test_predictions=test_preds)
 result.show()
 
-#%%
+# %%
 # Define a condition
 # ===================
 # We can define on our check a condition that will validate that our model doesn't degrade
@@ -63,10 +63,10 @@ check.add_condition_train_test_relative_degradation_less_than(0.15)
 result = check.run(train_dataset, test_dataset, train_predictions=train_preds, test_predictions=test_preds)
 result.show(show_additional_outputs=False)
 
-#%%
+# %%
 # We detected that for class "optimism" the Recall has degraded by more than 70%!
 
-#%%
+# %%
 # Using a custom scorer
 # =======================
 # In addition to the built-in scorers, we can define our own scorer based on sklearn api
@@ -76,6 +76,6 @@ from sklearn.metrics import fbeta_score, make_scorer
 
 fbeta_scorer = make_scorer(fbeta_score, labels=np.arange(len(set(test_dataset.label))), average=None, beta=0.2)
 
-check = TrainTestPerformance(scorers={'my scorer': fbeta_scorer, 'recall': 'recall_per_class'})
+check = TrainTestPerformance(scorers={"my scorer": fbeta_scorer, "recall": "recall_per_class"})
 result = check.run(train_dataset, test_dataset, train_predictions=train_preds, test_predictions=test_preds)
 result.show()

@@ -65,7 +65,7 @@ Integrations
 ------------
 
 Here you can see code examples for how to use deepchecks with various existing tools.
-Of course, deepchecks can easily be integrated with many additional tools, here you can find 
+Of course, deepchecks can easily be integrated with many additional tools, here you can find
 examples and code snippets for inspiration. Contributions to this docs section are very welcome!
 
 .. toctree::

@@ -64,7 +64,7 @@ Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled
 ==============================  ==========
 """
 
-#%%
+# %%
 # Imports
 # -------
 #
@@ -74,20 +74,20 @@ Mean Blue Relative Intensity    Mean over all pixels of the blue channel, scaled
 #
 #       from deepchecks.vision.datasets.detection.coco_tensorflow import load_dataset
 
-import numpy as np
-
 from deepchecks.vision.checks import ImageDatasetDrift
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
-#%%
+import numpy as np
+
+# %%
 # Loading the data
 # ----------------
 
 
-train_ds = load_dataset(train=True, object_type='VisionData')
-test_ds = load_dataset(train=False, object_type='VisionData')
+train_ds = load_dataset(train=True, object_type="VisionData")
+test_ds = load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 # Run the check
 # -------------
 # without drift
@@ -97,14 +97,14 @@ check = ImageDatasetDrift()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Insert drift
 # ^^^^^^^^^^^^
 #
@@ -117,28 +117,30 @@ def add_brightness(img):
     return img + addition_of_brightness
 
 
-#%%
-drifted_train_ds = load_dataset(train=True, object_type='VisionData')
+# %%
+drifted_train_ds = load_dataset(train=True, object_type="VisionData")
+
 
 def created_drifted_collate_function(collate_fn):
     def drifted_collate_function(batch):
         data_dict = collate_fn(batch)
-        data_dict['images'] = [add_brightness(np.array(img)) for img in data_dict['images']]
+        data_dict["images"] = [add_brightness(np.array(img)) for img in data_dict["images"]]
         return data_dict
+
     return drifted_collate_function
 
 
 drifted_train_ds._batch_loader.collate_fn = created_drifted_collate_function(drifted_train_ds._batch_loader.collate_fn)
 
 
-#%%
+# %%
 # Run the check again
 # ^^^^^^^^^^^^^^^^^^^
 check = ImageDatasetDrift()
 result = check.run(train_dataset=drifted_train_ds, test_dataset=test_ds)
 result
 
-#%%
+# %%
 # Define a Condition
 # ------------------
 # Now, we will define a condition that the maximum drift score is less than a certain threshold. In this example we will

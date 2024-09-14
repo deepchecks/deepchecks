@@ -13,22 +13,17 @@
 This module exists only for backward compatibility and will be
 removed in the nexts versions.
 """
+
 # flake8: noqa
 import warnings
 
 from deepchecks.tabular.suites import *  # pylint: disable=wildcard-import
 
 warnings.warn(
-    'Ability to import tabular suites from the `deepchecks.suites` '
-    'is deprecated, please import from `deepchecks.tabular.suites` instead',
-    DeprecationWarning
+    "Ability to import tabular suites from the `deepchecks.suites` "
+    "is deprecated, please import from `deepchecks.tabular.suites` instead",
+    DeprecationWarning,
 )
 
 
-__all__ = [
-    'train_test_validation',
-    'model_evaluation',
-    'full_suite',
-    'data_integrity',
-    'production_suite'
-]
+__all__ = ["train_test_validation", "model_evaluation", "full_suite", "data_integrity", "production_suite"]

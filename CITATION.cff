@@ -4,7 +4,7 @@ message: "If you use this software, please cite it using the metadata from this 
 type: software
 authors:
 - family-names: Chorev
-  given-names: Shir  
+  given-names: Shir
   email: shir@deepchecks.com
   affiliation: Deepchecks Ltd.
 - family-names: Tannor
@@ -23,7 +23,7 @@ authors:
   given-names: Itay
   email: itay@deepchecks.com
   affiliation: Deepchecks Ltd.
-- family-names: Hutnik 
+- family-names: Hutnik
   given-names: Nir
   email: nir@deepchecks.com
   affiliation: Deepchecks Ltd.
@@ -48,7 +48,7 @@ preferred-citation:
   type: article
   authors:
   - family-names: Chorev
-    given-names: Shir  
+    given-names: Shir
     email: shir@deepchecks.com
     affiliation: Deepchecks Ltd.
   - family-names: Tannor
@@ -67,7 +67,7 @@ preferred-citation:
     given-names: Itay
     email: itay@deepchecks.com
     affiliation: Deepchecks Ltd.
-  - family-names: Hutnik 
+  - family-names: Hutnik
     given-names: Nir
     email: nir@deepchecks.com
     affiliation: Deepchecks Ltd.

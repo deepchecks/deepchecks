@@ -1,12 +1,12 @@
-from datetime import datetime, timedelta
 import os
-
-from airflow import DAG
-from airflow.operators.python import PythonOperator
-import joblib
-import pandas as pd
+from datetime import datetime, timedelta
 
 from deepchecks.tabular.datasets.classification import adult
+
+import joblib
+import pandas as pd
+from airflow import DAG
+from airflow.operators.python import PythonOperator
 
 dir_path = "suite_results"
 # For demo only. Replace that with a S3/GCS other than local filesystem
@@ -14,7 +14,7 @@ data_path = os.path.join(os.getcwd(), "data")
 
 
 def load_adult_dataset(**context):
-    df_train, df_test = adult.load_data(data_format='Dataframe')
+    df_train, df_test = adult.load_data(data_format="Dataframe")
 
     try:
         os.mkdir(data_path)
@@ -40,9 +40,9 @@ def load_adult_model(**context):
 
 
 def dataset_integrity_step(**context):
-    from deepchecks.tabular.suites import data_integrity
-    from deepchecks.tabular.datasets.classification.adult import _CAT_FEATURES, _target
     from deepchecks.tabular import Dataset
+    from deepchecks.tabular.datasets.classification.adult import _CAT_FEATURES, _target
+    from deepchecks.tabular.suites import data_integrity
 
     adult_train = pd.read_csv(context.get("ti").xcom_pull(key="train_path"))
     adult_test = pd.read_csv(context.get("ti").xcom_pull(key="test_path"))
@@ -54,19 +54,19 @@ def dataset_integrity_step(**context):
     test_results = data_integrity().run(ds_test)
 
     try:
-        os.mkdir('suite_results')
+        os.mkdir("suite_results")
     except OSError:
         print("Creation of the directory {} failed".format(dir_path))
 
     run_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    train_results.save_as_html(os.path.join(dir_path, f'train_integrity_{run_time}.html'))
-    test_results.save_as_html(os.path.join(dir_path, f'test_integrity_{run_time}.html'))
+    train_results.save_as_html(os.path.join(dir_path, f"train_integrity_{run_time}.html"))
+    test_results.save_as_html(os.path.join(dir_path, f"test_integrity_{run_time}.html"))
 
 
 def model_evaluation_step(**context):
-    from deepchecks.tabular.suites import model_evaluation
-    from deepchecks.tabular.datasets.classification.adult import _CAT_FEATURES, _target
     from deepchecks.tabular import Dataset
+    from deepchecks.tabular.datasets.classification.adult import _CAT_FEATURES, _target
+    from deepchecks.tabular.suites import model_evaluation
 
     adult_model = joblib.load(context.get("ti").xcom_pull(key="adult_model"))
     adult_train = pd.read_csv(context.get("ti").xcom_pull(key="train_path"))
@@ -77,40 +77,27 @@ def model_evaluation_step(**context):
     evaluation_results = model_evaluation().run(ds_train, ds_test, adult_model)
 
     run_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    evaluation_results.save_as_html(os.path.join(dir_path, f'model_evaluation_{run_time}.html'))
+    evaluation_results.save_as_html(os.path.join(dir_path, f"model_evaluation_{run_time}.html"))
 
 
 with DAG(
-        dag_id="deepchecks_airflow_integration",
-        schedule_interval="@daily",
-        default_args={
-            "owner": "airflow",
-            "retries": 1,
-            "retry_delay": timedelta(minutes=5),
-            "start_date": datetime(2021, 1, 1),
-        },
-        catchup=False,
+    dag_id="deepchecks_airflow_integration",
+    schedule_interval="@daily",
+    default_args={
+        "owner": "airflow",
+        "retries": 1,
+        "retry_delay": timedelta(minutes=5),
+        "start_date": datetime(2021, 1, 1),
+    },
+    catchup=False,
 ) as dag:
-    load_adult_dataset = PythonOperator(
-        task_id="load_adult_dataset",
-        python_callable=load_adult_dataset
-    )
+    load_adult_dataset = PythonOperator(task_id="load_adult_dataset", python_callable=load_adult_dataset)
 
-    integrity_report = PythonOperator(
-        task_id="integrity_report",
-        python_callable=dataset_integrity_step
-    )
+    integrity_report = PythonOperator(task_id="integrity_report", python_callable=dataset_integrity_step)
 
-    load_adult_model = PythonOperator(
-        task_id="load_adult_model",
-        python_callable=load_adult_model
-    )
+    load_adult_model = PythonOperator(task_id="load_adult_model", python_callable=load_adult_model)
 
-    evaluation_report = PythonOperator(
-        task_id="evaluation_report",
-        python_callable=model_evaluation_step
-    )
+    evaluation_report = PythonOperator(task_id="evaluation_report", python_callable=model_evaluation_step)
 
 load_adult_dataset >> integrity_report
 load_adult_dataset >> load_adult_model >> evaluation_report
-

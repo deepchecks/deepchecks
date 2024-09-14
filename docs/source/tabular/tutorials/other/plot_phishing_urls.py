@@ -38,14 +38,13 @@ more at Mozilla's `What is a URL
 article. We'll see the specific features soon.
 """
 
-#%%
+# %%
 
-from IPython.core.display import HTML
 from IPython.display import Image
 
-Image(url= "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL/mdn-url-all.png")
+Image(url="https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL/mdn-url-all.png")
 
-#%%
+# %%
 # (Note: This is a slightly synthetic dataset based on `a great project
 # <https://github.com/Rohith-2/url_classification_dl>`__ by `Rohith Ramakrishnan
 # <https://www.linkedin.com/in/rohith-ramakrishnan-54094a1a0/>`__ and others,
@@ -54,7 +53,7 @@ Image(url= "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What
 # The authors has released it under an open license per our request, and for that
 # we are very grateful to them.)
 
-#%%
+# %%
 # **Installing requirements**
 #
 # .. code:: python
@@ -62,47 +61,47 @@ Image(url= "https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What
 #     import sys
 #     !{sys.executable} -m pip install deepchecks --quiet
 
-#%%
+# %%
 # Loading the data
 # ================
 # OK, let's take a look at the data!
 
-import numpy as np
-import pandas as pd
-import sklearn
-
 import deepchecks
 
-pd.set_option('display.max_columns', 45); SEED=832; np.random.seed(SEED);
+import numpy as np
+import pandas as pd
 
-#%%
+pd.set_option("display.max_columns", 45)
+SEED = 832
+np.random.seed(SEED)
+# %%
 
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
-#%%
+# %%
 
-df = load_data(data_format='dataframe', as_train_test=False)
+df = load_data(data_format="dataframe", as_train_test=False)
 
-#%%
+# %%
 
 df.shape
 
-#%%
+# %%
 
 df.head(5)
 
-#%%
+# %%
 # Here is the actual list of features:
 
 df.columns
 
-#%%
+# %%
 # Feature List
 # ------------
 # And here is a short explanation of each:
 #
 # =============  =========================   =======================================================================
-# Feature Name   Feature Group               Description 
+# Feature Name   Feature Group               Description
 # =============  =========================   =======================================================================
 # target         Meta Features               0 if the URL is benign, 1 if it is related to phishing
 # month          Meta Features               The month this URL was first encountered, as an int
@@ -131,10 +130,10 @@ df.columns
 # sscr           Web Page Characteristics    The ratio of scriptLength to specialChars (`= scriptLength / specialChars`)
 # =============  =========================   =======================================================================
 
-#%%
+# %%
 # Data Integrity with Deepchecks!
 # ===============================
-# The nice thing about the ``deepchecks`` package is that we can already use it out 
+# The nice thing about the ``deepchecks`` package is that we can already use it out
 # of the box! Instead of running a single check, we use a pre-defined test suite to
 # run a host of data validation checks.
 #
@@ -150,7 +149,7 @@ from deepchecks.tabular.suites import data_integrity
 
 integ_suite = data_integrity()
 
-#%%
+# %%
 # We will now run that suite on our data. While running on the native DataFrame is possible in some cases, it is
 # recommended to wrap it with the ``deepchecks.tabular.Dataset`` object instead, to give
 # the package a bit more context, namely what is the label column, and whether
@@ -158,11 +157,10 @@ integ_suite = data_integrity()
 # ``set_datetime_from_dataframe_index=True``), or any categorical features (we have
 # none after one-hot encoding them, so we'll set ``cat_features=[]`` explicitly).
 
-dataset = deepchecks.tabular.Dataset(df=df, label='target',
-                                     set_datetime_from_dataframe_index=True, cat_features=[])
+dataset = deepchecks.tabular.Dataset(df=df, label="target", set_datetime_from_dataframe_index=True, cat_features=[])
 integ_suite.run(dataset)
 
-#%%
+# %%
 # Understanding the checks' results!
 # ==================================
 # Ok, so we've got some interesting results! Even though this is quite a tidy dataset
@@ -183,79 +181,82 @@ integ_suite.run(dataset)
 raw_train_df = df[df.month <= 9]
 len(raw_train_df)
 
-#%%
+# %%
 
 raw_test_df = df[df.month > 9]
 len(raw_test_df)
 
-#%%
+# %%
 # Ok! Let's process the data real quick and see how some baseline classifiers perform!
 #
 # We'll just set the scrape date as our index, drop a few useless columns, one-hot
 # encode our categorical ext column and scale all numeric data:
 
-from deepchecks.tabular.datasets.classification.phishing import \
-    get_url_preprocessor
+from deepchecks.tabular.datasets.classification.phishing import get_url_preprocessor
 
 pipeline = get_url_preprocessor()
 
-#%%
+# %%
 # Now we'll fit on and transform the raw train dataframe:
 
 train_df = pipeline.fit_transform(raw_train_df)
-train_X = train_df.drop('target', axis=1)
-train_y = train_df['target']
+train_X = train_df.drop("target", axis=1)
+train_y = train_df["target"]
 train_X.head(3)
 
-#%%
+# %%
 # And apply the same fitted preprocessing pipeline (with the fitted scaler, for example)
 # to the test dataframe:
 
 test_df = pipeline.transform(raw_test_df)
-test_X = test_df.drop('target', axis=1)
-test_y = test_df['target']
+test_X = test_df.drop("target", axis=1)
+test_y = test_df["target"]
 test_X.head(3)
 
-#%%
+# %%
 
-from sklearn.linear_model import LogisticRegression; from sklearn.metrics import accuracy_score; hyperparameters = {'penalty': 'l2', 'fit_intercept': True, 'random_state': SEED, 'C': 0.009}
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
 
-#%%
+hyperparameters = {"penalty": "l2", "fit_intercept": True, "random_state": SEED, "C": 0.009}
+
+# %%
 
 logreg = LogisticRegression(**hyperparameters)
-logreg.fit(train_X, train_y);
+logreg.fit(train_X, train_y)
 pred_y = logreg.predict(test_X)
 
-#%%
+# %%
 
 accuracy_score(test_y, pred_y)
 
-#%%
+# %%
 # Ok, so we've got a nice accuracy score from the get go! Let's see what deepchecks
 # can tell us about our model...
 
 from deepchecks.tabular.suites import train_test_validation
 
-#%%
+# %%
 
 vsuite = train_test_validation()
 
-#%%
+# %%
 # Now that we have separate train and test DataFrames, we will create two ``deepchecks.tabular.Dataset`` objects to enable
 # this suite and the next one to run addressing the train and test dataframes according to their role. Notice that here
 # we pass the label as a column instead of a column name, because we've seperated the feature DataFrame from the target.
 
-ds_train = deepchecks.tabular.Dataset(df=train_X, label=train_y, set_datetime_from_dataframe_index=True,
-                                      cat_features=[])
+ds_train = deepchecks.tabular.Dataset(
+    df=train_X, label=train_y, set_datetime_from_dataframe_index=True, cat_features=[]
+)
 ds_test = deepchecks.tabular.Dataset(df=test_X, label=test_y, set_datetime_from_dataframe_index=True, cat_features=[])
 
-#%%
+# %%
 # Now we just have to provide the ``run`` method of the suite object with both the
 # model and the ``Dataset`` objects.
 
 vsuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 
-#%%
+# %%
 # Understanding the checks' results!
 # ==================================
 # Whoa! It looks like we have some time leakage!
@@ -278,60 +279,62 @@ vsuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 # ---------------------------------------------------
 # Let's just drop any row from 2020 from the raw dataframe and take it all from there
 
-df = df[~df['scrape_date'].str.contains('2020')]
+df = df[~df["scrape_date"].str.contains("2020")]
 df.shape
 
-#%%
+# %%
 
 pipeline = get_url_preprocessor()
 
-#%%
+# %%
 
 train_df = pipeline.fit_transform(raw_train_df)
-train_X = train_df.drop('target', axis=1)
-train_y = train_df['target']
+train_X = train_df.drop("target", axis=1)
+train_y = train_df["target"]
 train_X.head(3)
 
-#%%
+# %%
 
 test_df = pipeline.transform(raw_test_df)
-test_X = test_df.drop('target', axis=1)
-test_y = test_df['target']
+test_X = test_df.drop("target", axis=1)
+test_y = test_df["target"]
 test_X.head(3)
 
-#%%
+# %%
 
 logreg.fit(train_X, train_y)
 
-#%%
+# %%
 
 pred_y = logreg.predict(test_X)
 
-#%%
+# %%
 
 accuracy_score(test_y, pred_y)
 
-#%%
+# %%
 # Deepchecks' Performance Checks
 # ==============================
 # Ok! Now that we're back on track lets run some performance checks to see how we did.
 
 from deepchecks.tabular.suites import model_evaluation
 
-#%%
+# %%
 
 msuite = model_evaluation()
 
-#%%
+# %%
 
-ds_train = deepchecks.tabular.Dataset(df=train_X, label=train_y, set_datetime_from_dataframe_index=True, cat_features=[])
+ds_train = deepchecks.tabular.Dataset(
+    df=train_X, label=train_y, set_datetime_from_dataframe_index=True, cat_features=[]
+)
 ds_test = deepchecks.tabular.Dataset(df=test_X, label=test_y, set_datetime_from_dataframe_index=True, cat_features=[])
 
-#%%
+# %%
 
 msuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 
-#%%
+# %%
 # Understanding the checks' results!
 # ==================================
 # Ok! Now that we're back on track lets run some performance checks to see how we did.
@@ -363,11 +366,11 @@ msuite.run(model=logreg, train_dataset=ds_train, test_dataset=ds_test)
 
 from sklearn.tree import DecisionTreeClassifier
 
-model = DecisionTreeClassifier(criterion='entropy', splitter='random', random_state=SEED)
+model = DecisionTreeClassifier(criterion="entropy", splitter="random", random_state=SEED)
 model.fit(train_X, train_y)
 msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
 
-#%%
+# %%
 # Boosting our model!
 # ===================
 # To try and solve the overfitting issue let's try and throw at a problem an ensemble
@@ -376,11 +379,11 @@ msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
 
 from sklearn.ensemble import GradientBoostingClassifier
 
-model = GradientBoostingClassifier(n_estimators=250, random_state=SEED, max_depth=20, subsample=0.8 , loss='exponential')
+model = GradientBoostingClassifier(n_estimators=250, random_state=SEED, max_depth=20, subsample=0.8, loss="exponential")
 model.fit(train_X, train_y)
 msuite.run(model=model, train_dataset=ds_train, test_dataset=ds_test)
 
-#%%
+# %%
 # Understanding the checks' results!
 # ==================================
 # Again, ``deepchecks`` supplied some interesting insights, including a considerable

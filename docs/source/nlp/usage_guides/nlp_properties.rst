@@ -93,7 +93,7 @@ Calculating The Built-in Properties
 
 In order to use the built-in properties, you must call the ``calculate_builtin_properties`` method of the ``TextData``
 object. This method will calculate the properties and add them to the :class:`TextData <deepchecks.nlp.TextData>` object.
-To calculate all the default properties, you do not need to pass the ``include_properties`` parameter in the 
+To calculate all the default properties, you do not need to pass the ``include_properties`` parameter in the
 ``calculate_builtin_properties`` function. If you pass either ``include_properties`` or ``ignore_properties`` parameter
 then the only the properties specified will be calculated or ignored.
 
@@ -138,8 +138,8 @@ In the following example, we will calculate the built-in properties (both defaul
 
 
 Note that in the example above, we specified the ``Text Length`` property to be ignored and hence all other built-in
-default properties will be calculated except for ``Text Length`` property. Moreover, some properties are not calculated by default, as they may take a 
-long time to calculate. In order to use them, pass ``include_long_calculation_properties`` to the 
+default properties will be calculated except for ``Text Length`` property. Moreover, some properties are not calculated by default, as they may take a
+long time to calculate. In order to use them, pass ``include_long_calculation_properties`` to the
 ``calculate_builtin_properties`` method.
 
 In the following example, we will calculate the properties and include only the long calculation property "Toxicity".

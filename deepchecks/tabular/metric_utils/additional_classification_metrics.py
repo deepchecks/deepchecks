@@ -9,12 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing additional classification metrics that can be used via scorers."""
+
 from typing import Union
 
 import numpy as np
 from sklearn.metrics import confusion_matrix, roc_auc_score
 
-__all__ = ['false_positive_rate_metric', 'false_negative_rate_metric', 'true_negative_rate_metric', 'roc_auc_per_class']
+__all__ = ["false_positive_rate_metric", "false_negative_rate_metric", "true_negative_rate_metric", "roc_auc_per_class"]
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.metrics import averaging_mechanism
@@ -23,26 +24,28 @@ from deepchecks.utils.metrics import averaging_mechanism
 def assert_binary_values(y):
     invalid = set(np.unique(y)) - {0, 1}
     if invalid:
-        raise DeepchecksValueError(f'Expected y to be a binary matrix with only 0 and 1 but got values: {invalid}')
+        raise DeepchecksValueError(f"Expected y to be a binary matrix with only 0 and 1 but got values: {invalid}")
 
 
 def assert_multi_label_shape(y):
     if not isinstance(y, np.ndarray):
-        raise DeepchecksValueError(f'Expected y to be numpy array instead got: {type(y)}')
+        raise DeepchecksValueError(f"Expected y to be numpy array instead got: {type(y)}")
     if y.ndim != 2:
-        raise DeepchecksValueError(f'Expected y to be numpy array with 2 dimensions instead got {y.ndim} dimensions.')
+        raise DeepchecksValueError(f"Expected y to be numpy array with 2 dimensions instead got {y.ndim} dimensions.")
     assert_binary_values(y)
     # Since the metrics are not yet supporting real multi-label, make sure there isn't any row with sum larger than 1
     if y.sum(axis=1).max() > 1:
-        raise DeepchecksValueError('Multi label scorers are not supported yet, the sum of a row in multi-label format '
-                                   'must not be larger than 1')
+        raise DeepchecksValueError(
+            "Multi label scorers are not supported yet, the sum of a row in multi-label format "
+            "must not be larger than 1"
+        )
 
 
 def assert_single_label_shape(y):
     if not isinstance(y, np.ndarray):
-        raise DeepchecksValueError(f'Expected y to be numpy array instead got: {type(y)}')
+        raise DeepchecksValueError(f"Expected y to be numpy array instead got: {type(y)}")
     if y.ndim != 1:
-        raise DeepchecksValueError(f'Expected y to be numpy array with 1 dimension instead got {y.ndim} dimensions.')
+        raise DeepchecksValueError(f"Expected y to be numpy array with 1 dimension instead got {y.ndim} dimensions.")
     assert_binary_values(y)
 
 
@@ -65,7 +68,7 @@ def _micro_false_positive_rate(y_true, y_pred, classes):
     return fp / (fp + tn) if (fp + tn) > 0 else 0
 
 
-def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+def false_positive_rate_metric(y_true, y_pred, averaging_method: str = "per_class") -> Union[np.ndarray, float]:
     """Receive a metric which calculates false positive rate.
 
     The rate is calculated as: False Positives / (False Positives + True Negatives)
@@ -90,7 +93,7 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         The score for the given metric.
     """
     # Convert multi label into single label
-    if averaging_method != 'binary':
+    if averaging_method != "binary":
         assert_multi_label_shape(y_true)
         assert_multi_label_shape(y_pred)
         classes = range(y_true.shape[1])
@@ -101,7 +104,7 @@ def false_positive_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         assert_single_label_shape(y_pred)
         classes = [0, 1]
 
-    if averaging_method == 'micro':
+    if averaging_method == "micro":
         return _micro_false_positive_rate(y_true, y_pred, classes)
     scores_per_class = _false_positive_rate_per_class(y_true, y_pred, classes)
     weights = [sum(y_true == cls) for cls in classes]
@@ -127,7 +130,7 @@ def _micro_false_negative_rate(y_true, y_pred, classes):
     return fn / (fn + tp) if (fn + tp) > 0 else 0
 
 
-def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+def false_negative_rate_metric(y_true, y_pred, averaging_method: str = "per_class") -> Union[np.ndarray, float]:
     """Receive a metric which calculates false negative rate.
 
     The rate is calculated as: False Negatives / (False Negatives + True Positives)
@@ -153,7 +156,7 @@ def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
     """
     # Convert multi label into single label
     # Convert multi label into single label
-    if averaging_method != 'binary':
+    if averaging_method != "binary":
         assert_multi_label_shape(y_true)
         assert_multi_label_shape(y_pred)
         classes = range(y_true.shape[1])
@@ -164,7 +167,7 @@ def false_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_clas
         assert_single_label_shape(y_pred)
         classes = [0, 1]
 
-    if averaging_method == 'micro':
+    if averaging_method == "micro":
         return _micro_false_negative_rate(y_true, y_pred, classes)
 
     scores_per_class = _false_negative_rate_per_class(y_true, y_pred, classes)
@@ -191,7 +194,7 @@ def _micro_true_negative_rate(y_true, y_pred, classes):
     return tn / (tn + fp) if (tn + fp) > 0 else 0
 
 
-def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class') -> Union[np.ndarray, float]:
+def true_negative_rate_metric(y_true, y_pred, averaging_method: str = "per_class") -> Union[np.ndarray, float]:
     """Receive a metric which calculates true negative rate. Alternative name to the same metric is specificity.
 
     The rate is calculated as: True Negatives / (True Negatives + False Positives)
@@ -216,7 +219,7 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
         The score for the given metric.
     """
     # Convert multi label into single label
-    if averaging_method != 'binary':
+    if averaging_method != "binary":
         assert_multi_label_shape(y_true)
         assert_multi_label_shape(y_pred)
         classes = range(y_true.shape[1])
@@ -227,7 +230,7 @@ def true_negative_rate_metric(y_true, y_pred, averaging_method: str = 'per_class
         assert_single_label_shape(y_pred)
         classes = [0, 1]
 
-    if averaging_method == 'micro':
+    if averaging_method == "micro":
         return _micro_true_negative_rate(y_true, y_pred, classes)
 
     scores_per_class = _true_negative_rate_per_class(y_true, y_pred, classes)

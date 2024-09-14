@@ -9,15 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing html serializer for the CheckFailuer type."""
+
 from typing import Optional
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import HtmlSerializer
 
-__all__ = ['CheckFailureSerializer']
+__all__ = ["CheckFailureSerializer"]
 
 
-class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
+class CheckFailureSerializer(HtmlSerializer["check_types.CheckFailure"]):
     """Serializes any CheckFailure instance into html format.
 
     Parameters
@@ -26,18 +27,12 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
         CheckFailure instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'check_types.CheckFailure', **kwargs):
+    def __init__(self, value: "check_types.CheckFailure", **kwargs):
         if not isinstance(value, check_types.CheckFailure):
-            raise TypeError(
-                f'Expected "CheckFailure" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "CheckFailure" but got "{type(value).__name__}"')
         super().__init__(value=value)
 
-    def serialize(
-        self,
-        full_html: bool = False,
-        **kwargs
-    ) -> str:
+    def serialize(self, full_html: bool = False, **kwargs) -> str:
         """Serialize a CheckFailure instance into html format.
 
         Returns
@@ -45,13 +40,13 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
         str
         """
         header = self.prepare_header()
-        content = ''.join([header, self.prepare_summary(), self.prepare_error_message()])
+        content = "".join([header, self.prepare_summary(), self.prepare_error_message()])
         if full_html is True:
             return (
-                '<html>'
-                f'<head><title>{header}</title></head>'
+                "<html>"
+                f"<head><title>{header}</title></head>"
                 f'<body style="background-color: white;">{content}</body>'
-                '</html>'
+                "</html>"
             )
         else:
             return content
@@ -59,12 +54,12 @@ class CheckFailureSerializer(HtmlSerializer['check_types.CheckFailure']):
     def prepare_header(self, output_id: Optional[str] = None) -> str:
         """Prepare the header section of the html output."""
         header = self.value.get_header()
-        header = f'<b>{header}</b>'
+        header = f"<b>{header}</b>"
         if output_id is not None:
             check_id = self.value.get_check_id(output_id)
             return f'<h4 id="{check_id}">{header}</h4>'
         else:
-            return f'<h4>{header}</h4>'
+            return f"<h4>{header}</h4>"
 
     def prepare_summary(self) -> str:
         """Prepare the summary section of the html output."""

@@ -90,4 +90,3 @@ test:
     - tests.checks.distribution
     - tests.suites
     - tests.utils
-

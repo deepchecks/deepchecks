@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains is_single_value check."""
-from typing import List, Union
 
-import pandas as pd
+from typing import List, Union
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -19,7 +18,9 @@ from deepchecks.tabular.utils.messages import get_condition_passed_message
 from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['IsSingleValue']
+import pandas as pd
+
+__all__ = ["IsSingleValue"]
 
 
 class IsSingleValue(SingleDatasetCheck):
@@ -48,7 +49,7 @@ class IsSingleValue(SingleDatasetCheck):
         ignore_nan: bool = True,
         n_samples: int = 10_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -71,32 +72,36 @@ class IsSingleValue(SingleDatasetCheck):
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
 
         num_unique_per_col = df.nunique(dropna=self.ignore_nan)
-        is_single_unique_value = (num_unique_per_col == 1)
+        is_single_unique_value = num_unique_per_col == 1
 
         if context.with_display and is_single_unique_value.any():
             # get names of columns with one unique value
             # pylint: disable=unsubscriptable-object
             cols_with_single = is_single_unique_value[is_single_unique_value].index.to_list()
-            uniques = pd.DataFrame({
-                column_name: [column.sort_values(kind='mergesort').values[0]]
-                for column_name, column in df.loc[:, cols_with_single].items()
-            })
-            uniques.index = ['Single unique value']
-            display = ['The following columns have only one unique value', uniques]
+            uniques = pd.DataFrame(
+                {
+                    column_name: [column.sort_values(kind="mergesort").values[0]]
+                    for column_name, column in df.loc[:, cols_with_single].items()
+                }
+            )
+            uniques.index = ["Single unique value"]
+            display = ["The following columns have only one unique value", uniques]
         else:
             display = None
 
-        return CheckResult(num_unique_per_col.to_dict(), header='Single Value in Column', display=display)
+        return CheckResult(num_unique_per_col.to_dict(), header="Single Value in Column", display=display)
 
     def add_condition_not_single_value(self):
         """Add condition - no column contains only a single value."""
-        name = 'Does not contain only a single value'
+        name = "Does not contain only a single value"
 
         def condition(result):
             single_value_cols = [k for k, v in result.items() if v == 1]
             if single_value_cols:
-                details = f'Found {len(single_value_cols)} out of {len(result)} columns with a single value: ' \
-                          f'{single_value_cols}'
+                details = (
+                    f"Found {len(single_value_cols)} out of {len(result)} columns with a single value: "
+                    f"{single_value_cols}"
+                )
                 return ConditionResult(ConditionCategory.FAIL, details)
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))

@@ -9,12 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing ipywidget serializer for the CheckResult type."""
-import typing as t
 
-import pandas as pd
-import plotly.graph_objects as go
-from ipywidgets import HTML, Tab, VBox, Widget
-from plotly.basedatatypes import BaseFigure
+import typing as t
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import WidgetSerializer
@@ -22,10 +18,15 @@ from deepchecks.core.serialization.common import normalize_widget_style
 
 from . import html
 
-__all__ = ['CheckResultSerializer']
+import pandas as pd
+import plotly.graph_objects as go
+from ipywidgets import HTML, Tab, VBox, Widget
+from plotly.basedatatypes import BaseFigure
+
+__all__ = ["CheckResultSerializer"]
 
 
-class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
+class CheckResultSerializer(WidgetSerializer["check_types.CheckResult"]):
     """Serializes any CheckResult instance into ipywidgets.Widget instance.
 
     Parameters
@@ -34,11 +35,9 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         CheckResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'check_types.CheckResult', **kwargs):
+    def __init__(self, value: "check_types.CheckResult", **kwargs):
         if not isinstance(value, check_types.CheckResult):
-            raise TypeError(
-                f'Expected "CheckResult" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "CheckResult" but got "{type(value).__name__}"')
         super().__init__(value=value)
         self._html_serializer = html.CheckResultSerializer(self.value)
 
@@ -48,7 +47,7 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         check_sections: t.Optional[t.Sequence[html.CheckResultSection]] = None,
         plotly_to_image: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
-        **kwargs
+        **kwargs,
     ) -> VBox:
         """Serialize a CheckResult instance into ipywidgets.Widget instance.
 
@@ -76,17 +75,17 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         sections_to_include = html.verify_include_parameter(check_sections)
         sections: t.List[Widget] = [self.prepare_header(output_id), self.prepare_summary()]
 
-        if 'condition-table' in sections_to_include:
-            sections.append(self.prepare_conditions_table(
-                output_id=output_id
-            ))
+        if "condition-table" in sections_to_include:
+            sections.append(self.prepare_conditions_table(output_id=output_id))
 
-        if 'additional-output' in sections_to_include:
-            sections.append(self.prepare_additional_output(
-                output_id=output_id,
-                plotly_to_image=plotly_to_image,
-                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
-            ))
+        if "additional-output" in sections_to_include:
+            sections.append(
+                self.prepare_additional_output(
+                    output_id=output_id,
+                    plotly_to_image=plotly_to_image,
+                    is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
+                )
+            )
 
         return normalize_widget_style(VBox(children=sections))
 
@@ -122,19 +121,18 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         -------
         ipywidgets.HTML
         """
-        widget = HTML(value=self._html_serializer.prepare_conditions_table(
-            max_info_len=max_info_len,
-            include_icon=include_icon,
-            include_check_name=include_check_name,
-            output_id=output_id
-        ))
+        widget = HTML(
+            value=self._html_serializer.prepare_conditions_table(
+                max_info_len=max_info_len,
+                include_icon=include_icon,
+                include_check_name=include_check_name,
+                output_id=output_id,
+            )
+        )
         return widget
 
     def prepare_additional_output(
-        self,
-        output_id: t.Optional[str] = None,
-        plotly_to_image: bool = False,
-        is_for_iframe_with_srcdoc: bool = False
+        self, output_id: t.Optional[str] = None, plotly_to_image: bool = False, is_for_iframe_with_srcdoc: bool = False
     ) -> VBox:
         """Prepare additional output widget.
 
@@ -153,12 +151,14 @@ class CheckResultSerializer(WidgetSerializer['check_types.CheckResult']):
         -------
         ipywidgets.VBox
         """
-        return VBox(children=DisplayItemsHandler.handle_display(
-            display=self.value.display,
-            output_id=output_id,
-            plotly_to_image=plotly_to_image,
-            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
-        ))
+        return VBox(
+            children=DisplayItemsHandler.handle_display(
+                display=self.value.display,
+                output_id=output_id,
+                plotly_to_image=plotly_to_image,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
+            )
+        )
 
 
 class DisplayItemsHandler(html.DisplayItemsHandler):
@@ -167,11 +167,11 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     @classmethod
     def handle_display(
         cls,
-        display: t.List['check_types.TDisplayItem'],
+        display: t.List["check_types.TDisplayItem"],
         output_id: t.Optional[str] = None,
         include_header: bool = True,
         include_trailing_link: bool = True,
-        **kwargs
+        **kwargs,
     ) -> t.List[Widget]:
         """Serialize CheckResult display items into list if Widget instances.
 
@@ -190,13 +190,16 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         -------
         List[Widget]
         """
-        return t.cast(t.List[Widget], super().handle_display(
-            display=display,
-            output_id=output_id,
-            include_header=include_header,
-            include_trailing_link=include_trailing_link,
-            **kwargs
-        ))
+        return t.cast(
+            t.List[Widget],
+            super().handle_display(
+                display=display,
+                output_id=output_id,
+                include_header=include_header,
+                include_trailing_link=include_trailing_link,
+                **kwargs,
+            ),
+        )
 
     @classmethod
     def header(cls) -> HTML:
@@ -214,19 +217,11 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return HTML(value=super().go_to_top_link(output_id, is_for_iframe_with_srcdoc))
 
     @classmethod
-    def handle_figure(
-        cls,
-        item: BaseFigure,
-        index: int,
-        plotly_to_image: bool = False,
-        **kwargs
-    ) -> Widget:
+    def handle_figure(cls, item: BaseFigure, index: int, plotly_to_image: bool = False, **kwargs) -> Widget:
         return (
             go.FigureWidget(data=item)
             if not plotly_to_image
-            else HTML(value=super().handle_figure(
-                item, index, plotly_to_image, **kwargs
-            ))
+            else HTML(value=super().handle_figure(item, index, plotly_to_image, **kwargs))
         )
 
     @classmethod
@@ -245,23 +240,17 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return HTML(value=super().handle_callable(item, index, **kwargs))
 
     @classmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> VBox:
+    def handle_display_map(cls, item: "check_types.DisplayMap", index: int, **kwargs) -> VBox:
         """Handle display map instance item."""
         tab = Tab()
         children = []
 
         for i, (name, display) in enumerate(item.items()):
             tab.set_title(i, name)
-            children.append(VBox(children=cls.handle_display(
-                display,
-                include_header=False,
-                include_trailing_link=False,
-                **kwargs
-            )))
+            children.append(
+                VBox(children=cls.handle_display(display, include_header=False, include_trailing_link=False, **kwargs))
+            )
 
         tab.children = children
-        style = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {min-width: fit-content;}</style>'
-        return VBox(children=[
-            HTML(value=style),
-            tab
-        ])
+        style = "<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {min-width: fit-content;}</style>"
+        return VBox(children=[HTML(value=style), tab])

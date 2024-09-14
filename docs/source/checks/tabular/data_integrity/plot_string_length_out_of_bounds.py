@@ -20,32 +20,31 @@ This notebook provides an overview for using and understanding the String Length
 # The ``StringLengthOutOfBounds`` check detects strings with length that is much longer/shorter
 # than the identified "normal" string lengths.
 
-#%%
+# %%
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks import StringLengthOutOfBounds
 
 import pandas as pd
 
-from deepchecks.tabular.checks import StringLengthOutOfBounds
-from deepchecks.tabular import Dataset
-#%%
+# %%
 # Generate Data
 # ===============
-col1 = ["deepchecks123", "deepchecks456"]*40
+col1 = ["deepchecks123", "deepchecks456"] * 40
 col1.append("ab")
 col1.append("cd")
 
-col2 = ["b", "abc"]*41
+col2 = ["b", "abc"] * 41
 
-col3 = ["deepchecks"]*80
+col3 = ["deepchecks"] * 80
 col3.append("an_outlier")
 col3.append("im_an_outlier_too")
 
 ## col1 and col3 contain outliers, col2 does not
-df = pd.DataFrame({"col1":col1, "col2": col2, "col3": col3 })
+df = pd.DataFrame({"col1": col1, "col2": col2, "col3": col3})
 df = Dataset(df, cat_features=[])
 
-#%%
+# %%
 # Run the check
 # ================
 StringLengthOutOfBounds().run(df)
-
-

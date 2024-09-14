@@ -1,4 +1,4 @@
-Deepchecks Continuous Validation and Testing for ML Models & Data 
+Deepchecks Continuous Validation and Testing for ML Models & Data
 
 Copyright (C) 2021-2023 Deepchecks
 
@@ -12,22 +12,22 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Affero General Public License for more details.
 
-  A copy of the GNU Affero General Public License is set out below and is 
+  A copy of the GNU Affero General Public License is set out below and is
 also found at <https://www.gnu.org/licenses/>.
 
 
 Additional permission under GNU AGPL version 3 section 7
 
-  If you modify this Program, or any covered work, by linking or combining it 
+  If you modify this Program, or any covered work, by linking or combining it
 with the sub-library in the Deepchecks Monitoring
-(https://github.com/deepchecks/monitoring) “**/ee/” sub-directory (or 
-a modified version of that library), covered by the Terms & Conditions of the 
-Deepchecks Monitoring sub-library in the “**/ee/” sub-directory, found at 
-https://deepchecks.com/terms-and-conditions (the "Commercial License"), 
-the licensors of this Program grant you additional permission to convey 
-the resulting work provided that use of the sub-library in the 
-Deepchecks Monitoring “**/ee/” sub-directory is subject to the terms of the 
-Commercial License. 
+(https://github.com/deepchecks/monitoring) “**/ee/” sub-directory (or
+a modified version of that library), covered by the Terms & Conditions of the
+Deepchecks Monitoring sub-library in the “**/ee/” sub-directory, found at
+https://deepchecks.com/terms-and-conditions (the "Commercial License"),
+the licensors of this Program grant you additional permission to convey
+the resulting work provided that use of the sub-library in the
+Deepchecks Monitoring “**/ee/” sub-directory is subject to the terms of the
+Commercial License.
 
 --------------------------------
 

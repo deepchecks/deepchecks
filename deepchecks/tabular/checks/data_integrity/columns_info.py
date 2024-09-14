@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains columns_info check."""
-import pandas as pd
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.tabular.utils.feature_importance import N_TOP_MESSAGE, column_importance_sorter_dict
 
-__all__ = ['ColumnsInfo']
+import pandas as pd
+
+__all__ = ["ColumnsInfo"]
 
 
 class ColumnsInfo(SingleDatasetCheck):
@@ -44,13 +45,9 @@ class ColumnsInfo(SingleDatasetCheck):
         columns_info = dataset.columns_info
         columns_info = column_importance_sorter_dict(columns_info, dataset, context.feature_importance, None)
 
-        columns_info_to_display = dict(list(columns_info.items())[:self.n_top_columns])
+        columns_info_to_display = dict(list(columns_info.items())[: self.n_top_columns])
 
-        df = pd.DataFrame.from_dict(columns_info_to_display, orient='index', columns=['role'])
+        df = pd.DataFrame.from_dict(columns_info_to_display, orient="index", columns=["role"])
         df = df.transpose()
 
-        return CheckResult(
-            columns_info,
-            header='Columns Info',
-            display=[N_TOP_MESSAGE % self.n_top_columns, df]
-        )
+        return CheckResult(columns_info, header="Columns Info", display=[N_TOP_MESSAGE % self.n_top_columns, df])

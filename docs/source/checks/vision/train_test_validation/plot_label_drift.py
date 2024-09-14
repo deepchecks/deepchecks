@@ -55,7 +55,7 @@ Imports
 -------
 """
 
-#%%
+# %%
 #
 # .. note::
 #   In this example, we use the pytorch version of the mnist dataset and model. In order to run this example using
@@ -66,15 +66,15 @@ Imports
 from deepchecks.vision.checks import LabelDrift
 from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
-#%%
+# %%
 # Loading Data
 # ------------
 
 
-train_ds = load_dataset(train=True, batch_size=64, object_type='VisionData')
-test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
+train_ds = load_dataset(train=True, batch_size=64, object_type="VisionData")
+test_ds = load_dataset(train=False, batch_size=1000, object_type="VisionData")
 
-#%%
+# %%
 # Running LabelDrift on classification
 # ---------------------------------------------
 
@@ -82,7 +82,7 @@ check = LabelDrift()
 result = check.run(train_ds, test_ds)
 result.show()
 
-#%%
+# %%
 # Understanding the results
 # -------------------------
 # We can see there is almost no drift between the train & test labels. This means the
@@ -93,14 +93,14 @@ from deepchecks.vision.checks import ClassPerformance
 
 ClassPerformance().run(train_ds, test_ds)
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  ClassPerformance().run(train_ds, test_ds, mnist_model).show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # MNIST with label drift
 # ======================
 # Now, let's try to separate the MNIST dataset in a different manner that will result
@@ -108,7 +108,7 @@ ClassPerformance().run(train_ds, test_ds)
 # custom `collate_fn`` in the test dataset, that will select samples with class 0 with
 # a probability of 1/10.
 
-#%%
+# %%
 # Inserting drift to the test set
 # -------------------------------
 
@@ -120,29 +120,30 @@ np.random.seed(42)
 def generate_collate_fn_with_label_drift(collate_fn):
     def collate_fn_with_label_drift(batch):
         batch_dict = collate_fn(batch)
-        images = batch_dict['images']
-        labels = batch_dict['labels']
+        images = batch_dict["images"]
+        labels = batch_dict["labels"]
         for i in range(len(images)):
             image, label = images[i], labels[i]
             if label == 0:
                 if np.random.randint(5) != 0:
-                    batch_dict['labels'][i] = 1
+                    batch_dict["labels"][i] = 1
 
         return batch_dict
+
     return collate_fn_with_label_drift
 
 
-mod_test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
+mod_test_ds = load_dataset(train=False, batch_size=1000, object_type="VisionData")
 mod_test_ds._batch_loader.collate_fn = generate_collate_fn_with_label_drift(mod_test_ds._batch_loader.collate_fn)
 
-#%%
+# %%
 # Run the check
 # =============
 
 check = LabelDrift()
 check.run(train_ds, mod_test_ds)
 
-#%%
+# %%
 # Add a condition
 # ---------------
 # We could also add a condition to the check to alert us to changes in the label
@@ -153,24 +154,24 @@ check.run(train_ds, mod_test_ds)
 
 # As we can see, the condition alerts us to the presence of drift in the label.
 
-#%%
+# %%
 # Results
 # -------
 # We can see the check successfully detects the (expected) drift in class 0
 # distribution between the train and test sets
 
-#%%
+# %%
 # But how does this affect the performance of the model?
 # ------------------------------------------------------
 
 ClassPerformance().run(train_ds, mod_test_ds)
 
-#%%
+# %%
 # Understanding the results
 # -------------------------------
 # We can see the drop in the precision of class 0, which was caused by the class imbalance indicated earlier by the label drift check.
 
-#%%
+# %%
 # Run the check on an Object Detection task (COCO)
 # ================================================
 #
@@ -182,15 +183,15 @@ ClassPerformance().run(train_ds, mod_test_ds)
 
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
-train_ds = load_dataset(train=True, object_type='VisionData')
-test_ds = load_dataset(train=False, object_type='VisionData')
+train_ds = load_dataset(train=True, object_type="VisionData")
+test_ds = load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 
 check = LabelDrift()
 check.run(train_ds, test_ds)
 
-#%%
+# %%
 # Label drift is detected!
 # ------------------------
 # We can see that the COCO128 contains a drift in the out of the box dataset. In

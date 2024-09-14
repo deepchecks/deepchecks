@@ -33,21 +33,21 @@ Create TextData
 Let's create a simple dataset with some frequent substrings.
 """
 
-from deepchecks.nlp.checks import FrequentSubstrings
 from deepchecks.nlp import TextData
+from deepchecks.nlp.checks import FrequentSubstrings
 
 texts = [
-    'Deep learning is a subset of machine learning. Sent from my iPhone',
-    'Deep learning is a sub-set of Machine Learning.',
-    'Natural language processing is a subfield of AI. Sent from my iPhone',
-    'NLP is a subfield of Artificial Intelligence. Sent from my iPhone',
-    'This is a unique text sample.',
-    'This is another unique text.'
+    "Deep learning is a subset of machine learning. Sent from my iPhone",
+    "Deep learning is a sub-set of Machine Learning.",
+    "Natural language processing is a subfield of AI. Sent from my iPhone",
+    "NLP is a subfield of Artificial Intelligence. Sent from my iPhone",
+    "This is a unique text sample.",
+    "This is another unique text.",
 ]
 
 dataset = TextData(texts)
 
-#%%
+# %%
 # Run the Check
 # =============
 

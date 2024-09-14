@@ -9,19 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """The data_sample_leakage_report check module."""
-from typing import Dict
 
-import pandas as pd
+from typing import Dict
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.reduce_classes import ReduceLabelMixin
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_percent
 
+import pandas as pd
+
 pd.options.mode.chained_assignment = None
 
 
-__all__ = ['NewLabelTrainTest']
+__all__ = ["NewLabelTrainTest"]
 
 
 class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
@@ -35,12 +36,7 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
         random seed for all check internals.
     """
 
-    def __init__(
-        self,
-        n_samples: int = 10_000_000,
-        random_state: int = 42,
-        **kwargs
-    ):
+    def __init__(self, n_samples: int = 10_000_000, random_state: int = 42, **kwargs):
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.random_state = random_state
@@ -79,17 +75,18 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
             samples_per_label = dict(new_labels.value_counts())
 
             result = {
-                'n_samples': n_test_samples,
-                'n_new_labels_samples': n_new_label,
-                'new_labels': sorted(samples_per_label.keys()),
-                'n_samples_per_new_label': samples_per_label
+                "n_samples": n_test_samples,
+                "n_new_labels_samples": n_new_label,
+                "new_labels": sorted(samples_per_label.keys()),
+                "n_samples_per_new_label": samples_per_label,
             }
 
             if context.with_display:
-                dataframe = pd.DataFrame(data=[[train_dataset.label_name, format_percent(n_new_label / n_test_samples),
-                                                sorted(new_labels)]],
-                                         columns=['Label column', 'Percent new labels in sample', 'New labels'])
-                dataframe = dataframe.set_index(['Label column'])
+                dataframe = pd.DataFrame(
+                    data=[[train_dataset.label_name, format_percent(n_new_label / n_test_samples), sorted(new_labels)]],
+                    columns=["Label column", "Percent new labels in sample", "New labels"],
+                )
+                dataframe = dataframe.set_index(["Label column"])
                 display = dataframe
             else:
                 display = None
@@ -97,10 +94,10 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
         else:
             display = None
             result = {
-                'n_samples': n_test_samples,
-                'n_new_labels_samples': 0,
-                'new_labels': [],
-                'n_samples_per_new_label': {}
+                "n_samples": n_test_samples,
+                "n_new_labels_samples": 0,
+                "new_labels": [],
+                "n_samples_per_new_label": {},
             }
 
         return CheckResult(result, display=display)
@@ -113,11 +110,11 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
         Dict[str, float]
             number of samples per each new label
         """
-        if check_result.value['n_samples_per_new_label']:
-            value = sum(check_result.value['n_samples_per_new_label'].values())
+        if check_result.value["n_samples_per_new_label"]:
+            value = sum(check_result.value["n_samples_per_new_label"].values())
         else:
             value = 0
-        return {'Samples with New Labels': value}
+        return {"Samples with New Labels": value}
 
     def greater_is_better(self):
         """Return True if the check reduce_output is better when it is greater."""
@@ -131,17 +128,17 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
         max_new : int , default: 0
             Number of different new labels value types which is the maximum allowed.
         """
+
         def condition(result: Dict) -> ConditionResult:
             if result:
-                new_labels = result['new_labels']
+                new_labels = result["new_labels"]
                 num_new_labels = len(new_labels)
-                details = f'Found {num_new_labels} new labels in test data: {new_labels}'
+                details = f"Found {num_new_labels} new labels in test data: {new_labels}"
                 category = ConditionCategory.PASS if num_new_labels <= max_new else ConditionCategory.FAIL
                 return ConditionResult(category, details)
-            return ConditionResult(ConditionCategory.PASS, 'No new labels found')
+            return ConditionResult(ConditionCategory.PASS, "No new labels found")
 
-        return self.add_condition(f'Number of new label values is less or equal to {max_new}',
-                                  condition)
+        return self.add_condition(f"Number of new label values is less or equal to {max_new}", condition)
 
     def add_condition_new_label_ratio_less_or_equal(self, max_ratio: float = 0):
         """Add condition - require label column's ratio of new label samples to be less or equal to the threshold.
@@ -151,15 +148,17 @@ class NewLabelTrainTest(TrainTestCheck, ReduceLabelMixin):
         max_ratio : float , default: 0
             Ratio of new label samples to total samples which is the maximum allowed.
         """
+
         def new_category_count_condition(result: Dict) -> ConditionResult:
             if result:
-                new_labels = result['new_labels']
-                new_label_ratio = result['n_new_labels_samples'] / result['n_samples']
-                details = f'Found {format_percent(new_label_ratio)} of labels in test data are new labels: {new_labels}'
+                new_labels = result["new_labels"]
+                new_label_ratio = result["n_new_labels_samples"] / result["n_samples"]
+                details = f"Found {format_percent(new_label_ratio)} of labels in test data are new labels: {new_labels}"
                 category = ConditionCategory.PASS if new_label_ratio <= max_ratio else ConditionCategory.FAIL
                 return ConditionResult(category, details)
-            return ConditionResult(ConditionCategory.PASS, 'No new labels found')
+            return ConditionResult(ConditionCategory.PASS, "No new labels found")
 
         return self.add_condition(
-            f'Ratio of samples with new label is less or equal to {format_percent(max_ratio)}',
-            new_category_count_condition)
+            f"Ratio of samples with new label is less or equal to {format_percent(max_ratio)}",
+            new_category_count_condition,
+        )

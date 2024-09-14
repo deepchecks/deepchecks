@@ -9,23 +9,30 @@
 # ----------------------------------------------------------------------------
 #
 """Module of functions to partition columns into segments."""
+
 from collections import defaultdict
 from copy import deepcopy
 from typing import Callable, List, Optional, Tuple, Union
-
-import numpy as np
-import pandas as pd
-from sklearn.tree import _tree
 
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
+import numpy as np
+import pandas as pd
+from sklearn.tree import _tree
+
 # TODO: move tabular functionality to the tabular sub-package
 
 
-__all__ = ['partition_column', 'DeepchecksFilter', 'DeepchecksBaseFilter', 'convert_tree_leaves_into_filters',
-           'intersect_two_filters', 'partition_numeric_feature_around_segment']
+__all__ = [
+    "partition_column",
+    "DeepchecksFilter",
+    "DeepchecksBaseFilter",
+    "convert_tree_leaves_into_filters",
+    "intersect_two_filters",
+    "partition_numeric_feature_around_segment",
+]
 
 
 class DeepchecksFilter:
@@ -39,23 +46,24 @@ class DeepchecksFilter:
         name of the filter
     """
 
-    def __init__(self, filter_functions: List[Callable] = None, label: str = ''):
+    def __init__(self, filter_functions: List[Callable] = None, label: str = ""):
         if not filter_functions:
             self.filter_functions = []
         else:
             self.filter_functions = filter_functions
         self.label = label
 
-    def filter(self, dataframe: pd.DataFrame, label_col: Optional[pd.Series] = None) -> \
-            Union[Tuple[pd.DataFrame, pd.Series], pd.DataFrame]:
+    def filter(
+        self, dataframe: pd.DataFrame, label_col: Optional[pd.Series] = None
+    ) -> Union[Tuple[pd.DataFrame, pd.Series], pd.DataFrame]:
         """Run the filter on given dataframe. Return rows in data frame satisfying the filter properties."""
         if label_col is not None:
-            dataframe['temp_label_col'] = label_col
+            dataframe["temp_label_col"] = label_col
         for func in self.filter_functions:
             dataframe = dataframe.loc[func(dataframe)]
 
         if label_col is not None:
-            return dataframe.drop(columns=['temp_label_col']), dataframe['temp_label_col']
+            return dataframe.drop(columns=["temp_label_col"]), dataframe["temp_label_col"]
         else:
             return dataframe
 
@@ -73,7 +81,7 @@ class DeepchecksBaseFilter(DeepchecksFilter):
         Name of the filter
     """
 
-    def __init__(self, filters: dict = None, filter_functions: List[Callable] = None, label: str = ''):
+    def __init__(self, filters: dict = None, filter_functions: List[Callable] = None, label: str = ""):
         if filters is None:
             filters = defaultdict()
         self.filters = filters
@@ -108,8 +116,9 @@ def intersect_two_filters(filter1: DeepchecksFilter, filter2: DeepchecksFilter) 
     return DeepchecksFilter(filter1.filter_functions + filter2.filter_functions)
 
 
-def partition_numeric_feature_around_segment(column: pd.Series, segment: List[float],
-                                             max_additional_segments: int = 4) -> np.ndarray:
+def partition_numeric_feature_around_segment(
+    column: pd.Series, segment: List[float], max_additional_segments: int = 4
+) -> np.ndarray:
     """Split given series into segments containing specified segment.
 
     Tries to create segments as balanced as possible in size.
@@ -187,10 +196,10 @@ def largest_category_index_up_to_ratio(histogram, max_segments, max_cat_proporti
 
 
 def partition_column(
-        dataset: Dataset,
-        column_name: Hashable,
-        max_segments: int = 10,
-        max_cat_proportions: float = 0.9,
+    dataset: Dataset,
+    column_name: Hashable,
+    max_segments: int = 10,
+    max_cat_proportions: float = 0.9,
 ) -> List[DeepchecksFilter]:
     """Split column into segments.
 
@@ -228,10 +237,10 @@ def partition_column(
             # In case of the last range, the end is closed.
             if end == percentile_values[-1]:
                 f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] <= b)
-                label = f'[{format_number(start)} - {format_number(end)}]'
+                label = f"[{format_number(start)} - {format_number(end)}]"
             else:
                 f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] < b)
-                label = f'[{format_number(start)} - {format_number(end)})'
+                label = f"[{format_number(start)} - {format_number(end)})"
 
             filters.append(DeepchecksFilter([f], label))
         return filters
@@ -248,7 +257,7 @@ def partition_column(
 
         if len(cat_hist_dict) > n_large_cats:
             f = lambda df, values=cat_hist_dict.index[:n_large_cats]: ~df[column_name].isin(values)
-            filters.append(DeepchecksFilter([f], 'Others'))
+            filters.append(DeepchecksFilter([f], "Others"))
 
         return filters
 
@@ -272,17 +281,20 @@ def convert_tree_leaves_into_filters(tree, feature_names: List[str]) -> List[Dee
     List[DeepchecksFilter]:
            A list of filters describing the leaves of the tree.
     """
-    node_to_feature = [feature_names[feature_idx] if feature_idx != _tree.TREE_UNDEFINED else None for feature_idx in
-                       tree.feature]
+    node_to_feature = [
+        feature_names[feature_idx] if feature_idx != _tree.TREE_UNDEFINED else None for feature_idx in tree.feature
+    ]
 
     def recurse(node_idx: int, filter_of_node: DeepchecksBaseFilter):
         if tree.feature[node_idx] != _tree.TREE_UNDEFINED:
-            left_node_filter = filter_of_node.copy().add_filter(node_to_feature[node_idx], tree.threshold[node_idx],
-                                                                greater_then=False)
+            left_node_filter = filter_of_node.copy().add_filter(
+                node_to_feature[node_idx], tree.threshold[node_idx], greater_then=False
+            )
             right_node_filter = filter_of_node.copy().add_filter(node_to_feature[node_idx], tree.threshold[node_idx])
 
-            return recurse(tree.children_left[node_idx], left_node_filter) + \
-                recurse(tree.children_right[node_idx], right_node_filter)
+            return recurse(tree.children_left[node_idx], left_node_filter) + recurse(
+                tree.children_right[node_idx], right_node_filter
+            )
         else:
             return [filter_of_node]
 

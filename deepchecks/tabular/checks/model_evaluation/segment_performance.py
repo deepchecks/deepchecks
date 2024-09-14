@@ -9,11 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module of segment performance check."""
+
 import warnings
 from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple, Union, cast
-
-import numpy as np
-import plotly.express as px
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
@@ -23,10 +21,13 @@ from deepchecks.utils.performance.partition import partition_column
 from deepchecks.utils.strings import format_number
 from deepchecks.utils.typing import Hashable
 
+import numpy as np
+import plotly.express as px
+
 if TYPE_CHECKING:
     from deepchecks.core.checks import CheckConfig
 
-__all__ = ['SegmentPerformance']
+__all__ = ["SegmentPerformance"]
 
 
 class SegmentPerformance(SingleDatasetCheck):
@@ -66,11 +67,14 @@ class SegmentPerformance(SingleDatasetCheck):
         max_segments: int = 10,
         n_samples: int = 1_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
-        warnings.warn('The SegmentPerformance check is deprecated and will be removed in the 0.11 version. '
-                      'Please use the WeakSegmentsPerformance check instead.', DeprecationWarning)
+        warnings.warn(
+            "The SegmentPerformance check is deprecated and will be removed in the 0.11 version. "
+            "Please use the WeakSegmentsPerformance check instead.",
+            DeprecationWarning,
+        )
 
         # if they're both none it's ok
         if feature_1 and feature_1 == feature_2:
@@ -96,7 +100,7 @@ class SegmentPerformance(SingleDatasetCheck):
         features = dataset.features
 
         if len(features) < 2:
-            raise DatasetValidationError('Dataset must have at least 2 features')
+            raise DatasetValidationError("Dataset must have at least 2 features")
 
         if self.feature_1 is None and self.feature_2 is None:
             # Use feature importance to select features if none were defined
@@ -144,49 +148,46 @@ class SegmentPerformance(SingleDatasetCheck):
         x = [v.label for v in feature_2_filters]
         y = [v.label for v in feature_1_filters]
 
-        scores_text = [[0]*scores.shape[1] for _ in range(scores.shape[0])]
+        scores_text = [[0] * scores.shape[1] for _ in range(scores.shape[0])]
 
         for i in range(len(y)):
             for j in range(len(x)):
                 score = scores[i, j]
                 if not np.isnan(score):
-                    scores_text[i][j] = f'{format_number(score)}\n({counts[i, j]})'
+                    scores_text[i][j] = f"{format_number(score)}\n({counts[i, j]})"
                 elif counts[i, j] == 0:
-                    scores_text[i][j] = ''
+                    scores_text[i][j] = ""
                 else:
-                    scores_text[i][j] = f'{score}\n({counts[i, j]})'
+                    scores_text[i][j] = f"{score}\n({counts[i, j]})"
 
         # Plotly FigureWidget have bug with numpy nan, so replacing with python None
         scores = scores.astype(object)
         scores[np.isnan(scores.astype(float))] = None
 
-        value = {'scores': scores, 'counts': counts, 'feature_1': self.feature_1, 'feature_2': self.feature_2}
+        value = {"scores": scores, "counts": counts, "feature_1": self.feature_1, "feature_2": self.feature_2}
 
         if context.with_display:
-            fig = px.imshow(scores, x=x, y=y, color_continuous_scale='rdylgn')
-            fig.update_traces(text=scores_text, texttemplate='%{text}')
-            fig.update_layout(
-                title=f'{scorer.name} (count) by features {self.feature_1}/{self.feature_2}',
-                height=600
-            )
-            fig.update_xaxes(title=self.feature_2, showgrid=False, tickangle=-30, side='bottom')
-            fig.update_yaxes(title=self.feature_1, autorange='reversed', showgrid=False)
+            fig = px.imshow(scores, x=x, y=y, color_continuous_scale="rdylgn")
+            fig.update_traces(text=scores_text, texttemplate="%{text}")
+            fig.update_layout(title=f"{scorer.name} (count) by features {self.feature_1}/{self.feature_2}", height=600)
+            fig.update_xaxes(title=self.feature_2, showgrid=False, tickangle=-30, side="bottom")
+            fig.update_yaxes(title=self.feature_1, autorange="reversed", showgrid=False)
         else:
             fig = None
 
         return CheckResult(value, display=fig)
 
-    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> "CheckConfig":
         """Return check instance config."""
         if self.alternative_scorer is not None:
             for k, v in self.alternative_scorer.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'supported-metrics-by-string',
-                        template='For a list of built-in scorers please refer to {link}. '
+                        "supported-metrics-by-string",
+                        template="For a list of built-in scorers please refer to {link}. ",
                     )
                     raise ValueError(
-                        'Only built-in scorers are allowed when serializing check instances. '
-                        f'{reference}Scorer name: {k}'
+                        "Only built-in scorers are allowed when serializing check instances. "
+                        f"{reference}Scorer name: {k}"
                     )
         return super().config(include_version, include_defaults=include_defaults)

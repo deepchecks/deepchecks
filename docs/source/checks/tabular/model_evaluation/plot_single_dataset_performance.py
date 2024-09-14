@@ -27,7 +27,7 @@ The default scorers that are used are F1, Precision, and Recall for Classificati
 and Negative Root Mean Square Error, Negative Mean Absolute Error, and R2 for Regression.
 """
 
-#%%
+# %%
 # Generate data & model
 # ======================
 
@@ -36,7 +36,7 @@ from deepchecks.tabular.datasets.classification.iris import load_data, load_fitt
 _, test_dataset = load_data()
 model = load_fitted_model()
 
-#%%
+# %%
 # Run the check
 # ==============
 #
@@ -45,11 +45,11 @@ model = load_fitted_model()
 
 from deepchecks.tabular.checks import SingleDatasetPerformance
 
-check = SingleDatasetPerformance(scorers=['recall_per_class', 'precision_per_class', 'f1_macro', 'f1_micro'])
+check = SingleDatasetPerformance(scorers=["recall_per_class", "precision_per_class", "f1_macro", "f1_micro"])
 result = check.run(test_dataset, model)
 result.show()
 
-#%%
+# %%
 # Define a condition
 # ===================
 # We can define on our check a condition to validate that the different metric scores are above a certain threshold.
@@ -57,14 +57,14 @@ result.show()
 #
 # Let's add a condition to the check and see what happens when it fails:
 
-check.add_condition_greater_than(threshold=0.85, class_mode='all')
+check.add_condition_greater_than(threshold=0.85, class_mode="all")
 result = check.run(test_dataset, model)
 result.show(show_additional_outputs=False)
 
-#%%
+# %%
 # We detected that the Recall score is below specified threshold in at least one of the classes.
 
-#%%
+# %%
 # Using a custom scorer
 # =========================
 # In addition to the built-in scorers, we can define our own scorer based on sklearn api
@@ -74,6 +74,6 @@ from sklearn.metrics import fbeta_score, make_scorer
 
 fbeta_scorer = make_scorer(fbeta_score, labels=[0, 1, 2], average=None, beta=0.2)
 
-check = SingleDatasetPerformance(scorers={'my scorer': fbeta_scorer, 'recall': 'recall_per_class'})
+check = SingleDatasetPerformance(scorers={"my scorer": fbeta_scorer, "recall": "recall_per_class"})
 result = check.run(test_dataset, model)
 result.show()

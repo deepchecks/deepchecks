@@ -14,6 +14,9 @@
 import typing as t
 from datetime import datetime
 
+from deepchecks.tabular import Dataset, suites
+from tests.common import get_expected_results_length, validate_suite_result
+
 import pandas as pd
 import pytest
 from catboost import CatBoostClassifier, CatBoostRegressor
@@ -23,26 +26,20 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier, XGBRegressor
 
-from deepchecks.tabular import Dataset, suites
-from tests.common import get_expected_results_length, validate_suite_result
-
 
 @pytest.fixture()
 def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
     # note: to run classification suite successfully we need to modify iris dataframe
     # according to suite needs
     df = t.cast(pd.DataFrame, iris_clean.frame.copy())
-    df['index'] = range(len(df))
-    df['date'] = datetime.now()
+    df["index"] = range(len(df))
+    df["date"] = datetime.now()
 
-    train, test = t.cast(
-        t.Tuple[pd.DataFrame, pd.DataFrame],
-        train_test_split(df, test_size=0.33, random_state=42)
-    )
+    train, test = t.cast(t.Tuple[pd.DataFrame, pd.DataFrame], train_test_split(df, test_size=0.33, random_state=42))
 
     train, test = (
-        Dataset(train, label='target', datetime_name='date', index_name='index'),
-        Dataset(test, label='target', datetime_name='date', index_name='index')
+        Dataset(train, label="target", datetime_name="date", index_name="index"),
+        Dataset(test, label="target", datetime_name="date", index_name="index"),
     )
 
     model = AdaBoostClassifier(random_state=0)
@@ -52,7 +49,7 @@ def iris(iris_clean) -> t.Tuple[Dataset, Dataset, AdaBoostClassifier]:
 
 
 def _test_suite(train=None, test=None, model=None, **kwargs):
-    suite = suites.full_suite(imaginery_kwarg='just to make sure all checks have kwargs in the init')
+    suite = suites.full_suite(imaginery_kwarg="just to make sure all checks have kwargs in the init")
     result = suite.run(train_dataset=train, test_dataset=test, model=model, **kwargs)
     length = get_expected_results_length(suite, dict(train_dataset=train, test_dataset=test, model=model))
     validate_suite_result(result, length)
@@ -129,12 +126,12 @@ def test_diabetes_dataset_suite(diabetes_split_dataset_and_model):
 
 @pytest.mark.skip(reason="This test is failing due to a bug in the suite")
 def test_generic_boost(
-        iris_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, CatBoostClassifier],
-        iris_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, XGBClassifier],
-        iris_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, LGBMClassifier],
-        diabetes_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, CatBoostRegressor],
-        diabetes_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, XGBRegressor],
-        diabetes_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, LGBMRegressor],
+    iris_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, CatBoostClassifier],
+    iris_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, XGBClassifier],
+    iris_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, LGBMClassifier],
+    diabetes_split_dataset_and_model_xgb: t.Tuple[Dataset, Dataset, CatBoostRegressor],
+    diabetes_split_dataset_and_model_lgbm: t.Tuple[Dataset, Dataset, XGBRegressor],
+    diabetes_split_dataset_and_model_cat: t.Tuple[Dataset, Dataset, LGBMRegressor],
 ):
     iris_cat_train, iris_cat_test, iris_cat_model = iris_split_dataset_and_model_cat
     iris_xgb_train, iris_xgb_test, iris_xgb_model = iris_split_dataset_and_model_xgb
@@ -163,8 +160,8 @@ def test_generic_boost(
 
 @pytest.mark.skip(reason="This test is failing due to a bug in the suite")
 def test_generic_custom(
-        iris_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
-        diabetes_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+    iris_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
+    diabetes_split_dataset_and_model_custom: t.Tuple[Dataset, Dataset, t.Any],
 ):
     iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
     diabetes_train, diabetes_test, diabetes_model = diabetes_split_dataset_and_model_custom
@@ -185,44 +182,46 @@ def test_generic_custom(
 def test_single_dataset(iris_split_dataset_and_model_custom):
     iris_train, iris_test, iris_model = iris_split_dataset_and_model_custom
     suite = suites.full_suite()
-    res_train = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset='Train')
-    expected_train_headers = ['Train Test Performance',
-                              'Feature Label Correlation Change',
-                              'Feature Label Correlation - Train Dataset',
-                              'Feature-Feature Correlation - Train Dataset',
-                              'Weak Segments Performance - Train Dataset',
-                              'ROC Report - Train Dataset',
-                              'Prediction Drift',
-                              'Simple Model Comparison',
-                              'Unused Features - Train Dataset',
-                              'Model Inference Time - Train Dataset',
-                              'Datasets Size Comparison',
-                              'New Label Train Test',
-                              'New Category Train Test',
-                              'String Mismatch Comparison',
-                              'Train Test Samples Mix',
-                              'Feature Drift',
-                              'Label Drift',
-                              'Multivariate Drift',
-                              'Single Value in Column - Train Dataset',
-                              'Special Characters - Train Dataset',
-                              'Mixed Nulls - Train Dataset',
-                              'Mixed Data Types - Train Dataset',
-                              'String Mismatch - Train Dataset',
-                              'Data Duplicates - Train Dataset',
-                              'String Length Out Of Bounds - Train Dataset',
-                              'Conflicting Labels - Train Dataset',
-                              'Confusion Matrix Report - Train Dataset',
-                              'Calibration Metric - Train Dataset',
-                              'Outlier Sample Detection - Train Dataset',
-                              'Regression Error Distribution - Train Dataset',
-                              'Boosting Overfit',
-                              'Date Train Test Leakage Duplicates',
-                              'Date Train Test Leakage Overlap',
-                              'Index Train Test Leakage',
-                              'Identifier Label Correlation - Train Dataset']
+    res_train = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset="Train")
+    expected_train_headers = [
+        "Train Test Performance",
+        "Feature Label Correlation Change",
+        "Feature Label Correlation - Train Dataset",
+        "Feature-Feature Correlation - Train Dataset",
+        "Weak Segments Performance - Train Dataset",
+        "ROC Report - Train Dataset",
+        "Prediction Drift",
+        "Simple Model Comparison",
+        "Unused Features - Train Dataset",
+        "Model Inference Time - Train Dataset",
+        "Datasets Size Comparison",
+        "New Label Train Test",
+        "New Category Train Test",
+        "String Mismatch Comparison",
+        "Train Test Samples Mix",
+        "Feature Drift",
+        "Label Drift",
+        "Multivariate Drift",
+        "Single Value in Column - Train Dataset",
+        "Special Characters - Train Dataset",
+        "Mixed Nulls - Train Dataset",
+        "Mixed Data Types - Train Dataset",
+        "String Mismatch - Train Dataset",
+        "Data Duplicates - Train Dataset",
+        "String Length Out Of Bounds - Train Dataset",
+        "Conflicting Labels - Train Dataset",
+        "Confusion Matrix Report - Train Dataset",
+        "Calibration Metric - Train Dataset",
+        "Outlier Sample Detection - Train Dataset",
+        "Regression Error Distribution - Train Dataset",
+        "Boosting Overfit",
+        "Date Train Test Leakage Duplicates",
+        "Date Train Test Leakage Overlap",
+        "Index Train Test Leakage",
+        "Identifier Label Correlation - Train Dataset",
+    ]
 
-    res_test = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset='Test')
+    res_test = suite.run(iris_train, iris_test, iris_model, with_display=False, run_single_dataset="Test")
     res_full = suite.run(iris_train, iris_test, iris_model, with_display=False)
     res_names = [x.get_header() for x in res_train.results]
     assert_that(res_names, contains_exactly(*expected_train_headers))
@@ -231,7 +230,7 @@ def test_single_dataset(iris_split_dataset_and_model_custom):
 
 
 def test_production_suite(iris):
-    suite = suites.production_suite('classification', is_comparative=True)
+    suite = suites.production_suite("classification", is_comparative=True)
     train, test, model = iris
     result = suite.run(train, test, model)
     assert_that(result.results, has_length(16))

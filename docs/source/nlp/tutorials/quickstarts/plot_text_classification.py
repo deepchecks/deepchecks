@@ -55,7 +55,7 @@ corresponding emotion - Anger, Happiness, Optimism, and Sadness.
 from deepchecks.nlp import TextData
 from deepchecks.nlp.datasets.classification import tweet_emotion
 
-train, test = tweet_emotion.load_data(data_format='DataFrame')
+train, test = tweet_emotion.load_data(data_format="DataFrame")
 train.head()
 
 # %%
@@ -74,10 +74,12 @@ train.head()
 # on in the guide.
 
 
-train = TextData(train.text, label=train['label'], task_type='text_classification',
-                 metadata=train.drop(columns=['label', 'text']))
-test = TextData(test.text, label=test['label'], task_type='text_classification',
-                metadata=test.drop(columns=['label', 'text']))
+train = TextData(
+    train.text, label=train["label"], task_type="text_classification", metadata=train.drop(columns=["label", "text"])
+)
+test = TextData(
+    test.text, label=test["label"], task_type="text_classification", metadata=test.drop(columns=["label", "text"])
+)
 
 # %%
 # Calculating Properties
@@ -105,8 +107,8 @@ test = TextData(test.text, label=test['label'], task_type='text_classification',
 
 train_properties, test_properties = tweet_emotion.load_properties()
 
-train.set_properties(train_properties, categorical_properties=['Language'])
-test.set_properties(test_properties, categorical_properties=['Language'])
+train.set_properties(train_properties, categorical_properties=["Language"])
+test.set_properties(test_properties, categorical_properties=["Language"])
 
 train.properties.head(2)
 
@@ -204,18 +206,21 @@ train_test_validation().run(train, test)
 # The suite below, the :mod:`model_evaluation <deepchecks.nlp.suites>` suite, is designed to be run after a model has
 # been trained and requires model predictions which can be supplied via the relevant arguments in the ``run`` function.
 
-train_preds, test_preds = tweet_emotion.load_precalculated_predictions(
-    pred_format='predictions', as_train_test=True)
+train_preds, test_preds = tweet_emotion.load_precalculated_predictions(pred_format="predictions", as_train_test=True)
 train_probas, test_probas = tweet_emotion.load_precalculated_predictions(
-    pred_format='probabilities', as_train_test=True)
+    pred_format="probabilities", as_train_test=True
+)
 
 from deepchecks.nlp.suites import model_evaluation
 
-result = model_evaluation().run(train, test,
-                                train_predictions=train_preds,
-                                test_predictions=test_preds,
-                                train_probabilities=train_probas,
-                                test_probabilities=test_probas)
+result = model_evaluation().run(
+    train,
+    test,
+    train_predictions=train_preds,
+    test_predictions=test_preds,
+    train_probabilities=train_probas,
+    test_probabilities=test_probas,
+)
 result.show()
 
 # %%
@@ -323,6 +328,7 @@ res.show()
 # an under-annotated segment of significant size is found.
 
 from deepchecks.nlp.checks import UnderAnnotatedPropertySegments
+
 test_under = tweet_emotion.load_under_annotated_data()
 
 check = UnderAnnotatedPropertySegments(

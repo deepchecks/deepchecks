@@ -29,7 +29,6 @@ the minority sample size (by over-sampling or using SMOTE), drop instances from 
 using regularization, and adjusting the label classes weights.
 """
 
-
 # %%
 # Imports
 # =========
@@ -41,8 +40,8 @@ from deepchecks.tabular.datasets.classification import lending_club
 # Generate data
 # ===============
 
-df = lending_club.load_data(data_format='Dataframe', as_train_test=False)
-dataset = Dataset(df, label='loan_status', features=['id', 'loan_amnt'], cat_features=[])
+df = lending_club.load_data(data_format="Dataframe", as_train_test=False)
+dataset = Dataset(df, label="loan_status", features=["id", "loan_amnt"], cat_features=[])
 
 # %%
 # Run the check
@@ -54,8 +53,8 @@ ClassImbalance().run(dataset)
 # Skew the target variable and run the check
 # --------------------------------------------
 
-df.loc[df.sample(frac=0.7, random_state=0).index, 'loan_status'] = 1
-dataset = Dataset(df, label='loan_status', features=['id', 'loan_amnt'], cat_features=[])
+df.loc[df.sample(frac=0.7, random_state=0).index, "loan_status"] = 1
+dataset = Dataset(df, label="loan_status", features=["id", "loan_amnt"], cat_features=[])
 ClassImbalance().run(dataset)
 
 
@@ -64,4 +63,3 @@ ClassImbalance().run(dataset)
 # ====================
 # A manually defined ratio between the labels can also be set:
 ClassImbalance().add_condition_class_ratio_less_than(0.15).run(dataset)
-

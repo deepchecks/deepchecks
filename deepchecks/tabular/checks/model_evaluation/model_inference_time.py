@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """The model inference time check module."""
+
 import timeit
 import typing as t
 
@@ -18,10 +19,10 @@ from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Context, SingleDatasetCheck
 from deepchecks.utils.strings import format_number
 
-__all__ = ['ModelInferenceTime']
+__all__ = ["ModelInferenceTime"]
 
 
-MI = t.TypeVar('MI', bound='ModelInferenceTime')
+MI = t.TypeVar("MI", bound="ModelInferenceTime")
 
 
 class ModelInferenceTime(SingleDatasetCheck):
@@ -40,7 +41,7 @@ class ModelInferenceTime(SingleDatasetCheck):
         self.n_samples = n_samples
         self.random_state = random_state
         if n_samples == 0 or n_samples < 0:
-            raise DeepchecksValueError('n_samples cannot be le than 0!')
+            raise DeepchecksValueError("n_samples cannot be le than 0!")
 
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check.
@@ -65,18 +66,17 @@ class ModelInferenceTime(SingleDatasetCheck):
         n_samples = len(df) if len(df) < self.n_samples else self.n_samples
         df = df.sample(n=n_samples, random_state=self.random_state)
 
-        result = timeit.timeit(
-            'predict(*args)',
-            globals={'predict': prediction_method, 'args': (df,)},
-            number=1
-        )
+        result = timeit.timeit("predict(*args)", globals={"predict": prediction_method, "args": (df,)}, number=1)
 
         result = result / n_samples
 
-        return CheckResult(value=result, display=(
-            'Average model inference time for one sample (in seconds): '
-            f'{format_number(result, floating_point=8)}'
-        ))
+        return CheckResult(
+            value=result,
+            display=(
+                "Average model inference time for one sample (in seconds): "
+                f"{format_number(result, floating_point=8)}"
+            ),
+        )
 
     def add_condition_inference_time_less_than(self: MI, value: float = 0.001) -> MI:
         """Add condition - the average model inference time (in seconds) per sample is less than threshold.
@@ -89,11 +89,13 @@ class ModelInferenceTime(SingleDatasetCheck):
         -------
         MI
         """
+
         def condition(average_time: float) -> ConditionResult:
-            details = f'Found average inference time (seconds): {format_number(average_time, floating_point=8)}'
+            details = f"Found average inference time (seconds): {format_number(average_time, floating_point=8)}"
             category = ConditionCategory.PASS if average_time < value else ConditionCategory.FAIL
             return ConditionResult(category=category, details=details)
 
-        return self.add_condition(condition_func=condition, name=(
-            f'Average model inference time for one sample is less than {format_number(value, floating_point=8)}'
-        ))
+        return self.add_condition(
+            condition_func=condition,
+            name=(f"Average model inference time for one sample is less than {format_number(value, floating_point=8)}"),
+        )

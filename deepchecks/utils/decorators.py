@@ -9,17 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """Module with usefull decorators."""
+
 import textwrap
 import typing as t
 from functools import wraps
 
 from deepchecks.utils.logger import get_logger
 
-__all__ = ['Substitution', 'Appender', 'deprecate_kwarg']
+__all__ = ["Substitution", "Appender", "deprecate_kwarg"]
 
 
-F = t.TypeVar('F', bound=t.Callable[..., t.Any])
-INDENT = '    '
+F = t.TypeVar("F", bound=t.Callable[..., t.Any])
+INDENT = "    "
 
 
 # Substitution and Appender are derived from matplotlib.docstring (1.1.0)
@@ -29,19 +30,19 @@ INDENT = '    '
 class DocStr(str):
     """Subclass of string that adds several additional methods."""
 
-    def dedent(self) -> 'DocStr':
+    def dedent(self) -> "DocStr":
         return DocStr(textwrap.dedent(self))
 
-    def indent(self) -> 'DocStr':
+    def indent(self) -> "DocStr":
         return DocStr(indent(self))
 
     def __format__(self, *args, **kwargs):
         if len(args) == 0:
             return super().__format__(*args, **kwargs)
 
-        allowed_modifiers = {'dedent', 'indent'}
+        allowed_modifiers = {"dedent", "indent"}
         identation_modifier = args[0]
-        parts = identation_modifier.split('*')
+        parts = identation_modifier.split("*")
 
         if len(parts) == 1 and parts[0] in allowed_modifiers:
             return getattr(self, parts[0])()
@@ -79,10 +80,7 @@ class Substitution:
     """
 
     def __init__(self, **kwargs):
-        self.params = {
-            k: DocStr(v) if not isinstance(v, DocStr) else v
-            for k, v in kwargs.items()
-        }
+        self.params = {k: DocStr(v) if not isinstance(v, DocStr) else v for k, v in kwargs.items()}
 
     def __call__(self, func: F) -> F:
         """Decorate a function."""
@@ -92,10 +90,7 @@ class Substitution:
     def update(self, **kwargs) -> None:
         """Update self.params with supplied args."""
         if isinstance(self.params, dict):
-            self.params.update({
-                k: DocStr(v) if not isinstance(v, DocStr) else v
-                for k, v in kwargs.items()
-            })
+            self.params.update({k: DocStr(v) if not isinstance(v, DocStr) else v for k, v in kwargs.items()})
 
 
 class Appender:
@@ -120,7 +115,7 @@ class Appender:
 
     addendum: t.Optional[str]
 
-    def __init__(self, addendum: t.Optional[str], join: str = '', indents: int = 0):
+    def __init__(self, addendum: t.Optional[str], join: str = "", indents: int = 0):
         if indents > 0:
             self.addendum = indent(addendum, indents=indents)
         else:
@@ -129,24 +124,20 @@ class Appender:
 
     def __call__(self, func: F) -> F:
         """Decorate a function."""
-        func.__doc__ = func.__doc__ if func.__doc__ else ''
-        self.addendum = self.addendum if self.addendum else ''
+        func.__doc__ = func.__doc__ if func.__doc__ else ""
+        self.addendum = self.addendum if self.addendum else ""
         docitems = [func.__doc__, self.addendum]
         func.__doc__ = textwrap.dedent(self.join.join(docitems))
         return func
 
 
-def indent(
-    text: t.Optional[str],
-    indents: int = 1,
-    prefix: bool = False
-) -> str:
+def indent(text: t.Optional[str], indents: int = 1, prefix: bool = False) -> str:
     if not text or not isinstance(text, str):
-        return ''
-    identation = ''.join((INDENT for _ in range(indents)))
-    jointext = ''.join(('\n', identation))
-    output = jointext.join(text.split('\n'))
-    return output if prefix is False else f'{identation}{output}'
+        return ""
+    identation = "".join((INDENT for _ in range(indents)))
+    jointext = "".join(("\n", identation))
+    output = jointext.join(text.split("\n"))
+    return output if prefix is False else f"{identation}{output}"
 
 
 def deprecate_kwarg(
@@ -162,37 +153,32 @@ def deprecate_kwarg(
     new_arg_name : Optional[str], default None
         Name of preferred argument in function.
     """
+
     def _deprecate_kwarg(func: F) -> F:
         @wraps(func)
         def wrapper(*args, **kwargs) -> t.Callable[..., t.Any]:
             if old_name in kwargs and new_name in kwargs:
-                raise TypeError(
-                    f'Can only specify {repr(old_name)} '
-                    f'or {repr(new_name)}, not both'
-                )
+                raise TypeError(f"Can only specify {repr(old_name)} " f"or {repr(new_name)}, not both")
             elif old_name in kwargs and new_name is None:
                 get_logger().warning(
-                    'the %s keyword is deprecated and '
-                    'will be removed in a future version. Please take '
-                    'steps to stop the use of %s',
+                    "the %s keyword is deprecated and "
+                    "will be removed in a future version. Please take "
+                    "steps to stop the use of %s",
                     repr(old_name),
-                    repr(old_name)
+                    repr(old_name),
                 )
             elif old_name in kwargs and new_name is not None:
-                get_logger().warning(
-                    'the %s keyword is deprecated, '
-                    'use %s instead',
-                    repr(old_name),
-                    repr(new_name)
-                )
+                get_logger().warning("the %s keyword is deprecated, " "use %s instead", repr(old_name), repr(new_name))
                 kwargs[new_name] = kwargs.pop(old_name)
             return func(*args, **kwargs)
+
         return t.cast(F, wrapper)
+
     return _deprecate_kwarg
 
 
 def get_routine_name(it: t.Any) -> str:
-    if hasattr(it, '__qualname__'):
+    if hasattr(it, "__qualname__"):
         return it.__qualname__
     elif callable(it) or isinstance(it, type):
         return it.__name__

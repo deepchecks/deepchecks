@@ -39,7 +39,7 @@ or the following blog post: `RIP correlation. Introducing the Predictive Power S
 <https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598>`__
 """
 
-#%%
+# %%
 # Run the Check
 # =============
 
@@ -52,16 +52,16 @@ from deepchecks.nlp.datasets.classification import tweet_emotion
 # Load Data:
 dataset = tweet_emotion.load_data(as_train_test=False)
 
-#%%
+# %%
 # Let's see how our data looks like:
 dataset.head()
 
-#%%
+# %%
 # Now lets run the check:
 result = PropertyLabelCorrelation().run(dataset)
 result
 
-#%%
+# %%
 # We can see that in our example of tweet emotion dataset, the label is correlated with the "sentiment" property,
 # which makes sense, as the label is the emotion of the tweet, and the sentiment expresses whether the tweet is
 # positive or negative.

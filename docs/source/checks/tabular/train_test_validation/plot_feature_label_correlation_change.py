@@ -29,7 +29,7 @@ This check can help find:
   "fresh" dataset, that may have been built differently.
 
 The check is based on calculating the predictive power score (PPS) of each
-feature. For more details you can read here `how the PPS is calculated 
+feature. For more details you can read here `how the PPS is calculated
 <#how-is-the-predictive-power-score-pps-calculated>`__.
 
 What is a problematic result?
@@ -47,7 +47,7 @@ What is a problematic result?
    a type of leakage.
 2. A high difference between the PPS scores of a certain feature in the train
    and in the test datasets - this is an indication for a drift between the
-   relation of the feature and the label and a possible leakage in one of 
+   relation of the feature and the label and a possible leakage in one of
    the datasets.
 
    For example: a coffee shop chain trained a model to predict the number of
@@ -74,7 +74,7 @@ has no predictive power) and 1 (feature can fully predict the label alone).
 The process of calculating the PPS is the following:
 """
 
-#%%
+# %%
 # 1. Extract from the data only the label and the feature being tested
 # 2. Drop samples with missing values
 # 3. Keep 5000 (this is configurable parameter) samples from the data
@@ -100,7 +100,7 @@ The process of calculating the PPS is the following:
 # <https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598>`__
 
 
-#%%
+# %%
 # Generate data
 # =============
 # We'll add to a given dataset a direct relation between two features and the label,
@@ -112,15 +112,16 @@ from deepchecks.tabular.datasets.classification.phishing import load_data
 def relate_column_to_label(dataset, column, label_power):
     col_data = dataset.data[column]
     dataset.data[column] = col_data + (dataset.data[dataset.label_name] * col_data.mean() * label_power)
-    
+
+
 train_dataset, test_dataset = load_data()
 
-# Transforming 2 features in the dataset given to add correlation to the label 
-relate_column_to_label(train_dataset, 'numDigits', 10)
-relate_column_to_label(train_dataset, 'numLinks', 10)
-relate_column_to_label(test_dataset, 'numDigits', 0.1)
+# Transforming 2 features in the dataset given to add correlation to the label
+relate_column_to_label(train_dataset, "numDigits", 10)
+relate_column_to_label(train_dataset, "numLinks", 10)
+relate_column_to_label(test_dataset, "numDigits", 0.1)
 
-#%%
+# %%
 # Run the check
 # =============
 from deepchecks.tabular.checks import FeatureLabelCorrelationChange
@@ -128,7 +129,7 @@ from deepchecks.tabular.checks import FeatureLabelCorrelationChange
 result = FeatureLabelCorrelationChange().run(train_dataset=train_dataset, test_dataset=test_dataset)
 result
 
-#%%
+# %%
 # Observe the check's output
 # --------------------------
 # The check shows the top features with the highest PPS difference in the datasets,
@@ -145,7 +146,7 @@ result
 
 result.value
 
-#%%
+# %%
 # Define a condition
 # ==================
 # We can define on our check a condition that will validate that our pps scores aren't
@@ -158,6 +159,10 @@ result.value
 #
 # Let's add the conditions, and re-run the check:
 
-check = FeatureLabelCorrelationChange().add_condition_feature_pps_difference_less_than().add_condition_feature_pps_in_train_less_than()
+check = (
+    FeatureLabelCorrelationChange()
+    .add_condition_feature_pps_difference_less_than()
+    .add_condition_feature_pps_in_train_less_than()
+)
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 result.show(show_additional_outputs=False)

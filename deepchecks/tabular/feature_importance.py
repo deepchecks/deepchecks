@@ -12,28 +12,32 @@
 
 import typing as t
 
-import pandas as pd
-
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer
 from deepchecks.tabular.utils.feature_importance import _calculate_feature_importance
 
-__all__ = ['calculate_feature_importance']
+import pandas as pd
 
-from deepchecks.tabular.utils.task_inference import (get_all_labels, infer_classes_from_model,
-                                                     infer_task_type_by_class_number, infer_task_type_by_labels)
+__all__ = ["calculate_feature_importance"]
+
+from deepchecks.tabular.utils.task_inference import (
+    get_all_labels,
+    infer_classes_from_model,
+    infer_task_type_by_class_number,
+    infer_task_type_by_labels,
+)
 
 
 def calculate_feature_importance(
-        model: t.Any,
-        dataset: Dataset,
-        n_repeats: int = 30,
-        mask_high_variance_features: bool = False,
-        n_samples: int = 10_000,
-        alternative_scorer: t.Optional[DeepcheckScorer] = None,
-        force_permutation: bool = False,
-        random_state: int = 42
+    model: t.Any,
+    dataset: Dataset,
+    n_repeats: int = 30,
+    mask_high_variance_features: bool = False,
+    n_samples: int = 10_000,
+    alternative_scorer: t.Optional[DeepcheckScorer] = None,
+    force_permutation: bool = False,
+    random_state: int = 42,
 ) -> pd.Series:
     """
     Get or calculate feature importance outside of check and suite.
@@ -87,19 +91,21 @@ def calculate_feature_importance(
         feature importance normalized to 0-1 indexed by feature names
     """
     permutation_kwargs = {
-        'n_repeats': n_repeats,
-        'mask_high_variance_features': mask_high_variance_features,
-        'n_samples': n_samples,
-        'alternative_scorer': alternative_scorer,
-        'random_state': random_state,
-        'skip_messages': False,
-        'timeout': None
+        "n_repeats": n_repeats,
+        "mask_high_variance_features": mask_high_variance_features,
+        "n_samples": n_samples,
+        "alternative_scorer": alternative_scorer,
+        "random_state": random_state,
+        "skip_messages": False,
+        "timeout": None,
     }
 
     if isinstance(dataset, pd.DataFrame):
-        raise DeepchecksValueError('Cannot calculate permutation feature importance on a pandas Dataframe. '
-                                   'In order to force permutation feature importance, please use the Dataset'
-                                   ' object.')
+        raise DeepchecksValueError(
+            "Cannot calculate permutation feature importance on a pandas Dataframe. "
+            "In order to force permutation feature importance, please use the Dataset"
+            " object."
+        )
 
     model_classes = infer_classes_from_model(model)
     labels = get_all_labels(model, dataset)
@@ -112,11 +118,13 @@ def calculate_feature_importance(
     else:
         task_type = infer_task_type_by_labels(labels)
 
-    fi, _ = _calculate_feature_importance(model=model,
-                                          dataset=dataset,
-                                          model_classes=model_classes or observed_classes,
-                                          observed_classes=observed_classes,
-                                          task_type=task_type,
-                                          force_permutation=force_permutation,
-                                          permutation_kwargs=permutation_kwargs)
+    fi, _ = _calculate_feature_importance(
+        model=model,
+        dataset=dataset,
+        model_classes=model_classes or observed_classes,
+        observed_classes=observed_classes,
+        task_type=task_type,
+        force_permutation=force_permutation,
+        permutation_kwargs=permutation_kwargs,
+    )
     return fi

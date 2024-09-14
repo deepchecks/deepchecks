@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular model abstractions."""
+
 # pylint: disable=broad-except
 from typing import Any, Dict, List, Mapping, Tuple, Union
 
@@ -19,10 +20,7 @@ from deepchecks.tabular.context import Context
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.ipython import create_progress_bar
 
-__all__ = [
-    'ModelComparisonSuite',
-    'ModelComparisonContext'
-]
+__all__ = ["ModelComparisonSuite", "ModelComparisonContext"]
 
 
 class ModelComparisonSuite(BaseSuite):
@@ -32,13 +30,15 @@ class ModelComparisonSuite(BaseSuite):
     def supported_checks(cls) -> Tuple:
         """Return tuple of supported check types of this suite."""
         from deepchecks.tabular.base_checks import ModelComparisonCheck  # pylint: disable=import-outside-toplevel
+
         return tuple([ModelComparisonCheck])
 
-    def run(self,
-            train_datasets: Union[Dataset, List[Dataset]],
-            test_datasets: Union[Dataset, List[Dataset]],
-            models: Union[List[Any], Mapping[str, Any]]
-            ) -> SuiteResult:
+    def run(
+        self,
+        train_datasets: Union[Dataset, List[Dataset]],
+        test_datasets: Union[Dataset, List[Dataset]],
+        models: Union[List[Any], Mapping[str, Any]],
+    ) -> SuiteResult:
         """Run all checks.
 
         Parameters
@@ -61,11 +61,7 @@ class ModelComparisonSuite(BaseSuite):
         context = ModelComparisonContext(train_datasets, test_datasets, models)
 
         # Create progress bar
-        progress_bar = create_progress_bar(
-            iterable=list(self.checks.values()),
-            name=self.name,
-            unit='Check'
-        )
+        progress_bar = create_progress_bar(iterable=list(self.checks.values()), name=self.name, unit="Check")
 
         # Run all checks
         results = []
@@ -87,17 +83,17 @@ class ModelComparisonContext:
         self,
         train_datasets: Union[Dataset, List[Dataset]],
         test_datasets: Union[Dataset, List[Dataset]],
-        models: Union[List[Any], Mapping[str, Any]]
+        models: Union[List[Any], Mapping[str, Any]],
     ):
         """Preprocess the parameters."""
         # Validations
         if isinstance(train_datasets, Dataset) and isinstance(test_datasets, List):
-            raise DeepchecksNotSupportedError('Single train dataset with multiple test datasets is not supported.')
+            raise DeepchecksNotSupportedError("Single train dataset with multiple test datasets is not supported.")
 
         if not isinstance(models, (List, Mapping)):
-            raise DeepchecksValueError('`models` must be a list or dictionary for compare models checks.')
+            raise DeepchecksValueError("`models` must be a list or dictionary for compare models checks.")
         if len(models) < 2:
-            raise DeepchecksValueError('`models` must receive 2 or more models')
+            raise DeepchecksValueError("`models` must receive 2 or more models")
         # Some logic to assign names to models
         if isinstance(models, List):
             models_dict = {}
@@ -106,7 +102,7 @@ class ModelComparisonContext:
                 numerator = 1
                 name = model_type
                 while name in models_dict:
-                    name = f'{model_type}_{numerator}'
+                    name = f"{model_type}_{numerator}"
                     numerator += 1
                 models_dict[name] = m
             models = models_dict
@@ -117,9 +113,9 @@ class ModelComparisonContext:
             test_datasets = [test_datasets] * len(models)
 
         if len(train_datasets) != len(models):
-            raise DeepchecksValueError('number of train_datasets must equal to number of models')
+            raise DeepchecksValueError("number of train_datasets must equal to number of models")
         if len(test_datasets) != len(models):
-            raise DeepchecksValueError('number of test_datasets must equal to number of models')
+            raise DeepchecksValueError("number of test_datasets must equal to number of models")
 
         # Additional validations
         self.task_type = None
@@ -132,7 +128,7 @@ class ModelComparisonContext:
             if self.task_type is None:
                 self.task_type = context.task_type
             elif self.task_type != context.task_type:
-                raise DeepchecksNotSupportedError('Got models of different task types')
+                raise DeepchecksNotSupportedError("Got models of different task types")
             self.contexts.append(context)
         self._models = models
 
@@ -159,8 +155,9 @@ class ModelComparisonContext:
         if isinstance(check_result, CheckFailure):
             return
         if not isinstance(check_result, CheckResult):
-            raise DeepchecksValueError(f'Check {check.name()} expected to return CheckResult but got: '
-                                       + type(check_result).__name__)
+            raise DeepchecksValueError(
+                f"Check {check.name()} expected to return CheckResult but got: " + type(check_result).__name__
+            )
 
         # Set reference between the check result and check
         check_result.check = check

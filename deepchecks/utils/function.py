@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Contain functions for handling function in checks."""
+
 from functools import lru_cache
 from inspect import Signature, signature
 from typing import Any, Callable, Dict
 
-__all__ = ['run_available_kwargs', 'initvars']
+__all__ = ["run_available_kwargs", "initvars"]
 
 
 def run_available_kwargs(func: Callable, **kwargs):
@@ -44,8 +45,8 @@ def initvars(
     -------
     Dict[Any, Any] subset of the obj __dict__
     """
-    assert hasattr(obj, '__init__')
-    state = {k: v for k, v in obj.__dict__.items() if not k.startswith('_')}
+    assert hasattr(obj, "__init__")
+    state = {k: v for k, v in obj.__dict__.items() if not k.startswith("_")}
     signature = extract_signature(obj.__init__)  # pylint: disable=redefined-outer-name
     bind = signature.bind(**state)
 
@@ -53,20 +54,16 @@ def initvars(
         bind.apply_defaults()
         arguments = bind.arguments
     else:
-        arguments = {
-            k: v
-            for k, v in bind.arguments.items()
-            if signature.parameters[k].default != v
-        }
+        arguments = {k: v for k, v in bind.arguments.items() if signature.parameters[k].default != v}
 
     if not include_kwargs:
-        arguments.pop('kwargs', None)
+        arguments.pop("kwargs", None)
 
     if not include_properties:
-        arguments.pop('properties_list', None)
-        arguments.pop('image_properties', None)
-        arguments.pop('label_properties', None)
-        arguments.pop('prediction_properties', None)
+        arguments.pop("properties_list", None)
+        arguments.pop("image_properties", None)
+        arguments.pop("label_properties", None)
+        arguments.pop("prediction_properties", None)
 
     return arguments
 

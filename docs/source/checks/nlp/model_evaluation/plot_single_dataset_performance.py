@@ -27,16 +27,16 @@ and F1 Macro, Recall Macro and Precision Macro for Token Classification. See mor
 :ref:`nlp__supported_tasks` guide.
 """
 
-#%%
+# %%
 # Generate data & model
 # ======================
 
 from deepchecks.nlp.datasets.classification.tweet_emotion import load_data, load_precalculated_predictions
 
-_, test_dataset = load_data(data_format='TextData')
-_, test_probas = load_precalculated_predictions(pred_format='probabilities')
+_, test_dataset = load_data(data_format="TextData")
+_, test_probas = load_precalculated_predictions(pred_format="probabilities")
 
-#%%
+# %%
 # Run the check
 # ==============
 #
@@ -45,11 +45,11 @@ _, test_probas = load_precalculated_predictions(pred_format='probabilities')
 
 from deepchecks.nlp.checks import SingleDatasetPerformance
 
-check = SingleDatasetPerformance(scorers=['recall_per_class', 'precision_per_class', 'f1_macro', 'f1_micro'])
+check = SingleDatasetPerformance(scorers=["recall_per_class", "precision_per_class", "f1_macro", "f1_micro"])
 result = check.run(dataset=test_dataset, probabilities=test_probas)
 result.show()
 
-#%%
+# %%
 # Define a condition
 # ===================
 # We can define on our check a condition to validate that the different metric scores are above a certain threshold.
@@ -57,11 +57,11 @@ result.show()
 #
 # Let's add a condition to the check and see what happens when it fails:
 
-check.add_condition_greater_than(threshold=0.85, class_mode='all')
+check.add_condition_greater_than(threshold=0.85, class_mode="all")
 result = check.run(dataset=test_dataset, probabilities=test_probas)
 result.show(show_additional_outputs=False)
 
-#%%
+# %%
 # We detected that the Recall score is below specified threshold in at least one of the classes.
 
-#%%
+# %%

@@ -68,23 +68,29 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
     TRAIN_FRACTION = 0.5
 
-    def __init__(self, root: str, name: str, train: bool = True, transforms: t.Optional[t.Callable] = None, ) -> None:
+    def __init__(
+        self,
+        root: str,
+        name: str,
+        train: bool = True,
+        transforms: t.Optional[t.Callable] = None,
+    ) -> None:
         super().__init__(root, transforms=transforms)
 
         self.train = train
         self.root = Path(root).absolute()
-        self.images_dir = Path(root) / 'images' / name
-        self.labels_dir = Path(root) / 'labels' / name
+        self.images_dir = Path(root) / "images" / name
+        self.labels_dir = Path(root) / "labels" / name
 
-        images: t.List[Path] = sorted(self.images_dir.glob('./*.jpg'))
+        images: t.List[Path] = sorted(self.images_dir.glob("./*.jpg"))
         labels: t.List[t.Optional[Path]] = []
 
         for image in images:
-            label = self.labels_dir / f'{image.stem}.txt'
+            label = self.labels_dir / f"{image.stem}.txt"
             labels.append(label if label.exists() else None)
 
-        assert len(images) != 0, 'Did not find folder with images or it was empty'
-        assert not all(l is None for l in labels), 'Did not find folder with labels or it was empty'
+        assert len(images) != 0, "Did not find folder with images or it was empty"
+        assert not all(l is None for l in labels), "Did not find folder with labels or it was empty"
 
         train_len = int(self.TRAIN_FRACTION * len(images))
 
@@ -102,13 +108,13 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
         masks = []
         if label_file is not None:
-            for label_str in label_file.open('r').read().strip().splitlines():
+            for label_str in label_file.open("r").read().strip().splitlines():
                 label = np.array(label_str.split(), dtype=np.float32)
                 class_id = int(label[0])
                 # Transform normalized coordinates to un-normalized
                 coordinates = (label[1:].reshape(-1, 2) * np.array([image.width, image.height])).reshape(-1).tolist()
                 # Create mask image
-                mask = Image.new('L', (image.width, image.height), 0)
+                mask = Image.new("L", (image.width, image.height), 0)
                 ImageDraw.Draw(mask).polygon(coordinates, outline=1, fill=1)
                 # Add to list
                 masks.append(np.array(mask, dtype=bool))
@@ -116,8 +122,8 @@ class CocoInstanceSegmentationDataset(VisionDataset):
         if self.transforms is not None:
             # Albumentations accepts images as numpy
             transformed = self.transforms(image=np.array(image), masks=masks if masks else None)
-            image = transformed['image']
-            masks = transformed['masks']
+            image = transformed["image"]
+            masks = transformed["masks"]
             # Transform masks to tensor of (num_masks, H, W)
             if masks:
                 if isinstance(masks[0], np.ndarray):
@@ -132,15 +138,15 @@ class CocoInstanceSegmentationDataset(VisionDataset):
         return len(self.images)
 
     @classmethod
-    def load_or_download(cls, root: Path, train: bool) -> 'CocoInstanceSegmentationDataset':
-        extract_dir = root / 'coco128segments'
-        coco_dir = root / 'coco128segments' / 'coco128-seg'
-        folder = 'train2017'
+    def load_or_download(cls, root: Path, train: bool) -> "CocoInstanceSegmentationDataset":
+        extract_dir = root / "coco128segments"
+        coco_dir = root / "coco128segments" / "coco128-seg"
+        folder = "train2017"
 
         if not coco_dir.exists():
-            url = 'https://ultralytics.com/assets/coco128-segments.zip'
+            url = "https://ultralytics.com/assets/coco128-segments.zip"
 
-            with open(os.devnull, 'w', encoding='utf8') as f, contextlib.redirect_stdout(f):
+            with open(os.devnull, "w", encoding="utf8") as f, contextlib.redirect_stdout(f):
                 download_and_extract_archive(url, download_root=str(root), extract_root=str(extract_dir))
 
             try:
@@ -152,8 +158,8 @@ class CocoInstanceSegmentationDataset(VisionDataset):
 
 
 # Download and load the datasets
-train_ds = CocoInstanceSegmentationDataset.load_or_download(Path('..'), train=True)
-test_ds = CocoInstanceSegmentationDataset.load_or_download(Path('..'), train=False)
+train_ds = CocoInstanceSegmentationDataset.load_or_download(Path(".."), train=True)
+test_ds = CocoInstanceSegmentationDataset.load_or_download(Path(".."), train=False)
 
 # %%
 # Visualizing that we loaded our datasets correctly:
@@ -187,7 +193,7 @@ fig.show()
 # :ref:`vision__supported_tasks` guide.
 #
 
-from deepchecks.vision import VisionData, BatchOutputFormat
+from deepchecks.vision import BatchOutputFormat, VisionData
 
 
 def deepchecks_collate_fn(batch) -> BatchOutputFormat:
@@ -205,9 +211,29 @@ def deepchecks_collate_fn(batch) -> BatchOutputFormat:
 
 # %%
 # The label_map is a dictionary that maps the class id to the class name, for display purposes.
-LABEL_MAP = {0: 'background', 1: 'airplane', 2: 'bicycle', 3: 'bird', 4: 'boat', 5: 'bottle', 6: 'bus', 7: 'car',
-             8: 'cat', 9: 'chair', 10: 'cow', 11: 'dining table', 12: 'dog', 13: 'horse', 14: 'motorcycle',
-             15: 'person', 16: 'potted plant', 17: 'sheep', 18: 'couch', 19: 'train', 20: 'tv'}
+LABEL_MAP = {
+    0: "background",
+    1: "airplane",
+    2: "bicycle",
+    3: "bird",
+    4: "boat",
+    5: "bottle",
+    6: "bus",
+    7: "car",
+    8: "cat",
+    9: "chair",
+    10: "cow",
+    11: "dining table",
+    12: "dog",
+    13: "horse",
+    14: "motorcycle",
+    15: "person",
+    16: "potted plant",
+    17: "sheep",
+    18: "couch",
+    19: "train",
+    20: "tv",
+}
 
 # %%
 # Now that we have our updated collate function, we can create the dataloader in the deepchecks format, and use it
@@ -216,8 +242,8 @@ LABEL_MAP = {0: 'background', 1: 'airplane', 2: 'bicycle', 3: 'bird', 4: 'boat',
 train_loader = DataLoader(dataset=train_ds, batch_size=16, shuffle=False, collate_fn=deepchecks_collate_fn)
 test_loader = DataLoader(dataset=test_ds, batch_size=16, shuffle=False, collate_fn=deepchecks_collate_fn)
 
-train_vision_data = VisionData(batch_loader=train_loader, task_type='other', label_map=LABEL_MAP)
-test_vision_data = VisionData(batch_loader=test_loader, task_type='other', label_map=LABEL_MAP)
+train_vision_data = VisionData(batch_loader=train_loader, task_type="other", label_map=LABEL_MAP)
+test_vision_data = VisionData(batch_loader=test_loader, task_type="other", label_map=LABEL_MAP)
 
 # %%
 # Running Checks
@@ -250,7 +276,7 @@ def number_of_detections(labels) -> t.List[int]:
 
 
 # We will pass this object as parameter to checks that are using label properties
-label_properties = [{'name': '# Detections per image', 'method': number_of_detections, 'output_type': 'numerical'}]
+label_properties = [{"name": "# Detections per image", "method": number_of_detections, "output_type": "numerical"}]
 check = LabelDrift(label_properties=label_properties)
 result = check.run(train_vision_data, test_vision_data)
 result.show()

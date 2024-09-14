@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the base check for single dataset performance checks."""
+
 from abc import ABC
 from typing import Dict, List, Optional
 
@@ -23,33 +24,30 @@ from deepchecks.utils.strings import format_number
 class BaseSingleDatasetPerformance(SingleDatasetBaseCheck, ReduceMixin, ABC):
     """Base check for checks that summarize given model performance on a dataset based on selected scorers."""
 
-    def config(
-        self,
-        include_version: bool = True
-    ) -> 'CheckConfig':
+    def config(self, include_version: bool = True) -> "CheckConfig":
         """Return check configuration."""
         if isinstance(self.scorers, dict):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'builtin-metrics',
-                        template='For a list of built-in scorers please refer to {link}'
+                        "builtin-metrics", template="For a list of built-in scorers please refer to {link}"
                     )
                     raise ValueError(
-                        'Only built-in scorers are allowed when serializing check instances. '
-                        f'{reference}. Scorer name: {k}'
+                        "Only built-in scorers are allowed when serializing check instances. "
+                        f"{reference}. Scorer name: {k}"
                     )
         return super().config(include_version=include_version)
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""
-        result = {row['Metric'] + '_' + str(row['Class']): row['Value'] for _, row in check_result.value.iterrows()}
-        for key in [key for key in result.keys() if key.endswith('_<NA>')]:
-            result[key.replace('_<NA>', '')] = result.pop(key)
+        result = {row["Metric"] + "_" + str(row["Class"]): row["Value"] for _, row in check_result.value.iterrows()}
+        for key in [key for key in result.keys() if key.endswith("_<NA>")]:
+            result[key.replace("_<NA>", "")] = result.pop(key)
         return result
 
-    def add_condition_greater_than(self, threshold: float, metrics: Optional[List[str]] = None, class_mode: str = 'all'
-                                   ):
+    def add_condition_greater_than(
+        self, threshold: float, metrics: Optional[List[str]] = None, class_mode: str = "all"
+    ):
         """Add condition - the selected metrics scores are greater than the threshold.
 
         Parameters
@@ -66,30 +64,34 @@ class BaseSingleDatasetPerformance(SingleDatasetBaseCheck, ReduceMixin, ABC):
         """
 
         def condition(check_result, metrics_to_check=metrics):
-            metrics_to_check = check_result['Metric'].unique() if metrics_to_check is None else metrics_to_check
+            metrics_to_check = check_result["Metric"].unique() if metrics_to_check is None else metrics_to_check
             metrics_pass = []
 
             for metric in metrics_to_check:
                 if metric not in check_result.Metric.unique():
-                    raise DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in '
-                                               f'this check are: {check_result.Metric.unique()}.')
+                    raise DeepchecksValueError(
+                        f"The requested metric was not calculated, the metrics calculated in "
+                        f"this check are: {check_result.Metric.unique()}."
+                    )
 
-                class_val = check_result[check_result.Metric == metric].groupby('Class').Value
+                class_val = check_result[check_result.Metric == metric].groupby("Class").Value
                 class_gt = class_val.apply(lambda x: x > threshold)
-                if class_mode == 'all':
+                if class_mode == "all":
                     metrics_pass.append(all(class_gt))
-                elif class_mode == 'any':
+                elif class_mode == "any":
                     metrics_pass.append(any(class_gt))
                 elif class_mode in class_val.groups:
                     metrics_pass.append(class_gt[class_val.indices[class_mode]].item())
                 else:
-                    raise DeepchecksValueError(f'class_mode expected be one of the classes in the check results or any '
-                                               f'or all, received {class_mode}.')
+                    raise DeepchecksValueError(
+                        f"class_mode expected be one of the classes in the check results or any "
+                        f"or all, received {class_mode}."
+                    )
 
             if all(metrics_pass):
-                return ConditionResult(ConditionCategory.PASS, 'Passed for all of the metrics.')
+                return ConditionResult(ConditionCategory.PASS, "Passed for all of the metrics.")
             else:
-                failed_metrics = ([a for a, b in zip(metrics_to_check, metrics_pass) if not b])
-                return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
+                failed_metrics = [a for a, b in zip(metrics_to_check, metrics_pass) if not b]
+                return ConditionResult(ConditionCategory.FAIL, f"Failed for metrics: {failed_metrics}")
 
-        return self.add_condition(f'Selected metrics scores are greater than {format_number(threshold)}', condition)
+        return self.add_condition(f"Selected metrics scores are greater than {format_number(threshold)}", condition)

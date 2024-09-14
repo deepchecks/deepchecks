@@ -37,7 +37,7 @@ Other methods to detect drift include :ref:`univariate measures <drift_detection
 which is used in other checks, such as :ref:`Feature Drift check <tabular__feature_drift>`.
 """
 
-#%%
+# %%
 # Loading the Data
 # ================
 # The dataset is the adult dataset which can be downloaded from the UCI machine learning repository.
@@ -45,30 +45,27 @@ which is used in other checks, such as :ref:`Feature Drift check <tabular__featu
 # Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ics.uci.edu/ml].
 # Irvine, CA: University of California, School of Information and Computer Science.
 
-from urllib.request import urlopen
-
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.datasets.classification import adult
 
-#%%
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+# %%
 # Create Dataset
 # ==============
 
-label_name = 'income'
+label_name = "income"
 train_ds, test_ds = adult.load_data()
 encoder = LabelEncoder()
 train_ds.data[label_name] = encoder.fit_transform(train_ds.data[label_name])
 test_ds.data[label_name] = encoder.transform(test_ds.data[label_name])
 
-#%%
+# %%
 
 train_ds.label_name
 
-#%%
+# %%
 # Run the Check
 # =============
 from deepchecks.tabular.checks import MultivariateDrift
@@ -76,7 +73,7 @@ from deepchecks.tabular.checks import MultivariateDrift
 check = MultivariateDrift()
 check.run(train_dataset=train_ds, test_dataset=test_ds)
 
-#%%
+# %%
 # We can see that there is almost no drift found between the train and the test
 # set of the raw adult dataset. In addition to the drift score the check displays
 # the top features that contibuted to the data drift.
@@ -89,21 +86,25 @@ check.run(train_dataset=train_ds, test_dataset=test_ds)
 sample_size = 10000
 random_seed = 0
 
-#%%
+# %%
 
-train_drifted_df = pd.concat([train_ds.data.sample(min(sample_size, train_ds.n_samples) - 5000, random_state=random_seed), 
-                             train_ds.data[train_ds.data['sex'] == ' Female'].sample(5000, random_state=random_seed)])
+train_drifted_df = pd.concat(
+    [
+        train_ds.data.sample(min(sample_size, train_ds.n_samples) - 5000, random_state=random_seed),
+        train_ds.data[train_ds.data["sex"] == " Female"].sample(5000, random_state=random_seed),
+    ]
+)
 test_drifted_df = test_ds.data.sample(min(sample_size, test_ds.n_samples), random_state=random_seed)
 
 train_drifted_ds = Dataset(train_drifted_df, label=label_name, cat_features=train_ds.cat_features)
 test_drifted_ds = Dataset(test_drifted_df, label=label_name, cat_features=test_ds.cat_features)
 
-#%%
+# %%
 
 check = MultivariateDrift()
 check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 
-#%%
+# %%
 # As expected, the check detects a multivariate drift between the train and the
 # test sets. It also displays the sex feature's distribution - the feature that
 # contributed the most to that drift. This is reasonable since the sampling
@@ -119,5 +120,5 @@ check = MultivariateDrift()
 check.add_condition_overall_drift_value_less_than(0.1)
 check.run(train_dataset=train_drifted_ds, test_dataset=test_drifted_ds)
 
-#%%
+# %%
 # As we see, our condition successfully detects the drift score is above the defined threshold.

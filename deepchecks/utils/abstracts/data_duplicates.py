@@ -9,15 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """module contains base logic for the data duplicates checks."""
+
 import abc
 import typing as t
-
-from typing_extensions import Self
 
 from deepchecks.core import ConditionCategory, ConditionResult
 from deepchecks.utils.strings import format_percent
 
-__all__ = ['DataDuplicatesAbstract']
+from typing_extensions import Self
+
+__all__ = ["DataDuplicatesAbstract"]
 
 
 class DataDuplicatesAbstract(abc.ABC):
@@ -34,17 +35,17 @@ class DataDuplicatesAbstract(abc.ABC):
         max_ratio : float , default: 0.05
             Maximum ratio of duplicates.
         """
+
         def max_ratio_condition(result: t.Union[float, t.Dict[str, float]]) -> ConditionResult:
             if isinstance(result, dict):
-                result = t.cast(float, result['percent_of_duplicates'])
+                result = t.cast(float, result["percent_of_duplicates"])
             elif not isinstance(result, float):
-                raise ValueError(
-                    f'Unexpected check result value type {type(result)}'
-                )
+                raise ValueError(f"Unexpected check result value type {type(result)}")
 
-            details = f'Found {format_percent(result)} duplicate data'
+            details = f"Found {format_percent(result)} duplicate data"
             category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.WARN
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Duplicate data ratio is less or equal to {format_percent(max_ratio)}',
-                                  max_ratio_condition)
+        return self.add_condition(
+            f"Duplicate data ratio is less or equal to {format_percent(max_ratio)}", max_ratio_condition
+        )

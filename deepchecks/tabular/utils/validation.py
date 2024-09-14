@@ -9,25 +9,28 @@
 # ----------------------------------------------------------------------------
 #
 """Tabular objects validation utilities."""
-import typing as t
 
-import numpy as np
-import pandas as pd
+import typing as t
 
 from deepchecks import tabular
 from deepchecks.core import errors
 from deepchecks.utils.typing import BasicModel
 
+import numpy as np
+import pandas as pd
+
 __all__ = [
-    'model_type_validation',
-    'validate_model',
-    'ensure_dataframe_type',
-    'ensure_predictions_shape',
-    'ensure_predictions_proba',
+    "model_type_validation",
+    "validate_model",
+    "ensure_dataframe_type",
+    "ensure_predictions_shape",
+    "ensure_predictions_proba",
 ]
 
-supported_models_link = ('https://docs.deepchecks.com/stable/tabular/usage_guides/supported_models.html'
-                         '?utm_source=display_output&utm_medium=referral&utm_campaign=exception_link')
+supported_models_link = (
+    "https://docs.deepchecks.com/stable/tabular/usage_guides/supported_models.html"
+    "?utm_source=display_output&utm_medium=referral&utm_campaign=exception_link"
+)
 supported_models_html = f'<a href="{supported_models_link}" target="_blank">supported model types</a>'
 
 
@@ -44,14 +47,11 @@ def model_type_validation(model: t.Any):
     """
     if not isinstance(model, BasicModel):
         raise errors.ModelValidationError(
-            f'Model supplied does not meets the minimal interface requirements. Read more about {supported_models_html}'
+            f"Model supplied does not meets the minimal interface requirements. Read more about {supported_models_html}"
         )
 
 
-def validate_model(
-    data: 'tabular.Dataset',
-    model: t.Any
-):
+def validate_model(data: "tabular.Dataset", model: t.Any):
     """Check model is able to predict on the dataset.
 
     Parameters
@@ -64,8 +64,8 @@ def validate_model(
         if dataset does not match model.
     """
     error_message = (
-        'In order to evaluate model correctness we need not empty dataset '
-        'with the same set of features that was used to fit the model. {0}'
+        "In order to evaluate model correctness we need not empty dataset "
+        "with the same set of features that was used to fit the model. {0}"
     )
 
     if isinstance(data, tabular.Dataset):
@@ -74,21 +74,17 @@ def validate_model(
         features = data
 
     if features is None:
-        raise errors.DeepchecksValueError(error_message.format(
-            'But function received dataset without feature columns.'
-        ))
+        raise errors.DeepchecksValueError(
+            error_message.format("But function received dataset without feature columns.")
+        )
 
     if len(features) == 0:
-        raise errors.DeepchecksValueError(error_message.format(
-            'But function received empty dataset.'
-        ))
+        raise errors.DeepchecksValueError(error_message.format("But function received empty dataset."))
 
     try:
         model.predict(features.head(1))
     except Exception as exc:
-        raise errors.ModelValidationError(
-            f'Got error when trying to predict with model on dataset: {str(exc)}'
-        )
+        raise errors.ModelValidationError(f"Got error when trying to predict with model on dataset: {str(exc)}")
 
 
 def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
@@ -108,21 +104,23 @@ def ensure_dataframe_type(obj: t.Any) -> pd.DataFrame:
         return obj.data
     else:
         raise errors.DeepchecksValueError(
-            f'dataset must be of type DataFrame or Dataset, but got: {type(obj).__name__}'
+            f"dataset must be of type DataFrame or Dataset, but got: {type(obj).__name__}"
         )
 
 
 def ensure_predictions_shape(pred: np.ndarray, data: t.Sequence) -> np.ndarray:
     """Ensure the predictions are in the right shape and if so return them. else raise error."""
     if pred.shape[0] != len(data):
-        raise errors.ValidationError(f'Prediction array expected to be of same length as data {len(data)},'
-                                     f' but was: {pred.shape[0]}')
+        raise errors.ValidationError(
+            f"Prediction array expected to be of same length as data {len(data)}," f" but was: {pred.shape[0]}"
+        )
     return pred
 
 
 def ensure_predictions_proba(pred_proba: np.ndarray, data: t.Sequence) -> np.ndarray:
     """Ensure the predictions are in the right shape and if so return them. else raise error."""
     if len(pred_proba) != len(data):
-        raise errors.ValidationError(f'Prediction probabilities expected to be of length {len(data)} '
-                                     f'but was: {len(pred_proba)}')
+        raise errors.ValidationError(
+            f"Prediction probabilities expected to be of length {len(data)} " f"but was: {len(pred_proba)}"
+        )
     return pred_proba

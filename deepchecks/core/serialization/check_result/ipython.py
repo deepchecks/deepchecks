@@ -9,10 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing CheckResult serialization logic."""
-import typing as t
 
-from IPython.display import HTML, Image
-from plotly.basedatatypes import BaseFigure
+import typing as t
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerializer
@@ -21,10 +19,13 @@ from deepchecks.core.serialization.dataframe.html import DataFrameSerializer
 
 from . import html
 
-__all__ = ['CheckResultSerializer']
+from IPython.display import HTML, Image
+from plotly.basedatatypes import BaseFigure
+
+__all__ = ["CheckResultSerializer"]
 
 
-class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
+class CheckResultSerializer(IPythonSerializer["check_types.CheckResult"]):
     """Serializes any CheckResult instance into a list of IPython formatters.
 
     Parameters
@@ -33,11 +34,9 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         CheckResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'check_types.CheckResult', **kwargs):
+    def __init__(self, value: "check_types.CheckResult", **kwargs):
         if not isinstance(value, check_types.CheckResult):
-            raise TypeError(
-                f'Expected "CheckResult" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "CheckResult" but got "{type(value).__name__}"')
         super().__init__(value=value)
         self._html_serializer = html.CheckResultSerializer(value)
 
@@ -47,7 +46,7 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         check_sections: t.Optional[t.Sequence[html.CheckResultSection]] = None,
         plotly_to_image: bool = False,
         is_for_iframe_with_srcdoc: bool = False,
-        **kwargs
+        **kwargs,
     ) -> t.List[IPythonFormatter]:
         """Serialize a CheckResult instance into a list of IPython formatters.
 
@@ -70,22 +69,19 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         List[IPythonFormatter]
         """
         sections_to_include = html.verify_include_parameter(check_sections)
-        sections: t.List[IPythonFormatter] = [
-            self.prepare_header(output_id),
-            self.prepare_summary()
-        ]
+        sections: t.List[IPythonFormatter] = [self.prepare_header(output_id), self.prepare_summary()]
 
-        if 'condition-table' in sections_to_include:
-            sections.append(self.prepare_conditions_table(
-                output_id=output_id
-            ))
+        if "condition-table" in sections_to_include:
+            sections.append(self.prepare_conditions_table(output_id=output_id))
 
-        if 'additional-output' in sections_to_include:
-            sections.extend(self.prepare_additional_output(
-                output_id=output_id,
-                plotly_to_image=plotly_to_image,
-                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
-            ))
+        if "additional-output" in sections_to_include:
+            sections.extend(
+                self.prepare_additional_output(
+                    output_id=output_id,
+                    plotly_to_image=plotly_to_image,
+                    is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
+                )
+            )
 
         return list(flatten(sections))
 
@@ -121,18 +117,17 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
         -------
         HTML
         """
-        return HTML(self._html_serializer.prepare_conditions_table(
-            max_info_len=max_info_len,
-            include_icon=include_icon,
-            include_check_name=include_check_name,
-            output_id=output_id,
-        ))
+        return HTML(
+            self._html_serializer.prepare_conditions_table(
+                max_info_len=max_info_len,
+                include_icon=include_icon,
+                include_check_name=include_check_name,
+                output_id=output_id,
+            )
+        )
 
     def prepare_additional_output(
-        self,
-        output_id: t.Optional[str] = None,
-        plotly_to_image: bool = False,
-        is_for_iframe_with_srcdoc: bool = False
+        self, output_id: t.Optional[str] = None, plotly_to_image: bool = False, is_for_iframe_with_srcdoc: bool = False
     ) -> t.List[IPythonFormatter]:
         """Prepare the display content.
 
@@ -155,7 +150,7 @@ class CheckResultSerializer(IPythonSerializer['check_types.CheckResult']):
             self.value.display,
             output_id=output_id,
             plotly_to_image=plotly_to_image,
-            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
         )
 
 
@@ -165,12 +160,12 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
     @classmethod
     def handle_display(
         cls,
-        display: t.List['check_types.TDisplayItem'],
+        display: t.List["check_types.TDisplayItem"],
         output_id: t.Optional[str] = None,
         is_for_iframe_with_srcdoc: bool = False,
         include_header: bool = True,
         include_trailing_link: bool = True,
-        **kwargs
+        **kwargs,
     ) -> t.List[IPythonFormatter]:
         """Serialize CheckResult display items into IPython displayable objects.
 
@@ -193,14 +188,18 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         -------
         List[IPythonFormatter]
         """
-        return list(flatten(super().handle_display(
-            display=display,
-            output_id=output_id,
-            include_header=include_header,
-            include_trailing_link=include_trailing_link,
-            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
-            **kwargs
-        )))
+        return list(
+            flatten(
+                super().handle_display(
+                    display=display,
+                    output_id=output_id,
+                    include_header=include_header,
+                    include_trailing_link=include_trailing_link,
+                    is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
+                    **kwargs,
+                )
+            )
+        )
 
     @classmethod
     def header(cls):
@@ -240,36 +239,24 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         )
         for it in figures:
             it.seek(0)
-            images.append(Image(data=it.read(), format='png'))
+            images.append(Image(data=it.read(), format="png"))
         return images
 
     @classmethod
-    def handle_figure(
-        cls,
-        item: BaseFigure,
-        index: int,
-        plotly_to_image: bool = False,
-        **kwargs
-    ):
+    def handle_figure(cls, item: BaseFigure, index: int, plotly_to_image: bool = False, **kwargs):
         """Handle plotly figure item."""
-        return (
-            item
-            if not plotly_to_image
-            else Image(data=item.to_image(format='jpeg', engine='auto'), format='jpeg')
-        )
+        return item if not plotly_to_image else Image(data=item.to_image(format="jpeg", engine="auto"), format="jpeg")
 
     @classmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs):
+    def handle_display_map(cls, item: "check_types.DisplayMap", index: int, **kwargs):
         """Handle display map instance item."""
-        level = kwargs.pop('_level', 0)
+        level = kwargs.pop("_level", 0)
         content = []
         for name, display_items in item.items():
-            content.append(HTML(f'<h5><b>{">"*level}{name}</b></h5>'))
-            content.extend(cls.handle_display(
-                display_items,
-                include_header=False,
-                include_trailing_link=False,
-                _level=level+1,
-                **kwargs
-            ))
+            content.append(HTML(f'<h5><b>{">" * level}{name}</b></h5>'))
+            content.extend(
+                cls.handle_display(
+                    display_items, include_header=False, include_trailing_link=False, _level=level + 1, **kwargs
+                )
+            )
         return content

@@ -25,7 +25,6 @@ We will run the check on the iris dataset.
 """
 # %%
 
-from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import TrainTestSamplesMix
 from deepchecks.tabular.datasets.classification import iris
 

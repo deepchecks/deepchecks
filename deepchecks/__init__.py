@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Deepchecks."""
+
 import os
 import sys
 import types
@@ -25,62 +26,81 @@ except ImportError:
     from importlib_metadata import version
 
 # NOTE: it is here, before other import, in order to omit circular import error
-__version__ = version('eh-tabular-deepchecks')
+__version__ = version("eh-tabular-deepchecks")
+
+from deepchecks.analytics.anonymous_telemetry import validate_latest_version
+from deepchecks.core import (
+    BaseCheck,
+    BaseSuite,
+    CheckFailure,
+    CheckResult,
+    Condition,
+    ConditionCategory,
+    ConditionResult,
+    ModelOnlyBaseCheck,
+    SingleDatasetBaseCheck,
+    SuiteResult,
+    TrainTestBaseCheck,
+)
+
+# TODO: remove in further versions
+from deepchecks.tabular import (
+    Context,
+    Dataset,
+    ModelComparisonCheck,
+    ModelComparisonSuite,
+    ModelOnlyCheck,
+    SingleDatasetCheck,
+    Suite,
+    TrainTestCheck,
+)
+from deepchecks.utils.ipython import is_notebook
+from deepchecks.utils.logger import get_verbosity, set_verbosity
 
 import matplotlib
 import plotly.io as pio
 
-from deepchecks.analytics.anonymous_telemetry import validate_latest_version
-from deepchecks.core import (BaseCheck, BaseSuite, CheckFailure, CheckResult, Condition, ConditionCategory,
-                             ConditionResult, ModelOnlyBaseCheck, SingleDatasetBaseCheck, SuiteResult,
-                             TrainTestBaseCheck)
-# TODO: remove in further versions
-from deepchecks.tabular import (Context, Dataset, ModelComparisonCheck, ModelComparisonSuite, ModelOnlyCheck,
-                                SingleDatasetCheck, Suite, TrainTestCheck)
-from deepchecks.utils.ipython import is_notebook
-from deepchecks.utils.logger import get_verbosity, set_verbosity
-
 __all__ = [
     # core
-    'BaseCheck',
-    'SingleDatasetBaseCheck',
-    'TrainTestBaseCheck',
-    'ModelOnlyBaseCheck',
-    'CheckResult',
-    'CheckFailure',
-    'Condition',
-    'ConditionResult',
-    'ConditionCategory',
-    'BaseSuite',
-    'SuiteResult',
+    "BaseCheck",
+    "SingleDatasetBaseCheck",
+    "TrainTestBaseCheck",
+    "ModelOnlyBaseCheck",
+    "CheckResult",
+    "CheckFailure",
+    "Condition",
+    "ConditionResult",
+    "ConditionCategory",
+    "BaseSuite",
+    "SuiteResult",
     # tabular
-    'Dataset',
-    'Suite',
-    'Context',
-    'SingleDatasetCheck',
-    'TrainTestCheck',
-    'ModelOnlyCheck',
-    'ModelComparisonCheck',
-    'ModelComparisonSuite',
+    "Dataset",
+    "Suite",
+    "Context",
+    "SingleDatasetCheck",
+    "TrainTestCheck",
+    "ModelOnlyCheck",
+    "ModelComparisonCheck",
+    "ModelComparisonSuite",
     # logger
-    'set_verbosity',
-    'get_verbosity',
+    "set_verbosity",
+    "get_verbosity",
 ]
 
 
 # Matplotlib has multiple backends. If we are in a context that does not support GUI (For example, during unit tests)
 # we can't use a GUI backend. Thus we must use a non-GUI backend.
 if not is_notebook():
-    matplotlib.use('Agg')
+    matplotlib.use("Agg")
 
 
 # We can't rely on that the user will have an active internet connection, thus we change the default backend to
 # "notebook" If plotly detects the 'notebook-connected' backend.
 # for more info, see: https://plotly.com/python/renderers/
-pio_backends = pio.renderers.default.split('+')
-if 'notebook_connected' in pio_backends:
-    pio_backends[pio_backends.index('notebook_connected')] = 'notebook'
-    pio.renderers.default = '+'.join(pio_backends)
+pio_backends = pio.renderers.default.split("+")
+if "notebook_connected" in pio_backends:
+    pio_backends[pio_backends.index("notebook_connected")] = "notebook"
+    pio.renderers.default = "+".join(pio_backends)
 
 
 # Send an import event if not disabled
@@ -89,10 +109,7 @@ validate_latest_version()
 # ================================================================
 
 warnings.filterwarnings(
-    action='once',
-    message=r'Ability to import.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
+    action="once", message=r"Ability to import.*", category=DeprecationWarning, module=r"deepchecks.*"
 )
 
 
@@ -111,14 +128,14 @@ class _SubstituteModule(types.ModuleType):
     """Substitute module type to provide backward compatibility."""
 
     ROUTINES = (
-        'Dataset',
-        'Suite',
-        'Context',
-        'SingleDatasetCheck',
-        'TrainTestCheck',
-        'ModelOnlyCheck',
-        'ModelComparisonCheck',
-        'ModelComparisonSuite',
+        "Dataset",
+        "Suite",
+        "Context",
+        "SingleDatasetCheck",
+        "TrainTestCheck",
+        "ModelOnlyCheck",
+        "ModelComparisonCheck",
+        "ModelComparisonSuite",
     )
 
     def __init__(self, *args, **kwargs):
@@ -126,17 +143,16 @@ class _SubstituteModule(types.ModuleType):
         self.__dict__.update(__original_module__.__dict__)
 
     def __getattribute__(self, name):
-        routines = object.__getattribute__(self, 'ROUTINES')
+        routines = object.__getattribute__(self, "ROUTINES")
         if name in routines:
-            deprecation_warning = 'Ability to import base tabular functionality from the `deepchecks` package ' \
-                                  'directly is deprecated, please import from `deepchecks.tabular` instead'
-
-            if os.environ.get('FAIL_ON_DEEPCHECKS_DEPRECATION_WARNINGS') == 'true':
-                raise DeprecationWarning(deprecation_warning)
-            warnings.warn(
-                deprecation_warning,
-                DeprecationWarning
+            deprecation_warning = (
+                "Ability to import base tabular functionality from the `deepchecks` package "
+                "directly is deprecated, please import from `deepchecks.tabular` instead"
             )
+
+            if os.environ.get("FAIL_ON_DEEPCHECKS_DEPRECATION_WARNINGS") == "true":
+                raise DeprecationWarning(deprecation_warning)
+            warnings.warn(deprecation_warning, DeprecationWarning)
         return object.__getattribute__(self, name)
 
 

@@ -116,7 +116,7 @@ We can work directly with the ``Dataset`` object, to inspect its defined feature
 Get its internal ``pd.DataFrame``:
 
 >>> ds.data
-    feature1    feature2    categorical_feature class    
+    feature1    feature2    categorical_feature class
 0   0.1         4           0                   1
 1   0.3         5           0                   2
 2   0.2         6           0                   1
@@ -150,10 +150,10 @@ Inferring Categorical Features
     Otherwise, the inherent limitations of the automatic type detection may cause inconsistencies (misdetection, different detection between
     train and test, etc.) and require tuning and adaptions.
 
-If the parameter ``cat_features`` was not passed explicitly, the following inference logic 
+If the parameter ``cat_features`` was not passed explicitly, the following inference logic
 will run on the columns to determine which are classified as categorical:
 
-#. If the ``pd.dtypes`` of any of the existing columns is ``category`` then all of the columns that are of type ``category`` 
+#. If the ``pd.dtypes`` of any of the existing columns is ``category`` then all of the columns that are of type ``category``
    will be  considered categorical (and only them).
 
 #. Otherwise, a heuristic is used for deducting the type. In order for a column to be inferred as categorical, the following two conditions must be met:

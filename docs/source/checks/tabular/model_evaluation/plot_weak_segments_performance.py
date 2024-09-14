@@ -41,17 +41,16 @@ The check contains several steps:
    the model performance on them. For the weakest data segments detected we also calculate the model's
    performance on data segments surrounding them.
 """
-#%%
+# %%
 # Generate data & model
 # =====================
 
-from deepchecks.tabular.datasets.classification.lending_club import (
-    load_data, load_fitted_model)
+from deepchecks.tabular.datasets.classification.lending_club import load_data, load_fitted_model
 
 _, test_ds = load_data()
 model = load_fitted_model()
 
-#%%
+# %%
 # Run the check
 # =============
 #
@@ -81,14 +80,15 @@ model = load_fitted_model()
 # see :class:`API reference <deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance>` for more details.
 
 from deepchecks.tabular.checks import WeakSegmentsPerformance
-from sklearn.metrics import make_scorer, f1_score
 
-scorer = {'f1': make_scorer(f1_score, average='micro')}
+from sklearn.metrics import f1_score, make_scorer
+
+scorer = {"f1": make_scorer(f1_score, average="micro")}
 check = WeakSegmentsPerformance()
 result = check.run(test_ds, model)
 result.show()
 
-#%%
+# %%
 # Observe the check's output
 # --------------------------
 #
@@ -99,9 +99,9 @@ result.show()
 # the ``result.value`` attribute. Shown below are the 3 segments with the worst performance.
 
 
-result.value['weak_segments_list'].head(3)
+result.value["weak_segments_list"].head(3)
 
-#%%
+# %%
 # Define a condition
 # ==================
 #

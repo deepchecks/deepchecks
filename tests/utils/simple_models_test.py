@@ -8,11 +8,11 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+from deepchecks.utils.simple_models import PerfectModel, RandomModel
+
 import numpy as np
 import pandas as pd
 from hamcrest import assert_that, contains_exactly, is_
-
-from deepchecks.utils.simple_models import PerfectModel, RandomModel
 
 
 def test_random_model():
@@ -28,27 +28,19 @@ def test_random_model():
     proba = model.predict_proba(x)
     # Assert
     assert_that(p.tolist(), contains_exactly(2, 3, 1, 3, 3))
-    expected_proba = np.array([[0, 1, 0],
-                              [0, 0, 1],
-                              [1, 0, 0],
-                              [0, 0, 1],
-                              [0, 0, 1]])
+    expected_proba = np.array([[0, 1, 0], [0, 0, 1], [1, 0, 0], [0, 0, 1], [0, 0, 1]])
     assert_that(np.equal(proba, expected_proba).sum(), is_(15))
 
 
 def test_perfect_model():
     # Arrange
     model = PerfectModel()
-    data = pd.DataFrame(data={'target': [1, 2, 1, 2, 3], 'col1': ['a', 'b', 'a', 'a', 'c']})
-    model.fit([], data['target'])
+    data = pd.DataFrame(data={"target": [1, 2, 1, 2, 3], "col1": ["a", "b", "a", "a", "c"]})
+    model.fit([], data["target"])
     # Act
-    p = model.predict(data[['col1']])
-    proba = model.predict_proba(data[['col1']])
+    p = model.predict(data[["col1"]])
+    proba = model.predict_proba(data[["col1"]])
     # Assert
     assert_that(p.tolist(), contains_exactly(1, 2, 1, 2, 3))
-    expected_proba = np.array([[1, 0, 0],
-                              [0, 1, 0],
-                              [1, 0, 0],
-                              [0, 1, 0],
-                              [0, 0, 1]])
+    expected_proba = np.array([[1, 0, 0], [0, 1, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
     assert_that(np.equal(proba, expected_proba).sum(), is_(15))

@@ -63,7 +63,7 @@ no predictive power) and 1 (feature can fully predict the label alone).
 
 The process of calculating the PPS is the following:
 """
-#%%
+# %%
 # 1. Extract from the data only the label and the feature being tested
 # 2. Drop samples with missing values
 # 3. Keep 5000 (this is configurable parameter) samples from the data
@@ -89,40 +89,43 @@ The process of calculating the PPS is the following:
 # or the following blog post: `RIP correlation. Introducing the Predictive Power Score
 # <https://towardsdatascience.com/rip-correlation-introducing-the-predictive-power-score-3d90808b9598>`__
 
-#%%
+# %%
 # Run the Check
 # =============
 # In this example we will run the check on the dataset of wolves vs. dogs.
 # For example purposes we picked 10 images of dogs and 10 images of wolves out of the full dataset.
 # The original data was downloaded from https://www.kaggle.com/datasets/harishvutukuri/dogs-vs-wolves, which is licensed under `DbCL v1.0 <https://opendatacommons.org/licenses/dbcl/1-0/>`__.
 
-from deepchecks.vision.checks import PropertyLabelCorrelation
-from deepchecks.vision.vision_data.simple_classification_data import classification_dataset_from_directory
-import albumentations as A
 import urllib.request
 import zipfile
 
-url = 'https://figshare.com/ndownloader/files/36671001'
-urllib.request.urlretrieve(url, 'wolves_vs_dogs_mini.zip')
+from deepchecks.vision.checks import PropertyLabelCorrelation
+from deepchecks.vision.vision_data.simple_classification_data import classification_dataset_from_directory
 
-with zipfile.ZipFile('wolves_vs_dogs_mini.zip', 'r') as zip_ref:
-    zip_ref.extractall('.')
+import albumentations as A
+
+url = "https://figshare.com/ndownloader/files/36671001"
+urllib.request.urlretrieve(url, "wolves_vs_dogs_mini.zip")
+
+with zipfile.ZipFile("wolves_vs_dogs_mini.zip", "r") as zip_ref:
+    zip_ref.extractall(".")
 
 dataset = classification_dataset_from_directory(
-    'wolves_vs_dogs_mini', object_type='VisionData', transforms=A.Resize(128, 128))
-dataset._label_map = {0: 'dog', 1: 'wolf'}  # Replacing the built-in label map "dogs" and "wolves" with "dog" and "wolf"
+    "wolves_vs_dogs_mini", object_type="VisionData", transforms=A.Resize(128, 128)
+)
+dataset._label_map = {0: "dog", 1: "wolf"}  # Replacing the built-in label map "dogs" and "wolves" with "dog" and "wolf"
 
-#%%
+# %%
 # You can see an example of the dataset images and their labels below:
 dataset.head()
 
-#%%
+# %%
 # Now lets run the check:
 
 check_result = PropertyLabelCorrelation().run(dataset)
 check_result.show()
 
-#%%
+# %%
 # We can see that both the "Brightness" property and the "Mean Green Relative Intensity" property have a significant
 # ability to predict the label.
 #
@@ -131,12 +134,12 @@ check_result.show()
 # Using this check we can be made aware of these artifacts, and can solve them (for example by collecting images with
 # different backgrounds) before training any kind of model.
 
-#%%
+# %%
 # Define a condition
 # ==================
 # We can define a condition to verify that the results are less than a certain threshold.
 check_result = PropertyLabelCorrelation().add_condition_property_pps_less_than(0.5).run(dataset)
 check_result.show(show_additional_outputs=False)
 
-#%%
+# %%
 # We can now see that the condition failed because the results here are above the threshold.

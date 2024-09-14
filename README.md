@@ -17,10 +17,10 @@ stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=socia
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
 [![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
 [![Coverage
-Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main) 
+Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main)
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-43-orange.svg?style=flat-round)](#https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst)
-<!-- ALL-CONTRIBUTORS-BADGE:END --> 
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 <!---
 this badge takes quite some space, can re-add it if wanted
@@ -47,35 +47,35 @@ enabling you to thoroughly test your data and models from research to production
 <p align="center">
    &emsp;
    <a href="https://www.deepchecks.com/slack">👋 Join Slack</a>
-   &emsp; | &emsp; 
+   &emsp; | &emsp;
    <a href="https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">📖 Documentation</a>
-   &emsp; | &emsp; 
+   &emsp; | &emsp;
    <a href="https://deepchecks.com/blog/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=top_links">🌐 Blog</a>
-   &emsp; | &emsp;  
+   &emsp; | &emsp;
    <a href="https://twitter.com/deepchecks">🐦 Twitter</a>
    &emsp;
 </p>
-   
+
 
 ## 🧩 Components
 
 Deepchecks includes:
 - **Deepchecks Testing**
-  ([Quickstart](#---------deepchecks-testing-quickstart------), 
-  [docs](https://docs.deepchecks.com/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
+  ([Quickstart](#---------deepchecks-testing-quickstart------),
+  [docs](https://docs.deepchecks.com/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)):
   - Running built-in & your own custom Checks and Suites for Tabular, NLP & CV validation (open source).
 - **CI & Testing Management**
-  ([Quickstart](#---------deepchecks-ci--testing-management-quickstart------), 
+  ([Quickstart](#---------deepchecks-ci--testing-management-quickstart------),
   [docs](https://docs.deepchecks.com/stable/general/usage/ci_cd.html?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)):
-  - Collaborating over test results and iterating efficiently until 
+  - Collaborating over test results and iterating efficiently until
   model is production-ready and can be deployed (open source & managed offering).
 - **Deepchecks Monitoring**
-  ([Quickstart](#---------deepchecks-monitoring-quickstart------), 
-  [docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)): 
+  ([Quickstart](#---------deepchecks-monitoring-quickstart------),
+  [docs](https://docs.deepchecks.com/monitoring/stable/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=components)):
   - Tracking and validating your deployed models behavior when in production (open source & managed offering).
 
 This repo is our main repo as all components use the deepchecks checks in their core. See the [Getting Started](#--getting-started) section for more information about installation and quickstarts for each of the components.
-If you want to see deepchecks monitoring's code, you can check out the 
+If you want to see deepchecks monitoring's code, you can check out the
 [deepchecks/monitoring](https://github.com/deepchecks/monitoring) repo.
 
 
@@ -95,9 +95,9 @@ pip install deepchecks -U --user
 ```
 
 For installing the nlp / vision submodules or with conda:
-- For NLP: Replace ``deepchecks`` with ``"deepchecks[nlp]"``, 
+- For NLP: Replace ``deepchecks`` with ``"deepchecks[nlp]"``,
   and optionally install also``deepchecks[nlp-properties]``
-- For Computer Vision: Replace ``deepchecks`` with ``"deepchecks[vision]"``. 
+- For Computer Vision: Replace ``deepchecks`` with ``"deepchecks[vision]"``.
 - For installing with conda, similarly use: ``conda install -c conda-forge deepchecks``.
 
 Check out the full installation instructions for deepchecks testing [here](https://docs.deepchecks.com/stable/getting-started/installation.html).
@@ -137,7 +137,7 @@ Jump right into the respective quickstart docs:
 
 - [Tabular Quickstarts](https://docs.deepchecks.com/stable/tabular/auto_tutorials/quickstarts/index.html)
 - [NLP Quickstarts](https://docs.deepchecks.com/stable/nlp/auto_tutorials/quickstarts/index.html)
-- [Vision Quickstarts](https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/index.html) 
+- [Vision Quickstarts](https://docs.deepchecks.com/stable/vision/auto_tutorials/quickstarts/index.html)
 
 to have it up and running on your data.
 
@@ -168,7 +168,7 @@ The output will be a report that enables you to inspect the status and results o
       </h4>
    </summary>
 
-Jump right into the 
+Jump right into the
 [open source monitoring quickstart docs](https://docs.deepchecks.com/monitoring/stable/getting-started/deploy_self_host_open_source.html)
 to have it up and running on your data.
 You'll then be able to see the checks results over time, set alerts, and interact
@@ -204,22 +204,22 @@ check out our [docs for Using Deepchecks in CI/CD](https://docs.deepchecks.com/s
 
 At its core, deepchecks includes a wide variety of built-in Checks,
 for testing all types of data and model related issues.
-These checks are implemented for various models and data types (Tabular, NLP, Vision), 
-and can easily be customized and expanded. 
+These checks are implemented for various models and data types (Tabular, NLP, Vision),
+and can easily be customized and expanded.
 
 The check results can be used to automatically make informed decisions
 about your model's production-readiness, and for monitoring it over time in production.
 The check results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
-processed with code (using their pythonic / json output), and inspected and collaborated on with Deepchecks' dynamic UI 
+processed with code (using their pythonic / json output), and inspected and collaborated on with Deepchecks' dynamic UI
 (for examining test results and for production monitoring).
 
 <!---
-At its core, Deepchecks has a wide variety of built-in Checks and Suites (lists of checks) 
-for all data types (Tabular, NLP, Vision), 
-These includes checks for validating your model's performance (e.g. identify weak segments), the data's 
+At its core, Deepchecks has a wide variety of built-in Checks and Suites (lists of checks)
+for all data types (Tabular, NLP, Vision),
+These includes checks for validating your model's performance (e.g. identify weak segments), the data's
 distribution (e.g. detect drifts or leakages), data integrity (e.g. find conflicting labels) and more.
 These checks results can be run manually (e.g. during research) or triggered automatically (e.g. during CI
-and production monitoring) and enable automatically making informed decisions regarding your model pipelines' 
+and production monitoring) and enable automatically making informed decisions regarding your model pipelines'
 production-readiness, and behavior over time.
 --->
 
@@ -231,16 +231,16 @@ production-readiness, and behavior over time.
       </h2>
    </summary>
 
-- All of the Checks and the framework for customizing them are implemented inside 
+- All of the Checks and the framework for customizing them are implemented inside
   the Deepchecks Testing Python package (this repo).
 - Each check tests for a specific potential problem. Deepchecks has many pre-implemented checks for
-  finding issues with the model's performance (e.g. identifying weak segments), 
+  finding issues with the model's performance (e.g. identifying weak segments),
   data distribution (e.g. detect drifts or leakages) and data integrity (e.g. find conflicting labels).
 - Customizable: each check has many configurable parameters, and custom checks can easily be implemented.
 - Can be run manually (during research) or triggered automatically (in CI processes or production monitoring)
-- Check results can be consumed by: 
+- Check results can be consumed by:
    - Visual output report - [Saving to HTML](https://docs.deepchecks.com/stable/general/usage/export_save_results.html)(``result.save_to_html('output_report_name.html')``) or [viewing them](https://docs.deepchecks.com/stable/general/usage/showing_results.html) in Jupyter (``result.show()``).
-   - Processing with code - with python using the check result's ``value`` attribute, or saving a 
+   - Processing with code - with python using the check result's ``value`` attribute, or saving a
      [JSON output](https://docs.deepchecks.com/stable/general/usage/export_save_results.html)
    - Deepchecks' UI - for dynamic inspection and collaboration (of test results and production monitoring)
 - Optional conditions can be added and customized, to automatically validate check results,
@@ -253,23 +253,23 @@ production-readiness, and behavior over time.
 <!---
 These checks can be run manually (e.g. during research) or automatically triggered (with CI processes or in scheduled runs for production monitoring).
 The check's results can be examined with visual reports (by saving them to an HTML file, or seeing them in Jupyter),
-processed with code (using their json output), and inspected and collaborated upon with a dynamic UI 
+processed with code (using their json output), and inspected and collaborated upon with a dynamic UI
 (for examining test results and for production monitoring).
 Optional conditions can be added to each check, to automatically validate whether it passed or not.
 --->
 
 
-## 📜 Open Source vs Paid 
+## 📜 Open Source vs Paid
 
 Deepchecks' projects (``deepchecks/deepchecks`` & ``deepchecks/monitoring``) are open source and are released under [AGPL 3.0](./LICENSE).
 
-The only exception are the Deepchecks Monitoring components (in the ``deepchecks/monitoring`` repo), that are under the 
-([backend/deepchecks_monitoring/ee](https://github.com/deepchecks/monitoring/tree/main/backend/deepchecks_monitoring/ee)) 
+The only exception are the Deepchecks Monitoring components (in the ``deepchecks/monitoring`` repo), that are under the
+([backend/deepchecks_monitoring/ee](https://github.com/deepchecks/monitoring/tree/main/backend/deepchecks_monitoring/ee))
 directory, that are subject to a commercial license (see the license [here](https://deepchecks.com/terms-and-conditions)).
-That directory isn't used by default, and is packaged as part of the deepchecks monitoring repository simply to 
+That directory isn't used by default, and is packaged as part of the deepchecks monitoring repository simply to
 support upgrading to the commercial edition without downtime.
 
-Enabling premium features (contained in the `backend/deepchecks_monitoring/ee` directory) with a self-hosted instance requires a Deepchecks license. 
+Enabling premium features (contained in the `backend/deepchecks_monitoring/ee` directory) with a self-hosted instance requires a Deepchecks license.
 To learn more, [book a demo](https://deepchecks.com/book-demo/) or see our [pricing page](https://deepchecks.com/pricing).
 
 Looking for a 💯% open-source solution for deepcheck monitoring?
@@ -277,14 +277,14 @@ Check out the [Monitoring OSS](https://github.com/deepchecks/monitoring-oss) rep
 
 ## 👭 Community, Contributing, Docs & Support
 
-Deepchecks is an open source solution. 
-We are committed to a transparent development process and highly appreciate any contributions. 
+Deepchecks is an open source solution.
+We are committed to a transparent development process and highly appreciate any contributions.
 Whether you are helping us fix bugs, propose new features, improve our documentation or spread the word,
 we would love to have you as part of our community.
 
 - Give us a ⭐️ github star ⭐️ on the top of this page to support what we're doing,
   it means a lot for open source projects!
-- Read our 
+- Read our
   [docs](https://docs.deepchecks.com/?utm_source=github.com&utm_medium=referral&utm_campaign=readme&utm_content=docs)
   for more info about how to use and customize deepchecks, and for step-by-step tutorials.
 - Post a [Github
@@ -292,7 +292,7 @@ we would love to have you as part of our community.
 - To contribute to the package, check out our [first good issues](https://github.com/deepchecks/deepchecks/contribute)
   and [contribution guidelines](CONTRIBUTING.rst), and open a PR.
 
-Join our Slack to give us feedback, connect with the maintainers and fellow users, ask questions, 
+Join our Slack to give us feedback, connect with the maintainers and fellow users, ask questions,
 get help for package usage or contributions, or engage in discussions about ML testing!
 
 <a href="https://deepchecks.com/slack"><img src="docs/source/_static/images/general/join-our-slack-community.png" width="200"></a>
