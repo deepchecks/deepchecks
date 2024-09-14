@@ -25,7 +25,7 @@ except ImportError:
     from importlib_metadata import version
 
 # NOTE: it is here, before other import, in order to omit circular import error
-__version__ = version('deepchecks')
+__version__ = version('eh-tabular-deepchecks')
 
 import matplotlib
 import plotly.io as pio
