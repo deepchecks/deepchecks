@@ -61,7 +61,7 @@ def test_leakage(iris_clean):
                             label='target')
 
     test_df = pd.concat([x_test, y_test], axis=1)
-    bad_test = test_df.append(train_dataset.data.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
+    bad_test = pd.concat([test_df, train_dataset.data.iloc[[0, 1, 2, 3, 4]]], ignore_index=True)
 
     test_dataset = Dataset(bad_test,
                            features=iris_clean.feature_names,
@@ -84,7 +84,7 @@ def test_train_test_samples_mix_n_to_show(iris_clean):
                             label='target')
 
     test_df = pd.concat([x_test, y_test], axis=1)
-    bad_test = test_df.append(train_dataset.data.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
+    bad_test = pd.concat([test_df, train_dataset.data.iloc[[0, 1, 2, 3, 4]]], ignore_index=True)
 
     test_dataset = Dataset(bad_test,
                            features=iris_clean.feature_names,
@@ -106,7 +106,7 @@ def test_leakage_without_display(iris_clean):
                             label='target')
 
     test_df = pd.concat([x_test, y_test], axis=1)
-    bad_test = test_df.append(train_dataset.data.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
+    bad_test = pd.concat([test_df, train_dataset.data.iloc[[0, 1, 2, 3, 4]]], ignore_index=True)
 
     test_dataset = Dataset(bad_test,
                            features=iris_clean.feature_names,
@@ -141,7 +141,7 @@ def test_condition_ratio_not_greater_than_not_passed(iris_clean):
                             label='target')
 
     test_df = pd.concat([x_test, y_test], axis=1)
-    bad_test = test_df.append(train_dataset.data.iloc[[0, 1, 2, 3, 4]], ignore_index=True)
+    bad_test = pd.concat([test_df, train_dataset.data.iloc[[0, 1, 2, 3, 4]]], ignore_index=True)
 
     test_dataset = Dataset(bad_test,
                            features=iris_clean.feature_names,

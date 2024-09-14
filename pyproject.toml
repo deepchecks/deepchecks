@@ -1,0 +1,155 @@
+
+#setuptools.setup(
+#    # -- description --------------------------------
+#    name=DEEPCHECKS,
+#    author='deepchecks',
+#    author_email='info@deepchecks.com',
+#    version=VERSION,
+#    description=short_desc,
+#    long_description=long_desc,
+#    keywords = ['Software Development', 'Machine Learning'],
+#    classifiers = [
+#        'Intended Audience :: Developers',
+#        'Intended Audience :: Science/Research',
+#        'Topic :: Software Development',
+#        'Topic :: Scientific/Engineering',
+#        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
+#        'Programming Language :: Python :: 3',
+#        'Programming Language :: Python :: 3.6',
+#        'Programming Language :: Python :: 3.7',
+#        'Programming Language :: Python :: 3.8',
+#        'Programming Language :: Python :: 3.9',
+#        'Programming Language :: Python :: 3.10',
+#    ],
+#    license_files=('LICENSE', ),
+#    url = 'https://github.com/deepchecks/deepchecks',
+#    download_url = "https://github.com/deepchecks/deepchecks/releases/download/{0}/deepchecks-{0}.tar.gz".format(VERSION),
+#    project_urls={
+#        'Documentation': 'https://docs.deepchecks.com',
+#        'Bug Reports': 'https://github.com/deepchecks/deepchecks',
+#        'Source': 'https://github.com/deepchecks/deepchecks',
+#        'Contribute!': 'https://github.com/deepchecks/deepchecks/blob/master/CONTRIBUTING.md',
+#    },
+#
+#    # -- dependencies --------------------------------
+#    packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
+#    install_requires=main_requirements,
+#    extras_require=extra_requirements,
+#    dependency_links=dependency_links,
+#    include_package_data=True,
+#)
+
+[tool.poetry]
+#name = "py-infra"
+#version = "0.0.0"
+#description = "A library for switching pandas backend to pyarrow"
+#authors = ["DanielAvdar <66269169+DanielAvdar@users.noreply.github.com>"]
+#license = "MIT"
+#readme = "README.md"
+#homepage = "https://github.com/DanielAvdar/pandas-pyarrow"
+#repository = "https://github.com/DanielAvdar/pandas-pyarrow"
+#documentation = "https://github.com/DanielAvdar/pandas-pyarrow"
+name = "eh-tabular-deepchecks"
+version = "0.0.0"
+authors = ["deepchecks","DanielAvdar <66269169+DanielAvdar@users.noreply.github.com>"]
+license = "AGPL-3.0"
+readme = "README.md"
+homepage = "https://github.com/deepchecks/deepchecks"
+description = "mantained deepchecks tabular module"
+
+
+
+packages = [{ include = "deepchecks" }]
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+pandas = ">=1.1.5,<2.2.0"
+numpy = ">=1.22.2"
+scikit-learn = "*"
+jsonpickle = ">=2"
+PyNomaly = ">=0.3.3"
+ipython = ">=7.15.0"
+ipykernel = ">=5.3.0"
+ipywidgets = ">=7.6.5,<8"
+typing_extensions = ">=4.0.0"
+tqdm = ">=4.62.3"
+category-encoders = ">=2.3.0"
+statsmodels = ">=0.13.5"
+scipy = "*"
+plotly = ">=5.13.1"
+matplotlib = ">=3.3.4"
+beautifulsoup4 = ">=4.11.1"
+requests = ">=2.22.0"
+jupyter-server = ">=2.7.2"
+
+
+[tool.poetry.dev-dependencies]
+twine = "^4.0.0"
+pylint = "==2.13.5"
+pydocstyle = "*"
+flake8 = "==4.0.1"
+flake8-spellcheck = "*"
+flake8-eradicate = "*"
+flake8-rst = "*"
+isort = "*"
+pytest = "<8.0.0"
+pytest-cov = "*"
+pyhamcrest = "*"
+nbval = "*"
+coveralls = "*"
+tox = "*"
+gower = "==0.0.5"
+deepdiff = "<=6.3.1"
+#scikit-learn = "==1.0.2"
+#pandas = "==1.3.5"
+catboost = "*"
+lightgbm = "*"
+xgboost = "<=1.7.5"
+jupyter = "*"
+jupyterlab = "*"
+notebook = "*"
+#kaleido = "*"
+matplotlib = ">=3.2.2"
+numpy = ">=1.18.5"
+opencv-python = ">=4.1.2"
+
+PyYAML = ">=5.3.1"
+requests = ">=2.23.0"
+scipy = "*"
+tqdm = ">=4.41.0"
+seaborn = ">=0.11.0"
+beautifulsoup4 = ">=4.11.1"
+tornado = ">=6.3.3"
+pyarrow = ">=14.0.1"
+aiohttp = ">=3.9.0"
+umap-learn = "==0.5.4"
+
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 120
+include = ["core_infra/**"]
+
+[tool.ruff.lint]
+select = ["F", "B", "I", "F", "W", "E", "A", "N"]
+fixable = ["ALL"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+section-order = ["future", "standard-library", "first-party", "local-folder", "third-party", ]
+
+[tool.mypy]
+python_version = "3.11"
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+strict_optional = false
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+ignore_errors = true

@@ -11,7 +11,6 @@
 """CheckFailure serialization tests."""
 import typing as t
 
-import wandb
 from hamcrest import (all_of, any_of, assert_that, calling, contains_string, equal_to, has_entry, has_length,
                       has_property, instance_of, only_contains, raises)
 from ipywidgets import HTML, VBox
@@ -21,7 +20,6 @@ from deepchecks.core.serialization.check_failure.html import CheckFailureSeriali
 from deepchecks.core.serialization.check_failure.ipython import CheckFailureSerializer as IPythonSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as JsonSerializer
 from deepchecks.core.serialization.check_failure.junit import CheckFailureSerializer as JunitSerializer
-from deepchecks.core.serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as WidgetSerializer
 from tests.common import DummyCheck, instance_of_ipython_formatter
 
@@ -155,37 +153,6 @@ def test_junit_serialization():
 
     assert_that(list(output.attrib.keys()), ['classname', 'name', 'time'])
     assert_that(output.tag, 'testcase')
-
-# =====================================
-
-def test_wandb_serializer_initialization():
-    serializer = WandbSerializer(CheckFailure(
-        DummyCheck(),
-        Exception("Error"),
-        'Failure Header Message'
-    ))
-
-
-def test_wandb_serializer_initialization_with_incorrect_type_of_value():
-    assert_that(
-        calling(WandbSerializer).with_args([]),
-        raises(
-            TypeError,
-            'Expected "CheckFailure" but got "list"')
-    )
-
-
-def test_wandb_serialization():
-    failure = CheckFailure(DummyCheck(), ValueError("Check Failed"), 'Failure Header Message')
-    serializer = WandbSerializer(failure)
-    output = serializer.serialize()
-
-    assert_that(
-        output,
-        all_of(
-            instance_of(dict),
-            has_entry(f'{failure.header}/results', instance_of(wandb.Table)))
-    )
 
 
 # =====================================
