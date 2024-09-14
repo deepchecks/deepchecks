@@ -59,7 +59,7 @@ description = "mantained deepchecks tabular module"
 
 
 
-packages = [{ include = "core_infra", from = "." }, { include = "reg_infra", from = "." }, { include = "chat_app", from = "." }]
+packages = [{ include = "deepchecks" }]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
