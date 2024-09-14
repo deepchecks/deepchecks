@@ -75,7 +75,7 @@ typing_extensions = ">=4.0.0"
 tqdm = ">=4.62.3"
 category-encoders = ">=2.3.0"
 statsmodels = ">=0.13.5"
-scipy = ">=1.4.1,<=1.10.1"
+scipy = "*"
 plotly = ">=5.13.1"
 matplotlib = ">=3.3.4"
 beautifulsoup4 = ">=4.11.1"
@@ -115,9 +115,7 @@ opencv-python = ">=4.1.2"
 
 PyYAML = ">=5.3.1"
 requests = ">=2.23.0"
-scipy = [
-    ">=1.4.1, <=1.10.1"
-]
+scipy = "*"
 tqdm = ">=4.41.0"
 seaborn = ">=0.11.0"
 beautifulsoup4 = ">=4.11.1"
@@ -126,9 +124,7 @@ pyarrow = ">=14.0.1"
 aiohttp = ">=3.9.0"
 umap-learn = "==0.5.4"
 
-[tool.poetry.extras]
-db-dtypes = ["db-dtypes"]
-bigquery = ["pandas-gbq"]
+
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
