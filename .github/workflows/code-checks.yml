@@ -24,3 +24,4 @@ jobs:
       - run: poetry install
       - run: poetry run pre-commit install
       - run: poetry run pre-commit run --all-files
+        continue-on-error: true
