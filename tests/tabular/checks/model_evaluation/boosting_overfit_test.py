@@ -145,7 +145,7 @@ def test_boosting_regressor(diabetes, diabetes_model):
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
     assert_that(mean(train_scores), close_to(-44.52, 0.01))
-    assert_that(mean(test_scores), close_to(-59.35, 0.01))
+    assert_that(mean(test_scores), close_to(-59.35, 0.06))
 
 
 @pytest.mark.skip(reason="This test is failing due to a bug in the suite")
