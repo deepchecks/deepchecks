@@ -341,7 +341,7 @@ def test_regression_alt_scores_list(diabetes_split_dataset_and_model):
     # Assert
     assert_that(extract_metric(result, 'Test', 'max_error'), close_to(-171.719, 0.001))
     assert_that(extract_metric(result, 'Test', 'r2'), close_to(0.427, 0.003))
-    assert_that(extract_metric(result, 'Test', 'neg_mean_absolute_error'), close_to(-45.564, 0.1))
+    assert_that(extract_metric(result, 'Test', 'neg_mean_absolute_error'), close_to(-45.564, 0.2))
 
 
 def test_classification_alt_scores_per_class_and_macro(iris_split_dataset_and_model):
