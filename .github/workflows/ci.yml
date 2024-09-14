@@ -18,6 +18,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: pipx install poetry
+      - name: Install OS Dependencies
+        if: matrix.os == 'macos-latest'
+        run: brew install libomp
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
