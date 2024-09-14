@@ -13,7 +13,6 @@ import json
 import typing as t
 
 import pandas as pd
-import wandb
 from hamcrest import (all_of, assert_that, calling, contains_exactly, contains_string, equal_to, greater_than,
                       has_entries, has_item, has_length, has_property, instance_of, matches_regexp, only_contains,
                       raises, starts_with)
@@ -30,7 +29,6 @@ from deepchecks.core.serialization.check_result.ipython import DisplayItemsHandl
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as JsonSerializer
 from deepchecks.core.serialization.check_result.json import DisplayItemsHandler as JsonDisplayItemsHandler
 from deepchecks.core.serialization.check_result.junit import CheckResultSerializer as JunitSerializer
-from deepchecks.core.serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as WidgetSerializer
 from deepchecks.core.serialization.check_result.widget import DisplayItemsHandler as WidgetDisplayItemsHandler
 from deepchecks.core.serialization.common import plotlyjs_script
@@ -450,100 +448,6 @@ def test_junit_serialization():
 
 
 # ===========================================
-
-def test_wandb_serializer_initialization():
-    serializer = WandbSerializer(create_check_result())
-
-
-def test_wandb_serializer_initialization_with_incorrect_type_of_value():
-    assert_that(
-        calling(WandbSerializer).with_args(dict()),
-        raises(
-            TypeError,
-            'Expected "CheckResult" but got "dict"')
-    )
-
-
-def test_wandb_serialization():
-    check_result = create_check_result()
-    output = WandbSerializer(check_result).serialize()
-
-    assert_that(
-        output,
-        wandb_output_assertion(check_result)
-    )
-
-
-def test_check_result_without_conditions_serialization_to_wandb():
-    check_result = create_check_result(include_conditions=False)
-    output = WandbSerializer(check_result).serialize()
-
-    assert_that(
-        output,
-        wandb_output_assertion(check_result, with_conditions_table=False)
-    )
-
-
-def test_check_result_without_conditions_and_display_serialization_to_wandb():
-    check_result = create_check_result(include_conditions=False, include_display=False)
-    output = WandbSerializer(check_result).serialize()
-
-    assert_that(
-        output,
-        wandb_output_assertion(
-            check_result,
-            with_conditions_table=False,
-            with_display=False)
-    )
-
-
-def wandb_output_assertion(
-    check_result,
-    with_conditions_table=True,
-    with_display=True
-):
-    entries = {
-        f'{check_result.header}/results': instance_of(wandb.Table),
-    }
-
-    if with_display is True:
-        for index, it in enumerate(check_result.display):
-            if isinstance(it, (pd.DataFrame, Styler)):
-                entries[f'{check_result.header}/item-{index}-table'] = instance_of(wandb.Table)
-            elif isinstance(it, str):
-                entries[f'{check_result.header}/item-{index}-html'] = instance_of(wandb.Html)
-            elif isinstance(it, BaseFigure):
-                entries[f'{check_result.header}/item-{index}-plot'] = instance_of(wandb.Plotly)
-            elif callable(it):
-                entries[f'{check_result.header}/item-{index}-figure'] = instance_of(wandb.Image)
-            elif isinstance(it, DisplayMap):
-                # TODO:
-                pass
-            else:
-                raise TypeError(f'Unknown display item type {type(it)}')
-
-    if with_conditions_table is True:
-        entries[f'{check_result.header}/conditions table'] = instance_of(wandb.Table)
-
-    return all_of(instance_of(dict), has_entries(entries))
-
-
-# ===========================================
-
-
-def test_widget_serializer_initialization():
-    serializer = WandbSerializer(create_check_result())
-
-
-def test_widget_serializer_initialization_with_incorrect_type_of_value():
-    assert_that(
-        calling(WandbSerializer).with_args(dict()),
-        raises(
-            TypeError,
-            'Expected "CheckResult" but got "dict"')
-    )
-
-
 def test_widget_serialization():
     check_result = create_check_result()
     output = WidgetSerializer(check_result).serialize()

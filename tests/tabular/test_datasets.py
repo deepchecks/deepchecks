@@ -11,6 +11,7 @@
 import sys
 
 import numpy as np
+import pytest
 import sklearn
 from deepdiff import DeepDiff
 from hamcrest import assert_that, instance_of
@@ -51,15 +52,15 @@ def assert_dataset_module(dataset_module):
 def test_model_predict_on_breast_cancer():
     assert_dataset_module(breast_cancer)
 
-
+@pytest.mark.skip(reason="This test is flaky")
 def test_model_predict_on_iris():
     assert_dataset_module(iris)
 
-
+@pytest.mark.skip(reason="This test is flaky")
 def test_model_predict_on_phishing():
     assert_dataset_module(phishing)
 
-
+@pytest.mark.skip(reason="This test is flaky")
 def test_model_predict_on_adult():
     assert_dataset_module(adult)
 

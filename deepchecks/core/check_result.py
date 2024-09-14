@@ -345,29 +345,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             check_sections=detalize_additional_output(show_additional_outputs)
         )
 
-    def to_wandb(
-        self,
-        **kwargs
-    ):
-        """Send result to wandb.
 
-        Parameters
-        ----------
-        kwargs: Keyword arguments to pass to wandb.init.
-                Default project name is deepchecks.
-                Default config is the check metadata (params, train/test/ name etc.).
-        """
-        # NOTE: Wandb is not a default dependency
-        # user should install it manually therefore we are
-        # doing import within method to prevent premature ImportError
-        assert self.check is not None
-        from .serialization.check_result.wandb import CheckResultSerializer as WandbSerializer
-
-        wandb_kwargs = {'config': {'header': self.get_header(), **self.check.metadata()}}
-        wandb_kwargs.update(**kwargs)
-
-        with wandb_run(**wandb_kwargs) as run:
-            run.log(WandbSerializer(self).serialize())
 
     def to_json(self, with_display: bool = True, **kwargs) -> str:
         """Serialize result into a json string.
@@ -558,26 +536,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
             unpicklable=False
         )
 
-    def to_wandb(self, **kwargs):
-        """Send check result to wandb.
 
-        Parameters
-        ----------
-        kwargs: Keyword arguments to pass to wandb.init.
-                Default project name is deepchecks.
-                Default config is the check metadata (params, train/test/ name etc.).
-        """
-        # NOTE: Wandb is not a default dependency
-        # user should install it manually therefore we are
-        # doing import within method to prevent premature ImportError
-        assert self.check is not None
-        from .serialization.check_failure.wandb import CheckFailureSerializer as WandbSerializer
-
-        wandb_kwargs = {'config': {'header': self.get_header(), **self.check.metadata()}}
-        wandb_kwargs.update(**kwargs)
-
-        with wandb_run(**wandb_kwargs) as run:
-            run.log(WandbSerializer(self).serialize())
 
     def __repr__(self):
         """Return string representation."""

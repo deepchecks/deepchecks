@@ -208,10 +208,7 @@ class DisplayableResult(abc.ABC):
         """Serialize result into a json string."""
         raise NotImplementedError()
 
-    @abc.abstractmethod
-    def to_wandb(self, **kwargs) -> 'WBValue':
-        """Send result to the wandb."""
-        raise NotImplementedError()
+
 
     @abc.abstractmethod
     def save_as_html(

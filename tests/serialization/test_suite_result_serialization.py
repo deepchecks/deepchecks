@@ -19,7 +19,6 @@ from hamcrest import (all_of, assert_that, calling, contains_exactly, contains_s
 from IPython.display import Image
 from ipywidgets import HTML, Accordion, Tab, VBox
 from plotly.basedatatypes import BaseFigure
-from wandb.sdk.data_types.base_types.wb_value import WBValue
 
 from deepchecks.core.check_result import CheckFailure, CheckResult
 from deepchecks.core.serialization.common import form_output_anchor, plotlyjs_script
@@ -27,7 +26,6 @@ from deepchecks.core.serialization.suite_result.html import SuiteResultSerialize
 from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerializer as IPythonSerializer
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as JsonSerializer
 from deepchecks.core.serialization.suite_result.junit import SuiteResultSerializer as JunitSerializer
-from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as WidgetSerializer
 from deepchecks.core.suite import SuiteResult
 from deepchecks.utils.strings import get_random_string
@@ -280,32 +278,6 @@ def test_junit_serialization_with_real_data(iris_split_dataset_and_model):
     for test_case in list(list(formatted_response)[0]):
         check_junit_test_case(test_case)
 
-
-# ============================================================================
-
-
-def test_wandb_serializer_initialization():
-    serializer = WandbSerializer(create_suite_result())
-
-
-def test_wandb_serializer_initialization_with_incorrect_type_of_value():
-    assert_that(
-        calling(WandbSerializer).with_args(set()),
-        raises(
-            TypeError,
-            'Expected "SuiteResult" but got "set"')
-    )
-
-
-def test_wandb_serialization():
-    suite_result = create_suite_result()
-    output = WandbSerializer(suite_result).serialize()
-
-    assert_that(output, instance_of(dict))
-
-    for k, v in output.items():
-        assert_that(k, starts_with(f'{suite_result.name}/'))
-        assert_that(v, instance_of(WBValue))
 
 
 # ============================================================================

@@ -21,7 +21,7 @@ from packaging import version
 from sklearn import __version__ as scikit_version
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, log_loss, make_scorer, mean_absolute_error, mean_squared_error
-from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
+from sklearn.metrics._scorer import _BaseScorer
 from sklearn.preprocessing import OneHotEncoder
 
 try:
@@ -240,10 +240,7 @@ class DeepcheckScorer:
         """Run sklearn scorer on the labels and the pred/proba according to scorer type."""
         # pylint: disable=protected-access
         if isinstance(self.scorer, _BaseScorer):
-            if y_proba is not None and isinstance(self.scorer, _ProbaScorer):
-                pred_to_use = y_proba
-            else:
-                pred_to_use = y_pred
+            pred_to_use = y_pred
             return self.scorer._score_func(y_true, pred_to_use, **self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
@@ -300,13 +297,13 @@ class DeepcheckScorer:
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
-        if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
-                                                                    'predict_proba'):
-            raise errors.DeepchecksValueError(
-                f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
-                f'not provided. Please use a model with predict_proba method or '
-                f'manually provide predicted probabilities to the check. '
-                f'{SUPPORTED_MODELS_DOCLINK}')
+        # if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
+        #                                                             'predict_proba'):
+        #     raise errors.DeepchecksValueError(
+        #         f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
+        #         f'not provided. Please use a model with predict_proba method or '
+        #         f'manually provide predicted probabilities to the check. '
+        #         f'{SUPPORTED_MODELS_DOCLINK}')
 
         label_col = pd.Series(label_col)
         original_label_col = label_col
