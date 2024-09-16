@@ -10,18 +10,26 @@
 #
 """Module containing metrics utils."""
 
-from .scorers import (DEFAULT_BINARY_SCORERS, DEFAULT_MULTICLASS_SCORERS, DEFAULT_REGRESSION_SCORERS,
-                      DEFAULT_SCORERS_DICT, MULTICLASS_SCORERS_NON_AVERAGE, DeepcheckScorer, TaskType,
-                      get_default_scorers, init_validate_scorers)
+from .scorers import (
+    DEFAULT_BINARY_SCORERS,
+    DEFAULT_MULTICLASS_SCORERS,
+    DEFAULT_REGRESSION_SCORERS,
+    DEFAULT_SCORERS_DICT,
+    MULTICLASS_SCORERS_NON_AVERAGE,
+    DeepcheckScorer,
+    TaskType,
+    get_default_scorers,
+    init_validate_scorers,
+)
 
 __all__ = [
-    'TaskType',
-    'DEFAULT_SCORERS_DICT',
-    'DEFAULT_REGRESSION_SCORERS',
-    'DEFAULT_BINARY_SCORERS',
-    'DEFAULT_MULTICLASS_SCORERS',
-    'MULTICLASS_SCORERS_NON_AVERAGE',
-    'DeepcheckScorer',
-    'init_validate_scorers',
-    'get_default_scorers'
+    "TaskType",
+    "DEFAULT_SCORERS_DICT",
+    "DEFAULT_REGRESSION_SCORERS",
+    "DEFAULT_BINARY_SCORERS",
+    "DEFAULT_MULTICLASS_SCORERS",
+    "MULTICLASS_SCORERS_NON_AVERAGE",
+    "DeepcheckScorer",
+    "init_validate_scorers",
+    "get_default_scorers",
 ]

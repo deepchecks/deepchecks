@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the single dataset performance check."""
+
 from numbers import Number
 from typing import TYPE_CHECKING, Callable, Dict, List, Mapping, Optional, TypeVar, Union, cast
-
-import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -23,13 +22,15 @@ from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.strings import format_number
 
+import pandas as pd
+
 if TYPE_CHECKING:
     from deepchecks.core.checks import CheckConfig
 
-__all__ = ['SingleDatasetPerformance']
+__all__ = ["SingleDatasetPerformance"]
 
 
-SDP = TypeVar('SDP', bound='SingleDatasetPerformance')
+SDP = TypeVar("SDP", bound="SingleDatasetPerformance")
 
 
 class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
@@ -46,11 +47,13 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         random seed for all check internals.
     """
 
-    def __init__(self,
-                 scorers: Optional[Union[Mapping[str, Union[str, Callable]], List[str]]] = None,
-                 n_samples: int = 1_000_000,
-                 random_state: int = 42,
-                 **kwargs):
+    def __init__(
+        self,
+        scorers: Optional[Union[Mapping[str, Union[str, Callable]], List[str]]] = None,
+        n_samples: int = 1_000_000,
+        random_state: int = 42,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.scorers = scorers
         self.n_samples = n_samples
@@ -61,7 +64,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         model = context.model
         if context.task_type == TaskType.REGRESSION and self.scorers is None:
-            self.scorers = {'RMSE': 'RMSE'}
+            self.scorers = {"RMSE": "RMSE"}
         scorers = context.get_scorers(self.scorers, use_avg_defaults=True)
 
         results = []
@@ -70,7 +73,7 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
             for scorer in scorers:
                 scorer_value = scorer(model, dataset)
                 results.append([scorer.name, scorer_value])
-            results_df = pd.DataFrame(results, columns=['Metric', 'Value'])
+            results_df = pd.DataFrame(results, columns=["Metric", "Value"])
             if context.with_display:
                 display = [results_df]
         else:
@@ -80,35 +83,30 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
                     results.append([pd.NA, scorer.name, scorer_value])
                 else:
                     results.extend(
-                        [[class_name, scorer.name, class_score]
-                         for class_name, class_score in scorer_value.items()])
-            results_df = pd.DataFrame(results, columns=['Class', 'Metric', 'Value'])
+                        [[class_name, scorer.name, class_score] for class_name, class_score in scorer_value.items()]
+                    )
+            results_df = pd.DataFrame(results, columns=["Class", "Metric", "Value"])
 
             if context.with_display:
                 label = cast(pd.Series, dataset.label_col)
                 n_samples = label.groupby(label).count()
                 display_df = results_df.copy()
-                display_df['Number of samples'] = display_df['Class'].apply(n_samples.get)
+                display_df["Number of samples"] = display_df["Class"].apply(n_samples.get)
                 display = [display_df]
 
-        return CheckResult(results_df, header='Single Dataset Performance', display=display)
+        return CheckResult(results_df, header="Single Dataset Performance", display=display)
 
-    def config(
-        self,
-        include_version: bool = True,
-        include_defaults: bool = True
-    ) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> "CheckConfig":
         """Return check configuration."""
         if isinstance(self.scorers, dict):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'supported-metrics-by-string',
-                        template='For a list of built-in scorers please refer to {link}'
+                        "supported-metrics-by-string", template="For a list of built-in scorers please refer to {link}"
                     )
                     raise ValueError(
-                        'Only built-in scorers are allowed when serializing check instances. '
-                        f'{reference}. Scorer name: {k}'
+                        "Only built-in scorers are allowed when serializing check instances. "
+                        f"{reference}. Scorer name: {k}"
                     )
         return super().config(include_version=include_version, include_defaults=include_defaults)
 
@@ -116,11 +114,11 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         """Return the values of the metrics for the dataset provided in a {metric: value} format."""
         result = {}
         for _, row in check_result.value.iterrows():
-            key = row['Metric'] if pd.isna(row.get('Class')) else (row['Metric'], str(row['Class']))
-            result[key] = row['Value']
+            key = row["Metric"] if pd.isna(row.get("Class")) else (row["Metric"], str(row["Class"]))
+            result[key] = row["Value"]
         return result
 
-    def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = 'all') -> SDP:
+    def add_condition_greater_than(self, threshold: float, metrics: List[str] = None, class_mode: str = "all") -> SDP:
         """Add condition - the selected metrics scores are greater than the threshold.
 
         Parameters
@@ -137,28 +135,32 @@ class SingleDatasetPerformance(SingleDatasetCheck, ReduceMetricClassMixin):
         """
 
         def condition(check_result, metrics_to_check=metrics):
-            metrics_to_check = check_result['Metric'].unique() if metrics_to_check is None else metrics_to_check
+            metrics_to_check = check_result["Metric"].unique() if metrics_to_check is None else metrics_to_check
             metrics_pass = []
 
             for metric in metrics_to_check:
                 if metric not in check_result.Metric.unique():
-                    raise DeepchecksValueError(f'The requested metric was not calculated, the metrics calculated in '
-                                               f'this check are: {check_result.Metric.unique()}.')
-                metric_result = check_result[check_result['Metric'] == metric]
-                if class_mode == 'all':
-                    metrics_pass.append(min(metric_result['Value']) > threshold)
-                elif class_mode == 'any':
-                    metrics_pass.append(max(metric_result['Value']) > threshold)
-                elif str(class_mode) in [str(x) for x in metric_result['Class'].unique()]:
-                    metrics_pass.append(metric_result['Value'][class_mode] > threshold)
+                    raise DeepchecksValueError(
+                        f"The requested metric was not calculated, the metrics calculated in "
+                        f"this check are: {check_result.Metric.unique()}."
+                    )
+                metric_result = check_result[check_result["Metric"] == metric]
+                if class_mode == "all":
+                    metrics_pass.append(min(metric_result["Value"]) > threshold)
+                elif class_mode == "any":
+                    metrics_pass.append(max(metric_result["Value"]) > threshold)
+                elif str(class_mode) in [str(x) for x in metric_result["Class"].unique()]:
+                    metrics_pass.append(metric_result["Value"][class_mode] > threshold)
                 else:
-                    raise DeepchecksValueError(f'class_mode expected be one of the classes in the check results or any '
-                                               f'or all, received {class_mode}.')
+                    raise DeepchecksValueError(
+                        f"class_mode expected be one of the classes in the check results or any "
+                        f"or all, received {class_mode}."
+                    )
 
             if all(metrics_pass):
-                return ConditionResult(ConditionCategory.PASS, 'Passed for all of the metrics.')
+                return ConditionResult(ConditionCategory.PASS, "Passed for all of the metrics.")
             else:
-                failed_metrics = ([a for a, b in zip(metrics_to_check, metrics_pass) if not b])
-                return ConditionResult(ConditionCategory.FAIL, f'Failed for metrics: {failed_metrics}')
+                failed_metrics = [a for a, b in zip(metrics_to_check, metrics_pass) if not b]
+                return ConditionResult(ConditionCategory.FAIL, f"Failed for metrics: {failed_metrics}")
 
-        return self.add_condition(f'Selected metrics scores are greater than {format_number(threshold)}', condition)
+        return self.add_condition(f"Selected metrics scores are greater than {format_number(threshold)}", condition)

@@ -30,7 +30,7 @@ information that was ignored during model construction. We may wish to manually 
 our model is not missing on important information.
 """
 
-#%%
+# %%
 # Run the check
 # =============
 # The check has two key parameters (that are optional) that affect the behavior of the
@@ -56,7 +56,7 @@ model = adult.load_fitted_model()
 result = UnusedFeatures(feature_variance_threshold=1.5).run(test_ds, model)
 result.show()
 
-#%%
+# %%
 # Define a condition
 # ==================
 # We can define a condition that enforces that number of unused features with high variance is not greater than a given

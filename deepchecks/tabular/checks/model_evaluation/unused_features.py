@@ -9,6 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """The UnusedFeatures check module."""
+
+from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.tabular import Context, SingleDatasetCheck
+from deepchecks.utils.function import run_available_kwargs
+
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -19,12 +25,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OrdinalEncoder, RobustScaler
 
-from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.function import run_available_kwargs
-
-__all__ = ['UnusedFeatures']
+__all__ = ["UnusedFeatures"]
 
 
 class UnusedFeatures(SingleDatasetCheck):
@@ -64,7 +65,7 @@ class UnusedFeatures(SingleDatasetCheck):
         n_top_unused_to_show: int = 15,
         n_samples: int = 1_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.feature_importance_threshold = feature_importance_threshold
@@ -92,7 +93,7 @@ class UnusedFeatures(SingleDatasetCheck):
 
         feature_importance = context.feature_importance
         if feature_importance is None:
-            raise DeepchecksValueError('Feature Importance is not available.')
+            raise DeepchecksValueError("Feature Importance is not available.")
         dataset.assert_features()
 
         # Calculate normalized variance per feature based on PCA decomposition
@@ -110,8 +111,8 @@ class UnusedFeatures(SingleDatasetCheck):
         feature_normed_variance = feature_normed_variance / feature_normed_variance.sum()
 
         feature_df = pd.concat([feature_importance, feature_normed_variance], axis=1)
-        feature_df.columns = ['Feature Importance', 'Feature Variance']
-        feature_df.sort_values(by='Feature Importance', ascending=False, inplace=True)
+        feature_df.columns = ["Feature Importance", "Feature Variance"]
+        feature_df.sort_values(by="Feature Importance", ascending=False, inplace=True)
 
         # For feature importance and variance, calculate their "ratio to average" per feature. The ratio to average
         # is, for example, the amount of feature importance a feature has, divided by the amount he would have
@@ -119,59 +120,70 @@ class UnusedFeatures(SingleDatasetCheck):
         feature_ratio_to_avg_df = feature_df / (1 / len(feature_importance))
 
         # Find last viable feature (not unused). All features from there on are sorted by variance
-        last_important_feature_index = sum(
-            feature_ratio_to_avg_df['Feature Importance'] > self.feature_importance_threshold
-        ) - 1
+        last_important_feature_index = (
+            sum(feature_ratio_to_avg_df["Feature Importance"] > self.feature_importance_threshold) - 1
+        )
 
         unviable_feature_df = feature_df.iloc[(last_important_feature_index + 1):]
         # Only display if there are features considered unimportant
         if not unviable_feature_df.empty:
-            unviable_feature_df.sort_values(by='Feature Variance', ascending=False, inplace=True)
+            unviable_feature_df.sort_values(by="Feature Variance", ascending=False, inplace=True)
             unviable_feature_ratio_to_avg_df = unviable_feature_df / (1 / len(feature_df))
             last_variable_feature_index = sum(
-                unviable_feature_ratio_to_avg_df['Feature Variance'] > self.feature_variance_threshold
+                unviable_feature_ratio_to_avg_df["Feature Variance"] > self.feature_variance_threshold
             )
 
             # display only if high variance features exist (as set by self.feature_variance_threshold)
             if context.with_display and last_variable_feature_index:
                 # limit display to n_top_to_show params
                 display_feature_df = pd.concat(
-                    [feature_df.iloc[:(last_important_feature_index + 1)].head(self.n_top_fi_to_show),
-                     unviable_feature_df.iloc[:last_variable_feature_index].head(self.n_top_unused_to_show)],
-                    axis=0)
+                    [
+                        feature_df.iloc[: (last_important_feature_index + 1)].head(self.n_top_fi_to_show),
+                        unviable_feature_df.iloc[:last_variable_feature_index].head(self.n_top_unused_to_show),
+                    ],
+                    axis=0,
+                )
 
                 fig = go.Figure()
-                fig.add_trace(go.Bar(
-                    y=display_feature_df.index,
-                    x=display_feature_df['Feature Importance'].multiply(100).values.flatten(),
-                    name='Feature Importance %',
-                    marker=dict(color='indianred'),
-                    orientation='h'
-                ))
-                fig.add_trace(go.Bar(
-                    y=display_feature_df.index,
-                    x=display_feature_df['Feature Variance'].multiply(100).values.flatten(),
-                    name='Feature Variance %',
-                    marker=dict(color='lightsalmon'),
-                    orientation='h'
-                ))
-
-                fig.update_yaxes(autorange='reversed')
-                fig.update_layout(
-                    title_text='Unused features compared to top important features',
-                    height=500
+                fig.add_trace(
+                    go.Bar(
+                        y=display_feature_df.index,
+                        x=display_feature_df["Feature Importance"].multiply(100).values.flatten(),
+                        name="Feature Importance %",
+                        marker=dict(color="indianred"),
+                        orientation="h",
+                    )
                 )
+                fig.add_trace(
+                    go.Bar(
+                        y=display_feature_df.index,
+                        x=display_feature_df["Feature Variance"].multiply(100).values.flatten(),
+                        name="Feature Variance %",
+                        marker=dict(color="lightsalmon"),
+                        orientation="h",
+                    )
+                )
+
+                fig.update_yaxes(autorange="reversed")
+                fig.update_layout(title_text="Unused features compared to top important features", height=500)
 
                 last_important_feature_index_to_plot = min(last_important_feature_index, self.n_top_fi_to_show - 1)
 
                 if last_important_feature_index_to_plot < len(display_feature_df) - 1:
                     last_important_feature_line_loc = last_important_feature_index_to_plot + 0.5
-                    fig.add_hline(y=last_important_feature_line_loc, line_width=2, line_dash='dash', line_color='green',
-                                  annotation_text='Last shown significant feature')
+                    fig.add_hline(
+                        y=last_important_feature_line_loc,
+                        line_width=2,
+                        line_dash="dash",
+                        line_color="green",
+                        annotation_text="Last shown significant feature",
+                    )
                 display_list = [
-                    'Features above the line are a sample of the most important features, while the features '
-                    'below the line are the unused features with highest variance, as defined by check'
-                    ' parameters', fig]
+                    "Features above the line are a sample of the most important features, while the features "
+                    "below the line are the unused features with highest variance, as defined by check"
+                    " parameters",
+                    fig,
+                ]
             else:
                 display_list = []
 
@@ -179,22 +191,26 @@ class UnusedFeatures(SingleDatasetCheck):
             display_list = []
 
         return_value = {
-            'used features': feature_df.index[:(last_important_feature_index + 1)].values.tolist(),
-            'unused features': {
-                'high variance': (
-                    [] if unviable_feature_df.empty
+            "used features": feature_df.index[: (last_important_feature_index + 1)].values.tolist(),
+            "unused features": {
+                "high variance": (
+                    []
+                    if unviable_feature_df.empty
                     else unviable_feature_df.index[:last_variable_feature_index].values.tolist()
                 ),
-                'low variance': (
-                    [] if unviable_feature_df.empty
+                "low variance": (
+                    []
+                    if unviable_feature_df.empty
                     else unviable_feature_df.index[last_variable_feature_index:].values.tolist()
-                )
-            }}
+                ),
+            },
+        }
 
-        return CheckResult(return_value, header='Unused Features', display=display_list)
+        return CheckResult(return_value, header="Unused Features", display=display_list)
 
     def add_condition_number_of_high_variance_unused_features_less_or_equal(
-            self, max_high_variance_unused_features: int = 5):
+        self, max_high_variance_unused_features: int = 5
+    ):
         """Add condition - require number of high variance unused features to be less or equal to threshold.
 
         Parameters
@@ -202,16 +218,21 @@ class UnusedFeatures(SingleDatasetCheck):
         max_high_variance_unused_features : int , default: 5
             Maximum allowed number of high variance unused features.
         """
+
         def max_high_variance_unused_features_condition(result: dict) -> ConditionResult:
-            high_var_features = result['unused features']['high variance']
-            details = f'Found {len(high_var_features)} high variance unused features'
-            category = ConditionCategory.PASS if len(high_var_features) <= max_high_variance_unused_features else \
-                ConditionCategory.WARN
+            high_var_features = result["unused features"]["high variance"]
+            details = f"Found {len(high_var_features)} high variance unused features"
+            category = (
+                ConditionCategory.PASS
+                if len(high_var_features) <= max_high_variance_unused_features
+                else ConditionCategory.WARN
+            )
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Number of high variance unused features is less or equal to'
-                                  f' {max_high_variance_unused_features}',
-                                  max_high_variance_unused_features_condition)
+        return self.add_condition(
+            f"Number of high variance unused features is less or equal to" f" {max_high_variance_unused_features}",
+            max_high_variance_unused_features_condition,
+        )
 
 
 def naive_encoder(numerical_features, cat_features) -> TransformerMixin:
@@ -232,17 +253,24 @@ def naive_encoder(numerical_features, cat_features) -> TransformerMixin:
     """
     return ColumnTransformer(
         transformers=[
-            ('num', Pipeline([
-                ('nan_handling', SimpleImputer()),
-                ('norm', RobustScaler())
-            ]),
-                np.array(numerical_features, dtype='object')),
-            ('cat',
-             Pipeline([
-                 ('nan_handling', SimpleImputer(strategy='most_frequent')),
-                 ('encode', run_available_kwargs(OrdinalEncoder, handle_unknown='use_encoded_value', unknown_value=-1)),
-                 ('norm', RobustScaler())
-             ]),
-             np.array(cat_features, dtype='object'))
+            (
+                "num",
+                Pipeline([("nan_handling", SimpleImputer()), ("norm", RobustScaler())]),
+                np.array(numerical_features, dtype="object"),
+            ),
+            (
+                "cat",
+                Pipeline(
+                    [
+                        ("nan_handling", SimpleImputer(strategy="most_frequent")),
+                        (
+                            "encode",
+                            run_available_kwargs(OrdinalEncoder, handle_unknown="use_encoded_value", unknown_value=-1),
+                        ),
+                        ("norm", RobustScaler()),
+                    ]
+                ),
+                np.array(cat_features, dtype="object"),
+            ),
         ]
     )

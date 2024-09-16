@@ -15,7 +15,7 @@ from deepchecks.core.check_utils.multivariate_drift_utils import run_multivariab
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_number
 
-__all__ = ['MultivariateDrift']
+__all__ = ["MultivariateDrift"]
 
 
 class MultivariateDrift(TrainTestCheck):
@@ -58,16 +58,16 @@ class MultivariateDrift(TrainTestCheck):
     """
 
     def __init__(
-            self,
-            n_top_columns: int = 3,
-            min_feature_importance: float = 0.05,
-            max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'largest_difference',
-            n_samples: int = 10_000,
-            random_state: int = 42,
-            test_size: float = 0.3,
-            min_meaningful_drift_score: float = 0.05,
-            **kwargs
+        self,
+        n_top_columns: int = 3,
+        min_feature_importance: float = 0.05,
+        max_num_categories_for_display: int = 10,
+        show_categories_by: str = "largest_difference",
+        n_samples: int = 10_000,
+        random_state: int = 42,
+        test_size: float = 0.3,
+        min_meaningful_drift_score: float = 0.05,
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
@@ -118,8 +118,10 @@ class MultivariateDrift(TrainTestCheck):
             test_dataframe=test_dataset.features_columns,
             numerical_features=numerical_features,
             cat_features=cat_features,
-            sample_size=sample_size, random_state=self.random_state,
-            test_size=self.test_size, n_top_columns=self.n_top_columns,
+            sample_size=sample_size,
+            random_state=self.random_state,
+            test_size=self.test_size,
+            n_top_columns=self.n_top_columns,
             min_feature_importance=self.min_feature_importance,
             max_num_categories_for_display=self.max_num_categories_for_display,
             show_categories_by=self.show_categories_by,
@@ -132,7 +134,7 @@ class MultivariateDrift(TrainTestCheck):
         if displays:
             displays.insert(0, headnote)
 
-        return CheckResult(value=values_dict, display=displays, header='Multivariate Drift')
+        return CheckResult(value=values_dict, display=displays, header="Multivariate Drift")
 
     def add_condition_overall_drift_value_less_than(self, max_drift_value: float = 0.25):
         """Add condition.
@@ -148,11 +150,12 @@ class MultivariateDrift(TrainTestCheck):
         """
 
         def condition(result: dict):
-            drift_score = result['domain_classifier_drift_score']
-            details = f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier ' \
-                      f'AUC of: {format_number(result["domain_classifier_auc"])}'
+            drift_score = result["domain_classifier_drift_score"]
+            details = (
+                f'Found drift value of: {format_number(drift_score)}, corresponding to a domain classifier '
+                f'AUC of: {format_number(result["domain_classifier_auc"])}'
+            )
             category = ConditionCategory.PASS if drift_score < max_drift_value else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Drift value is less than {format_number(max_drift_value)}',
-                                  condition)
+        return self.add_condition(f"Drift value is less than {format_number(max_drift_value)}", condition)

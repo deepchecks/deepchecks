@@ -171,29 +171,31 @@ Description:
       - Label
       - The class (Benign, Malignant)
 """
+
 import typing as t
 from urllib.request import urlopen
+
+from deepchecks.tabular.dataset import Dataset
 
 import joblib
 import pandas as pd
 import sklearn
 from sklearn.ensemble import AdaBoostClassifier
 
-from deepchecks.tabular.dataset import Dataset
+__all__ = ["load_data", "load_fitted_model"]
 
-__all__ = ['load_data', 'load_fitted_model']
-
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35122759'
-_FULL_DATA_URL = 'https://ndownloader.figshare.com/files/33325472'
-_TRAIN_DATA_URL = 'https://ndownloader.figshare.com/files/33325556'
-_TEST_DATA_URL = 'https://ndownloader.figshare.com/files/33325559'
-_MODEL_VERSION = '1.0.2'
-_target = 'target'
+_MODEL_URL = "https://figshare.com/ndownloader/files/35122759"
+_FULL_DATA_URL = "https://ndownloader.figshare.com/files/33325472"
+_TRAIN_DATA_URL = "https://ndownloader.figshare.com/files/33325556"
+_TEST_DATA_URL = "https://ndownloader.figshare.com/files/33325559"
+_MODEL_VERSION = "1.0.2"
+_target = "target"
 _CAT_FEATURES = []
 
 
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+def load_data(
+    data_format: str = "Dataset", as_train_test: bool = True
+) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Breast Cancer dataset (classification).
 
     Parameters
@@ -219,10 +221,10 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     if not as_train_test:
         dataset = pd.read_csv(_FULL_DATA_URL)
 
-        if data_format == 'Dataset':
+        if data_format == "Dataset":
             dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES)
             return dataset
-        elif data_format == 'Dataframe':
+        elif data_format == "Dataframe":
             return dataset
         else:
             raise ValueError('data_format must be either "Dataset" or "Dataframe"')
@@ -230,11 +232,11 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
         train = pd.read_csv(_TRAIN_DATA_URL)
         test = pd.read_csv(_TEST_DATA_URL)
 
-        if data_format == 'Dataset':
+        if data_format == "Dataset":
             train = Dataset(train, label=_target, cat_features=_CAT_FEATURES)
             test = Dataset(test, label=_target, cat_features=_CAT_FEATURES)
             return train, test
-        elif data_format == 'Dataframe':
+        elif data_format == "Dataframe":
             return train, test
         else:
             raise ValueError('data_format must be either "Dataset" or "Dataframe"')

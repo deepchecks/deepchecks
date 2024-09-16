@@ -30,29 +30,30 @@ The Brier score metric may be used to assess how well a classifier is calibrated
 """
 
 
-#%%
+# %%
 # Imports
 # =======
 
 import warnings
+
+from deepchecks.tabular import Dataset
+from deepchecks.tabular.checks import CalibrationScore
+from deepchecks.tabular.datasets.classification import adult
 
 import pandas as pd
 from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
-from deepchecks.tabular import Dataset
-from deepchecks.tabular.checks import CalibrationScore
-from deepchecks.tabular.datasets.classification import adult
-
 
 def custom_formatwarning(msg, *args, **kwargs):
     # ignore everything except the message
-    return str(msg) + '\n'
+    return str(msg) + "\n"
+
 
 warnings.formatwarning = custom_formatwarning
 
-#%%
+# %%
 # Binary Classification
 # =======================
 
@@ -67,14 +68,14 @@ warnings.formatwarning = custom_formatwarning
 train_ds, test_ds = adult.load_data()
 model = adult.load_fitted_model()
 
-#%%
+# %%
 # Run the check
 # ----------------
 
 check = CalibrationScore()
 check.run(test_ds, model)
 
-#%%
+# %%
 # Multi-class classification
 # ============================
 
@@ -88,11 +89,9 @@ X = iris.data
 y = iris.target
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=55)
 clf.fit(X_train, y_train)
-ds = Dataset(pd.concat([X_test, y_test], axis=1), 
-            features=iris.feature_names,
-            label='target')
+ds = Dataset(pd.concat([X_test, y_test], axis=1), features=iris.feature_names, label="target")
 
-#%%
+# %%
 # Run the check
 # ----------------
 check = CalibrationScore()

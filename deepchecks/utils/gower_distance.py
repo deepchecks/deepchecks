@@ -9,12 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module for calculating distance matrix via Gower method."""
+
 from typing import Hashable, List
+
+from deepchecks.utils.array_math import fast_sum_by_row
 
 import numpy as np
 import pandas as pd
-
-from deepchecks.utils.array_math import fast_sum_by_row
 
 
 def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
@@ -43,8 +44,9 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
         data = np.asarray(data)
 
     feature_ranges = np.ones(data.shape[1]) * -1
-    feature_ranges[~cat_features] = np.nanmax(data[:, ~cat_features], axis=0) - np.nanmin(data[:, ~cat_features],
-                                                                                          axis=0)
+    feature_ranges[~cat_features] = np.nanmax(data[:, ~cat_features], axis=0) - np.nanmin(
+        data[:, ~cat_features], axis=0
+    )
 
     result = np.zeros((data.shape[0], data.shape[0]))
     for i in range(data.shape[0]):
@@ -56,8 +58,13 @@ def gower_matrix(data: np.ndarray, cat_features: np.array) -> np.ndarray:
     return result
 
 
-def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Hashable], numeric_cols: List[Hashable],
-                                          num_neighbors: int, samples_to_calc_neighbors_for: pd.DataFrame = None):
+def calculate_nearest_neighbors_distances(
+    data: pd.DataFrame,
+    cat_cols: List[Hashable],
+    numeric_cols: List[Hashable],
+    num_neighbors: int,
+    samples_to_calc_neighbors_for: pd.DataFrame = None,
+):
     """
     Calculate distance matrix for a dataset using Gower's method.
 
@@ -105,14 +112,14 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
     # handle categorical - transform to an ordinal numpy array
     cat_data = np.asarray(cat_data.apply(lambda x: pd.factorize(x)[0])) if not cat_data.empty else np.asarray(cat_data)
     # handle numerical - calculate ranges per feature and fill numerical nan to minus np.inf
-    numeric_data = np.asarray(numeric_data.fillna(value=np.nan).astype('float64'))
+    numeric_data = np.asarray(numeric_data.fillna(value=np.nan).astype("float64"))
     numeric_feature_ranges = np.nanmax(numeric_data, axis=0) - np.nanmin(numeric_data, axis=0)
     numeric_feature_ranges = np.where(numeric_feature_ranges == 0, 1, numeric_feature_ranges)
     numeric_data = np.nan_to_num(numeric_data, nan=np.inf)
 
     # do not warn on operations that include usage of math involving inf
-    original_error_state = np.geterr()['invalid']
-    np.seterr(invalid='ignore')
+    original_error_state = np.geterr()["invalid"]
+    np.seterr(invalid="ignore")
 
     if samples_to_calc_neighbors_for is not None:
         numeric_samples_to_calc_neighbors_for = numeric_data[num_samples:]
@@ -128,8 +135,12 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
         numeric_sample_i = numeric_samples_to_calc_neighbors_for[i, :]
         cat_sample_i = cat_samples_to_calc_neighbors_for[i, :]
         dist_to_sample_i = _calculate_distances_to_sample(
-            categorical_sample=cat_sample_i, numeric_sample=numeric_sample_i, cat_data=cat_data,
-            numeric_data=numeric_data, numeric_feature_ranges=numeric_feature_ranges, num_features=num_features
+            categorical_sample=cat_sample_i,
+            numeric_sample=numeric_sample_i,
+            cat_data=cat_data,
+            numeric_data=numeric_data,
+            numeric_feature_ranges=numeric_feature_ranges,
+            num_features=num_features,
         )
         # sort to find the closest samples (including self)
         min_dist_indexes = np.argpartition(dist_to_sample_i, num_neighbors)[:num_neighbors]
@@ -141,8 +152,14 @@ def calculate_nearest_neighbors_distances(data: pd.DataFrame, cat_cols: List[Has
     return np.nan_to_num(distances, nan=np.nan, posinf=np.nan, neginf=np.nan), indexes
 
 
-def _calculate_distances_to_sample(categorical_sample: np.ndarray, numeric_sample: np.ndarray, cat_data: np.ndarray,
-                                   numeric_data: np.ndarray, numeric_feature_ranges: np.ndarray, num_features: int):
+def _calculate_distances_to_sample(
+    categorical_sample: np.ndarray,
+    numeric_sample: np.ndarray,
+    cat_data: np.ndarray,
+    numeric_data: np.ndarray,
+    numeric_feature_ranges: np.ndarray,
+    num_features: int,
+):
     """
     Calculate Gower's distance between a single sample to the rest of the samples in the dataset.
 
@@ -171,7 +188,7 @@ def _calculate_distances_to_sample(categorical_sample: np.ndarray, numeric_sampl
     null_dist_locations = np.logical_or(numeric_feat_dist_to_sample == np.inf, numeric_feat_dist_to_sample == np.nan)
     null_numeric_features_per_sample = fast_sum_by_row(null_dist_locations)
     numeric_feat_dist_to_sample[null_dist_locations] = 0
-    numeric_feat_dist_to_sample = numeric_feat_dist_to_sample.astype('float64')
+    numeric_feat_dist_to_sample = numeric_feat_dist_to_sample.astype("float64")
     np.divide(numeric_feat_dist_to_sample, numeric_feature_ranges, out=numeric_feat_dist_to_sample)
 
     cat_feature_dist_to_sample = (cat_data - categorical_sample) != 0

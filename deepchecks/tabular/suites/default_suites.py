@@ -14,34 +14,65 @@
 Each function returns a new suite that is initialized with a list of checks and default conditions.
 It is possible to customize these suites by editing the checks and conditions inside it after the suites' creation.
 """
+
 from typing import Callable, Dict, List, Union
 
 from deepchecks.tabular import Suite
-from deepchecks.tabular.checks import (BoostingOverfit, CalibrationScore, ConflictingLabels, ConfusionMatrixReport,
-                                       DataDuplicates, DatasetsSizeComparison, DateTrainTestLeakageDuplicates,
-                                       DateTrainTestLeakageOverlap, FeatureDrift, FeatureFeatureCorrelation,
-                                       FeatureLabelCorrelation, FeatureLabelCorrelationChange,
-                                       IdentifierLabelCorrelation, IndexTrainTestLeakage, IsSingleValue, LabelDrift,
-                                       MixedDataTypes, MixedNulls, ModelInferenceTime, MultivariateDrift,
-                                       NewCategoryTrainTest, NewLabelTrainTest, OutlierSampleDetection, PercentOfNulls,
-                                       PredictionDrift, RegressionErrorDistribution, RocReport, SimpleModelComparison,
-                                       SingleDatasetPerformance, SpecialCharacters, StringLengthOutOfBounds,
-                                       StringMismatch, StringMismatchComparison, TrainTestPerformance,
-                                       TrainTestSamplesMix, UnusedFeatures, WeakSegmentsPerformance)
+from deepchecks.tabular.checks import (
+    BoostingOverfit,
+    CalibrationScore,
+    ConflictingLabels,
+    ConfusionMatrixReport,
+    DataDuplicates,
+    DatasetsSizeComparison,
+    DateTrainTestLeakageDuplicates,
+    DateTrainTestLeakageOverlap,
+    FeatureDrift,
+    FeatureFeatureCorrelation,
+    FeatureLabelCorrelation,
+    FeatureLabelCorrelationChange,
+    IdentifierLabelCorrelation,
+    IndexTrainTestLeakage,
+    IsSingleValue,
+    LabelDrift,
+    MixedDataTypes,
+    MixedNulls,
+    ModelInferenceTime,
+    MultivariateDrift,
+    NewCategoryTrainTest,
+    NewLabelTrainTest,
+    OutlierSampleDetection,
+    PercentOfNulls,
+    PredictionDrift,
+    RegressionErrorDistribution,
+    RocReport,
+    SimpleModelComparison,
+    SingleDatasetPerformance,
+    SpecialCharacters,
+    StringLengthOutOfBounds,
+    StringMismatch,
+    StringMismatchComparison,
+    TrainTestPerformance,
+    TrainTestSamplesMix,
+    UnusedFeatures,
+    WeakSegmentsPerformance,
+)
 from deepchecks.tabular.utils.task_type import TaskType
 
-__all__ = ['data_integrity', 'train_test_validation', 'model_evaluation', 'production_suite', 'full_suite']
+__all__ = ["data_integrity", "train_test_validation", "model_evaluation", "production_suite", "full_suite"]
 
 from deepchecks.utils.typing import Hashable
 
 
-def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
-                   ignore_columns: Union[Hashable, List[Hashable]] = None,
-                   n_top_columns: int = None,
-                   n_samples: int = None,
-                   random_state: int = 42,
-                   n_to_show: int = 5,
-                   **kwargs) -> Suite:
+def data_integrity(
+    columns: Union[Hashable, List[Hashable]] = None,
+    ignore_columns: Union[Hashable, List[Hashable]] = None,
+    n_top_columns: int = None,
+    n_samples: int = None,
+    random_state: int = 42,
+    n_to_show: int = 5,
+    **kwargs,
+) -> Suite:
     """Suite for detecting integrity issues within a single dataset.
 
     List of Checks:
@@ -110,12 +141,12 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
     :ref:`quick_data_integrity`
     """
     args = locals()
-    args.pop('kwargs')
+    args.pop("kwargs")
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
 
     return Suite(
-        'Data Integrity Suite',
+        "Data Integrity Suite",
         IsSingleValue(**kwargs).add_condition_not_single_value(),
         SpecialCharacters(**kwargs).add_condition_ratio_of_special_characters_less_or_equal(),
         MixedNulls(**kwargs).add_condition_different_nulls_less_equal_to(),
@@ -127,17 +158,19 @@ def data_integrity(columns: Union[Hashable, List[Hashable]] = None,
         OutlierSampleDetection(**kwargs),
         FeatureLabelCorrelation(**kwargs).add_condition_feature_pps_less_than(),
         FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold(),
-        IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal()
+        IdentifierLabelCorrelation(**kwargs).add_condition_pps_less_or_equal(),
     )
 
 
-def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
-                          ignore_columns: Union[Hashable, List[Hashable]] = None,
-                          n_top_columns: int = None,
-                          n_samples: int = None,
-                          random_state: int = 42,
-                          n_to_show: int = 5,
-                          **kwargs) -> Suite:
+def train_test_validation(
+    columns: Union[Hashable, List[Hashable]] = None,
+    ignore_columns: Union[Hashable, List[Hashable]] = None,
+    n_top_columns: int = None,
+    n_samples: int = None,
+    random_state: int = 42,
+    n_to_show: int = 5,
+    **kwargs,
+) -> Suite:
     """Suite for validating correctness of train-test split, including distribution, \
     leakage and integrity checks.
 
@@ -208,11 +241,11 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
     :ref:`quick_train_test_validation`
     """
     args = locals()
-    args.pop('kwargs')
+    args.pop("kwargs")
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
     return Suite(
-        'Train Test Validation Suite',
+        "Train Test Validation Suite",
         DatasetsSizeComparison(**kwargs).add_condition_test_train_size_ratio_greater_than(),
         NewLabelTrainTest(**kwargs).add_condition_new_labels_number_less_or_equal(),
         NewCategoryTrainTest(**kwargs).add_condition_new_category_ratio_less_or_equal(),
@@ -221,7 +254,8 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
         DateTrainTestLeakageOverlap(**kwargs).add_condition_leakage_ratio_less_or_equal(),
         IndexTrainTestLeakage(**kwargs).add_condition_ratio_less_or_equal(),
         TrainTestSamplesMix(**kwargs).add_condition_duplicates_ratio_less_or_equal(),
-        FeatureLabelCorrelationChange(**kwargs).add_condition_feature_pps_difference_less_than()
+        FeatureLabelCorrelationChange(**kwargs)
+        .add_condition_feature_pps_difference_less_than()
         .add_condition_feature_pps_in_train_less_than(),
         FeatureDrift(**kwargs).add_condition_drift_score_less_than(),
         LabelDrift(**kwargs).add_condition_drift_score_less_than(),
@@ -229,14 +263,16 @@ def train_test_validation(columns: Union[Hashable, List[Hashable]] = None,
     )
 
 
-def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
-                     columns: Union[Hashable, List[Hashable]] = None,
-                     ignore_columns: Union[Hashable, List[Hashable]] = None,
-                     n_top_columns: int = None,
-                     n_samples: int = None,
-                     random_state: int = 42,
-                     n_to_show: int = 5,
-                     **kwargs) -> Suite:
+def model_evaluation(
+    alternative_scorers: Dict[str, Callable] = None,
+    columns: Union[Hashable, List[Hashable]] = None,
+    ignore_columns: Union[Hashable, List[Hashable]] = None,
+    n_top_columns: int = None,
+    n_samples: int = None,
+    random_state: int = 42,
+    n_to_show: int = 5,
+    **kwargs,
+) -> Suite:
     """Suite for evaluating the model's performance over different metrics, segments, error analysis, examining \
        overfitting, comparing to baseline, and more.
 
@@ -309,12 +345,12 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
     :ref:`quick_full_suite`
     """
     args = locals()
-    args.pop('kwargs')
+    args.pop("kwargs")
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
 
     return Suite(
-        'Model Evaluation Suite',
+        "Model Evaluation Suite",
         TrainTestPerformance(**kwargs).add_condition_train_test_relative_degradation_less_than(),
         RocReport(**kwargs).add_condition_auc_greater_than(),
         ConfusionMatrixReport(**kwargs),
@@ -322,24 +358,27 @@ def model_evaluation(alternative_scorers: Dict[str, Callable] = None,
         SimpleModelComparison(**kwargs).add_condition_gain_greater_than(),
         WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
         CalibrationScore(**kwargs),
-        RegressionErrorDistribution(
-            **kwargs).add_condition_kurtosis_greater_than().add_condition_systematic_error_ratio_to_rmse_less_than(),
+        RegressionErrorDistribution(**kwargs)
+        .add_condition_kurtosis_greater_than()
+        .add_condition_systematic_error_ratio_to_rmse_less_than(),
         UnusedFeatures(**kwargs).add_condition_number_of_high_variance_unused_features_less_or_equal(),
         BoostingOverfit(**kwargs).add_condition_test_score_percent_decline_less_than(),
         ModelInferenceTime(**kwargs).add_condition_inference_time_less_than(),
     )
 
 
-def production_suite(task_type: str = None,
-                     is_comparative: bool = True,
-                     alternative_scorers: Dict[str, Callable] = None,
-                     columns: Union[Hashable, List[Hashable]] = None,
-                     ignore_columns: Union[Hashable, List[Hashable]] = None,
-                     n_top_columns: int = None,
-                     n_samples: int = None,
-                     random_state: int = 42,
-                     n_to_show: int = 5,
-                     **kwargs) -> Suite:
+def production_suite(
+    task_type: str = None,
+    is_comparative: bool = True,
+    alternative_scorers: Dict[str, Callable] = None,
+    columns: Union[Hashable, List[Hashable]] = None,
+    ignore_columns: Union[Hashable, List[Hashable]] = None,
+    n_top_columns: int = None,
+    n_samples: int = None,
+    random_state: int = 42,
+    n_to_show: int = 5,
+    **kwargs,
+) -> Suite:
     """Suite for testing the model in production.
 
     The suite contains checks for evaluating the model's performance. Checks for detecting drift and checks for data
@@ -426,12 +465,14 @@ def production_suite(task_type: str = None,
     :ref:`quick_full_suite`
     """
     args = locals()
-    args.pop('kwargs')
+    args.pop("kwargs")
     non_none_args = {k: v for k, v in args.items() if v is not None}
     kwargs = {**non_none_args, **kwargs}
 
-    checks = [WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
-              PercentOfNulls(**kwargs)]
+    checks = [
+        WeakSegmentsPerformance(**kwargs).add_condition_segments_relative_performance_greater_than(),
+        PercentOfNulls(**kwargs),
+    ]
 
     # Add checks for regression and classification
     regression_checks = [RegressionErrorDistribution(**kwargs).add_condition_kurtosis_greater_than()]
@@ -459,13 +500,13 @@ def production_suite(task_type: str = None,
         checks.append(FeatureFeatureCorrelation(**kwargs).add_condition_max_number_of_pairs_above_threshold())
         checks.append(SingleDatasetPerformance(**kwargs))
 
-    return Suite('Production Suite', *checks)
+    return Suite("Production Suite", *checks)
 
 
 def full_suite(**kwargs) -> Suite:
     """Create a suite that includes many of the implemented checks, for a quick overview of your model and data."""
     return Suite(
-        'Full Suite',
+        "Full Suite",
         model_evaluation(**kwargs),
         train_test_validation(**kwargs),
         data_integrity(**kwargs),

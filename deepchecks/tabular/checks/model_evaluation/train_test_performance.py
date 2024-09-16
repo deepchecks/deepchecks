@@ -9,10 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the train test performance check."""
+
 from numbers import Number
 from typing import Callable, List, Mapping, TypeVar, Union, cast
-
-import pandas as pd
 
 from deepchecks.core import CheckResult
 from deepchecks.core.checks import CheckConfig
@@ -20,10 +19,12 @@ from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.abstracts.train_test_performace import TrainTestPerformanceAbstract
 from deepchecks.utils.docref import doclink
 
-__all__ = ['TrainTestPerformance']
+import pandas as pd
+
+__all__ = ["TrainTestPerformance"]
 
 
-PR = TypeVar('PR', bound='TrainTestPerformance')
+PR = TypeVar("PR", bound="TrainTestPerformance")
 
 
 class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
@@ -74,11 +75,13 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         my_mse_scorer = make_scorer(my_mse, greater_is_better=False)
     """
 
-    def __init__(self,
-                 scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
-                 n_samples: int = 1_000_000,
-                 random_state: int = 42,
-                 **kwargs):
+    def __init__(
+        self,
+        scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
+        n_samples: int = 1_000_000,
+        random_state: int = 42,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.scorers = scorers
         self.n_samples = n_samples
@@ -90,7 +93,7 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
         model = context.model
         scorers = context.get_scorers(self.scorers, use_avg_defaults=False)
-        datasets = {'Train': train_dataset, 'Test': test_dataset}
+        datasets = {"Train": train_dataset, "Test": test_dataset}
 
         results = []
         for dataset_name, dataset in datasets.items():
@@ -102,25 +105,20 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
                     results.append([dataset_name, pd.NA, scorer.name, scorer_value, len(label)])
                 else:
                     results.extend(
-                        [[dataset_name, class_name, scorer.name, class_score, n_samples_per_class.get(class_name, 0)]
-                            for class_name, class_score in scorer_value.items()])
+                        [
+                            [dataset_name, class_name, scorer.name, class_score, n_samples_per_class.get(class_name, 0)]
+                            for class_name, class_score in scorer_value.items()
+                        ]
+                    )
 
-        results_df = pd.DataFrame(results, columns=['Dataset', 'Class', 'Metric', 'Value', 'Number of samples'])
+        results_df = pd.DataFrame(results, columns=["Dataset", "Class", "Metric", "Value", "Number of samples"])
 
         if context.with_display:
-            figs = self._prepare_display(
-                results_df,
-                train_dataset.name or 'Train',
-                test_dataset.name or 'Test'
-            )
+            figs = self._prepare_display(results_df, train_dataset.name or "Train", test_dataset.name or "Test")
         else:
             figs = None
 
-        return CheckResult(
-            results_df,
-            header='Train Test Performance',
-            display=figs
-        )
+        return CheckResult(results_df, header="Train Test Performance", display=figs)
 
     def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
         """Return check configuration."""
@@ -128,12 +126,11 @@ class TrainTestPerformance(TrainTestPerformanceAbstract, TrainTestCheck):
             for k, v in self.scorers.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'supported-metrics-by-string',
-                        template='For a list of built-in scorers please refer to {link}'
+                        "supported-metrics-by-string", template="For a list of built-in scorers please refer to {link}"
                     )
                     raise ValueError(
-                        'Only built-in scorers are allowed when serializing check instances. '
-                        f'{reference}. Scorer name: {k}'
+                        "Only built-in scorers are allowed when serializing check instances. "
+                        f"{reference}. Scorer name: {k}"
                     )
 
         return super().config(include_version=include_version, include_defaults=include_defaults)

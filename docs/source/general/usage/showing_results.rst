@@ -4,7 +4,7 @@ Viewing Deepchecks Results
 
 This guide demonstrates the different ways you can view a Suite or a Check's results while
 working with deepchecks interactively, whether if you're working in a notebook or an IDE, locally or on the cloud.
-For details about **saving** or **exporting** your results, 
+For details about **saving** or **exporting** your results,
 refer to the :ref:`exporting_deepchecks_results` guide.
 
 Structure:
@@ -42,15 +42,15 @@ This is the main show method. It will show the check/suite result's HTML output 
 ---------------------------
 
 This method shows the result in a separate window (using the PyQt5 library).
-It starts a PyQt5 application in a separate process therefore this display 
+It starts a PyQt5 application in a separate process therefore this display
 method does not work on cloud platforms like Kaggle or Google Colab.
 
 .. code-block:: python
 
    result.show_in_window()
 
-Note, PyQt5 library is an optional dependency and it is not installed 
-along with Deepchecks automatically, therefore to use ``show_in_window()`` you need 
+Note, PyQt5 library is an optional dependency and it is not installed
+along with Deepchecks automatically, therefore to use ``show_in_window()`` you need
 to install it manually by running the next command:
 
 .. code-block:: sh
@@ -63,12 +63,12 @@ to install it manually by running the next command:
 Alternative Methods for Showing Results (Troubleshooting)
 ==============================================================
 
-The result's HTML output produced by the ``show()`` method 
+The result's HTML output produced by the ``show()`` method
 requires specific jupyter extensions to display properly.
 These extensions may not be installed/enabled by default,
 or may have compatibility issues with different environments (e.g. some cloud platforms).
 
-Therefore, if you experience any result display problems, you can consider any of the following 
+Therefore, if you experience any result display problems, you can consider any of the following
 options to resolve them:
 
 - Using one of the alternatives: :ref:`show_in_iframe` or :ref:`show_not_interactive`,
@@ -102,7 +102,7 @@ It uses a different output technique (embedding the result's HTML output into an
 ---------------------------------------------
 
 This method displays a static version of the suite/check result.
-It converts all figures and charts into images (no zoom, no dynamic legend). 
+It converts all figures and charts into images (no zoom, no dynamic legend).
 The result is a less detailed output, that doesn't require any javascript
 libraries or jupyter extensions in order to work.
 
@@ -114,5 +114,5 @@ To be able to use this method you need to install an optional dependency package
 that is used to transform figures and charts into images. In order to install it run the command:
 
 .. code-block:: sh
-    
+
    $ pip install kaleido

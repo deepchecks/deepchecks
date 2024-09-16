@@ -9,16 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing all the base classes for checks."""
+
 import enum
 from typing import Callable, Dict, cast
 
 from deepchecks.core.errors import DeepchecksValueError
 
-__all__ = [
-    'Condition',
-    'ConditionResult',
-    'ConditionCategory'
-]
+__all__ = ["Condition", "ConditionResult", "ConditionCategory"]
 
 
 class Condition:
@@ -38,15 +35,17 @@ class Condition:
 
     def __init__(self, name: str, function: Callable, params: Dict):
         if not isinstance(function, Callable):
-            raise DeepchecksValueError(f'Condition must be a function `(Any) -> Union[ConditionResult, bool]`, '
-                                       f'but got: {type(function).__name__}')
+            raise DeepchecksValueError(
+                f"Condition must be a function `(Any) -> Union[ConditionResult, bool]`, "
+                f"but got: {type(function).__name__}"
+            )
         if not isinstance(name, str):
-            raise DeepchecksValueError(f'Condition name must be of type str but got: {type(name).__name__}')
+            raise DeepchecksValueError(f"Condition name must be of type str but got: {type(name).__name__}")
         self.name = name
         self.function = function
         self.params = params
 
-    def __call__(self, *args, **kwargs) -> 'ConditionResult':
+    def __call__(self, *args, **kwargs) -> "ConditionResult":
         """Run this condition."""
         result = cast(ConditionResult, self.function(*args, **kwargs))
         result.set_name(self.name)
@@ -56,10 +55,10 @@ class Condition:
 class ConditionCategory(enum.Enum):
     """Condition result category. indicates whether the result should fail the suite."""
 
-    FAIL = 'FAIL'
-    WARN = 'WARN'
-    PASS = 'PASS'
-    ERROR = 'ERROR'
+    FAIL = "FAIL"
+    WARN = "WARN"
+    PASS = "PASS"
+    ERROR = "ERROR"
 
 
 class ConditionResult:
@@ -79,7 +78,7 @@ class ConditionResult:
     details: str
     name: str
 
-    def __init__(self, category: ConditionCategory, details: str = ''):
+    def __init__(self, category: ConditionCategory, details: str = ""):
         self.details = details
         self.category = category
 
@@ -116,9 +115,7 @@ class ConditionResult:
     def is_pass(self, fail_if_warning=True) -> bool:
         """Return true if the condition has passed."""
         passed_categories = (
-            (ConditionCategory.PASS,)
-            if fail_if_warning
-            else (ConditionCategory.PASS, ConditionCategory.WARN)
+            (ConditionCategory.PASS,) if fail_if_warning else (ConditionCategory.PASS, ConditionCategory.WARN)
         )
         return self.category in passed_categories
 

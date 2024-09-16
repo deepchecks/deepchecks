@@ -31,38 +31,44 @@ we suggest using any of:
 * Built-in suites (by printing them to see which checks they include)
 """
 
-#%%
-
-from sklearn.metrics import make_scorer, precision_score, recall_score
+# %%
 
 from deepchecks.tabular import Suite
+
 # importing all existing checks for demonstration simplicity
 from deepchecks.tabular.checks import *
+
+from sklearn.metrics import make_scorer, precision_score, recall_score
 
 # The Suite's first argument is its name, and then all of the check objects.
 # Some checks can receive arguments when initialized (all check arguments have default values)
 # Each check can have an optional condition(/s)
 # Multiple conditions can be applied subsequentially
-new_custom_suite = Suite('Simple Suite For Model Performance',
-                         ModelInfo(),
-                         # use custom scorers for performance report:
-                         TrainTestPerformance().add_condition_train_test_relative_degradation_less_than(threshold=0.15)\
-                         .add_condition_test_performance_greater_than(0.8),
-                         ConfusionMatrixReport(),
-                         SimpleModelComparison(strategy='most_frequent',
-                                               scorers={'Recall (Multiclass)': make_scorer(recall_score, average=None),
-                                                        'Precision (Multiclass)': make_scorer(precision_score, average=None)}
-                                               ).add_condition_gain_greater_than(0.3)
-                         )
+new_custom_suite = Suite(
+    "Simple Suite For Model Performance",
+    ModelInfo(),
+    # use custom scorers for performance report:
+    TrainTestPerformance()
+    .add_condition_train_test_relative_degradation_less_than(threshold=0.15)
+    .add_condition_test_performance_greater_than(0.8),
+    ConfusionMatrixReport(),
+    SimpleModelComparison(
+        strategy="most_frequent",
+        scorers={
+            "Recall (Multiclass)": make_scorer(recall_score, average=None),
+            "Precision (Multiclass)": make_scorer(precision_score, average=None),
+        },
+    ).add_condition_gain_greater_than(0.3),
+)
 
 # The scorers' parameter can also be passed to the suite in order to override the scorers of all the checks
 # in the suite. See :ref:`metrics_user_guide` for further details.
 
-#%%
+# %%
 # Let's see the suite:
 new_custom_suite
 
-#%%
+# %%
 # *TIP: the auto-complete may not work from inside a new suite definition, so if you want
 # to use the auto-complete to see the arguments a check receive or the built-in conditions
 # it has, try doing it outside of the suite's initialization.*
@@ -98,32 +104,29 @@ new_custom_suite
 # --------------------------------------
 
 import numpy as np
+
 # General imports
-import pandas as pd
 
 np.random.seed(22)
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-
 from deepchecks.tabular.datasets.classification import iris
+
+from sklearn.ensemble import RandomForestClassifier
 
 # Load pre-split Datasets
 train_dataset, test_dataset = iris.load_data(as_train_test=True)
-label_col = 'target'
+label_col = "target"
 
 # Train Model
 rf_clf = RandomForestClassifier()
-rf_clf.fit(train_dataset.data[train_dataset.features],
-           train_dataset.data[train_dataset.label_name]);
-
-#%%
+rf_clf.fit(train_dataset.data[train_dataset.features], train_dataset.data[train_dataset.label_name])
+# %%
 # Run Suite
 # ---------
 
 new_custom_suite.run(model=rf_clf, train_dataset=train_dataset, test_dataset=test_dataset)
 
-#%%
+# %%
 # Modify an Existing Suite
 # ========================
 
@@ -134,28 +137,27 @@ customized_suite = train_test_validation()
 # let's check what it has:
 customized_suite
 
-#%%
+# %%
 
 # and modify it by removing a check by index:
 customized_suite.remove(1)
 
-#%%
+# %%
 
 from deepchecks.tabular.checks import UnusedFeatures
 
 # and add a new check with a condition:
-customized_suite.add(
-    UnusedFeatures().add_condition_number_of_high_variance_unused_features_less_or_equal())
+customized_suite.add(UnusedFeatures().add_condition_number_of_high_variance_unused_features_less_or_equal())
 
-#%%
+# %%
 
 # lets remove all condition for the FeatureLabelCorrelationChange:
 customized_suite[3].clean_conditions()
 
 # and update the suite's name:
-customized_suite.name = 'New Data Leakage Suite'
+customized_suite.name = "New Data Leakage Suite"
 
-#%%
+# %%
 
 # and now we can run our modified suite:
 customized_suite.run(train_dataset, test_dataset, rf_clf)

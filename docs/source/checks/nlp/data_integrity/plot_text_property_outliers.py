@@ -57,7 +57,7 @@ of the built-in text properties and explanation about custom properties refer to
 
 """
 
-#%%
+# %%
 # Run the Check
 # -------------
 # For this example, we'll use the tweet emotion dataset, which is a dataset of tweets labeled by one of four emotions:
@@ -72,7 +72,7 @@ check = TextPropertyOutliers()
 result = check.run(dataset)
 result.show()
 
-#%%
+# %%
 # Observe Graphic Result
 # ^^^^^^^^^^^^^^^^^^^^^^
 # In this example, we can find many tweets that are outliers - For example, in the "average word length" property,

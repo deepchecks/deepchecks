@@ -10,14 +10,10 @@
 #
 
 """Utils module containing feature importance calculations."""
+
 import time
 import typing as t
 import warnings
-
-import numpy as np
-import pandas as pd
-from sklearn.inspection import permutation_importance
-from sklearn.pipeline import Pipeline
 
 from deepchecks import tabular
 from deepchecks.core import errors
@@ -28,26 +24,31 @@ from deepchecks.tabular.utils.validation import validate_model
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.typing import Hashable
 
+import numpy as np
+import pandas as pd
+from sklearn.inspection import permutation_importance
+from sklearn.pipeline import Pipeline
+
 __all__ = [
-    '_calculate_feature_importance',
-    'calculate_feature_importance_or_none',
-    'column_importance_sorter_dict',
-    'column_importance_sorter_df',
-    'validate_feature_importance',
-    'N_TOP_MESSAGE'
+    "_calculate_feature_importance",
+    "calculate_feature_importance_or_none",
+    "column_importance_sorter_dict",
+    "column_importance_sorter_df",
+    "validate_feature_importance",
+    "N_TOP_MESSAGE",
 ]
 
-N_TOP_MESSAGE = 'Showing only the top %s columns, you can change it using n_top_columns param'
+N_TOP_MESSAGE = "Showing only the top %s columns, you can change it using n_top_columns param"
 
 
 def calculate_feature_importance_or_none(
-        model: t.Any,
-        dataset: t.Union['tabular.Dataset', pd.DataFrame],
-        model_classes,
-        observed_classes,
-        task_type,
-        force_permutation: bool = False,
-        permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None,
+    model: t.Any,
+    dataset: t.Union["tabular.Dataset", pd.DataFrame],
+    model_classes,
+    observed_classes,
+    task_type,
+    force_permutation: bool = False,
+    permutation_kwargs: t.Optional[t.Dict[str, t.Any]] = None,
 ) -> t.Tuple[t.Optional[pd.Series], t.Optional[str]]:
     """Calculate features effect on the label or None if the input is incorrect.
 
@@ -91,12 +92,12 @@ def calculate_feature_importance_or_none(
 
         return fi, calculation_type
     except (
-            errors.DeepchecksValueError,
-            errors.NumberOfFeaturesLimitError,
-            errors.DeepchecksTimeoutError,
-            errors.ModelValidationError,
-            errors.DatasetValidationError,
-            errors.DeepchecksSkippedFeatureImportance
+        errors.DeepchecksValueError,
+        errors.NumberOfFeaturesLimitError,
+        errors.DeepchecksTimeoutError,
+        errors.ModelValidationError,
+        errors.DatasetValidationError,
+        errors.DeepchecksSkippedFeatureImportance,
     ) as error:
         # DeepchecksValueError:
         #     if model validation failed;
@@ -108,18 +109,18 @@ def calculate_feature_importance_or_none(
         # ModelValidationError:
         #     if wrong type of model was provided;
         #     if function failed to predict on model;
-        get_logger().warning('Features importance was not calculated:\n%s', error)
+        get_logger().warning("Features importance was not calculated:\n%s", error)
         return None, None
 
 
 def _calculate_feature_importance(
-        model: t.Any,
-        dataset: t.Union['tabular.Dataset', pd.DataFrame],
-        model_classes,
-        observed_classes,
-        task_type,
-        force_permutation: bool = False,
-        permutation_kwargs: t.Dict[str, t.Any] = None,
+    model: t.Any,
+    dataset: t.Union["tabular.Dataset", pd.DataFrame],
+    model_classes,
+    observed_classes,
+    task_type,
+    force_permutation: bool = False,
+    permutation_kwargs: t.Dict[str, t.Any] = None,
 ) -> t.Tuple[pd.Series, str]:
     """Calculate features effect on the label.
 
@@ -162,7 +163,7 @@ def _calculate_feature_importance(
         observed_classes = None
 
     permutation_kwargs = permutation_kwargs or {}
-    permutation_kwargs['random_state'] = permutation_kwargs.get('random_state', 42)
+    permutation_kwargs["random_state"] = permutation_kwargs.get("random_state", 42)
     validate_model(dataset, model)
     permutation_failure = None
     calc_type = None
@@ -170,13 +171,16 @@ def _calculate_feature_importance(
 
     if force_permutation:
         if isinstance(dataset, pd.DataFrame):
-            raise errors.DeepchecksValueError('Cannot calculate permutation feature importance on a pandas Dataframe. '
-                                              'In order to force permutation feature importance, please use the Dataset'
-                                              ' object.')
+            raise errors.DeepchecksValueError(
+                "Cannot calculate permutation feature importance on a pandas Dataframe. "
+                "In order to force permutation feature importance, please use the Dataset"
+                " object."
+            )
         else:
-            importance = _calc_permutation_importance(model, dataset, model_classes, observed_classes,
-                                                      task_type, **permutation_kwargs)
-            calc_type = 'permutation_importance'
+            importance = _calc_permutation_importance(
+                model, dataset, model_classes, observed_classes, task_type, **permutation_kwargs
+            )
+            calc_type = "permutation_importance"
 
     # If there was no force permutation, or if it failed while trying to calculate importance,
     # we don't take built-in importance in pipelines because the pipeline is changing the features
@@ -191,60 +195,61 @@ def _calculate_feature_importance(
 
     # If there was no permutation failure and no importance on the model, using permutation anyway
     if importance is None and permutation_failure is None and isinstance(dataset, tabular.Dataset):
-        if not permutation_kwargs.get('skip_messages', False):
+        if not permutation_kwargs.get("skip_messages", False):
             if isinstance(model, Pipeline):
-                pre_text = 'Cannot use model\'s built-in feature importance on a Scikit-learn Pipeline,'
+                pre_text = "Cannot use model's built-in feature importance on a Scikit-learn Pipeline,"
             else:
-                pre_text = 'Could not find built-in feature importance on the model,'
-            get_logger().warning('%s using permutation feature importance calculation instead', pre_text)
+                pre_text = "Could not find built-in feature importance on the model,"
+            get_logger().warning("%s using permutation feature importance calculation instead", pre_text)
 
-        importance = _calc_permutation_importance(model, dataset, model_classes, observed_classes,
-                                                  task_type, **permutation_kwargs)
-        calc_type = 'permutation_importance'
+        importance = _calc_permutation_importance(
+            model, dataset, model_classes, observed_classes, task_type, **permutation_kwargs
+        )
+        calc_type = "permutation_importance"
 
     # If after all importance is still none raise error
     if importance is None:
         # FIXME: better message
-        raise errors.DeepchecksValueError('Was not able to calculate features importance')
+        raise errors.DeepchecksValueError("Was not able to calculate features importance")
     return importance.fillna(0), calc_type
 
 
 def _built_in_importance(
-        model: t.Any,
-        dataset: t.Union['tabular.Dataset', pd.DataFrame],
+    model: t.Any,
+    dataset: t.Union["tabular.Dataset", pd.DataFrame],
 ) -> t.Tuple[t.Optional[pd.Series], t.Optional[str]]:
     """Get feature importance member if present in model."""
     features = dataset.features if isinstance(dataset, tabular.Dataset) else dataset.columns
 
-    if hasattr(model, 'feature_importances_'):  # Ensembles
+    if hasattr(model, "feature_importances_"):  # Ensembles
         if model.feature_importances_ is None:
             return None, None
         normalized_feature_importance_values = model.feature_importances_ / model.feature_importances_.sum()
-        return pd.Series(normalized_feature_importance_values, index=features), 'feature_importances_'
+        return pd.Series(normalized_feature_importance_values, index=features), "feature_importances_"
 
-    if hasattr(model, 'coef_'):  # Linear models
+    if hasattr(model, "coef_"):  # Linear models
         if model.coef_ is None:
             return None, None
         coef = np.abs(model.coef_.flatten())
         coef = coef / coef.sum()
-        return pd.Series(coef, index=features), 'coef_'
+        return pd.Series(coef, index=features), "coef_"
 
     return None, None
 
 
 def _calc_permutation_importance(
-        model: t.Any,
-        dataset: 'tabular.Dataset',
-        model_classes,
-        observed_classes,
-        task_type,
-        n_repeats: int = 30,
-        mask_high_variance_features: bool = False,
-        random_state: int = 42,
-        n_samples: int = 10_000,
-        alternative_scorer: t.Optional[DeepcheckScorer] = None,
-        skip_messages: bool = False,
-        timeout: int = None,
+    model: t.Any,
+    dataset: "tabular.Dataset",
+    model_classes,
+    observed_classes,
+    task_type,
+    n_repeats: int = 30,
+    mask_high_variance_features: bool = False,
+    random_state: int = 42,
+    n_samples: int = 10_000,
+    alternative_scorer: t.Optional[DeepcheckScorer] = None,
+    skip_messages: bool = False,
+    timeout: int = None,
 ) -> pd.Series:
     """Calculate permutation feature importance. Return nonzero value only when std doesn't mask signal.
 
@@ -287,7 +292,7 @@ def _calc_permutation_importance(
         feature importance normalized to 0-1 indexed by feature names
     """
     if not dataset.has_label():
-        raise errors.DatasetValidationError('Expected dataset with label.')
+        raise errors.DatasetValidationError("Expected dataset with label.")
 
     if len(dataset.features) == 1:
         return pd.Series([1], index=dataset.features)
@@ -312,17 +317,22 @@ def _calc_permutation_importance(
     if timeout is not None:
         if predicted_time_to_run > timeout:
             raise errors.DeepchecksTimeoutError(
-                f'Skipping permutation importance calculation: calculation was projected to finish in '
-                f'{predicted_time_to_run} seconds, but timeout was configured to {timeout} seconds')
+                f"Skipping permutation importance calculation: calculation was projected to finish in "
+                f"{predicted_time_to_run} seconds, but timeout was configured to {timeout} seconds"
+            )
         elif not skip_messages:
-            get_logger().info('Calculating permutation feature importance. Expected to finish in %s seconds',
-                              predicted_time_to_run)
+            get_logger().info(
+                "Calculating permutation feature importance. Expected to finish in %s seconds", predicted_time_to_run
+            )
     elif timeout == 0 and not skip_messages:
         raise errors.DeepchecksSkippedFeatureImportance(
-            'feature_importance_timeout set to 0. Skipping any feature importance calculation.')
+            "feature_importance_timeout set to 0. Skipping any feature importance calculation."
+        )
     elif not skip_messages:
-        get_logger().warning('Calculating permutation feature importance without time limit. Expected to finish in '
-                             '%s seconds', predicted_time_to_run)
+        get_logger().warning(
+            "Calculating permutation feature importance without time limit. Expected to finish in " "%s seconds",
+            predicted_time_to_run,
+        )
 
     r = permutation_importance(
         model,
@@ -331,13 +341,11 @@ def _calc_permutation_importance(
         n_repeats=n_repeats,
         random_state=random_state,
         n_jobs=-1,
-        scoring=scorer.scorer
+        scoring=scorer.scorer,
     )
 
     significance_mask = (
-        r.importances_mean - r.importances_std > 0
-        if mask_high_variance_features
-        else r.importances_mean > 0
+        r.importances_mean - r.importances_std > 0 if mask_high_variance_features else r.importances_mean > 0
     )
 
     feature_importance = r.importances_mean * significance_mask
@@ -349,7 +357,7 @@ def _calc_permutation_importance(
     return pd.Series(feature_importance, index=dataset.features)
 
 
-def get_importance(name: str, feature_importances: pd.Series, ds: 'tabular.Dataset') -> int:
+def get_importance(name: str, feature_importances: pd.Series, ds: "tabular.Dataset") -> int:
     """Return importance based on feature importance or label/date/index first."""
     if name in feature_importances.keys():
         return feature_importances[name]
@@ -361,10 +369,10 @@ def get_importance(name: str, feature_importances: pd.Series, ds: 'tabular.Datas
 
 
 def column_importance_sorter_dict(
-        cols_dict: t.Dict[Hashable, t.Any],
-        dataset: 'tabular.Dataset',
-        feature_importances: t.Optional[pd.Series] = None,
-        n_top: int = 10
+    cols_dict: t.Dict[Hashable, t.Any],
+    dataset: "tabular.Dataset",
+    feature_importances: t.Optional[pd.Series] = None,
+    n_top: int = 10,
 ) -> t.Dict:
     """Return the dict of columns sorted and limited by feature importance.
 
@@ -396,11 +404,11 @@ def column_importance_sorter_dict(
 
 
 def column_importance_sorter_df(
-        df: pd.DataFrame,
-        ds: 'tabular.Dataset',
-        feature_importances: pd.Series,
-        n_top: int = 10,
-        col: t.Optional[Hashable] = None
+    df: pd.DataFrame,
+    ds: "tabular.Dataset",
+    feature_importances: pd.Series,
+    n_top: int = 10,
+    col: t.Optional[Hashable] = None,
 ) -> pd.DataFrame:
     """Return the dataframe of columns sorted and limited by feature importance.
 
@@ -442,15 +450,17 @@ def column_importance_sorter_df(
 def validate_feature_importance(feature_importance: pd.Series, features: list, eps: float = 0.001) -> pd.Series:
     """Validate feature importance."""
     if not isinstance(feature_importance, pd.Series):
-        raise DeepchecksValueError('feature_importance must be given as a pandas.Series where the index is feature '
-                                   'names and the value is the calculated importance')
+        raise DeepchecksValueError(
+            "feature_importance must be given as a pandas.Series where the index is feature "
+            "names and the value is the calculated importance"
+        )
     if feature_importance.isnull().any():
-        raise DeepchecksValueError('feature_importance must not contain null values')
+        raise DeepchecksValueError("feature_importance must not contain null values")
     if (feature_importance < 0).any():
-        raise DeepchecksValueError('feature_importance must not contain negative values')
+        raise DeepchecksValueError("feature_importance must not contain negative values")
     if sorted(feature_importance.index) != sorted(features):
-        raise DeepchecksValueError('feature_importance index must be the feature names')
+        raise DeepchecksValueError("feature_importance index must be the feature names")
     if not 1 - eps < feature_importance.sum() < 1 + eps:
-        warnings.warn('feature_importance does not sum to 1. Normalizing to 1.', UserWarning)
+        warnings.warn("feature_importance does not sum to 1. Normalizing to 1.", UserWarning)
         feature_importance = feature_importance / feature_importance.sum()
     return feature_importance

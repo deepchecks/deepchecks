@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Utils for GPU management."""
+
 import gc
 
 import torch.cuda
@@ -18,9 +19,9 @@ def empty_gpu(device):
     """Empty GPU or MPS memory and run garbage collector."""
     gc.collect()
     device = str(device)
-    if 'cuda' in device.lower():
+    if "cuda" in device.lower():
         torch.cuda.empty_cache()
-    elif 'mps' in device.lower():
+    elif "mps" in device.lower():
         try:
             from torch import mps  # pylint: disable=import-outside-toplevel
 

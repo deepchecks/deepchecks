@@ -9,306 +9,326 @@
 # ----------------------------------------------------------------------------
 #
 """Tests for Mixed Nulls check"""
-import numpy as np
-import pandas as pd
-from hamcrest import (any_of, assert_that, calling, close_to, equal_to, greater_than, has_entries, has_entry, has_items,
-                      has_length, is_, raises)
 
-from deepchecks.core.errors import DatasetValidationError, DeepchecksValueError
+from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks.data_integrity.mixed_nulls import MixedNulls
 from deepchecks.tabular.dataset import Dataset
 from tests.base.utils import equal_condition_result
 
+import numpy as np
+import pandas as pd
+from hamcrest import (
+    assert_that,
+    calling,
+    close_to,
+    equal_to,
+    greater_than,
+    has_entries,
+    has_entry,
+    has_items,
+    has_length,
+    raises,
+)
+
 
 def test_single_column_no_nulls():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat']}
+    data = {"col1": ["foo", "bar", "cat"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], equal_to({'col1': {}}))
+    assert_that(result.value["columns"], equal_to({"col1": {}}))
 
 
 def test_single_column_one_null_type():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'null', 'null']}
+    data = {"col1": ["foo", "bar", "null", "null"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
-    assert_that(result.value['columns'], equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.value["columns"], equal_to({"col1": {'"null"': {"count": 2, "percent": 0.5}}}))
     assert_that(result.display, has_length(greater_than(0)))
 
 
 def test_single_column_one_null_type_without_display():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'null', 'null']}
+    data = {"col1": ["foo", "bar", "null", "null"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe, with_display=False)
-    assert_that(result.value['columns'], equal_to({'col1': {'"null"': {'count': 2, 'percent': 0.5}}}))
+    assert_that(result.value["columns"], equal_to({"col1": {'"null"': {"count": 2, "percent": 0.5}}}))
     assert_that(result.display, has_length(0))
 
 
 def test_empty_dataframe():
     # Arrange
-    data = {'col1': []}
+    data = {"col1": []}
     dataframe = pd.DataFrame(data=data)
     # Act
-    assert_that(calling(MixedNulls().run).with_args(dataframe),
-                raises(DeepchecksValueError, r'Can\'t create a Dataset object with an empty dataframe'))
+    assert_that(
+        calling(MixedNulls().run).with_args(dataframe),
+        raises(DeepchecksValueError, r"Can\'t create a Dataset object with an empty dataframe"),
+    )
 
 
 def test_different_null_types():
     # Arrange
-    data = {'col1': [np.NAN, np.NaN, pd.NA, 'value', 'NULL']}
+    data = {"col1": [np.NAN, np.NaN, pd.NA, "value", "NULL"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(3)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(3)))
 
 
 def test_null_list_param():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat', 'earth', 'earth?', '!E!A!R!T!H', np.nan, 'null']}
+    data = {"col1": ["foo", "bar", "cat", "earth", "earth?", "!E!A!R!T!H", np.nan, "null"]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedNulls(null_string_list=['earth', 'cat']).run(dataframe)
+    result = MixedNulls(null_string_list=["earth", "cat"]).run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(5)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(5)))
 
 
 def test_check_nan_false_param():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat', 'earth', 'earth?', '!E!A!R!T!H', np.nan, 'null']}
+    data = {"col1": ["foo", "bar", "cat", "earth", "earth?", "!E!A!R!T!H", np.nan, "null"]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedNulls(null_string_list=['earth'], check_nan=False).run(dataframe)
+    result = MixedNulls(null_string_list=["earth"], check_nan=False).run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(4)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(4)))
 
 
 def test_single_column_two_null_types():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'null', 'nan', 'nan']}
+    data = {"col1": ["foo", "bar", "null", "nan", "nan"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(2)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(2)))
 
 
 def test_single_column_different_case_is_count_separately():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'Nan', 'nan', 'NaN']}
+    data = {"col1": ["foo", "bar", "Nan", "nan", "NaN"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(3)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(3)))
 
 
 def test_numeric_column_nulls():
     # Arrange
-    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT]}
+    data = {"col1": [1, 2, np.NaN, pd.NA, pd.NaT]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(3)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(3)))
 
 
 def test_numeric_column_nulls_with_none():
     # Arrange
-    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT, None]}
+    data = {"col1": [1, 2, np.NaN, pd.NA, pd.NaT, None]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(4)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(4)))
 
 
 def test_mix_value_columns():
     # Arrange
-    data = {'col1': [1, 2, np.NaN, pd.NA, pd.NaT, 3], 'col2': ['foo', 'bar', 'Nan', 'nan', 'NaN', None]}
+    data = {"col1": [1, 2, np.NaN, pd.NA, pd.NaT, 3], "col2": ["foo", "bar", "Nan", "nan", "NaN", None]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(3)))
-    assert_that(result.value['columns'], has_entry('col2', has_length(4)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(3)))
+    assert_that(result.value["columns"], has_entry("col2", has_length(4)))
 
 
 def test_single_column_nulls_with_special_characters():
     # Arrange
-    data = {'col1': ['', 'value', 'Nan!', '#nan', '<NaN>']}
+    data = {"col1": ["", "value", "Nan!", "#nan", "<NaN>"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(4)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(4)))
 
 
 def test_single_column_nulls_only_special_characters():
     # Arrange
-    data = {'col1': ['', '!@#$', 'Nan!', '#nan', '<NaN>']}
+    data = {"col1": ["", "!@#$", "Nan!", "#nan", "<NaN>"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entry('col1', has_length(4)))
+    assert_that(result.value["columns"], has_entry("col1", has_length(4)))
 
 
 def test_ignore_columns_single():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.nan, 'none', '3']}
+    data = {"col1": ["foo", "bar", "cat"], "col2": ["nan", "null", ""], "col3": [np.nan, "none", "3"]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedNulls(ignore_columns='col3').run(dataframe)
+    result = MixedNulls(ignore_columns="col3").run(dataframe)
     # Assert - Only col 2 should have results
-    assert_that(result.value['columns'], has_entries(col1=has_length(0), col2=has_length(3)))
+    assert_that(result.value["columns"], has_entries(col1=has_length(0), col2=has_length(3)))
 
 
 def test_ignore_columns_multi():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['nan', 'null', ''], 'col3': [np.nan, 'none', '3']}
+    data = {"col1": ["foo", "bar", "cat"], "col2": ["nan", "null", ""], "col3": [np.nan, "none", "3"]}
     dataframe = pd.DataFrame(data=data)
     # Act
-    result = MixedNulls(ignore_columns=['col3', 'col2']).run(dataframe)
+    result = MixedNulls(ignore_columns=["col3", "col2"]).run(dataframe)
     # Assert
-    assert_that(result.value['columns'], equal_to({'col1': {}}))
+    assert_that(result.value["columns"], equal_to({"col1": {}}))
 
 
 def test_dataset_no_nulls():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'cat'], 'col2': ['foo', 'bar', 1], 'col3': [1, 2, 3]}
+    data = {"col1": ["foo", "bar", "cat"], "col2": ["foo", "bar", 1], "col3": [1, 2, 3]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entries(col1=equal_to({}), col2=equal_to({}), col3=equal_to({})))
+    assert_that(result.value["columns"], has_entries(col1=equal_to({}), col2=equal_to({}), col3=equal_to({})))
 
 
 def test_dataset_1_column_nulls():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'null'], 'col2': ['foo', 'bar', 1], 'col3': [1, 2, 3]}
+    data = {"col1": ["foo", "bar", "null"], "col2": ["foo", "bar", 1], "col3": [1, 2, 3]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entries(col1=has_length(1),
-                                          col2=equal_to({}), col3=equal_to({})))
+    assert_that(result.value["columns"], has_entries(col1=has_length(1), col2=equal_to({}), col3=equal_to({})))
 
 
 def test_dataset_2_columns_single_nulls():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 3]}
+    data = {"col1": ["foo", "bar", "null"], "col2": ["Nan", "bar", 1], "col3": [1, 2, 3]}
     dataframe = pd.DataFrame(data=data)
     # Act
     result = MixedNulls().run(dataframe)
     # Assert
-    assert_that(result.value['columns'], has_entries(col1=has_length(1), col2=has_length(1), col3=equal_to({})))
+    assert_that(result.value["columns"], has_entries(col1=has_length(1), col2=has_length(1), col3=equal_to({})))
 
 
 def test_dataset_2_columns_multi_nulls_reduce():
     # Arrange
-    data = {'col1': ['foo', 'na', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': ['', 2, 'NA']}
+    data = {"col1": ["foo", "na", "null"], "col2": ["Nan", "bar", 1], "col3": ["", 2, "NA"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     check = MixedNulls()
     result = check.run(dataframe)
     reduce_result = check.reduce_output(result)
     # Assert
-    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.66, 0.01))
+    assert_that(reduce_result["Max Percent Mixed Nulls"], close_to(0.66, 0.01))
 
 
 def test_dataset_2_columns_multi_nulls_additional_data_reduce():
     # Arrange
-    data = {'col1': ['foo', 'na', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': ['', 2, 'NA']}
+    data = {"col1": ["foo", "na", "null"], "col2": ["Nan", "bar", 1], "col3": ["", 2, "NA"]}
     dataframe = pd.DataFrame(data=data)
-    dataset = Dataset(dataframe, features=['col1', 'col2'])
+    dataset = Dataset(dataframe, features=["col1", "col2"])
 
     # Act & Assert
     check = MixedNulls()
-    result = check.run(dataset, feature_importance=pd.Series({'col1': 0.5, 'col2': 0.5}))
+    result = check.run(dataset, feature_importance=pd.Series({"col1": 0.5, "col2": 0.5}))
     reduce_result = check.reduce_output(result)
-    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0.66, 0.01))
+    assert_that(reduce_result["Max Percent Mixed Nulls"], close_to(0.66, 0.01))
 
-    check = MixedNulls(aggregation_method='l3_weighted')
-    result = check.run(dataset, feature_importance=pd.Series({'col1': 0.5, 'col2': 0.5}))
+    check = MixedNulls(aggregation_method="l3_weighted")
+    result = check.run(dataset, feature_importance=pd.Series({"col1": 0.5, "col2": 0.5}))
     reduce_result = check.reduce_output(result)
-    assert_that(reduce_result['L3 Weighted Percent Mixed Nulls'], close_to(0.53, 0.01))
+    assert_that(reduce_result["L3 Weighted Percent Mixed Nulls"], close_to(0.53, 0.01))
 
 
 def test_dataset_2_columns_no_mixed_nulls_reduce():
     # Arrange
-    data = {'col1': ['foo', 'bar', 'null'], 'col2': ['Nan', 'bar', 1], 'col3': [1, 2, 'NA']}
+    data = {"col1": ["foo", "bar", "null"], "col2": ["Nan", "bar", 1], "col3": [1, 2, "NA"]}
     dataframe = pd.DataFrame(data=data)
     # Act
     check = MixedNulls()
     result = check.run(dataframe)
     reduce_result = check.reduce_output(result)
     # Assert
-    assert_that(reduce_result['Max Percent Mixed Nulls'], close_to(0, 0.01))
+    assert_that(reduce_result["Max Percent Mixed Nulls"], close_to(0, 0.01))
 
 
 def test_condition_max_nulls_not_passed():
     # Arrange
-    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    data = {"col1": ["", "#@$", "Nan!", "#nan", "<NaN>"]}
     dataset = Dataset(pd.DataFrame(data=data))
     check = MixedNulls().add_condition_different_nulls_less_equal_to(3)
 
     # Act
     result = check.conditions_decision(check.run(dataset))
 
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=False,
-                               name='Number of different null types is less or equal to 3',
-                               details='Found 1 out of 1 columns with amount of null types above threshold: [\'col1\']')
-    ))
+    assert_that(
+        result,
+        has_items(
+            equal_condition_result(
+                is_pass=False,
+                name="Number of different null types is less or equal to 3",
+                details="Found 1 out of 1 columns with amount of null types above threshold: ['col1']",
+            )
+        ),
+    )
 
 
 def test_condition_max_nulls_passed():
     # Arrange
-    data = {'col1': ['', '#@$', 'Nan!', '#nan', '<NaN>']}
+    data = {"col1": ["", "#@$", "Nan!", "#nan", "<NaN>"]}
     dataset = Dataset(pd.DataFrame(data=data))
     check = MixedNulls().add_condition_different_nulls_less_equal_to(10)
 
     # Act
     result = check.conditions_decision(check.run(dataset))
 
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=True,
-                               details='Passed for 1 relevant column',
-                               name='Number of different null types is less or equal to 10')
-    ))
+    assert_that(
+        result,
+        has_items(
+            equal_condition_result(
+                is_pass=True,
+                details="Passed for 1 relevant column",
+                name="Number of different null types is less or equal to 10",
+            )
+        ),
+    )
 
 
 def test_mixed_nulls_with_categorical_dtype():
-    ds = Dataset(pd.DataFrame({
-        'foo': pd.Series(['a', 'b', None, None], dtype='category'),
-        'bar': [1,2,3,4]
-    }))
+    ds = Dataset(pd.DataFrame({"foo": pd.Series(["a", "b", None, None], dtype="category"), "bar": [1, 2, 3, 4]}))
     assert_that(
-        MixedNulls().run(ds).value['columns'],
-        has_entries({
-            'bar': has_length(equal_to(0)),
-            'foo': has_entries({
-                'numpy.nan': has_entries({
-                    'count': equal_to(2),
-                    'percent': equal_to(0.5)
-                }),
-            }),
-            # NOTE:
-            # * why math.nan, if we see None in foo? *
-            # in short, because of pandas null conversion mechanism
-            #
-            # example:
-            # >>> pd.__version__  # 1.3.5
-            # >>> s = pd.Series(['a', pd.NA, pd.NaT, np.nan, None],  dtype='category')
-            # >>> s.at[1] is np.nan  # True
-            # >>> s.at[2] is np.nan  # True
-            # >>> s.at[3] is np.nan  # True
-        })
+        MixedNulls().run(ds).value["columns"],
+        has_entries(
+            {
+                "bar": has_length(equal_to(0)),
+                "foo": has_entries(
+                    {
+                        "numpy.nan": has_entries({"count": equal_to(2), "percent": equal_to(0.5)}),
+                    }
+                ),
+                # NOTE:
+                # * why math.nan, if we see None in foo? *
+                # in short, because of pandas null conversion mechanism
+                #
+                # example:
+                # >>> pd.__version__  # 1.3.5
+                # >>> s = pd.Series(['a', pd.NA, pd.NaT, np.nan, None],  dtype='category')
+                # >>> s.at[1] is np.nan  # True
+                # >>> s.at[2] is np.nan  # True
+                # >>> s.at[3] is np.nan  # True
+            }
+        ),
     )

@@ -9,19 +9,19 @@
 # ----------------------------------------------------------------------------
 #
 """Runs extensive tests for all checks in suites using the datasets & models in deepchecks-extensive-test-assets"""
+
 import json
 import pprint
 import sys
 import time
 from io import BytesIO
 
+from deepchecks.base import Dataset
+from deepchecks.tabular import Suite
+
 import boto3
 import joblib
 import pandas as pd
-
-from deepchecks.tabular import Suite
-from deepchecks.base import Dataset
-from deepchecks.suites import OverallSuite
 
 
 def has_errors(d):
@@ -34,15 +34,18 @@ def has_errors(d):
 
 
 if __name__ == "__main__":
-
     bucket_name = "deepchecks-extensive-test-assets"
     s3 = boto3.resource("s3")
-    s3_client = boto3.client('s3')
+    s3_client = boto3.client("s3")
     S3_BUCKET = s3.Bucket(bucket_name)
     session = boto3.Session()
 
-    datasets = list(map(lambda x: x['Prefix'][:-1],
-                        s3_client.list_objects(Bucket=bucket_name, Prefix='', Delimiter='/')['CommonPrefixes']))
+    datasets = list(
+        map(
+            lambda x: x["Prefix"][:-1],
+            s3_client.list_objects(Bucket=bucket_name, Prefix="", Delimiter="/")["CommonPrefixes"],
+        )
+    )
 
     displayed_results = {}
     run_time = {}
@@ -51,30 +54,39 @@ if __name__ == "__main__":
         run_time[dataset] = {}
         displayed_results[dataset] = {}
         error_log[dataset] = {}
-        train_df = pd.read_csv(f's3://{bucket_name}/{dataset}/train.csv')
-        test_df = pd.read_csv(f's3://{bucket_name}/{dataset}/val.csv')
-        metadata = json.loads(s3.Object(bucket_name, f'{dataset}/metadata.json').get()['Body'].read().decode('utf-8'))
-        train_ds = Dataset(train_df, label_name=metadata['label_name'], features=metadata['features'],
-                           cat_features=metadata['cat_features'])
-        test_ds = Dataset(test_df, label_name=metadata['label_name'], features=metadata['features'],
-                          cat_features=metadata['cat_features'])
-        models = list(filter(lambda x: x.key.endswith('joblib'), list(S3_BUCKET.objects.filter(Prefix=dataset).all())))
+        train_df = pd.read_csv(f"s3://{bucket_name}/{dataset}/train.csv")
+        test_df = pd.read_csv(f"s3://{bucket_name}/{dataset}/val.csv")
+        metadata = json.loads(s3.Object(bucket_name, f"{dataset}/metadata.json").get()["Body"].read().decode("utf-8"))
+        train_ds = Dataset(
+            train_df,
+            label_name=metadata["label_name"],
+            features=metadata["features"],
+            cat_features=metadata["cat_features"],
+        )
+        test_ds = Dataset(
+            test_df,
+            label_name=metadata["label_name"],
+            features=metadata["features"],
+            cat_features=metadata["cat_features"],
+        )
+        models = list(filter(lambda x: x.key.endswith("joblib"), list(S3_BUCKET.objects.filter(Prefix=dataset).all())))
         for model_obj in models:
             model_file = model_obj.get()
-            model = joblib.load(BytesIO(model_file['Body'].read()))
-            model_name = model_obj.key.split('/')[1].split('.')[0]
+            model = joblib.load(BytesIO(model_file["Body"].read()))
+            model_name = model_obj.key.split("/")[1].split(".")[0]
             displayed_results[dataset][model_name] = {}
             run_time[dataset][model_name] = {}
             error_log[dataset][model_name] = {}
-            print(f'Running dataset {dataset} model {model_name}')
+            print(f"Running dataset {dataset} model {model_name}")
             for name, check in OverallCheckSuite.checks.items():
                 start_t = time.time()
                 # Run check as suite so that MLChecksValueError are not captured as errors
-                suite_of_check_to_run = Suite('Test suite', check)
+                suite_of_check_to_run = Suite("Test suite", check)
                 check_name = check.__class__.__name__
                 try:
-                    displayed_results[dataset][model_name][check_name] = suite_of_check_to_run.run(model, train_ds,
-                                                                                                   test_ds, 'both')
+                    displayed_results[dataset][model_name][check_name] = suite_of_check_to_run.run(
+                        model, train_ds, test_ds, "both"
+                    )
                 except Exception as e:
                     error_log[dataset][model_name][check_name] = str(e)
                 end_t = time.time()

@@ -15,15 +15,11 @@ This notebook provides an overview for using and understanding the data duplicat
 * `Define a Condition <#define-a-condition>`__
 """
 
-#%%
-
-from datetime import datetime
-
-import pandas as pd
+# %%
 
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
-#%%
+# %%
 # Why data duplicates?
 # ====================
 # The ``DataDuplicates`` check finds multiple instances of identical samples in the
@@ -37,10 +33,10 @@ from deepchecks.tabular.datasets.classification.phishing import load_data
 # =========
 
 
-phishing_dataset = load_data(as_train_test=False, data_format='DataFrame')
+phishing_dataset = load_data(as_train_test=False, data_format="DataFrame")
 phishing_dataset
 
-#%%
+# %%
 # Run the Check
 # =============
 
@@ -55,11 +51,11 @@ DataDuplicates().run(phishing_dataset)
 
 DataDuplicates(columns=["entropy", "numParams"]).run(phishing_dataset)
 
-#%%
+# %%
 
 DataDuplicates(ignore_columns=["scrape_date"], n_to_show=10).run(phishing_dataset)
 
-#%%
+# %%
 # Define a Condition
 # ==================
 # Now, we define a condition that enforce the ratio of duplicates to be 0. A condition

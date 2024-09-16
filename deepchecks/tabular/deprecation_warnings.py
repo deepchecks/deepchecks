@@ -9,75 +9,67 @@
 # ----------------------------------------------------------------------------
 #
 """This file changes default 'ignore' action of DeprecationWarnings for specific deprecation messages."""
+
 import warnings
 
 warnings.filterwarnings(
-    action='once',
-    message=r'The SegmentPerformance check is deprecated.*',
+    action="once",
+    message=r"The SegmentPerformance check is deprecated.*",
     category=DeprecationWarning,
-    module=r'deepchecks.*'
+    module=r"deepchecks.*",
 )
 
 warnings.filterwarnings(
-    action='once',
-    message=r'The WholeDatasetDrift check is deprecated.*',
+    action="once",
+    message=r"The WholeDatasetDrift check is deprecated.*",
     category=DeprecationWarning,
-    module=r'deepchecks.*'
+    module=r"deepchecks.*",
 )
 
 warnings.filterwarnings(
-    action='once',
-    message=r'.* label type is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
+    action="once", message=r".* label type is deprecated.*", category=DeprecationWarning, module=r"deepchecks.*"
 )
 
 warnings.filterwarnings(
-    action='once',
-    message=r'.* alternative_scorers is deprecated.*',
+    action="once",
+    message=r".* alternative_scorers is deprecated.*",
     category=DeprecationWarning,
-    module=r'deepchecks.*'
+    module=r"deepchecks.*",
 )
 
 warnings.filterwarnings(
-    action='once',
-    message=r'.* y_pred_train is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
+    action="once", message=r".* y_pred_train is deprecated.*", category=DeprecationWarning, module=r"deepchecks.*"
 )
 
 warnings.filterwarnings(
-    action='once',
-    message=r'.* y_proba_train is deprecated.*',
-    category=DeprecationWarning,
-    module=r'deepchecks.*'
+    action="once", message=r".* y_proba_train is deprecated.*", category=DeprecationWarning, module=r"deepchecks.*"
 )
 
 warnings.filterwarnings(
-    action='once',
-    message=r'.* y_pred_test is deprecated and ignored.*',
+    action="once",
+    message=r".* y_pred_test is deprecated and ignored.*",
     category=DeprecationWarning,
-    module=r'deepchecks.*'
+    module=r"deepchecks.*",
 )
 
 warnings.filterwarnings(
-    action='once',
-    message=r'.* y_proba_test is deprecated and ignored.*',
+    action="once",
+    message=r".* y_proba_test is deprecated and ignored.*",
     category=DeprecationWarning,
-    module=r'deepchecks.*'
+    module=r"deepchecks.*",
 )
 
 
 warnings.filterwarnings(
-    action='once',
-    message=r'.*RegressionSystematicError check is deprecated.*',
+    action="once",
+    message=r".*RegressionSystematicError check is deprecated.*",
     category=DeprecationWarning,
-    module=r'deepchecks.*'
+    module=r"deepchecks.*",
 )
 
 warnings.filterwarnings(
-    action='once',
-    message=r'.*check is deprecated and will be removed in the 0.14 version.*',
+    action="once",
+    message=r".*check is deprecated and will be removed in the 0.14 version.*",
     category=DeprecationWarning,
-    module=r'deepchecks.*'
+    module=r"deepchecks.*",
 )

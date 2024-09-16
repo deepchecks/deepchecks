@@ -25,11 +25,11 @@ This notebook provides an overview for using and understanding the Is Single Val
 # Imports
 # =======
 
+from deepchecks.tabular.checks import IsSingleValue
+
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
-
-from deepchecks.tabular.checks import IsSingleValue
 
 # %%
 # Load Data
@@ -47,7 +47,7 @@ IsSingleValue().run(pd.DataFrame(X))
 
 # %%
 # If ``None`` is given as a value, it will be ignored (this can be changed with ``ignore_nan`` set to ``False``):
-df = pd.DataFrame({'a': [3, 4, 1], 'b': [2, 2, 2], 'c': [None, None, None], 'd': ['a', 4, 6]})
+df = pd.DataFrame({"a": [3, 4, 1], "b": [2, 2, 2], "c": [None, None, None], "d": ["a", 4, 6]})
 sv = IsSingleValue()
 sv.run(df)
 
@@ -55,14 +55,9 @@ sv.run(df)
 # %%
 
 # Ignoring NaN values:
-IsSingleValue(ignore_nan=True).run(pd.DataFrame({
-    'a': [3, np.nan],
-    'b': [2, 2],
-    'c': [None, np.nan],
-    'd': ['a', 4]
-}))
+IsSingleValue(ignore_nan=True).run(pd.DataFrame({"a": [3, np.nan], "b": [2, 2], "c": [None, np.nan], "d": ["a", 4]}))
 
 # %%
 # Ignoring specific columns by name is also possible:
-sv_ignore = IsSingleValue(ignore_columns=['b', 'c'])
+sv_ignore = IsSingleValue(ignore_columns=["b", "c"])
 sv_ignore.run(df)

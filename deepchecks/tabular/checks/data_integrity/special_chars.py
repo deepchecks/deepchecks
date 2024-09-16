@@ -9,11 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Invalid Chars check."""
+
 from collections import defaultdict
 from typing import List, Union
-
-import pandas as pd
-from pandas.api.types import infer_dtype
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -23,7 +21,10 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, string_baseform
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['SpecialCharacters']
+import pandas as pd
+from pandas.api.types import infer_dtype
+
+__all__ = ["SpecialCharacters"]
 
 
 class SpecialCharacters(SingleDatasetCheck):
@@ -51,7 +52,7 @@ class SpecialCharacters(SingleDatasetCheck):
         n_top_columns: int = 10,
         n_samples: int = 10_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -87,20 +88,20 @@ class SpecialCharacters(SingleDatasetCheck):
                     percent = format_percent(sum(special_samples.values()) / column_data.size)
                     sortkey = lambda x: x[1]
                     top_n_samples_items = sorted(special_samples.items(), key=sortkey, reverse=True)
-                    top_n_samples_items = top_n_samples_items[:self.n_most_common]
+                    top_n_samples_items = top_n_samples_items[: self.n_most_common]
                     top_n_samples_values = [item[0] for item in top_n_samples_items]
                     display_array.append([column_name, percent, top_n_samples_values])
             else:
                 result[column_name] = 0
 
         if display_array:
-            df_graph = pd.DataFrame(display_array,
-                                    columns=['Column Name',
-                                             '% Special-Only Samples',
-                                             'Most Common Special-Only Samples'])
-            df_graph = df_graph.set_index(['Column Name'])
-            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
-                                                   self.n_top_columns, col='Column Name')
+            df_graph = pd.DataFrame(
+                display_array, columns=["Column Name", "% Special-Only Samples", "Most Common Special-Only Samples"]
+            )
+            df_graph = df_graph.set_index(["Column Name"])
+            df_graph = column_importance_sorter_df(
+                df_graph, dataset, context.feature_importance, self.n_top_columns, col="Column Name"
+            )
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
             display = None
@@ -115,13 +116,15 @@ class SpecialCharacters(SingleDatasetCheck):
         max_ratio : float , default: 0.001
             Maximum ratio allowed.
         """
-        name = f'Ratio of samples containing solely special character is less or equal to {format_percent(max_ratio)}'
+        name = f"Ratio of samples containing solely special character is less or equal to {format_percent(max_ratio)}"
 
         def condition(result):
             not_passed = {k: format_percent(v) for k, v in result.items() if v > max_ratio}
             if not_passed:
-                details = f'Found {len(not_passed)} out of {len(result)} relevant columns with ratio above threshold: '\
-                          f'{not_passed}'
+                details = (
+                    f"Found {len(not_passed)} out of {len(result)} relevant columns with ratio above threshold: "
+                    f"{not_passed}"
+                )
                 return ConditionResult(ConditionCategory.WARN, details)
             return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
@@ -140,4 +143,4 @@ def _get_special_samples(column_data: pd.Series) -> Union[dict, None]:
 
 
 def _is_stringed_type(col) -> bool:
-    return infer_dtype(col) not in ['integer', 'decimal', 'floating']
+    return infer_dtype(col) not in ["integer", "decimal", "floating"]

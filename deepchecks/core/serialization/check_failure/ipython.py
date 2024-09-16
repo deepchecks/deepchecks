@@ -9,19 +9,20 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing CheckFailuer serialization logic."""
-import typing as t
 
-from IPython.display import HTML
+import typing as t
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import IPythonFormatter, IPythonSerializer
 
 from . import html
 
-__all__ = ['CheckFailureSerializer']
+from IPython.display import HTML
+
+__all__ = ["CheckFailureSerializer"]
 
 
-class CheckFailureSerializer(IPythonSerializer['check_types.CheckFailure']):
+class CheckFailureSerializer(IPythonSerializer["check_types.CheckFailure"]):
     """Serializes any CheckFailure instance into a list of IPython formatters.
 
     Parameters
@@ -30,11 +31,9 @@ class CheckFailureSerializer(IPythonSerializer['check_types.CheckFailure']):
         CheckFailure instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'check_types.CheckFailure', **kwargs):
+    def __init__(self, value: "check_types.CheckFailure", **kwargs):
         if not isinstance(value, check_types.CheckFailure):
-            raise TypeError(
-                f'Expected "CheckFailure" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "CheckFailure" but got "{type(value).__name__}"')
         super().__init__(value=value)
         self._html_serializer = html.CheckFailureSerializer(value)
 

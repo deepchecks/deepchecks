@@ -9,10 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """The data_sample_leakage_report check module."""
-from typing import Any, List
 
-import pandas as pd
-from pandas.core.dtypes.common import is_integer_dtype
+from typing import Any, List
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, TrainTestCheck
@@ -20,10 +18,13 @@ from deepchecks.utils.abstracts.train_test_samples_mix import TrainTestSamplesMi
 from deepchecks.utils.strings import format_percent
 from deepchecks.utils.typing import Hashable
 
+import pandas as pd
+from pandas.core.dtypes.common import is_integer_dtype
+
 pd.options.mode.chained_assignment = None
 
 
-__all__ = ['TrainTestSamplesMix']
+__all__ = ["TrainTestSamplesMix"]
 
 
 class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
@@ -39,13 +40,7 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         random seed for all check internals.
     """
 
-    def __init__(
-        self,
-        n_samples: int = 10_000_000,
-        n_to_show: int = 10,
-        random_state: int = 42,
-        **kwargs
-    ):
+    def __init__(self, n_samples: int = 10_000_000, n_to_show: int = 10, random_state: int = 42, **kwargs):
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.n_to_show = n_to_show
@@ -76,19 +71,19 @@ class TrainTestSamplesMix(TrainTestCheck, TrainTestSamplesMixAbstract):
         train_df = _fillna(train_dataset.data)
         test_df = _fillna(test_dataset.data)
 
-        train_uniques = _create_unique_frame(train_df, columns, text_prefix='Train indices: ')
-        test_uniques = _create_unique_frame(test_df, columns, text_prefix='Test indices: ')
+        train_uniques = _create_unique_frame(train_df, columns, text_prefix="Train indices: ")
+        test_uniques = _create_unique_frame(test_df, columns, text_prefix="Test indices: ")
 
         duplicates_df, test_dup_count = _create_train_test_joined_duplicate_frame(train_uniques, test_uniques, columns)
 
         # Replace filler back to none
         duplicates_df = duplicates_df.applymap(lambda x: None if x == NAN_REPLACEMENT else x)
         dup_ratio = test_dup_count / test_dataset.n_samples
-        user_msg = f'{format_percent(dup_ratio)} ({test_dup_count} / {test_dataset.n_samples}) \
-                     of test data samples appear in train data'
+        user_msg = f"{format_percent(dup_ratio)} ({test_dup_count} / {test_dataset.n_samples}) \
+                     of test data samples appear in train data"
         display = [user_msg, duplicates_df.head(self.n_to_show)] if context.with_display and dup_ratio else None
-        result = {'ratio': dup_ratio, 'data': duplicates_df}
-        return CheckResult(result, header='Train Test Samples Mix', display=display)
+        result = {"ratio": dup_ratio, "data": duplicates_df}
+        return CheckResult(result, header="Train Test Samples Mix", display=display)
 
 
 def _create_train_test_joined_duplicate_frame(first: pd.DataFrame, second: pd.DataFrame, columns: List[Hashable]):
@@ -107,22 +102,22 @@ def _create_train_test_joined_duplicate_frame(first: pd.DataFrame, second: pd.Da
         if len(indexes) == 1:
             continue
         # Indexes should have dict of train & test info from `_filter_duplicates`
-        text = indexes[0]['text'] + '\n' + indexes[1]['text']
+        text = indexes[0]["text"] + "\n" + indexes[1]["text"]
         # Take the count only of test
-        test_count = indexes[0]['count'] if indexes[0]['text'].startswith('Test') else indexes[1]['count']
+        test_count = indexes[0]["count"] if indexes[0]["text"].startswith("Test") else indexes[1]["count"]
         total_test_count += test_count
         # Save info of duplicated text and the columns info
         columns_data.append([*duplicate_columns, test_count])
         index_text.append(text)
 
-    count_column_name = '_value_to_sort_by_'
+    count_column_name = "_value_to_sort_by_"
     duplicates = pd.DataFrame(columns_data, index=index_text, columns=[*columns, count_column_name])
     duplicates = duplicates.sort_values(by=count_column_name, ascending=False)
     duplicates = duplicates.drop(count_column_name, axis=1)
     return duplicates, total_test_count
 
 
-def _create_unique_frame(df: pd.DataFrame, columns: List[Hashable], text_prefix: str = '') -> pd.DataFrame:
+def _create_unique_frame(df: pd.DataFrame, columns: List[Hashable], text_prefix: str = "") -> pd.DataFrame:
     """For given dataframe and columns create a dataframe with only unique combinations of the columns."""
     columns_data = []
     index_text = []
@@ -137,14 +132,14 @@ def _create_unique_frame(df: pd.DataFrame, columns: List[Hashable], text_prefix:
 
 
 def _get_dup_info(index_arr: list, text_prefix: str) -> dict:
-    text = ', '.join([str(i) for i in index_arr])
+    text = ", ".join([str(i) for i in index_arr])
     if len(text) > 30:
-        text = f'{text[:30]}.. Tot. {(len(index_arr))}'
+        text = f"{text[:30]}.. Tot. {(len(index_arr))}"
 
-    return {'text': f'{text_prefix}{text}', 'count': len(index_arr)}
+    return {"text": f"{text_prefix}{text}", "count": len(index_arr)}
 
 
-NAN_REPLACEMENT = '__deepchecks_na_filler__'
+NAN_REPLACEMENT = "__deepchecks_na_filler__"
 
 
 def _fillna_col(column: pd.Series, value: Any):
@@ -156,12 +151,6 @@ def _fillna_col(column: pd.Series, value: Any):
     return column.fillna(value=value)
 
 
-def _fillna(
-    df: pd.DataFrame,
-    value: Any = NAN_REPLACEMENT
-) -> pd.DataFrame:
+def _fillna(df: pd.DataFrame, value: Any = NAN_REPLACEMENT) -> pd.DataFrame:
     """Fill nan values."""
-    return pd.DataFrame({
-        name: (_fillna_col(column, value))
-        for name, column in df.items()
-    })
+    return pd.DataFrame({name: (_fillna_col(column, value)) for name, column in df.items()})

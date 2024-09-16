@@ -17,7 +17,7 @@ Here you can see the api reference.
 .. currentmodule:: deepchecks
 
 .. autosummary::
-    
+
     core
     tabular
     vision

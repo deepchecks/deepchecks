@@ -9,9 +9,15 @@
 # ----------------------------------------------------------------------------
 #
 """A module containing utils for plotting distributions."""
+
 from functools import cmp_to_key
 from numbers import Number
 from typing import Any, Dict, List, Tuple, Union
+
+from deepchecks.core.errors import DeepchecksValueError
+from deepchecks.utils.dataframes import un_numpy
+from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
+from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
 
 import numpy as np
 import pandas as pd
@@ -20,12 +26,7 @@ from plotly.basedatatypes import BaseTraceType
 from scipy.stats import gaussian_kde
 from typing_extensions import Literal as L
 
-from deepchecks.core.errors import DeepchecksValueError
-from deepchecks.utils.dataframes import un_numpy
-from deepchecks.utils.distribution.preprocessing import preprocess_2_cat_cols_to_same_bins
-from deepchecks.utils.plot import DEFAULT_DATASET_NAMES, colors
-
-__all__ = ['feature_distribution_traces', 'drift_score_bar_traces', 'get_density', 'CategoriesSortingKind']
+__all__ = ["feature_distribution_traces", "drift_score_bar_traces", "get_density", "CategoriesSortingKind"]
 
 # For numerical plots, below this number of unique values we draw bar plots, else KDE
 MAX_NUMERICAL_UNIQUE_FOR_BARS = 20
@@ -53,7 +54,7 @@ def get_density(data, xs) -> np.ndarray:
     if len(np.unique(data)) == 1:
         data = data + np.random.normal(scale=10 * np.finfo(np.float32).eps, size=len(data))
     density = gaussian_kde(data)
-    density.covariance_factor = lambda: .25
+    density.covariance_factor = lambda: 0.25
     # pylint: disable=protected-access
     density._compute_covariance()
     return density(xs)
@@ -73,11 +74,12 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
     Tuple[List[go.Bar], Dict, Dict]
         list of plotly bar traces.
     """
-    traffic_light_colors = [((0, 0.1), '#01B8AA'),
-                            ((0.1, 0.2), '#F2C80F'),
-                            ((0.2, 0.3), '#FE9666'),
-                            ((0.3, 1), '#FD625E')
-                            ]
+    traffic_light_colors = [
+        ((0, 0.1), "#01B8AA"),
+        ((0.1, 0.2), "#F2C80F"),
+        ((0.2, 0.3), "#FE9666"),
+        ((0.3, 1), "#FD625E"),
+    ]
 
     bars = []
 
@@ -85,56 +87,50 @@ def drift_score_bar_traces(drift_score: float, bar_max: float = None) -> Tuple[L
         if drift_score < range_tuple[0]:
             break
 
-        bars.append(go.Bar(
-            x=[min(drift_score, range_tuple[1]) - range_tuple[0]],
-            y=['Drift Score'],
-            orientation='h',
-            marker=dict(
-                color=color,
-            ),
-            offsetgroup=0,
-            base=range_tuple[0],
-            showlegend=False
-
-        ))
+        bars.append(
+            go.Bar(
+                x=[min(drift_score, range_tuple[1]) - range_tuple[0]],
+                y=["Drift Score"],
+                orientation="h",
+                marker=dict(
+                    color=color,
+                ),
+                offsetgroup=0,
+                base=range_tuple[0],
+                showlegend=False,
+            )
+        )
 
     bar_stop = max(0.4, drift_score + 0.1)
     if bar_max:
         bar_stop = min(bar_stop, bar_max)
-    xaxis = dict(
-        showgrid=False,
-        gridcolor='black',
-        linecolor='black',
-        range=[0, bar_stop],
-        dtick=0.05,
-        fixedrange=True
-    )
+    xaxis = dict(showgrid=False, gridcolor="black", linecolor="black", range=[0, bar_stop], dtick=0.05, fixedrange=True)
     yaxis = dict(
         showgrid=False,
         showline=False,
         showticklabels=False,
         zeroline=False,
-        color='black',
+        color="black",
         autorange=True,
-        rangemode='normal',
-        fixedrange=True
+        rangemode="normal",
+        fixedrange=True,
     )
 
     return bars, xaxis, yaxis
 
 
-CategoriesSortingKind = L['train_largest', 'test_largest', 'largest_difference']  # noqa: F821
+CategoriesSortingKind = L["train_largest", "test_largest", "largest_difference"]  # noqa: F821
 
 
 def feature_distribution_traces(
-        train_column: Union[np.ndarray, pd.Series],
-        test_column: Union[np.ndarray, pd.Series],
-        column_name: str,
-        is_categorical: bool = False,
-        max_num_categories: int = 10,
-        show_categories_by: CategoriesSortingKind = 'largest_difference',
-        quantile_cut: float = 0.02,
-        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+    train_column: Union[np.ndarray, pd.Series],
+    test_column: Union[np.ndarray, pd.Series],
+    column_name: str,
+    is_categorical: bool = False,
+    max_num_categories: int = 10,
+    show_categories_by: CategoriesSortingKind = "largest_difference",
+    quantile_cut: float = 0.02,
+    dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
 ) -> Tuple[List[BaseTraceType], Dict, Dict]:
     """Create traces for comparison between train and test column.
 
@@ -171,9 +167,9 @@ def feature_distribution_traces(
         layout of y axis
     """
     if is_categorical:
-        traces, y_layout = _create_distribution_bar_graphs(train_column, test_column,
-                                                           max_num_categories, show_categories_by,
-                                                           dataset_names=dataset_names)
+        traces, y_layout = _create_distribution_bar_graphs(
+            train_column, test_column, max_num_categories, show_categories_by, dataset_names=dataset_names
+        )
 
         # NOTE:
         # the range, in this case, is needed to fix a problem with
@@ -182,32 +178,33 @@ def feature_distribution_traces(
         # The min value of the range (range(min. max)) is bigger because
         # otherwise bars will not be centralized on the plot, they will
         # appear on the left part of the plot (that is probably because of zero)
-        range_max = max_num_categories if len(set(train_column).union(test_column)) > max_num_categories \
+        range_max = (
+            max_num_categories
+            if len(set(train_column).union(test_column)) > max_num_categories
             else len(set(train_column).union(test_column))
-        xaxis_layout = dict(type='category', range=(-3, range_max + 2))
+        )
+        xaxis_layout = dict(type="category", range=(-3, range_max + 2))
         return traces, xaxis_layout, y_layout
     else:
         train_uniques, train_uniques_counts = np.unique(train_column, return_counts=True)
         test_uniques, test_uniques_counts = np.unique(test_column, return_counts=True)
 
-        x_range = (
-            min(train_column.min(), test_column.min()),
-            max(train_column.max(), test_column.max())
-        )
+        x_range = (min(train_column.min(), test_column.min()), max(train_column.max(), test_column.max()))
         x_width = x_range[1] - x_range[0]
 
         # If there are less than 20 total unique values, draw bar graph
         train_test_uniques = np.unique(np.concatenate([train_uniques, test_uniques]))
         if train_test_uniques.size < MAX_NUMERICAL_UNIQUE_FOR_BARS:
-            traces, y_layout = _create_distribution_bar_graphs(train_column, test_column, 20, show_categories_by,
-                                                               dataset_names=dataset_names)
+            traces, y_layout = _create_distribution_bar_graphs(
+                train_column, test_column, 20, show_categories_by, dataset_names=dataset_names
+            )
             x_range = (x_range[0] - x_width * 0.2, x_range[1] + x_width * 0.2)
-            xaxis_layout = dict(ticks='outside', tickmode='array', tickvals=train_test_uniques, range=x_range)
+            xaxis_layout = dict(ticks="outside", tickmode="array", tickvals=train_test_uniques, range=x_range)
             return traces, xaxis_layout, y_layout
 
         x_range_to_show = (
             min(np.quantile(train_column, quantile_cut), np.quantile(test_column, quantile_cut)),
-            max(np.quantile(train_column, 1 - quantile_cut), np.quantile(test_column, 1 - quantile_cut))
+            max(np.quantile(train_column, 1 - quantile_cut), np.quantile(test_column, 1 - quantile_cut)),
         )
         # Heuristically take points on x-axis to show on the plot
         # The intuition is the graph will look "smooth" wherever we will zoom it
@@ -216,12 +213,16 @@ def feature_distribution_traces(
         mean_test_column = np.mean(test_column)
         median_train_column = np.median(train_column)
         median_test_column = np.median(test_column)
-        xs = sorted(np.concatenate((
-            np.linspace(x_range[0], x_range[1], 50),
-            np.quantile(train_column, q=np.arange(0.02, 1, 0.02)),
-            np.quantile(test_column, q=np.arange(0.02, 1, 0.02)),
-            [mean_train_column, mean_test_column, median_train_column, median_test_column]
-        )))
+        xs = sorted(
+            np.concatenate(
+                (
+                    np.linspace(x_range[0], x_range[1], 50),
+                    np.quantile(train_column, q=np.arange(0.02, 1, 0.02)),
+                    np.quantile(test_column, q=np.arange(0.02, 1, 0.02)),
+                    [mean_train_column, mean_test_column, median_train_column, median_test_column],
+                )
+            )
+        )
 
         train_density = get_density(train_column, xs)
         test_density = get_density(test_column, xs)
@@ -229,35 +230,46 @@ def feature_distribution_traces(
 
         traces: List[go.BaseTraceType] = []
         if train_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
-            traces.append(go.Bar(
-                x=train_uniques,
-                y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
-                width=[bars_width] * train_uniques.size,
-                marker=dict(color=colors[DEFAULT_DATASET_NAMES[0]]),
-                name=dataset_names[0] + ' Dataset',
-            ))
+            traces.append(
+                go.Bar(
+                    x=train_uniques,
+                    y=_create_bars_data_for_mixed_kde_plot(train_uniques_counts, np.max(test_density)),
+                    width=[bars_width] * train_uniques.size,
+                    marker=dict(color=colors[DEFAULT_DATASET_NAMES[0]]),
+                    name=dataset_names[0] + " Dataset",
+                )
+            )
         else:
-            traces.extend(_create_distribution_scatter_plot(xs, train_density, mean_train_column, median_train_column,
-                                                            is_train=True, dataset_names=dataset_names))
+            traces.extend(
+                _create_distribution_scatter_plot(
+                    xs,
+                    train_density,
+                    mean_train_column,
+                    median_train_column,
+                    is_train=True,
+                    dataset_names=dataset_names,
+                )
+            )
 
         if test_uniques.size <= MAX_NUMERICAL_UNIQUES_FOR_SINGLE_DIST_BARS:
-            traces.append(go.Bar(
-                x=test_uniques,
-                y=_create_bars_data_for_mixed_kde_plot(test_uniques_counts, np.max(train_density)),
-                width=[bars_width] * test_uniques.size,
-                marker=dict(
-                    color=colors[DEFAULT_DATASET_NAMES[1]]
-                ),
-                name=dataset_names[1] + ' Dataset',
-            ))
+            traces.append(
+                go.Bar(
+                    x=test_uniques,
+                    y=_create_bars_data_for_mixed_kde_plot(test_uniques_counts, np.max(train_density)),
+                    width=[bars_width] * test_uniques.size,
+                    marker=dict(color=colors[DEFAULT_DATASET_NAMES[1]]),
+                    name=dataset_names[1] + " Dataset",
+                )
+            )
         else:
-            traces.extend(_create_distribution_scatter_plot(xs, test_density, mean_test_column, median_test_column,
-                                                            is_train=False, dataset_names=dataset_names))
+            traces.extend(
+                _create_distribution_scatter_plot(
+                    xs, test_density, mean_test_column, median_test_column, is_train=False, dataset_names=dataset_names
+                )
+            )
 
-        xaxis_layout = dict(fixedrange=False,
-                            range=x_range_to_show,
-                            title=column_name)
-        yaxis_layout = dict(title='Probability Density', fixedrange=True)
+        xaxis_layout = dict(fixedrange=False, range=x_range_to_show, title=column_name)
+        yaxis_layout = dict(title="Probability Density", fixedrange=True)
         return traces, xaxis_layout, yaxis_layout
 
 
@@ -268,30 +280,48 @@ def _create_bars_data_for_mixed_kde_plot(counts: np.ndarray, max_kde_value: floa
     return counts * normalize_factor
 
 
-def _create_distribution_scatter_plot(xs, ys, mean=None, median=None, is_train=True,
-                                      dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES) -> List[go.Scatter]:
+def _create_distribution_scatter_plot(
+    xs, ys, mean=None, median=None, is_train=True, dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+) -> List[go.Scatter]:
     traces = []
     name = dataset_names[0] if is_train else dataset_names[1]
     train_or_test = DEFAULT_DATASET_NAMES[0] if is_train else DEFAULT_DATASET_NAMES[1]
-    traces.append(go.Scatter(x=xs, y=ys, name=f'{name} Dataset', fill='tozeroy',
-                             line=dict(color=colors[train_or_test], shape='linear')))
+    traces.append(
+        go.Scatter(
+            x=xs, y=ys, name=f"{name} Dataset", fill="tozeroy", line=dict(color=colors[train_or_test], shape="linear")
+        )
+    )
     if mean:
         y_mean_index = np.argmax(xs == mean)
-        traces.append(go.Scatter(x=[mean, mean], y=[0, ys[y_mean_index]], name=f'{name} Mean',
-                                 line=dict(color=colors[train_or_test], dash='dash'), mode='lines+markers'))
+        traces.append(
+            go.Scatter(
+                x=[mean, mean],
+                y=[0, ys[y_mean_index]],
+                name=f"{name} Mean",
+                line=dict(color=colors[train_or_test], dash="dash"),
+                mode="lines+markers",
+            )
+        )
     if median:
         y_median_index = np.argmax(xs == median)
-        traces.append(go.Scatter(x=[median, median], y=[0, ys[y_median_index]], name=f'{name} Median',
-                                 line=dict(color=colors[train_or_test]), mode='lines'))
+        traces.append(
+            go.Scatter(
+                x=[median, median],
+                y=[0, ys[y_median_index]],
+                name=f"{name} Median",
+                line=dict(color=colors[train_or_test]),
+                mode="lines",
+            )
+        )
     return traces
 
 
 def _create_distribution_bar_graphs(
-        train_column: Union[np.ndarray, pd.Series],
-        test_column: Union[np.ndarray, pd.Series],
-        max_num_categories: int,
-        show_categories_by: CategoriesSortingKind,
-        dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES
+    train_column: Union[np.ndarray, pd.Series],
+    test_column: Union[np.ndarray, pd.Series],
+    max_num_categories: int,
+    show_categories_by: CategoriesSortingKind,
+    dataset_names: Tuple[str] = DEFAULT_DATASET_NAMES,
 ) -> Tuple[Any, Any]:
     """
     Create distribution bar graphs.
@@ -308,11 +338,11 @@ def _create_distribution_bar_graphs(
 
     expected_percents, actual_percents = expected / len(train_column), actual / len(test_column)
 
-    if show_categories_by == 'train_largest':
+    if show_categories_by == "train_largest":
         sort_func = lambda tup: tup[0]
-    elif show_categories_by == 'test_largest':
+    elif show_categories_by == "test_largest":
         sort_func = lambda tup: tup[1]
-    elif show_categories_by == 'largest_difference':
+    elif show_categories_by == "largest_difference":
         sort_func = lambda tup: np.abs(tup[0] - tup[1])
     else:
         raise DeepchecksValueError(
@@ -323,18 +353,14 @@ def _create_distribution_bar_graphs(
     # Sort the lists together according to the parameter show_categories_by (done by sorting zip and then using it again
     # to return the lists to the original 3 separate ones).
     # Afterwards, leave only the first max_num_categories values in each list.
-    distribution = sorted(
-        zip(expected_percents, actual_percents, categories_list),
-        key=sort_func,
-        reverse=True
-    )
+    distribution = sorted(zip(expected_percents, actual_percents, categories_list), key=sort_func, reverse=True)
     expected_percents, actual_percents, categories_list = zip(*distribution[:max_num_categories])
 
     # fixes plotly widget bug with numpy values by converting them to native values
     # https://github.com/plotly/plotly.py/issues/3470
     cat_df = pd.DataFrame(
-        {'Train dataset': expected_percents, 'Test dataset': actual_percents},
-        index=[un_numpy(cat) for cat in categories_list]
+        {"Train dataset": expected_percents, "Test dataset": actual_percents},
+        index=[un_numpy(cat) for cat in categories_list],
     )
 
     # Creating sorting function which works on both numbers and strings
@@ -350,23 +376,18 @@ def _create_distribution_bar_graphs(
     traces = [
         go.Bar(
             x=cat_df.index,
-            y=cat_df['Train dataset'],
+            y=cat_df["Train dataset"],
             marker=dict(color=colors[DEFAULT_DATASET_NAMES[0]]),
-            name=dataset_names[0] + ' Dataset',
+            name=dataset_names[0] + " Dataset",
         ),
         go.Bar(
             x=cat_df.index,
-            y=cat_df['Test dataset'],
+            y=cat_df["Test dataset"],
             marker=dict(color=colors[DEFAULT_DATASET_NAMES[1]]),
-            name=dataset_names[1] + ' Dataset',
-        )
+            name=dataset_names[1] + " Dataset",
+        ),
     ]
 
-    yaxis_layout = dict(
-        fixedrange=True,
-        autorange=True,
-        rangemode='normal',
-        title='Frequency'
-    )
+    yaxis_layout = dict(fixedrange=True, autorange=True, rangemode="normal", title="Frequency")
 
     return traces, yaxis_layout

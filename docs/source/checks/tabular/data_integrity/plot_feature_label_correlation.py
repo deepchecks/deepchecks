@@ -28,32 +28,32 @@ correlation for each feature label pair:
 3. categorical-categorical: `Symmetric Theil's U <https://en.wikipedia.org/wiki/Uncertainty_coefficient>`__
 """
 
-#%%
+# %%
 # Imports
 # =======
-
-import numpy as np
-import pandas as pd
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import FeatureLabelCorrelation
 
-#%%
+import numpy as np
+import pandas as pd
+
+# %%
 # Generate Data
 # ===============
 
-df = pd.DataFrame(np.random.randn(100, 3), columns=['x1', 'x2', 'x3'])
-df['x4'] = df['x1'] * 0.5 + df['x2']
-df['label'] = df['x2'] + 0.1 * df['x1']
-df['x5'] = df['label'].apply(lambda x: 'v1' if x < 0 else 'v2')
+df = pd.DataFrame(np.random.randn(100, 3), columns=["x1", "x2", "x3"])
+df["x4"] = df["x1"] * 0.5 + df["x2"]
+df["label"] = df["x2"] + 0.1 * df["x1"]
+df["x5"] = df["label"].apply(lambda x: "v1" if x < 0 else "v2")
 
-#%%
+# %%
 
-ds = Dataset(df, label='label', cat_features=[])
+ds = Dataset(df, label="label", cat_features=[])
 
-#%%
+# %%
 # Run the check
 # =================
 
-my_check = FeatureLabelCorrelation(ppscore_params={'sample': 10})
+my_check = FeatureLabelCorrelation(ppscore_params={"sample": 10})
 my_check.run(dataset=ds)

@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains checks of model evaluation."""
+
 from .boosting_overfit import BoostingOverfit
 from .calibration_score import CalibrationScore
 from .confusion_matrix_report import ConfusionMatrixReport
@@ -29,22 +30,22 @@ from .unused_features import UnusedFeatures
 from .weak_segments_performance import WeakSegmentsPerformance
 
 __all__ = [
-    'BoostingOverfit',
-    'CalibrationScore',
-    'ConfusionMatrixReport',
-    'ModelInferenceTime',
-    'ModelInfo',
-    'MultiModelPerformanceReport',
-    'TrainTestPerformance',
-    'RegressionErrorDistribution',
-    'RegressionSystematicError',
-    'RocReport',
-    'SegmentPerformance',
-    'SimpleModelComparison',
-    'TrainTestPredictionDrift',
-    'PredictionDrift',
-    'WeakSegmentsPerformance',
-    'UnusedFeatures',
-    'SingleDatasetPerformance',
-    'PerformanceBias'
+    "BoostingOverfit",
+    "CalibrationScore",
+    "ConfusionMatrixReport",
+    "ModelInferenceTime",
+    "ModelInfo",
+    "MultiModelPerformanceReport",
+    "TrainTestPerformance",
+    "RegressionErrorDistribution",
+    "RegressionSystematicError",
+    "RocReport",
+    "SegmentPerformance",
+    "SimpleModelComparison",
+    "TrainTestPredictionDrift",
+    "PredictionDrift",
+    "WeakSegmentsPerformance",
+    "UnusedFeatures",
+    "SingleDatasetPerformance",
+    "PerformanceBias",
 ]

@@ -9,12 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular abstractions."""
+
 # pylint: disable=broad-except
 import time
 from typing import List, Optional, Tuple, Union
-
-import numpy as np
-import pandas as pd
 
 from deepchecks.core import DatasetKind
 from deepchecks.core.check_result import CheckFailure
@@ -26,7 +24,10 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.utils.ipython import create_progress_bar
 from deepchecks.utils.typing import BasicModel
 
-__all__ = ['Suite']
+import numpy as np
+import pandas as pd
+
+__all__ = ["Suite"]
 
 
 class Suite(BaseSuite):
@@ -52,7 +53,7 @@ class Suite(BaseSuite):
         y_proba_train: Optional[np.ndarray] = None,
         y_proba_test: Optional[np.ndarray] = None,
         run_single_dataset: Optional[str] = None,
-        model_classes: Optional[List] = None
+        model_classes: Optional[List] = None,
     ) -> SuiteResult:
         """Run all checks.
 
@@ -85,14 +86,10 @@ class Suite(BaseSuite):
             y_pred_test=y_pred_test,
             y_proba_train=y_proba_train,
             y_proba_test=y_proba_test,
-            model_classes=model_classes
+            model_classes=model_classes,
         )
 
-        progress_bar = create_progress_bar(
-            iterable=list(self.checks.values()),
-            name=self.name,
-            unit='Check'
-        )
+        progress_bar = create_progress_bar(iterable=list(self.checks.values()), name=self.name, unit="Check")
 
         # Run all checks
         results = []
@@ -100,14 +97,14 @@ class Suite(BaseSuite):
             start = time.time()
 
             try:
-                progress_bar.set_postfix({'Check': check.name()}, refresh=False)
+                progress_bar.set_postfix({"Check": check.name()}, refresh=False)
                 if isinstance(check, TrainTestCheck):
                     if train_dataset is not None and test_dataset is not None:
                         check_result = check.run_logic(context)
                         context.finalize_check_result(check_result, check)
                         results.append(check_result)
                     else:
-                        msg = 'Check is irrelevant if not supplied with both train and test datasets'
+                        msg = "Check is irrelevant if not supplied with both train and test datasets"
                         results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, SingleDatasetCheck):
                     if train_dataset is not None and (run_single_dataset in [DatasetKind.TRAIN.value, None]):
@@ -118,9 +115,9 @@ class Suite(BaseSuite):
                             context.finalize_check_result(check_result, check, DatasetKind.TRAIN)
                             # In case of single dataset not need to edit the header
                             if test_dataset is not None:
-                                check_result.header = f'{check_result.get_header()} - Train Dataset'
+                                check_result.header = f"{check_result.get_header()} - Train Dataset"
                         except Exception as exp:
-                            check_result = CheckFailure(check, exp, ' - Train Dataset')
+                            check_result = CheckFailure(check, exp, " - Train Dataset")
                         results.append(check_result)
                     if test_dataset is not None and (run_single_dataset in [DatasetKind.TEST.value, None]):
                         try:
@@ -128,12 +125,12 @@ class Suite(BaseSuite):
                             context.finalize_check_result(check_result, check, DatasetKind.TEST)
                             # In case of single dataset not need to edit the header
                             if train_dataset is not None:
-                                check_result.header = f'{check_result.get_header()} - Test Dataset'
+                                check_result.header = f"{check_result.get_header()} - Test Dataset"
                         except Exception as exp:
-                            check_result = CheckFailure(check, exp, ' - Test Dataset')
+                            check_result = CheckFailure(check, exp, " - Test Dataset")
                         results.append(check_result)
                     if train_dataset is None and test_dataset is None:
-                        msg = 'Check is irrelevant if dataset is not supplied'
+                        msg = "Check is irrelevant if dataset is not supplied"
                         results.append(Suite._get_unsupported_failure(check, msg))
                 elif isinstance(check, ModelOnlyCheck):
                     if model is not None:
@@ -141,10 +138,10 @@ class Suite(BaseSuite):
                         context.finalize_check_result(check_result, check)
                         results.append(check_result)
                     else:
-                        msg = 'Check is irrelevant if model is not supplied'
+                        msg = "Check is irrelevant if model is not supplied"
                         results.append(Suite._get_unsupported_failure(check, msg))
                 else:
-                    raise TypeError(f'Don\'t know how to handle type {check.__class__.__name__} in suite.')
+                    raise TypeError(f"Don't know how to handle type {check.__class__.__name__} in suite.")
             except Exception as exp:
                 results.append(CheckFailure(check, exp))
 

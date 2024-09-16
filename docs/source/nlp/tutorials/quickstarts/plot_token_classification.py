@@ -50,13 +50,15 @@ For the purpose of this guide, we'll use a small subset of the
 `SCIERC <http://nlp.cs.washington.edu/sciIE/>`__ dataset:
 
 """
+
 from pprint import pprint
+
 from deepchecks.nlp import TextData
 from deepchecks.nlp.datasets.token_classification import scierc_ner
 
-train, test = scierc_ner.load_data(data_format='Dict')
-pprint(train['text'][0][:10])
-pprint(train['label'][0][:10])
+train, test = scierc_ner.load_data(data_format="Dict")
+pprint(train["text"][0][:10])
+pprint(train["label"][0][:10])
 
 # %%
 #
@@ -78,8 +80,8 @@ pprint(train['label'][0][:10])
 # define the task type.
 
 
-train = TextData(tokenized_text=train['text'], label=train['label'], task_type='token_classification')
-test = TextData(tokenized_text=test['text'], label=test['label'], task_type='token_classification')
+train = TextData(tokenized_text=train["text"], label=train["label"], task_type="token_classification")
+test = TextData(tokenized_text=test["text"], label=test["label"], task_type="token_classification")
 
 # %%
 # Calculating Properties
@@ -107,8 +109,8 @@ test = TextData(tokenized_text=test['text'], label=test['label'], task_type='tok
 
 train_properties, test_properties = scierc_ner.load_properties()
 
-train.set_properties(train_properties, categorical_properties=['Language'])
-test.set_properties(test_properties, categorical_properties=['Language'])
+train.set_properties(train_properties, categorical_properties=["Language"])
+test.set_properties(test_properties, categorical_properties=["Language"])
 
 train.properties.head(2)
 
@@ -131,6 +133,7 @@ train.properties.head(2)
 train_preds, test_preds = scierc_ner.load_precalculated_predictions()
 
 from deepchecks.nlp.checks import TrainTestPerformance
+
 check = TrainTestPerformance().add_condition_train_test_relative_degradation_less_than()
 result = check.run(train, test, train_predictions=train_preds, test_predictions=test_preds)
 result

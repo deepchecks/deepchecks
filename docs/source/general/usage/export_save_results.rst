@@ -4,9 +4,9 @@
 Exporting Deepchecks' Results
 =================================
 
-This guide will help you understand how to export deepchecks results, 
+This guide will help you understand how to export deepchecks results,
 which enables saving them for later viewing, sharing the analysis results as a report,
-sending to different tools, or for further processing steps 
+sending to different tools, or for further processing steps
 (e.g. in ci/cd for deciding whether a new model is good enough for deployment).
 
 We will discuss the two main export options, that are relevant for saving Check or Suite results:
@@ -36,9 +36,9 @@ Save as HTML
 .. code-block:: python
 
    result.save_as_html('my_results.html')
-   
 
-For the method's API reference, check out: :meth:`deepchecks.core.SuiteResult.save_as_html` or 
+
+For the method's API reference, check out: :meth:`deepchecks.core.SuiteResult.save_as_html` or
 :meth:`deepchecks.core.CheckResult.save_as_html` for saving a Suite or a Check's result, respectively.
 
 .. _export_save_results__export_to_json:
@@ -75,10 +75,10 @@ Parse resulting json string as dict and observe the JSON's structure:
    import json
 
    json_output = json.loads(serialized_output)
-   
+
    # to see output keys:
    json_output.keys()
-   
+
    # to see all JSON:
    json_output
 
@@ -93,7 +93,7 @@ See docstring in code or in method's API reference: :meth:`deepchecks.core.Check
    from deepchecks.core import CheckResult
 
    help(CheckResult.to_json)
-   
+
 Inspect the check results output keys and content to see how the checks name, parameters, etc. are saved.
 
 
@@ -134,14 +134,14 @@ See suite result json:
 View the Output Display from the JSON
 ---------------------------------------
 
-The serialized JSON can be used to reproduce the run in other Python scopes. The full display output 
+The serialized JSON can be used to reproduce the run in other Python scopes. The full display output
 can be viewed by using the :func:`deepchecks.utils.json_utils.from_json` function
-(which calls :meth:`deepchecks.core.SuiteResult.from_json` for a Suite's result 
+(which calls :meth:`deepchecks.core.SuiteResult.from_json` for a Suite's result
 or :meth:`deepchecks.core.CheckResult.from_json` for a Check's result).
 
 
 .. code-block:: python
 
    from deepchecks.utils.json_utils import from_json
-   
+
    from_json(serialized_output)

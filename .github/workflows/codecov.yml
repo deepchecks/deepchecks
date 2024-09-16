@@ -1,0 +1,29 @@
+name: Codecov
+on:
+  pull_request:
+    paths:
+      - 'deepchecks/**'
+      - 'tests/**'
+      - '.github/workflows/codecov.yml'
+
+  workflow_dispatch:
+jobs:
+  upload-coverage-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pipx install poetry
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: poetry
+
+      - run: poetry install
+      - run: poetry run pytest --cov=deepchecks --cov-report=xml
+      - uses: codecov/codecov-action@v4
+        with:
+          fail_ci_if_error: true
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    continue-on-error: true

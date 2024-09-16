@@ -9,12 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """String length outlier check."""
-from typing import Dict, List, Tuple, Union
 
-import numpy as np
-import pandas as pd
-from pandas import DataFrame, Series
-from scipy import stats
+from typing import Dict, List, Tuple, Union
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, SingleDatasetCheck
@@ -24,7 +20,12 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_number, format_percent, is_string_column
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['StringLengthOutOfBounds']
+import numpy as np
+import pandas as pd
+from pandas import DataFrame, Series
+from scipy import stats
+
+__all__ = ["StringLengthOutOfBounds"]
 
 
 class StringLengthOutOfBounds(SingleDatasetCheck):
@@ -82,7 +83,7 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         samples_per_range_to_show: int = 3,
         n_samples: int = 10_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -113,25 +114,28 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
             if column_name in dataset.cat_features or not is_string_column(column):
                 continue
 
-            results[column_name] = {'outliers': []}
+            results[column_name] = {"outliers": []}
             string_length_column = column.map(lambda x: len(str(x)))
 
             # If not a lot of unique values, calculate the percentiles for existing values.
             if string_length_column.nunique() < self.num_percentiles:
                 string_length_column = string_length_column.sort_values()
-                quantile_list = 100 * stats.rankdata(string_length_column, 'ordinal') / len(string_length_column)
-                percentile_histogram = {quantile_list[i]: string_length_column.iloc[i] for i in
-                                        range(len(string_length_column))}
+                quantile_list = 100 * stats.rankdata(string_length_column, "ordinal") / len(string_length_column)
+                percentile_histogram = {
+                    quantile_list[i]: string_length_column.iloc[i] for i in range(len(string_length_column))
+                }
             else:
                 quantile_list = list(np.linspace(0.0, 100.0, self.num_percentiles + 1))
-                quantile_values = np.percentile(string_length_column, quantile_list, interpolation='nearest')
+                quantile_values = np.percentile(string_length_column, quantile_list, interpolation="nearest")
                 percentile_histogram = dict(zip(quantile_list, list(quantile_values)))
 
-            outlier_sections = outlier_on_percentile_histogram(percentile_histogram, self.inner_quantile_range,
-                                                               self.outlier_factor)
+            outlier_sections = outlier_on_percentile_histogram(
+                percentile_histogram, self.inner_quantile_range, self.outlier_factor
+            )
             if outlier_sections:
-                quantiles_not_in_section = \
-                    [x for x in quantile_list if all((not _in_range(x, a, b)) for a, b in outlier_sections)]
+                quantiles_not_in_section = [
+                    x for x in quantile_list if all((not _in_range(x, a, b)) for a, b in outlier_sections)
+                ]
                 non_outlier_section = (min(quantiles_not_in_section), max(quantiles_not_in_section))
 
                 non_outlier_lower_limit = percentile_histogram[non_outlier_section[0]]
@@ -139,56 +143,63 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
 
                 # add to result
                 for outlier_section in outlier_sections:
-                    lower_range, upper_range = self._filter_outlier_section(percentile_histogram[outlier_section[0]],
-                                                                            percentile_histogram[outlier_section[1]],
-                                                                            non_outlier_lower_limit,
-                                                                            non_outlier_upper_limit)
+                    lower_range, upper_range = self._filter_outlier_section(
+                        percentile_histogram[outlier_section[0]],
+                        percentile_histogram[outlier_section[1]],
+                        non_outlier_lower_limit,
+                        non_outlier_upper_limit,
+                    )
                     if lower_range > upper_range:
                         continue
 
                     outlier_samples = string_length_column[
-                        string_length_column.between(lower_range, upper_range, inclusive='both')]
+                        string_length_column.between(lower_range, upper_range, inclusive="both")
+                    ]
 
                     if not outlier_samples.empty:
-                        outlier_examples = column[outlier_samples[:self.samples_per_range_to_show].index]
+                        outlier_examples = column[outlier_samples[: self.samples_per_range_to_show].index]
                         outlier_examples = [trim(x, self.outlier_length_to_show) for x in outlier_examples]
 
-                        results[column_name]['normal_range'] = {
-                            'min': non_outlier_lower_limit,
-                            'max': non_outlier_upper_limit
+                        results[column_name]["normal_range"] = {
+                            "min": non_outlier_lower_limit,
+                            "max": non_outlier_upper_limit,
                         }
-                        results[column_name]['n_samples'] = column.size
-                        results[column_name]['outliers'].append({
-                            'range': {'min': lower_range,
-                                      'max': upper_range
-                                      },
-                            'n_samples': outlier_samples.size
-                        })
+                        results[column_name]["n_samples"] = column.size
+                        results[column_name]["outliers"].append(
+                            {"range": {"min": lower_range, "max": upper_range}, "n_samples": outlier_samples.size}
+                        )
 
                         if context.with_display:
-                            display_format.append([column_name,
-                                                   f'{format_number(non_outlier_lower_limit)} -'
-                                                   f' {format_number(non_outlier_upper_limit)}',
-                                                   f'{format_number(lower_range)} -'
-                                                   f' {format_number(upper_range)}',
-                                                   f'{outlier_samples.size}',
-                                                   outlier_examples
-                                                   ])
+                            display_format.append(
+                                [
+                                    column_name,
+                                    f"{format_number(non_outlier_lower_limit)} -"
+                                    f" {format_number(non_outlier_upper_limit)}",
+                                    f"{format_number(lower_range)} -" f" {format_number(upper_range)}",
+                                    f"{outlier_samples.size}",
+                                    outlier_examples,
+                                ]
+                            )
 
         # Create dataframe to display graph
         if display_format:
-            df_graph = DataFrame(display_format,
-                                 columns=['Column Name',
-                                          'Range of Detected Normal String Lengths',
-                                          'Range of Detected Outlier String Lengths',
-                                          'Number of Outlier Samples',
-                                          'Example Samples'])
-            df_graph = df_graph.set_index(['Column Name',
-                                           'Range of Detected Normal String Lengths',
-                                           'Range of Detected Outlier String Lengths'])
+            df_graph = DataFrame(
+                display_format,
+                columns=[
+                    "Column Name",
+                    "Range of Detected Normal String Lengths",
+                    "Range of Detected Outlier String Lengths",
+                    "Number of Outlier Samples",
+                    "Example Samples",
+                ],
+            )
+            df_graph = df_graph.set_index(
+                ["Column Name", "Range of Detected Normal String Lengths", "Range of Detected Outlier String Lengths"]
+            )
 
-            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
-                                                   self.n_top_columns, col='Column Name')
+            df_graph = column_importance_sorter_df(
+                df_graph, dataset, context.feature_importance, self.n_top_columns, col="Column Name"
+            )
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
             display = None
@@ -201,8 +212,9 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
 
         non_outlier_range_average = (non_outlier_upper_range + non_outlier_lower_range) / 2
 
-        minimum_difference = max(self.min_length_difference,
-                                 self.min_length_ratio_difference * non_outlier_range_average)
+        minimum_difference = max(
+            self.min_length_difference, self.min_length_ratio_difference * non_outlier_range_average
+        )
         if lower_range_distance > 0:
             if lower_range_distance < minimum_difference:
                 lower_range += minimum_difference - lower_range_distance
@@ -220,24 +232,27 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         max_outliers : int , default: 0
             Number of string length outliers which is the maximum allowed.
         """
+
         def compare_outlier_count(result: Dict) -> ConditionResult:
             not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
-                total_outliers = sum((outlier['n_samples'] for outlier in column['outliers']))
+                total_outliers = sum((outlier["n_samples"] for outlier in column["outliers"]))
                 if total_outliers > max_outliers:
                     not_passing_columns[column_name] = total_outliers
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} out of {len(result)} columns with number of outliers ' \
-                          f'above threshold: {not_passing_columns}'
+                details = (
+                    f"Found {len(not_passing_columns)} out of {len(result)} columns with number of outliers "
+                    f"above threshold: {not_passing_columns}"
+                )
                 return ConditionResult(ConditionCategory.FAIL, details)
             else:
-                details = f'Passed for {len(result)} columns'
+                details = f"Passed for {len(result)} columns"
                 return ConditionResult(ConditionCategory.PASS, details)
 
         return self.add_condition(
-            f'Number of string length outliers is less or equal to {max_outliers}',
-            compare_outlier_count)
+            f"Number of string length outliers is less or equal to {max_outliers}", compare_outlier_count
+        )
 
     def add_condition_ratio_of_outliers_less_or_equal(self, max_ratio: float = 0):
         """Add condition - require column's ratio of string length outliers to be less or equal to threshold.
@@ -247,28 +262,32 @@ class StringLengthOutOfBounds(SingleDatasetCheck):
         max_ratio : float , default: 0
             Maximum allowed string length outliers ratio.
         """
+
         def compare_outlier_ratio(result: Dict):
             not_passing_columns = {}
             for column_name in result.keys():
                 column = result[column_name]
-                total_outliers = sum((outlier['n_samples'] for outlier in column['outliers']))
-                ratio = total_outliers / column['n_samples'] if total_outliers > 0 else 0
+                total_outliers = sum((outlier["n_samples"] for outlier in column["outliers"]))
+                ratio = total_outliers / column["n_samples"] if total_outliers > 0 else 0
                 if ratio > max_ratio:
                     not_passing_columns[column_name] = format_percent(ratio)
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} out of {len(result)} relevant columns with outliers ' \
-                          f'ratio above threshold: {not_passing_columns}'
+                details = (
+                    f"Found {len(not_passing_columns)} out of {len(result)} relevant columns with outliers "
+                    f"ratio above threshold: {not_passing_columns}"
+                )
                 return ConditionResult(ConditionCategory.WARN, details)
             else:
                 return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
         return self.add_condition(
-            f'Ratio of string length outliers is less or equal to {format_percent(max_ratio)}',
-            compare_outlier_ratio)
+            f"Ratio of string length outliers is less or equal to {format_percent(max_ratio)}", compare_outlier_ratio
+        )
 
 
-def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iqr_percent: float = 85,
-                                    outlier_factor: float = 5) -> Tuple[Tuple[float, float]]:
+def outlier_on_percentile_histogram(
+    percentile_histogram: Dict[float, float], iqr_percent: float = 85, outlier_factor: float = 5
+) -> Tuple[Tuple[float, float]]:
     """Get outlier ranges on histogram.
 
     Parameters
@@ -285,11 +304,11 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
         percent ranges in the histogram that are outliers, empty tuple if none is found
     """
     if any((k < 0) or k > 100 for k in percentile_histogram.keys()):
-        raise ValueError('dict keys must be percentiles between 0 and 100')
+        raise ValueError("dict keys must be percentiles between 0 and 100")
     if any((v < 0) for v in percentile_histogram.values()):
-        raise ValueError('dict values must be counts that are non-negative numbers')
+        raise ValueError("dict values must be counts that are non-negative numbers")
 
-    percentile_df = pd.DataFrame.from_dict(percentile_histogram, orient='index')
+    percentile_df = pd.DataFrame.from_dict(percentile_histogram, orient="index")
 
     # calculate IQR with iqr_percent
     closest_point_upper = np.argmin(np.abs(iqr_percent - percentile_df.index.values))
@@ -299,8 +318,7 @@ def outlier_on_percentile_histogram(percentile_histogram: Dict[float, float], iq
     iqr = np.abs(percentile_df.iloc[closest_point_upper] - percentile_df.iloc[closest_point_lower])
 
     outlier_df = percentile_df[
-        (np.abs(percentile_df - percentile_df.iloc[center_point])
-         > outlier_factor * iqr / 2).values
+        (np.abs(percentile_df - percentile_df.iloc[center_point]) > outlier_factor * iqr / 2).values
     ]
 
     outlier_section_list = []
@@ -322,4 +340,4 @@ def _in_range(x, a, b):
 def trim(x, max_length):
     if len(x) <= max_length:
         return x
-    return x[:max_length] + '...'
+    return x[:max_length] + "..."

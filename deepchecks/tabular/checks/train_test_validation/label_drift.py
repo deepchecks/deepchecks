@@ -19,7 +19,7 @@ from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.tabular.utils.task_type import TaskType
 from deepchecks.utils.abstracts.label_drift import LabelDriftAbstract
 
-__all__ = ['LabelDrift']
+__all__ = ["LabelDrift"]
 
 
 class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
@@ -90,20 +90,20 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
     """
 
     def __init__(
-            self,
-            margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: int = None,
-            min_category_size_ratio: float = 0.01,
-            max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'largest_difference',
-            numerical_drift_method: str = 'KS',
-            categorical_drift_method: str = 'cramers_v',
-            balance_classes: bool = False,
-            ignore_na: bool = False,
-            min_samples: int = 10,
-            n_samples: int = 100_000,
-            random_state: int = 42,
-            **kwargs
+        self,
+        margin_quantile_filter: float = 0.025,
+        max_num_categories_for_drift: int = None,
+        min_category_size_ratio: float = 0.01,
+        max_num_categories_for_display: int = 10,
+        show_categories_by: str = "largest_difference",
+        numerical_drift_method: str = "KS",
+        categorical_drift_method: str = "cramers_v",
+        balance_classes: bool = False,
+        ignore_na: bool = False,
+        min_samples: int = 10,
+        n_samples: int = 100_000,
+        random_state: int = 42,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.margin_quantile_filter = margin_quantile_filter
@@ -131,14 +131,20 @@ class LabelDrift(TrainTestCheck, LabelDriftAbstract, ReduceLabelMixin):
         train_dataset = context.train.sample(self.n_samples, random_state=self.random_state)
         test_dataset = context.test.sample(self.n_samples, random_state=self.random_state)
 
-        column_type = 'categorical' if context.task_type != TaskType.REGRESSION else 'numerical'
+        column_type = "categorical" if context.task_type != TaskType.REGRESSION else "numerical"
 
-        return self._calculate_label_drift(train_dataset.label_col, test_dataset.label_col, train_dataset.label_name,
-                                           column_type, context.with_display, (train_dataset.name, test_dataset.name))
+        return self._calculate_label_drift(
+            train_dataset.label_col,
+            test_dataset.label_col,
+            train_dataset.label_name,
+            column_type,
+            context.with_display,
+            (train_dataset.name, test_dataset.name),
+        )
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return label drift score."""
-        return {'Label Drift Score': check_result.value['Drift score']}
+        return {"Label Drift Score": check_result.value["Drift score"]}
 
     def greater_is_better(self):
         """Return True if the check reduce_output is better when it is greater."""

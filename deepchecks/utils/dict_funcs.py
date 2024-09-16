@@ -10,7 +10,7 @@
 #
 """Contain common functions on dictionaries."""
 
-__all__ = ['get_dict_entry_by_value', 'sort_dict']
+__all__ = ["get_dict_entry_by_value", "sort_dict"]
 
 
 def get_dict_entry_by_value(x: dict, value_select_fn=max):

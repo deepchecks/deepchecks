@@ -9,6 +9,7 @@
 # ----------------------------------------------------------------------------
 #
 """String functions."""
+
 import io
 import itertools
 import json
@@ -23,6 +24,11 @@ from datetime import datetime
 from decimal import Decimal
 from string import ascii_uppercase, digits
 
+import deepchecks
+from deepchecks import core
+from deepchecks.core.resources import jupyterlab_plotly_script, requirejs_script, suite_template, widgets_script
+from deepchecks.utils.typing import Hashable
+
 import numpy as np
 import pandas as pd
 from ipywidgets import Widget
@@ -30,38 +36,33 @@ from ipywidgets.embed import dependency_state, embed_data, escape_script, snippe
 from packaging.version import Version
 from pandas.core.dtypes.common import is_numeric_dtype
 
-import deepchecks
-from deepchecks import core
-from deepchecks.core.resources import jupyterlab_plotly_script, requirejs_script, suite_template, widgets_script
-from deepchecks.utils.typing import Hashable
-
 __all__ = [
-    'string_baseform',
-    'get_base_form_to_variants_dict',
-    'split_camel_case',
-    'split_and_keep',
-    'split_by_order',
-    'is_string_column',
-    'format_percent',
-    'format_number',
-    'format_list',
-    'get_random_string',
-    'format_datetime',
-    'get_docs_summary',
-    'truncate_string',
-    'to_snake_case',
-    'create_new_file_name',
-    'widget_to_html',
-    'generate_check_docs_link',
-    'widget_to_html_string',
-    'format_number_if_not_nan',
-    'get_docs_link'
+    "string_baseform",
+    "get_base_form_to_variants_dict",
+    "split_camel_case",
+    "split_and_keep",
+    "split_by_order",
+    "is_string_column",
+    "format_percent",
+    "format_number",
+    "format_list",
+    "get_random_string",
+    "format_datetime",
+    "get_docs_summary",
+    "truncate_string",
+    "to_snake_case",
+    "create_new_file_name",
+    "widget_to_html",
+    "generate_check_docs_link",
+    "widget_to_html_string",
+    "format_number_if_not_nan",
+    "get_docs_link",
 ]
 
 # Creating a translation table for the string.translate() method to be used in string base-form method
 SPECIAL_CHARACTERS = tuple(c for c in map(chr, range(sys.maxunicode)) if not c.isalnum())
-DEL_CHARS = ''.join(SPECIAL_CHARACTERS)
-DEL_MAP = str.maketrans('', '', DEL_CHARS)
+DEL_CHARS = "".join(SPECIAL_CHARACTERS)
+DEL_MAP = str.maketrans("", "", DEL_CHARS)
 
 
 def truncate_string(long_string: str, max_length: int):
@@ -81,7 +82,7 @@ def truncate_string(long_string: str, max_length: int):
     """
     if len(long_string) <= max_length:
         return long_string
-    return long_string[:max_length] + '...'
+    return long_string[:max_length] + "..."
 
 
 def get_docs_summary(obj, with_doc_link: bool = True):
@@ -98,26 +99,26 @@ def get_docs_summary(obj, with_doc_link: bool = True):
     str
         the object summary.
     """
-    if hasattr(obj.__class__, '__doc__'):
-        docs = obj.__class__.__doc__ or ''
+    if hasattr(obj.__class__, "__doc__"):
+        docs = obj.__class__.__doc__ or ""
         # Take first non-whitespace line.
-        summary = next((s for s in docs.split('\n') if not re.match('^\\s*$', s)), '')
+        summary = next((s for s in docs.split("\n") if not re.match("^\\s*$", s)), "")
 
         if with_doc_link:
             link = generate_check_docs_link(obj)
             summary += f' <a href="{link}" target="_blank">Read More...</a>'
 
         return summary
-    return ''
+    return ""
 
 
 def widget_to_html(
     widget: Widget,
     html_out: t.Union[str, io.TextIOWrapper],
-    title: str = '',
+    title: str = "",
     requirejs: bool = True,
     connected: bool = True,
-    full_html: bool = True
+    full_html: bool = True,
 ):
     """Save widget as html file.
 
@@ -140,27 +141,27 @@ def widget_to_html(
     data = embed_data(views=[widget], drop_defaults=True, state=state)
 
     snippet = snippet_template.format(
-        load='',  # will be added below
-        json_data=escape_script(json.dumps(data['manager_state'], default=json_encoder)),
-        widget_views='\n'.join(
+        load="",  # will be added below
+        json_data=escape_script(json.dumps(data["manager_state"], default=json_encoder)),
+        widget_views="\n".join(
             widget_view_template.format(view_spec=escape_script(json.dumps(view_spec, default=json_encoder)))
-            for view_spec in data['view_specs']
-        )
+            for view_spec in data["view_specs"]
+        ),
     )
 
     template = suite_template(full_html=full_html)
-    html = template.replace('$Title', title).replace('$WidgetSnippet', snippet)
+    html = template.replace("$Title", title).replace("$WidgetSnippet", snippet)
 
     # if connected is True widgets js library will load jupyterlab-plotly by itself
-    jupyterlab_plotly_lib = jupyterlab_plotly_script(False) if connected is False else ''
+    jupyterlab_plotly_lib = jupyterlab_plotly_script(False) if connected is False else ""
 
-    requirejs_lib = requirejs_script(connected) if requirejs else ''
+    requirejs_lib = requirejs_script(connected) if requirejs else ""
     widgetsjs_lib = widgets_script(connected, amd_module=requirejs)
-    tags = f'{requirejs_lib}{jupyterlab_plotly_lib}{widgetsjs_lib}'
-    html = html.replace('$WidgetJavascript', tags)
+    tags = f"{requirejs_lib}{jupyterlab_plotly_lib}{widgetsjs_lib}"
+    html = html.replace("$WidgetJavascript", tags)
 
     if isinstance(html_out, str):
-        with open(html_out, 'w', encoding='utf-8') as f:
+        with open(html_out, "w", encoding="utf-8") as f:
             f.write(html)
     elif isinstance(html_out, (io.TextIOBase, io.TextIOWrapper)):
         html_out.write(html)
@@ -171,7 +172,7 @@ def widget_to_html(
 
 def widget_to_html_string(
     widget: Widget,
-    title: str = '',
+    title: str = "",
     requirejs: bool = True,
     connected: bool = True,
     full_html: bool = True,
@@ -197,12 +198,7 @@ def widget_to_html_string(
     """
     buffer = io.StringIO()
     widget_to_html(
-        widget=widget,
-        html_out=buffer,
-        title=title,
-        requirejs=requirejs,
-        connected=connected,
-        full_html=full_html
+        widget=widget, html_out=buffer, title=title, requirejs=requirejs, connected=connected, full_html=full_html
     )
     buffer.seek(0)
     return buffer.getvalue()
@@ -216,19 +212,19 @@ def get_docs_link():
     str
         the link to the docs.
     """
-    if deepchecks.__version__ and deepchecks.__version__ != 'dev':
+    if deepchecks.__version__ and deepchecks.__version__ != "dev":
         version_obj: Version = Version(deepchecks.__version__)
         # The version in the docs url is without the hotfix part
-        version = f'{version_obj.major}.{version_obj.minor}'
+        version = f"{version_obj.major}.{version_obj.minor}"
     else:
-        version = 'stable'
-    return f'https://docs.deepchecks.com/{version}/'
+        version = "stable"
+    return f"https://docs.deepchecks.com/{version}/"
 
 
 def generate_check_docs_link(check):
     """Create from check object a link to its example page in the docs."""
     if not isinstance(check, core.BaseCheck):
-        return ''
+        return ""
 
     module_path = type(check).__module__
 
@@ -240,14 +236,14 @@ def generate_check_docs_link(check):
     # Refer to the setup.py for more understanding
 
     if not (
-        module_path.startswith('deepchecks.tabular.checks')
-        or module_path.startswith('deepchecks.vision.checks')
-        or module_path.startswith('deepchecks.nlp.checks')
+        module_path.startswith("deepchecks.tabular.checks")
+        or module_path.startswith("deepchecks.vision.checks")
+        or module_path.startswith("deepchecks.nlp.checks")
     ):
         # not builtin check, cannot generate link to the docs
-        return ''
+        return ""
 
-    link_postfix = '.html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link'
+    link_postfix = ".html?utm_source=display_output&utm_medium=referral&utm_campaign=check_link"
 
     # compare check full name and link to the notebook to
     # understand how link is formatted:
@@ -256,8 +252,8 @@ def generate_check_docs_link(check):
     # - https://docs.deepchecks.com/{version}/tabular/auto_checks/integrity/plot_string_mismatch_comparison.html # noqa: E501 # pylint: disable=line-too-long
 
     # Remove 'deepchecks' from the start and 'checks' from the middle
-    _, subpackage, _, module, file = type(check).__module__.split('.')
-    return f'{get_docs_link()}{subpackage}/auto_checks/{module}/plot_{file}{link_postfix}'
+    _, subpackage, _, module, file = type(check).__module__.split(".")
+    return f"{get_docs_link()}{subpackage}/auto_checks/{module}/plot_{file}{link_postfix}"
 
 
 def get_random_string(n: int = 5):
@@ -273,7 +269,7 @@ def get_random_string(n: int = 5):
     str
         a random string
     """
-    return ''.join(random.choices(ascii_uppercase + digits, k=n))
+    return "".join(random.choices(ascii_uppercase + digits, k=n))
 
 
 def string_baseform(string: str, allow_empty_result: bool = False) -> str:
@@ -325,7 +321,7 @@ def split_camel_case(string: str) -> str:
     string : str
         string to change
     """
-    return ' '.join(re.findall('[A-Z][^A-Z]*', string))
+    return " ".join(re.findall("[A-Z][^A-Z]*", string))
 
 
 def to_snake_case(value: str) -> str:
@@ -341,7 +337,7 @@ def to_snake_case(value: str) -> str:
     str
         transformed value
     """
-    return split_camel_case(value).strip().replace(' ', '_')
+    return split_camel_case(value).strip().replace(" ", "_")
 
 
 def get_base_form_to_variants_dict(uniques: t.Iterable[str]) -> t.Dict[str, t.Set[str]]:
@@ -377,7 +373,7 @@ def str_min_find(s: str, substr_list: t.Iterable[str]) -> t.Tuple[int, str]:
 
     """
     min_find = -1
-    min_substr = ''
+    min_substr = ""
     for substr in substr_list:
         first_find = s.find(substr)
         if first_find != -1 and (first_find < min_find or min_find == -1):
@@ -461,13 +457,14 @@ def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.
 def truncate_zero_percent(ratio: float, floating_point: int):
     """Display ratio as percent without trailing zeros."""
     if floating_point == 0:  # if 0, then rstrip will strip zeros from the integer part of the percent.
-        return f'{ratio * 100:.{floating_point}f}' + '%'
+        return f"{ratio * 100:.{floating_point}f}" + "%"
 
-    return f'{ratio * 100:.{floating_point}f}'.rstrip('0').rstrip('.') + '%'
+    return f"{ratio * 100:.{floating_point}f}".rstrip("0").rstrip(".") + "%"
 
 
-def format_percent(ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4,
-                   add_positive_prefix: bool = False) -> str:
+def format_percent(
+    ratio: float, floating_point: int = 2, scientific_notation_threshold: int = 4, add_positive_prefix: bool = False
+) -> str:
     """Format percent for elegant display.
 
     Parameters
@@ -489,24 +486,24 @@ def format_percent(ratio: float, floating_point: int = 2, scientific_notation_th
     result: str
     if ratio < 0:
         ratio = -ratio
-        prefix = '-'
+        prefix = "-"
     else:
-        prefix = '+' if add_positive_prefix and ratio != 0 else ''
+        prefix = "+" if add_positive_prefix and ratio != 0 else ""
 
     if int(ratio) == ratio:
-        result = f'{int(ratio) * 100}%'
+        result = f"{int(ratio) * 100}%"
     elif ratio > 1:
         result = truncate_zero_percent(ratio, floating_point)
-    elif ratio < 10**(-(2+floating_point)):
-        if ratio > 10**(-(2+scientific_notation_threshold)):
+    elif ratio < 10 ** (-(2 + floating_point)):
+        if ratio > 10 ** (-(2 + scientific_notation_threshold)):
             result = truncate_zero_percent(ratio, scientific_notation_threshold)
         else:
-            result = f'{Decimal(ratio * 100):.{floating_point}E}%'
-    elif ratio > (1-10**(-(2+floating_point))):
+            result = f"{Decimal(ratio * 100):.{floating_point}E}%"
+    elif ratio > (1 - 10 ** (-(2 + floating_point))):
         if floating_point > 0:
-            result = f'99.{"".join(["9"]*floating_point)}%'
+            result = f'99.{"".join(["9"] * floating_point)}%'
         else:
-            result = '99%'
+            result = "99%"
     else:
         result = truncate_zero_percent(ratio, floating_point)
 
@@ -527,19 +524,20 @@ def format_number(x, floating_point: int = 2) -> str:
     str
         String of beautified number
     """
+
     def add_commas(x):
-        return f'{x:,}'  # yes this actually formats the number 1000 to "1,000"
+        return f"{x:,}"  # yes this actually formats the number 1000 to "1,000"
 
     if np.isnan(x):
-        return 'nan'
+        return "nan"
 
     # 0 is lost in the next if case, so we have it here as a special use-case
     if x == 0:
-        return '0'
+        return "0"
 
     # If x is a very small number, that would be rounded to 0, we would prefer to return it as the format 1.0E-3.
     if abs(x) < 10 ** (-floating_point):
-        return f'{Decimal(x):.{floating_point}E}'
+        return f"{Decimal(x):.{floating_point}E}"
 
     # If x is an integer, or if x when rounded is an integer (e.g. 1.999999), then return as integer:
     if round(x) == round(x, floating_point):
@@ -548,7 +546,7 @@ def format_number(x, floating_point: int = 2) -> str:
     # If not, return as a float, but don't print unnecessary zeros at end:
     else:
         ret_x = round(x, floating_point)
-        return add_commas(ret_x).rstrip('0')
+        return add_commas(ret_x).rstrip("0")
 
 
 def format_number_if_not_nan(x, floating_point: int = 2):
@@ -587,13 +585,13 @@ def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_
         String of beautified list
     """
     string_list = [str(i) for i in l[:max_elements_to_show]]
-    output = ', '.join(string_list)
+    output = ", ".join(string_list)
 
     if len(output) > max_string_length:
-        return output[:max_string_length] + '...'
+        return output[:max_string_length] + "..."
 
     if len(l) > max_elements_to_show:
-        return output + ', ...'
+        return output + ", ..."
 
     return output
 
@@ -621,17 +619,17 @@ def format_datetime(
     elif isinstance(value, (int, float)):
         datetime_value = datetime.fromtimestamp(value)
     else:
-        raise ValueError(f'Unsupported value type - {type(value).__name__}')
+        raise ValueError(f"Unsupported value type - {type(value).__name__}")
 
     if datetime_value.hour == 0 and datetime_value.minute == 0 and datetime_value.second == 0:
-        return datetime_value.strftime('%Y-%m-%d')
+        return datetime_value.strftime("%Y-%m-%d")
     elif (datetime_value.hour != 0 or datetime_value.minute != 0) and datetime_value.second == 0:
-        return datetime_value.strftime('%Y-%m-%d %H:%M')
+        return datetime_value.strftime("%Y-%m-%d %H:%M")
     else:
-        return datetime_value.strftime('%Y-%m-%d %H:%M:%S')
+        return datetime_value.strftime("%Y-%m-%d %H:%M:%S")
 
 
-def create_new_file_name(file_name: str, default_suffix: str = 'html'):
+def create_new_file_name(file_name: str, default_suffix: str = "html"):
     """Return file name that isn't already exist (adding (X)).
 
     Parameters
@@ -646,16 +644,16 @@ def create_new_file_name(file_name: str, default_suffix: str = 'html'):
     str
         a new file name if the file exists
     """
-    if '.' in file_name:
-        basename, ext = file_name.rsplit('.', 1)
+    if "." in file_name:
+        basename, ext = file_name.rsplit(".", 1)
     else:
         basename = file_name
         ext = default_suffix
-    file_name = f'{basename}.{ext}'
+    file_name = f"{basename}.{ext}"
     c = itertools.count()
     next(c)
     while os.path.exists(file_name):
-        file_name = f'{basename} ({str(next(c))}).{ext}'
+        file_name = f"{basename} ({str(next(c))}).{ext}"
     return file_name
 
 

@@ -16,7 +16,7 @@ receive with different parameters or model/data.
 * `Export Suite to wandb <#exporting-a-suite-s-output-suiteresult-to-wandb>`__
 """
 
-#%%
+# %%
 # Load Data
 # ---------
 
@@ -25,26 +25,25 @@ from deepchecks.tabular.datasets.classification import iris
 train_dataset, test_dataset = iris.load_data()
 model = iris.load_fitted_model()
 
-#%%
+# %%
 # Run a Check
 # -----------
 
 from deepchecks.tabular.checks import MultivariateDrift
 
-result = MultivariateDrift().add_condition_overall_drift_value_less_than(
-).run(train_dataset, test_dataset, model)
+result = MultivariateDrift().add_condition_overall_drift_value_less_than().run(train_dataset, test_dataset, model)
 
-#%%
+# %%
 # Observe CheckResult Display and Value
 # -------------------------------------
 
 result
 
-#%%
+# %%
 # the value can be observed
 result.value
 
-#%%
+# %%
 # Export a Check's Output (CheckResult) to wandb
 # ==============================================
 # Exporting the output to wandb is possible using the ``to_wandb`` function. This function
@@ -64,18 +63,18 @@ from deepchecks.core import CheckResult
 
 help(CheckResult.to_wandb)
 
-#%%
+# %%
 # To use this function you first need to login to your wandb account
 
 import wandb
 
 wandb.login()
 
-#%%
+# %%
 
 result.to_wandb()
 
-#%%
+# %%
 # Exporting a Suite's Output (SuiteResult) to wandb
 # =================================================
 # Run Suite and export to wandb
@@ -91,12 +90,12 @@ from deepchecks.tabular.suites import full_suite
 
 suite = full_suite()
 
-#%%
+# %%
 
 suite_result = suite.run(train_dataset=train_dataset, test_dataset=test_dataset, model=model)
 suite_result.to_wandb()
 
-#%%
+# %%
 # You can also set all the kwargs the wandb.init will get:
 
-suite_result.to_wandb(project='my-suite-project', config={'suite-name': 'full-suite'})
+suite_result.to_wandb(project="my-suite-project", config={"suite-name": "full-suite"})

@@ -57,26 +57,26 @@ Dua, D. and Graff, C. (2019). UCI Machine Learning Repository [http://archive.ic
 Irvine, CA: University of California, School of Information and Computer Science.
 """
 
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.datasets.classification import adult
 
-train_df, val_df = adult.load_data(data_format='Dataframe')
+import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
+train_df, val_df = adult.load_data(data_format="Dataframe")
 
 # Run label encoder on all categorical columns
 for column in train_df.columns:
-    if train_df[column].dtype == 'object':
+    if train_df[column].dtype == "object":
         le = LabelEncoder()
         le.fit(pd.concat([train_df[column], val_df[column]]))
         train_df[column] = le.transform(train_df[column])
         val_df[column] = le.transform(val_df[column])
 
-train_ds = Dataset(train_df, label='income')
-validation_ds = Dataset(val_df, label='income')
+train_ds = Dataset(train_df, label="income")
+validation_ds = Dataset(val_df, label="income")
 
-#%%
+# %%
 # Classification model
 # --------------------
 # We use the AdaBoost boosting algorithm with a decision tree as weak learner.
@@ -86,7 +86,7 @@ from sklearn.ensemble import AdaBoostClassifier
 clf = AdaBoostClassifier(random_state=0, n_estimators=100)
 clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
 
-#%%
+# %%
 # Run the check
 # ==============
 from deepchecks.tabular.checks import BoostingOverfit
@@ -94,7 +94,7 @@ from deepchecks.tabular.checks import BoostingOverfit
 result = BoostingOverfit().run(train_ds, validation_ds, clf)
 result
 
-#%%
+# %%
 # Define a condition
 # ==================
 # Now, we define a condition that will validate if the percent of decline between the maximal score achieved in any

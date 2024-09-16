@@ -25,26 +25,27 @@ class WholeDatasetDrift(MultivariateDrift):
     """
 
     def __init__(
-            self,
-            n_top_columns: int = 3,
-            min_feature_importance: float = 0.05,
-            max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'largest_difference',
-            n_samples: int = 10_000,
-            random_state: int = 42,
-            test_size: float = 0.3,
-            min_meaningful_drift_score: float = 0.05,
-            **kwargs
+        self,
+        n_top_columns: int = 3,
+        min_feature_importance: float = 0.05,
+        max_num_categories_for_display: int = 10,
+        show_categories_by: str = "largest_difference",
+        n_samples: int = 10_000,
+        random_state: int = 42,
+        test_size: float = 0.3,
+        min_meaningful_drift_score: float = 0.05,
+        **kwargs,
     ):
-
         warnings.warn(
-            'The WholeDatasetDrift check is deprecated and will be removed in the 0.11 version. '
-            'Please use the MultivariateDrift check instead.',
-            DeprecationWarning, stacklevel=2
+            "The WholeDatasetDrift check is deprecated and will be removed in the 0.11 version. "
+            "Please use the MultivariateDrift check instead.",
+            DeprecationWarning,
+            stacklevel=2,
         )
 
         MultivariateDrift.__init__(
-            self, n_top_columns,
+            self,
+            n_top_columns,
             min_feature_importance,
             max_num_categories_for_display,
             show_categories_by,
@@ -52,5 +53,5 @@ class WholeDatasetDrift(MultivariateDrift):
             random_state,
             test_size,
             min_meaningful_drift_score,
-            **kwargs
+            **kwargs,
         )

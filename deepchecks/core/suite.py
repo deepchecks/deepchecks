@@ -10,6 +10,7 @@
 #
 # pylint: disable=unused-argument, import-outside-toplevel
 """Module containing the Suite object, used for running a set of checks together."""
+
 import abc
 import io
 import json
@@ -17,11 +18,6 @@ import pathlib
 import warnings
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
-
-import jsonpickle
-from bs4 import BeautifulSoup
-from ipywidgets import Widget
-from typing_extensions import Self, TypedDict
 
 from deepchecks import __version__
 from deepchecks.core import check_result as check_types
@@ -38,7 +34,12 @@ from deepchecks.utils.wandb_utils import wandb_run
 
 from . import common
 
-__all__ = ['BaseSuite', 'SuiteResult']
+import jsonpickle
+from bs4 import BeautifulSoup
+from ipywidgets import Widget
+from typing_extensions import Self, TypedDict
+
+__all__ = ["BaseSuite", "SuiteResult"]
 
 
 class SuiteConfig(TypedDict):
@@ -46,7 +47,7 @@ class SuiteConfig(TypedDict):
     class_name: str
     version: str
     name: str
-    checks: List['CheckConfig']
+    checks: List["CheckConfig"]
 
 
 class SuiteResult(DisplayableResult):
@@ -61,12 +62,12 @@ class SuiteResult(DisplayableResult):
 
     name: str
     extra_info: List[str]
-    results: List['check_types.BaseCheckResult']
+    results: List["check_types.BaseCheckResult"]
 
     def __init__(
         self,
         name: str,
-        results: List['check_types.BaseCheckResult'],
+        results: List["check_types.BaseCheckResult"],
         extra_info: Optional[List[str]] = None,
     ):
         """Initialize suite result."""
@@ -104,12 +105,11 @@ class SuiteResult(DisplayableResult):
                 else:
                     self.results_without_display.add(index)
             else:
-                raise TypeError(f'Unknown type of result - {type(result).__name__}')
+                raise TypeError(f"Unknown type of result - {type(result).__name__}")
 
-    def select_results(self, idx: Set[int] = None, names: Set[str] = None) -> List[Union[
-        'check_types.CheckResult',
-        'check_types.CheckFailure'
-    ]]:
+    def select_results(
+        self, idx: Set[int] = None, names: Set[str] = None
+    ) -> List[Union["check_types.CheckResult", "check_types.CheckFailure"]]:
         """Select results either by indexes or result header names.
 
         Parameters
@@ -127,12 +127,12 @@ class SuiteResult(DisplayableResult):
             A list of check results filtered either by the indexes or by their names.
         """
         if idx is None and names is None:
-            raise DeepchecksNotSupportedError('Either idx or names should be passed')
+            raise DeepchecksNotSupportedError("Either idx or names should be passed")
         if idx and names:
-            raise DeepchecksNotSupportedError('Only one of idx or names should be passed')
+            raise DeepchecksNotSupportedError("Only one of idx or names should be passed")
 
         if names:
-            names = [name.lower().replace('_', ' ').strip() for name in names]
+            names = [name.lower().replace("_", " ").strip() for name in names]
             output = [result for name in names for result in self.results if result.get_header().lower() == name]
         else:
             output = [result for index, result in enumerate(self.results) if index in idx]
@@ -149,19 +149,14 @@ class SuiteResult(DisplayableResult):
     ) -> str:
         """Return html representation of check result."""
         return widget_to_html_string(
-            self.to_widget(unique_id=unique_id or get_random_string(n=25)),
-            title=self.name,
-            requirejs=requirejs
+            self.to_widget(unique_id=unique_id or get_random_string(n=25)), title=self.name, requirejs=requirejs
         )
 
     def _repr_json_(self):
         return SuiteResultJsonSerializer(self).serialize()
 
     def _repr_mimebundle_(self, **kwargs):
-        return {
-            'text/html': self._repr_html_(),
-            'application/json': self._repr_json_()
-        }
+        return {"text/html": self._repr_html_(), "application/json": self._repr_json_()}
 
     @property
     def widget_serializer(self) -> SuiteResultWidgetSerializer:
@@ -178,12 +173,7 @@ class SuiteResult(DisplayableResult):
         """Return HtmlSerializer instance."""
         return SuiteResultHtmlSerializer(self)
 
-    def show(
-        self,
-        as_widget: bool = True,
-        unique_id: Optional[str] = None,
-        **kwargs
-    ) -> Optional[HTMLFormatter]:
+    def show(self, as_widget: bool = True, unique_id: Optional[str] = None, **kwargs) -> Optional[HTMLFormatter]:
         """Display result.
 
         Parameters
@@ -201,17 +191,9 @@ class SuiteResult(DisplayableResult):
         Optional[HTMLFormatter] :
             when used by sphinx-gallery
         """
-        return super().show(
-            as_widget,
-            unique_id or get_random_string(n=25),
-            **kwargs
-        )
+        return super().show(as_widget, unique_id or get_random_string(n=25), **kwargs)
 
-    def show_not_interactive(
-        self,
-        unique_id: Optional[str] = None,
-        **kwargs
-    ):
+    def show_not_interactive(self, unique_id: Optional[str] = None, **kwargs):
         """Display the not interactive version of result output.
 
         In this case, ipywidgets will not be used and plotly
@@ -225,10 +207,7 @@ class SuiteResult(DisplayableResult):
             other key-value arguments will be passed to the `Serializer.serialize`
             method
         """
-        return super().show_not_interactive(
-            unique_id or get_random_string(n=25),
-            **kwargs
-        )
+        return super().show_not_interactive(unique_id or get_random_string(n=25), **kwargs)
 
     def save_as_html(
         self,
@@ -237,7 +216,7 @@ class SuiteResult(DisplayableResult):
         requirejs: bool = True,
         unique_id: Optional[str] = None,
         connected: bool = False,
-        **kwargs
+        **kwargs,
     ):
         """Save output as html file.
 
@@ -275,7 +254,7 @@ class SuiteResult(DisplayableResult):
     def save_as_cml_markdown(
         self,
         file: str = None,
-        platform: str = 'github',
+        platform: str = "github",
         attach_html_report: bool = True,
     ):
         """Save a result to a markdown file to use with [CML](https://cml.dev).
@@ -301,68 +280,52 @@ class SuiteResult(DisplayableResult):
             name of newly create file.
         """
         if file is None:
-            file = './report.md'
+            file = "./report.md"
         elif isinstance(file, str):
             pass
         elif isinstance(file, io.TextIOWrapper):
-            raise NotImplementedError(
-                'io.TextIOWrapper is not yet supported for save_as_cml_markdown.'
-            )
+            raise NotImplementedError("io.TextIOWrapper is not yet supported for save_as_cml_markdown.")
 
         def format_conditions_table():
             conditions_table = SuiteResultHtmlSerializer(self).prepare_conditions_table()
             # conditions_table = self.html_serializer.prepare_conditions_table()
 
-            soup = BeautifulSoup(conditions_table, features='html.parser')
+            soup = BeautifulSoup(conditions_table, features="html.parser")
             soup.h2.extract()  # remove 'Conditions Table' redundant heading
             soup.style.extract()  # these are not rendered anyway
 
-            summary = soup.new_tag('summary')
+            summary = soup.new_tag("summary")
             summary.string = self.name
             soup.table.insert_before(summary)
 
-            soup = BeautifulSoup(
-                f'\n<details>{str(soup)}</details>\n',
-                features='html.parser'
-            )
+            soup = BeautifulSoup(f"\n<details>{str(soup)}</details>\n", features="html.parser")
             return soup
 
         soup = format_conditions_table()
         if not attach_html_report:
-            with open(file, 'w', encoding='utf-8') as handle:
+            with open(file, "w", encoding="utf-8") as handle:
                 handle.write(soup.prettify())
         else:
             # save full html report
             path = pathlib.Path(file)
-            html_file = str(
-                pathlib.Path(file).parent
-                .resolve()
-                .joinpath(path.stem+'.html')
-            )
+            html_file = str(pathlib.Path(file).parent.resolve().joinpath(path.stem + ".html"))
             self.save_as_html(html_file)
             # build string containing html report as an attachment
             # (hyperlink syntax gets processed as an attachment by cml)
-            if platform == 'gitlab':
-                soup.summary.string = f'![{soup.summary.string}]({html_file})'
+            if platform == "gitlab":
+                soup.summary.string = f"![{soup.summary.string}]({html_file})"
                 soup = soup.prettify()
-            elif platform == 'github':
-                soup = (
-                    soup.prettify() +
-                    f'\n> 📎 ![Full {self.name} Report]({html_file})\n'
-                )
+            elif platform == "github":
+                soup = soup.prettify() + f"\n> 📎 ![Full {self.name} Report]({html_file})\n"
             else:
-                error_message = 'Only \'github\' and \'gitlab\' are supported right now.'
-                error_message += '\nThough one of these formats '
-                error_message += 'might work for your target Git platform!'
+                error_message = "Only 'github' and 'gitlab' are supported right now."
+                error_message += "\nThough one of these formats "
+                error_message += "might work for your target Git platform!"
                 raise ValueError(error_message)
-            with open(file, 'w', encoding='utf-8') as file_handle:
+            with open(file, "w", encoding="utf-8") as file_handle:
                 file_handle.write(soup)
 
-    def to_widget(
-        self,
-        unique_id: Optional[str] = None,
-        **kwargs
-    ) -> Widget:
+    def to_widget(self, unique_id: Optional[str] = None, **kwargs) -> Widget:
         """Return SuiteResult as a ipywidgets.Widget instance.
 
         Parameters
@@ -390,16 +353,9 @@ class SuiteResult(DisplayableResult):
         -------
         str
         """
-        return jsonpickle.dumps(
-            SuiteResultJsonSerializer(self).serialize(with_display=with_display),
-            unpicklable=False
-        )
+        return jsonpickle.dumps(SuiteResultJsonSerializer(self).serialize(with_display=with_display), unpicklable=False)
 
-    def to_wandb(
-        self,
-        dedicated_run: Optional[bool] = None,
-        **kwargs
-    ):
+    def to_wandb(self, dedicated_run: Optional[bool] = None, **kwargs):
         """Send suite result to wandb.
 
         Parameters
@@ -422,16 +378,16 @@ class SuiteResult(DisplayableResult):
         if dedicated_run is not None:
             warnings.warn(
                 '"dedicated_run" parameter is deprecated and does not have effect anymore. '
-                'It will be remove in next versions.'
+                "It will be remove in next versions."
             )
 
-        wandb_kwargs = {'config': {'name': self.name}}
+        wandb_kwargs = {"config": {"name": self.name}}
         wandb_kwargs.update(**kwargs)
 
         with wandb_run(**wandb_kwargs) as run:
             run.log(WandbSerializer(self).serialize())
 
-    def get_not_ran_checks(self) -> List['check_types.CheckFailure']:
+    def get_not_ran_checks(self) -> List["check_types.CheckFailure"]:
         """Get all the check results which did not run (unable to run due to missing parameters, exception, etc).
 
         Returns
@@ -441,7 +397,7 @@ class SuiteResult(DisplayableResult):
         """
         return cast(List[check_types.CheckFailure], self.select_results(self.failures))
 
-    def get_not_passed_checks(self, fail_if_warning=True) -> List['check_types.CheckResult']:
+    def get_not_passed_checks(self, fail_if_warning=True) -> List["check_types.CheckResult"]:
         """Get all the check results that have not passing condition. This does not include checks that failed to run.
 
         Parameters
@@ -454,16 +410,10 @@ class SuiteResult(DisplayableResult):
         List[CheckResult]
             All the check results in the suite that have failing conditions.
         """
-        results = cast(
-            List[check_types.CheckResult],
-            self.select_results(self.results_with_conditions)
-        )
-        return [
-            r for r in results
-            if not r.passed_conditions(fail_if_warning)
-        ]
+        results = cast(List[check_types.CheckResult], self.select_results(self.results_with_conditions))
+        return [r for r in results if not r.passed_conditions(fail_if_warning)]
 
-    def get_passed_checks(self, fail_if_warning=True) -> List['check_types.CheckResult']:
+    def get_passed_checks(self, fail_if_warning=True) -> List["check_types.CheckResult"]:
         """Get all the check results that have passing condition. This does not include checks that failed to run.
 
         Parameters
@@ -476,14 +426,8 @@ class SuiteResult(DisplayableResult):
         List[CheckResult]
             All the check results in the suite that have failing conditions.
         """
-        results = cast(
-            List[check_types.CheckResult],
-            self.select_results(self.results_with_conditions)
-        )
-        return [
-            r for r in results
-            if r.passed_conditions(fail_if_warning)
-        ]
+        results = cast(List[check_types.CheckResult], self.select_results(self.results_with_conditions))
+        return [r for r in results if r.passed_conditions(fail_if_warning)]
 
     def passed(self, fail_if_warning: bool = True, fail_if_check_not_run: bool = False) -> bool:
         """Return whether this suite result has passed. Pass value is derived from condition results of all individual\
@@ -519,9 +463,9 @@ class SuiteResult(DisplayableResult):
             A suite result object.
         """
         json_dict = jsonpickle.loads(json_res)
-        name = json_dict['name']
+        name = json_dict["name"]
         results = []
-        for res in json_dict['results']:
+        for res in json_dict["results"]:
             results.append(check_types.BaseCheckResult.from_json(res))
         return SuiteResult(name, results)
 
@@ -543,11 +487,11 @@ class BaseSuite:
         """Return list of of supported check types."""
         pass
 
-    checks: 'OrderedDict[int, BaseCheck]'
+    checks: "OrderedDict[int, BaseCheck]"
     name: str
     _check_index: int
 
-    def __init__(self, name: str, *checks: Union[BaseCheck, 'BaseSuite']):
+    def __init__(self, name: str, *checks: Union[BaseCheck, "BaseSuite"]):
         self.name = name
         self.checks = OrderedDict()
         self._check_index = 0
@@ -556,17 +500,17 @@ class BaseSuite:
 
     def __repr__(self, tabs=0):
         """Representation of suite as string."""
-        tabs_str = '\t' * tabs
-        checks_str = ''.join([f'\n{c.__repr__(tabs + 1, str(n) + ": ")}' for n, c in self.checks.items()])
-        return f'{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]'
+        tabs_str = "\t" * tabs
+        checks_str = "".join([f'\n{c.__repr__(tabs + 1, str(n) + ": ")}' for n, c in self.checks.items()])
+        return f"{tabs_str}{self.name}: [{checks_str}\n{tabs_str}]"
 
     def __getitem__(self, index):
         """Access check inside the suite by name."""
         if index not in self.checks:
-            raise DeepchecksValueError(f'No index {index} in suite')
+            raise DeepchecksValueError(f"No index {index} in suite")
         return self.checks[index]
 
-    def add(self, check: Union['BaseCheck', 'BaseSuite']):
+    def add(self, check: Union["BaseCheck", "BaseSuite"]):
         """Add a check or a suite to current suite.
 
         Parameters
@@ -580,9 +524,7 @@ class BaseSuite:
             for c in check.checks.values():
                 self.add(c)
         elif not isinstance(check, self.supported_checks()):
-            raise DeepchecksValueError(
-                f'Suite received unsupported object type: {check.__class__.__name__}'
-            )
+            raise DeepchecksValueError(f"Suite received unsupported object type: {check.__class__.__name__}")
         else:
             self.checks[self._check_index] = check
             self._check_index += 1
@@ -597,7 +539,7 @@ class BaseSuite:
             Index of check to remove.
         """
         if index not in self.checks:
-            raise DeepchecksValueError(f'No index {index} in suite')
+            raise DeepchecksValueError(f"No index {index} in suite")
         self.checks.pop(index)
         return self
 
@@ -606,11 +548,7 @@ class BaseSuite:
         conf = self.config()
         return json.dumps(conf, indent=indent)
 
-    def from_json(
-        self,
-        conf: str,
-        version_unmatch: 'common.VersionUnmatchAction' = 'warn'
-    ) -> Self:
+    def from_json(self, conf: str, version_unmatch: "common.VersionUnmatchAction" = "warn") -> Self:
         """Deserialize suite instance from JSON string."""
         suite_conf = json.loads(conf)
         return self.from_config(suite_conf, version_unmatch=version_unmatch)
@@ -623,10 +561,7 @@ class BaseSuite:
         SuiteConfig
             includes the suite name, and list of check configs.
         """
-        checks = [
-            it.config(include_version=False)
-            for it in self.checks.values()
-        ]
+        checks = [it.config(include_version=False) for it in self.checks.values()]
         module_name, class_name = common.importable_name(self)
         return SuiteConfig(
             module_name=module_name,
@@ -638,9 +573,7 @@ class BaseSuite:
 
     @classmethod
     def from_config(
-        cls: Type[Self],
-        conf: SuiteConfig,
-        version_unmatch: 'common.VersionUnmatchAction' = 'warn'
+        cls: Type[Self], conf: SuiteConfig, version_unmatch: "common.VersionUnmatchAction" = "warn"
     ) -> Self:
         """Return suite object from a CheckConfig object.
 
@@ -659,35 +592,25 @@ class BaseSuite:
         suite_conf = cast(Dict[str, Any], conf)
         suite_conf = common.validate_config(suite_conf, version_unmatch)
 
-        if 'checks' not in suite_conf or not isinstance(suite_conf['checks'], list):
+        if "checks" not in suite_conf or not isinstance(suite_conf["checks"], list):
             raise ValueError('Configuration must contain "checks" key of type list')
 
-        if 'name' not in suite_conf or not isinstance(suite_conf['name'], str):
+        if "name" not in suite_conf or not isinstance(suite_conf["name"], str):
             raise ValueError('Configuration must contain "name" key of type string')
 
         suite_type = common.import_type(
-            module_name=suite_conf['module_name'],
-            type_name=suite_conf['class_name'],
-            base=cls
+            module_name=suite_conf["module_name"], type_name=suite_conf["class_name"], base=cls
         )
 
-        checks = [
-            BaseCheck.from_config(check_conf, version_unmatch=None)
-            for check_conf in suite_conf['checks']
-        ]
-        return suite_type(
-            suite_conf['name'],
-            *checks
-        )
+        checks = [BaseCheck.from_config(check_conf, version_unmatch=None) for check_conf in suite_conf["checks"]]
+        return suite_type(suite_conf["name"], *checks)
 
     @classmethod
     def _get_unsupported_failure(cls, check, msg):
         return check_types.CheckFailure(check, DeepchecksNotSupportedError(msg))
 
 
-def sort_check_results(
-    check_results: Sequence['check_types.BaseCheckResult']
-) -> List['check_types.BaseCheckResult']:
+def sort_check_results(check_results: Sequence["check_types.BaseCheckResult"]) -> List["check_types.BaseCheckResult"]:
     """Sort sequence of 'CheckResult' instances.
 
     Returns
@@ -709,7 +632,4 @@ def sort_check_results(
 
     order = sorted(order)
 
-    return [
-        check_results_index[index]
-        for _, index in order
-    ]
+    return [check_results_index[index] for _, index in order]

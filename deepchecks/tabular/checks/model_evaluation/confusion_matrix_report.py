@@ -9,15 +9,18 @@
 # ----------------------------------------------------------------------------
 #
 """The confusion_matrix_report check module."""
-import numpy as np
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, SingleDatasetCheck
-from deepchecks.utils.abstracts.confusion_matrix_abstract import (misclassified_samples_lower_than_condition,
-                                                                  run_confusion_matrix_check)
+from deepchecks.utils.abstracts.confusion_matrix_abstract import (
+    misclassified_samples_lower_than_condition,
+    run_confusion_matrix_check,
+)
 from deepchecks.utils.strings import format_percent
 
-__all__ = ['ConfusionMatrixReport']
+import numpy as np
+
+__all__ = ["ConfusionMatrixReport"]
 
 
 class ConfusionMatrixReport(SingleDatasetCheck):
@@ -33,11 +36,7 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         random seed for all check internals.
     """
 
-    def __init__(self,
-                 normalize_display: bool = True,
-                 n_samples: int = 1_000_000,
-                 random_state: int = 42,
-                 **kwargs):
+    def __init__(self, normalize_display: bool = True, n_samples: int = 1_000_000, random_state: int = 42, **kwargs):
         super().__init__(**kwargs)
         self.normalize_display = normalize_display
         self.n_samples = n_samples
@@ -59,7 +58,9 @@ class ConfusionMatrixReport(SingleDatasetCheck):
         dataset = context.get_data_by_kind(dataset_kind).sample(self.n_samples, random_state=self.random_state)
         context.assert_classification_task()
         y_true = dataset.label_col
-        y_pred = np.array(context.model.predict(dataset.features_columns)).reshape(len(y_true), )
+        y_pred = np.array(context.model.predict(dataset.features_columns)).reshape(
+            len(y_true),
+        )
 
         return run_confusion_matrix_check(y_pred, y_true, context.with_display, self.normalize_display)
 
@@ -75,8 +76,8 @@ class ConfusionMatrixReport(SingleDatasetCheck):
             Ratio of samples to be used for comparison in the condition (Value should be between 0 - 1 inclusive)
         """
         return self.add_condition(
-            f'Misclassified cell size lower than {format_percent(misclassified_samples_threshold)} '
-            'of the total samples',
+            f"Misclassified cell size lower than {format_percent(misclassified_samples_threshold)} "
+            "of the total samples",
             misclassified_samples_lower_than_condition,
-            misclassified_samples_threshold=misclassified_samples_threshold
+            misclassified_samples_threshold=misclassified_samples_threshold,
         )

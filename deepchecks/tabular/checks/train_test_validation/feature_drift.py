@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Feature Drift check."""
-from typing import Dict, List, Optional, Union
 
-import pandas as pd
+from typing import Dict, List, Optional, Union
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -21,7 +20,9 @@ from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.utils.abstracts.feature_drift import FeatureDriftAbstract
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['FeatureDrift']
+import pandas as pd
+
+__all__ = ["FeatureDrift"]
 
 
 @docstrings
@@ -102,24 +103,24 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
     """
 
     def __init__(
-            self,
-            columns: Union[Hashable, List[Hashable], None] = None,
-            ignore_columns: Union[Hashable, List[Hashable], None] = None,
-            n_top_columns: int = 5,
-            sort_feature_by: str = 'drift + importance',
-            margin_quantile_filter: float = 0.025,
-            max_num_categories_for_drift: Optional[int] = None,
-            min_category_size_ratio: float = 0.01,
-            max_num_categories_for_display: int = 10,
-            show_categories_by: str = 'largest_difference',
-            numerical_drift_method: str = 'KS',
-            categorical_drift_method: str = 'cramers_v',
-            ignore_na: bool = True,
-            aggregation_method: Optional[str] = 'l3_weighted',
-            min_samples: int = 10,
-            n_samples: int = 100_000,
-            random_state: int = 42,
-            **kwargs
+        self,
+        columns: Union[Hashable, List[Hashable], None] = None,
+        ignore_columns: Union[Hashable, List[Hashable], None] = None,
+        n_top_columns: int = 5,
+        sort_feature_by: str = "drift + importance",
+        margin_quantile_filter: float = 0.025,
+        max_num_categories_for_drift: Optional[int] = None,
+        min_category_size_ratio: float = 0.01,
+        max_num_categories_for_display: int = 10,
+        show_categories_by: str = "largest_difference",
+        numerical_drift_method: str = "KS",
+        categorical_drift_method: str = "cramers_v",
+        ignore_na: bool = True,
+        aggregation_method: Optional[str] = "l3_weighted",
+        min_samples: int = 10,
+        n_samples: int = 100_000,
+        random_state: int = 42,
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -129,7 +130,7 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
         self.min_category_size_ratio = min_category_size_ratio
         self.max_num_categories_for_display = max_num_categories_for_display
         self.show_categories_by = show_categories_by
-        if sort_feature_by in {'feature importance', 'drift score', 'drift + importance'}:
+        if sort_feature_by in {"feature importance", "drift score", "drift + importance"}:
             self.sort_feature_by = sort_feature_by
         else:
             raise DeepchecksValueError(
@@ -170,18 +171,21 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
         train_dataset.assert_features()
         test_dataset.assert_features()
 
-        train_dataset = train_dataset.select(
-            self.columns, self.ignore_columns
-        ).sample(self.n_samples, random_state=self.random_state)
-        test_dataset = test_dataset.select(
-            self.columns, self.ignore_columns
-        ).sample(self.n_samples, random_state=self.random_state)
+        train_dataset = train_dataset.select(self.columns, self.ignore_columns).sample(
+            self.n_samples, random_state=self.random_state
+        )
+        test_dataset = test_dataset.select(self.columns, self.ignore_columns).sample(
+            self.n_samples, random_state=self.random_state
+        )
 
         features_order = (
             # In order to have consistent order for features with same importance, first sorting by index, and then
             # using mergesort which preserves the order of equal elements.
-            tuple(feature_importance.sort_index(key=lambda x: x.astype(str))
-                  .sort_values(kind='mergesort', ascending=False).index)
+            tuple(
+                feature_importance.sort_index(key=lambda x: x.astype(str))
+                .sort_values(kind="mergesort", ascending=False)
+                .index
+            )
             if feature_importance is not None
             else None
         )
@@ -190,15 +194,15 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
 
         for column in train_dataset.features:
             if column in train_dataset.numerical_features:
-                common_columns[column] = 'numerical'
+                common_columns[column] = "numerical"
             elif column in train_dataset.cat_features:
-                common_columns[column] = 'categorical'
+                common_columns[column] = "categorical"
             else:
                 # we only support categorical or numerical features
                 continue
 
         results, displays = self._calculate_feature_drift(
-            drift_kind='tabular-features',
+            drift_kind="tabular-features",
             train=train_dataset.data,
             test=test_dataset.data,
             train_dataframe_name=train_dataset.name,
@@ -206,16 +210,12 @@ class FeatureDrift(TrainTestCheck, FeatureDriftAbstract, ReduceFeatureMixin):
             common_columns=common_columns,
             feature_importance=feature_importance,
             features_order=features_order,
-            with_display=context.with_display
+            with_display=context.with_display,
         )
-        return CheckResult(
-            value=results,
-            display=displays,
-            header='Feature Drift'
-        )
+        return CheckResult(value=results, display=displays, header="Feature Drift")
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        feature_importance = pd.Series({column: info['Importance'] for column, info in check_result.value.items()})
-        values = pd.Series({column: info['Drift score'] for column, info in check_result.value.items()})
-        return self.feature_reduce(self.aggregation_method, values, feature_importance, 'Drift Score')
+        feature_importance = pd.Series({column: info["Importance"] for column, info in check_result.value.items()})
+        values = pd.Series({column: info["Drift score"] for column, info in check_result.value.items()})
+        return self.feature_reduce(self.aggregation_method, values, feature_importance, "Drift Score")

@@ -63,45 +63,42 @@ train_dataset, test_dataset = load_data()
 # train_dataset.calculate_builtin_properties(include_long_calculation_properties=True)
 # test_dataset.calculate_builtin_properties(include_long_calculation_properties=True)
 
-#%%
+# %%
 # Run the check
 # =============
 
 from deepchecks.nlp.checks import PropertyDrift
+
 check_result = PropertyDrift().run(train_dataset, test_dataset)
 check_result
 
-#%%
+# %%
 # We can see that there isn't any significant drift in the data. We can see some slight increase in the formality of
 # the text samples in the test dataset.
 #
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  check_result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Observe the check’s output
 # --------------------------
 # The result value is a dict that contains drift score and method used for each text property.
 
 check_result.value
 
-#%%
+# %%
 # Define a condition
 # ==================
 # We can define a condition that make sure that nlp properties drift scores do not
 # exceed allowed threshold.
 
-check_result = (
-    PropertyDrift()
-    .add_condition_drift_score_less_than(0.001)
-    .run(train_dataset, test_dataset)
-)
+check_result = PropertyDrift().add_condition_drift_score_less_than(0.001).run(train_dataset, test_dataset)
 check_result.show(show_additional_outputs=False)
 
-#%%
+# %%
 # Check Parameters
 # ==================
 #

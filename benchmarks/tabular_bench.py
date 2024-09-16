@@ -29,6 +29,7 @@ def run_check_fn(check_class) -> Callable:
                 check.run_logic(context)
         except DeepchecksBaseError:
             pass
+
     return run
 
 
@@ -49,18 +50,18 @@ def setup_avocado() -> Context:
 
 
 class BenchmarkTabular:
-    params = ['lending_club', 'avocado']
-    param_names = ['dataset_name']
+    params = ["lending_club", "avocado"]
+    param_names = ["dataset_name"]
 
     def setup_cache(self):
         cache = {}
-        cache['lending_club'] = setup_lending_club()
-        cache['avocado'] = setup_avocado()
+        cache["lending_club"] = setup_lending_club()
+        cache["avocado"] = setup_avocado()
         return cache
 
 
 for name, check_class in inspect.getmembers(checks):
     if inspect.isclass(check_class):
         run_fn = run_check_fn(check_class)
-        setattr(BenchmarkTabular, f'time_{name}', run_fn)
-        setattr(BenchmarkTabular, f'peakmem_{name}', run_fn)
+        setattr(BenchmarkTabular, f"time_{name}", run_fn)
+        setattr(BenchmarkTabular, f"peakmem_{name}", run_fn)

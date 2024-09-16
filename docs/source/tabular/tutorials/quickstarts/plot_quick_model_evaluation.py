@@ -14,7 +14,7 @@ evaluate your model. For example:
 
 Here we'll build a regression model using the wine quality dataset
 (:mod:`deepchecks.tabular.datasets.regression.wine_quality`),
-to demonstrate how you can run the suite with only a few simple lines of code, 
+to demonstrate how you can run the suite with only a few simple lines of code,
 and see which kind of insights it can find.
 
 .. code-block:: bash
@@ -26,7 +26,7 @@ and see which kind of insights it can find.
     # or install using pip from your python environment
 """
 
-#%%
+# %%
 # Prepare Data and Model
 # ======================
 #
@@ -35,21 +35,21 @@ and see which kind of insights it can find.
 
 from deepchecks.tabular.datasets.regression import wine_quality
 
-data = wine_quality.load_data(data_format='Dataframe', as_train_test=False)
+data = wine_quality.load_data(data_format="Dataframe", as_train_test=False)
 data.head(2)
 
-#%%
+# %%
 # Split Data and Train a Simple Model
 # -----------------------------------
 #
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split
 
-X_train, X_test, y_train, y_test = train_test_split(data.iloc[:, :-1], data['quality'], test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(data.iloc[:, :-1], data["quality"], test_size=0.2, random_state=42)
 gbr = GradientBoostingRegressor()
 gbr.fit(X_train, y_train)
 
-#%%
+# %%
 # Run Deepchecks for Model Evaluation
 # ===========================================
 #
@@ -70,7 +70,7 @@ from deepchecks.tabular import Dataset
 train_ds = Dataset(X_train, label=y_train, cat_features=[])
 test_ds = Dataset(X_test, label=y_test, cat_features=[])
 
-#%%
+# %%
 # Run the Deepchecks Suite
 # --------------------------
 #
@@ -90,7 +90,7 @@ suite_result = evaluation_suite.run(train_ds, test_ds, gbr)
 # or exported to json using suite_result.to_json()
 suite_result.show()
 
-#%%
+# %%
 # Analyzing the results
 # --------------------------
 #
@@ -128,7 +128,7 @@ check = TrainTestPerformance().add_condition_train_test_relative_degradation_les
 result = check.run(train_ds, test_ds, gbr)
 result.show()
 
-#%%
+# %%
 #
 # We mitigated the overfitting to some extent. Additional model tuning is required to overcome
 # other issues discussed above. For now, we will update and remove the relevant conditions from the suite.
@@ -143,7 +143,7 @@ result.show()
 # let's inspect our model evaluation suite's structure
 evaluation_suite
 
-#%%
+# %%
 #
 # Next, we will update the Train Test Performance condition and remove the Regression Systematic Error check:
 
@@ -151,14 +151,14 @@ evaluation_suite[0].clean_conditions()
 evaluation_suite[0].add_condition_train_test_relative_degradation_less_than(0.3)
 evaluation_suite = evaluation_suite.remove(7)
 
-#%%
+# %%
 #
 # Re-run the suite using:
 
 result = evaluation_suite.run(train_ds, test_ds, gbr)
 result.passed(fail_if_warning=False)
 
-#%%
+# %%
 #
 # For more info about working with conditions, see the detailed
 # :ref:`configure_check_conditions` guide.

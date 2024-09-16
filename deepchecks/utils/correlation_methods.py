@@ -14,11 +14,11 @@ import math
 from collections import Counter
 from typing import List, Union
 
+from deepchecks.utils.distribution.preprocessing import value_frequency
+
 import numpy as np
 import pandas as pd
 from scipy.stats import entropy
-
-from deepchecks.utils.distribution.preprocessing import value_frequency
 
 
 def conditional_entropy(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> float:
@@ -78,8 +78,9 @@ def theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np
         return (s_x - s_xy) / s_x
 
 
-def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]) -> \
-        float:
+def symmetric_theil_u_correlation(
+    x: Union[List, np.ndarray, pd.Series], y: Union[List, np.ndarray, pd.Series]
+) -> float:
     """
     Calculate the symmetric Theil's U correlation of y to x.
 
@@ -103,9 +104,11 @@ def symmetric_theil_u_correlation(x: Union[List, np.ndarray, pd.Series], y: Unio
     return u_sym
 
 
-def correlation_ratio(categorical_data: Union[List, np.ndarray, pd.Series],
-                      numerical_data: Union[List, np.ndarray, pd.Series],
-                      ignore_mask: Union[List[bool], np.ndarray] = None) -> float:
+def correlation_ratio(
+    categorical_data: Union[List, np.ndarray, pd.Series],
+    numerical_data: Union[List, np.ndarray, pd.Series],
+    ignore_mask: Union[List[bool], np.ndarray] = None,
+) -> float:
     """
     Calculate the correlation ratio of numerical_variable to categorical_variable.
 

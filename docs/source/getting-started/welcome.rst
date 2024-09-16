@@ -9,13 +9,13 @@
 Welcome to Deepchecks!
 ========================
 
-`Deepchecks <https://github.com/deepchecks/deepchecks>`__ is a holistic open-source solution for all of your AI & ML validation needs, 
+`Deepchecks <https://github.com/deepchecks/deepchecks>`__ is a holistic open-source solution for all of your AI & ML validation needs,
 enabling you to thoroughly test your data and models from research to production.
 
 
 We invite you to:
 
-- See the following :ref:`Deepchecks Components <welcome__start_with_deepchecks_testing>` 
+- See the following :ref:`Deepchecks Components <welcome__start_with_deepchecks_testing>`
   section for more info about the Testing, CI, & Monitoring components and for links to their corresponding documentation.
 - Go to the :ref:`welcome__start_with_deepchecks_monitoring` section to have it up and running quickly and see it in action.
 
@@ -39,8 +39,8 @@ Deepchecks' Components for Continuous Validation
 
 Deepchecks provides comprehensive support for your testing requirements,
 from examining data integrity and assessing distributions,
-to validating data splits, comparing models and evaluating their 
-performance across the model's entire development process. 
+to validating data splits, comparing models and evaluating their
+performance across the model's entire development process.
 
 .. grid:: 1
     :gutter: 1 1 3 3
@@ -52,7 +52,7 @@ performance across the model's entire development process.
         :columns: 6 4 4 4
 
         Tests during research and model development
-    
+
     .. grid-item-card:: CI Docs
         :link-type: ref
         :link: using_deepchecks_ci_cd
@@ -68,7 +68,7 @@ performance across the model's entire development process.
         :columns: 6 4 4 4
 
         Tests and continuous monitoring during production
-        
+
 
 Deechecks' continuous validation approach is based on testing the ML models and data throughout their lifecycle
 using the exact same checks, enabling a simple, elaborate and seamless experience for configuring and consuming the results.
@@ -89,11 +89,11 @@ Get Started with Deepchecks Testing
 
 .. grid:: 1
     :gutter: 3
-   
+
     .. grid-item-card:: 🏃‍♀️ Quickstarts 🏃‍♀️
         :link-type: ref
         :link: welcome__quickstarts
-         
+
         Downloadable end-to-end guides, demonstrating how to start testing your data & model
         in just a few minutes.
 
@@ -105,7 +105,7 @@ Get Started with Deepchecks Testing
         or by opening `an issue on Github <https://github.com/deepchecks/deepchecks/issues>`__.
 
 
-    .. grid-item-card:: 💻  Install 💻 
+    .. grid-item-card:: 💻  Install 💻
         :link-type: doc
         :link: /getting-started/installation
 
@@ -114,7 +114,7 @@ Get Started with Deepchecks Testing
     .. grid-item-card:: 🤓 General: Concepts & Guides 🤓
         :link-type: ref
         :link: general__index
-         
+
         A comprehensive view of deepchecks concepts,
         customizations, and core use cases.
 
@@ -122,7 +122,7 @@ Get Started with Deepchecks Testing
         :link-type: ref
         :link: tabular__index
 
-        Quickstarts, main concepts, checks gallery and end-to-end guides demonstrating 
+        Quickstarts, main concepts, checks gallery and end-to-end guides demonstrating
         how to start working Deepchecks with tabular data and models.
 
     .. grid-item-card:: 🔤️ NLP 🔤️
@@ -136,17 +136,17 @@ Get Started with Deepchecks Testing
     .. grid-item-card:: 🎦‍ Computer Vision (Note: in Beta Release) 🎦‍
         :link-type: ref
         :link: vision__index
-         
-        Quickstarts, main concepts, checks gallery and end-to-end guides demonstrating 
+
+        Quickstarts, main concepts, checks gallery and end-to-end guides demonstrating
         how to start working Deepchecks with CV data and models.
         Built-in support for PyTorch, TensorFlow, and custom frameworks.
-    
+
     .. grid-item-card:: 🚀 Interactive Checks Demo 🚀
         :link-type: url
         :link: https://checks-demo.deepchecks.com/?check=No+check+selected
              &utm_source=docs.deepchecks.com&utm_medium=referral&
              utm_campaign=welcome_page&utm_content=checks_demo_card
-      
+
         Play with some of the existing tabular checks
         and see how they work on various datasets with custom corruptions injected.
 
@@ -165,7 +165,7 @@ Get Started with Deepchecks Testing
 .. grid:: 1
     :gutter: 3
 
-    .. grid-item-card:: 🔢 Tabular 🔢 
+    .. grid-item-card:: 🔢 Tabular 🔢
         :link-type: doc
         :link: /tabular/auto_tutorials/quickstarts/index
         :columns: 4
@@ -174,7 +174,7 @@ Get Started with Deepchecks Testing
         :link-type: doc
         :link: /nlp/auto_tutorials/quickstarts/plot_text_classification
         :columns: 4
-    
+
     .. grid-item-card:: 🎦‍ Vision 🎦‍ (in Beta)
         :link-type: doc
         :link: /vision/auto_tutorials/quickstarts/index
@@ -194,10 +194,10 @@ Get Help & Give Us Feedback
 
    - Ask questions on the `Slack Community <https://www.deepchecks.com/slack>`__.
    - Post an issue or start a discussion on `Github Issues <https://github.com/deepchecks/deepchecks/issues>`__.
-   - To contribute to the package, check out the 
-     `Contribution Guidelines <https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst>`__ and join the 
-     `contributors-q-&-a channel <https://deepcheckscommunity.slack.com/archives/C030REPARGR>`__ on Slack, 
+   - To contribute to the package, check out the
+     `Contribution Guidelines <https://github.com/deepchecks/deepchecks/blob/main/CONTRIBUTING.rst>`__ and join the
+     `contributors-q-&-a channel <https://deepcheckscommunity.slack.com/archives/C030REPARGR>`__ on Slack,
      or communicate with us via github issues.
 
-   To support us, please give us a star on ⭐️ `Github <https://github.com/deepchecks/deepchecks>`__ ⭐️, 
+   To support us, please give us a star on ⭐️ `Github <https://github.com/deepchecks/deepchecks>`__ ⭐️,
    it really means a lot for open source projects!

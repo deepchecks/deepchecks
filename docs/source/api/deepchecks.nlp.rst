@@ -10,7 +10,7 @@ deepchecks.nlp
 .. autosummary::
     :toctree: generated
     :caption: Modules
-    
+
     checks
     suites
     datasets
@@ -23,7 +23,7 @@ deepchecks.nlp
     suite
 
 .. rubric:: Classes
-    
+
 .. autoclass:: TextData
     :members:
     :inherited-members:

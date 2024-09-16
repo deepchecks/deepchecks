@@ -21,15 +21,15 @@ Deepchecks ❤️ Open Source
 ⚠ Short Update About Our Community and Ethics ⚠
 --------------------------------------------------
 
-We have recently encountered  `an unusual method 👀 <https://www.linkedin.com/feed/update/urn:li:activity:6930518775905550336/>`_ for delivering feedback. 
+We have recently encountered  `an unusual method 👀 <https://www.linkedin.com/feed/update/urn:li:activity:6930518775905550336/>`_ for delivering feedback.
 
 While we appreciate the help with the QA, we believe that open source communities should be about value for the users and not an arena for battles between competitors.
 
 Community Foundations
 -----------------------
 
-This package is built and maintained by `Deepchecks <https://deepchecks.com/>`__, an MLOps startup company. We're a team of data 
-scientists and software engineers that recognize the rising influence of machine learning models on our day-to-day life, and 
+This package is built and maintained by `Deepchecks <https://deepchecks.com/>`__, an MLOps startup company. We're a team of data
+scientists and software engineers that recognize the rising influence of machine learning models on our day-to-day life, and
 want to make sure these models are working as they are expected to.
 
 **We've built and released this package to help ML practitioners test and validate their models and catch issues in their models as early as possible, so
@@ -43,6 +43,3 @@ Our preferred way for feedback is:
 - `Opening a Github issue <https://www.github.com/deepchecks/deepchecks/issues>`_
 
 - `Posting in our community Slack <https://join.slack.com/t/deepcheckscommunity/shared_invite/zt-18t2fxw7a-16zag~Y9hZI_wvQYh2Jccg>`_
-
-
-

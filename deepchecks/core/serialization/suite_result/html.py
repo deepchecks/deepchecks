@@ -10,26 +10,33 @@
 #
 # pylint: disable=unused-argument
 """Module containing html serializer for the SuiteResult type."""
+
 import textwrap
 import typing as t
 import warnings
 
-from deepchecks.core import check_result as check_types
-from deepchecks.core import suite
+from deepchecks.core import check_result as check_types, suite
 from deepchecks.core.resources import requirejs_script
 from deepchecks.core.serialization.abc import HtmlSerializer
-from deepchecks.core.serialization.check_result.html import CheckResultSection
-from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
-from deepchecks.core.serialization.common import (Html, aggregate_conditions, create_failures_dataframe,
-                                                  form_output_anchor, plotlyjs_script)
+from deepchecks.core.serialization.check_result.html import (
+    CheckResultSection,
+    CheckResultSerializer as CheckResultHtmlSerializer,
+)
+from deepchecks.core.serialization.common import (
+    Html,
+    aggregate_conditions,
+    create_failures_dataframe,
+    form_output_anchor,
+    plotlyjs_script,
+)
 from deepchecks.core.serialization.dataframe.html import DataFrameSerializer as DataFrameHtmlSerializer
 from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.html import linktag
 
-__all__ = ['SuiteResultSerializer']
+__all__ = ["SuiteResultSerializer"]
 
 
-class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
+class SuiteResultSerializer(HtmlSerializer["suite.SuiteResult"]):
     """Serializes any SuiteResult instance into HTML format.
 
     Parameters
@@ -38,11 +45,9 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         SuiteResult instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'suite.SuiteResult', **kwargs):
+    def __init__(self, value: "suite.SuiteResult", **kwargs):
         if not isinstance(value, suite.SuiteResult):
-            raise TypeError(
-                f'Expected "SuiteResult" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "SuiteResult" but got "{type(value).__name__}"')
         super().__init__(value=value)
 
     def serialize(
@@ -86,21 +91,17 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             include_requirejs = True
             connected = False
 
-        kwargs['is_for_iframe_with_srcdoc'] = is_for_iframe_with_srcdoc
+        kwargs["is_for_iframe_with_srcdoc"] = is_for_iframe_with_srcdoc
 
         summary = self.prepare_summary(output_id=output_id, **kwargs)
         conditions_table = self.prepare_conditions_table(output_id=output_id, **kwargs)
         failures = self.prepare_failures_list()
 
         results_with_conditions = self.prepare_results_with_condition_and_display(
-            output_id=output_id,
-            check_sections=['condition-table', 'additional-output'],
-            **kwargs
+            output_id=output_id, check_sections=["condition-table", "additional-output"], **kwargs
         )
         results_without_conditions = self.prepare_results_without_condition(
-            output_id=output_id,
-            check_sections=['additional-output'],
-            **kwargs
+            output_id=output_id, check_sections=["additional-output"], **kwargs
         )
         sections = [
             summary,
@@ -118,21 +119,22 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         if output_id:
             anchor = form_output_anchor(output_id)
             link = linktag(
-                text='Go to top',
-                href=f'#{anchor}',
-                style={'font-size': '14px'},
-                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
+                text="Go to top",
+                href=f"#{anchor}",
+                style={"font-size": "14px"},
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
             )
-            sections.append(f'<br>{link}')
+            sections.append(f"<br>{link}")
 
-        plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ''
-        requirejs = requirejs_script(connected) if include_requirejs is True else ''
+        plotlyjs = plotlyjs_script(connected) if include_plotlyjs is True else ""
+        requirejs = requirejs_script(connected) if include_requirejs is True else ""
 
         if full_html is False:
-            return ''.join([requirejs, plotlyjs, *sections])
+            return "".join([requirejs, plotlyjs, *sections])
 
         # TODO: use some style to make it pretty
-        return textwrap.dedent(f"""
+        return textwrap.dedent(
+            f"""
             <html>
             <head><meta charset="utf-8"/></head>
             <body style="background-color: white; padding: 1rem 1rem 0 1rem;">
@@ -141,20 +143,18 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 {''.join(sections)}
             </body>
             </html>
-        """)
+        """
+        )
 
     def prepare_prologue(self) -> str:
         """Prepare prologue section."""
-        long_prologue_version = 'The suite is composed of various checks such as: {names}, etc...'
-        short_prologue_version = 'The suite is composed of the following checks: {names}.'
-        check_names = list(set(
-            it.check.name()
-            for it in self.value.results
-        ))
+        long_prologue_version = "The suite is composed of various checks such as: {names}, etc..."
+        short_prologue_version = "The suite is composed of the following checks: {names}."
+        check_names = list(set(it.check.name() for it in self.value.results))
         return (
-            long_prologue_version.format(names=', '.join(check_names[:3]))
+            long_prologue_version.format(names=", ".join(check_names[:3]))
             if len(check_names) > 3
-            else short_prologue_version.format(names=', '.join(check_names))
+            else short_prologue_version.format(names=", ".join(check_names))
         )
 
     def prepare_header(self, output_id: t.Optional[str] = None, **kwargs) -> str:
@@ -169,16 +169,16 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         -------
         str
         """
-        idattr = f' id="{form_output_anchor(output_id)}"' if output_id else ''
-        return f'<h1{idattr}>{self.value.name}</h1>'
+        idattr = f' id="{form_output_anchor(output_id)}"' if output_id else ""
+        return f"<h1{idattr}>{self.value.name}</h1>"
 
     def prepare_extra_info(self) -> str:
         """Prepare extra info section."""
         if self.value.extra_info:
-            extra_info = '<br>'.join(f'<div>{it}</div>' for it in self.value.extra_info)
-            return f'<br>{extra_info}'
+            extra_info = "<br>".join(f"<div>{it}</div>" for it in self.value.extra_info)
+            return f"<br>{extra_info}"
         else:
-            return ''
+            return ""
 
     def prepare_summary(self, output_id: t.Optional[str] = None, **kwargs) -> str:
         """Prepare summary section.
@@ -197,17 +197,20 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         extra_info = self.prepare_extra_info()
 
         suite_creation_example_link = (
-            'https://docs.deepchecks.com/stable/general/usage/customizations/'
-            'auto_examples/plot_create_a_custom_suite.html'
-            '?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link'
+            "https://docs.deepchecks.com/stable/general/usage/customizations/"
+            "auto_examples/plot_create_a_custom_suite.html"
+            "?utm_source=display_output&utm_medium=referral&utm_campaign=suite_link"
         )
-        icons = textwrap.dedent("""
+        icons = textwrap.dedent(
+            """
             <span style="color: green;display:inline-block">\U00002713</span>
             <span style="color: red;display:inline-block">\U00002716</span>
             <span style="color: orange;font-weight:bold;display:inline-block">\U00000021</span>
             <span style="color: firebrick;font-weight:bold;display:inline-block">\U00002048</span>
-        """).splitlines()
-        return textwrap.dedent(f"""
+        """
+        ).splitlines()
+        return textwrap.dedent(
+            f"""
             {header}
             <p>
                 {prologue}<br>
@@ -218,14 +221,15 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 <a href={suite_creation_example_link} target="_blank">custom suites</a>.
             </p>
             {extra_info}
-        """)
+        """
+        )
 
     def prepare_conditions_table(
         self,
         output_id: t.Optional[str] = None,
         include_check_name: bool = True,
         is_for_iframe_with_srcdoc: bool = False,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Prepare conditions table section.
 
@@ -245,27 +249,26 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         str
         """
         if not self.value.results_with_conditions:
-            return '<p>No conditions defined on checks in the suite.</p>'
+            return "<p>No conditions defined on checks in the suite.</p>"
 
-        results = t.cast(
-            t.List[check_types.CheckResult],
-            self.value.select_results(self.value.results_with_conditions)
-        )
-        table = DataFrameHtmlSerializer(aggregate_conditions(
-            results,
-            output_id=output_id,
-            include_check_name=include_check_name,
-            max_info_len=300,
-            is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc
-        )).serialize()
+        results = t.cast(t.List[check_types.CheckResult], self.value.select_results(self.value.results_with_conditions))
+        table = DataFrameHtmlSerializer(
+            aggregate_conditions(
+                results,
+                output_id=output_id,
+                include_check_name=include_check_name,
+                max_info_len=300,
+                is_for_iframe_with_srcdoc=is_for_iframe_with_srcdoc,
+            )
+        ).serialize()
 
-        return f'<h2>Conditions Summary</h2>{table}'
+        return f"<h2>Conditions Summary</h2>{table}"
 
     def prepare_results_with_condition_and_display(
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Prepare subsection of the content that shows results with conditions.
 
@@ -283,9 +286,7 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
         """
         results = t.cast(
             t.List[check_types.CheckResult],
-            self.value.select_results(
-                self.value.results_with_conditions & self.value.results_with_display
-            )
+            self.value.select_results(self.value.results_with_conditions & self.value.results_with_display),
         )
         results_with_condition_and_display = [
             CheckResultHtmlSerializer(it).serialize(
@@ -293,18 +294,18 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
                 check_sections=check_sections,
                 include_plotlyjs=False,
                 include_requirejs=False,
-                **kwargs
+                **kwargs,
             )
             for it in results
         ]
         content = Html.light_hr.join(results_with_condition_and_display)
-        return f'<h2>Check With Conditions Output</h2>{content}'
+        return f"<h2>Check With Conditions Output</h2>{content}"
 
     def prepare_results_without_condition(
         self,
         output_id: t.Optional[str] = None,
         check_sections: t.Optional[t.Sequence[CheckResultSection]] = None,
-        **kwargs
+        **kwargs,
     ) -> str:
         """Prepare subsection of the content that shows results without conditions.
 
@@ -324,32 +325,28 @@ class SuiteResultSerializer(HtmlSerializer['suite.SuiteResult']):
             t.List[check_types.CheckResult],
             self.value.select_results(
                 self.value.results_without_conditions & self.value.results_with_display,
-            )
+            ),
         )
         results_without_conditions = [
             CheckResultHtmlSerializer(it).serialize(
-                output_id=output_id,
-                include=check_sections,
-                include_plotlyjs=False,
-                include_requirejs=False,
-                **kwargs
+                output_id=output_id, include=check_sections, include_plotlyjs=False, include_requirejs=False, **kwargs
             )
             for it in results
         ]
         content = Html.light_hr.join(results_without_conditions)
-        return f'<h2>Check Without Conditions Output</h2>{content}'
+        return f"<h2>Check Without Conditions Output</h2>{content}"
 
     def prepare_failures_list(self, **kwargs) -> str:
         """Prepare subsection of the content that shows list of failures."""
         results = self.value.select_results(self.value.failures | self.value.results_without_display)
 
         if not results:
-            return ''
+            return ""
 
         df = create_failures_dataframe(results)
 
         with warnings.catch_warnings():
-            warnings.simplefilter(action='ignore', category=FutureWarning)
+            warnings.simplefilter(action="ignore", category=FutureWarning)
             styler = hide_index_for_display(df)
             table = DataFrameHtmlSerializer(styler).serialize()
-            return f'<h2>Other Checks That Weren\'t Displayed</h2>\n{table}'
+            return f"<h2>Other Checks That Weren't Displayed</h2>\n{table}"

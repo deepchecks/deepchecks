@@ -9,13 +9,14 @@
 # ----------------------------------------------------------------------------
 #
 """The date_leakage check module."""
-import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_datetime, format_percent
 
-__all__ = ['DateTrainTestLeakageDuplicates']
+import pandas as pd
+
+__all__ = ["DateTrainTestLeakageDuplicates"]
 
 
 class DateTrainTestLeakageDuplicates(TrainTestCheck):
@@ -31,10 +32,7 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
         random seed for all check internals.
     """
 
-    def __init__(self, n_to_show: int = 5,
-                 n_samples: int = 10_000_000,
-                 random_state: int = 42,
-                 **kwargs):
+    def __init__(self, n_to_show: int = 5, n_samples: int = 10_000_000, random_state: int = 42, **kwargs):
         super().__init__(**kwargs)
         self.n_to_show = n_to_show
         self.n_samples = n_samples
@@ -68,10 +66,11 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
             return_value = leakage_ratio
 
             if context.with_display:
-                text = f'{format_percent(leakage_ratio)} of test data dates appear in training data'
+                text = f"{format_percent(leakage_ratio)} of test data dates appear in training data"
                 table = pd.DataFrame(
-                    [[list(format_datetime(it) for it in date_intersection[:self.n_to_show])]],
-                    index=['Sample of test dates in train:'], columns=['duplicate values']
+                    [[list(format_datetime(it) for it in date_intersection[: self.n_to_show])]],
+                    index=["Sample of test dates in train:"],
+                    columns=["duplicate values"],
                 )
                 display = [text, table]
             else:
@@ -81,7 +80,7 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
             display = None
             return_value = 0
 
-        return CheckResult(value=return_value, header='Date Train-Test Leakage (duplicates)', display=display)
+        return CheckResult(value=return_value, header="Date Train-Test Leakage (duplicates)", display=display)
 
     def add_condition_leakage_ratio_less_or_equal(self, max_ratio: float = 0):
         """Add condition - require leakage ratio to be less or equal to threshold.
@@ -91,10 +90,12 @@ class DateTrainTestLeakageDuplicates(TrainTestCheck):
         max_ratio : float , default: 0
             Maximum ratio of leakage.
         """
+
         def max_ratio_condition(result: float) -> ConditionResult:
-            details = f'Found {format_percent(result)} leaked dates' if result > 0 else 'No leaked dates found'
+            details = f"Found {format_percent(result)} leaked dates" if result > 0 else "No leaked dates found"
             category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Date leakage ratio is less or equal to {format_percent(max_ratio)}',
-                                  max_ratio_condition)
+        return self.add_condition(
+            f"Date leakage ratio is less or equal to {format_percent(max_ratio)}", max_ratio_condition
+        )

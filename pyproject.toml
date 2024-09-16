@@ -124,7 +124,7 @@ pyarrow = ">=14.0.1"
 aiohttp = ">=3.9.0"
 umap-learn = "==0.5.4"
 
-
+pre-commit = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -135,7 +135,7 @@ line-length = 120
 include = ["core_infra/**"]
 
 [tool.ruff.lint]
-select = ["F", "B", "I", "F", "W", "E", "A", "N"]
+select = ["F", "B", "I",  "W", "E", "A", "N"]
 fixable = ["ALL"]
 
 [tool.ruff.lint.isort]

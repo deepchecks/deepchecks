@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """module contains Data Duplicates check."""
-from typing import List, Union
 
-import numpy as np
+from typing import List, Union
 
 from deepchecks.core import CheckResult
 from deepchecks.core.errors import DatasetValidationError
@@ -21,7 +20,9 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_list, format_percent
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['DataDuplicates']
+import numpy as np
+
+__all__ = ["DataDuplicates"]
 
 
 class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
@@ -50,7 +51,7 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         n_to_show: int = 5,
         n_samples: int = 10_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -74,12 +75,12 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
         n_samples = df.shape[0]
 
         if n_samples == 0:
-            raise DatasetValidationError('Dataset does not contain any data')
+            raise DatasetValidationError("Dataset does not contain any data")
 
         # HACK: pandas have bug with groupby on category dtypes, so until it fixed, change dtypes manually
-        category_columns = df.dtypes[df.dtypes == 'category'].index.tolist()
+        category_columns = df.dtypes[df.dtypes == "category"].index.tolist()
         if category_columns:
-            df = df.astype({c: 'object' for c in category_columns})
+            df = df.astype({c: "object" for c in category_columns})
 
         group_unique_data = df[data_columns].groupby(data_columns, dropna=False).size()
         n_unique = len(group_unique_data)
@@ -95,23 +96,24 @@ class DataDuplicates(SingleDatasetCheck, DataDuplicatesAbstract):
                 new_index = group_unique_data.keys()
                 new_index.names = [new_name if name == 0 else name for name in new_index.names]
                 group_unique_data = group_unique_data.reindex(new_index)
-            duplicates_counted = group_unique_data.reset_index().rename(columns={0: 'Number of Duplicates'})
+            duplicates_counted = group_unique_data.reset_index().rename(columns={0: "Number of Duplicates"})
             if is_anonymous_series:
                 duplicates_counted.rename(columns={new_name: 0}, inplace=True)
 
-            most_duplicates = duplicates_counted[duplicates_counted['Number of Duplicates'] > 1]. \
-                nlargest(self.n_to_show, ['Number of Duplicates'])
+            most_duplicates = duplicates_counted[duplicates_counted["Number of Duplicates"] > 1].nlargest(
+                self.n_to_show, ["Number of Duplicates"]
+            )
 
             indexes = []
             for row in most_duplicates.iloc():
                 indexes.append(format_list(df.index[np.all(df == row[data_columns], axis=1)].to_list()))
 
-            most_duplicates['Instances'] = indexes
+            most_duplicates["Instances"] = indexes
 
-            most_duplicates = most_duplicates.set_index(['Instances', 'Number of Duplicates'])
+            most_duplicates = most_duplicates.set_index(["Instances", "Number of Duplicates"])
 
-            text = f'{format_percent(percent_duplicate)} of data samples are duplicates. '
-            explanation = 'Each row in the table shows an example of duplicate data and the number of times it appears.'
+            text = f"{format_percent(percent_duplicate)} of data samples are duplicates. "
+            explanation = "Each row in the table shows an example of duplicate data and the number of times it appears."
             display = [text, explanation, most_duplicates]
 
         else:

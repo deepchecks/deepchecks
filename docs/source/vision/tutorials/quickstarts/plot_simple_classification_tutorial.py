@@ -26,7 +26,7 @@ it contains.
     # or install using pip from your python environment
 """
 
-#%%
+# %%
 # Downloading the Data
 # ====================
 #
@@ -49,13 +49,13 @@ import zipfile
 
 import numpy as np
 
-url = 'https://figshare.com/ndownloader/files/34912884'
-urllib.request.urlretrieve(url, 'EuroSAT_data.zip')
+url = "https://figshare.com/ndownloader/files/34912884"
+urllib.request.urlretrieve(url, "EuroSAT_data.zip")
 
-with zipfile.ZipFile('EuroSAT_data.zip', 'r') as zip_ref:
-    zip_ref.extractall('EuroSAT')
+with zipfile.ZipFile("EuroSAT_data.zip", "r") as zip_ref:
+    zip_ref.extractall("EuroSAT")
 
-#%%
+# %%
 # Loading a Simple Classification Dataset
 # ========================================
 #
@@ -73,9 +73,10 @@ with zipfile.ZipFile('EuroSAT_data.zip', 'r') as zip_ref:
 from deepchecks.vision import classification_dataset_from_directory
 
 train_ds, test_ds = classification_dataset_from_directory(
-    root='./EuroSAT/euroSAT/', object_type='VisionData', image_extension='jpg')
+    root="./EuroSAT/euroSAT/", object_type="VisionData", image_extension="jpg"
+)
 
-#%%
+# %%
 # Running Deepchecks' ``train_test_validation`` suite
 # ====================================================
 # That's it, we have just defined the classification data object and are ready can run the different deepchecks suites
@@ -89,19 +90,19 @@ from deepchecks.vision.suites import train_test_validation
 suite = train_test_validation()
 result = suite.run(train_ds, test_ds)
 
-#%%
+# %%
 # Observing the Results
 # ======================
 # The results can be saved as an HTML file with the following code:
 
-result.save_as_html('output.html')
+result.save_as_html("output.html")
 
-#%%
+# %%
 # Or, if working inside a notebook, the output can be displayed directly by simply printing the result object:
 
 result.show()
 
-#%%
+# %%
 # Understanding the Results
 # ===========================
 # Looking at the results we see one check whose condition has failed: Feature Label Correlation.
@@ -115,11 +116,12 @@ result.show()
 #
 # We'll show the relevant plot again for ease of discussion:
 
-check_idx = np.where([result.results[i].check.name() == 'Property Label Correlation Change'
-                      for i in range(len(result.results))])[0][0]
+check_idx = np.where(
+    [result.results[i].check.name() == "Property Label Correlation Change" for i in range(len(result.results))]
+)[0][0]
 result.results[check_idx]
 
-#%%
+# %%
 # Here we can see the plot dedicated to the PPS of the property RMS Contrast, which measures the contrast in the
 # image by calculating the grayscale standard deviation of the image. This plot shows us that specifically for the
 # classes "Forest" and "SeaLake" (the same culprits from the Similar Image Leakage condition), the contrast is a

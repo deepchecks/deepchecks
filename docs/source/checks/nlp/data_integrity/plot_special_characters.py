@@ -34,7 +34,7 @@ from deepchecks.nlp.datasets.classification import tweet_emotion
 text_data = tweet_emotion.load_data(as_train_test=False)
 text_data.head(3)
 
-#%%
+# %%
 # Run the Check
 # =============
 
@@ -44,7 +44,7 @@ check = SpecialCharacters()
 result = check.run(text_data)
 result.show()
 
-#%%
+# %%
 # We can see in the check display that ~17% of the samples contain at least one special character and that the
 # samples with the highest percentage of special characters contain many emojis.
 #
@@ -52,9 +52,9 @@ result.show()
 # and which samples contain them. This can assist us in conforming that the majority of the special characters
 # in this dataset are indeed emojis.
 
-result.value['samples_per_special_char']
+result.value["samples_per_special_char"]
 
-#%%
+# %%
 # Define a condition
 # ==================
 #

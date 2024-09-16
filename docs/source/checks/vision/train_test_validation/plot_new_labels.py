@@ -31,20 +31,20 @@ possible that class ids that are rare in the train set will also be considered a
 #
 #       from deepchecks.vision.datasets.detection import coco_tensorflow as coco
 
-from deepchecks.vision.datasets.detection import coco_torch as coco
 from deepchecks.vision.checks import NewLabels
+from deepchecks.vision.datasets.detection import coco_torch as coco
 
-coco_train = coco.load_dataset(train=True, object_type='VisionData', shuffle=False)
-coco_test = coco.load_dataset(train=False, object_type='VisionData', shuffle=False)
+coco_train = coco.load_dataset(train=True, object_type="VisionData", shuffle=False)
+coco_test = coco.load_dataset(train=False, object_type="VisionData", shuffle=False)
 
 result = NewLabels().run(coco_train, coco_test)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
 # %%

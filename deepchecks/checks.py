@@ -13,74 +13,71 @@
 This module exists only for backward compatibility and will be
 removed in the next versions.
 """
+
 # flake8: noqa
 import warnings
 
 from deepchecks.tabular.checks import *  # pylint: disable=wildcard-import
 
 warnings.warn(
-    'Ability to import tabular checks from the `deepchecks.checks` '
-    'is deprecated, please import from `deepchecks.tabular.checks` instead',
-    DeprecationWarning
+    "Ability to import tabular checks from the `deepchecks.checks` "
+    "is deprecated, please import from `deepchecks.tabular.checks` instead",
+    DeprecationWarning,
 )
 
 
 __all__ = [
     # integrity checks
-    'MixedNulls',
-    'StringMismatch',
-    'MixedDataTypes',
-    'IsSingleValue',
-    'ClassImbalance',
-    'SpecialCharacters',
-    'StringLengthOutOfBounds',
-    'StringMismatchComparison',
-    'DataDuplicates',
-    'NewCategoryTrainTest',
-    'CategoryMismatchTrainTest',
-    'NewLabelTrainTest',
-    'ConflictingLabels',
-    'OutlierSampleDetection',
-    'PercentOfNulls',
-
+    "MixedNulls",
+    "StringMismatch",
+    "MixedDataTypes",
+    "IsSingleValue",
+    "ClassImbalance",
+    "SpecialCharacters",
+    "StringLengthOutOfBounds",
+    "StringMismatchComparison",
+    "DataDuplicates",
+    "NewCategoryTrainTest",
+    "CategoryMismatchTrainTest",
+    "NewLabelTrainTest",
+    "ConflictingLabels",
+    "OutlierSampleDetection",
+    "PercentOfNulls",
     # methodology checks
-    'BoostingOverfit',
-    'UnusedFeatures',
-    'FeatureFeatureCorrelation',
-    'FeatureLabelCorrelation',
-    'FeatureLabelCorrelationChange',
-    'IndexTrainTestLeakage',
-    'TrainTestSamplesMix',
-    'DateTrainTestLeakageDuplicates',
-    'DateTrainTestLeakageOverlap',
-    'IdentifierLabelCorrelation',
-    'ModelInferenceTime',
-    'DatasetsSizeComparison',
-
+    "BoostingOverfit",
+    "UnusedFeatures",
+    "FeatureFeatureCorrelation",
+    "FeatureLabelCorrelation",
+    "FeatureLabelCorrelationChange",
+    "IndexTrainTestLeakage",
+    "TrainTestSamplesMix",
+    "DateTrainTestLeakageDuplicates",
+    "DateTrainTestLeakageOverlap",
+    "IdentifierLabelCorrelation",
+    "ModelInferenceTime",
+    "DatasetsSizeComparison",
     # overview checks
-    'ModelInfo',
-    'ColumnsInfo',
-
+    "ModelInfo",
+    "ColumnsInfo",
     # distribution checks
-    'TrainTestFeatureDrift',
-    'FeatureDrift',
-    'TrainTestLabelDrift',
-    'LabelDrift',
-    'WholeDatasetDrift',
-    'TrainTestPredictionDrift',
-    'PredictionDrift',
-    'MultivariateDrift',
-
+    "TrainTestFeatureDrift",
+    "FeatureDrift",
+    "TrainTestLabelDrift",
+    "LabelDrift",
+    "WholeDatasetDrift",
+    "TrainTestPredictionDrift",
+    "PredictionDrift",
+    "MultivariateDrift",
     # performance checks
-    'TrainTestPerformance',
-    'ConfusionMatrixReport',
-    'RocReport',
-    'SimpleModelComparison',
-    'CalibrationScore',
-    'SegmentPerformance',
-    'RegressionSystematicError',
-    'RegressionErrorDistribution',
-    'MultiModelPerformanceReport',
-    'WeakSegmentsPerformance',
-    'SingleDatasetPerformance'
+    "TrainTestPerformance",
+    "ConfusionMatrixReport",
+    "RocReport",
+    "SimpleModelComparison",
+    "CalibrationScore",
+    "SegmentPerformance",
+    "RegressionSystematicError",
+    "RegressionErrorDistribution",
+    "MultiModelPerformanceReport",
+    "WeakSegmentsPerformance",
+    "SingleDatasetPerformance",
 ]

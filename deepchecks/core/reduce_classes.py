@@ -10,22 +10,17 @@
 #
 # pylint: disable=import-outside-toplevel
 """Module containing the reduce classes and methods."""
+
 import abc
 from typing import Dict, Optional
-
-import numpy as np
-import pandas as pd
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.utils.logger import get_logger
 
-__all__ = [
-    'ReduceMixin',
-    'ReduceFeatureMixin',
-    'ReducePropertyMixin',
-    'ReduceLabelMixin',
-    'ReduceMetricClassMixin'
-]
+import numpy as np
+import pandas as pd
+
+__all__ = ["ReduceMixin", "ReduceFeatureMixin", "ReducePropertyMixin", "ReduceLabelMixin", "ReduceMetricClassMixin"]
 
 
 class ReduceMixin(abc.ABC):
@@ -33,7 +28,7 @@ class ReduceMixin(abc.ABC):
 
     def greater_is_better(self):
         """Return True if the check reduce_output is better when it is greater."""
-        raise NotImplementedError('Must implement greater_is_better function')
+        raise NotImplementedError("Must implement greater_is_better function")
 
     def reduce_output(self, check_result) -> Dict[str, float]:
         """Return the check result as a reduced dict. Being Used for monitoring.
@@ -48,7 +43,7 @@ class ReduceMixin(abc.ABC):
         Dict[str, float]
             reduced dictionary in format {str: float} (i.e {'AUC': 0.1}), based on the check's original returned value
         """
-        raise NotImplementedError('Must implement reduce_output function')
+        raise NotImplementedError("Must implement reduce_output function")
 
 
 class ReduceLabelMixin(ReduceMixin):
@@ -68,23 +63,25 @@ class ReduceMetricClassMixin(ReduceLabelMixin):
         from deepchecks.tabular.metric_utils.scorers import regression_scorers_lower_is_better_dict
 
         lower_is_better_names = set(regression_scorers_lower_is_better_dict.keys())
-        if not hasattr(self, 'scorers'):
-            raise NotImplementedError('ReduceMetricClassMixin must be used with a check that has a scorers attribute')
+        if not hasattr(self, "scorers"):
+            raise NotImplementedError("ReduceMetricClassMixin must be used with a check that has a scorers attribute")
         elif isinstance(self.scorers, dict):
             names = list(self.scorers.keys())
         elif isinstance(self.scorers, list):
             names = self.scorers
         else:
-            raise NotImplementedError('ReduceMetricClassMixin must be used with a check that has a scorers attribute'
-                                      ' of type DeepcheckScorer or dict')
+            raise NotImplementedError(
+                "ReduceMetricClassMixin must be used with a check that has a scorers attribute"
+                " of type DeepcheckScorer or dict"
+            )
 
-        names = [x.lower().replace(' ', '_') for x in names]
+        names = [x.lower().replace(" ", "_") for x in names]
         if all((name in lower_is_better_names) for name in names):
             return False
         elif all((name not in lower_is_better_names) for name in names):
             return True
         else:
-            raise DeepchecksValueError('Cannot reduce metric class with mixed scorers')
+            raise DeepchecksValueError("Cannot reduce metric class with mixed scorers")
 
 
 class ReduceFeatureMixin(ReduceMixin):
@@ -98,33 +95,34 @@ class ReduceFeatureMixin(ReduceMixin):
         return False
 
     @staticmethod
-    def feature_reduce(aggregation_method: str, value_per_feature: pd.Series, feature_importance: Optional[pd.Series],
-                       score_name: str) -> Dict[str, float]:
+    def feature_reduce(
+        aggregation_method: str, value_per_feature: pd.Series, feature_importance: Optional[pd.Series], score_name: str
+    ) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        if aggregation_method is None or aggregation_method == 'none':
+        if aggregation_method is None or aggregation_method == "none":
             return dict(value_per_feature)
-        elif aggregation_method == 'mean':
-            return {str('Mean ' + score_name): np.mean(value_per_feature)}
-        elif aggregation_method == 'max':
-            return {str('Max ' + score_name): np.max(value_per_feature)}
+        elif aggregation_method == "mean":
+            return {str("Mean " + score_name): np.mean(value_per_feature)}
+        elif aggregation_method == "max":
+            return {str("Max " + score_name): np.max(value_per_feature)}
 
-        if aggregation_method not in ['weighted', 'l3_weighted', 'l5_weighted']:
-            raise DeepchecksValueError(f'Unknown aggregation method: {aggregation_method}')
+        if aggregation_method not in ["weighted", "l3_weighted", "l5_weighted"]:
+            raise DeepchecksValueError(f"Unknown aggregation method: {aggregation_method}")
         elif feature_importance is None or feature_importance.isna().values.any():
-            get_logger().warning('Failed to calculate feature importance, using uniform mean instead.')
-            return {str(str.title(aggregation_method.replace('_', ' ')) + ' ' + score_name): np.mean(value_per_feature)}
+            get_logger().warning("Failed to calculate feature importance, using uniform mean instead.")
+            return {str(str.title(aggregation_method.replace("_", " ")) + " " + score_name): np.mean(value_per_feature)}
         else:
             value_per_feature = value_per_feature[feature_importance.index]
             feature_importance = feature_importance[value_per_feature.notna().values]
             value_per_feature.dropna(inplace=True)
             value_per_feature, feature_importance = np.asarray(value_per_feature), np.asarray(feature_importance)
 
-        if aggregation_method == 'weighted':
-            return {str('Weighted ' + score_name): np.sum(value_per_feature * feature_importance)}
-        elif aggregation_method == 'l3_weighted':
-            return {str('L3 Weighted ' + score_name): np.sum((value_per_feature ** 3) * feature_importance) ** (1. / 3)}
-        elif aggregation_method == 'l5_weighted':
-            return {str('L5 Weighted ' + score_name): np.sum((value_per_feature ** 5) * feature_importance) ** (1. / 5)}
+        if aggregation_method == "weighted":
+            return {str("Weighted " + score_name): np.sum(value_per_feature * feature_importance)}
+        elif aggregation_method == "l3_weighted":
+            return {str("L3 Weighted " + score_name): np.sum((value_per_feature**3) * feature_importance) ** (1.0 / 3)}
+        elif aggregation_method == "l5_weighted":
+            return {str("L5 Weighted " + score_name): np.sum((value_per_feature**5) * feature_importance) ** (1.0 / 5)}
 
 
 class ReducePropertyMixin(ReduceMixin):
@@ -140,11 +138,11 @@ class ReducePropertyMixin(ReduceMixin):
     @staticmethod
     def property_reduce(aggregation_method: str, value_per_property: pd.Series, score_name: str) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        if aggregation_method is None or aggregation_method == 'none':
+        if aggregation_method is None or aggregation_method == "none":
             return dict(value_per_property)
-        elif aggregation_method == 'mean':
-            return {str('Mean ' + score_name): np.mean(value_per_property)}
-        elif aggregation_method == 'max':
-            return {str('Max ' + score_name): np.max(value_per_property)}
+        elif aggregation_method == "mean":
+            return {str("Mean " + score_name): np.mean(value_per_property)}
+        elif aggregation_method == "max":
+            return {str("Max " + score_name): np.max(value_per_property)}
         else:
-            raise DeepchecksValueError(f'Unknown aggregation method: {aggregation_method}')
+            raise DeepchecksValueError(f"Unknown aggregation method: {aggregation_method}")

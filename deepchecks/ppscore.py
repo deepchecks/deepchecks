@@ -32,25 +32,30 @@
 # pylint: skip-file
 import warnings
 
-warnings.filterwarnings('ignore', message='The least populated class in y has only')
+warnings.filterwarnings("ignore", message="The least populated class in y has only")
+
+from deepchecks.utils.typing import Hashable
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import (is_bool_dtype, is_categorical_dtype, is_datetime64_any_dtype, is_numeric_dtype,
-                              is_object_dtype, is_string_dtype, is_timedelta64_dtype)
+from pandas.api.types import (
+    is_bool_dtype,
+    is_categorical_dtype,
+    is_datetime64_any_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+    is_string_dtype,
+    is_timedelta64_dtype,
+)
 from sklearn import preprocessing, tree
 from sklearn.metrics import f1_score, mean_absolute_error
 from sklearn.model_selection import cross_val_score
-
-from deepchecks.utils.typing import Hashable
 
 NOT_SUPPORTED_ANYMORE = "NOT_SUPPORTED_ANYMORE"
 TO_BE_CALCULATED = -1
 
 
-def _calculate_model_cv_score_(
-        df, target, feature, task, cross_validation, random_seed, **kwargs
-):
+def _calculate_model_cv_score_(df, target, feature, task, cross_validation, random_seed, **kwargs):
     """Calculate the mean model score based on cross-validation."""
     # Sources about the used methods:
     # https://scikit-learn.org/stable/modules/tree.html
@@ -88,9 +93,7 @@ def _calculate_model_cv_score_(
 
     # Cross-validation is stratifiedKFold for classification, KFold for regression
     # CV on one core (n_job=1; default) has shown to be fastest
-    scores = cross_val_score(
-        model, feature_input, target_series, cv=cross_validation, scoring=metric
-    )
+    scores = cross_val_score(model, feature_input, target_series, cv=cross_validation, scoring=metric)
 
     return scores.mean()
 
@@ -226,12 +229,7 @@ INVALID_CALCULATIONS = [
 
 def _dtype_represents_categories(series) -> bool:
     """Determine if the dtype of the series represents categorical values."""
-    return (
-            is_bool_dtype(series)
-            or is_object_dtype(series)
-            or is_string_dtype(series)
-            or is_categorical_dtype(series)
-    )
+    return is_bool_dtype(series) or is_object_dtype(series) or is_string_dtype(series) or is_categorical_dtype(series)
 
 
 def _determine_case_and_prepare_df(df, x, y, sample=5_000, random_seed=123):
@@ -328,12 +326,8 @@ def _is_column_in_df(column, df):
         return False
 
 
-def _score(
-        df, x, y, task, sample, cross_validation, random_seed, invalid_score, catch_errors
-):
-    df, case_type = _determine_case_and_prepare_df(
-        df, x, y, sample=sample, random_seed=random_seed
-    )
+def _score(df, x, y, task, sample, cross_validation, random_seed, invalid_score, catch_errors):
+    df, case_type = _determine_case_and_prepare_df(df, x, y, sample=sample, random_seed=random_seed)
     task = _get_task(case_type, invalid_score)
 
     if case_type in ["classification", "regression"]:
@@ -347,9 +341,7 @@ def _score(
         )
         # IDEA: the baseline_scores do sometimes change significantly, e.g. for F1 and thus change the PPS
         # we might want to calculate the baseline_score 10 times and use the mean in order to have less variance
-        ppscore, baseline_score = task["score_normalizer"](
-            df, y, model_score, random_seed=random_seed
-        )
+        ppscore, baseline_score = task["score_normalizer"](df, y, model_score, random_seed=random_seed)
     else:
         model_score = task["model_score"]
         baseline_score = task["baseline_score"]
@@ -369,15 +361,15 @@ def _score(
 
 
 def score(
-        df,
-        x,
-        y,
-        task=NOT_SUPPORTED_ANYMORE,
-        sample=5_000,
-        cross_validation=4,
-        random_seed=123,
-        invalid_score=0,
-        catch_errors=True,
+    df,
+    x,
+    y,
+    task=NOT_SUPPORTED_ANYMORE,
+    sample=5_000,
+    cross_validation=4,
+    random_seed=123,
+    invalid_score=0,
+    catch_errors=True,
 ):
     """
     Calculate the Predictive Power Score (PPS) for "x predicts y".
@@ -428,8 +420,8 @@ def score(
         )
     if not _is_column_in_df(x, df):
         raise ValueError(
-            f"The 'x' argument should be the name of a dataframe column but the variable that you passed is not a "
-            f"column in the given dataframe.\nPlease review the column name or your dataframe"
+            "The 'x' argument should be the name of a dataframe column but the variable that you passed is not a "
+            "column in the given dataframe.\nPlease review the column name or your dataframe"
         )
     if len(df[[x]].columns) >= 2:
         raise AssertionError(
@@ -438,8 +430,8 @@ def score(
         )
     if not _is_column_in_df(y, df):
         raise ValueError(
-            f"The 'y' argument should be the name of a dataframe column but the variable that you passed is not a "
-            f"column in the given dataframe.\nPlease review the column name or your dataframe"
+            "The 'y' argument should be the name of a dataframe column but the variable that you passed is not a "
+            "column in the given dataframe.\nPlease review the column name or your dataframe"
         )
     if len(df[[y]].columns) >= 2:
         raise AssertionError(
@@ -566,17 +558,17 @@ def predictors(df, y: Hashable, output="df", sorted=True, **kwargs):
         )
     if not _is_column_in_df(y, df):
         raise ValueError(
-            f"The 'y' argument should be the name of a dataframe column but the variable that you passed is not a column in the given dataframe.\nPlease review the column name or your dataframe"
+            "The 'y' argument should be the name of a dataframe column but the variable that you passed is not a column in the given dataframe.\nPlease review the column name or your dataframe"
         )
     if len(df[[y]].columns) >= 2:
         raise AssertionError(
             f"The dataframe has {len(df[[y]].columns)} columns with the same column name {y}\nPlease adjust the dataframe and make sure that only 1 column has the name {y}"
         )
-    if not output in ["df", "list"]:
+    if output not in ["df", "list"]:
         raise ValueError(
             f"""The 'output' argument should be one of ["df", "list"] but you passed: {output}\nPlease adjust your input to one of the valid values"""
         )
-    if not sorted in [True, False]:
+    if sorted not in [True, False]:
         raise ValueError(
             f"""The 'sorted' argument should be one of [True, False] but you passed: {sorted}\nPlease adjust your input to one of the valid values"""
         )
@@ -610,11 +602,11 @@ def matrix(df, output="df", sorted=False, **kwargs):
         raise TypeError(
             f"The 'df' argument should be a pandas.DataFrame but you passed a {type(df)}\nPlease convert your input to a pandas.DataFrame"
         )
-    if not output in ["df", "list"]:
+    if output not in ["df", "list"]:
         raise ValueError(
             f"""The 'output' argument should be one of ["df", "list"] but you passed: {output}\nPlease adjust your input to one of the valid values"""
         )
-    if not sorted in [True, False]:
+    if sorted not in [True, False]:
         raise ValueError(
             f"""The 'sorted' argument should be one of [True, False] but you passed: {sorted}\nPlease adjust your input to one of the valid values"""
         )

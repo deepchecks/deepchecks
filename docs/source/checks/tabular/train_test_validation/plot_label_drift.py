@@ -32,17 +32,15 @@ on the label column.
 
 """
 
-#%%
-
-import pprint
-
-import numpy as np
-import pandas as pd
+# %%
 
 from deepchecks.tabular import Dataset
 from deepchecks.tabular.checks import LabelDrift
 
-#%%
+import numpy as np
+import pandas as pd
+
+# %%
 # Run Check on a Classification Label
 # ====================================
 
@@ -51,21 +49,25 @@ from deepchecks.tabular.checks import LabelDrift
 
 np.random.seed(42)
 
-train_data = np.concatenate([np.random.randn(1000,2), np.random.choice(a=[1,0], p=[0.5, 0.5], size=(1000, 1))], axis=1)
-#Create test_data with drift in label:
-test_data = np.concatenate([np.random.randn(1000,2), np.random.choice(a=[1,0], p=[0.35, 0.65], size=(1000, 1))], axis=1)
+train_data = np.concatenate(
+    [np.random.randn(1000, 2), np.random.choice(a=[1, 0], p=[0.5, 0.5], size=(1000, 1))], axis=1
+)
+# Create test_data with drift in label:
+test_data = np.concatenate(
+    [np.random.randn(1000, 2), np.random.choice(a=[1, 0], p=[0.35, 0.65], size=(1000, 1))], axis=1
+)
 
-df_train = pd.DataFrame(train_data, columns=['col1', 'col2', 'target'])
-df_test = pd.DataFrame(test_data, columns=['col1', 'col2', 'target'])
+df_train = pd.DataFrame(train_data, columns=["col1", "col2", "target"])
+df_test = pd.DataFrame(test_data, columns=["col1", "col2", "target"])
 
-train_dataset = Dataset(df_train, label='target')
-test_dataset = Dataset(df_test, label='target')
+train_dataset = Dataset(df_train, label="target")
+test_dataset = Dataset(df_test, label="target")
 
-#%%
+# %%
 
 df_train.head()
 
-#%%
+# %%
 # Run Check
 # ===============================
 
@@ -73,25 +75,25 @@ check = LabelDrift()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 result
 
-#%%
+# %%
 # Run Check on a Regression Label
 # ================================
 
 # Generate data:
 # --------------
 
-train_data = np.concatenate([np.random.randn(1000,2), np.random.randn(1000, 1)], axis=1)
-test_data = np.concatenate([np.random.randn(1000,2), np.random.randn(1000, 1)], axis=1)
+train_data = np.concatenate([np.random.randn(1000, 2), np.random.randn(1000, 1)], axis=1)
+test_data = np.concatenate([np.random.randn(1000, 2), np.random.randn(1000, 1)], axis=1)
 
-df_train = pd.DataFrame(train_data, columns=['col1', 'col2', 'target'])
-df_test = pd.DataFrame(test_data, columns=['col1', 'col2', 'target'])
-#Create drift in test:
-df_test['target'] = df_test['target'].astype('float') + abs(np.random.randn(1000)) + np.arange(0, 1, 0.001) * 4
+df_train = pd.DataFrame(train_data, columns=["col1", "col2", "target"])
+df_test = pd.DataFrame(test_data, columns=["col1", "col2", "target"])
+# Create drift in test:
+df_test["target"] = df_test["target"].astype("float") + abs(np.random.randn(1000)) + np.arange(0, 1, 0.001) * 4
 
-train_dataset = Dataset(df_train, label='target')
-test_dataset = Dataset(df_test, label='target')
+train_dataset = Dataset(df_train, label="target")
+test_dataset = Dataset(df_test, label="target")
 
-#%%
+# %%
 # Run check
 # ---------
 
@@ -99,7 +101,7 @@ check = LabelDrift()
 result = check.run(train_dataset=train_dataset, test_dataset=test_dataset)
 result
 
-#%%
+# %%
 # Add a Condition
 # ===============
 

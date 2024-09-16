@@ -9,11 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """String mismatch functions."""
+
 import itertools
 from collections import defaultdict
 from typing import Dict, List, Optional, Union
-
-import pandas as pd
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.reduce_classes import ReduceFeatureMixin
@@ -25,7 +24,9 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, get_base_form_to_variants_dict, is_string_column
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['StringMismatch']
+import pandas as pd
+
+__all__ = ["StringMismatch"]
 
 
 @docstrings
@@ -60,10 +61,10 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
-        aggregation_method: Optional[str] = 'max',
+        aggregation_method: Optional[str] = "max",
         n_samples: int = 1_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -76,44 +77,50 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
     def run_logic(self, context: Context, dataset_kind) -> CheckResult:
         """Run check."""
         dataset = context.get_data_by_kind(dataset_kind)
-        df = select_from_dataframe(dataset.sample(self.n_samples, random_state=self.random_state).data,
-                                   self.columns, self.ignore_columns)
+        df = select_from_dataframe(
+            dataset.sample(self.n_samples, random_state=self.random_state).data, self.columns, self.ignore_columns
+        )
 
-        feature_importance = context.feature_importance if context.feature_importance is not None \
+        feature_importance = (
+            context.feature_importance
+            if context.feature_importance is not None
             else pd.Series(index=list(df.columns), dtype=object)
+        )
 
         display_results = []
-        result_dict = {'n_samples': len(df), 'columns': {}, 'feature_importance': feature_importance}
+        result_dict = {"n_samples": len(df), "columns": {}, "feature_importance": feature_importance}
 
         for column_name in df.columns:
             column: pd.Series = df[column_name]
             if not is_string_column(column):
                 continue
 
-            result_dict['columns'][column_name] = {}
+            result_dict["columns"][column_name] = {}
             value_counts = column.value_counts()
             uniques = column.unique()
             base_form_to_variants = get_base_form_to_variants_dict(uniques)
             for base_form, variants in base_form_to_variants.items():
                 if len(variants) == 1:
                     continue
-                result_dict['columns'][column_name][base_form] = []
+                result_dict["columns"][column_name][base_form] = []
                 for variant in variants:
                     count = value_counts[variant]
                     percent = count / len(column)
-                    result_dict['columns'][column_name][base_form].append({
-                        'variant': variant, 'count': count, 'percent': percent
-                    })
+                    result_dict["columns"][column_name][base_form].append(
+                        {"variant": variant, "count": count, "percent": percent}
+                    )
                     if context.with_display:
                         display_results.append([column_name, base_form, variant, count, format_percent(percent)])
 
         # Create dataframe to display graph
         if display_results:
-            df_graph = pd.DataFrame(display_results, columns=['Column Name', 'Base form', 'Value', 'Count',
-                                                              '% In data'])
-            df_graph = df_graph.set_index(['Column Name', 'Base form'])
-            df_graph = column_importance_sorter_df(df_graph, dataset, context.feature_importance,
-                                                   self.n_top_columns, col='Column Name')
+            df_graph = pd.DataFrame(
+                display_results, columns=["Column Name", "Base form", "Value", "Count", "% In data"]
+            )
+            df_graph = df_graph.set_index(["Column Name", "Base form"])
+            df_graph = column_importance_sorter_df(
+                df_graph, dataset, context.feature_importance, self.n_top_columns, col="Column Name"
+            )
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
             display = None
@@ -122,19 +129,30 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        feature_importance = check_result.value['feature_importance']
+        feature_importance = check_result.value["feature_importance"]
 
-        if check_result.value['columns']:
-            total_mismatched = {column: sum([sum(x['count'] for x in check_result.value['columns'][column][base_form])
-                                             for base_form in check_result.value['columns'][column]])
-                                for column in check_result.value['columns']}
+        if check_result.value["columns"]:
+            total_mismatched = {
+                column: sum(
+                    [
+                        sum(x["count"] for x in check_result.value["columns"][column][base_form])
+                        for base_form in check_result.value["columns"][column]
+                    ]
+                )
+                for column in check_result.value["columns"]
+            }
         else:
-            total_mismatched = {column: 0 for column in check_result.value['columns']}
+            total_mismatched = {column: 0 for column in check_result.value["columns"]}
 
-        percent_mismatched = pd.Series({column: total_mismatched[column] / check_result.value['n_samples'] for column in
-                                        check_result.value['columns']})
-        return self.feature_reduce(self.aggregation_method, percent_mismatched, feature_importance,
-                                   'Percent Mismatched Strings')
+        percent_mismatched = pd.Series(
+            {
+                column: total_mismatched[column] / check_result.value["n_samples"]
+                for column in check_result.value["columns"]
+            }
+        )
+        return self.feature_reduce(
+            self.aggregation_method, percent_mismatched, feature_importance, "Percent Mismatched Strings"
+        )
 
     def add_condition_number_variants_less_or_equal(self, num_max_variants: int):
         """Add condition - number of variants (per string baseform) is less or equal to threshold.
@@ -144,12 +162,12 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
         num_max_variants : int
             Maximum number of variants allowed.
         """
-        name = f'Number of string variants is less or equal to {num_max_variants}'
+        name = f"Number of string variants is less or equal to {num_max_variants}"
         return self.add_condition(name, _condition_variants_number, num_max_variants=num_max_variants)
 
     def add_condition_no_variants(self):
         """Add condition - no variants are allowed."""
-        name = 'No string variants'
+        name = "No string variants"
         return self.add_condition(name, _condition_variants_number, num_max_variants=0)
 
     def add_condition_ratio_variants_less_or_equal(self, max_ratio: float = 0.01):
@@ -160,36 +178,41 @@ class StringMismatch(SingleDatasetCheck, ReduceFeatureMixin):
         max_ratio : float , default: 0.01
             Maximum percent of variants allowed in data.
         """
+
         def condition(result, max_ratio: float):
             not_passing_columns = {}
-            for col, baseforms in result['columns'].items():
+            for col, baseforms in result["columns"].items():
                 variants_percent_sum = 0
                 for variants_list in baseforms.values():
-                    variants_percent_sum += sum([v['percent'] for v in variants_list])
+                    variants_percent_sum += sum([v["percent"] for v in variants_list])
                 if variants_percent_sum > max_ratio:
                     not_passing_columns[col] = format_percent(variants_percent_sum)
 
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} out of {len(result["columns"])} relevant columns with ' \
-                          f'variants ratio above threshold: {not_passing_columns}'
+                details = (
+                    f'Found {len(not_passing_columns)} out of {len(result["columns"])} relevant columns with '
+                    f'variants ratio above threshold: {not_passing_columns}'
+                )
                 return ConditionResult(ConditionCategory.FAIL, details)
-            return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result['columns']))
+            return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result["columns"]))
 
-        name = f'Ratio of variants is less or equal to {format_percent(max_ratio)}'
+        name = f"Ratio of variants is less or equal to {format_percent(max_ratio)}"
         return self.add_condition(name, condition, max_ratio=max_ratio)
 
 
 def _condition_variants_number(result, num_max_variants: int, max_cols_to_show: int = 5, max_forms_to_show: int = 5):
     not_passing_variants = defaultdict(list)
-    for col, baseforms in result['columns'].items():
+    for col, baseforms in result["columns"].items():
         for base_form, variants_list in baseforms.items():
             if len(variants_list) > num_max_variants:
                 if len(not_passing_variants[col]) < max_forms_to_show:
                     not_passing_variants[col].append(base_form)
     if not_passing_variants:
         variants_to_show = dict(itertools.islice(not_passing_variants.items(), max_cols_to_show))
-        details = f'Found {len(not_passing_variants)} out of {len(result["columns"])} columns with amount of ' \
-                  f'variants above threshold: {variants_to_show}'
+        details = (
+            f'Found {len(not_passing_variants)} out of {len(result["columns"])} columns with amount of '
+            f'variants above threshold: {variants_to_show}'
+        )
         return ConditionResult(ConditionCategory.WARN, details)
 
-    return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(['columns']))
+    return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(["columns"]))

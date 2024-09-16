@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """The date_leakage check module."""
+
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
 from deepchecks.utils.strings import format_datetime, format_percent
 
-__all__ = ['DateTrainTestLeakageOverlap']
+__all__ = ["DateTrainTestLeakageOverlap"]
 
 
 class DateTrainTestLeakageOverlap(TrainTestCheck):
@@ -27,12 +28,7 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
         random seed for all check internals.
     """
 
-    def __init__(
-        self,
-        n_samples: int = 1_000_000,
-        random_state: int = 42,
-        **kwargs
-    ):
+    def __init__(self, n_samples: int = 1_000_000, random_state: int = 42, **kwargs):
         super().__init__(**kwargs)
         self.n_samples = n_samples
         self.random_state = random_state
@@ -65,14 +61,16 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
         if dates_leaked > 0:
             leakage_ratio = dates_leaked / test_dataset.n_samples
             return_value = leakage_ratio
-            display = f'{format_percent(leakage_ratio)} of test data samples are in the date range ' \
-                      f'{format_datetime(min_test_date)} - {format_datetime(max_train_date)}'\
-                      f', which occurs before last training data date ({format_datetime(max_train_date)})'
+            display = (
+                f"{format_percent(leakage_ratio)} of test data samples are in the date range "
+                f"{format_datetime(min_test_date)} - {format_datetime(max_train_date)}"
+                f", which occurs before last training data date ({format_datetime(max_train_date)})"
+            )
         else:
             display = None
             return_value = 0
 
-        return CheckResult(value=return_value, header='Date Train-Test Leakage (overlap)', display=display)
+        return CheckResult(value=return_value, header="Date Train-Test Leakage (overlap)", display=display)
 
     def add_condition_leakage_ratio_less_or_equal(self, max_ratio: float = 0):
         """Add condition - require leakage ratio be less or equal to the threshold.
@@ -82,10 +80,12 @@ class DateTrainTestLeakageOverlap(TrainTestCheck):
         max_ratio : float , default: 0
             Maximum ratio of leakage.
         """
+
         def max_ratio_condition(result: float) -> ConditionResult:
-            details = f'Found {format_percent(result)} leaked dates' if result > 0 else 'No leaked dates found'
+            details = f"Found {format_percent(result)} leaked dates" if result > 0 else "No leaked dates found"
             category = ConditionCategory.PASS if result <= max_ratio else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        return self.add_condition(f'Date leakage ratio is less or equal to {format_percent(max_ratio)}',
-                                  max_ratio_condition)
+        return self.add_condition(
+            f"Date leakage ratio is less or equal to {format_percent(max_ratio)}", max_ratio_condition
+        )

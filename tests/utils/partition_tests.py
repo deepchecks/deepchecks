@@ -9,12 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Test partitions utils"""
+
+from deepchecks.utils.performance.partition import (
+    DeepchecksFilter,
+    convert_tree_leaves_into_filters,
+    intersect_two_filters,
+)
+
 import pandas as pd
 from hamcrest import assert_that, equal_to
 from sklearn.tree import DecisionTreeRegressor
-
-from deepchecks.utils.performance.partition import (DeepchecksFilter, convert_tree_leaves_into_filters,
-                                                    intersect_two_filters)
 
 
 def test_iris_tree_to_filters(iris_dataset):
@@ -34,8 +38,8 @@ def test_iris_tree_to_filters(iris_dataset):
 
 
 def test_merge_filters(iris_clean):
-    filter1 = DeepchecksFilter([lambda df, a=2: df['petal length (cm)'] <= a])
-    filter2 = DeepchecksFilter([lambda df, a=1.5: df['petal length (cm)'] <= a])
+    filter1 = DeepchecksFilter([lambda df, a=2: df["petal length (cm)"] <= a])
+    filter2 = DeepchecksFilter([lambda df, a=1.5: df["petal length (cm)"] <= a])
     filter3 = intersect_two_filters(filter1, filter2)
 
     filter2_data = filter2.filter(iris_clean.data)
@@ -46,8 +50,8 @@ def test_merge_filters(iris_clean):
 
 
 def test_empty_merge_filters(iris_clean):
-    filter1 = DeepchecksFilter([lambda df, a=2: df['petal length (cm)'] > a])
-    filter2 = DeepchecksFilter([lambda df, a=1.5: df['petal length (cm)'] <= a])
+    filter1 = DeepchecksFilter([lambda df, a=2: df["petal length (cm)"] > a])
+    filter2 = DeepchecksFilter([lambda df, a=1.5: df["petal length (cm)"] <= a])
     filter3 = intersect_two_filters(filter1, filter2)
 
     filter3_data = filter3.filter(iris_clean.data)
@@ -55,7 +59,7 @@ def test_empty_merge_filters(iris_clean):
 
 
 def test_no_effect_merge_filters(iris_clean):
-    filter1 = DeepchecksFilter([lambda df, a=2: df['petal length (cm)'] > a])
+    filter1 = DeepchecksFilter([lambda df, a=2: df["petal length (cm)"] > a])
     filter2 = DeepchecksFilter()
     filter3 = intersect_two_filters(filter1, filter2)
 
@@ -64,4 +68,3 @@ def test_no_effect_merge_filters(iris_clean):
     filter3_data = filter3.filter(iris_clean.data)
     assert_that(len(filter3_data), equal_to(len(filter1_data)))
     assert_that(len(filter2_data), equal_to(len(iris_clean.data)))
-

@@ -1,17 +1,17 @@
 twine
 
 pylint==2.13.5
-pydocstyle 
+pydocstyle
 flake8==4.0.1
-flake8-spellcheck 
-flake8-eradicate 
+flake8-spellcheck
+flake8-eradicate
 flake8-rst
 isort
 
 pytest<8.0.0
 pytest-cov
 pyhamcrest
-nbval 
+nbval
 coveralls
 tox
 gower==0.0.5

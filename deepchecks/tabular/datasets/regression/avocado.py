@@ -82,8 +82,11 @@ Description:
          - Label
          - The average price of a single avocado
 """
+
 import typing as t
 from urllib.request import urlopen
+
+from deepchecks.tabular.dataset import Dataset
 
 import joblib
 import pandas as pd
@@ -95,21 +98,20 @@ from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
-from deepchecks.tabular.dataset import Dataset
-
-__all__ = ['load_data', 'load_fitted_model']
-_MODEL_URL = 'https://figshare.com/ndownloader/files/35259829'
-_FULL_DATA_URL = 'https://figshare.com/ndownloader/files/35259799'
-_TRAIN_DATA_URL = 'https://figshare.com/ndownloader/files/35259769'
-_TEST_DATA_URL = 'https://figshare.com/ndownloader/files/35259814'
-_MODEL_VERSION = '1.0.2'
-_target = 'AveragePrice'
-_CAT_FEATURES = ['region', 'type']
-_NUM_FEATURES = ['Total Volume', '4046', '4225', 'Total Bags', 'Small Bags', 'Large Bags', 'XLarge Bags']
+__all__ = ["load_data", "load_fitted_model"]
+_MODEL_URL = "https://figshare.com/ndownloader/files/35259829"
+_FULL_DATA_URL = "https://figshare.com/ndownloader/files/35259799"
+_TRAIN_DATA_URL = "https://figshare.com/ndownloader/files/35259769"
+_TEST_DATA_URL = "https://figshare.com/ndownloader/files/35259814"
+_MODEL_VERSION = "1.0.2"
+_target = "AveragePrice"
+_CAT_FEATURES = ["region", "type"]
+_NUM_FEATURES = ["Total Volume", "4046", "4225", "Total Bags", "Small Bags", "Large Bags", "XLarge Bags"]
 
 
-def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
-        t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
+def load_data(
+    data_format: str = "Dataset", as_train_test: bool = True
+) -> t.Union[t.Tuple, t.Union[Dataset, pd.DataFrame]]:
     """Load and returns the Avocado dataset (regression).
 
     Parameters
@@ -134,17 +136,17 @@ def load_data(data_format: str = 'Dataset', as_train_test: bool = True) -> \
     if not as_train_test:
         dataset = pd.read_csv(_FULL_DATA_URL)
 
-        if data_format == 'Dataset':
-            dataset = Dataset(dataset, label='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
+        if data_format == "Dataset":
+            dataset = Dataset(dataset, label="AveragePrice", cat_features=_CAT_FEATURES, datetime_name="Date")
 
         return dataset
     else:
         train = pd.read_csv(_TRAIN_DATA_URL)
         test = pd.read_csv(_TEST_DATA_URL)
 
-        if data_format == 'Dataset':
-            train = Dataset(train, label='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
-            test = Dataset(test, label='AveragePrice', cat_features=_CAT_FEATURES, datetime_name='Date')
+        if data_format == "Dataset":
+            train = Dataset(train, label="AveragePrice", cat_features=_CAT_FEATURES, datetime_name="Date")
+            test = Dataset(test, label="AveragePrice", cat_features=_CAT_FEATURES, datetime_name="Date")
 
         return train, test
 
@@ -170,15 +172,23 @@ def load_fitted_model(pretrained=True):
 
 def _build_model():
     """Build the model to fit."""
-    return Pipeline(steps=[
-        ('preprocessor',
-         ColumnTransformer(transformers=[('num',
-                                          Pipeline(steps=[('imputer',
-                                                           SimpleImputer(strategy='median')),
-                                                          ('scaler',
-                                                           StandardScaler())]),
-                                          _NUM_FEATURES),
-                                         ('cat', OneHotEncoder(),
-                                          _CAT_FEATURES)])),
-        ('classifier', RandomForestRegressor(random_state=0, max_depth=7, n_estimators=30))
-    ])
+    return Pipeline(
+        steps=[
+            (
+                "preprocessor",
+                ColumnTransformer(
+                    transformers=[
+                        (
+                            "num",
+                            Pipeline(
+                                steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]
+                            ),
+                            _NUM_FEATURES,
+                        ),
+                        ("cat", OneHotEncoder(), _CAT_FEATURES),
+                    ]
+                ),
+            ),
+            ("classifier", RandomForestRegressor(random_state=0, max_depth=7, n_estimators=30)),
+        ]
+    )

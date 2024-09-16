@@ -44,7 +44,7 @@ with custom ones. For the list of the built-in image properties and explanation 
 
 """
 
-#%%
+# %%
 # Run the Check
 # -------------
 # For the example we will load COCO object detection data, and will run the check with the default properties.
@@ -58,19 +58,19 @@ with custom ones. For the list of the built-in image properties and explanation 
 from deepchecks.vision.checks import ImagePropertyOutliers
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
-train_data = load_dataset(train=True, object_type='VisionData')
+train_data = load_dataset(train=True, object_type="VisionData")
 check = ImagePropertyOutliers()
 result = check.run(train_data)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Observe Graphic Result
 # ^^^^^^^^^^^^^^^^^^^^^^
 # The check shows a section for each property. In each section we show the number of outliers and the non-outlier

@@ -40,7 +40,7 @@ This check only works on the Object Detection task.
 from deepchecks.vision.checks import MeanAveragePrecisionReport
 from deepchecks.vision.datasets.detection import coco_torch as coco
 
-test_ds = coco.load_dataset(train=False, object_type='VisionData')
+test_ds = coco.load_dataset(train=False, object_type="VisionData")
 
 # %%
 # Run the check
@@ -50,11 +50,11 @@ check = MeanAveragePrecisionReport()
 result = check.run(test_ds)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
 
@@ -67,8 +67,8 @@ result
 
 result.value
 
-#%%
-# Define a condition 
+# %%
+# Define a condition
 # ==================
 # We can define a condition that checks whether our model's mean average precision score is not less than
 # a given threshold for all bounding box sizes.

@@ -9,9 +9,10 @@
 # ----------------------------------------------------------------------------
 #
 """Contains simple models used in checks."""
+
 import numpy as np
 
-__all__ = ['PerfectModel', 'RandomModel', 'ClassificationUniformModel', 'RegressionUniformModel']
+__all__ = ["PerfectModel", "RandomModel", "ClassificationUniformModel", "RegressionUniformModel"]
 
 
 def create_proba_result(predictions, classes):

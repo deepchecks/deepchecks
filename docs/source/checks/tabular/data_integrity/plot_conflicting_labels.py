@@ -21,37 +21,52 @@ occur due to either mislabeled data, or when the data collected is missing
 features necessary to separate the labels. If the data is mislabled, it can
 confuse the model and can result in lower performance of the model.
 """
-import pandas as pd
 
 from deepchecks.tabular import Dataset
+
 # %%
 from deepchecks.tabular.checks import ConflictingLabels
 from deepchecks.tabular.datasets.classification.phishing import load_data
 
-#%%
+# %%
 # Load Data
 # =========
 
 
-phishing_dataframe = load_data(as_train_test=False, data_format='Dataframe')
-phishing_dataset = Dataset(phishing_dataframe, label='target', features=['urlLength', 'numDigits', 'numParams', 'num_%20', 'num_@', 'bodyLength', 'numTitles', 'numImages', 'numLinks', 'specialChars'])
+phishing_dataframe = load_data(as_train_test=False, data_format="Dataframe")
+phishing_dataset = Dataset(
+    phishing_dataframe,
+    label="target",
+    features=[
+        "urlLength",
+        "numDigits",
+        "numParams",
+        "num_%20",
+        "num_@",
+        "bodyLength",
+        "numTitles",
+        "numImages",
+        "numLinks",
+        "specialChars",
+    ],
+)
 
-#%%
+# %%
 # Run the Check
 # =============
 
 ConflictingLabels().run(phishing_dataset)
 
-#%%
+# %%
 # We can also check label ambiguity on a subset of the features:
 
 ConflictingLabels(n_to_show=1).run(phishing_dataset)
 
-#%%
+# %%
 
-ConflictingLabels(columns=['urlLength', 'numDigits']).run(phishing_dataset)
+ConflictingLabels(columns=["urlLength", "numDigits"]).run(phishing_dataset)
 
-#%%
+# %%
 # Define a Condition
 # ==================
 # Now, we define a condition that enforces that the ratio of samples with conflicting labels

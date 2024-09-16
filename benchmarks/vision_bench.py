@@ -10,13 +10,13 @@
 #
 from typing import Callable
 
-import torch
-
 from deepchecks.core.errors import DeepchecksBaseError
 from deepchecks.vision import SingleDatasetCheck, TrainTestCheck
 from deepchecks.vision.datasets.classification import mnist_torch as mnist
 from deepchecks.vision.datasets.detection import coco_torch as coco
 from deepchecks.vision.vision_data import VisionData
+
+import torch
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -45,38 +45,38 @@ def run_check_fn(check_class) -> Callable:
             if isinstance(check, SingleDatasetCheck):
                 check.run(train_ds, train_predictions=train_pred, device=device)
             elif isinstance(check, TrainTestCheck):
-                check.run(train_ds, test_ds, train_predictions=train_pred,
-                          test_predictions=test_pred, device=device)
+                check.run(train_ds, test_ds, train_predictions=train_pred, test_predictions=test_pred, device=device)
         except DeepchecksBaseError:
             pass
+
     return run
 
 
 def setup_mnist():
     mnist_model = mnist.load_model()
-    train_ds = mnist.load_dataset(train=True, object_type='VisionData')
-    test_ds = mnist.load_dataset(train=False, object_type='VisionData')
+    train_ds = mnist.load_dataset(train=True, object_type="VisionData")
+    test_ds = mnist.load_dataset(train=False, object_type="VisionData")
     train_preds, tests_preds = create_static_predictions(train_ds, test_ds, mnist_model)
     return train_ds, test_ds, train_preds, tests_preds
 
 
 def setup_coco():
     coco_model = coco.load_model()
-    train_ds = coco.load_dataset(train=True, object_type='VisionData')
-    test_ds = coco.load_dataset(train=False, object_type='VisionData')
+    train_ds = coco.load_dataset(train=True, object_type="VisionData")
+    test_ds = coco.load_dataset(train=False, object_type="VisionData")
     train_preds, tests_preds = create_static_predictions(train_ds, test_ds, coco_model)
     return train_ds, test_ds, train_preds, tests_preds
 
 
 class BenchmarkVision:
     timeout = 120
-    params = ['mnist', 'coco']
-    param_names = ['dataset_name']
+    params = ["mnist", "coco"]
+    param_names = ["dataset_name"]
 
     def setup_cache(self):
         cache = {}
-        cache['mnist'] = setup_mnist()
-        cache['coco'] = setup_coco()
+        cache["mnist"] = setup_mnist()
+        cache["coco"] = setup_coco()
         return cache
 
 

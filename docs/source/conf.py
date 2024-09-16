@@ -7,63 +7,57 @@ import functools
 import inspect
 import os
 import pathlib
+import re
 import sys
 import typing as t
-import re
 from subprocess import check_output
 
 import plotly.io as pio
 from plotly.io._sg_scraper import plotly_sg_scraper
 
-import deepchecks
-from deepchecks import vision
-
-pio.renderers.default = 'sphinx_gallery'
+pio.renderers.default = "sphinx_gallery"
 
 # -- Path setup --------------------------------------------------------------
 
 CURRENT_DIR = pathlib.Path(__file__).parent
 PROJECT_DIR = CURRENT_DIR.parent.parent
-VISION_DIR = f'{PROJECT_DIR.absolute()}{os.sep}vision'
+VISION_DIR = f"{PROJECT_DIR.absolute()}{os.sep}vision"
 
 sys.path.insert(0, str(PROJECT_DIR.absolute()))
 sys.path.insert(0, VISION_DIR)
 
 from deepchecks.utils.strings import to_snake_case
 
-with open(os.path.join(PROJECT_DIR, 'VERSION')) as version_file:
+with open(os.path.join(PROJECT_DIR, "VERSION")) as version_file:
     VERSION = version_file.read().strip()
 
 # -- Project information -----------------------------------------------------
 
 
-project = 'Deepchecks'
-copyright = '2021-2023, Deepchecks'
-author = 'Deepchecks'
-os.environ['DEEPCHECKS_DISABLE_LATEST'] = 'true'
+project = "Deepchecks"
+copyright = "2021-2023, Deepchecks"
+author = "Deepchecks"
+os.environ["DEEPCHECKS_DISABLE_LATEST"] = "true"
 is_readthedocs = os.environ.get("READTHEDOCS")
 
 version = None
 if os.environ.get("GITHUB_REF_NAME"):
-    if os.environ.get("GITHUB_REF_NAME") == 'main':
-        version = 'dev'
+    if os.environ.get("GITHUB_REF_NAME") == "main":
+        version = "dev"
     else:
         # Taking the major and minor version from the branch name
-        version_match: re.Match = re.match(r'\d+(?:\.\d+)', os.environ.get("GITHUB_REF_NAME"))
+        version_match: re.Match = re.match(r"\d+(?:\.\d+)", os.environ.get("GITHUB_REF_NAME"))
         if version_match is not None:
             version = version_match.group(0)
 
 version = version or VERSION
 language = os.environ.get("READTHEDOCS_LANGUAGE")
 
-GIT = {
-    "user": "deepchecks",
-    "repo": "deepchecks"
-}
+GIT = {"user": "deepchecks", "repo": "deepchecks"}
 
 try:
     GIT["branch"] = tag = check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).decode().strip()
-    GIT["release"] = release = check_output(['git', 'describe', '--tags', '--always']).decode().strip()
+    GIT["release"] = release = check_output(["git", "describe", "--tags", "--always"]).decode().strip()
 except Exception as error:
     raise RuntimeError("Failed to extract commit hash!") from error
 
@@ -74,36 +68,40 @@ except Exception as error:
 # ones.
 #
 extensions = [
-    'sphinx_gallery.load_style',
-    'sphinx_gallery.gen_gallery',
-    'numpydoc',
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.linkcode',
-    'sphinx_copybutton',
-    'sphinx.ext.githubpages',
-    'sphinx_search.extension',
-    'sphinx.ext.autosectionlabel',
+    "sphinx_gallery.load_style",
+    "sphinx_gallery.gen_gallery",
+    "numpydoc",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.linkcode",
+    "sphinx_copybutton",
+    "sphinx.ext.githubpages",
+    "sphinx_search.extension",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.imgmath",
-    'sphinx_reredirects',
-    'sphinx.ext.intersphinx',
-    'sphinx_design',
+    "sphinx_reredirects",
+    "sphinx.ext.intersphinx",
+    "sphinx_design",
 ]
 
 intersphinx_mapping = {
-    'python': ('https://docs.python.org/3', None),
-    'deepchecks-mon': ('https://docs.deepchecks.com/monitoring/stable', None),
-    'pandas': ('https://pandas.pydata.org/docs/', None),
-    'pd': ('https://pandas.pydata.org/docs/', None),
-    'requests':  ('https://requests.readthedocs.io/en/latest/', None),
-    'numpy': ('https://numpy.org/doc/stable/', None),
-    'np': ('https://numpy.org/doc/stable/', None),
-    'torch':  ('https://pytorch.org/docs/stable/', None),
-    'datetime':  ('https://docs.python.org/3', None),
-    'tensorflow': ("https://www.tensorflow.org/api_docs/python",
-                   "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv"),
-    'tf': ("https://www.tensorflow.org/api_docs/python",
-           "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv")
+    "python": ("https://docs.python.org/3", None),
+    "deepchecks-mon": ("https://docs.deepchecks.com/monitoring/stable", None),
+    "pandas": ("https://pandas.pydata.org/docs/", None),
+    "pd": ("https://pandas.pydata.org/docs/", None),
+    "requests": ("https://requests.readthedocs.io/en/latest/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "np": ("https://numpy.org/doc/stable/", None),
+    "torch": ("https://pytorch.org/docs/stable/", None),
+    "datetime": ("https://docs.python.org/3", None),
+    "tensorflow": (
+        "https://www.tensorflow.org/api_docs/python",
+        "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv",
+    ),
+    "tf": (
+        "https://www.tensorflow.org/api_docs/python",
+        "https://github.com/GPflow/tensorflow-intersphinx/raw/master/tf2_py_objects.inv",
+    ),
 }
 
 redirects = {
@@ -138,9 +136,9 @@ redirects = {
     "user-guide/general/metrics_guide": "../../general/guides/metrics_guide.html",
     "user-guide/general/export_save_results": "../../general/usage/export_save_results.html",
     "checks_gallery/tabular": "../../tabular/index.html",
-    "checks_gallery/vision": "../../vision/index.html"
+    "checks_gallery/vision": "../../vision/index.html",
 }
-imgmath_image_format = 'svg'
+imgmath_image_format = "svg"
 
 sphinx_gallery_conf = {
     "examples_dirs": [
@@ -160,8 +158,7 @@ sphinx_gallery_conf = {
         "checks/nlp/train_test_validation",
         "checks/nlp/model_evaluation",
         "nlp/tutorials/quickstarts",
-        "nlp/tutorials/other"
-
+        "nlp/tutorials/other",
     ],  # path to your example scripts
     "gallery_dirs": [
         "general/usage/customizations/auto_examples",
@@ -180,28 +177,29 @@ sphinx_gallery_conf = {
         "nlp/auto_checks/train_test_validation",
         "nlp/auto_checks/model_evaluation",
         "nlp/auto_tutorials/quickstarts",
-        "nlp/auto_tutorials/other"
-    ], # path to where to save gallery generated output
+        "nlp/auto_tutorials/other",
+    ],  # path to where to save gallery generated output
     "image_scrapers": (
         "matplotlib",
         plotly_sg_scraper,
     ),
     "pypandoc": True,
-    "default_thumb_file": os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                       "_static/images/general/sphx_glr_deepchecks_icon.png"),
+    "default_thumb_file": os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "_static/images/general/sphx_glr_deepchecks_icon.png"
+    ),
     "doc_module": "deepchecks",
     "backreferences_dir": os.path.join(PROJECT_DIR, "docs/source/api/generated/backreferences"),
-    "reference_url": {'deepchecks': None},
+    "reference_url": {"deepchecks": None},
     # avoid generating too many cross links
     "inspect_global_variables": True,
-    "remove_config_comments": True, # for enabling to overide the default thumb_file aesthetically 
+    "remove_config_comments": True,  # for enabling to overide the default thumb_file aesthetically
 }
 
 html_title = "Deepchecks Documentation"
 
 # Add any paths that contain templates here, relative to this directory.
 #
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # A list of warning types to suppress arbitrary warning messages.
 # List of all possible types: https://www.sphinx-doc.org/en/master/usage/configuration.html?highlight=suppress_warnings#confval-suppress_warnings
@@ -215,14 +213,14 @@ suppress_warnings = [
     # to ignore messages like:
     # WARNING: duplicate label <string>, other instance in <doc-path>.rst
     #
-    "autosectionlabel.*"
+    "autosectionlabel.*",
 ]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 #
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # If true, Sphinx will warn about all references where the target cannot be found.
 # Default is False. You can activate this mode temporarily using the -n command-line switch.
@@ -277,11 +275,7 @@ def getswd(pth: str):
     return os.getcwd()
 
 
-autosummary_context = {
-    'to_snake_case': to_snake_case, 
-    'path_exists': path_exists, 
-    'getcwd': os.getcwd
-}
+autosummary_context = {"to_snake_case": to_snake_case, "path_exists": path_exists, "getcwd": os.getcwd}
 
 # TODO: explain
 autosummary_filename_map = {
@@ -290,7 +284,7 @@ autosummary_filename_map = {
     "deepchecks.tabular.suites": "../deepchecks.tabular.suites",
     "deepchecks.vision.suites": "../deepchecks.vision.suites",
     "deepchecks.nlp.checks": "../deepchecks.nlp.checks",
-    "deepchecks.nlp.suites": "../deepchecks.nlp.suites"
+    "deepchecks.nlp.suites": "../deepchecks.nlp.suites",
 }
 
 # -- autodoc settings --------------------------------------------------
@@ -301,7 +295,7 @@ autosummary_filename_map = {
 # + "mixed"     - Display the signature with the class name (default).
 # + "separated" - Display the signature as a method.
 #
-autodoc_class_signature = 'separated'
+autodoc_class_signature = "separated"
 
 # This value controls how to represent typehints. The setting takes the following values:
 #    'signature' – Show typehints in the signature (default)
@@ -309,14 +303,14 @@ autodoc_class_signature = 'separated'
 #    'none' – Do not show typehints
 #    'both' – Show typehints in the signature and as content of the function or method
 #
-autodoc_typehints = 'signature'
+autodoc_typehints = "signature"
 
 # This value controls the format of typehints.
 # The setting takes the following values:
 #   + 'fully-qualified' – Show the module name and its name of typehints
 #   + 'short' – Suppress the leading module names of the typehints (default in version 5.0)
 #
-autodoc_typehints_format = 'short'
+autodoc_typehints_format = "short"
 
 # True to convert the type definitions in the docstrings as references. Defaults to False.
 #
@@ -344,11 +338,12 @@ copybutton_line_continuation_character = "\\"
 
 # -- Linkcode ----------------------------------------------------------------
 
+
 def _import_object_from_name(module_name, fullname):
     obj = sys.modules.get(module_name)
     if obj is None:
         return None
-    for comp in fullname.split('.'):
+    for comp in fullname.split("."):
         try:
             obj = getattr(obj, comp)
         except AttributeError:
@@ -356,7 +351,7 @@ def _import_object_from_name(module_name, fullname):
     return obj
 
 
-_top_modules = ['deepchecks']
+_top_modules = ["deepchecks"]
 _source_root = None
 
 
@@ -375,9 +370,7 @@ def _find_source_root(source_abs_path):
             _source_root = parent
             return _source_root
         if len(parent) == len(dirname):
-            raise RuntimeError(
-                'Couldn\'t parse root directory from '
-                'source file: {}'.format(source_abs_path))
+            raise RuntimeError("Couldn't parse root directory from " "source file: {}".format(source_abs_path))
         dirname = parent
 
 
@@ -386,18 +379,18 @@ def _get_source_relative_path(source_abs_path):
 
 
 def linkcode_resolve(domain, info):
-    if domain != 'py' or not info['module']:
+    if domain != "py" or not info["module"]:
         return None
 
     # Import the object from module path
-    obj = _import_object_from_name(info['module'], info['fullname'])
+    obj = _import_object_from_name(info["module"], info["fullname"])
 
     # If it's not defined in the internal module, return None.
     mod = inspect.getmodule(obj)
 
     if mod is None:
         return None
-    if not mod.__name__.split('.')[0] in _top_modules:
+    if mod.__name__.split(".")[0] not in _top_modules:
         return None
 
     # Get the source file name and line number at which obj is defined.
@@ -418,7 +411,7 @@ def linkcode_resolve(domain, info):
 
     filename = os.path.realpath(filename)
     relpath = _get_source_relative_path(filename)
-    return f'https://github.com/deepchecks/deepchecks/blob/{tag}/{relpath}#L{linenum}'
+    return f"https://github.com/deepchecks/deepchecks/blob/{tag}/{relpath}#L{linenum}"
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -432,14 +425,14 @@ html_theme = "pydata_sphinx_theme"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 #
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
-html_css_files = ['css/custom.css',]
+html_css_files = [
+    "css/custom.css",
+]
 
 #
-html_sidebars = {
-    "**": ["search-field.html", "sidebar-nav-bs"]
-}
+html_sidebars = {"**": ["search-field.html", "sidebar-nav-bs"]}
 
 # Path to logo and favicon
 #
@@ -457,9 +450,15 @@ html_copy_source = True
 html_theme_options = {
     "collapse_navigation": False,
     "navigation_depth": 3,
-    "navbar_end": ["version-switcher", "navbar-icon-links", "menu-dropdown", ],
+    "navbar_end": [
+        "version-switcher",
+        "navbar-icon-links",
+        "menu-dropdown",
+    ],
     # "page_sidebar_items": ["page-toc", "create-issue", "show-page-source"],
-    "page_sidebar_items": ["page-toc", ],
+    "page_sidebar_items": [
+        "page-toc",
+    ],
     "icon_links_label": "Quick Links",
     "switcher": {
         "json_url": "https://docs.deepchecks.com/dev/_static/switcher.json",
@@ -467,8 +466,8 @@ html_theme_options = {
         "url_template": "https://docs.deepchecks.com/{version}/",
     },
     "external_links": [
-      {"name": "Monitoring", "url": "https://docs.deepchecks.com/monitoring"},
-      {"name": "CI", "url": "https://docs.deepchecks.com/stable/general/usage/ci_cd.html"}
+        {"name": "Monitoring", "url": "https://docs.deepchecks.com/monitoring"},
+        {"name": "CI", "url": "https://docs.deepchecks.com/stable/general/usage/ci_cd.html"},
     ],
     "icon_links": [
         {
@@ -485,7 +484,7 @@ html_theme_options = {
             "name": "PyPI",
             "url": "https://pypi.org/project/deepchecks/",
             "icon": "fab fa-python",
-        }
+        },
     ],
 }
 
@@ -501,12 +500,13 @@ html_context = {
 # -- Other -------------------------------------------------
 nitpick_ignore = []
 
-for line in open('nitpick-exceptions'):
+for line in open("nitpick-exceptions"):
     if line.strip() == "" or line.startswith("#"):
         continue
     dtype, target = line.split(None, 1)
     target = target.strip()
     nitpick_ignore.append((dtype, target))
+
 
 def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     if not (
@@ -514,23 +514,23 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
         or filepath.startswith("vision/auto_checks")
         or filepath.startswith("nlp/auto_checks")
     ):
-        return ''
+        return ""
 
     notebook_name = snake_case_to_camel_case(
-        filepath.split("/")[-1][5:]
-            .replace(".txt", "")
-            .replace(".ipynb", "")
-            .replace(".py", "")
+        filepath.split("/")[-1][5:].replace(".txt", "").replace(".ipynb", "").replace(".py", "")
     )
 
     if filepath.startswith("tabular/auto_checks"):
         import deepchecks.tabular.checks
+
         check_clazz = getattr(deepchecks.tabular.checks, notebook_name, None)
     elif filepath.startswith("vision/auto_checks"):
         import deepchecks.vision.checks
+
         check_clazz = getattr(deepchecks.vision.checks, notebook_name, None)
     else:
         import deepchecks.nlp.checks
+
         check_clazz = getattr(deepchecks.nlp.checks, notebook_name, None)
 
     if check_clazz is None or not hasattr(check_clazz, "__module__"):
@@ -541,10 +541,9 @@ def get_check_example_api_reference(filepath: str) -> t.Optional[str]:
     apipath = f"<ul><li><a href='../../../api/generated/{clazz_module}.{notebook_name}.html'>API Reference - {notebook_name}</a></li></ul>"
     return apipath
 
+
 def get_report_issue_url(pagename: str) -> str:
-    template = (
-        "https://github.com/{user}/{repo}/issues/new?title={title}&body={body}&labels={labels}"
-    )
+    template = "https://github.com/{user}/{repo}/issues/new?title={title}&body={body}&labels={labels}"
     return template.format(
         user=GIT["user"],
         repo=GIT["repo"],
@@ -553,13 +552,14 @@ def get_report_issue_url(pagename: str) -> str:
         labels="labels=chore/documentation",
     )
 
+
 @functools.lru_cache(maxsize=None)
 def snake_case_to_camel_case(val: str) -> str:
     return "".join(it.capitalize() for it in val.split("_") if it)
 
+
 # -- Registration of hooks ---------
 def setup(app):
-
     def add_custom_routines(app, pagename, templatename, context, doctree):
         context["get_report_issue_url"] = get_report_issue_url
         context["get_check_example_api_reference"] = get_check_example_api_reference

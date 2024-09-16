@@ -10,18 +10,19 @@
 #
 # pylint: disable=unused-argument
 """Main serialization abstractions."""
+
 import abc
 import io
 import typing as t
+
+from deepchecks.core import check_result as check_types  # pylint: disable=unused-import
+from deepchecks.core.serialization import common
 
 import pandas as pd
 from ipywidgets.widgets import Widget
 from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 from typing_extensions import Protocol, runtime_checkable
-
-from deepchecks.core import check_result as check_types  # pylint: disable=unused-import
-from deepchecks.core.serialization import common
 
 try:
     from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
@@ -30,18 +31,18 @@ except ImportError:
 
 
 __all__ = [
-    'Serializer',
-    'HtmlSerializer',
-    'JsonSerializer',
-    'WidgetSerializer',
-    'WandbSerializer',
-    'ABCDisplayItemsHandler',
-    'JunitSerializer',
-    'IPythonSerializer'
+    "Serializer",
+    "HtmlSerializer",
+    "JsonSerializer",
+    "WidgetSerializer",
+    "WandbSerializer",
+    "ABCDisplayItemsHandler",
+    "JunitSerializer",
+    "IPythonSerializer",
 ]
 
 
-T = t.TypeVar('T')
+T = t.TypeVar("T")
 
 
 class Serializer(abc.ABC, t.Generic[T]):
@@ -93,7 +94,7 @@ class WandbSerializer(Serializer[T]):
     """To wandb metadata serializer protocol."""
 
     @abc.abstractmethod
-    def serialize(self, **kwargs) -> t.Dict[str, 'WBValue']:
+    def serialize(self, **kwargs) -> t.Dict[str, "WBValue"]:
         """Serialize into Wandb media format."""
         raise NotImplementedError()
 
@@ -166,7 +167,7 @@ IPythonFormatter = t.Union[
     PNGFormatter,
     SVGFormatter,
     IPythonDisplayFormatter,
-    MimeBundleFormatter
+    MimeBundleFormatter,
 ]
 
 
@@ -185,17 +186,11 @@ class ABCDisplayItemsHandler(Protocol):
     @classmethod
     def supported_item_types(cls):
         """Return set of supported types of display items."""
-        return frozenset([
-            str, pd.DataFrame, Styler, BaseFigure, t.Callable, check_types.DisplayMap
-        ])
+        return frozenset([str, pd.DataFrame, Styler, BaseFigure, t.Callable, check_types.DisplayMap])
 
     @classmethod
     @abc.abstractmethod
-    def handle_display(
-        cls,
-        display: t.List['check_types.TDisplayItem'],
-        **kwargs
-    ) -> t.List[t.Any]:
+    def handle_display(cls, display: t.List["check_types.TDisplayItem"], **kwargs) -> t.List[t.Any]:
         """Serialize list of display items.
 
         Parameters
@@ -211,7 +206,7 @@ class ABCDisplayItemsHandler(Protocol):
 
     @classmethod
     @abc.abstractmethod
-    def handle_item(cls, item: 'check_types.TDisplayItem', index: int, **kwargs) -> t.Any:
+    def handle_item(cls, item: "check_types.TDisplayItem", index: int, **kwargs) -> t.Any:
         """Serialize display item."""
         if isinstance(item, str):
             return cls.handle_string(item, index, **kwargs)
@@ -224,7 +219,7 @@ class ABCDisplayItemsHandler(Protocol):
         elif callable(item):
             return cls.handle_callable(item, index, **kwargs)
         else:
-            raise TypeError(f'Unable to handle display item of type: {type(item)}')
+            raise TypeError(f"Unable to handle display item of type: {type(item)}")
 
     @classmethod
     @abc.abstractmethod
@@ -243,7 +238,7 @@ class ABCDisplayItemsHandler(Protocol):
     def handle_callable(cls, item: t.Callable, index: int, **kwargs) -> t.List[io.BytesIO]:
         """Handle callable."""
         # TODO: callable is a special case, add comments
-        with common.switch_matplot_backend('agg'):
+        with common.switch_matplot_backend("agg"):
             item()
             return common.read_matplot_figures()
 
@@ -255,6 +250,6 @@ class ABCDisplayItemsHandler(Protocol):
 
     @classmethod
     @abc.abstractmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> t.Any:
+    def handle_display_map(cls, item: "check_types.DisplayMap", index: int, **kwargs) -> t.Any:
         """Handle display map instance item."""
         raise NotImplementedError()

@@ -9,12 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Boosting overfit check module."""
+
 from copy import deepcopy
 from typing import TYPE_CHECKING, Callable, Tuple, Union
-
-import numpy as np
-import plotly.graph_objects as go
-from sklearn.pipeline import Pipeline
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError, ModelValidationError
@@ -23,36 +20,42 @@ from deepchecks.utils.docref import doclink
 from deepchecks.utils.model import get_model_of_pipeline
 from deepchecks.utils.strings import format_percent
 
+import numpy as np
+import plotly.graph_objects as go
+from sklearn.pipeline import Pipeline
+
 if TYPE_CHECKING:
     from deepchecks.core.checks import CheckConfig
 
-__all__ = ['BoostingOverfit']
+__all__ = ["BoostingOverfit"]
 
 
 class PartialBoostingModel:
     """Wrapper for boosting models which limits the number of estimators being used in the prediction."""
 
-    _UNSUPPORTED_MODEL_ERROR = \
-        'Check is relevant for Boosting models of type {supported_models}, but received model of type {model_type}'
+    _UNSUPPORTED_MODEL_ERROR = (
+        "Check is relevant for Boosting models of type {supported_models}, but received model of type {model_type}"
+    )
 
-    _NO_MODEL_ERROR = \
-        'Check is relevant only when receiving the model, but predictions/probabilities were received instead. ' \
-        'In order to use this check, please pass the model to the run() method.'
+    _NO_MODEL_ERROR = (
+        "Check is relevant only when receiving the model, but predictions/probabilities were received instead. "
+        "In order to use this check, please pass the model to the run() method."
+    )
 
     _SUPPORTED_CLASSIFICATION_MODELS = (
-        'AdaBoostClassifier',
-        'GradientBoostingClassifier',
-        'LGBMClassifier',
-        'XGBClassifier',
-        'CatBoostClassifier'
+        "AdaBoostClassifier",
+        "GradientBoostingClassifier",
+        "LGBMClassifier",
+        "XGBClassifier",
+        "CatBoostClassifier",
     )
 
     _SUPPORTED_REGRESSION_MODELS = (
-        'AdaBoostRegressor',
-        'GradientBoostingRegressor',
-        'LGBMRegressor',
-        'XGBRegressor',
-        'CatBoostRegressor'
+        "AdaBoostRegressor",
+        "GradientBoostingRegressor",
+        "LGBMRegressor",
+        "XGBRegressor",
+        "CatBoostRegressor",
     )
 
     _SUPPORTED_MODELS = _SUPPORTED_CLASSIFICATION_MODELS + _SUPPORTED_REGRESSION_MODELS
@@ -69,48 +72,55 @@ class PartialBoostingModel:
         """
         self.model_class = get_model_of_pipeline(model).__class__.__name__
         self.step = step
-        if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
-                                'GradientBoostingRegressor']:
+        if self.model_class in [
+            "AdaBoostClassifier",
+            "GradientBoostingClassifier",
+            "AdaBoostRegressor",
+            "GradientBoostingRegressor",
+        ]:
             self.model = deepcopy(model)
             if isinstance(model, Pipeline):
                 internal_estimator = get_model_of_pipeline(self.model)
-                internal_estimator.estimators_ = internal_estimator.estimators_[:self.step]
+                internal_estimator.estimators_ = internal_estimator.estimators_[: self.step]
             else:
-                self.model.estimators_ = self.model.estimators_[:self.step]
+                self.model.estimators_ = self.model.estimators_[: self.step]
         else:
             self.model = model
 
     @classmethod
     def _raise_not_supported_model_error(cls, model_class):
-        if model_class != '_DummyModel':
-            raise ModelValidationError(cls._UNSUPPORTED_MODEL_ERROR.format(
-                supported_models=cls._SUPPORTED_MODELS,
-                model_type=model_class
-            ))
+        if model_class != "_DummyModel":
+            raise ModelValidationError(
+                cls._UNSUPPORTED_MODEL_ERROR.format(supported_models=cls._SUPPORTED_MODELS, model_type=model_class)
+            )
         else:
             raise ModelValidationError(cls._NO_MODEL_ERROR)
 
     def predict_proba(self, x):
-        if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier']:
+        if self.model_class in ["AdaBoostClassifier", "GradientBoostingClassifier"]:
             return self.model.predict_proba(x)
-        elif self.model_class == 'LGBMClassifier':
+        elif self.model_class == "LGBMClassifier":
             return self.model.predict_proba(x, num_iteration=self.step)
-        elif self.model_class == 'XGBClassifier':
+        elif self.model_class == "XGBClassifier":
             return self.model.predict_proba(x, iteration_range=(0, self.step))
-        elif self.model_class == 'CatBoostClassifier':
+        elif self.model_class == "CatBoostClassifier":
             return self.model.predict_proba(x, ntree_end=self.step)
         else:
             self._raise_not_supported_model_error(self.model_class)
 
     def predict(self, x):
-        if self.model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
-                                'GradientBoostingRegressor']:
+        if self.model_class in [
+            "AdaBoostClassifier",
+            "GradientBoostingClassifier",
+            "AdaBoostRegressor",
+            "GradientBoostingRegressor",
+        ]:
             return self.model.predict(x)
-        elif self.model_class in ['LGBMClassifier', 'LGBMRegressor']:
+        elif self.model_class in ["LGBMClassifier", "LGBMRegressor"]:
             return self.model.predict(x, num_iteration=self.step)
-        elif self.model_class in ['XGBClassifier', 'XGBRegressor']:
+        elif self.model_class in ["XGBClassifier", "XGBRegressor"]:
             return self.model.predict(x, iteration_range=(0, self.step))
-        elif self.model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
+        elif self.model_class in ["CatBoostClassifier", "CatBoostRegressor"]:
             return self.model.predict(x, ntree_end=self.step)
         else:
             self._raise_not_supported_model_error(self.model_class)
@@ -120,20 +130,24 @@ class PartialBoostingModel:
         model = get_model_of_pipeline(model)
         model_class = model.__class__.__name__
         n_estimator = None
-        if model_class in ['AdaBoostClassifier', 'GradientBoostingClassifier', 'AdaBoostRegressor',
-                           'GradientBoostingRegressor']:
+        if model_class in [
+            "AdaBoostClassifier",
+            "GradientBoostingClassifier",
+            "AdaBoostRegressor",
+            "GradientBoostingRegressor",
+        ]:
             n_estimator = len(model.estimators_)
-        elif model_class in ['LGBMClassifier', 'LGBMRegressor']:
+        elif model_class in ["LGBMClassifier", "LGBMRegressor"]:
             n_estimator = model.n_estimators
-        elif model_class in ['XGBClassifier', 'XGBRegressor']:
+        elif model_class in ["XGBClassifier", "XGBRegressor"]:
             n_estimator = model.n_estimators
-        elif model_class in ['CatBoostClassifier', 'CatBoostRegressor']:
+        elif model_class in ["CatBoostClassifier", "CatBoostRegressor"]:
             n_estimator = model.tree_count_
         else:
             cls._raise_not_supported_model_error(model_class=model_class)
 
         if n_estimator is None:
-            raise ModelValidationError('Could not extract number of estimators from model')
+            raise ModelValidationError("Could not extract number of estimators from model")
 
         return n_estimator
 
@@ -165,7 +179,7 @@ class BoostingOverfit(TrainTestCheck):
         num_steps: int = 20,
         n_samples: int = 1_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.alternative_scorer = dict([alternative_scorer]) if alternative_scorer else None
@@ -174,7 +188,7 @@ class BoostingOverfit(TrainTestCheck):
         self.random_state = random_state
 
         if not isinstance(self.num_steps, int) or self.num_steps < 2:
-            raise DeepchecksValueError('num_steps must be an integer larger than 1')
+            raise DeepchecksValueError("num_steps must be an integer larger than 1")
 
     def run_logic(self, context: Context) -> CheckResult:
         """Run check.
@@ -201,21 +215,18 @@ class BoostingOverfit(TrainTestCheck):
             train_scores.append(_partial_score(scorer, train_dataset, model, step))
             test_scores.append(_partial_score(scorer, test_dataset, model, step))
 
-        result = {'test': test_scores, 'train': train_scores}
+        result = {"test": test_scores, "train": train_scores}
 
         if context.with_display:
             fig = go.Figure()
-            fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(train_scores),
-                                     mode='lines+markers',
-                                     name='Training score'))
-            fig.add_trace(go.Scatter(x=estimator_steps, y=np.array(test_scores),
-                                     mode='lines+markers',
-                                     name='Test score'))
-            fig.update_layout(
-                title_text=f'{scorer.name} score compared to number of boosting iteration',
-                height=500
+            fig.add_trace(
+                go.Scatter(x=estimator_steps, y=np.array(train_scores), mode="lines+markers", name="Training score")
             )
-            fig.update_xaxes(title='Number of boosting iterations')
+            fig.add_trace(
+                go.Scatter(x=estimator_steps, y=np.array(test_scores), mode="lines+markers", name="Test score")
+            )
+            fig.update_layout(title_text=f"{scorer.name} score compared to number of boosting iteration", height=500)
+            fig.update_xaxes(title="Number of boosting iterations")
             fig.update_yaxes(title=scorer.name)
 
             display_text = f"""<span>
@@ -226,7 +237,7 @@ class BoostingOverfit(TrainTestCheck):
         else:
             display = None
 
-        return CheckResult(result, display=display, header='Boosting Overfit')
+        return CheckResult(result, display=display, header="Boosting Overfit")
 
     def add_condition_test_score_percent_decline_less_than(self, threshold: float = 0.05):
         """Add condition.
@@ -239,29 +250,30 @@ class BoostingOverfit(TrainTestCheck):
         threshold : float , default: 0.05
             Maximum percentage decline allowed (value 0 and above)
         """
+
         def condition(result: dict):
-            max_score = max(result['test'])
-            last_score = result['test'][-1]
+            max_score = max(result["test"])
+            last_score = result["test"][-1]
             pct_diff = (max_score - last_score) / abs(max_score)
-            details = f'Found score decline of {format_percent(-pct_diff)}'
+            details = f"Found score decline of {format_percent(-pct_diff)}"
             category = ConditionCategory.PASS if pct_diff < threshold else ConditionCategory.FAIL
             return ConditionResult(category, details)
 
-        name = f'Test score over iterations is less than {format_percent(threshold)} from the best score'
+        name = f"Test score over iterations is less than {format_percent(threshold)} from the best score"
         return self.add_condition(name, condition)
 
-    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> "CheckConfig":
         """Return check instance config."""
         if self.alternative_scorer is not None:
             for k, v in self.alternative_scorer.items():
                 if not isinstance(v, str):
                     reference = doclink(
-                        'supported-metrics-by-string',
-                        template='For a list of built-in scorers please refer to {link}. '
+                        "supported-metrics-by-string",
+                        template="For a list of built-in scorers please refer to {link}. ",
                     )
                     raise ValueError(
-                        'Only built-in scorers are allowed when serializing check instances. '
-                        f'{reference}Scorer name: {k}'
+                        "Only built-in scorers are allowed when serializing check instances. "
+                        f"{reference}Scorer name: {k}"
                     )
         return super().config(include_version, include_defaults=include_defaults)
 

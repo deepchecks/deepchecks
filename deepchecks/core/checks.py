@@ -9,14 +9,13 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the base checks."""
+
 # pylint: disable=broad-except
 import abc
 import enum
 import json
 from collections import OrderedDict
 from typing import Any, Callable, ClassVar, Dict, List, Optional, Type, Union, cast
-
-from typing_extensions import NotRequired, Self, TypedDict
 
 from deepchecks import __version__
 from deepchecks.core import check_result as check_types  # pylint: disable=unused-import
@@ -27,20 +26,16 @@ from deepchecks.utils.strings import get_docs_summary, split_camel_case
 
 from . import common
 
-__all__ = [
-    'DatasetKind',
-    'BaseCheck',
-    'SingleDatasetBaseCheck',
-    'TrainTestBaseCheck',
-    'ModelOnlyBaseCheck'
-]
+from typing_extensions import NotRequired, Self, TypedDict
+
+__all__ = ["DatasetKind", "BaseCheck", "SingleDatasetBaseCheck", "TrainTestBaseCheck", "ModelOnlyBaseCheck"]
 
 
 class DatasetKind(enum.Enum):
     """Represents in single dataset checks, which dataset is currently worked on."""
 
-    TRAIN = 'Train'
-    TEST = 'Test'
+    TRAIN = "Train"
+    TEST = "Test"
 
 
 class CheckMetadata(TypedDict):
@@ -65,14 +60,14 @@ class BaseCheck(abc.ABC):
     def __init__(self, **kwargs):  # pylint: disable=unused-argument
         self._conditions = OrderedDict()
         self._conditions_index = 0
-        self.n_samples = kwargs.get('n_samples')  # None indicates that the check will run on the entire dataset
+        self.n_samples = kwargs.get("n_samples")  # None indicates that the check will run on the entire dataset
 
     @abc.abstractmethod
-    def run(self, *args, **kwargs) -> 'check_types.CheckResult':
+    def run(self, *args, **kwargs) -> "check_types.CheckResult":
         """Run Check."""
         raise NotImplementedError()
 
-    def conditions_decision(self, result: 'check_types.CheckResult') -> List[ConditionResult]:
+    def conditions_decision(self, result: "check_types.CheckResult") -> List[ConditionResult]:
         """Run conditions on given result."""
         results = []
         condition: Condition
@@ -80,12 +75,12 @@ class BaseCheck(abc.ABC):
             try:
                 output = condition.function(result.value, **condition.params)
             except Exception as e:
-                msg = f'Exception in condition: {e.__class__.__name__}: {str(e)}'
+                msg = f"Exception in condition: {e.__class__.__name__}: {str(e)}"
                 output = ConditionResult(ConditionCategory.ERROR, msg)
             if isinstance(output, bool):
                 output = ConditionResult(ConditionCategory.PASS if output else ConditionCategory.FAIL)
             elif not isinstance(output, ConditionResult):
-                raise DeepchecksValueError(f'Invalid return type from condition {condition.name}, got: {type(output)}')
+                raise DeepchecksValueError(f"Invalid return type from condition {condition.name}, got: {type(output)}")
             output.set_name(condition.name)
             results.append(output)
         return results
@@ -123,7 +118,7 @@ class BaseCheck(abc.ABC):
 
         """
         if index not in self._conditions:
-            raise DeepchecksValueError(f'Index {index} of conditions does not exists')
+            raise DeepchecksValueError(f"Index {index} of conditions does not exists")
         self._conditions.pop(index)
 
     def params(self, show_defaults: bool = False) -> Dict:
@@ -148,9 +143,7 @@ class BaseCheck(abc.ABC):
         Dict[str, Any]
         """
         return CheckMetadata(
-            name=self.name(),
-            params=self.params(show_defaults=True),
-            summary=get_docs_summary(self, with_doc_link)
+            name=self.name(), params=self.params(show_defaults=True), summary=get_docs_summary(self, with_doc_link)
         )
 
     def to_json(self, indent: int = 3, include_version: bool = True, include_defaults: bool = True) -> str:
@@ -159,20 +152,12 @@ class BaseCheck(abc.ABC):
         return json.dumps(conf, indent=indent)
 
     @classmethod
-    def from_json(
-            cls: Type[Self],
-            conf: str,
-            version_unmatch: 'common.VersionUnmatchAction' = 'warn'
-    ) -> Self:
+    def from_json(cls: Type[Self], conf: str, version_unmatch: "common.VersionUnmatchAction" = "warn") -> Self:
         """Deserialize check instance from JSON string."""
         check_conf = json.loads(conf)
         return cls.from_config(check_conf, version_unmatch=version_unmatch)
 
-    def _prepare_config(
-            self,
-            params: Dict[str, Any],
-            include_version: bool = True
-    ) -> CheckConfig:
+    def _prepare_config(self, params: Dict[str, Any], include_version: bool = True) -> CheckConfig:
         module_name, type_name = common.importable_name(self)
         conf = CheckConfig(
             class_name=type_name,
@@ -180,7 +165,7 @@ class BaseCheck(abc.ABC):
             params=params,
         )
         if include_version is True:
-            conf['version'] = __version__
+            conf["version"] = __version__
         return conf
 
     def config(self, include_version: bool = True, include_defaults: bool = True) -> CheckConfig:
@@ -206,15 +191,12 @@ class BaseCheck(abc.ABC):
         # Again if that is not true for some sub-check it must override this method and to ensure
         # this assumption
         return self._prepare_config(
-            params=initvars(self, include_defaults=include_defaults),
-            include_version=include_version
+            params=initvars(self, include_defaults=include_defaults), include_version=include_version
         )
 
     @classmethod
     def from_config(
-            cls: Type[Self],
-            conf: CheckConfig,
-            version_unmatch: 'common.VersionUnmatchAction' = 'warn'
+        cls: Type[Self], conf: CheckConfig, version_unmatch: "common.VersionUnmatchAction" = "warn"
     ) -> Self:
         """Return check object from a CheckConfig object.
 
@@ -231,14 +213,10 @@ class BaseCheck(abc.ABC):
         # within the method we need to treat conf as a dict with unknown structure/content
         check_conf = cast(Dict[str, Any], conf)
         check_conf = common.validate_config(check_conf, version_unmatch=version_unmatch)
-        type_ = common.import_type(
-            type_name=check_conf['class_name'],
-            module_name=check_conf['module_name'],
-            base=cls
-        )
-        return type_(**check_conf['params'])
+        type_ = common.import_type(type_name=check_conf["class_name"], module_name=check_conf["module_name"], base=cls)
+        return type_(**check_conf["params"])
 
-    def __repr__(self, tabs=0, prefix=''):
+    def __repr__(self, tabs=0, prefix=""):
         """Representation of check as string.
 
         Parameters
@@ -248,19 +226,19 @@ class BaseCheck(abc.ABC):
         prefix
 
         """
-        tab_chr = '\t'
+        tab_chr = "\t"
         params = self.params()
         if params:
-            params_str = ', '.join([f'{k}={v}' for k, v in params.items()])
-            params_str = f'({params_str})'
+            params_str = ", ".join([f"{k}={v}" for k, v in params.items()])
+            params_str = f"({params_str})"
         else:
-            params_str = ''
+            params_str = ""
 
         name = prefix + self.__class__.__name__
-        check_str = f'{tab_chr * tabs}{name}{params_str}'
+        check_str = f"{tab_chr * tabs}{name}{params_str}"
         if self._conditions:
-            conditions_str = ''.join([f'\n{tab_chr * (tabs + 2)}{i}: {s.name}' for i, s in self._conditions.items()])
-            return f'{check_str}\n{tab_chr * (tabs + 1)}Conditions:{conditions_str}'
+            conditions_str = "".join([f"\n{tab_chr * (tabs + 2)}{i}: {s.name}" for i, s in self._conditions.items()])
+            return f"{check_str}\n{tab_chr * (tabs + 1)}Conditions:{conditions_str}"
         else:
             return check_str
 
@@ -271,7 +249,7 @@ class SingleDatasetBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, dataset, **kwargs) -> 'check_types.CheckResult':
+    def run(self, dataset, **kwargs) -> "check_types.CheckResult":
         """Run check."""
         raise NotImplementedError()
 
@@ -285,7 +263,7 @@ class TrainTestBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, train_dataset, test_dataset, **kwargs) -> 'check_types.CheckResult':
+    def run(self, train_dataset, test_dataset, **kwargs) -> "check_types.CheckResult":
         """Run check."""
         raise NotImplementedError()
 
@@ -296,6 +274,6 @@ class ModelOnlyBaseCheck(BaseCheck):
     context_type: ClassVar[Optional[Type[Any]]] = None  # TODO: Base context type
 
     @abc.abstractmethod
-    def run(self, model, **kwargs) -> 'check_types.CheckResult':
+    def run(self, model, **kwargs) -> "check_types.CheckResult":
         """Run check."""
         raise NotImplementedError()

@@ -28,14 +28,15 @@ Create TextData for Train and Test Sets
 Let's create train and test datasets with some overlapping and similar text samples.
 """
 
-from deepchecks.nlp.checks import TrainTestSamplesMix
 from deepchecks.nlp import TextData
+from deepchecks.nlp.checks import TrainTestSamplesMix
 
 train_texts = [
     "Deep learning is a subset of machine learning.",
     "Deep learning is a subset of machine learning.",
     "Deep learning is a sub-set of Machine Learning.",
-    "Natural language processing is a subfield of AI.",]
+    "Natural language processing is a subfield of AI.",
+]
 
 test_texts = [
     "Deep learning is a subset of machine learning.",
@@ -48,7 +49,7 @@ test_texts = [
 train_dataset = TextData(train_texts)
 test_dataset = TextData(test_texts)
 
-#%%
+# %%
 # Run the Check
 # =============
 
@@ -58,7 +59,7 @@ check = TrainTestSamplesMix(
     remove_punctuation=False,
     normalize_unicode=False,
     remove_stopwords=False,
-    ignore_whitespace=False
+    ignore_whitespace=False,
 )
 result = check.run(train_dataset, test_dataset)
 result.show()
@@ -72,11 +73,7 @@ result.show()
 # You can also customize the normalization as per your requirements:
 
 check = TrainTestSamplesMix(
-    ignore_case=True,
-    remove_punctuation=True,
-    normalize_unicode=True,
-    remove_stopwords=True,
-    ignore_whitespace=True
+    ignore_case=True, remove_punctuation=True, normalize_unicode=True, remove_stopwords=True, ignore_whitespace=True
 )
 result = check.run(train_dataset, test_dataset)
 result.show()

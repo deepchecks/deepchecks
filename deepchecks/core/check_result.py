@@ -9,17 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the check results classes."""
+
 # pylint: disable=broad-except,import-outside-toplevel,unused-argument
 import io
 import traceback
 from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Union, cast
-
-import jsonpickle
-import jsonpickle.ext.pandas as jsonpickle_pd
-import pandas as pd
-from ipywidgets import Widget
-from pandas.io.formats.style import Styler
-from plotly.basedatatypes import BaseFigure
 
 from deepchecks.core.condition import ConditionCategory, ConditionResult
 from deepchecks.core.display import DisplayableResult, save_as_html
@@ -30,13 +24,21 @@ from deepchecks.core.serialization.check_failure.html import CheckFailureSeriali
 from deepchecks.core.serialization.check_failure.ipython import CheckFailureSerializer as CheckFailureIPythonSerializer
 from deepchecks.core.serialization.check_failure.json import CheckFailureSerializer as CheckFailureJsonSerializer
 from deepchecks.core.serialization.check_failure.widget import CheckFailureSerializer as CheckFailureWidgetSerializer
-from deepchecks.core.serialization.check_result.html import CheckResultSection
-from deepchecks.core.serialization.check_result.html import CheckResultSerializer as CheckResultHtmlSerializer
+from deepchecks.core.serialization.check_result.html import (
+    CheckResultSection,
+    CheckResultSerializer as CheckResultHtmlSerializer,
+)
 from deepchecks.core.serialization.check_result.ipython import CheckResultSerializer as CheckResultIPythonSerializer
 from deepchecks.core.serialization.check_result.json import CheckResultSerializer as CheckResultJsonSerializer
 from deepchecks.core.serialization.check_result.widget import CheckResultSerializer as CheckResultWidgetSerializer
 from deepchecks.utils.strings import widget_to_html_string
-from deepchecks.utils.wandb_utils import wandb_run
+
+import jsonpickle
+import jsonpickle.ext.pandas as jsonpickle_pd
+import pandas as pd
+from ipywidgets import Widget
+from pandas.io.formats.style import Styler
+from plotly.basedatatypes import BaseFigure
 
 # registers jsonpickle pandas extension for pandas support in the to_json function
 jsonpickle_pd.register_handlers()
@@ -46,10 +48,10 @@ if TYPE_CHECKING:
     from deepchecks.core.checks import BaseCheck
 
 
-__all__ = ['CheckResult', 'CheckFailure', 'BaseCheckResult', 'DisplayMap']
+__all__ = ["CheckResult", "CheckFailure", "BaseCheckResult", "DisplayMap"]
 
 
-class DisplayMap(Dict[str, List['TDisplayItem']]):
+class DisplayMap(Dict[str, List["TDisplayItem"]]):
     """Class facilitating tabs within check display output."""
 
     pass
@@ -62,12 +64,12 @@ TDisplayItem = Union[str, pd.DataFrame, Styler, BaseFigure, TDisplayCallable, Di
 class BaseCheckResult:
     """Generic class for any check output, contains some basic functions."""
 
-    check: Optional['BaseCheck']
+    check: Optional["BaseCheck"]
     header: Optional[str]
     run_time: Optional[int] = 0
 
     @staticmethod
-    def from_json(json_dict: Union[str, Dict]) -> 'BaseCheckResult':
+    def from_json(json_dict: Union[str, Dict]) -> "BaseCheckResult":
         """Convert a json object that was returned from CheckResult.to_json or CheckFailure.to_json.
 
         Parameters
@@ -85,16 +87,15 @@ class BaseCheckResult:
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
 
-        check_type = cast(dict, json_dict)['type']
+        check_type = cast(dict, json_dict)["type"]
 
-        if check_type == 'CheckFailure':
+        if check_type == "CheckFailure":
             return CheckFailureJson(json_dict)
-        elif check_type == 'CheckResult':
+        elif check_type == "CheckResult":
             return CheckResultJson(json_dict)
         else:
             raise ValueError(
-                'Excpected json object to be one of [CheckFailure, CheckResult] '
-                f'but recievied: {check_type}'
+                "Excpected json object to be one of [CheckFailure, CheckResult] " f"but recievied: {check_type}"
             )
 
     def get_header(self) -> str:
@@ -103,12 +104,12 @@ class BaseCheckResult:
 
     def get_metadata(self, with_doc_link: bool = False) -> Dict:
         """Return the related check metadata."""
-        return {'header': self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
+        return {"header": self.get_header(), **self.check.metadata(with_doc_link=with_doc_link)}
 
-    def get_check_id(self, unique_id: str = '') -> str:
+    def get_check_id(self, unique_id: str = "") -> str:
         """Return check id (used for href)."""
-        header = self.get_header().replace(' ', '')
-        return f'{header}_{unique_id}'
+        header = self.get_header().replace(" ", "")
+        return f"{header}_{unique_id}"
 
 
 class CheckResult(BaseCheckResult, DisplayableResult):
@@ -151,7 +152,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
 
         for item in self.display:
             if not isinstance(item, (str, pd.DataFrame, Styler, Callable, BaseFigure, DisplayMap)):
-                raise DeepchecksValueError(f'Can\'t display item of type: {type(item)}')
+                raise DeepchecksValueError(f"Can't display item of type: {type(item)}")
 
     def process_conditions(self):
         """Process the conditions results from current result and check."""
@@ -204,7 +205,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         """Return the check result as a reduced dict."""
         if isinstance(self.check, ReduceMixin):
             return self.check.reduce_output(self)
-        raise DeepchecksValueError('Check needs to be an instance of ReduceMixin to use this function')
+        raise DeepchecksValueError("Check needs to be an instance of ReduceMixin to use this function")
 
     @property
     def widget_serializer(self) -> CheckResultWidgetSerializer:
@@ -222,11 +223,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         return CheckResultHtmlSerializer(self)
 
     def display_check(
-        self,
-        unique_id: Optional[str] = None,
-        as_widget: bool = True,
-        show_additional_outputs: bool = True,
-        **kwargs
+        self, unique_id: Optional[str] = None, as_widget: bool = True, show_additional_outputs: bool = True, **kwargs
     ):
         """Display the check result or return the display as widget.
 
@@ -239,11 +236,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         show_additional_outputs : bool
             Boolean that controls if to show additional outputs.
         """
-        self.show(
-            as_widget=as_widget,
-            unique_id=unique_id,
-            show_additional_outputs=show_additional_outputs
-        )
+        self.show(as_widget=as_widget, unique_id=unique_id, show_additional_outputs=show_additional_outputs)
 
     def save_as_html(
         self,
@@ -253,7 +246,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         as_widget: bool = True,
         requirejs: bool = True,
         connected: bool = False,
-        **kwargs
+        **kwargs,
     ):
         """Save a result to an HTML file.
 
@@ -292,11 +285,7 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         )
 
     def show(
-        self,
-        as_widget: bool = True,
-        unique_id: Optional[str] = None,
-        show_additional_outputs: bool = True,
-        **kwargs
+        self, as_widget: bool = True, unique_id: Optional[str] = None, show_additional_outputs: bool = True, **kwargs
     ) -> Optional[HTMLFormatter]:
         """Display the check result.
 
@@ -318,15 +307,10 @@ class CheckResult(BaseCheckResult, DisplayableResult):
             as_widget=as_widget,
             unique_id=unique_id,
             check_sections=detalize_additional_output(show_additional_outputs),
-            **kwargs
+            **kwargs,
         )
 
-    def to_widget(
-        self,
-        unique_id: Optional[str] = None,
-        show_additional_outputs: bool = True,
-        **kwargs
-    ) -> Widget:
+    def to_widget(self, unique_id: Optional[str] = None, show_additional_outputs: bool = True, **kwargs) -> Widget:
         """Return CheckResult as a ipywidgets.Widget instance.
 
         Parameters
@@ -341,11 +325,8 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         Widget
         """
         return self.widget_serializer.serialize(
-            output_id=unique_id,
-            check_sections=detalize_additional_output(show_additional_outputs)
+            output_id=unique_id, check_sections=detalize_additional_output(show_additional_outputs)
         )
-
-
 
     def to_json(self, with_display: bool = True, **kwargs) -> str:
         """Serialize result into a json string.
@@ -374,54 +355,32 @@ class CheckResult(BaseCheckResult, DisplayableResult):
         -------
         str
         """
-        return jsonpickle.dumps(
-            CheckResultJsonSerializer(self).serialize(
-                with_display=with_display
-            ),
-            unpicklable=False
-        )
+        return jsonpickle.dumps(CheckResultJsonSerializer(self).serialize(with_display=with_display), unpicklable=False)
 
     def __repr__(self):
         """Return default __repr__ function uses value."""
-        return f'{self.get_header()}: {self.value}'
+        return f"{self.get_header()}: {self.value}"
 
     def _repr_html_(
-        self,
-        unique_id: Optional[str] = None,
-        show_additional_outputs: bool = True,
-        requirejs: bool = False,
-        **kwargs
+        self, unique_id: Optional[str] = None, show_additional_outputs: bool = True, requirejs: bool = False, **kwargs
     ) -> str:
         """Return html representation of check result."""
         return widget_to_html_string(
-            self.to_widget(
-                unique_id=unique_id,
-                show_additional_outputs=show_additional_outputs
-            ),
+            self.to_widget(unique_id=unique_id, show_additional_outputs=show_additional_outputs),
             title=self.get_header(),
-            requirejs=requirejs
+            requirejs=requirejs,
         )
 
     def _repr_json_(self, **kwargs):
         return CheckResultJsonSerializer(self).serialize()
 
     def _repr_mimebundle_(self, **kwargs):
-        return {
-            'text/html': self._repr_html_(),
-            'application/json': self._repr_json_()
-        }
+        return {"text/html": self._repr_html_(), "application/json": self._repr_json_()}
 
     def _ipython_display_(
-        self,
-        unique_id: Optional[str] = None,
-        as_widget: bool = True,
-        show_additional_outputs: bool = True
+        self, unique_id: Optional[str] = None, as_widget: bool = True, show_additional_outputs: bool = True
     ):
-        self.show(
-            unique_id=unique_id,
-            as_widget=as_widget,
-            show_additional_outputs=show_additional_outputs
-        )
+        self.show(unique_id=unique_id, as_widget=as_widget, show_additional_outputs=show_additional_outputs)
 
 
 class CheckFailure(BaseCheckResult, DisplayableResult):
@@ -435,12 +394,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
 
     """
 
-    def __init__(
-        self,
-        check: 'BaseCheck',
-        exception: Exception,
-        header_suffix: str = ''
-    ):
+    def __init__(self, check: "BaseCheck", exception: Exception, header_suffix: str = ""):
         self.check = check
         self.exception = exception
         self.header = check.name() + header_suffix
@@ -476,7 +430,7 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         as_widget: bool = True,
         requirejs: bool = True,
         connected: bool = False,
-        **kwargs
+        **kwargs,
     ) -> Optional[str]:
         """Save output as html file.
 
@@ -531,16 +485,11 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         -------
         str
         """
-        return jsonpickle.dumps(
-            CheckFailureJsonSerializer(self).serialize(),
-            unpicklable=False
-        )
-
-
+        return jsonpickle.dumps(CheckFailureJsonSerializer(self).serialize(), unpicklable=False)
 
     def __repr__(self):
         """Return string representation."""
-        return self.get_header() + ': ' + str(self.exception)
+        return self.get_header() + ": " + str(self.exception)
 
     def _repr_html_(self):
         return CheckFailureHtmlSerializer(self).serialize()
@@ -549,23 +498,16 @@ class CheckFailure(BaseCheckResult, DisplayableResult):
         return CheckFailureJsonSerializer(self).serialize()
 
     def _repr_mimebundle_(self, **kwargs):
-        return {
-            'text/html': self._repr_html_(),
-            'application/json': self._repr_json_()
-        }
+        return {"text/html": self._repr_html_(), "application/json": self._repr_json_()}
 
     def print_traceback(self):
         """Print the traceback of the failure."""
-        print(''.join(traceback.format_exception(
-            type(self.exception),
-            value=self.exception,
-            tb=self.exception.__traceback__
-        )))
+        print(
+            "".join(
+                traceback.format_exception(type(self.exception), value=self.exception, tb=self.exception.__traceback__)
+            )
+        )
 
 
 def detalize_additional_output(show_additional_outputs: bool) -> List[CheckResultSection]:
-    return (
-        ['condition-table', 'additional-output']
-        if show_additional_outputs
-        else ['condition-table']
-    )
+    return ["condition-table", "additional-output"] if show_additional_outputs else ["condition-table"]

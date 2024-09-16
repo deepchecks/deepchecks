@@ -60,7 +60,7 @@ Run the Check on a Classification Task (MNIST)
 ==============================================
 """
 
-#%%
+# %%
 # Imports
 # -------
 #
@@ -73,16 +73,16 @@ Run the Check on a Classification Task (MNIST)
 from deepchecks.vision.checks import PredictionDrift
 from deepchecks.vision.datasets.classification.mnist_torch import load_dataset
 
-#%%
+# %%
 # Load Dataset
 # ------------
 
 
-train_ds = load_dataset(train=True, batch_size=64, object_type='VisionData')
-test_ds = load_dataset(train=False, batch_size=64, object_type='VisionData')
+train_ds = load_dataset(train=True, batch_size=64, object_type="VisionData")
+test_ds = load_dataset(train=False, batch_size=64, object_type="VisionData")
 
 
-#%%
+# %%
 # Running PredictionDrift on classification
 # --------------------------------------------------
 
@@ -90,14 +90,14 @@ check = PredictionDrift()
 result = check.run(train_ds, test_ds)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Understanding the results
 # -------------------------
 #
@@ -109,7 +109,7 @@ from deepchecks.vision.checks import ClassPerformance
 
 ClassPerformance().run(train_ds, test_ds)
 
-#%%
+# %%
 # MNIST with prediction drift
 # ===========================
 #
@@ -118,7 +118,7 @@ ClassPerformance().run(train_ds, test_ds)
 # custom `collate_fn`` in the test dataset, that will select a few of the samples with class 0
 # and change their most of their predicted classes to 1.
 
-#%%
+# %%
 # Inserting drift to the test set
 # -------------------------------
 
@@ -127,28 +127,30 @@ import torch
 
 np.random.seed(42)
 
+
 def generate_collate_fn_with_label_drift(collate_fn):
     def collate_fn_with_label_drift(batch):
         batch_dict = collate_fn(batch)
-        images = batch_dict['images']
-        labels = batch_dict['labels']
+        images = batch_dict["images"]
+        labels = batch_dict["labels"]
         for i in range(len(images)):
             image, label = images[i], labels[i]
             if label == 0:
                 if np.random.randint(5) != 0:
-                    batch_dict['labels'][i] = 1
+                    batch_dict["labels"][i] = 1
                     # In 9/10 cases, the prediction vector will change to match the label
                     if np.random.randint(10) != 0:
-                        batch_dict['predictions'][i] = torch.tensor([0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+                        batch_dict["predictions"][i] = torch.tensor([0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 
         return batch_dict
+
     return collate_fn_with_label_drift
 
 
-mod_test_ds = load_dataset(train=False, batch_size=1000, object_type='VisionData')
+mod_test_ds = load_dataset(train=False, batch_size=1000, object_type="VisionData")
 mod_test_ds._batch_loader.collate_fn = generate_collate_fn_with_label_drift(mod_test_ds._batch_loader.collate_fn)
 
-#%%
+# %%
 # Run the check
 # -------------
 
@@ -156,7 +158,7 @@ check = PredictionDrift()
 result = check.run(train_ds, mod_test_ds)
 result
 
-#%%
+# %%
 # Add a condition
 # ---------------
 # We could also add a condition to the check to alert us about changes in the prediction
@@ -166,10 +168,10 @@ check = PredictionDrift().add_condition_drift_score_less_than()
 result = check.run(train_ds, mod_test_ds)
 result
 
-#%%
+# %%
 # As we can see, the condition alerts us to the presence of drift in the predictions.
 
-#%%
+# %%
 # Results
 # -------
 # We can see the check successfully detects the (expected) drift in class 0 distribution
@@ -178,20 +180,20 @@ result
 # We note that this check enabled us to detect the presence of label drift (in this case)
 # without needing actual labels for the test data.
 
-#%%
+# %%
 # But how does this affect the performance of the model?
 # ------------------------------------------------------
 
 result = ClassPerformance().run(train_ds, mod_test_ds)
 result
 
-#%%
+# %%
 # Inferring the results
 # ---------------------
 # We can see the drop in the precision of class 0, which was caused by the class
 # imbalance indicated earlier by the label drift check.
 
-#%%
+# %%
 # Run the Check on an Object Detection Task (COCO)
 # ================================================
 #
@@ -203,16 +205,16 @@ result
 
 from deepchecks.vision.datasets.detection.coco_torch import load_dataset
 
-train_ds = load_dataset(train=True, object_type='VisionData')
-test_ds = load_dataset(train=False, object_type='VisionData')
+train_ds = load_dataset(train=True, object_type="VisionData")
+test_ds = load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 
 check = PredictionDrift()
 result = check.run(train_ds, test_ds)
 result
 
-#%%
+# %%
 # Prediction drift is detected!
 # -----------------------------
 # We can see that the COCO128 contains a drift in the out of the box dataset. In

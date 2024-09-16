@@ -4,7 +4,7 @@
 Using Deepchecks In CI/CD
 =================================
 
-This guide will explain the basics of using CI/CD for machine learning, and demonstrate how deepchecks 
+This guide will explain the basics of using CI/CD for machine learning, and demonstrate how deepchecks
 can be incorporated into the process, including code snippets that can be used for running deepchecks
 with Airflow or Github Actions.
 

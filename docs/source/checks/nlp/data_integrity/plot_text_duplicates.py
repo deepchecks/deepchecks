@@ -31,8 +31,8 @@ Create TextData
 Let's create a simple dataset with some duplicate and similar text samples.
 """
 
-from deepchecks.nlp.checks import TextDuplicates
 from deepchecks.nlp import TextData
+from deepchecks.nlp.checks import TextDuplicates
 
 texts = [
     "Deep learning is a subset of machine learning.",
@@ -46,7 +46,7 @@ texts = [
 
 dataset = TextData(texts)
 
-#%%
+# %%
 # Run the Check
 # =============
 
@@ -56,7 +56,7 @@ TextDuplicates(
     remove_punctuation=False,
     normalize_unicode=False,
     remove_stopwords=False,
-    ignore_whitespace=False
+    ignore_whitespace=False,
 ).run(dataset)
 
 # %%
@@ -67,11 +67,7 @@ TextDuplicates(
 # You can also customize the normalization as per your requirements:
 
 TextDuplicates(
-    ignore_case=True,
-    remove_punctuation=True,
-    normalize_unicode=True,
-    remove_stopwords=True,
-    ignore_whitespace=True
+    ignore_case=True, remove_punctuation=True, normalize_unicode=True, remove_stopwords=True, ignore_whitespace=True
 ).run(dataset)
 
 # %%

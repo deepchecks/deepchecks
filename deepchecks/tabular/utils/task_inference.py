@@ -9,11 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing functionalities to infer the task type and possible label classes."""
-from typing import Optional
 
-import numpy as np
-import pandas as pd
-from pandas._libs.lib import infer_dtype
+from typing import Optional
 
 from deepchecks.core.errors import ValidationError
 from deepchecks.tabular.utils.task_type import TaskType
@@ -22,12 +19,16 @@ from deepchecks.utils.logger import get_logger
 from deepchecks.utils.type_inference import is_categorical
 from deepchecks.utils.typing import BasicModel
 
-__all__ = ['infer_task_type_by_labels', 'infer_classes_from_model', 'get_all_labels', 'infer_task_type_by_class_number']
+import numpy as np
+import pandas as pd
+from pandas._libs.lib import infer_dtype
+
+__all__ = ["infer_task_type_by_labels", "infer_classes_from_model", "get_all_labels", "infer_task_type_by_class_number"]
 
 
 def infer_classes_from_model(model: Optional[BasicModel]):
     """Get classes_ attribute from model object if exists."""
-    if model is not None and hasattr(model, 'classes_') and len(model.classes_) > 0:
+    if model is not None and hasattr(model, "classes_") and len(model.classes_) > 0:
         return sorted(list(model.classes_))
 
 
@@ -49,7 +50,7 @@ def get_all_labels(model, train_dataset, test_dataset=None, y_pred_train=None, y
     if y_pred_test is not None:
         labels = np.append(labels, y_pred_test)
 
-    return pd.Series(labels) if len(labels) > 0 else pd.Series(dtype='object')
+    return pd.Series(labels) if len(labels) > 0 else pd.Series(dtype="object")
 
 
 def infer_task_type_by_labels(labels: pd.Series):
@@ -62,12 +63,15 @@ def infer_task_type_by_labels(labels: pd.Series):
     if is_categorical(labels, max_categorical_ratio=0.05):
         num_classes = len(labels.dropna().unique())
         task_type = infer_task_type_by_class_number(num_classes)
-        if infer_dtype(labels) == 'integer':
+        if infer_dtype(labels) == "integer":
             get_logger().warning(
-                'Due to the small number of unique labels task type was inferred as %s classification in spite of '
-                'the label column is of type integer. '
-                'Initialize your Dataset with either label_type=\"%s\" or '
-                'label_type=\"regression\" to resolve this warning.', task_type.value, task_type.value)
+                "Due to the small number of unique labels task type was inferred as %s classification in spite of "
+                "the label column is of type integer. "
+                'Initialize your Dataset with either label_type="%s" or '
+                'label_type="regression" to resolve this warning.',
+                task_type.value,
+                task_type.value,
+            )
         return task_type
     else:
         return TaskType.REGRESSION
@@ -76,8 +80,10 @@ def infer_task_type_by_labels(labels: pd.Series):
 def infer_task_type_by_class_number(num_classes):
     """Infer task type of binary or multiclass."""
     if num_classes == 0:
-        raise ValidationError('Found zero number of classes')
+        raise ValidationError("Found zero number of classes")
     if num_classes == 1:
-        raise ValidationError('Found only one class in label column, pass the full list of possible '
-                              'label classes via the model_classes argument of the run function.')
+        raise ValidationError(
+            "Found only one class in label column, pass the full list of possible "
+            "label classes via the model_classes argument of the run function."
+        )
     return TaskType.BINARY if num_classes == 2 else TaskType.MULTICLASS

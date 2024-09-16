@@ -15,4 +15,4 @@ import numpy as np
 
 def round_sig(x: float, sig: int = 2):
     """Round a number to a given number of significant digits."""
-    return round(x, sig-int(np.floor(np.log10(abs(x))))-1)
+    return round(x, sig - int(np.floor(np.log10(abs(x)))) - 1)

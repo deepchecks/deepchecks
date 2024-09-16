@@ -9,17 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """The dataset module containing the tabular Dataset class and its functions."""
+
 # pylint: disable=inconsistent-quotes,protected-access
 import typing as t
 import warnings
 from collections import Counter
-
-import numpy as np
-import pandas as pd
-from IPython.display import HTML, display_html
-from pandas.api.types import infer_dtype
-from sklearn.model_selection import train_test_split
-from typing_extensions import Literal as L
 
 from deepchecks.core.errors import DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError
 from deepchecks.tabular.utils.task_type import TaskType
@@ -29,11 +23,18 @@ from deepchecks.utils.strings import get_docs_link
 from deepchecks.utils.type_inference import infer_categorical_features, infer_numerical_features
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['Dataset']
+import numpy as np
+import pandas as pd
+from IPython.display import HTML, display_html
+from pandas.api.types import infer_dtype
+from sklearn.model_selection import train_test_split
+from typing_extensions import Literal as L
 
-TDataset = t.TypeVar('TDataset', bound='Dataset')
-DatasetReprFmt = t.Union[L['string'], L['html']]  # noqa: F821
-DEFAULT_LABEL_NAME = 'target'
+__all__ = ["Dataset"]
+
+TDataset = t.TypeVar("TDataset", bound="Dataset")
+DatasetReprFmt = t.Union[L["string"], L["html"]]  # noqa: F821
+DEFAULT_LABEL_NAME = "target"
 
 
 class Dataset:
@@ -107,26 +108,25 @@ class Dataset:
     _label_type: t.Optional[TaskType]
 
     def __init__(
-            self,
-            df: t.Any,
-            label: t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
-            features: t.Optional[t.Sequence[Hashable]] = None,
-            cat_features: t.Optional[t.Sequence[Hashable]] = None,
-            index_name: t.Optional[Hashable] = None,
-            set_index_from_dataframe_index: bool = False,
-            datetime_name: t.Optional[Hashable] = None,
-            set_datetime_from_dataframe_index: bool = False,
-            convert_datetime: bool = True,
-            datetime_args: t.Optional[t.Dict] = None,
-            max_categorical_ratio: float = 0.01,
-            max_categories: int = None,
-            label_type: str = None,
-            dataset_name: t.Optional[str] = None,
-            label_classes=None
+        self,
+        df: t.Any,
+        label: t.Union[Hashable, pd.Series, pd.DataFrame, np.ndarray] = None,
+        features: t.Optional[t.Sequence[Hashable]] = None,
+        cat_features: t.Optional[t.Sequence[Hashable]] = None,
+        index_name: t.Optional[Hashable] = None,
+        set_index_from_dataframe_index: bool = False,
+        datetime_name: t.Optional[Hashable] = None,
+        set_datetime_from_dataframe_index: bool = False,
+        convert_datetime: bool = True,
+        datetime_args: t.Optional[t.Dict] = None,
+        max_categorical_ratio: float = 0.01,
+        max_categories: int = None,
+        label_type: str = None,
+        dataset_name: t.Optional[str] = None,
+        label_classes=None,
     ):
-
         if len(df) == 0:
-            raise DeepchecksValueError('Can\'t create a Dataset object with an empty dataframe')
+            raise DeepchecksValueError("Can't create a Dataset object with an empty dataframe")
         self._data = pd.DataFrame(df).copy()
 
         # Checking for duplicate columns
@@ -135,7 +135,8 @@ class Dataset:
             raise DeepchecksValueError(
                 f"Data has {len(duplicated_columns)} duplicate columns. "
                 "Change the duplicate column names or remove them from the data. "
-                f"Duplicate column names: {duplicated_columns}")
+                f"Duplicate column names: {duplicated_columns}"
+            )
 
         # Validations
         if label is None:
@@ -143,97 +144,115 @@ class Dataset:
         elif isinstance(label, (pd.Series, pd.DataFrame, np.ndarray)):
             if isinstance(label, pd.DataFrame):
                 if label.shape[1] != 1:
-                    raise DeepchecksValueError('Provide label as a Series or a DataFrame with a single column.')
+                    raise DeepchecksValueError("Provide label as a Series or a DataFrame with a single column.")
                 label = label.iloc[:, 0]
             elif isinstance(label, np.ndarray):
                 if len(label.shape) > 2:
-                    raise DeepchecksValueError('Label must be either column vector or row vector')
+                    raise DeepchecksValueError("Label must be either column vector or row vector")
                 elif len(label.shape) == 2:
                     if all(x != 1 for x in label.shape):
-                        raise DeepchecksValueError('Label must be either column vector or row vector')
+                        raise DeepchecksValueError("Label must be either column vector or row vector")
                     label = np.squeeze(label)
                 label = pd.Series(label)
 
             if label.shape[0] != self._data.shape[0]:
-                raise DeepchecksValueError('Number of samples of label and data must be equal')
+                raise DeepchecksValueError("Number of samples of label and data must be equal")
             pd.testing.assert_index_equal(self._data.index, label.index)
 
             self._label_name = DEFAULT_LABEL_NAME if label.name is None or label.name == 0 else label.name
             if self._label_name in self._data.columns:
-                raise DeepchecksValueError(f'Data has column with name "{self._label_name}", change label column name '
-                                           f'or provide the column label name as str')
+                raise DeepchecksValueError(
+                    f'Data has column with name "{self._label_name}", change label column name '
+                    f"or provide the column label name as str"
+                )
             self._data[self._label_name] = label
 
         elif isinstance(label, Hashable):
             if label not in self._data.columns:
-                raise DeepchecksValueError(f'label column {label} not found in dataset columns')
+                raise DeepchecksValueError(f"label column {label} not found in dataset columns")
             self._label_name = label
         else:
-            raise DeepchecksValueError(f'Unsupported type for label: {type(label).__name__}')
+            raise DeepchecksValueError(f"Unsupported type for label: {type(label).__name__}")
 
         # Assert that the requested index can be found
         if not set_index_from_dataframe_index:
             if index_name is not None and index_name not in self._data.columns:
-                error_message = f'Index column {index_name} not found in dataset columns.'
-                if index_name == 'index':
-                    error_message += ' If you attempted to use the dataframe index, set ' \
-                                     'set_index_from_dataframe_index to True instead.'
+                error_message = f"Index column {index_name} not found in dataset columns."
+                if index_name == "index":
+                    error_message += (
+                        " If you attempted to use the dataframe index, set "
+                        "set_index_from_dataframe_index to True instead."
+                    )
                 raise DeepchecksValueError(error_message)
         else:
             if index_name is not None:
                 if isinstance(index_name, str):
                     if index_name not in self._data.index.names:
-                        raise DeepchecksValueError(f'Index {index_name} not found in dataframe index level names.')
+                        raise DeepchecksValueError(f"Index {index_name} not found in dataframe index level names.")
                 elif isinstance(index_name, int):
                     if index_name > (len(self._data.index.names) - 1):
-                        raise DeepchecksValueError(f'Dataframe index has less levels than {index_name + 1}.')
+                        raise DeepchecksValueError(f"Dataframe index has less levels than {index_name + 1}.")
                 else:
-                    raise DeepchecksValueError(f'When set_index_from_dataframe_index is True index_name can be None,'
-                                               f' int or str, but found {type(index_name)}')
+                    raise DeepchecksValueError(
+                        f"When set_index_from_dataframe_index is True index_name can be None,"
+                        f" int or str, but found {type(index_name)}"
+                    )
 
         # Assert that the requested datetime can be found
         if not set_datetime_from_dataframe_index:
             if datetime_name is not None and datetime_name not in self._data.columns:
-                error_message = f'Datetime column {datetime_name} not found in dataset columns.'
-                if datetime_name == 'date':
-                    error_message += ' If you attempted to use the dataframe index, ' \
-                                     'set set_datetime_from_dataframe_index to True instead.'
+                error_message = f"Datetime column {datetime_name} not found in dataset columns."
+                if datetime_name == "date":
+                    error_message += (
+                        " If you attempted to use the dataframe index, "
+                        "set set_datetime_from_dataframe_index to True instead."
+                    )
                 raise DeepchecksValueError(error_message)
         else:
             if datetime_name is not None:
                 if isinstance(datetime_name, str):
                     if datetime_name not in self._data.index.names:
                         raise DeepchecksValueError(
-                            f'Datetime {datetime_name} not found in dataframe index level names.'
+                            f"Datetime {datetime_name} not found in dataframe index level names."
                         )
                 elif isinstance(datetime_name, int):
                     if datetime_name > (len(self._data.index.names) - 1):
-                        raise DeepchecksValueError(f'Dataframe index has less levels than {datetime_name + 1}.')
+                        raise DeepchecksValueError(f"Dataframe index has less levels than {datetime_name + 1}.")
                 else:
-                    raise DeepchecksValueError(f'When set_index_from_dataframe_index is True index_name can be None,'
-                                               f' int or str, but found {type(index_name)}')
+                    raise DeepchecksValueError(
+                        f"When set_index_from_dataframe_index is True index_name can be None,"
+                        f" int or str, but found {type(index_name)}"
+                    )
             self._datetime_column = self.get_datetime_column_from_index(datetime_name)
 
         if features is not None:
             difference = set(features) - set(self._data.columns)
             if len(difference) > 0:
-                raise DeepchecksValueError('Features must be names of columns in dataframe. '
-                                           f'Features {difference} have not been '
-                                           'found in input dataframe.')
+                raise DeepchecksValueError(
+                    "Features must be names of columns in dataframe. "
+                    f"Features {difference} have not been "
+                    "found in input dataframe."
+                )
             self._features = list(features)
         else:
-            self._features = [x for x in self._data.columns if x not in
-                              {self._label_name,
-                               index_name if not set_index_from_dataframe_index else None,
-                               datetime_name if not set_datetime_from_dataframe_index else None}]
+            self._features = [
+                x
+                for x in self._data.columns
+                if x
+                not in {
+                    self._label_name,
+                    index_name if not set_index_from_dataframe_index else None,
+                    datetime_name if not set_datetime_from_dataframe_index else None,
+                }
+            ]
 
         if len(set(self._data.index)) != len(self._data.index):
             if set_index_from_dataframe_index:
-                raise DeepchecksValueError('Selected index column has duplicate values.')
+                raise DeepchecksValueError("Selected index column has duplicate values.")
             else:
-                self._data['original_df_index'] = self._data.index
+                self._data["original_df_index"] = self._data.index
                 self._data.index = range(len(self._data.index))
-                warnings.warn('Dataframe index has duplicate indexes, setting index to [0,1..,n-1].')
+                warnings.warn("Dataframe index has duplicate indexes, setting index to [0,1..,n-1].")
 
         self._index_name = index_name
         self._set_index_from_dataframe_index = set_index_from_dataframe_index
@@ -248,29 +267,31 @@ class Dataset:
         if isinstance(dataset_name, str) or (dataset_name is None):
             self.name = dataset_name
         else:
-            raise DeepchecksValueError('The dataset_name parameter accepts a string or None.')
+            raise DeepchecksValueError("The dataset_name parameter accepts a string or None.")
 
         if self._label_name in self.features:
-            raise DeepchecksValueError(f'label column {self._label_name} can not be a feature column')
+            raise DeepchecksValueError(f"label column {self._label_name} can not be a feature column")
 
         if self._datetime_name in self.features:
-            raise DeepchecksValueError(f'datetime column {self._datetime_name} can not be a feature column')
+            raise DeepchecksValueError(f"datetime column {self._datetime_name} can not be a feature column")
 
         if self._index_name in self.features:
-            raise DeepchecksValueError(f'index column {self._index_name} can not be a feature column')
+            raise DeepchecksValueError(f"index column {self._index_name} can not be a feature column")
 
         if cat_features is not None:
             if set(cat_features).intersection(set(self._features)) != set(cat_features):
-                raise DeepchecksValueError('Categorical features must be a subset of features. '
-                                           f'Categorical features {set(cat_features) - set(self._features)} '
-                                           'have not been found in feature list.')
+                raise DeepchecksValueError(
+                    "Categorical features must be a subset of features. "
+                    f"Categorical features {set(cat_features) - set(self._features)} "
+                    "have not been found in feature list."
+                )
             self._cat_features = list(cat_features)
         else:
             self._cat_features = self._infer_categorical_features(
                 self._data,
                 max_categorical_ratio=max_categorical_ratio,
                 max_categories=max_categories,
-                columns=self._features
+                columns=self._features,
             )
 
         if ((self._datetime_name is not None) or self._set_datetime_from_dataframe_index) and convert_datetime:
@@ -279,32 +300,41 @@ class Dataset:
             else:
                 self._data[self._datetime_name] = pd.to_datetime(self._data[self._datetime_name], **self._datetime_args)
 
-        if label_type in ['classification_label', 'regression_label']:
-            warnings.warn(f'{label_type} value for label type is deprecated, allowed task types are multiclass,'
-                          f' binary and regression.', DeprecationWarning, stacklevel=2)
-            self._label_type = TaskType.REGRESSION if label_type == 'regression_label' else TaskType.MULTICLASS
+        if label_type in ["classification_label", "regression_label"]:
+            warnings.warn(
+                f"{label_type} value for label type is deprecated, allowed task types are multiclass,"
+                f" binary and regression.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self._label_type = TaskType.REGRESSION if label_type == "regression_label" else TaskType.MULTICLASS
         elif label_type in [task.value for task in TaskType]:
             self._label_type = TaskType(label_type)
         elif label_type is not None:
-            raise DeepchecksValueError(f'allowed value for label type are {[task.value for task in TaskType]},'
-                                       f' received {label_type}.')
+            raise DeepchecksValueError(
+                f"allowed value for label type are {[task.value for task in TaskType]}," f" received {label_type}."
+            )
         else:
             self._label_type = None
 
         if label_classes is not None:
-            warnings.warn('label_classes parameter is deprecated, use model_classes parameter on a check run function '
-                          'instead.', DeprecationWarning, stacklevel=2)
+            warnings.warn(
+                "label_classes parameter is deprecated, use model_classes parameter on a check run function "
+                "instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
 
         unassigned_cols = [col for col in self._features if col not in self._cat_features]
         self._numerical_features = infer_numerical_features(self._data[unassigned_cols])
 
     @classmethod
     def from_numpy(
-            cls: t.Type[TDataset],
-            *args: np.ndarray,
-            columns: t.Sequence[Hashable] = None,
-            label_name: t.Hashable = None,
-            **kwargs
+        cls: t.Type[TDataset],
+        *args: np.ndarray,
+        columns: t.Sequence[Hashable] = None,
+        label_name: t.Hashable = None,
+        **kwargs,
     ) -> TDataset:
         """Create Dataset instance from numpy arrays.
 
@@ -367,8 +397,7 @@ class Dataset:
 
         columns_array = args[0]
         columns_error_message = (
-            "'from_numpy' constructor expecting columns (args[0]) "
-            "to be not empty two dimensional array."
+            "'from_numpy' constructor expecting columns (args[0]) " "to be not empty two dimensional array."
         )
 
         if len(columns_array.shape) != 2:
@@ -379,8 +408,7 @@ class Dataset:
 
         if columns is not None and len(columns) != columns_array.shape[1]:
             raise DeepchecksValueError(
-                f'{columns_array.shape[1]} columns were provided '
-                f'but only {len(columns)} name(s) for them`s.'
+                f"{columns_array.shape[1]} columns were provided " f"but only {len(columns)} name(s) for them`s."
             )
 
         elif columns is None:
@@ -392,19 +420,14 @@ class Dataset:
             labels_array = args[1]
             if len(labels_array.shape) != 1 or labels_array.shape[0] == 0:
                 raise DeepchecksValueError(
-                    "'from_numpy' constructor expecting labels (args[1]) "
-                    "to be not empty one dimensional array."
+                    "'from_numpy' constructor expecting labels (args[1]) " "to be not empty one dimensional array."
                 )
 
             labels_array = pd.Series(labels_array)
             if label_name:
                 labels_array = labels_array.rename(label_name)
 
-        return cls(
-            df=pd.DataFrame(data=columns_array, columns=columns),
-            label=labels_array,
-            **kwargs
-        )
+        return cls(df=pd.DataFrame(data=columns_array, columns=columns), label=labels_array, **kwargs)
 
     @property
     def data(self) -> pd.DataFrame:
@@ -433,15 +456,25 @@ class Dataset:
 
         cls = type(self)
 
-        return cls(new_data, features=features, cat_features=cat_features, label=label_name,
-                   index_name=index, set_index_from_dataframe_index=self._set_index_from_dataframe_index,
-                   datetime_name=date, set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
-                   convert_datetime=self._convert_datetime, max_categorical_ratio=self._max_categorical_ratio,
-                   max_categories=self._max_categories, label_type=label_type,
-                   dataset_name=self.name)
+        return cls(
+            new_data,
+            features=features,
+            cat_features=cat_features,
+            label=label_name,
+            index_name=index,
+            set_index_from_dataframe_index=self._set_index_from_dataframe_index,
+            datetime_name=date,
+            set_datetime_from_dataframe_index=self._set_datetime_from_dataframe_index,
+            convert_datetime=self._convert_datetime,
+            max_categorical_ratio=self._max_categorical_ratio,
+            max_categories=self._max_categories,
+            label_type=label_type,
+            dataset_name=self.name,
+        )
 
-    def sample(self: TDataset, n_samples: t.Optional[int] = None, replace: bool = False,
-               random_state: t.Optional[int] = None) -> TDataset:
+    def sample(
+        self: TDataset, n_samples: t.Optional[int] = None, replace: bool = False, random_state: t.Optional[int] = None
+    ) -> TDataset:
         """Create a copy of the dataset object, with the internal dataframe being a sample of the original dataframe.
 
         Parameters
@@ -493,13 +526,14 @@ class Dataset:
         """
         return self._label_type
 
-    def train_test_split(self: TDataset,
-                         train_size: t.Union[int, float, None] = None,
-                         test_size: t.Union[int, float] = 0.25,
-                         random_state: int = 42,
-                         shuffle: bool = True,
-                         stratify: t.Union[t.List, pd.Series, np.ndarray, bool] = False
-                         ) -> t.Tuple[TDataset, TDataset]:
+    def train_test_split(
+        self: TDataset,
+        train_size: t.Union[int, float, None] = None,
+        test_size: t.Union[int, float] = 0.25,
+        random_state: int = 42,
+        shuffle: bool = True,
+        stratify: t.Union[t.List, pd.Series, np.ndarray, bool] = False,
+    ) -> t.Tuple[TDataset, TDataset]:
         """Split dataset into random train and test datasets.
 
         Parameters
@@ -528,20 +562,22 @@ class Dataset:
         if isinstance(stratify, bool):
             stratify = self.label_col if stratify else None
 
-        train_df, test_df = train_test_split(self._data,
-                                             test_size=test_size,
-                                             train_size=train_size,
-                                             random_state=random_state,
-                                             shuffle=shuffle,
-                                             stratify=stratify)
+        train_df, test_df = train_test_split(
+            self._data,
+            test_size=test_size,
+            train_size=train_size,
+            random_state=random_state,
+            shuffle=shuffle,
+            stratify=stratify,
+        )
         return self.copy(train_df), self.copy(test_df)
 
     @staticmethod
     def _infer_categorical_features(
-            df: pd.DataFrame,
-            max_categorical_ratio: float,
-            max_categories: int = None,
-            columns: t.Optional[t.List[Hashable]] = None,
+        df: pd.DataFrame,
+        max_categorical_ratio: float,
+        max_categories: int = None,
+        columns: t.Optional[t.List[Hashable]] = None,
     ) -> t.List[Hashable]:
         """Infers which features are categorical by checking types and number of unique values.
 
@@ -557,22 +593,21 @@ class Dataset:
            Out of the list of feature names, returns list of categorical features
         """
         categorical_columns = infer_categorical_features(
-            df,
-            max_categorical_ratio=max_categorical_ratio,
-            max_categories=max_categories,
-            columns=columns
+            df, max_categorical_ratio=max_categorical_ratio, max_categories=max_categories, columns=columns
         )
 
-        message = ('It is recommended to initialize Dataset with categorical features by doing '
-                   '"Dataset(df, cat_features=categorical_list)". No categorical features were passed, therefore '
-                   'heuristically inferring categorical features in the data. '
-                   f'{len(categorical_columns)} categorical features were inferred.')
+        message = (
+            "It is recommended to initialize Dataset with categorical features by doing "
+            '"Dataset(df, cat_features=categorical_list)". No categorical features were passed, therefore '
+            "heuristically inferring categorical features in the data. "
+            f"{len(categorical_columns)} categorical features were inferred."
+        )
 
         if len(categorical_columns) > 0:
             columns_to_print = categorical_columns[:7]
-            message += ': ' + ', '.join(list(map(str, columns_to_print)))
+            message += ": " + ", ".join(list(map(str, columns_to_print)))
             if len(categorical_columns) > len(columns_to_print):
-                message += '... For full list use dataset.cat_features'
+                message += "... For full list use dataset.cat_features"
 
         get_logger().warning(message)
 
@@ -615,15 +650,15 @@ class Dataset:
            If index column exists, returns a pandas Series of the index column.
         """
         if self._set_index_from_dataframe_index is True:
-            index_name = self.data.index.name or 'index'
+            index_name = self.data.index.name or "index"
             if self._index_name is None:
-                return pd.Series(self.data.index.get_level_values(0), name=index_name,
-                                 index=self.data.index)
+                return pd.Series(self.data.index.get_level_values(0), name=index_name, index=self.data.index)
             elif isinstance(self._index_name, (str, int)):
-                return pd.Series(self.data.index.get_level_values(self._index_name), name=index_name,
-                                 index=self.data.index)
+                return pd.Series(
+                    self.data.index.get_level_values(self._index_name), name=index_name, index=self.data.index
+                )
             else:
-                raise DeepchecksValueError(f'Don\'t know to handle index_name of type {type(self._index_name)}')
+                raise DeepchecksValueError(f"Don't know to handle index_name of type {type(self._index_name)}")
         elif self._index_name is not None:
             return self.data[self._index_name]
         else:  # No meaningful index to use: Index column not configured, and _set_index_from_dataframe_index is False
@@ -642,13 +677,11 @@ class Dataset:
 
     def get_datetime_column_from_index(self, datetime_name):
         """Retrieve the datetime info from the index if _set_datetime_from_dataframe_index is True."""
-        index_name = self.data.index.name or 'datetime'
+        index_name = self.data.index.name or "datetime"
         if datetime_name is None:
-            return pd.Series(self.data.index.get_level_values(0), name=index_name,
-                             index=self.data.index)
+            return pd.Series(self.data.index.get_level_values(0), name=index_name, index=self.data.index)
         elif isinstance(datetime_name, (str, int)):
-            return pd.Series(self.data.index.get_level_values(datetime_name), name=index_name,
-                             index=self.data.index)
+            return pd.Series(self.data.index.get_level_values(datetime_name), name=index_name, index=self.data.index)
 
     @property
     def datetime_col(self) -> t.Optional[pd.Series]:
@@ -678,8 +711,8 @@ class Dataset:
         """
         if not self._label_name:
             raise DeepchecksNotSupportedError(
-                'Dataset does not contain a label column',
-                html=f'Dataset does not contain a label column. see {_get_dataset_docs_tag()}'
+                "Dataset does not contain a label column",
+                html=f"Dataset does not contain a label column. see {_get_dataset_docs_tag()}",
             )
         return self._label_name
 
@@ -763,20 +796,20 @@ class Dataset:
         columns = {}
         for column in self.data.columns:
             if column == self._index_name:
-                value = 'index'
+                value = "index"
             elif column == self._datetime_name:
-                value = 'date'
+                value = "date"
             elif column == self._label_name:
-                value = 'label'
+                value = "label"
             elif column in self._features:
                 if column in self.cat_features:
-                    value = 'categorical feature'
+                    value = "categorical feature"
                 elif column in self.numerical_features:
-                    value = 'numerical feature'
+                    value = "numerical feature"
                 else:
-                    value = 'other feature'
+                    value = "other feature"
             else:
-                value = 'other'
+                value = "other"
             columns[column] = value
         return columns
 
@@ -799,8 +832,8 @@ class Dataset:
         """
         if not self.features:
             raise DeepchecksNotSupportedError(
-                'Dataset does not contain any feature columns',
-                html=f'Dataset does not contain any feature columns. see {_get_dataset_docs_tag()}'
+                "Dataset does not contain any feature columns",
+                html=f"Dataset does not contain any feature columns. see {_get_dataset_docs_tag()}",
             )
 
     def assert_datetime(self):
@@ -812,8 +845,8 @@ class Dataset:
         """
         if not (self._set_datetime_from_dataframe_index or self._datetime_name):
             raise DatasetValidationError(
-                'Dataset does not contain a datetime',
-                html=f'Dataset does not contain a datetime. see {_get_dataset_docs_tag()}'
+                "Dataset does not contain a datetime",
+                html=f"Dataset does not contain a datetime. see {_get_dataset_docs_tag()}",
             )
 
     def assert_index(self):
@@ -825,15 +858,15 @@ class Dataset:
         """
         if not (self._set_index_from_dataframe_index or self._index_name):
             raise DatasetValidationError(
-                'Dataset does not contain an index',
-                html=f'Dataset does not contain an index. see {_get_dataset_docs_tag()}'
+                "Dataset does not contain an index",
+                html=f"Dataset does not contain an index. see {_get_dataset_docs_tag()}",
             )
 
     def select(
-            self: TDataset,
-            columns: t.Union[Hashable, t.List[Hashable], None] = None,
-            ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
-            keep_label: bool = False
+        self: TDataset,
+        columns: t.Union[Hashable, t.List[Hashable], None] = None,
+        ignore_columns: t.Union[Hashable, t.List[Hashable], None] = None,
+        keep_label: bool = False,
     ) -> TDataset:
         """Filter dataset columns by given params.
 
@@ -854,11 +887,7 @@ class Dataset:
         DeepchecksValueError
             In case one of columns given don't exists raise error
         """
-        if (
-            keep_label
-            and isinstance(columns, list)
-            and self.label_name not in columns
-        ):
+        if keep_label and isinstance(columns, list) and self.label_name not in columns:
             columns = columns[:]
             columns.append(self.label_name)
 
@@ -869,7 +898,7 @@ class Dataset:
             return self.copy(new_data)
 
     @classmethod
-    def cast_to_dataset(cls, obj: t.Any) -> 'Dataset':
+    def cast_to_dataset(cls, obj: t.Any) -> "Dataset":
         """Verify Dataset or transform to Dataset.
 
         Function verifies that provided value is a non-empty instance of Dataset,
@@ -890,18 +919,18 @@ class Dataset:
         if isinstance(obj, pd.DataFrame):
             get_logger().warning(
                 'Received a "pandas.DataFrame" instance. It is recommended to pass a "deepchecks.tabular.Dataset" '
-                'instance by initializing it with the data and metadata, '
+                "instance by initializing it with the data and metadata, "
                 'for example by doing "Dataset(dataframe, label=label, cat_features=cat_features)"'
             )
             obj = Dataset(obj)
         elif not isinstance(obj, Dataset):
             raise DeepchecksValueError(
-                f'non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}'
+                f"non-empty instance of Dataset or DataFrame was expected, instead got {type(obj).__name__}"
             )
         return obj.copy(obj.data)
 
     @classmethod
-    def datasets_share_features(cls, *datasets: 'Dataset') -> bool:
+    def datasets_share_features(cls, *datasets: "Dataset") -> bool:
         """Verify that all provided datasets share same features.
 
         Parameters
@@ -933,7 +962,7 @@ class Dataset:
         return True
 
     @classmethod
-    def datasets_share_categorical_features(cls, *datasets: 'Dataset') -> bool:
+    def datasets_share_categorical_features(cls, *datasets: "Dataset") -> bool:
         """Verify that all provided datasets share same categorical features.
 
         Parameters
@@ -966,7 +995,7 @@ class Dataset:
         return True
 
     @classmethod
-    def datasets_share_label(cls, *datasets: 'Dataset') -> bool:
+    def datasets_share_label(cls, *datasets: "Dataset") -> bool:
         """Verify that all provided datasets share same label column.
 
         Parameters
@@ -997,7 +1026,7 @@ class Dataset:
         return True
 
     @classmethod
-    def datasets_share_index(cls, *datasets: 'Dataset') -> bool:
+    def datasets_share_index(cls, *datasets: "Dataset") -> bool:
         """Verify that all provided datasets share same index column.
 
         Parameters
@@ -1021,14 +1050,16 @@ class Dataset:
         first_ds = datasets[0]
 
         for ds in datasets[1:]:
-            if (ds._index_name != first_ds._index_name or
-                    ds._set_index_from_dataframe_index != first_ds._set_index_from_dataframe_index):
+            if (
+                ds._index_name != first_ds._index_name
+                or ds._set_index_from_dataframe_index != first_ds._set_index_from_dataframe_index
+            ):
                 return False
 
         return True
 
     @classmethod
-    def datasets_share_date(cls, *datasets: 'Dataset') -> bool:
+    def datasets_share_date(cls, *datasets: "Dataset") -> bool:
         """Verify that all provided datasets share same date column.
 
         Parameters
@@ -1052,8 +1083,10 @@ class Dataset:
         first_ds = datasets[0]
 
         for ds in datasets[1:]:
-            if (ds._datetime_name != first_ds._datetime_name or
-                    ds._set_datetime_from_dataframe_index != first_ds._set_datetime_from_dataframe_index):
+            if (
+                ds._datetime_name != first_ds._datetime_name
+                or ds._set_datetime_from_dataframe_index != first_ds._set_datetime_from_dataframe_index
+            ):
                 return False
 
         return True
@@ -1076,30 +1109,36 @@ class Dataset:
 
         if index_column is not None:
             index_name = index_column.name
-            dataset_columns_info.append([
-                index_name,
-                infer_dtype(index_column, skipna=True),
-                'Index',
-                'set from dataframe index' if self._set_index_from_dataframe_index is True else ''
-            ])
+            dataset_columns_info.append(
+                [
+                    index_name,
+                    infer_dtype(index_column, skipna=True),
+                    "Index",
+                    "set from dataframe index" if self._set_index_from_dataframe_index is True else "",
+                ]
+            )
 
         if datetime_column is not None:
             datetime_name = datetime_column.name
-            dataset_columns_info.append([
-                datetime_name,
-                infer_dtype(datetime_column, skipna=True),
-                'Datetime',
-                'set from DataFrame index' if self._set_datetime_from_dataframe_index is True else ''
-            ])
+            dataset_columns_info.append(
+                [
+                    datetime_name,
+                    infer_dtype(datetime_column, skipna=True),
+                    "Datetime",
+                    "set from DataFrame index" if self._set_datetime_from_dataframe_index is True else "",
+                ]
+            )
 
         if label_column is not None:
             label_name = label_column.name
-            dataset_columns_info.append([
-                label_name,
-                infer_dtype(label_column, skipna=True),
-                '' if self.label_type is None else self.label_type.value.capitalize() + " LABEL",
-                ''
-            ])
+            dataset_columns_info.append(
+                [
+                    label_name,
+                    infer_dtype(label_column, skipna=True),
+                    "" if self.label_type is None else self.label_type.value.capitalize() + " LABEL",
+                    "",
+                ]
+            )
 
         all_columns = pd.Series(features + list(self.data.columns)).unique()
 
@@ -1110,61 +1149,53 @@ class Dataset:
             feature_dtype = infer_dtype(data[feature_name], skipna=True)
 
             if feature_name in categorical_features:
-                kind = 'Categorical Feature'
+                kind = "Categorical Feature"
             elif feature_name in numerical_features:
-                kind = 'Numerical Feature'
+                kind = "Numerical Feature"
             elif feature_name in features:
-                kind = 'Other Feature'
+                kind = "Other Feature"
             else:
-                kind = 'Dataset Column'
+                kind = "Dataset Column"
 
-            dataset_columns_info.append([feature_name, feature_dtype, kind, ''])
+            dataset_columns_info.append([feature_name, feature_dtype, kind, ""])
 
         return pd.DataFrame(
             data=dataset_columns_info,
-            columns=['Column', 'DType', 'Kind', 'Additional Info'],
+            columns=["Column", "DType", "Kind", "Additional Info"],
         )
 
-    def __repr__(
-            self,
-            max_cols: int = 8,
-            max_rows: int = 10,
-            fmt: DatasetReprFmt = 'string'
-    ) -> str:
+    def __repr__(self, max_cols: int = 8, max_rows: int = 10, fmt: DatasetReprFmt = "string") -> str:
         """Represent a dataset instance."""
         info = self._dataset_description()
-        columns = list(info[info['Additional Info'] == '']['Column'])
+        columns = list(info[info["Additional Info"] == ""]["Column"])
         data = self.data.loc[:, columns]  # Sorting horizontally
         kwargs = dict(max_cols=max_cols, col_space=15)
 
-        if fmt == 'string':
+        if fmt == "string":
             features_info = info.to_string(max_rows=50, **kwargs)
             data_to_show = data.to_string(show_dimensions=True, max_rows=max_rows, **kwargs)
-            title_template = '{:-^40}\n\n'
-            return ''.join((
-                title_template.format(' Dataset Description '),
-                f'{features_info}\n\n\n',
-                title_template.format(' Dataset Content '),
-                f'{data_to_show}\n\n',
-            ))
-
-        elif fmt == 'html':
-            features_info = info.to_html(notebook=True, max_rows=50, **kwargs)
-            data_to_show = data.to_html(notebook=True, max_rows=max_rows, **kwargs)
-            return ''.join([
-                '<h4><b>Dataset Description</b></h4>',
-                features_info,
-                '<h4><b>Dataset Content</b></h4>',
-                data_to_show
-            ])
-
-        else:
-            raise ValueError(
-                '"fmt" parameter supports only next values [string, html]'
+            title_template = "{:-^40}\n\n"
+            return "".join(
+                (
+                    title_template.format(" Dataset Description "),
+                    f"{features_info}\n\n\n",
+                    title_template.format(" Dataset Content "),
+                    f"{data_to_show}\n\n",
+                )
             )
 
+        elif fmt == "html":
+            features_info = info.to_html(notebook=True, max_rows=50, **kwargs)
+            data_to_show = data.to_html(notebook=True, max_rows=max_rows, **kwargs)
+            return "".join(
+                ["<h4><b>Dataset Description</b></h4>", features_info, "<h4><b>Dataset Content</b></h4>", data_to_show]
+            )
+
+        else:
+            raise ValueError('"fmt" parameter supports only next values [string, html]')
+
     def _ipython_display_(self):
-        display_html(HTML(self.__repr__(fmt='html')))
+        display_html(HTML(self.__repr__(fmt="html")))
 
     def __len__(self) -> int:
         """Return number of samples in the member dataframe.
@@ -1189,6 +1220,8 @@ class Dataset:
 
 def _get_dataset_docs_tag():
     """Return link to documentation for Dataset class."""
-    link = get_docs_link() + 'user-guide/tabular/dataset_object.html?html?utm_source=display_output' \
-                             '&utm_medium=referral&utm_campaign=check_link'
+    link = (
+        get_docs_link() + "user-guide/tabular/dataset_object.html?html?utm_source=display_output"
+        "&utm_medium=referral&utm_campaign=check_link"
+    )
     return f'<a href="{link}" target="_blank">Dataset docs</a>'

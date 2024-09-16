@@ -22,7 +22,7 @@ on the given model and data, and returns the mAR values per bounding box size ca
 This check only works on the Object Detection task.
 """
 
-#%%
+# %%
 # Imports
 # -------
 #
@@ -35,7 +35,7 @@ This check only works on the Object Detection task.
 from deepchecks.vision.checks import MeanAverageRecallReport
 from deepchecks.vision.datasets.detection import coco_torch as coco
 
-#%%
+# %%
 # Generate Dataset
 # ----------------
 # We generate a sample dataset of 128 images from the `COCO dataset <https://cocodataset.org/#home>`__,
@@ -44,9 +44,9 @@ from deepchecks.vision.datasets.detection import coco_torch as coco
 # For the label formatter - our dataset returns exactly the accepted format, so our
 # formatting function is the simple `lambda x: x` function.
 
-test_ds = coco.load_dataset(train=False, object_type='VisionData')
+test_ds = coco.load_dataset(train=False, object_type="VisionData")
 
-#%%
+# %%
 # Run the check
 # -------------
 
@@ -54,22 +54,22 @@ check = MeanAverageRecallReport()
 result = check.run(test_ds)
 result
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Observe the check’s output
 # --------------------------
 # The result value is a dataframe that has the average recall score per each area range and IoU.
 
 result.value
 
-#%%
-# Define a condition 
+# %%
+# Define a condition
 # ==================
 # We can define a condition that checks whether our model's average recall score is not less than
 # a given threshold

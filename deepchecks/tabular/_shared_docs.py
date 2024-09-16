@@ -9,11 +9,12 @@
 # ----------------------------------------------------------------------------
 #
 """Module with common docstrings."""
+
 from deepchecks.utils.decorators import Substitution
 
 _shared_docstrings = {}
 
-_shared_docstrings['additional_context_params'] = """
+_shared_docstrings["additional_context_params"] = """
 feature_importance: pd.Series , default: None
     pass manual features importance
 feature_importance_force_permutation : bool , default: False
@@ -30,9 +31,9 @@ y_proba_test: Optional[np.ndarray] , default: None
     Array of the model prediction probabilities over the test dataset.
 model_classes: Optional[List] , default: None
     For classification: list of classes known to the model
-""".strip('\n')
+""".strip("\n")
 
-_shared_docstrings['feature_aggregation_method_argument'] = """
+_shared_docstrings["feature_aggregation_method_argument"] = """
 Argument for the reduce_output functionality, decides how to aggregate the vector of `per-feature scores` into a
 single aggregated score. The aggregated score value is between 0 and 1 for all methods.
 Possible values are:
@@ -44,6 +45,6 @@ specifically on the largest per-feature scores returning a score closer to the m
 'weighted': Weighted mean of per-feature scores based on feature importance.
 'max': Maximum of all the per-feature scores.
 None: No averaging. Return a dict with a per-feature score for each feature.
-""".strip('\n')
+""".strip("\n")
 
 docstrings = Substitution(**_shared_docstrings)

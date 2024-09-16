@@ -9,12 +9,9 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains Mixed Nulls check."""
+
 import math
 from typing import Dict, Iterable, List, Optional, Union
-
-import numpy as np
-import pandas as pd
-from pandas.api.types import is_categorical_dtype
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
@@ -27,10 +24,14 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, string_baseform
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['MixedNulls']
+import numpy as np
+import pandas as pd
+from pandas.api.types import is_categorical_dtype
+
+__all__ = ["MixedNulls"]
 
 
-DEFAULT_NULL_VALUES = {'none', 'null', 'nan', 'na', '', '\x00', '\x00\x00'}
+DEFAULT_NULL_VALUES = {"none", "null", "nan", "na", "", "\x00", "\x00\x00"}
 
 
 @docstrings
@@ -64,10 +65,10 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
         columns: Union[Hashable, List[Hashable], None] = None,
         ignore_columns: Union[Hashable, List[Hashable], None] = None,
         n_top_columns: int = 10,
-        aggregation_method: Optional[str] = 'max',
+        aggregation_method: Optional[str] = "max",
         n_samples: int = 10_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.null_string_list = null_string_list
@@ -96,12 +97,15 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
         df = select_from_dataframe(df, self.columns, self.ignore_columns)
         null_string_list = self._validate_null_string_list(self.null_string_list)
 
-        feature_importance = context.feature_importance if context.feature_importance is not None \
+        feature_importance = (
+            context.feature_importance
+            if context.feature_importance is not None
             else pd.Series(index=list(df.columns), dtype=object)
+        )
 
         # Result value
         display_array = []
-        result_dict = {'n_samples': len(df), 'columns': {}, 'feature_importance': feature_importance}
+        result_dict = {"n_samples": len(df), "columns": {}, "feature_importance": feature_importance}
 
         for column_name in list(df.columns):
             column_data = df[column_name]
@@ -122,28 +126,28 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
                         if pd.isna(value):
                             null_counts[nan_type(value)] = count
                         elif string_baseform(value) in null_string_list:
-                            null_counts[repr(value).replace('\'', '"')] = count
+                            null_counts[repr(value).replace("'", '"')] = count
             else:
                 string_null_counts = {
-                    repr(value).replace('\'', '"'): count
+                    repr(value).replace("'", '"'): count
                     for value, count in column_data.value_counts(dropna=True).items()
                     if string_baseform(value) in null_string_list
                 }
                 nan_data_counts = column_data[column_data.isna()].apply(nan_type).value_counts().to_dict()
                 null_counts = {**string_null_counts, **nan_data_counts}
 
-            result_dict['columns'][column_name] = {}
+            result_dict["columns"][column_name] = {}
             # Save the column nulls info
             for null_value, count in null_counts.items():
                 percent = count / len(column_data)
                 display_array.append([column_name, null_value, count, format_percent(percent)])
-                result_dict['columns'][column_name][null_value] = {'count': count, 'percent': percent}
+                result_dict["columns"][column_name][null_value] = {"count": count, "percent": percent}
 
         # Create dataframe to display table
         if context.with_display and display_array:
-            df_graph = pd.DataFrame(display_array, columns=['Column Name', 'Value', 'Count', 'Percent of data'])
-            order = df_graph['Column Name'].value_counts(ascending=False).index[:self.n_top_columns]
-            df_graph = df_graph.set_index(['Column Name', 'Value'])
+            df_graph = pd.DataFrame(display_array, columns=["Column Name", "Value", "Count", "Percent of data"])
+            order = df_graph["Column Name"].value_counts(ascending=False).index[: self.n_top_columns]
+            df_graph = df_graph.set_index(["Column Name", "Value"])
             df_graph = df_graph.loc[order, :]
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph]
         else:
@@ -153,23 +157,34 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
 
     def reduce_output(self, check_result: CheckResult) -> Dict[str, float]:
         """Return an aggregated drift score based on aggregation method defined."""
-        feature_importance = check_result.value['feature_importance']
+        feature_importance = check_result.value["feature_importance"]
 
-        if check_result.value['columns']:
-            total_mixed_nulls = {column: [check_result.value['columns'][column][null_value]['count']
-                                          for null_value in check_result.value['columns'][column]]
-                                 for column in check_result.value['columns']}
+        if check_result.value["columns"]:
+            total_mixed_nulls = {
+                column: [
+                    check_result.value["columns"][column][null_value]["count"]
+                    for null_value in check_result.value["columns"][column]
+                ]
+                for column in check_result.value["columns"]
+            }
             # If there is only one kind of null value in the column, then the total_mixed_nulls will be 0 for that
             # column
-            total_mixed_nulls = {column: sum(total_mixed_nulls[column]) if len(total_mixed_nulls[column]) > 1
-                                 else 0 for column in total_mixed_nulls}
+            total_mixed_nulls = {
+                column: sum(total_mixed_nulls[column]) if len(total_mixed_nulls[column]) > 1 else 0
+                for column in total_mixed_nulls
+            }
         else:
-            total_mixed_nulls = {column: 0 for column in check_result.value['columns']}
+            total_mixed_nulls = {column: 0 for column in check_result.value["columns"]}
 
-        percent_mismatched = pd.Series({column: total_mixed_nulls[column] / check_result.value['n_samples'] for column
-                                        in check_result.value['columns']})
-        return self.feature_reduce(self.aggregation_method, percent_mismatched, feature_importance,
-                                   'Percent Mixed Nulls')
+        percent_mismatched = pd.Series(
+            {
+                column: total_mixed_nulls[column] / check_result.value["n_samples"]
+                for column in check_result.value["columns"]
+            }
+        )
+        return self.feature_reduce(
+            self.aggregation_method, percent_mismatched, feature_importance, "Percent Mixed Nulls"
+        )
 
     def _validate_null_string_list(self, nsl) -> set:
         """Validate the object given is a list of strings. If null is given return default list of null values.
@@ -187,7 +202,7 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
         result: set
         if nsl:
             if not isinstance(nsl, Iterable):
-                raise DeepchecksValueError('null_string_list must be an iterable')
+                raise DeepchecksValueError("null_string_list must be an iterable")
             if len(nsl) == 0:
                 raise DeepchecksValueError("null_string_list can't be empty list")
             if any((not isinstance(string, str) for string in nsl)):
@@ -207,26 +222,30 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
         max_allowed_null_types : int , default: 1
             Number of different null value types which is the maximum allowed.
         """
+
         def condition(result: Dict) -> ConditionResult:
-            not_passing_columns = [k for k, v in result['columns'].items() if len(v) > max_allowed_null_types]
+            not_passing_columns = [k for k, v in result["columns"].items() if len(v) > max_allowed_null_types]
             if not_passing_columns:
-                details = f'Found {len(not_passing_columns)} out of {len(result["columns"])} columns with amount of' \
-                          f' null types above threshold: {not_passing_columns}'
+                details = (
+                    f'Found {len(not_passing_columns)} out of {len(result["columns"])} columns with amount of'
+                    f' null types above threshold: {not_passing_columns}'
+                )
                 return ConditionResult(ConditionCategory.FAIL, details)
             else:
-                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result['columns']))
+                return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result["columns"]))
 
-        return self.add_condition(f'Number of different null types is less or equal to {max_allowed_null_types}',
-                                  condition)
+        return self.add_condition(
+            f"Number of different null types is less or equal to {max_allowed_null_types}", condition
+        )
 
 
 def nan_type(x):
     if x is np.nan:
-        return 'numpy.nan'
+        return "numpy.nan"
     elif x is pd.NA:
-        return 'pandas.NA'
+        return "pandas.NA"
     elif x is pd.NaT:
-        return 'pandas.NaT'
+        return "pandas.NaT"
     elif isinstance(x, float) and math.isnan(x):
-        return 'math.nan'
+        return "math.nan"
     return str(x)

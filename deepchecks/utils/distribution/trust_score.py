@@ -27,15 +27,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
 # pylint: disable=invalid-name
 from typing import Tuple
+
+from deepchecks.utils.logger import get_logger
 
 import numpy as np
 from sklearn.neighbors import KDTree, KNeighborsClassifier
 
-from deepchecks.utils.logger import get_logger
-
-__all__ = ['TrustScore']
+__all__ = ["TrustScore"]
 
 
 class TrustScore:
@@ -60,8 +61,15 @@ class TrustScore:
         the average distance from the first to the k-nearest point in the data (dist_filter_type = 'mean').
     """
 
-    def __init__(self, k_filter: int = 10, alpha: float = 0., filter_type: str = 'distance_knn',
-                 leaf_size: int = 40, metric: str = 'euclidean', dist_filter_type: str = 'point') -> None:
+    def __init__(
+        self,
+        k_filter: int = 10,
+        alpha: float = 0.0,
+        filter_type: str = "distance_knn",
+        leaf_size: int = 40,
+        metric: str = "euclidean",
+        dist_filter_type: str = "point",
+    ) -> None:
         super().__init__()
         self.k_filter = k_filter
         self.alpha = alpha
@@ -89,9 +97,9 @@ class TrustScore:
         kdtree = KDTree(X, leaf_size=self.leaf_size, metric=self.metric)
         k = min(self.k_filter + 1, len(X))
         knn_r = kdtree.query(X, k=k)[0]  # distances from 0 to k-nearest points
-        if self.dist_filter_type == 'point':
+        if self.dist_filter_type == "point":
             knn_r = knn_r[:, -1]
-        elif self.dist_filter_type == 'mean':
+        elif self.dist_filter_type == "mean":
             knn_r = np.mean(knn_r[:, 1:], axis=1)  # exclude distance of instance to itself
         cutoff_r = np.percentile(knn_r, (1 - self.alpha) * 100)  # cutoff distance
         X_keep = X[np.where(knn_r <= cutoff_r)[0], :]  # define instances to keep
@@ -112,9 +120,11 @@ class TrustScore:
             Filtered data and labels.
         """
         if self.k_filter == 1:
-            get_logger().warning('Number of nearest neighbors used for probability density filtering should '
-                                 'be >1, otherwise the prediction probabilities are either 0 or 1 making '
-                                 'probability filtering useless.')
+            get_logger().warning(
+                "Number of nearest neighbors used for probability density filtering should "
+                "be >1, otherwise the prediction probabilities are either 0 or 1 making "
+                "probability filtering useless."
+            )
         # fit kNN classifier and make predictions on X
         clf = KNeighborsClassifier(n_neighbors=self.k_filter, leaf_size=self.leaf_size, metric=self.metric)
         clf.fit(X, Y)
@@ -137,8 +147,9 @@ class TrustScore:
             Target labels, either one-hot encoded or the actual class label.
         """
         if len(X.shape) > 2:
-            get_logger().warning('Reshaping data from %s to %s so k-d trees can be built.',
-                                 X.shape, X.reshape(X.shape[0], -1).shape)
+            get_logger().warning(
+                "Reshaping data from %s to %s so k-d trees can be built.", X.shape, X.reshape(X.shape[0], -1).shape
+            )
             X = X.reshape(X.shape[0], -1)
 
         # make sure Y represents predicted classes, not one-hot encodings
@@ -151,16 +162,15 @@ class TrustScore:
         self.kdtrees = [None] * self.classes
         self.X_kdtree = [None] * self.classes
 
-        if self.filter == 'probability_knn':
+        if self.filter == "probability_knn":
             X_filter, Y_filter = self.filter_by_probability_knn(X, Y)
 
         for c in range(self.classes):
-
             if self.filter is None:
                 X_fit = X[np.where(Y == c)[0]]
-            elif self.filter == 'distance_knn':
+            elif self.filter == "distance_knn":
                 X_fit = self.filter_by_distance_knn(X[np.where(Y == c)[0]])
-            elif self.filter == 'probability_knn':
+            elif self.filter == "probability_knn":
                 X_fit = X_filter[np.where(Y_filter == c)[0]]
             else:
                 raise Exception('self.filter must be one of ["distance_knn", "probability_knn", None]')
@@ -168,16 +178,18 @@ class TrustScore:
             no_x_fit = len(X_fit) == 0
             if no_x_fit or len(X[np.where(Y == c)[0]]) == 0:
                 if no_x_fit and len(X[np.where(Y == c)[0]]) == 0:
-                    get_logger().warning('No instances available for class %s', c)
+                    get_logger().warning("No instances available for class %s", c)
                 elif no_x_fit:
-                    get_logger().warning('Filtered all the instances for class %s. Lower alpha or check data.', c)
+                    get_logger().warning("Filtered all the instances for class %s. Lower alpha or check data.", c)
             else:
-                self.kdtrees[c] = KDTree(X_fit, leaf_size=self.leaf_size,
-                                         metric=self.metric)  # build KDTree for class c
+                self.kdtrees[c] = KDTree(
+                    X_fit, leaf_size=self.leaf_size, metric=self.metric
+                )  # build KDTree for class c
                 self.X_kdtree[c] = X_fit
 
-    def score(self, X: np.ndarray, Y: np.ndarray, k: int = 2, dist_type: str = 'point') \
-            -> Tuple[np.ndarray, np.ndarray]:
+    def score(
+        self, X: np.ndarray, Y: np.ndarray, k: int = 2, dist_type: str = "point"
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Calculate trust scores.
 
         ratio of distance to closest class other than the predicted class to distance to predicted class.
@@ -213,9 +225,9 @@ class TrustScore:
                 d[:, c] = np.inf
             else:
                 d_tmp = self.kdtrees[c].query(X, k=k)[0]  # get k nearest neighbors for each class
-                if dist_type == 'point':
+                if dist_type == "point":
                     d[:, c] = d_tmp[:, -1]
-                elif dist_type == 'mean':
+                elif dist_type == "mean":
                     d[:, c] = np.nanmean(d_tmp[np.isfinite(d_tmp)], axis=1)
 
         sorted_d = np.sort(d, axis=1)  # sort distance each instance in batch over classes
@@ -232,7 +244,7 @@ class TrustScore:
         """Process confidence scores."""
         # code to filter extreme confidence values
         filter_center_factor = 4
-        filter_center_size = 40.  # % of data
+        filter_center_size = 40.0  # % of data
 
         baseline_confidence = baseline_scores
         if test_scores is None:
@@ -240,10 +252,13 @@ class TrustScore:
         else:
             test_confidence = test_scores
 
-        center_size = max(np.nanpercentile(baseline_confidence, 50 + filter_center_size / 2),
-                          np.nanpercentile(test_confidence, 50 + filter_center_size / 2)) - \
-            min(np.nanpercentile(baseline_confidence, 50 - filter_center_size / 2),
-                np.nanpercentile(test_confidence, 50 - filter_center_size / 2))
+        center_size = max(
+            np.nanpercentile(baseline_confidence, 50 + filter_center_size / 2),
+            np.nanpercentile(test_confidence, 50 + filter_center_size / 2),
+        ) - min(
+            np.nanpercentile(baseline_confidence, 50 - filter_center_size / 2),
+            np.nanpercentile(test_confidence, 50 - filter_center_size / 2),
+        )
         max_median = max(np.nanmedian(baseline_confidence), np.nanmedian(test_confidence))
         min_median = min(np.nanmedian(baseline_confidence), np.nanmedian(test_confidence))
 

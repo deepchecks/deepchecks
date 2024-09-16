@@ -13,6 +13,7 @@
 This module exists only for backward compatibility and will be
 removed in the nexts versions.
 """
+
 from deepchecks.tabular.datasets.classification.breast_cancer import load_data, load_fitted_model
 
-__all__ = ['load_data', 'load_fitted_model']
+__all__ = ["load_data", "load_fitted_model"]

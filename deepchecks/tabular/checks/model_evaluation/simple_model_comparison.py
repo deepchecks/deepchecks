@@ -9,17 +9,11 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing simple comparison check."""
+
 import warnings
 from collections import defaultdict
 from numbers import Number
 from typing import TYPE_CHECKING, Callable, Dict, Hashable, List, Mapping, Union
-
-import numpy as np
-import pandas as pd
-import plotly.express as px
-from sklearn.dummy import DummyClassifier, DummyRegressor
-from sklearn.pipeline import Pipeline
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from deepchecks.core import CheckResult, ConditionResult
 from deepchecks.core.condition import ConditionCategory
@@ -32,17 +26,19 @@ from deepchecks.utils.metrics import get_gain
 from deepchecks.utils.simple_models import ClassificationUniformModel, RandomModel, RegressionUniformModel
 from deepchecks.utils.strings import format_percent
 
+import numpy as np
+import pandas as pd
+import plotly.express as px
+from sklearn.dummy import DummyClassifier, DummyRegressor
+from sklearn.pipeline import Pipeline
+from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+
 if TYPE_CHECKING:
     from deepchecks.core.checks import CheckConfig
 
-__all__ = ['SimpleModelComparison']
+__all__ = ["SimpleModelComparison"]
 
-_allowed_strategies = (
-    'stratified',
-    'most_frequent',
-    'uniform',
-    'tree'
-)
+_allowed_strategies = ("stratified", "most_frequent", "uniform", "tree")
 
 
 class SimpleModelComparison(TrainTestCheck):
@@ -110,19 +106,21 @@ class SimpleModelComparison(TrainTestCheck):
 
     def __init__(
         self,
-        strategy: str = 'most_frequent',
+        strategy: str = "most_frequent",
         scorers: Union[Mapping[str, Union[str, Callable]], List[str]] = None,
         alternative_scorers: Dict[str, Callable] = None,
         max_gain: float = 50,
         max_depth: int = 3,
         n_samples: int = 1_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         if alternative_scorers is not None:
-            warnings.warn(f'{self.__class__.__name__}: alternative_scorers is deprecated. Please use scorers instead.',
-                          DeprecationWarning)
+            warnings.warn(
+                f"{self.__class__.__name__}: alternative_scorers is deprecated. Please use scorers instead.",
+                DeprecationWarning,
+            )
             self.alternative_scorers = alternative_scorers
         else:
             self.alternative_scorers = scorers
@@ -134,8 +132,8 @@ class SimpleModelComparison(TrainTestCheck):
 
         if self.strategy not in _allowed_strategies:
             raise DeepchecksValueError(
-                f'{self.__class__.__name__}: strategy {self.strategy} is not allowed. '
-                f'allowed strategies are {_allowed_strategies}.'
+                f"{self.__class__.__name__}: strategy {self.strategy} is not allowed. "
+                f"allowed strategies are {_allowed_strategies}."
             )
 
     def run_logic(self, context: Context) -> CheckResult:
@@ -168,8 +166,8 @@ class SimpleModelComparison(TrainTestCheck):
         simple_model = self._create_simple_model(train_dataset, task_type)
 
         models = [
-            (f'{type(model).__name__} model', 'Origin', model),
-            (f'Simple model - {self.strategy}', 'Simple', simple_model)
+            (f"{type(model).__name__} model", "Origin", model),
+            (f"Simple model - {self.strategy}", "Simple", simple_model),
         ]
         classes_display_array = []
         display_array = []
@@ -185,12 +183,15 @@ class SimpleModelComparison(TrainTestCheck):
                     if isinstance(scorer_value, Number) or scorer_value is None:
                         model_dict[model_type] = scorer_value
                         if context.with_display:
-                            display_array.append([model_name,
-                                                  model_type,
-                                                  scorer_value,
-                                                  scorer.name,
-                                                  test_label.count(),
-                                                  ])
+                            display_array.append(
+                                [
+                                    model_name,
+                                    model_type,
+                                    scorer_value,
+                                    scorer.name,
+                                    test_label.count(),
+                                ]
+                            )
                     else:
                         for class_value, class_score in scorer_value.items():
                             # New labels which do not exists on the model gets nan as score, skips them.
@@ -199,13 +200,16 @@ class SimpleModelComparison(TrainTestCheck):
                                 continue
                             model_dict[class_value][model_type] = class_score
                             if context.with_display:
-                                classes_display_array.append([model_name,
-                                                              model_type,
-                                                              class_score,
-                                                              scorer.name,
-                                                              class_value,
-                                                              class_counts[class_value]
-                                                              ])
+                                classes_display_array.append(
+                                    [
+                                        model_name,
+                                        model_type,
+                                        class_score,
+                                        scorer.name,
+                                        class_value,
+                                        class_counts[class_value],
+                                    ]
+                                )
                 results_dict[scorer.name] = model_dict
         else:
             # Dict in format { Scorer : Dict { Origin/Simple : score } }
@@ -216,58 +220,51 @@ class SimpleModelComparison(TrainTestCheck):
                     score = scorer(model_instance, test_dataset)
                     model_dict[model_type] = score
                     if context.with_display:
-                        display_array.append([model_name,
-                                              model_type,
-                                              score,
-                                              scorer.name,
-                                              test_label.count()
-                                              ])
+                        display_array.append([model_name, model_type, score, scorer.name, test_label.count()])
                 results_dict[scorer.name] = model_dict
 
         figs = []
         if display_array:
-            display_df = pd.DataFrame(
-                display_array,
-                columns=['Model', 'Type', 'Value', 'Metric', 'Number of samples']
-            )
+            display_df = pd.DataFrame(display_array, columns=["Model", "Type", "Value", "Metric", "Number of samples"])
 
             # Plot the metrics in a graph, grouping by the model
             fig = (
                 px.histogram(
                     display_df,
-                    x='Model',
-                    y='Value',
-                    color='Model',
-                    barmode='group',
-                    facet_col='Metric',
+                    x="Model",
+                    y="Value",
+                    color="Model",
+                    barmode="group",
+                    facet_col="Metric",
                     facet_col_spacing=0.05,
-                    hover_data=['Number of samples'])
+                    hover_data=["Number of samples"],
+                )
                 .update_xaxes(title=None)
                 .update_yaxes(title=None, matches=None)
-                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
             )
             figs.append(fig)
         if classes_display_array:
             display_df = pd.DataFrame(
-                classes_display_array,
-                columns=['Model', 'Type', 'Value', 'Metric', 'Class', 'Number of samples']
+                classes_display_array, columns=["Model", "Type", "Value", "Metric", "Class", "Number of samples"]
             )
 
             # Plot the metrics in a graph, grouping by the model and class
             classes_fig = (
                 px.histogram(
                     display_df,
-                    x=['Class', 'Model'],
-                    y='Value',
-                    color='Model',
-                    barmode='group',
-                    facet_col='Metric',
+                    x=["Class", "Model"],
+                    y="Value",
+                    color="Model",
+                    barmode="group",
+                    facet_col="Metric",
                     facet_col_spacing=0.05,
-                    hover_data=['Number of samples'])
-                .update_xaxes(title=None, tickprefix='Class ', tickangle=60, type='category')
+                    hover_data=["Number of samples"],
+                )
+                .update_xaxes(title=None, tickprefix="Class ", tickangle=60, type="category")
                 .update_yaxes(title=None, matches=None)
-                .for_each_annotation(lambda a: a.update(text=a.text.split('=')[-1]))
+                .for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
                 .for_each_yaxis(lambda yaxis: yaxis.update(showticklabels=True))
             )
             figs.append(classes_fig)
@@ -275,23 +272,27 @@ class SimpleModelComparison(TrainTestCheck):
         # For each scorer calculate perfect score in order to calculate later the ratio in conditions
         scorers_perfect = {scorer.name: scorer.score_perfect(test_dataset) for scorer in scorers}
 
-        return CheckResult({'scores': results_dict,
-                            'type': task_type,
-                            'scorers_perfect': scorers_perfect,
-                            }, display=figs)
+        return CheckResult(
+            {
+                "scores": results_dict,
+                "type": task_type,
+                "scorers_perfect": scorers_perfect,
+            },
+            display=figs,
+        )
 
-    def config(self, include_version: bool = True, include_defaults: bool = True) -> 'CheckConfig':
+    def config(self, include_version: bool = True, include_defaults: bool = True) -> "CheckConfig":
         """Return check instance config."""
         if self.alternative_scorers is not None:
             for k, v in self.alternative_scorers.items():
                 if callable(v):
                     reference = doclink(
-                        'supported-metrics-by-string',
-                        template='For a list of built-in scorers please refer to {link}. '
+                        "supported-metrics-by-string",
+                        template="For a list of built-in scorers please refer to {link}. ",
                     )
                     raise ValueError(
-                        'Only built-in scorers are allowed when serializing check instances. '
-                        f'{reference}Scorer name: {k}'
+                        "Only built-in scorers are allowed when serializing check instances. "
+                        f"{reference}Scorer name: {k}"
                     )
         return super().config(include_version, include_defaults=include_defaults)
 
@@ -315,40 +316,36 @@ class SimpleModelComparison(TrainTestCheck):
         NotImplementedError
             If the strategy is not supported
         """
-        if self.strategy == 'uniform':
+        if self.strategy == "uniform":
             if task_type in [TaskType.BINARY, TaskType.MULTICLASS]:
                 simple_model = ClassificationUniformModel()
             elif task_type == TaskType.REGRESSION:
                 simple_model = RegressionUniformModel()
-        elif self.strategy == 'stratified':
+        elif self.strategy == "stratified":
             simple_model = RandomModel(random_state=self.random_state)
-        elif self.strategy == 'most_frequent':
+        elif self.strategy == "most_frequent":
             if task_type == TaskType.REGRESSION:
-                simple_model = DummyRegressor(strategy='mean')
+                simple_model = DummyRegressor(strategy="mean")
             elif task_type in {TaskType.BINARY, TaskType.MULTICLASS}:
-                simple_model = DummyClassifier(strategy='most_frequent')
+                simple_model = DummyClassifier(strategy="most_frequent")
             else:
-                raise DeepchecksValueError(f'Unknown task type - {task_type}')
-        elif self.strategy == 'tree':
+                raise DeepchecksValueError(f"Unknown task type - {task_type}")
+        elif self.strategy == "tree":
             if task_type == TaskType.REGRESSION:
-                clf = DecisionTreeRegressor(
-                    max_depth=self.max_depth,
-                    random_state=self.random_state
-                )
+                clf = DecisionTreeRegressor(max_depth=self.max_depth, random_state=self.random_state)
             elif task_type in {TaskType.BINARY, TaskType.MULTICLASS}:
                 clf = DecisionTreeClassifier(
-                    max_depth=self.max_depth,
-                    random_state=self.random_state,
-                    class_weight='balanced'
+                    max_depth=self.max_depth, random_state=self.random_state, class_weight="balanced"
                 )
             else:
-                raise DeepchecksValueError(f'Unknown task type - {task_type}')
+                raise DeepchecksValueError(f"Unknown task type - {task_type}")
 
-            simple_model = Pipeline([('scaler', ScaledNumerics(train_ds.cat_features, max_num_categories=10)),
-                                     ('tree-model', clf)])
+            simple_model = Pipeline(
+                [("scaler", ScaledNumerics(train_ds.cat_features, max_num_categories=10)), ("tree-model", clf)]
+            )
         else:
             raise DeepchecksValueError(
-                f'Unknown model type - {self.strategy}, expected to be one of '
+                f"Unknown model type - {self.strategy}, expected to be one of "
                 f"['uniform', 'stratified', 'most_frequent', 'tree'] "
                 f"but instead got {self.strategy}"  # pylint: disable=inconsistent-quotes
             )
@@ -356,10 +353,9 @@ class SimpleModelComparison(TrainTestCheck):
         simple_model.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
         return simple_model
 
-    def add_condition_gain_greater_than(self,
-                                        min_allowed_gain: float = 0.1,
-                                        classes: List[Hashable] = None,
-                                        average: bool = False):
+    def add_condition_gain_greater_than(
+        self, min_allowed_gain: float = 0.1, classes: List[Hashable] = None, average: bool = False
+    ):
         """Add condition - require minimum allowed gain between the model and the simple model.
 
         Parameters
@@ -374,22 +370,25 @@ class SimpleModelComparison(TrainTestCheck):
             each class individually. If any scorer that return a single value is used, this parameter
             is ignored (will act as if average=True).
         """
-        name = f'Model performance gain over simple model is greater than {format_percent(min_allowed_gain)}'
+        name = f"Model performance gain over simple model is greater than {format_percent(min_allowed_gain)}"
         if classes:
-            name = name + f' for classes {str(classes)}'
-        return self.add_condition(name,
-                                  condition,
-                                  include_classes=classes,
-                                  min_allowed_gain=min_allowed_gain,
-                                  max_gain=self.max_gain,
-                                  average=average)
+            name = name + f" for classes {str(classes)}"
+        return self.add_condition(
+            name,
+            condition,
+            include_classes=classes,
+            min_allowed_gain=min_allowed_gain,
+            max_gain=self.max_gain,
+            average=average,
+        )
 
 
-def condition(result: Dict, include_classes=None, average=False, max_gain=None, min_allowed_gain=None) -> \
-        ConditionResult:
-    scores = result['scores']
-    task_type = result['type']
-    scorers_perfect = result['scorers_perfect']
+def condition(
+    result: Dict, include_classes=None, average=False, max_gain=None, min_allowed_gain=None
+) -> ConditionResult:
+    scores = result["scores"]
+    task_type = result["type"]
+    scorers_perfect = result["scorers_perfect"]
 
     # If the depth of the nested scores dict is 2, average is not relevant and is set to True
     inner_dict = scores[list(scores.keys())[0]]
@@ -410,13 +409,12 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                     continue
 
                 # If origin model is perfect, skip the gain calculation
-                if models_scores['Origin'] == scorers_perfect[metric]:
+                if models_scores["Origin"] == scorers_perfect[metric]:
                     continue
 
-                gains[clas] = get_gain(models_scores['Simple'],
-                                       models_scores['Origin'],
-                                       scorers_perfect[metric],
-                                       max_gain)
+                gains[clas] = get_gain(
+                    models_scores["Simple"], models_scores["Origin"], scorers_perfect[metric], max_gain
+                )
                 # Save dict of failed classes and metrics gain
                 if gains[clas] <= min_allowed_gain:
                     failed_classes[clas][metric] = format_percent(gains[clas])
@@ -429,12 +427,12 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
                 perfect_metrics.append(metric)
 
         if failed_classes:
-            msg = f'Found classes with failed metric\'s gain: {dict(failed_classes)}'
+            msg = f"Found classes with failed metric's gain: {dict(failed_classes)}"
             passed_condition = False
         elif passed_metrics:
-            msg = f'All classes passed, average gain for metrics: {passed_metrics}'
+            msg = f"All classes passed, average gain for metrics: {passed_metrics}"
         else:
-            msg = f'Found metrics with perfect score, no gain is calculated: {perfect_metrics}'
+            msg = f"Found metrics with perfect score, no gain is calculated: {perfect_metrics}"
     else:
         passed_metrics = {}
         failed_metrics = {}
@@ -443,24 +441,21 @@ def condition(result: Dict, include_classes=None, average=False, max_gain=None, 
             scores = average_scores(scores, include_classes)
         for metric, models_scores in scores.items():
             # If origin model is perfect, skip the gain calculation
-            if models_scores['Origin'] == scorers_perfect[metric]:
+            if models_scores["Origin"] == scorers_perfect[metric]:
                 perfect_metrics.append(metric)
                 continue
-            gain = get_gain(models_scores['Simple'],
-                            models_scores['Origin'],
-                            scorers_perfect[metric],
-                            max_gain)
+            gain = get_gain(models_scores["Simple"], models_scores["Origin"], scorers_perfect[metric], max_gain)
             if gain <= min_allowed_gain:
                 failed_metrics[metric] = format_percent(gain)
             else:
                 passed_metrics[metric] = format_percent(gain)
         if failed_metrics:
-            msg = f'Found failed metrics: {failed_metrics}'
+            msg = f"Found failed metrics: {failed_metrics}"
             passed_condition = False
         elif passed_metrics:
-            msg = f'All metrics passed, metric\'s gain: {passed_metrics}'
+            msg = f"All metrics passed, metric's gain: {passed_metrics}"
         else:
-            msg = f'Found metrics with perfect score, no gain is calculated: {perfect_metrics}'
+            msg = f"Found metrics with perfect score, no gain is calculated: {perfect_metrics}"
 
     category = ConditionCategory.PASS if passed_condition else ConditionCategory.FAIL
     return ConditionResult(category, msg)
@@ -476,12 +471,9 @@ def average_scores(scores, include_classes):
             # Skip if class is not in class list
             if include_classes is not None and clas not in include_classes:
                 continue
-            origin_score += models_scores['Origin']
-            simple_score += models_scores['Simple']
+            origin_score += models_scores["Origin"]
+            simple_score += models_scores["Simple"]
             total += 1
 
-        result[metric] = {
-            'Origin': origin_score / total,
-            'Simple': simple_score / total
-        }
+        result[metric] = {"Origin": origin_score / total, "Simple": simple_score / total}
     return result

@@ -9,9 +9,6 @@
 # ----------------------------------------------------------------------------
 #
 """Contains unit tests for the outlier_sample_detection check."""
-import numpy as np
-import pandas as pd
-from hamcrest import assert_that, calling, greater_than, has_item, has_items, has_length, raises
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.tabular.checks import OutlierSampleDetection
@@ -19,55 +16,70 @@ from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.datasets.regression import avocado
 from tests.base.utils import equal_condition_result
 
+import numpy as np
+import pandas as pd
+from hamcrest import assert_that, calling, greater_than, has_item, has_items, has_length, raises
+
 
 def test_condition_input_validation():
     # Assert
     assert_that(
         calling(OutlierSampleDetection().add_condition_outlier_ratio_less_or_equal).with_args(max_outliers_ratio=-1),
-        raises(DeepchecksValueError, 'max_outliers_ratio must be between 0 and 1'))
+        raises(DeepchecksValueError, "max_outliers_ratio must be between 0 and 1"),
+    )
 
 
 def test_check_input_validation():
     # Assert
     assert_that(
         calling(OutlierSampleDetection).with_args(extent_parameter=-1),
-        raises(DeepchecksValueError, 'extend_parameter must be a positive integer'))
+        raises(DeepchecksValueError, "extend_parameter must be a positive integer"),
+    )
 
 
 def test_condition_with_argument():
     # Arrange
-    data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
+    data = {"col1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     check = OutlierSampleDetection(nearest_neighbors_percent=0.2).add_condition_outlier_ratio_less_or_equal(0.1)
     result = check.conditions_decision(check.run(dataset))
     # Assert
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=True,
-                               details='8.3% of dataset samples above outlier threshold',
-                               name='Ratio of samples exceeding the outlier score threshold 0.7 is less or equal to '
-                                    '10%')
-    ))
+    assert_that(
+        result,
+        has_items(
+            equal_condition_result(
+                is_pass=True,
+                details="8.3% of dataset samples above outlier threshold",
+                name="Ratio of samples exceeding the outlier score threshold 0.7 is less or equal to " "10%",
+            )
+        ),
+    )
 
 
 def test_condition_without_argument():
     # Arrange
-    data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
+    data = {"col1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     check = OutlierSampleDetection(nearest_neighbors_percent=0.2).add_condition_no_outliers()
     result = check.conditions_decision(check.run(dataset))
     # Assert
-    assert_that(result, has_items(
-        equal_condition_result(is_pass=True,
-                               details='0% of dataset samples above outlier threshold',
-                               name='No samples in dataset over outlier score of 0.7')
-    ))
+    assert_that(
+        result,
+        has_items(
+            equal_condition_result(
+                is_pass=True,
+                details="0% of dataset samples above outlier threshold",
+                name="No samples in dataset over outlier score of 0.7",
+            )
+        ),
+    )
 
 
 def test_integer_single_column_no_nulls():
     # Arrange
-    data = {'col1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
+    data = {"col1": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     result = OutlierSampleDetection(nearest_neighbors_percent=0.2).run(dataset)
@@ -77,7 +89,7 @@ def test_integer_single_column_no_nulls():
 
 def test_integer_single_column_with_nulls():
     # Arrange
-    data = {'col1': [1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
+    data = {"col1": [1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
@@ -88,8 +100,10 @@ def test_integer_single_column_with_nulls():
 
 def test_integer_columns_with_nulls():
     # Arrange
-    data = {'col1': [1, 1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1, 1, 1000],
-            'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
+    data = {
+        "col1": [1, 1, 1, 1, None, 1, 1, 1, 1, 1, 1, 1, 1, 1000],
+        "col2": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000],
+    }
     dataset = Dataset(pd.DataFrame(data=data), cat_features=[])
     # Act
     result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
@@ -99,8 +113,8 @@ def test_integer_columns_with_nulls():
 
 def test_single_column_cat_no_nulls():
     # Arrange
-    data = {'col1': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b']}
-    dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
+    data = {"col1": ["a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "b"]}
+    dataset = Dataset(pd.DataFrame(data=data), cat_features=["col1"])
     # Act
     result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
     # Assert
@@ -109,9 +123,11 @@ def test_single_column_cat_no_nulls():
 
 def test_mix_types_no_nulls():
     # Arrange
-    data = {'col1': ['a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'a', 'b'],
-            'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
-    dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
+    data = {
+        "col1": ["a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "a", "b"],
+        "col2": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000],
+    }
+    dataset = Dataset(pd.DataFrame(data=data), cat_features=["col1"])
     # Act
     result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
     # Assert
@@ -120,9 +136,11 @@ def test_mix_types_no_nulls():
 
 def test_mix_types_with_nulls():
     # Arrange
-    data = {'col1': ['a', 'a', 'a', 'a', 'a', pd.NA, 'a', 'a', 'a', 'a', np.nan, 'a', 'a', 'b'],
-            'col2': [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000]}
-    dataset = Dataset(pd.DataFrame(data=data), cat_features=['col1'])
+    data = {
+        "col1": ["a", "a", "a", "a", "a", pd.NA, "a", "a", "a", "a", np.nan, "a", "a", "b"],
+        "col2": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1000],
+    }
+    dataset = Dataset(pd.DataFrame(data=data), cat_features=["col1"])
     # Act
     result = OutlierSampleDetection(nearest_neighbors_percent=0.3).run(dataset)
     # Assert

@@ -9,25 +9,26 @@
 # ----------------------------------------------------------------------------
 #
 """Tabular checks' messages utilities."""
+
 from typing import Sized
 
-__all__ = ['get_condition_passed_message']
+__all__ = ["get_condition_passed_message"]
 
 
 def get_condition_passed_message(sized, feature=False):
     """Get a message for a condition that passed that specifies the number of columns passed."""
-    verb = 'feature' if feature else 'column'
+    verb = "feature" if feature else "column"
     if isinstance(sized, int):
         num_columns = sized
     elif isinstance(sized, Sized):
         num_columns = len(sized)
     else:
-        raise TypeError('sized must be an int or a Sized')
+        raise TypeError("sized must be an int or a Sized")
 
     if num_columns == 0:
-        return f'No relevant {verb}s to check were found'
+        return f"No relevant {verb}s to check were found"
 
-    message = f'Passed for {num_columns} relevant {verb}'
+    message = f"Passed for {num_columns} relevant {verb}"
     if num_columns > 1:
-        message += 's'
+        message += "s"
     return message

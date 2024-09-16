@@ -1,0 +1,27 @@
+name: Code Quality
+
+on:
+  pull_request:
+    paths:
+      - 'deepchecks/**'
+      - 'tests/**'
+      - '.github/workflows/code-checks.yml'
+
+  workflow_dispatch:
+jobs:
+  lint:
+    name: Code Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - run: pipx install poetry
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: poetry
+
+      - run: poetry install
+      - run: poetry run pre-commit install
+      - run: poetry run pre-commit run --all-files
+        continue-on-error: true

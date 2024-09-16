@@ -22,7 +22,7 @@ given model dataset. The scorer should be either a sklearn scorer or a custom me
 Use this check to evaluate the performance on a single vision dataset such as a test set.
 
 """
-#%%
+# %%
 # Generate Dataset
 # ----------------
 #
@@ -35,11 +35,11 @@ Use this check to evaluate the performance on a single vision dataset such as a 
 from deepchecks.vision.checks import SingleDatasetPerformance
 from deepchecks.vision.datasets.classification import mnist_torch as mnist
 
-#%%
+# %%
 
-train_ds = mnist.load_dataset(train=True, object_type='VisionData')
+train_ds = mnist.load_dataset(train=True, object_type="VisionData")
 
-#%%
+# %%
 # Run the check
 # -------------
 #
@@ -50,22 +50,22 @@ check = SingleDatasetPerformance()
 result = check.run(train_ds)
 result.show()
 
-#%%
+# %%
 # To display the results in an IDE like PyCharm, you can use the following code:
 
 #  result.show_in_window()
-#%%
+# %%
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Now we will run a check with a metric different from the defaults- F-1.
 # You can read more about setting metrics in the :ref:`Metrics Guide <metrics_user_guide>`.
 
-check = SingleDatasetPerformance(scorers={'f1': 'f1_per_class'})
+check = SingleDatasetPerformance(scorers={"f1": "f1_per_class"})
 result = check.run(train_ds)
 result
 
-#%%
+# %%
 # Define a Condition
 # ==================
 # We can define a condition to validate that our model performance score is above or below a certain threshold.
@@ -77,11 +77,11 @@ check.add_condition_greater_than(0.5)
 result = check.run(train_ds)
 result.show(show_additional_outputs=False)
 
-#%%
+# %%
 # We can also define a condition on a specific metric (or a subset of the metrics) that was passed to the check and a
 # specific class, instead of testing all the metrics and all the classes which is the default mode.
 
 check = SingleDatasetPerformance()
-check.add_condition_greater_than(0.8, metrics=['Precision'], class_mode='3')
+check.add_condition_greater_than(0.8, metrics=["Precision"], class_mode="3")
 result = check.run(train_ds)
 result.show(show_additional_outputs=False)

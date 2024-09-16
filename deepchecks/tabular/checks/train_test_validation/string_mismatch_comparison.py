@@ -9,9 +9,8 @@
 # ----------------------------------------------------------------------------
 #
 """String mismatch functions."""
-from typing import List, Union
 
-import pandas as pd
+from typing import List, Union
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.tabular import Context, TrainTestCheck
@@ -21,7 +20,9 @@ from deepchecks.utils.dataframes import select_from_dataframe
 from deepchecks.utils.strings import format_percent, get_base_form_to_variants_dict, is_string_column
 from deepchecks.utils.typing import Hashable
 
-__all__ = ['StringMismatchComparison']
+import pandas as pd
+
+__all__ = ["StringMismatchComparison"]
 
 
 class StringMismatchComparison(TrainTestCheck):
@@ -58,7 +59,7 @@ class StringMismatchComparison(TrainTestCheck):
         n_top_columns: int = 10,
         n_samples: int = 1_000_000,
         random_state: int = 42,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.columns = columns
@@ -109,36 +110,50 @@ class StringMismatchComparison(TrainTestCheck):
                     variants_only_in_dataset = list(tested_values - baseline_values)
                     variants_only_in_baseline = list(baseline_values - tested_values)
                     common_variants = list(tested_values & baseline_values)
-                    percent_variants_only_in_dataset = _percentage_in_series(tested_column, tested_counts,
-                                                                             variants_only_in_dataset)
-                    percent_variants_in_baseline = _percentage_in_series(baseline_column, baseline_counts,
-                                                                         variants_only_in_baseline)
+                    percent_variants_only_in_dataset = _percentage_in_series(
+                        tested_column, tested_counts, variants_only_in_dataset
+                    )
+                    percent_variants_in_baseline = _percentage_in_series(
+                        baseline_column, baseline_counts, variants_only_in_baseline
+                    )
                     result_dict[column_name][baseform] = {
-                        'commons': common_variants, 'variants_only_in_test': variants_only_in_dataset,
-                        'variants_only_in_train': variants_only_in_baseline,
-                        'percent_variants_only_in_test': percent_variants_only_in_dataset[0],
-                        'percent_variants_in_train': percent_variants_in_baseline[0]
+                        "commons": common_variants,
+                        "variants_only_in_test": variants_only_in_dataset,
+                        "variants_only_in_train": variants_only_in_baseline,
+                        "percent_variants_only_in_test": percent_variants_only_in_dataset[0],
+                        "percent_variants_in_train": percent_variants_in_baseline[0],
                     }
                     if context.with_display:
-                        display_mismatches.append([column_name, baseform, common_variants,
-                                                   variants_only_in_dataset, percent_variants_only_in_dataset[1],
-                                                   variants_only_in_baseline, percent_variants_in_baseline[1]])
+                        display_mismatches.append(
+                            [
+                                column_name,
+                                baseform,
+                                common_variants,
+                                variants_only_in_dataset,
+                                percent_variants_only_in_dataset[1],
+                                variants_only_in_baseline,
+                                percent_variants_in_baseline[1],
+                            ]
+                        )
 
         # Create result dataframe
         if display_mismatches:
-            df_graph = pd.DataFrame(display_mismatches,
-                                    columns=['Column name', 'Base form', 'Common variants', 'Variants only in test',
-                                             '% Unique variants out of all dataset samples (count)',
-                                             'Variants only in train',
-                                             '% Unique variants out of all baseline samples (count)'])
-            df_graph = df_graph.set_index(['Column name', 'Base form'])
+            df_graph = pd.DataFrame(
+                display_mismatches,
+                columns=[
+                    "Column name",
+                    "Base form",
+                    "Common variants",
+                    "Variants only in test",
+                    "% Unique variants out of all dataset samples (count)",
+                    "Variants only in train",
+                    "% Unique variants out of all baseline samples (count)",
+                ],
+            )
+            df_graph = df_graph.set_index(["Column name", "Base form"])
 
             df_graph = column_importance_sorter_df(
-                df_graph,
-                context.test,
-                context.feature_importance,
-                self.n_top_columns,
-                col='Column name'
+                df_graph, context.test, context.feature_importance, self.n_top_columns, col="Column name"
             )
             # For display transpose the dataframe
             display = [N_TOP_MESSAGE % self.n_top_columns, df_graph.T]
@@ -149,7 +164,7 @@ class StringMismatchComparison(TrainTestCheck):
 
     def add_condition_no_new_variants(self):
         """Add condition - no new variants allowed in test data."""
-        name = 'No new variants allowed in test data'
+        name = "No new variants allowed in test data"
         return self.add_condition(name, _condition_percent_limit, ratio=0)
 
     def add_condition_ratio_new_variants_less_or_equal(self, ratio: float):
@@ -160,7 +175,7 @@ class StringMismatchComparison(TrainTestCheck):
         ratio : float
             Max percentage of new variants in test data allowed.
         """
-        name = f'Ratio of new variants in test data is less or equal to {format_percent(ratio)}'
+        name = f"Ratio of new variants in test data is less or equal to {format_percent(ratio)}"
         return self.add_condition(name, _condition_percent_limit, ratio=ratio)
 
 
@@ -169,13 +184,15 @@ def _condition_percent_limit(result, ratio: float):
     for col, baseforms in result.items():
         sum_percent = 0
         for info in baseforms.values():
-            sum_percent += info['percent_variants_only_in_test']
+            sum_percent += info["percent_variants_only_in_test"]
         if sum_percent > ratio:
             not_passing_columns[col] = format_percent(sum_percent)
 
     if not_passing_columns:
-        details = f'Found {len(not_passing_columns)} out of {len(result)} relevant columns with ratio of variants ' \
-                  f'above threshold: {not_passing_columns}'
+        details = (
+            f"Found {len(not_passing_columns)} out of {len(result)} relevant columns with ratio of variants "
+            f"above threshold: {not_passing_columns}"
+        )
         return ConditionResult(ConditionCategory.FAIL, details)
     return ConditionResult(ConditionCategory.PASS, get_condition_passed_message(result))
 
@@ -183,4 +200,4 @@ def _condition_percent_limit(result, ratio: float):
 def _percentage_in_series(series, counts, values):
     count = sum([counts[value] for value in values])
     percent = count / series.size
-    return percent, f'{format_percent(percent)} ({count})'
+    return percent, f"{format_percent(percent)} ({count})"

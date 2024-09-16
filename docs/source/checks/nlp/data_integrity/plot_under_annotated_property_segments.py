@@ -37,7 +37,7 @@ The check contains two main steps:
 #. We extract the corresponding data samples for each of the leaves in each of the trees (data segments) and calculate
    the annotation ratio in the samples within in. We keep the segments with the lowest annotation ratio.
 """
-#%%
+# %%
 # Generate data & model
 # =====================
 
@@ -46,7 +46,7 @@ from deepchecks.nlp.utils.test_utils import load_modified_tweet_text_data
 text_data = load_modified_tweet_text_data()
 text_data.properties.head(3)
 
-#%%
+# %%
 # Run the check
 # =============
 #
@@ -75,7 +75,7 @@ check = UnderAnnotatedPropertySegments()
 result = check.run(text_data)
 result.show()
 
-#%%
+# %%
 # Observe the check's output
 # --------------------------
 #
@@ -86,9 +86,9 @@ result.show()
 # the ``result.value`` attribute. Shown below are the 3 segments with the worst performance.
 
 
-result.value['weak_segments_list'].head(3)
+result.value["weak_segments_list"].head(3)
 
-#%%
+# %%
 # Define a condition
 # ==================
 #

@@ -214,5 +214,3 @@ implement properties which apply to the Detection task type.
   ]
 
   check = PredictionDrift(prediction_properties=properties)
-
-

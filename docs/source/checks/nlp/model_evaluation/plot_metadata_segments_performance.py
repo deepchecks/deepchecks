@@ -39,18 +39,18 @@ The check contains several steps:
    the model performance on them. For the weakest data segments detected we also calculate the model's
    performance on data segments surrounding them.
 """
-#%%
+# %%
 # Generate data & model
 # =====================
 
 from deepchecks.nlp.datasets.classification.tweet_emotion import load_data, load_precalculated_predictions
 
-_, test_dataset = load_data(data_format='TextData')
-_, test_probas = load_precalculated_predictions(pred_format='probabilities')
+_, test_dataset = load_data(data_format="TextData")
+_, test_probas = load_precalculated_predictions(pred_format="probabilities")
 
 test_dataset.metadata.head(3)
 
-#%%
+# %%
 # Run the check
 # =============
 #
@@ -79,16 +79,17 @@ test_dataset.metadata.head(3)
 # see :class:`API reference <deepchecks.tabular.checks.model_evaluation.WeakSegmentsPerformance>` for more details.
 
 from deepchecks.nlp.checks import MetadataSegmentsPerformance
-from sklearn.metrics import make_scorer, f1_score
 
-scorer = {'f1': make_scorer(f1_score, average='micro')}
-check = MetadataSegmentsPerformance(alternative_scorer=scorer,
-                                    segment_minimum_size_ratio=0.03,
-                                    multiple_segments_per_column=True)
+from sklearn.metrics import f1_score, make_scorer
+
+scorer = {"f1": make_scorer(f1_score, average="micro")}
+check = MetadataSegmentsPerformance(
+    alternative_scorer=scorer, segment_minimum_size_ratio=0.03, multiple_segments_per_column=True
+)
 result = check.run(test_dataset, probabilities=test_probas)
 result.show()
 
-#%%
+# %%
 # Observe the check's output
 # --------------------------
 #
@@ -98,9 +99,9 @@ result.show()
 # the ``result.value`` attribute. Shown below are the 3 segments with the worst performance.
 
 
-result.value['weak_segments_list'].head(3)
+result.value["weak_segments_list"].head(3)
 
-#%%
+# %%
 # Define a condition
 # ==================
 #

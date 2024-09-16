@@ -9,15 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing json serializer for the CheckFailuer type."""
+
 import typing as t
 
 from deepchecks.core import check_result as check_types
 from deepchecks.core.serialization.abc import JsonSerializer
 
-__all__ = ['CheckFailureSerializer']
+__all__ = ["CheckFailureSerializer"]
 
 
-class CheckFailureSerializer(JsonSerializer['check_types.CheckFailure']):
+class CheckFailureSerializer(JsonSerializer["check_types.CheckFailure"]):
     """Serializes any CheckFailure instance into JSON format.
 
     Parameters
@@ -26,11 +27,9 @@ class CheckFailureSerializer(JsonSerializer['check_types.CheckFailure']):
         CheckFailure instance that needed to be serialized.
     """
 
-    def __init__(self, value: 'check_types.CheckFailure', **kwargs):
+    def __init__(self, value: "check_types.CheckFailure", **kwargs):
         if not isinstance(value, check_types.CheckFailure):
-            raise TypeError(
-                f'Expected "CheckFailure" but got "{type(value).__name__}"'
-            )
+            raise TypeError(f'Expected "CheckFailure" but got "{type(value).__name__}"')
         super().__init__(value=value)
 
     def serialize(self, **kwargs) -> t.Dict[str, t.Any]:
@@ -41,8 +40,8 @@ class CheckFailureSerializer(JsonSerializer['check_types.CheckFailure']):
         Dict[str, Any]
         """
         return {
-            'header': self.value.header,
-            'type': 'CheckFailure',
-            'check': self.value.check.metadata(),
-            'exception': str(self.value.exception),
+            "header": self.value.header,
+            "type": "CheckFailure",
+            "check": self.value.check.metadata(),
+            "exception": str(self.value.exception),
         }

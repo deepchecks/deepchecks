@@ -24,10 +24,16 @@ from deepchecks.vision.checks.data_integrity.abstract_property_outliers import A
 
 checks_dirs = ["deepchecks/tabular/checks", "deepchecks/vision/checks"]
 
-ignored_classes = [AbstractPropertyOutliers, tabular_checks.WholeDatasetDrift,
-                   tabular_checks.CategoryMismatchTrainTest, tabular_checks.TrainTestLabelDrift,
-                   tabular_checks.TrainTestPredictionDrift, tabular_checks.TrainTestFeatureDrift,
-                   vision_checks.TrainTestLabelDrift, vision_checks.TrainTestPredictionDrift]
+ignored_classes = [
+    AbstractPropertyOutliers,
+    tabular_checks.WholeDatasetDrift,
+    tabular_checks.CategoryMismatchTrainTest,
+    tabular_checks.TrainTestLabelDrift,
+    tabular_checks.TrainTestPredictionDrift,
+    tabular_checks.TrainTestFeatureDrift,
+    vision_checks.TrainTestLabelDrift,
+    vision_checks.TrainTestPredictionDrift,
+]
 
 
 def test_read_more_link(check_class, compiled_dir: str):

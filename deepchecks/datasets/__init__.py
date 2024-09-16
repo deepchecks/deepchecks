@@ -13,10 +13,11 @@
 This package exists only for backward compatibility and will be
 removed in the nexts versions.
 """
+
 import warnings
 
 warnings.warn(
-    'Ability to import tabular suites from the `deepchecks.suites` '
-    'is deprecated, please import from `deepchecks.tabular.suites` instead',
-    DeprecationWarning
+    "Ability to import tabular suites from the `deepchecks.suites` "
+    "is deprecated, please import from `deepchecks.tabular.suites` instead",
+    DeprecationWarning,
 )

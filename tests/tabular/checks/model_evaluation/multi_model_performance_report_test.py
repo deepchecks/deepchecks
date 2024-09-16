@@ -8,12 +8,12 @@
 # along with Deepchecks.  If not, see <http://www.gnu.org/licenses/>.
 # ----------------------------------------------------------------------------
 #
+from deepchecks.tabular.checks.model_evaluation import MultiModelPerformanceReport
+
 import pytest
 from hamcrest import assert_that, has_length
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-
-from deepchecks.tabular.checks.model_evaluation import MultiModelPerformanceReport
 
 
 @pytest.fixture

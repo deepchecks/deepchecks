@@ -6,7 +6,7 @@ NLP
 
 Deepchecks NLP sub package contain a large variety of checks and suites for different use cases.
 Jump over to the :ref:`nlp__quickstarts` in the Tutorials section to get started,
-or visit the :ref:`getting-started__installation` for a full 
+or visit the :ref:`getting-started__installation` for a full
 guide about how to set up your environment.
 
 Help us develop it further! You can provide feedback and suggestions as issues on

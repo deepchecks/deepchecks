@@ -9,15 +9,16 @@
 # ----------------------------------------------------------------------------
 #
 """Module for html displayable result."""
+
 import io
 import typing as t
-
-from ipywidgets import HTML, VBox, Widget
 
 from deepchecks.core.display import DisplayableResult
 from deepchecks.core.serialization.abc import HtmlSerializer, IPythonSerializer, WidgetSerializer
 from deepchecks.core.serialization.common import normalize_widget_style
 from deepchecks.utils.strings import create_new_file_name
+
+from ipywidgets import HTML, VBox, Widget
 
 
 class HtmlDisplayableResult(DisplayableResult):
@@ -29,6 +30,7 @@ class HtmlDisplayableResult(DisplayableResult):
     @property
     def widget_serializer(self) -> WidgetSerializer[t.Any]:
         """Return widget serializer."""
+
         class _WidgetSerializer(WidgetSerializer[t.Any]):
             def serialize(self, **kwargs) -> Widget:  # pylint: disable=unused-argument
                 return normalize_widget_style(VBox(children=[HTML(self.value)]))
@@ -38,6 +40,7 @@ class HtmlDisplayableResult(DisplayableResult):
     @property
     def ipython_serializer(self) -> IPythonSerializer[t.Any]:
         """Return IPython serializer."""
+
         class _IPythonSerializer(IPythonSerializer[t.Any]):
             def serialize(self, **kwargs) -> t.Any:  # pylint: disable=unused-argument
                 return HTML(self.value)
@@ -47,6 +50,7 @@ class HtmlDisplayableResult(DisplayableResult):
     @property
     def html_serializer(self) -> HtmlSerializer[t.Any]:
         """Return HTML serializer."""
+
         class _HtmlSerializer(HtmlSerializer[t.Any]):
             def serialize(self, **kwargs) -> str:  # pylint: disable=unused-argument
                 return self.value
@@ -68,12 +72,12 @@ class HtmlDisplayableResult(DisplayableResult):
     def save_as_html(self, file: t.Union[str, io.TextIOWrapper, None] = None, **kwargs) -> t.Optional[str]:
         """Save the html to a file."""
         if file is None:
-            file = 'output.html'
+            file = "output.html"
         if isinstance(file, str):
             file = create_new_file_name(file)
 
         if isinstance(file, str):
-            with open(file, 'w', encoding='utf-8') as f:
+            with open(file, "w", encoding="utf-8") as f:
                 f.write(self.html)
         elif isinstance(file, io.TextIOWrapper):
             file.write(self.html)

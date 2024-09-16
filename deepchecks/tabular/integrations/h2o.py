@@ -16,10 +16,7 @@ import pandas as pd
 try:
     import h2o
 except ImportError as e:
-    raise ImportError(
-        'H2OWrapper requires the h2o python package. '
-        'To get it, run "pip install h2o".'
-    ) from e
+    raise ImportError("H2OWrapper requires the h2o python package. " 'To get it, run "pip install h2o".') from e
 
 
 class H2OWrapper:
@@ -40,6 +37,6 @@ class H2OWrapper:
     def feature_importances_(self) -> np.array:
         """Return the feature importances based on h2o internal calculation."""
         try:
-            return self.model.varimp(use_pandas=True)['percentage'].values
-        except: # pylint: disable=bare-except # noqa
+            return self.model.varimp(use_pandas=True)["percentage"].values
+        except:  # pylint: disable=bare-except # noqa
             return None

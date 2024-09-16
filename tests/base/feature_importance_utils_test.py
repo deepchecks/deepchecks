@@ -9,24 +9,44 @@
 # ----------------------------------------------------------------------------
 #
 """Test feature importance utils"""
+
+from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError, ModelValidationError
+from deepchecks.tabular.dataset import Dataset
+from deepchecks.tabular.utils.feature_importance import (
+    _calculate_feature_importance,
+    calculate_feature_importance_or_none,
+    column_importance_sorter_df,
+    column_importance_sorter_dict,
+    validate_feature_importance,
+)
+from deepchecks.tabular.utils.task_inference import (
+    get_all_labels,
+    infer_classes_from_model,
+    infer_task_type_by_class_number,
+    infer_task_type_by_labels,
+)
+from deepchecks.tabular.utils.task_type import TaskType
+
 import pandas as pd
 import pytest
-from hamcrest import (any_of, assert_that, calling, close_to, contains_exactly, contains_string, equal_to, has_length,
-                      is_, none, not_none, raises)
+from hamcrest import (
+    any_of,
+    assert_that,
+    calling,
+    close_to,
+    contains_exactly,
+    contains_string,
+    equal_to,
+    has_length,
+    is_,
+    none,
+    not_none,
+    raises,
+)
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.pipeline import Pipeline
-
-from deepchecks.core.errors import DeepchecksTimeoutError, DeepchecksValueError, ModelValidationError
-from deepchecks.tabular.dataset import Dataset
-from deepchecks.tabular.utils.feature_importance import (_calculate_feature_importance,
-                                                         calculate_feature_importance_or_none,
-                                                         column_importance_sorter_df, column_importance_sorter_dict,
-                                                         validate_feature_importance)
-from deepchecks.tabular.utils.task_inference import (get_all_labels, infer_classes_from_model,
-                                                     infer_task_type_by_class_number, infer_task_type_by_labels)
-from deepchecks.tabular.utils.task_type import TaskType
 
 
 def run_fi_calculation(model, dataset, permutation_kwargs=None, force_permutation=False):
@@ -39,25 +59,38 @@ def run_fi_calculation(model, dataset, permutation_kwargs=None, force_permutatio
         task_type = infer_task_type_by_class_number(len(model_classes))
     else:
         task_type = infer_task_type_by_labels(labels)
-    return _calculate_feature_importance(model=model, dataset=dataset, model_classes=model_classes,
-                                         observed_classes=observed_classes, task_type=task_type,
-                                         permutation_kwargs=permutation_kwargs, force_permutation=force_permutation)
+    return _calculate_feature_importance(
+        model=model,
+        dataset=dataset,
+        model_classes=model_classes,
+        observed_classes=observed_classes,
+        task_type=task_type,
+        permutation_kwargs=permutation_kwargs,
+        force_permutation=force_permutation,
+    )
 
 
 def test_adaboost(iris_split_dataset_and_model):
     train_ds, _, adaboost = iris_split_dataset_and_model
     feature_importances, fi_type = run_fi_calculation(adaboost, train_ds)
     assert_that(feature_importances.sum(), equal_to(1))
-    assert_that(fi_type, is_('feature_importances_'))
+    assert_that(fi_type, is_("feature_importances_"))
 
 
 def test_unfitted(iris_dataset):
     clf = AdaBoostClassifier()
-    assert_that(calling(_calculate_feature_importance).with_args(clf, iris_dataset, model_classes=None,
-                                                                 observed_classes=None, task_type=None),
-                raises(ModelValidationError, 'Got error when trying to predict with model on dataset: '
-                                             'This AdaBoostClassifier instance is not fitted yet. '
-                                             'Call \'fit\' with appropriate arguments before using this estimator.'))
+    assert_that(
+        calling(_calculate_feature_importance).with_args(
+            clf, iris_dataset, model_classes=None, observed_classes=None, task_type=None
+        ),
+        raises(
+            ModelValidationError,
+            "Got error when trying to predict with model on dataset: "
+            "This AdaBoostClassifier instance is not fitted yet. "
+            "Call 'fit' with appropriate arguments before using this estimator.",
+        ),
+    )
+
 
 @pytest.mark.skip(reason="This test is failing due to a bug in the suite")
 def test_linear_regression(diabetes):
@@ -67,21 +100,22 @@ def test_linear_regression(diabetes):
     feature_importances, fi_type = run_fi_calculation(clf, ds)
     assert_that(feature_importances.max(), close_to(0.225374532399, 0.0000000001))
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
-    assert_that(fi_type, is_('coef_'))
+    assert_that(fi_type, is_("coef_"))
 
 
 def test_pipeline(iris_split_dataset_and_model_single_feature):
     _, test_ds, clf = iris_split_dataset_and_model_single_feature
     feature_importances, fi_type = run_fi_calculation(clf, test_ds)
-    assert_that(feature_importances['sepal length (cm)'], equal_to(1))  # pylint: disable=e1136
+    assert_that(feature_importances["sepal length (cm)"], equal_to(1))  # pylint: disable=e1136
     assert_that(feature_importances, has_length(1))
-    assert_that(fi_type, is_('permutation_importance'))
-    assert_that(hasattr(clf.steps[-1][1], 'feature_importances_'))
+    assert_that(fi_type, is_("permutation_importance"))
+    assert_that(hasattr(clf.steps[-1][1], "feature_importances_"))
 
 
 def test_logistic_regression():
-    train_df = pd.DataFrame([[23, True], [19, False], [15, False], [5, True]], columns=['age', 'smoking'],
-                            index=[0, 1, 2, 3])
+    train_df = pd.DataFrame(
+        [[23, True], [19, False], [15, False], [5, True]], columns=["age", "smoking"], index=[0, 1, 2, 3]
+    )
     train_y = pd.Series([1, 1, 0, 0])
 
     logreg = LogisticRegression()
@@ -91,62 +125,77 @@ def test_logistic_regression():
 
     feature_importances, fi_type = run_fi_calculation(logreg, ds_train)
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
-    assert_that(fi_type, is_('coef_'))
+    assert_that(fi_type, is_("coef_"))
 
 
 def test_calculate_importance_when_no_builtin(iris_labeled_dataset, caplog):
     # Arrange
     clf = MLPClassifier(hidden_layer_sizes=(10,), random_state=42)
-    clf.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
-            iris_labeled_dataset.data[iris_labeled_dataset.label_name])
+    clf.fit(
+        iris_labeled_dataset.data[iris_labeled_dataset.features],
+        iris_labeled_dataset.data[iris_labeled_dataset.label_name],
+    )
 
     # Act
-    feature_importances, fi_type = run_fi_calculation(clf, iris_labeled_dataset,
-                                                      permutation_kwargs={'timeout': 120})
+    feature_importances, fi_type = run_fi_calculation(clf, iris_labeled_dataset, permutation_kwargs={"timeout": 120})
     assert_that(caplog.records, has_length(1))
-    assert_that(caplog.records[0].message, equal_to('Could not find built-in feature importance on the model, '
-                                                    'using permutation feature importance calculation instead'))
+    assert_that(
+        caplog.records[0].message,
+        equal_to(
+            "Could not find built-in feature importance on the model, "
+            "using permutation feature importance calculation instead"
+        ),
+    )
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
-    assert_that(fi_type, is_('permutation_importance'))
+    assert_that(fi_type, is_("permutation_importance"))
 
 
 def test_calculate_importance_when_no_builtin_regression(diabetes, caplog):
     # Arrange
     train_ds, _ = diabetes
     clf = MLPRegressor(hidden_layer_sizes=(10,), random_state=42)
-    clf.fit(train_ds.data[train_ds.features],
-            train_ds.data[train_ds.label_name])
+    clf.fit(train_ds.data[train_ds.features], train_ds.data[train_ds.label_name])
 
     # Act
-    feature_importances, fi_type = run_fi_calculation(clf, train_ds,
-                                                      permutation_kwargs={'timeout': 120})
+    feature_importances, fi_type = run_fi_calculation(clf, train_ds, permutation_kwargs={"timeout": 120})
     assert_that(caplog.records, has_length(1))
-    assert_that(caplog.records[0].message, equal_to('Could not find built-in feature importance on the model, '
-                                                    'using permutation feature importance calculation instead'))
+    assert_that(
+        caplog.records[0].message,
+        equal_to(
+            "Could not find built-in feature importance on the model, "
+            "using permutation feature importance calculation instead"
+        ),
+    )
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
-    assert_that(fi_type, is_('permutation_importance'))
+    assert_that(fi_type, is_("permutation_importance"))
 
 
 def test_calculate_importance_when_model_is_pipeline(iris_labeled_dataset, caplog):
     # Arrange
-    clf = Pipeline([('model', MLPClassifier(hidden_layer_sizes=(10,), random_state=42))])
-    clf.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
-            iris_labeled_dataset.data[iris_labeled_dataset.label_name])
+    clf = Pipeline([("model", MLPClassifier(hidden_layer_sizes=(10,), random_state=42))])
+    clf.fit(
+        iris_labeled_dataset.data[iris_labeled_dataset.features],
+        iris_labeled_dataset.data[iris_labeled_dataset.label_name],
+    )
 
     # Act
-    feature_importances, fi_type = run_fi_calculation(clf, iris_labeled_dataset,
-                                                      permutation_kwargs={'timeout': 120})
+    feature_importances, fi_type = run_fi_calculation(clf, iris_labeled_dataset, permutation_kwargs={"timeout": 120})
     assert_that(caplog.records, has_length(1))
-    assert_that(caplog.records[0].message, equal_to('Cannot use model\'s built-in feature importance on a Scikit-learn '
-                                                    'Pipeline, using permutation feature importance calculation instead'))
+    assert_that(
+        caplog.records[0].message,
+        equal_to(
+            "Cannot use model's built-in feature importance on a Scikit-learn "
+            "Pipeline, using permutation feature importance calculation instead"
+        ),
+    )
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.000001))
-    assert_that(fi_type, is_('permutation_importance'))
+    assert_that(fi_type, is_("permutation_importance"))
 
 
 def test_calculate_importance_force_permutation_fail_on_timeout(iris_split_dataset_and_model):
@@ -154,9 +203,12 @@ def test_calculate_importance_force_permutation_fail_on_timeout(iris_split_datas
     train_ds, _, adaboost = iris_split_dataset_and_model
 
     # Assert
-    assert_that(calling(run_fi_calculation)
-                .with_args(adaboost, train_ds, force_permutation=True, permutation_kwargs={'timeout': 0}),
-                raises(DeepchecksTimeoutError, 'Skipping permutation importance calculation'))
+    assert_that(
+        calling(run_fi_calculation).with_args(
+            adaboost, train_ds, force_permutation=True, permutation_kwargs={"timeout": 0}
+        ),
+        raises(DeepchecksTimeoutError, "Skipping permutation importance calculation"),
+    )
 
 
 def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dataset_and_model):
@@ -165,21 +217,29 @@ def test_calculate_importance_force_permutation_fail_on_dataframe(iris_split_dat
     df_only_features = train_ds.data.drop(train_ds.label_name, axis=1)
 
     # Assert
-    assert_that(calling(_calculate_feature_importance)
-                .with_args(adaboost, df_only_features, None, None, None, force_permutation=True),
-                raises(DeepchecksValueError, 'Cannot calculate permutation feature importance on a pandas Dataframe'))
+    assert_that(
+        calling(_calculate_feature_importance).with_args(
+            adaboost, df_only_features, None, None, None, force_permutation=True
+        ),
+        raises(DeepchecksValueError, "Cannot calculate permutation feature importance on a pandas Dataframe"),
+    )
 
 
 def test_calculate_importance_when_no_builtin_and_force_timeout(iris_labeled_dataset):
     # Arrange
     clf = MLPClassifier(hidden_layer_sizes=(10,), random_state=42)
-    clf.fit(iris_labeled_dataset.data[iris_labeled_dataset.features],
-            iris_labeled_dataset.data[iris_labeled_dataset.label_name])
+    clf.fit(
+        iris_labeled_dataset.data[iris_labeled_dataset.features],
+        iris_labeled_dataset.data[iris_labeled_dataset.label_name],
+    )
 
     # Act & Assert
-    assert_that(calling(run_fi_calculation)
-                .with_args(clf, iris_labeled_dataset, force_permutation=True, permutation_kwargs={'timeout': 0}),
-                raises(DeepchecksTimeoutError, 'Skipping permutation importance calculation'))
+    assert_that(
+        calling(run_fi_calculation).with_args(
+            clf, iris_labeled_dataset, force_permutation=True, permutation_kwargs={"timeout": 0}
+        ),
+        raises(DeepchecksTimeoutError, "Skipping permutation importance calculation"),
+    )
 
 
 def test_bad_dataset_model(iris_random_forest, diabetes):
@@ -192,13 +252,12 @@ def test_bad_dataset_model(iris_random_forest, diabetes):
             # will be raised DeepchecksValueError or ModelValidationError
             raises(
                 DeepchecksValueError,
-                r'(In order to evaluate model correctness we need not empty dataset with the '
-                r'same set of features that was used to fit the model. But function received '
-                r'dataset with a different set of features.)'),
-            raises(
-                ModelValidationError,
-                r'Got error when trying to predict with model on dataset:(.*)')
-        )
+                r"(In order to evaluate model correctness we need not empty dataset with the "
+                r"same set of features that was used to fit the model. But function received "
+                r"dataset with a different set of features.)",
+            ),
+            raises(ModelValidationError, r"Got error when trying to predict with model on dataset:(.*)"),
+        ),
     )
 
 
@@ -216,25 +275,25 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     assert_that(feature_importances, not_none())
 
     feature_importances_sorted = list(feature_importances.sort_values(ascending=False).keys())
-    feature_importances_sorted.insert(0, 'target')
+    feature_importances_sorted.insert(0, "target")
     feature_importances_sorted = feature_importances_sorted[:num_values]
 
     sorted_dict = column_importance_sorter_dict(columns_info, train, feature_importances, num_values)
     assert_that(list(sorted_dict.keys()), equal_to(feature_importances_sorted))
 
     columns_info_df = pd.DataFrame([columns_info.keys(), columns_info.values()]).T
-    columns_info_df.columns = ['keys', 'values']
-    sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values, col='keys')
+    columns_info_df.columns = ["keys", "values"]
+    sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values, col="keys")
 
-    assert_that(list(sorted_df['keys']), equal_to(feature_importances_sorted))
+    assert_that(list(sorted_df["keys"]), equal_to(feature_importances_sorted))
 
-    columns_info_df = columns_info_df.set_index('keys')
+    columns_info_df = columns_info_df.set_index("keys")
     sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values)
 
     assert_that(list(sorted_df.index), equal_to(feature_importances_sorted))
 
     columns_info_df = pd.DataFrame()
-    sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values, col='keys')
+    sorted_df = column_importance_sorter_df(columns_info_df, train, feature_importances, num_values, col="keys")
     assert_that(len(sorted_df), equal_to(0))
 
 
@@ -251,44 +310,52 @@ def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model, ca
     # Arrange
     train_ds, _, adaboost = iris_split_dataset_and_model
     train_data = train_ds.data.copy()
-    train_data.loc[train_data['target'] != 2, 'target'] = None
+    train_data.loc[train_data["target"] != 2, "target"] = None
     train_ds = train_ds.copy(train_data)
 
     # Act
     feature_importances, fi_type = run_fi_calculation(adaboost, train_ds, force_permutation=True)
     assert_that(caplog.records, has_length(1))
-    assert_that(caplog.records[0].message,
-                contains_string('Calculating permutation feature importance without time limit. '
-                                'Expected to finish in '))
+    assert_that(
+        caplog.records[0].message,
+        contains_string("Calculating permutation feature importance without time limit. " "Expected to finish in "),
+    )
 
     # Assert
     assert_that(feature_importances.sum(), close_to(1, 0.0001))
-    assert_that(fi_type, is_('permutation_importance'))
+    assert_that(fi_type, is_("permutation_importance"))
 
 
 def test_feature_importance_validation():
-    features = ['a', 'b', 'c']
+    features = ["a", "b", "c"]
     feature_importance = pd.Series([0.3, 0.3, 0.4], index=features)
     feature_importance_with_null = pd.Series([0.3, 0.3, None], index=features)
 
-    assert_that(calling(validate_feature_importance).with_args(feature_importance.values, features),
-                raises(DeepchecksValueError,
-                       'feature_importance must be given as a pandas.Series where the index is feature names and the '
-                       'value is the calculated importance'))
+    assert_that(
+        calling(validate_feature_importance).with_args(feature_importance.values, features),
+        raises(
+            DeepchecksValueError,
+            "feature_importance must be given as a pandas.Series where the index is feature names and the "
+            "value is the calculated importance",
+        ),
+    )
 
-    assert_that(calling(validate_feature_importance).with_args(feature_importance, ['a', 'b', 'd']),
-                raises(DeepchecksValueError,
-                       'feature_importance index must be the feature names'))
+    assert_that(
+        calling(validate_feature_importance).with_args(feature_importance, ["a", "b", "d"]),
+        raises(DeepchecksValueError, "feature_importance index must be the feature names"),
+    )
 
-    assert_that(calling(validate_feature_importance).with_args(feature_importance_with_null, features),
-                raises(DeepchecksValueError,
-                       'feature_importance must not contain null values'))
+    assert_that(
+        calling(validate_feature_importance).with_args(feature_importance_with_null, features),
+        raises(DeepchecksValueError, "feature_importance must not contain null values"),
+    )
 
-    assert_that(calling(validate_feature_importance).with_args(feature_importance * -1, features),
-                raises(DeepchecksValueError,
-                       'feature_importance must not contain negative values'))
+    assert_that(
+        calling(validate_feature_importance).with_args(feature_importance * -1, features),
+        raises(DeepchecksValueError, "feature_importance must not contain negative values"),
+    )
 
-    with pytest.warns(UserWarning, match='feature_importance does not sum to 1. Normalizing to 1.'):
+    with pytest.warns(UserWarning, match="feature_importance does not sum to 1. Normalizing to 1."):
         normalized_feature_importance = validate_feature_importance(feature_importance * 2, features)
 
     assert_that(normalized_feature_importance.sum(), close_to(1, 0.0001))

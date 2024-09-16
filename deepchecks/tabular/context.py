@@ -9,33 +9,46 @@
 # ----------------------------------------------------------------------------
 #
 """Module for base tabular context."""
+
 import typing as t
 
-import numpy as np
-import pandas as pd
-
 from deepchecks.core.context import BaseContext
-from deepchecks.core.errors import (DatasetValidationError, DeepchecksNotSupportedError, DeepchecksValueError,
-                                    ModelValidationError)
+from deepchecks.core.errors import (
+    DatasetValidationError,
+    DeepchecksNotSupportedError,
+    DeepchecksValueError,
+    ModelValidationError,
+)
 from deepchecks.tabular._shared_docs import docstrings
 from deepchecks.tabular.dataset import Dataset
 from deepchecks.tabular.metric_utils import DeepcheckScorer, get_default_scorers, init_validate_scorers
 from deepchecks.tabular.metric_utils.scorers import validate_proba
-from deepchecks.tabular.utils.feature_importance import (calculate_feature_importance_or_none,
-                                                         validate_feature_importance)
-from deepchecks.tabular.utils.task_inference import (get_all_labels, infer_classes_from_model,
-                                                     infer_task_type_by_class_number, infer_task_type_by_labels)
+from deepchecks.tabular.utils.feature_importance import (
+    calculate_feature_importance_or_none,
+    validate_feature_importance,
+)
+from deepchecks.tabular.utils.task_inference import (
+    get_all_labels,
+    infer_classes_from_model,
+    infer_task_type_by_class_number,
+    infer_task_type_by_labels,
+)
 from deepchecks.tabular.utils.task_type import TaskType
-from deepchecks.tabular.utils.validation import (ensure_predictions_proba, ensure_predictions_shape,
-                                                 model_type_validation, validate_model)
+from deepchecks.tabular.utils.validation import (
+    ensure_predictions_proba,
+    ensure_predictions_shape,
+    model_type_validation,
+    validate_model,
+)
 from deepchecks.utils.docref import doclink
 from deepchecks.utils.logger import get_logger
 from deepchecks.utils.plot import DEFAULT_DATASET_NAMES
 from deepchecks.utils.typing import BasicModel
 
-__all__ = [
-    'Context', '_DummyModel'
-]
+import numpy as np
+import pandas as pd
+
+__all__ = ["Context", "_DummyModel"]
 
 
 class _DummyModel:
@@ -72,19 +85,19 @@ class _DummyModel:
         y_pred_train: t.Optional[np.ndarray] = None,
         y_proba_train: t.Optional[np.ndarray] = None,
         validate_data_on_predict: bool = True,
-        model_classes: t.Optional[t.List[t.Any]] = None
+        model_classes: t.Optional[t.List[t.Any]] = None,
     ):
         if train is not None and test is not None:
             # check if datasets have same indexes
             train_index = train.data.index
             test_index = test.data.index
             if set(train_index) & set(test_index):
-                train.data.index = [f'train-{it}' for it in train_index]
-                test.data.index = [f'test-{it}' for it in test_index]
+                train.data.index = [f"train-{it}" for it in train_index]
+                test.data.index = [f"test-{it}" for it in test_index]
                 get_logger().warning(
                     'train and test datasets have common index - adding "train"/"test" '
-                    'prefixes. To avoid that provide datasets with no common indexes '
-                    'or pass the model object instead of the predictions.'
+                    "prefixes. To avoid that provide datasets with no common indexes "
+                    "or pass the model object instead of the predictions."
                 )
 
         feature_df_list = []
@@ -138,8 +151,10 @@ class _DummyModel:
                     return
                 else:
                     break
-        raise DeepchecksValueError('Data that has not been seen before passed for inference with static '
-                                   'predictions. Pass a real model to resolve this')
+        raise DeepchecksValueError(
+            "Data that has not been seen before passed for inference with static "
+            "predictions. Pass a real model to resolve this"
+        )
 
     def _predict(self, data: pd.DataFrame):
         """Predict on given data by the data indexes."""
@@ -173,23 +188,23 @@ class Context(BaseContext):
     """
 
     def __init__(
-            self,
-            train: t.Union[Dataset, pd.DataFrame, None] = None,
-            test: t.Union[Dataset, pd.DataFrame, None] = None,
-            model: t.Optional[BasicModel] = None,
-            feature_importance: t.Optional[pd.Series] = None,
-            feature_importance_force_permutation: bool = False,
-            feature_importance_timeout: int = 120,
-            with_display: bool = True,
-            y_pred_train: t.Optional[np.ndarray] = None,
-            y_pred_test: t.Optional[np.ndarray] = None,
-            y_proba_train: t.Optional[np.ndarray] = None,
-            y_proba_test: t.Optional[np.ndarray] = None,
-            model_classes: t.Optional[t.List] = None,
+        self,
+        train: t.Union[Dataset, pd.DataFrame, None] = None,
+        test: t.Union[Dataset, pd.DataFrame, None] = None,
+        model: t.Optional[BasicModel] = None,
+        feature_importance: t.Optional[pd.Series] = None,
+        feature_importance_force_permutation: bool = False,
+        feature_importance_timeout: int = 120,
+        with_display: bool = True,
+        y_pred_train: t.Optional[np.ndarray] = None,
+        y_pred_test: t.Optional[np.ndarray] = None,
+        y_proba_train: t.Optional[np.ndarray] = None,
+        y_proba_test: t.Optional[np.ndarray] = None,
+        model_classes: t.Optional[t.List] = None,
     ):
         # Validations
         if train is None and test is None and model is None:
-            raise DeepchecksValueError('At least one dataset (or model) must be passed to the method!')
+            raise DeepchecksValueError("At least one dataset (or model) must be passed to the method!")
         if train is not None:
             train = Dataset.cast_to_dataset(train)
             if train.name is None:
@@ -201,23 +216,24 @@ class Context(BaseContext):
         # If both dataset, validate they fit each other
         if train and test:
             if test.has_label() and train.has_label() and not Dataset.datasets_share_label(train, test):
-                raise DatasetValidationError('train and test requires to have and to share the same label')
+                raise DatasetValidationError("train and test requires to have and to share the same label")
             if not Dataset.datasets_share_features(train, test):
-                raise DatasetValidationError('train and test requires to share the same features columns')
+                raise DatasetValidationError("train and test requires to share the same features columns")
             if not Dataset.datasets_share_categorical_features(train, test):
                 raise DatasetValidationError(
-                    'train and test datasets should share '
-                    'the same categorical features. Possible reason is that some columns were'
-                    'inferred incorrectly as categorical features. To fix this, manually edit the '
-                    'categorical features using Dataset(cat_features=<list_of_features>'
+                    "train and test datasets should share "
+                    "the same categorical features. Possible reason is that some columns were"
+                    "inferred incorrectly as categorical features. To fix this, manually edit the "
+                    "categorical features using Dataset(cat_features=<list_of_features>"
                 )
             if not Dataset.datasets_share_index(train, test):
-                raise DatasetValidationError('train and test requires to share the same index column')
+                raise DatasetValidationError("train and test requires to share the same index column")
             if not Dataset.datasets_share_date(train, test):
-                raise DatasetValidationError('train and test requires to share the same date column')
+                raise DatasetValidationError("train and test requires to share the same date column")
         if test and not train:
-            raise DatasetValidationError('Can\'t initialize context with only test. if you have single dataset, '
-                                         'initialize it as train')
+            raise DatasetValidationError(
+                "Can't initialize context with only test. if you have single dataset, " "initialize it as train"
+            )
         self._calculated_importance = feature_importance is not None or model is None
         if model is not None:
             # Here validate only type of model, later validating it can predict on the data if needed
@@ -225,12 +241,13 @@ class Context(BaseContext):
         if feature_importance is not None:
             feature_importance = validate_feature_importance(feature_importance, train.features)
         if model_classes and len(model_classes) == 0:
-            raise DeepchecksValueError('Received empty model_classes')
+            raise DeepchecksValueError("Received empty model_classes")
         if model_classes and sorted(model_classes) != model_classes:
             supported_models_link = doclink(
-                'supported-prediction-format',
-                template='For more information please refer to the Supported Models guide {link}')
-            raise DeepchecksValueError(f'Received unsorted model_classes. {supported_models_link}')
+                "supported-prediction-format",
+                template="For more information please refer to the Supported Models guide {link}",
+            )
+            raise DeepchecksValueError(f"Received unsorted model_classes. {supported_models_link}")
 
         if model_classes is None:
             model_classes = infer_classes_from_model(model)
@@ -245,19 +262,24 @@ class Context(BaseContext):
 
         observed_classes = None
 
-        if (model is None and
-                (y_pred_train is not None or y_pred_test is not None or y_proba_train is not None
-                 or y_proba_test is not None)):
+        if model is None and (
+            y_pred_train is not None or y_pred_test is not None or y_proba_train is not None or y_proba_test is not None
+        ):
             # If there is no pred, we use the observed classes to zip between the proba and the classes
             if y_pred_train is None and model_classes is None:
                 # Does not calculate labels twice
                 labels = labels if labels is not None else get_all_labels(model, train, test, y_pred_train, y_pred_test)
                 observed_classes = sorted(labels.dropna().unique().tolist())
-            model = _DummyModel(train=train, test=test,
-                                y_pred_train=y_pred_train, y_pred_test=y_pred_test,
-                                y_proba_test=y_proba_test, y_proba_train=y_proba_train,
-                                # Use model classes if exists, else observed classes
-                                model_classes=model_classes or observed_classes)
+            model = _DummyModel(
+                train=train,
+                test=test,
+                y_pred_train=y_pred_train,
+                y_pred_test=y_pred_test,
+                y_proba_test=y_proba_test,
+                y_proba_train=y_proba_train,
+                # Use model classes if exists, else observed classes
+                model_classes=model_classes or observed_classes,
+            )
 
         self._task_type = task_type
         self._observed_classes = observed_classes
@@ -279,7 +301,7 @@ class Context(BaseContext):
     def model(self) -> BasicModel:
         """Return & validate model if model exists, otherwise raise error."""
         if self._model is None:
-            raise DeepchecksNotSupportedError('Check is irrelevant for Datasets without model')
+            raise DeepchecksNotSupportedError("Check is irrelevant for Datasets without model")
         if not self._validated_model:
             if self._train:
                 validate_model(self._train, self._model)
@@ -291,9 +313,11 @@ class Context(BaseContext):
         """Return ordered list of possible label classes for classification tasks or None for regression."""
         if self._model_classes is None and self.task_type in (TaskType.BINARY, TaskType.MULTICLASS):
             # If in infer_task_type we didn't find classes on model, or user didn't pass any, then using the observed
-            get_logger().warning('Could not find model\'s classes, using the observed classes. '
-                                 'In order to make sure the classes used by the model are inferred correctly, '
-                                 'please use the model_classes argument')
+            get_logger().warning(
+                "Could not find model's classes, using the observed classes. "
+                "In order to make sure the classes used by the model are inferred correctly, "
+                "please use the model_classes argument"
+            )
             self._model_classes = self.observed_classes
 
         return self._model_classes
@@ -322,11 +346,16 @@ class Context(BaseContext):
         """Return feature importance, or None if not possible."""
         if not self._calculated_importance:
             if self._model and (self._train or self._test):
-                permutation_kwargs = {'timeout': self._feature_importance_timeout}
+                permutation_kwargs = {"timeout": self._feature_importance_timeout}
                 dataset = self.test if self.have_test() else self.train
                 importance, importance_type = calculate_feature_importance_or_none(
-                    self._model, dataset, self.model_classes, self._observed_classes, self.task_type,
-                    self._feature_importance_force_permutation, permutation_kwargs
+                    self._model,
+                    dataset,
+                    self.model_classes,
+                    self._observed_classes,
+                    self.task_type,
+                    self._feature_importance_force_permutation,
+                    permutation_kwargs,
                 )
                 self._feature_importance = importance
                 self._importance_type = importance_type
@@ -357,16 +386,16 @@ class Context(BaseContext):
     def assert_classification_task(self):
         """Assert the task_type is classification."""
         if self.task_type == TaskType.REGRESSION and self.train.has_label():
-            raise ModelValidationError('Check is irrelevant for regression tasks')
+            raise ModelValidationError("Check is irrelevant for regression tasks")
 
     def assert_regression_task(self):
         """Assert the task type is regression."""
         if self.task_type != TaskType.REGRESSION and self.train.has_label():
-            raise ModelValidationError('Check is irrelevant for classification tasks')
+            raise ModelValidationError("Check is irrelevant for classification tasks")
 
-    def get_scorers(self,
-                    scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None,
-                    use_avg_defaults=True) -> t.List[DeepcheckScorer]:
+    def get_scorers(
+        self, scorers: t.Union[t.Mapping[str, t.Union[str, t.Callable]], t.List[str]] = None, use_avg_defaults=True
+    ) -> t.List[DeepcheckScorer]:
         """Return initialized & validated scorers if provided or default scorers otherwise.
 
         Parameters
@@ -385,9 +414,9 @@ class Context(BaseContext):
         scorers = scorers or get_default_scorers(self.task_type, use_avg_defaults)
         return init_validate_scorers(scorers, self.model, self.train, self.model_classes, self.observed_classes)
 
-    def get_single_scorer(self,
-                          scorer: t.Mapping[str, t.Union[str, t.Callable]] = None,
-                          use_avg_defaults=True) -> DeepcheckScorer:
+    def get_single_scorer(
+        self, scorer: t.Mapping[str, t.Union[str, t.Callable]] = None, use_avg_defaults=True
+    ) -> DeepcheckScorer:
         """Return initialized & validated scorer if provided or a default scorer otherwise.
 
         Parameters
@@ -407,5 +436,6 @@ class Context(BaseContext):
         # The single scorer is the first one in the dict
         scorer_name = next(iter(scorer))
         single_scorer_dict = {scorer_name: scorer[scorer_name]}
-        return init_validate_scorers(single_scorer_dict, self.model, self.train, self.model_classes,
-                                     self.observed_classes)[0]
+        return init_validate_scorers(
+            single_scorer_dict, self.model, self.train, self.model_classes, self.observed_classes
+        )[0]

@@ -29,22 +29,21 @@ correlation for each combination of feature types:
 
 """
 
-#%%
+# %%
 # Imports
 # =======
 
-import pandas as pd
-from deepchecks.tabular.datasets.classification import adult
 from deepchecks.tabular.checks.data_integrity import FeatureFeatureCorrelation
+from deepchecks.tabular.datasets.classification import adult
 
-#%%
+# %%
 # Load Data
 # ===============
 # We load the Adult dataset, a dataset based on the 1994 US Census containing both numerical and categorical features.
 
 ds = adult.load_data(as_train_test=False)
 
-#%%
+# %%
 # Run the Check
 # ===============================================
 
@@ -55,7 +54,7 @@ check.run(ds)
 # check.run(ds).show()
 # The result will be displayed in a new window.
 
-#%%
+# %%
 # Define a Condition
 # ==================
 # Now we will define a condition on the maximum number of pairs that are correlated above a certain threshold.
@@ -66,4 +65,3 @@ check = FeatureFeatureCorrelation()
 check.add_condition_max_number_of_pairs_above_threshold(0.8, 3)
 result = check.run(ds)
 result.show(show_additional_outputs=False)
-

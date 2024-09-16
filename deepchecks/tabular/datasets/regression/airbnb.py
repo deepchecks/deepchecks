@@ -79,33 +79,47 @@ Description:
          - Label
          - The rental price of the unit
 """
+
 import math
 import time
 import typing as t
 
+from deepchecks.tabular.dataset import Dataset
+
 import numpy as np
 import pandas as pd
 
-from deepchecks.tabular.dataset import Dataset
+__all__ = ["load_data_and_predictions", "load_pre_calculated_feature_importance"]
 
-__all__ = ['load_data_and_predictions', 'load_pre_calculated_feature_importance']
-
-_TRAIN_DATA_URL = ('https://raw.githubusercontent.com/deepchecks/deepchecks-datasets/'
-                   '8dd24134239b9df5d2a3a13cdce38cc22caaaaf4/airbnb_ref_data.csv')
-_TEST_DATA_URL = ('https://raw.githubusercontent.com/deepchecks/deepchecks-datasets/'
-                  '8dd24134239b9df5d2a3a13cdce38cc22caaaaf4/airbnb_prod_data.csv')
-_target = 'price'
-_predictions = 'predictions'
-_datetime = 'timestamp'
-_CAT_FEATURES = ['room_type', 'neighbourhood', 'neighbourhood_group', 'has_availability']
-_NUM_FEATURES = ['minimum_nights', 'number_of_reviews', 'reviews_per_month', 'calculated_host_listings_count',
-                 'availability_365']
+_TRAIN_DATA_URL = (
+    "https://raw.githubusercontent.com/deepchecks/deepchecks-datasets/"
+    "8dd24134239b9df5d2a3a13cdce38cc22caaaaf4/airbnb_ref_data.csv"
+)
+_TEST_DATA_URL = (
+    "https://raw.githubusercontent.com/deepchecks/deepchecks-datasets/"
+    "8dd24134239b9df5d2a3a13cdce38cc22caaaaf4/airbnb_prod_data.csv"
+)
+_target = "price"
+_predictions = "predictions"
+_datetime = "timestamp"
+_CAT_FEATURES = ["room_type", "neighbourhood", "neighbourhood_group", "has_availability"]
+_NUM_FEATURES = [
+    "minimum_nights",
+    "number_of_reviews",
+    "reviews_per_month",
+    "calculated_host_listings_count",
+    "availability_365",
+]
 _FEATURES = _NUM_FEATURES + _CAT_FEATURES
 
 
-def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = True, modify_timestamps: bool = True,
-                              data_size: t.Optional[int] = 15000, random_state: int = 42) \
-        -> t.Tuple[t.Union[Dataset, pd.DataFrame], np.ndarray]:
+def load_data_and_predictions(
+    data_format: str = "Dataset",
+    load_train: bool = True,
+    modify_timestamps: bool = True,
+    data_size: t.Optional[int] = 15000,
+    random_state: int = 42,
+) -> t.Tuple[t.Union[Dataset, pd.DataFrame], np.ndarray]:
     """Load and returns the Airbnb NYC 2019 dataset (regression).
 
     Parameters
@@ -148,13 +162,12 @@ def load_data_and_predictions(data_format: str = 'Dataset', load_train: bool = T
         dataset[_datetime] = np.sort(
             (np.random.rand(len(dataset)) * (current_time - time_test_start)) + time_test_start
         )
-        dataset[_datetime] = dataset[_datetime].apply(lambda x: pd.Timestamp(x, unit='s'))
+        dataset[_datetime] = dataset[_datetime].apply(lambda x: pd.Timestamp(x, unit="s"))
 
     predictions = np.asarray(dataset[_predictions])
     dataset.drop(_predictions, axis=1, inplace=True)
-    if data_format == 'Dataset':
-        dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES,
-                          features=_FEATURES)
+    if data_format == "Dataset":
+        dataset = Dataset(dataset, label=_target, cat_features=_CAT_FEATURES, features=_FEATURES)
     return dataset, predictions
 
 
@@ -166,14 +179,16 @@ def load_pre_calculated_feature_importance() -> pd.Series:
     feature_importance : pd.Series
         The feature importance for a model trained on the Airbnb NYC 2019 dataset.
     """
-    return pd.Series({
-        'neighbourhood_group': 0.1,
-        'neighbourhood': 0.2,
-        'room_type': 0.1,
-        'minimum_nights': 0.1,
-        'number_of_reviews': 0.1,
-        'reviews_per_month': 0.1,
-        'calculated_host_listings_count': 0.1,
-        'availability_365': 0.1,
-        'has_availability': 0.1,
-    })
+    return pd.Series(
+        {
+            "neighbourhood_group": 0.1,
+            "neighbourhood": 0.2,
+            "room_type": 0.1,
+            "minimum_nights": 0.1,
+            "number_of_reviews": 0.1,
+            "reviews_per_month": 0.1,
+            "calculated_host_listings_count": 0.1,
+            "availability_365": 0.1,
+            "has_availability": 0.1,
+        }
+    )

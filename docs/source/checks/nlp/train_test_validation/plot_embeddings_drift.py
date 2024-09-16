@@ -48,11 +48,11 @@ See how to calculate default embeddings or setting your own embeddings in the
 :ref:`Embeddings Guide <using_nlp_embeddings_in_checks>`.
 """
 
-#%%
-from deepchecks.nlp.datasets.classification import tweet_emotion
+# %%
 from deepchecks.nlp.checks import TextEmbeddingsDrift
+from deepchecks.nlp.datasets.classification import tweet_emotion
 
-#%%
+# %%
 # Load Data
 # ==========
 #
@@ -65,22 +65,22 @@ train_embeddings, test_embeddings = tweet_emotion.load_embeddings(as_train_test=
 train_ds.set_embeddings(train_embeddings)
 test_ds.set_embeddings(test_embeddings)
 
-#%%
+# %%
 # Let's see how our data looks like:
 train_ds.head()
 
-#%%
+# %%
 # Run Check
 # ===============================
 
-#%%
+# %%
 # As there's natural drift in this dataset, we can expect to see some drift in the data:
 
 check = TextEmbeddingsDrift()
 result = check.run(train_dataset=train_ds, test_dataset=test_ds)
 result
 
-#%%
+# %%
 # Observing the results
 # ----------------------
 # We can see that the check found drift in the data. Moreover, we can investigate the drift by looking at the

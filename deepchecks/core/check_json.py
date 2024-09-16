@@ -9,22 +9,23 @@
 # ----------------------------------------------------------------------------
 #
 """Module containing the check results classes."""
+
 # pylint: disable=super-init-not-called
 import base64
 import io
 from typing import Any, Dict, List, Union
 
-import jsonpickle
-import pandas as pd
-import plotly
-
 from deepchecks.core.check_result import CheckFailure, CheckResult, DisplayMap
 from deepchecks.core.condition import Condition, ConditionCategory, ConditionResult
 from deepchecks.utils.html import imagetag
 
+import jsonpickle
+import pandas as pd
+import plotly
+
 __all__ = [
-    'CheckResultJson',
-    'CheckFailureJson',
+    "CheckResultJson",
+    "CheckFailureJson",
 ]
 
 
@@ -36,7 +37,7 @@ class FakeCheck:
         return self._metadata
 
     def name(self):
-        return self._metadata['name']
+        return self._metadata["name"]
 
 
 class CheckResultJson(CheckResult):
@@ -57,22 +58,22 @@ class CheckResultJson(CheckResult):
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
 
-        self.value = json_dict.get('value')
-        self.header = json_dict.get('header')
-        self.check = FakeCheck(json_dict.get('check'))
+        self.value = json_dict.get("value")
+        self.header = json_dict.get("header")
+        self.check = FakeCheck(json_dict.get("check"))
 
-        conditions_results_json = json_dict.get('conditions_results')
+        conditions_results_json = json_dict.get("conditions_results")
 
         if conditions_results_json is not None:
             self.conditions_results = []
             for condition in conditions_results_json:
-                cond_res = ConditionResult(ConditionCategory[condition['Status']], condition['More Info'])
-                cond_res.set_name(condition['Condition'])
+                cond_res = ConditionResult(ConditionCategory[condition["Status"]], condition["More Info"])
+                cond_res.set_name(condition["Condition"])
                 self.conditions_results.append(cond_res)
         else:
             self.conditions_results = None
 
-        json_display = json_dict.get('display', [])
+        json_display = json_dict.get("display", [])
         self.display = self._process_jsonified_display_items(json_display)
 
     def process_conditions(self) -> List[Condition]:
@@ -85,28 +86,25 @@ class CheckResultJson(CheckResult):
         output = []
 
         for record in display:
-            display_type, payload = record['type'], record['payload']
-            if display_type == 'html':
+            display_type, payload = record["type"], record["payload"]
+            if display_type == "html":
                 output.append(payload)
-            elif display_type == 'dataframe':
+            elif display_type == "dataframe":
                 df = pd.DataFrame.from_records(payload)
                 output.append(df)
-            elif display_type == 'plotly':
+            elif display_type == "plotly":
                 plotly_json = io.StringIO(payload)
                 output.append(plotly.io.read_json(plotly_json))
-            elif display_type == 'plt':
-                output.append((f'<img src=\'data:image/png;base64,{payload}\'>'))
-            elif display_type == 'images':
+            elif display_type == "plt":
+                output.append((f"<img src='data:image/png;base64,{payload}'>"))
+            elif display_type == "images":
                 assert isinstance(payload, list)
                 output.extend(imagetag(base64.b64decode(it)) for it in payload)
-            elif display_type == 'displaymap':
+            elif display_type == "displaymap":
                 assert isinstance(payload, dict)
-                output.append(DisplayMap(**{
-                    k: cls._process_jsonified_display_items(v)
-                    for k, v in payload.items()
-                }))
+                output.append(DisplayMap(**{k: cls._process_jsonified_display_items(v) for k, v in payload.items()}))
             else:
-                raise ValueError(f'Unexpected type of display received: {display_type}')
+                raise ValueError(f"Unexpected type of display received: {display_type}")
 
         return output
 
@@ -124,9 +122,9 @@ class CheckFailureJson(CheckFailure):
         if isinstance(json_dict, str):
             json_dict = jsonpickle.loads(json_dict)
 
-        self.header = json_dict.get('header')
-        self.check = FakeCheck(json_dict.get('check'))
-        self.exception = json_dict.get('exception')
+        self.header = json_dict.get("header")
+        self.check = FakeCheck(json_dict.get("check"))
+        self.exception = json_dict.get("exception")
 
     def print_traceback(self):
         """Print the traceback of the failure."""

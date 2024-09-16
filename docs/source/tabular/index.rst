@@ -5,8 +5,8 @@ Tabular
 =======
 
 Deepchecks tabular sub package contain a large variety of checks and suites for different use cases.
-Jump over to the :ref:`tabular__quickstarts` in the Tutorials section to get started, 
-or visit the :ref:`getting-started__installation` for a full 
+Jump over to the :ref:`tabular__quickstarts` in the Tutorials section to get started,
+or visit the :ref:`getting-started__installation` for a full
 guide about how to set up your environment.
 
 .. image:: /_static/images/general/model-evaluation-suite.gif
@@ -60,6 +60,3 @@ Below in the full list of checks and suites available in the deepchecks tabular 
     auto_checks/data_integrity/index
     auto_checks/train_test_validation/index
     auto_checks/model_evaluation/index
-
-
-

@@ -9,16 +9,17 @@
 # ----------------------------------------------------------------------------
 #
 """Module contains model_info check."""
-import warnings
 
-import pandas as pd
+import warnings
 
 from deepchecks.core import CheckResult
 from deepchecks.tabular import Context, ModelOnlyCheck
 from deepchecks.utils.dataframes import hide_index_for_display
 from deepchecks.utils.model import get_model_of_pipeline
 
-__all__ = ['ModelInfo']
+import pandas as pd
+
+__all__ = ["ModelInfo"]
 
 
 class ModelInfo(ModelOnlyCheck):
@@ -43,22 +44,23 @@ class ModelInfo(ModelOnlyCheck):
             default_params = {}
 
         # Create dataframe to show
-        model_param_df = pd.DataFrame(model_params.items(), columns=['Parameter', 'Value'])
-        model_param_df['Default'] = model_param_df['Parameter'].map(lambda x: default_params.get(x, ''))
+        model_param_df = pd.DataFrame(model_params.items(), columns=["Parameter", "Value"])
+        model_param_df["Default"] = model_param_df["Parameter"].map(lambda x: default_params.get(x, ""))
 
         def highlight_not_default(data):
             n = len(data)
-            if data['Value'] != data['Default']:
-                return n * ['background-color: lightblue']
+            if data["Value"] != data["Default"]:
+                return n * ["background-color: lightblue"]
             else:
-                return n * ['']
+                return n * [""]
+
         with warnings.catch_warnings():
-            warnings.simplefilter(action='ignore', category=FutureWarning)
+            warnings.simplefilter(action="ignore", category=FutureWarning)
             model_param_df = model_param_df.style.apply(highlight_not_default, axis=1)
             model_param_df = hide_index_for_display(model_param_df)
 
-        value = {'type': model_type, 'params': model_params}
+        value = {"type": model_type, "params": model_params}
         footnote = '<p style="font-size:0.7em"><i>Colored rows are parameters with non-default values</i></p>'
-        display = [f'Model Type: {model_type}', model_param_df, footnote]
+        display = [f"Model Type: {model_type}", model_param_df, footnote]
 
-        return CheckResult(value, header='Model Info', display=display)
+        return CheckResult(value, header="Model Info", display=display)

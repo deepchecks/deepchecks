@@ -20,14 +20,14 @@ learning rate, verbosity etc.).
 
 """
 
-#%%
+# %%
 # Imports
 # =============
-from sklearn.ensemble import AdaBoostClassifier
-
 from deepchecks.tabular.checks import ModelInfo
 
-#%%
+from sklearn.ensemble import AdaBoostClassifier
+
+# %%
 # Run the check
 # ===============
 clf = AdaBoostClassifier(learning_rate=1.2)

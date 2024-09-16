@@ -32,7 +32,7 @@ Pull Request Checklist
    - `Coding Style <#linux-mac-coding-style>`__
    - `Test Coverage <#linux-mac-test-coverage>`__
    - `Generate Docs <#linux-mac-generate-docs>`__
-   
+
 -  Refer to the `Windows users <#windows-users>`__ section if your development environment
    is Windows.
 
@@ -45,7 +45,7 @@ General guidelines for contribution
 =====================================
 
 -  Include unit tests when you contribute new features, as they help to:
-   
+
    - Prove that your code works correctly.
    - Guard against future breaking changes to lower the maintenance cost.
 
@@ -71,7 +71,7 @@ Running Unit Tests
 
 Every Pull Request submitted will be checked on every supported Python
 version, in your on-going development, you can run the following command
-to verify the unit tests: 
+to verify the unit tests:
 
 .. code:: bash
 
@@ -91,7 +91,7 @@ Coding Style
 
 Changes to Python code should pass both linting and docstring check. You can
 run the following command in order to validate your code style using
-``pylint`` and ``pydocstring``: 
+``pylint`` and ``pydocstring``:
 
 .. code:: bash
 
@@ -102,7 +102,7 @@ Test Coverage
 .. _linux-mac-test-coverage:
 
 To verify whether your changes has affected the test coverage, you can
-run the following command: 
+run the following command:
 
 .. code:: bash
 
@@ -179,7 +179,7 @@ the dependencies for your virtual environment by running the following command:
    Once downloaded, you can run the following command to install the wheel file:
 
    .. code:: bash
-      
+
       pip install <name_of_your_wheel_file>.whl
 
 Once you have installed all the dependencies, you are ready to
@@ -198,14 +198,14 @@ To verify and execute all the unit tests, run the following command:
 If you want to execute specific tests, execute the commands as follows:
 
 .. code:: bash
-   
-   # Execute NLP tests 
+
+   # Execute NLP tests
    pytest .\tests\nlp\
 
-   # Execute vision tests 
+   # Execute vision tests
    pytest .\tests\vision\
-   
-   # Execute tabular tests 
+
+   # Execute tabular tests
    pytest .\tests\tabular\
 
 Coding Style

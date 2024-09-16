@@ -1,0 +1,23 @@
+name: Publish Package
+
+on:
+  release:
+    types: [ published ]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pipx install poetry
+      - uses: actions/setup-python@v5
+      - run: poetry install
+      - run: poetry check
+      - run: poetry run pytest
+      - run: poetry version ${{ github.ref_name }}
+      - run: poetry build
+      - run: poetry config pypi-token.pypi ${{ secrets.PYPI_API_TOKEN }}
+      - run: poetry publish

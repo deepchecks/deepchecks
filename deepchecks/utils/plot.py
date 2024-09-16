@@ -9,43 +9,67 @@
 # ----------------------------------------------------------------------------
 #
 """Utils module containing utilities for plotting."""
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.cm import ScalarMappable
 from matplotlib.colors import LinearSegmentedColormap
 
-__all__ = ['create_colorbar_barchart_for_check', 'shifted_color_map', 'colors', 'common_and_outlier_colors',
-           'hex_to_rgba', 'DEFAULT_DATASET_NAMES']
+__all__ = [
+    "create_colorbar_barchart_for_check",
+    "shifted_color_map",
+    "colors",
+    "common_and_outlier_colors",
+    "hex_to_rgba",
+    "DEFAULT_DATASET_NAMES",
+]
 
-DEFAULT_DATASET_NAMES = ('Train', 'Test')
+DEFAULT_DATASET_NAMES = ("Train", "Test")
 
-colors = {DEFAULT_DATASET_NAMES[0]: '#00008b',  # dark blue
-          DEFAULT_DATASET_NAMES[1]: '#69b3a2', 'Baseline': '#b287a3', 'Generated': '#2191FB'}
+colors = {
+    DEFAULT_DATASET_NAMES[0]: "#00008b",  # dark blue
+    DEFAULT_DATASET_NAMES[1]: "#69b3a2",
+    "Baseline": "#b287a3",
+    "Generated": "#2191FB",
+}
 # iterable for displaying colors on metrics
-metric_colors = ['rgb(102, 197, 204)',
-                 'rgb(220, 176, 242)',
-                 'rgb(135, 197, 95)',
-                 'rgb(158, 185, 243)',
-                 'rgb(254, 136, 177)',
-                 'rgb(201, 219, 116)',
-                 'rgb(139, 224, 164)',
-                 'rgb(180, 151, 231)']
+metric_colors = [
+    "rgb(102, 197, 204)",
+    "rgb(220, 176, 242)",
+    "rgb(135, 197, 95)",
+    "rgb(158, 185, 243)",
+    "rgb(254, 136, 177)",
+    "rgb(201, 219, 116)",
+    "rgb(139, 224, 164)",
+    "rgb(180, 151, 231)",
+]
 
 feature_distribution_colors = {
-    'measure': '#00008b',  # dark blue
-    'feature': 'rgba(105, 179, 162, 1)'
+    "measure": "#00008b",  # dark blue
+    "feature": "rgba(105, 179, 162, 1)",
 }
 
-common_and_outlier_colors = {'common': 'rgba(105, 179, 162, 1)',
-                             'outliers': 'rgba(179, 106, 106, 1)',
-                             'common_fill': 'rgba(105, 179, 162, 0.7)',
-                             'outliers_fill': 'rgba(179, 106, 106, 0.7)'}
+common_and_outlier_colors = {
+    "common": "rgba(105, 179, 162, 1)",
+    "outliers": "rgba(179, 106, 106, 1)",
+    "common_fill": "rgba(105, 179, 162, 0.7)",
+    "outliers_fill": "rgba(179, 106, 106, 0.7)",
+}
 
 
-def create_colorbar_barchart_for_check(x: np.ndarray, y: np.ndarray, ylabel: str = 'Result', xlabel: str = 'Features',
-                                       color_map: str = 'RdYlGn_r', start: float = 0, stop: float = 1.0,
-                                       tick_steps: float = 0.1, color_label: str = 'Color',
-                                       color_shift_midpoint: float = 0.5, check_name: str = ''):
+def create_colorbar_barchart_for_check(
+    x: np.ndarray,
+    y: np.ndarray,
+    ylabel: str = "Result",
+    xlabel: str = "Features",
+    color_map: str = "RdYlGn_r",
+    start: float = 0,
+    stop: float = 1.0,
+    tick_steps: float = 0.1,
+    color_label: str = "Color",
+    color_shift_midpoint: float = 0.5,
+    check_name: str = "",
+):
     """Output a colorbar barchart using matplotlib.
 
     Parameters
@@ -79,8 +103,9 @@ def create_colorbar_barchart_for_check(x: np.ndarray, y: np.ndarray, ylabel: str
         my_cmap = plt.cm.get_cmap(color_map + check_name)
     except ValueError:
         my_cmap = plt.cm.get_cmap(color_map)
-        my_cmap = shifted_color_map(my_cmap, start=start, midpoint=color_shift_midpoint, stop=stop,
-                                    name=color_map + check_name)
+        my_cmap = shifted_color_map(
+            my_cmap, start=start, midpoint=color_shift_midpoint, stop=stop, name=color_map + check_name
+        )
 
     cmap_colors = my_cmap(list(y))
     _ = ax.bar(x, y, color=cmap_colors)  # pylint: disable=unused-variable
@@ -96,7 +121,7 @@ def create_colorbar_barchart_for_check(x: np.ndarray, y: np.ndarray, ylabel: str
     plt.xlabel(xlabel)
 
 
-def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shiftedcmap', transparent_from: float = None):
+def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = "shiftedcmap", transparent_from: float = None):
     """Offset the "center" of a colormap.
 
      Parameters
@@ -124,25 +149,26 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
     if transparent_from is None:
         transparent_from = stop
 
-    cdict = {'red': [], 'green': [], 'blue': [], 'alpha': []}
+    cdict = {"red": [], "green": [], "blue": [], "alpha": []}
 
     # regular index to compute the colors
     reg_index = np.linspace(start, stop, 257)
 
     # shifted index to match the data
     shift_index = np.hstack(
-        [np.linspace(0.0, midpoint, 128, endpoint=False), np.linspace(midpoint, 1.0, 129, endpoint=True)])
+        [np.linspace(0.0, midpoint, 128, endpoint=False), np.linspace(midpoint, 1.0, 129, endpoint=True)]
+    )
 
     for ri, si in zip(reg_index, shift_index):
         r, g, b, a = cmap(ri)
 
-        cdict['red'].append((si, r, r))
-        cdict['green'].append((si, g, g))
-        cdict['blue'].append((si, b, b))
+        cdict["red"].append((si, r, r))
+        cdict["green"].append((si, g, g))
+        cdict["blue"].append((si, b, b))
         if transparent_from / midpoint < si:
-            cdict['alpha'].append((si, 0.3, 0.3))
+            cdict["alpha"].append((si, 0.3, 0.3))
         else:
-            cdict['alpha'].append((si, a, a))
+            cdict["alpha"].append((si, a, a))
 
     newcmap = LinearSegmentedColormap(name, cdict)
     plt.register_cmap(cmap=newcmap)
@@ -152,4 +178,4 @@ def shifted_color_map(cmap, start=0, midpoint=0.5, stop=1.0, name: str = 'shifte
 
 def hex_to_rgba(h, alpha):
     """Convert color value in hex format to rgba format with alpha transparency."""
-    return 'rgba' + str(tuple([int(h.lstrip('#')[i:i + 2], 16) for i in (0, 2, 4)] + [alpha]))
+    return "rgba" + str(tuple([int(h.lstrip("#")[i: i + 2], 16) for i in (0, 2, 4)] + [alpha]))

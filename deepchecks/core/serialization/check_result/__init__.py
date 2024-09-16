@@ -9,4 +9,5 @@
 # ----------------------------------------------------------------------------
 #
 """Subpackage with a set of serializers for the CheckResult type."""
+
 __all__ = []
