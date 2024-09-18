@@ -1,4 +1,4 @@
-
+[tool.poetry]
 name = "eh-tabular-deepchecks"
 version = "0.0.0"
 authors = ["deepchecks","DanielAvdar <66269169+DanielAvdar@users.noreply.github.com>"]
