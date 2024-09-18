@@ -1,60 +1,10 @@
-
-#setuptools.setup(
-#    # -- description --------------------------------
-#    name=DEEPCHECKS,
-#    author='deepchecks',
-#    author_email='info@deepchecks.com',
-#    version=VERSION,
-#    description=short_desc,
-#    long_description=long_desc,
-#    keywords = ['Software Development', 'Machine Learning'],
-#    classifiers = [
-#        'Intended Audience :: Developers',
-#        'Intended Audience :: Science/Research',
-#        'Topic :: Software Development',
-#        'Topic :: Scientific/Engineering',
-#        'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
-#        'Programming Language :: Python :: 3',
-#        'Programming Language :: Python :: 3.6',
-#        'Programming Language :: Python :: 3.7',
-#        'Programming Language :: Python :: 3.8',
-#        'Programming Language :: Python :: 3.9',
-#        'Programming Language :: Python :: 3.10',
-#    ],
-#    license_files=('LICENSE', ),
-#    url = 'https://github.com/deepchecks/deepchecks',
-#    download_url = "https://github.com/deepchecks/deepchecks/releases/download/{0}/deepchecks-{0}.tar.gz".format(VERSION),
-#    project_urls={
-#        'Documentation': 'https://docs.deepchecks.com',
-#        'Bug Reports': 'https://github.com/deepchecks/deepchecks',
-#        'Source': 'https://github.com/deepchecks/deepchecks',
-#        'Contribute!': 'https://github.com/deepchecks/deepchecks/blob/master/CONTRIBUTING.md',
-#    },
-#
-#    # -- dependencies --------------------------------
-#    packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
-#    install_requires=main_requirements,
-#    extras_require=extra_requirements,
-#    dependency_links=dependency_links,
-#    include_package_data=True,
-#)
-
 [tool.poetry]
-#name = "py-infra"
-#version = "0.0.0"
-#description = "A library for switching pandas backend to pyarrow"
-#authors = ["DanielAvdar <66269169+DanielAvdar@users.noreply.github.com>"]
-#license = "MIT"
-#readme = "README.md"
-#homepage = "https://github.com/DanielAvdar/pandas-pyarrow"
-#repository = "https://github.com/DanielAvdar/pandas-pyarrow"
-#documentation = "https://github.com/DanielAvdar/pandas-pyarrow"
 name = "eh-tabular-deepchecks"
 version = "0.0.0"
 authors = ["deepchecks","DanielAvdar <66269169+DanielAvdar@users.noreply.github.com>"]
 license = "AGPL-3.0"
 readme = "README.md"
-homepage = "https://github.com/deepchecks/deepchecks"
+homepage = "https://github.com/DanielAvdar/deepchecks"
 description = "mantained deepchecks tabular module"
 
 
