@@ -9,7 +9,7 @@ description = "mantained deepchecks tabular module"
 
 
 
-packages = [{ include = "deepchecks" }]
+packages = [{ include = "deepchecks", from = "." }]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
