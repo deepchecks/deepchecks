@@ -1,7 +1,0 @@
-seqeval>=1.0.0
-nltk<=3.6.7; python_version < '3.7'
-nltk>=3.8.1; python_version >= '3.7' # not directly required, pinned by Snyk to avoid a vulnerability
-textblob>=0.17.1
-umap-learn
-transformers>=4.0.0,<4.45.0
-tiktoken; python_version >= '3.8'
