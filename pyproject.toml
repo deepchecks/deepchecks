@@ -75,7 +75,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 120
-include = ["core_infra/**"]
+include = ["deepchecks/**"]
 
 [tool.ruff.lint]
 select = ["F", "B", "I",  "W", "E", "A", "N"]
