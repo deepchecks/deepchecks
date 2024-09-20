@@ -245,8 +245,12 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         tab = Tab()
         children = []
 
-        for i, (name, display) in enumerate(item.items()):
-            tab.set_title(i, name)
+        for _, (name, display) in enumerate(item.items()):
+            # tab.set_title(i, name)
+            titles = tab.titles
+            titles = list(titles) if titles is not None else []
+            titles.append(name)
+            tab.titles = tuple(titles)
             children.append(
                 VBox(children=cls.handle_display(display, include_header=False, include_trailing_link=False, **kwargs))
             )
