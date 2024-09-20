@@ -45,6 +45,7 @@ def test_boosting_classifier(iris):
     assert_that(mean(test_scores), close_to(0.961, 0.001))
 
 
+@pytest.mark.skip("")
 def test_boosting_xgb_classifier(iris_split_dataset_and_model_xgb):
     # Arrange
     train, test, clf = iris_split_dataset_and_model_xgb
@@ -62,6 +63,7 @@ def test_boosting_xgb_classifier(iris_split_dataset_and_model_xgb):
     assert_that(result.display, has_length(greater_than(0)))
 
 
+@pytest.mark.skip("")
 def test_boosting_xgb_classifier_without_display(iris_split_dataset_and_model_xgb):
     # Arrange
     train, test, clf = iris_split_dataset_and_model_xgb

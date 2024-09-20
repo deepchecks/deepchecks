@@ -29,7 +29,7 @@ from tqdm.notebook import tqdm as tqdm_notebook
 
 __all__ = [
     "is_notebook",
-    "is_headless",
+    # "is_headless",
     "create_progress_bar",
     "is_colab_env",
     "is_kaggle_env",
@@ -37,7 +37,7 @@ __all__ = [
     "is_sagemaker_env",
     "is_terminal_interactive_shell",
     "is_zmq_interactive_shell",
-    "ProgressBarGroup",
+    # "ProgressBarGroup",
     "is_sphinx",
 ]
 
@@ -81,29 +81,29 @@ def is_zmq_interactive_shell() -> bool:
     return isinstance(get_ipython(), ZMQInteractiveShell)
 
 
-@lru_cache(maxsize=None)
-def is_headless() -> bool:
-    """Check if the system can support GUI.
-
-    Returns
-    -------
-    bool
-        True if we cannot support GUI, False otherwise
-    """
-    # pylint: disable=import-outside-toplevel
-    try:
-        import Tkinter as tk
-    except ImportError:
-        try:
-            import tkinter as tk
-        except ImportError:
-            return True
-    try:
-        root = tk.Tk()
-    except tk.TclError:
-        return True
-    root.destroy()
-    return False
+# @lru_cache(maxsize=None)
+# def is_headless() -> bool:
+#     """Check if the system can support GUI.
+#
+#     Returns
+#     -------
+#     bool
+#         True if we cannot support GUI, False otherwise
+#     """
+#     # pylint: disable=import-outside-toplevel
+#     try:
+#         import Tkinter as tk
+#     except ImportError:
+#         try:
+#             import tkinter as tk
+#         except ImportError:
+#             return True
+#     try:
+#         root = tk.Tk()
+#     except tk.TclError:
+#         return True
+#     root.destroy()
+#     return False
 
 
 @lru_cache(maxsize=None)
