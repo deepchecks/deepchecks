@@ -13,7 +13,7 @@ packages = [{ include = "deepchecks" }]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-pandas = ">=1.1.5,<2.2.0"
+pandas = ">=1.1.5,<2.3.0"
 numpy = ">=1.22.2"
 scikit-learn = "*"
 jsonpickle = ">=2"
