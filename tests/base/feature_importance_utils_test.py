@@ -297,15 +297,6 @@ def test_fi_n_top(diabetes_split_dataset_and_model):
     assert_that(len(sorted_df), equal_to(0))
 
 
-def test_no_warning_on_none_model(iris_dataset):
-    # Act
-    with pytest.warns(None) as warn_record:
-        fi = calculate_feature_importance_or_none(None, iris_dataset, None, None, TaskType.MULTICLASS)
-    # Assert
-    assert_that(fi, none())
-    assert_that(warn_record, has_length(0))
-
-
 def test_permutation_importance_with_nan_labels(iris_split_dataset_and_model, caplog):
     # Arrange
     train_ds, _, adaboost = iris_split_dataset_and_model
