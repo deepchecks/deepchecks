@@ -34,9 +34,8 @@ jupyter-server = ">=2.7.2"
 
 
 [tool.poetry.dev-dependencies]
-twine = "^4.0.0"
 pydocstyle = "*"
-pytest = "<8.0.0"
+pytest = ">=8.0.0"
 pytest-cov = "*"
 pyhamcrest = "*"
 nbval = "*"
