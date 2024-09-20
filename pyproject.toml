@@ -35,13 +35,7 @@ jupyter-server = ">=2.7.2"
 
 [tool.poetry.dev-dependencies]
 twine = "^4.0.0"
-pylint = "==2.13.5"
 pydocstyle = "*"
-flake8 = "==4.0.1"
-flake8-spellcheck = "*"
-flake8-eradicate = "*"
-flake8-rst = "*"
-isort = "*"
 pytest = "<8.0.0"
 pytest-cov = "*"
 pyhamcrest = "*"
@@ -72,7 +66,7 @@ beautifulsoup4 = ">=4.11.1"
 tornado = ">=6.3.3"
 pyarrow = ">=14.0.1"
 aiohttp = ">=3.9.0"
-umap-learn = "==0.5.4"
+umap-learn = ">=0.5.4"
 
 pre-commit = "*"
 
