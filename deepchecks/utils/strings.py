@@ -19,7 +19,6 @@ import re
 import sys
 import typing as t
 from collections import defaultdict
-from copy import copy
 from datetime import datetime
 from decimal import Decimal
 from string import ascii_uppercase, digits
@@ -40,8 +39,8 @@ __all__ = [
     "string_baseform",
     "get_base_form_to_variants_dict",
     "split_camel_case",
-    "split_and_keep",
-    "split_by_order",
+    # "split_and_keep",
+    # "split_by_order",
     "is_string_column",
     "format_percent",
     "format_number",
@@ -354,104 +353,104 @@ def get_base_form_to_variants_dict(uniques: t.Iterable[str]) -> t.Dict[str, t.Se
     return base_form_to_variants
 
 
-def str_min_find(s: str, substr_list: t.Iterable[str]) -> t.Tuple[int, str]:
-    """
-    Find the minimal first occurence of a substring in a string, and return both the index and substring.
-
-    Parameters
-    ----------
-    s : str
-        The string in which we look for substrings
-    substr_list : t.Iterable[str]
-        list of substrings to find
-    Returns
-    -------
-    min_find : int
-        index of minimal first occurence of substring
-    min_substr : str
-        the substring that occures in said index
-
-    """
-    min_find = -1
-    min_substr = ""
-    for substr in substr_list:
-        first_find = s.find(substr)
-        if first_find != -1 and (first_find < min_find or min_find == -1):
-            min_find = first_find
-            min_substr = substr
-    return min_find, min_substr
-
-
-def split_and_keep(s: str, separators: t.Union[str, t.Iterable[str]]) -> t.List[str]:
-    """
-    Split string by another substring into a list. Like str.split(), but keeps the separator occurrences in the list.
-
-    Parameters
-    ----------
-    s : str
-        the string to split
-    separators : t.Union[str, t.Iterable[str]]
-        the substring to split by
-    Returns
-    -------
-    t.List[str]
-        list of substrings, including the separator occurrences in string
-
-    """
-    if isinstance(separators, str):
-        separators = [separators]
-
-    split_s = []
-    while len(s) != 0:
-        i, substr = str_min_find(s=s, substr_list=separators)
-        if i == 0:
-            split_s.append(substr)
-            s = s[len(substr):]
-        elif i == -1:
-            split_s.append(s)
-            break
-        else:
-            pre, _ = s.split(substr, 1)
-            split_s.append(pre)
-            s = s[len(pre):]
-    return split_s
+# def str_min_find(s: str, substr_list: t.Iterable[str]) -> t.Tuple[int, str]:
+#     """
+#     Find the minimal first occurence of a substring in a string, and return both the index and substring.
+#
+#     Parameters
+#     ----------
+#     s : str
+#         The string in which we look for substrings
+#     substr_list : t.Iterable[str]
+#         list of substrings to find
+#     Returns
+#     -------
+#     min_find : int
+#         index of minimal first occurence of substring
+#     min_substr : str
+#         the substring that occures in said index
+#
+#     """
+#     min_find = -1
+#     min_substr = ""
+#     for substr in substr_list:
+#         first_find = s.find(substr)
+#         if first_find != -1 and (first_find < min_find or min_find == -1):
+#             min_find = first_find
+#             min_substr = substr
+#     return min_find, min_substr
 
 
-def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.List[str]:
-    """
-    Split string by a list of substrings, each used once as a separator.
+# def split_and_keep(s: str, separators: t.Union[str, t.Iterable[str]]) -> t.List[str]:
+#     """
+#     Split string by another substring into a list. Like str.split(), but keeps the separator occurrences in the list.
+#
+#     Parameters
+#     ----------
+#     s : str
+#         the string to split
+#     separators : t.Union[str, t.Iterable[str]]
+#         the substring to split by
+#     Returns
+#     -------
+#     t.List[str]
+#         list of substrings, including the separator occurrences in string
+#
+#     """
+#     if isinstance(separators, str):
+#         separators = [separators]
+#
+#     split_s = []
+#     while len(s) != 0:
+#         i, substr = str_min_find(s=s, substr_list=separators)
+#         if i == 0:
+#             split_s.append(substr)
+#             s = s[len(substr):]
+#         elif i == -1:
+#             split_s.append(s)
+#             break
+#         else:
+#             pre, _ = s.split(substr, 1)
+#             split_s.append(pre)
+#             s = s[len(pre):]
+#     return split_s
 
-    Parameters
-    ----------
-    s : str
-        the string to split
-    separators : t.Iterable[str]
-        list of substrings to split by
-    keep : bool , default: True
-        whether to keep the separators in list as well. Default is True.
-    Returns
-    -------
-    t.List[str]
-        list of substrings
-    """
-    split_s = []
-    separators = list(copy(separators))
-    while len(s) != 0:
-        if len(separators) > 0:
-            sep = separators[0]
-            if s.find(sep) == 0:
-                if keep is True:
-                    split_s.append(sep)
-                s = s[len(sep):]
-                separators.pop(0)
-            else:
-                pre, _ = s.split(sep, 1)
-                split_s.append(pre)
-                s = s[len(pre):]
-        else:
-            split_s.append(s)
-            break
-    return split_s
+
+# def split_by_order(s: str, separators: t.Iterable[str], keep: bool = True) -> t.List[str]:
+#     """
+#     Split string by a list of substrings, each used once as a separator.
+#
+#     Parameters
+#     ----------
+#     s : str
+#         the string to split
+#     separators : t.Iterable[str]
+#         list of substrings to split by
+#     keep : bool , default: True
+#         whether to keep the separators in list as well. Default is True.
+#     Returns
+#     -------
+#     t.List[str]
+#         list of substrings
+#     """
+#     split_s = []
+#     separators = list(copy(separators))
+#     while len(s) != 0:
+#         if len(separators) > 0:
+#             sep = separators[0]
+#             if s.find(sep) == 0:
+#                 if keep is True:
+#                     split_s.append(sep)
+#                 s = s[len(sep):]
+#                 separators.pop(0)
+#             else:
+#                 pre, _ = s.split(sep, 1)
+#                 split_s.append(pre)
+#                 s = s[len(pre):]
+#         else:
+#             split_s.append(s)
+#             break
+#     return split_s
 
 
 def truncate_zero_percent(ratio: float, floating_point: int):
@@ -568,7 +567,7 @@ def format_number_if_not_nan(x, floating_point: int = 2):
     return format_number(x, floating_point)
 
 
-def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:
+def format_list(l: t.List[Hashable], max_elements_to_show: int = 10, max_string_length: int = 40) -> str:  # noqa
     """Format columns properties for display in condition name.
 
     Parameters
