@@ -24,18 +24,11 @@ from pandas.io.formats.style import Styler
 from plotly.basedatatypes import BaseFigure
 from typing_extensions import Protocol, runtime_checkable
 
-try:
-    from wandb.sdk.data_types.base_types.wb_value import WBValue  # pylint: disable=unused-import
-except ImportError:
-    pass
-
-
 __all__ = [
     "Serializer",
     "HtmlSerializer",
     "JsonSerializer",
     "WidgetSerializer",
-    "WandbSerializer",
     "ABCDisplayItemsHandler",
     "JunitSerializer",
     "IPythonSerializer",
@@ -87,15 +80,6 @@ class WidgetSerializer(Serializer[T]):
     @abc.abstractmethod
     def serialize(self, **kwargs) -> Widget:
         """Serialize into ipywidgets.Widget instance."""
-        raise NotImplementedError()
-
-
-class WandbSerializer(Serializer[T]):
-    """To wandb metadata serializer protocol."""
-
-    @abc.abstractmethod
-    def serialize(self, **kwargs) -> t.Dict[str, "WBValue"]:
-        """Serialize into Wandb media format."""
         raise NotImplementedError()
 
 

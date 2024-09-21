@@ -15,7 +15,6 @@ import abc
 import io
 import json
 import pathlib
-import warnings
 from collections import OrderedDict
 from typing import Any, Dict, List, Optional, Sequence, Set, Tuple, Type, Union, cast
 
@@ -30,7 +29,6 @@ from deepchecks.core.serialization.suite_result.ipython import SuiteResultSerial
 from deepchecks.core.serialization.suite_result.json import SuiteResultSerializer as SuiteResultJsonSerializer
 from deepchecks.core.serialization.suite_result.widget import SuiteResultSerializer as SuiteResultWidgetSerializer
 from deepchecks.utils.strings import get_random_string, widget_to_html_string
-from deepchecks.utils.wandb_utils import wandb_run
 
 from . import common
 
@@ -354,38 +352,6 @@ class SuiteResult(DisplayableResult):
         str
         """
         return jsonpickle.dumps(SuiteResultJsonSerializer(self).serialize(with_display=with_display), unpicklable=False)
-
-    def to_wandb(self, dedicated_run: Optional[bool] = None, **kwargs):
-        """Send suite result to wandb.
-
-        Parameters
-        ----------
-        dedicated_run : bool
-            whether to create a separate wandb run or not
-            (deprecated parameter, does not have any effect anymore)
-        kwargs: Keyword arguments to pass to wandb.init.
-                Default project name is deepchecks.
-                Default config is the suite name.
-        """
-        # NOTE:
-        # Wandb is not a default dependency
-        # user should install it manually therefore we are
-        # doing import within method to prevent premature ImportError
-        # TODO:
-        # Previous implementation used ProgressBar to show serialization progress
-        from deepchecks.core.serialization.suite_result.wandb import SuiteResultSerializer as WandbSerializer
-
-        if dedicated_run is not None:
-            warnings.warn(
-                '"dedicated_run" parameter is deprecated and does not have effect anymore. '
-                "It will be remove in next versions."
-            )
-
-        wandb_kwargs = {"config": {"name": self.name}}
-        wandb_kwargs.update(**kwargs)
-
-        with wandb_run(**wandb_kwargs) as run:
-            run.log(WandbSerializer(self).serialize())
 
     def get_not_ran_checks(self) -> List["check_types.CheckFailure"]:
         """Get all the check results which did not run (unable to run due to missing parameters, exception, etc).
