@@ -135,7 +135,7 @@ The yaml file for the GitHub Actions workflow is as follows:
             run: |
               python validate_model_performance.py
           - name: Archive Deepchecks Results
-            uses: actions/upload-artifact@v3
+            uses: actions/upload-artifact@v4
             # Always run this step even if previous step failed
             run: always()
             with:
