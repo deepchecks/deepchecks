@@ -67,6 +67,9 @@ def _split_to_sentences_with_cache(text: str) -> Union[List[str], None]:
         if not nltk_download('punkt_tab', quiet=True):
             _warn_if_missing_nltk_dependencies('punkt_tab', 'property')
             return None
+        if not nltk_download('punkt', quiet=True):
+            _warn_if_missing_nltk_dependencies('punkt', 'property')
+            return None
         sentences_cache[hash_key] = sent_tokenize(text)
     return sentences_cache[hash_key]
 
@@ -349,7 +352,9 @@ def lexical_density(text: str) -> float:
     if not nltk_download('punkt_tab', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Lexical Density')
         return np.nan
-
+    if not nltk_download('punkt', quiet=True):
+        _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
+        return np.nan
     all_words = _split_to_words_with_cache(text)
     if len(all_words) == 0:
         return np.nan
@@ -452,6 +457,9 @@ def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
     if not nltk_download('punkt_tab', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Unique Syllables Count')
         return np.nan
+    if not nltk_download('punkt', quiet=True):
+        _warn_if_missing_nltk_dependencies('punkt', 'Unique Syllables Count')
+        return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
             _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
@@ -497,6 +505,9 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
         return np.nan
     if not nltk_download('punkt_tab', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Average Syllable Length')
+        return np.nan
+    if not nltk_download('punkt', quiet=True):
+        _warn_if_missing_nltk_dependencies('punkt', 'Average Syllable Length')
         return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
