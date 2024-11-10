@@ -64,8 +64,8 @@ def _split_to_sentences_with_cache(text: str) -> Union[List[str], None]:
     """Tokenize a text into sentences and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in sentences_cache:
-        if not nltk_download('punkt', quiet=True):
-            _warn_if_missing_nltk_dependencies('punkt', 'property')
+        if not nltk_download('punkt_tab', quiet=True):
+            _warn_if_missing_nltk_dependencies('punkt_tab', 'property')
             return None
         sentences_cache[hash_key] = sent_tokenize(text)
     return sentences_cache[hash_key]
@@ -346,8 +346,8 @@ def lexical_density(text: str) -> float:
     """
     if pd.isna(text):
         return np.nan
-    if not nltk_download('punkt', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
+    if not nltk_download('punkt_tab', quiet=True):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Lexical Density')
         return np.nan
 
     all_words = _split_to_words_with_cache(text)
@@ -449,8 +449,8 @@ def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
     """Return the number of unique syllables in the text."""
     if pd.isna(text):
         return np.nan
-    if not nltk_download('punkt', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt', 'Unique Syllables Count')
+    if not nltk_download('punkt_tab', quiet=True):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Unique Syllables Count')
         return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
@@ -485,8 +485,8 @@ def sentences_count(text: str) -> int:
     """Return the number of sentences in the text."""
     if pd.isna(text):
         return np.nan
-    if not nltk_download('punkt', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt', 'Sentences Count')
+    if not nltk_download('punkt_tab', quiet=True):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Sentences Count')
         return np.nan
     return len(_split_to_sentences_with_cache(text))
 
@@ -495,8 +495,8 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
     """Return a the average number of syllables per sentences per text sample."""
     if pd.isna(text):
         return np.nan
-    if not nltk_download('punkt', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt', 'Average Syllable Length')
+    if not nltk_download('punkt_tab', quiet=True):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Average Syllable Length')
         return np.nan
     if cmudict_dict is None:
         if not nltk_download('cmudict', quiet=True):
