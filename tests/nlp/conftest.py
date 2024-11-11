@@ -110,6 +110,7 @@ def dummy_multilabel_textdata_train_test(set_numpy_seed):
 def download_nltk_resources():
     """Download nltk resources"""
     nltk_download('movie_reviews', quiet=True)
+    nltk_download('punkt', quiet=True)
     nltk_download('punkt_tab', quiet=True)
 
 
