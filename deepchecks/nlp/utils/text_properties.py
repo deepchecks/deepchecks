@@ -370,10 +370,10 @@ def unique_noun_count(text: Sequence[str]) -> int:
         _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
         return np.nan
     if not nltk_download('punkt_tab', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt_tab', 'Lexical Density')
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Unique Noun Count')
         return np.nan
     if not nltk_download('punkt', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
+        _warn_if_missing_nltk_dependencies('punkt', 'Unique Noun Count')
         return np.nan
     unique_words_with_tags = set(textblob.TextBlob(text).tags)
     return sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N'))
