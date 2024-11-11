@@ -366,6 +366,9 @@ def unique_noun_count(text: Sequence[str]) -> int:
     """Return the number of unique noun words in the text."""
     if pd.isna(text):
         return np.nan
+    if not nltk_download('averaged_perceptron_tagger_eng', quiet=True):
+        _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
+        return np.nan
     if not nltk_download('averaged_perceptron_tagger', quiet=True):
         _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
         return np.nan
