@@ -262,9 +262,8 @@ test-win:
 
 
 test-tabular-only: env
-	@$(PIP) install -U pip
+	@$(PIP) install -U pip wheel setuptools
 	@$(PIP) install -q \
-		wheel setuptools \
 		-r $(REQUIRE_DIR)/$(REQUIRE_FILE) \
 		-r $(REQUIRE_DIR)/dev-$(REQUIRE_FILE)
 	@$(PIP) install --no-deps -e .
