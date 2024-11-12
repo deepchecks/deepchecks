@@ -4,6 +4,6 @@ nltk>=3.8.1; python_version >= '3.7' # not directly required, pinned by Snyk to 
 datasets
 textblob
 transformers<=4.36.2
---find-links https://download.pytorch.org/whl/torch/
-torch==2.4.0+cpu
+--find-links https://s3.amazonaws.com/pytorch/whl/torch_stable.html
+torch==1.10.2+cpu
 sentence_transformers<=2.2.2
