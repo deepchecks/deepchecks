@@ -46,12 +46,12 @@ class DeepchecksFilter:
             self.filter_functions = filter_functions
         self.label = label
 
-
     def filter(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Run the filter on given dataframe. Return rows in data frame satisfying the filter properties."""
         for func in self.filter_functions:
             dataframe = dataframe.loc[func(dataframe)]
         return dataframe
+
 
 class DeepchecksBaseFilter(DeepchecksFilter):
     """Extend DeepchecksFilter class for feature range based filters.
@@ -220,10 +220,10 @@ def partition_column(
         for start, end in zip(percentile_values[:-1], percentile_values[1:]):
             # In case of the last range, the end is closed.
             if end == percentile_values[-1]:
-                f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] <= b)
+                def f(df, a=start, b=end): return (df[column_name] >= a) & (df[column_name] <= b)
                 label = f'[{format_number(start)} - {format_number(end)}]'
             else:
-                f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] < b)
+                def f(df, a=start, b=end): return (df[column_name] >= a) & (df[column_name] < b)
                 label = f'[{format_number(start)} - {format_number(end)})'
 
             filters.append(DeepchecksFilter([f], label))
