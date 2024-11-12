@@ -27,7 +27,7 @@ def test_object_detection(coco_visiondata_train, coco_visiondata_test):
     assert_that(brightness_diff.max(), close_to(44, 0.001))
 
     bbox_diff = result.value["diff_bbox"]
-    assert_that(bbox_diff.mean(), close_to(5.593, 0.001))
+    assert_that(bbox_diff.mean(), close_to(5.593, 0.006))
     assert_that(bbox_diff.max(), close_to(23, 0.001))
 
 

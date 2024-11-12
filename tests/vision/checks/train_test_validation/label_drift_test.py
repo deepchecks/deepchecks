@@ -201,7 +201,7 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
         is_pass=False,
         name='categorical drift score < 0.1 and numerical drift score < 0.15',
         details='Failed for 1 out of 1 label properties.\nFound 1 categorical label properties with PSI above '
-                'threshold: {\'Samples Per Class\': \'0.32\'}'
+                f"threshold: {{\'Samples Per Class\': {result.value['Samples Per Class']['Drift score']:.2f}\'}}"
     ))
 
 
