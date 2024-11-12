@@ -498,6 +498,9 @@ def sentences_count(text: str) -> int:
     if not nltk_download('punkt_tab', quiet=True):
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Sentences Count')
         return np.nan
+    if not nltk_download('punkt', quiet=True):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Sentences Count')
+        return np.nan
     return len(_split_to_sentences_with_cache(text))
 
 

@@ -322,8 +322,8 @@ class WeakSegmentAbstract(abc.ABC):
             min_score, min_score_leaf_filter = np.inf, None
             for leaf_filter in leaves_filters:
                 if scorer is not None and dummy_model is not None and label_col is not None:
-                    leaf_data = data_for_search
-                    leaf_data, leaf_labels = leaf_filter.filter(leaf_data, label_col_for_search)
+                    leaf_data = leaf_filter.filter(data_for_search)
+                    leaf_labels = label_col_for_search.loc[leaf_data.index]
                     leaf_score = scorer.run_on_data_and_label(dummy_model, leaf_data, leaf_labels)
                 else:  # if no scorer is provided, use the average loss_per_sample of samples in the leaf as the score
                     leaf_score = score_per_sample_for_search[list(leaf_filter.filter(data_for_search).index)].mean()

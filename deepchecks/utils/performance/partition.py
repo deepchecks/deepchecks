@@ -46,19 +46,12 @@ class DeepchecksFilter:
             self.filter_functions = filter_functions
         self.label = label
 
-    def filter(self, dataframe: pd.DataFrame, label_col: Optional[pd.Series] = None) -> \
-            Union[Tuple[pd.DataFrame, pd.Series], pd.DataFrame]:
+
+    def filter(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Run the filter on given dataframe. Return rows in data frame satisfying the filter properties."""
-        if label_col is not None:
-            dataframe['temp_label_col'] = label_col
         for func in self.filter_functions:
             dataframe = dataframe.loc[func(dataframe)]
-
-        if label_col is not None:
-            return dataframe.drop(columns=['temp_label_col']), dataframe['temp_label_col']
-        else:
-            return dataframe
-
+        return dataframe
 
 class DeepchecksBaseFilter(DeepchecksFilter):
     """Extend DeepchecksFilter class for feature range based filters.
