@@ -207,6 +207,7 @@ def partition_column(
     -------
     List[DeepchecksFilter]
     """
+    # pylint: disable=function-redefined,multiple-statements
     column = dataset.data[column_name]
     if column_name in dataset.numerical_features:
         percentile_values = numeric_segmentation_edges(column, max_segments)
