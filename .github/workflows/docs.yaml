@@ -39,10 +39,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout deepchecks
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: "3.9"
       - name: Install pandoc
@@ -51,6 +51,8 @@ jobs:
           sudo apt-get install pandoc dvisvgm texlive texlive-latex-extra
       - name: Build documentation
         run: make docs
+      - name: pip freeze
+        run: make freeze
       - name: Validate examples
         run: make validate-examples
       - name: Upload documentation
@@ -73,12 +75,12 @@ jobs:
           path: docs
 
       - name: Checkout deepchecks
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: deepchecks
 
       - name: Checkout deepchecks.github.io
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: deepchecks/deepchecks.github.io
           path: deepchecks.github.io

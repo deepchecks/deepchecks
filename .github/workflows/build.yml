@@ -32,7 +32,7 @@ jobs:
         python-version: ["3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
@@ -53,7 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     name: coveralls
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v3
       with:
         python-version: "3.9"
@@ -67,7 +67,7 @@ jobs:
   tests-tabular-python36:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python 3.6
         uses: actions/setup-python@v3
         with:
@@ -81,7 +81,7 @@ jobs:
   tests-windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python 3.9
       uses: actions/setup-python@v3
       with:
@@ -95,7 +95,7 @@ jobs:
       matrix:
         scikit-version: [ '0.23.2', '1.0.2', '1.1.0' ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v3
         with:
           python-version: "3.8"
@@ -108,7 +108,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout the code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
     - name: Setup Python
@@ -150,7 +150,7 @@ jobs:
 #  gpu-tests:
 #    runs-on: [self-hosted, gpu]
 #    steps:
-#      - uses: actions/checkout@v3
+#      - uses: actions/checkout@v4
 #      - name: Set up Python
 #        uses: actions/setup-python@v3
 #        with:
@@ -164,7 +164,7 @@ jobs:
 #  documentation-check:
 #    runs-on: ubuntu-latest
 #    steps:
-#      - uses: actions/checkout@v2
+#      - uses: actions/checkout@v4
 #      - uses: actions/setup-node@v1
 #        with:
 #          node-version: '14.x'
