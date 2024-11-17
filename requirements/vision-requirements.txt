@@ -1,6 +1,6 @@
 pytorch-ignite>=0.4.8
 opencv-python>=4.5.5.62
-albumentations>=1.1.0
+albumentations>=1.1.0,<1.4.0
 imgaug>=0.4.0
 seaborn>=0.1.0
 imagehash>=4.0.0
