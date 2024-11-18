@@ -1,7 +1,7 @@
 pandas>=1.1.5,<2.2.0
 numpy>=1.19; python_version < '3.8'
 numpy>=1.22.2; python_version >= '3.8'
-scikit-learn>=0.23.2, <1.4.0
+scikit-learn>=0.23.2, <1.6.0
 jsonpickle>=2
 PyNomaly>=0.3.3
 
