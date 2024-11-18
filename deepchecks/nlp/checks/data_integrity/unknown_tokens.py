@@ -179,7 +179,7 @@ class UnknownTokens(SingleDatasetCheck):
             # Tokenization for each word
             # --------------------------
             # Choose tokenizer based on availability of nltk
-            if nltk.download('punkt', quiet=True):
+            if nltk.download('punkt', quiet=True) and nltk.download('punkt_tab', quiet=True):
                 tokenize = nltk.word_tokenize
             else:
                 warnings.warn('nltk punkt is not available, using str.split instead to identify individual words. '
