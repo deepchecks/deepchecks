@@ -33,7 +33,6 @@ correlation for each combination of feature types:
 # Imports
 # =======
 
-import pandas as pd
 from deepchecks.tabular.datasets.classification import adult
 from deepchecks.tabular.checks.data_integrity import FeatureFeatureCorrelation
 

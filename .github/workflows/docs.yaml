@@ -39,12 +39,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout deepchecks
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.8"
       - name: Install pandoc
         run: |
           sudo apt-get update
@@ -55,7 +55,7 @@ jobs:
         run: make validate-examples
       - name: Upload documentation
         if: github.event_name != 'pull_request'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: docs
           path: docs/build/html
@@ -73,12 +73,12 @@ jobs:
           path: docs
 
       - name: Checkout deepchecks
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           path: deepchecks
 
       - name: Checkout deepchecks.github.io
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           repository: deepchecks/deepchecks.github.io
           path: deepchecks.github.io

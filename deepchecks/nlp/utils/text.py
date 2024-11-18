@@ -86,7 +86,7 @@ def remove_stopwords(text: str) -> str:
         warnings.warn('nltk stopwords not found, stopwords won\'t be ignored when considering text duplicates.'
                       ' Please check your internet connection.')
         return text
-    if nltk.download('punkt', quiet=True):
+    if nltk.download('punkt', quiet=True) and nltk.download('punkt_tab', quiet=True):
         tokenize = word_tokenize
     else:
         tokenize = str.split

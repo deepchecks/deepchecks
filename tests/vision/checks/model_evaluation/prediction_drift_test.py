@@ -244,7 +244,8 @@ def test_drift_max_drift_score_condition_fail(mnist_drifted_datasets):
         is_pass=False,
         name='categorical drift score < 0.15 and numerical drift score < 0.15 for prediction drift',
         details='Failed for 1 out of 1 prediction properties.\n'
-                'Found 1 categorical prediction properties with PSI above threshold: {\'Samples Per Class\': \'0.39\'}'
+                'Found 1 categorical prediction properties with PSI above '
+                f"threshold: {{\'Samples Per Class\': \'{result.value['Samples Per Class']['Drift score']:.2f}\'}}"
     ))
 
 

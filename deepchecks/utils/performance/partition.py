@@ -11,7 +11,7 @@
 """Module of functions to partition columns into segments."""
 from collections import defaultdict
 from copy import deepcopy
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List
 
 import numpy as np
 import pandas as pd
@@ -46,18 +46,11 @@ class DeepchecksFilter:
             self.filter_functions = filter_functions
         self.label = label
 
-    def filter(self, dataframe: pd.DataFrame, label_col: Optional[pd.Series] = None) -> \
-            Union[Tuple[pd.DataFrame, pd.Series], pd.DataFrame]:
+    def filter(self, dataframe: pd.DataFrame) -> pd.DataFrame:
         """Run the filter on given dataframe. Return rows in data frame satisfying the filter properties."""
-        if label_col is not None:
-            dataframe['temp_label_col'] = label_col
         for func in self.filter_functions:
             dataframe = dataframe.loc[func(dataframe)]
-
-        if label_col is not None:
-            return dataframe.drop(columns=['temp_label_col']), dataframe['temp_label_col']
-        else:
-            return dataframe
+        return dataframe
 
 
 class DeepchecksBaseFilter(DeepchecksFilter):
@@ -214,6 +207,7 @@ def partition_column(
     -------
     List[DeepchecksFilter]
     """
+    # pylint: disable=function-redefined,multiple-statements
     column = dataset.data[column_name]
     if column_name in dataset.numerical_features:
         percentile_values = numeric_segmentation_edges(column, max_segments)
@@ -227,10 +221,10 @@ def partition_column(
         for start, end in zip(percentile_values[:-1], percentile_values[1:]):
             # In case of the last range, the end is closed.
             if end == percentile_values[-1]:
-                f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] <= b)
+                def f(df, a=start, b=end): return (df[column_name] >= a) & (df[column_name] <= b)
                 label = f'[{format_number(start)} - {format_number(end)}]'
             else:
-                f = lambda df, a=start, b=end: (df[column_name] >= a) & (df[column_name] < b)
+                def f(df, a=start, b=end): return (df[column_name] >= a) & (df[column_name] < b)
                 label = f'[{format_number(start)} - {format_number(end)})'
 
             filters.append(DeepchecksFilter([f], label))
