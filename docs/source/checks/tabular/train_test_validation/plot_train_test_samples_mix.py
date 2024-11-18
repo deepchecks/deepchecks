@@ -25,13 +25,13 @@ We will run the check on the iris dataset.
 """
 # %%
 
-from deepchecks.tabular import Dataset
+import pandas as pd
 from deepchecks.tabular.checks import TrainTestSamplesMix
 from deepchecks.tabular.datasets.classification import iris
 
 # Create data with leakage from train to test
 train, test = iris.load_data()
-bad_test_df = test.data.append(train.data.iloc[[0, 1, 1, 2, 3, 4, 2, 2, 10]], ignore_index=True)
+bad_test_df = pd.concat([test.data, train.data.iloc[[0, 1, 1, 2, 3, 4, 2, 2, 10]]], ignore_index=True)
 bad_test = test.copy(bad_test_df)
 
 check = TrainTestSamplesMix()

@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.7", "3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
+        python-version: ["3.8", "3.9"] #TODO: add 3.10 when upgrading torch to 1.11
 
     steps:
     - uses: actions/checkout@v4
@@ -114,7 +114,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v3
       with:
-        python-version: '3.7'
+        python-version: '3.9'
     - name: Get explicit and transitive dependencies
       run: |
         pip3 install torch==1.10.2+cpu torchvision==0.11.3+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html
