@@ -65,8 +65,8 @@ def _split_to_sentences_with_cache(text: str) -> Union[List[str], None]:
     """Tokenize a text into sentences and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in sentences_cache:
-        if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
-            _warn_if_missing_nltk_dependencies('punkt', 'property')
+        if not check_nltk_resource('punkt_tab'):
+            _warn_if_missing_nltk_dependencies('punkt_tab', 'property')
             return None
         sentences_cache[hash_key] = sent_tokenize(text)
     return sentences_cache[hash_key]
@@ -347,8 +347,8 @@ def lexical_density(text: str) -> float:
     """
     if pd.isna(text):
         return np.nan
-    if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
-        _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
+    if not check_nltk_resource('punkt_tab'):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Lexical Density')
         return np.nan
     all_words = _split_to_words_with_cache(text)
     if len(all_words) == 0:
@@ -361,9 +361,10 @@ def unique_noun_count(text: Sequence[str]) -> int:
     """Return the number of unique noun words in the text."""
     if pd.isna(text):
         return np.nan
-    if not check_nltk_resource('averaged_perceptron_tagger_eng') or not \
-            check_nltk_resource('averaged_perceptron_tagger'):
-        _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
+    if not check_nltk_resource('averaged_perceptron_tagger_eng',
+                               'taggers/averaged_perceptron_tagger_eng'):
+        _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger_eng',
+                                           'Unique Noun Count')
         return np.nan
     unique_words_with_tags = set(textblob.TextBlob(text).tags)
     return sum(1 for (_, tag) in unique_words_with_tags if tag.startswith('N'))
@@ -453,8 +454,8 @@ def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
     """Return the number of unique syllables in the text."""
     if pd.isna(text):
         return np.nan
-    if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
-        _warn_if_missing_nltk_dependencies('punkt', 'Unique Syllables Count')
+    if not check_nltk_resource('punkt_tab'):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Unique Syllables Count')
         return np.nan
     if cmudict_dict is None:
         try:
@@ -493,8 +494,8 @@ def sentences_count(text: str) -> int:
     """Return the number of sentences in the text."""
     if pd.isna(text):
         return np.nan
-    if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
-        _warn_if_missing_nltk_dependencies('punkt', 'Sentences Count')
+    if not check_nltk_resource('punkt_tab'):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Sentences Count')
         return np.nan
     return len(_split_to_sentences_with_cache(text))
 
@@ -503,8 +504,8 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
     """Return a the average number of syllables per sentences per text sample."""
     if pd.isna(text):
         return np.nan
-    if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
-        _warn_if_missing_nltk_dependencies('punkt', 'Average Syllable Length')
+    if not check_nltk_resource('punkt_tab'):
+        _warn_if_missing_nltk_dependencies('punkt_tab', 'Average Syllable Length')
         return np.nan
     if cmudict_dict is None:
         try:

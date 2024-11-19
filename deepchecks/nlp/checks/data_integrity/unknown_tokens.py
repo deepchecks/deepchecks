@@ -180,10 +180,10 @@ class UnknownTokens(SingleDatasetCheck):
             # Tokenization for each word
             # --------------------------
             # Choose tokenizer based on availability of nltk
-            if check_nltk_resource('punkt_tab') and check_nltk_resource('punkt'):
+            if check_nltk_resource('punkt_tab'):
                 tokenize = nltk.word_tokenize
             else:
-                warnings.warn('nltk punkt is not available, using str.split instead to identify individual words. '
+                warnings.warn('nltk punkt_tab is not available, using str.split instead to identify individual words. '
                               'Please check your internet connection.')
                 tokenize = str.split
 
