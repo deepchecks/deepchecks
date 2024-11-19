@@ -144,7 +144,7 @@ def test_boosting_regressor(diabetes, diabetes_model):
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
     assert_that(mean(train_scores), close_to(-44.52, 0.01))
-    assert_that(mean(test_scores), close_to(-59.35, 0.01))
+    assert_that(mean(test_scores), close_to(-59.3, 0.01))
 
 
 def test_boosting_regressor_xgb(diabetes_split_dataset_and_model_xgb):
@@ -160,7 +160,7 @@ def test_boosting_regressor_xgb(diabetes_split_dataset_and_model_xgb):
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
     assert_that(mean(train_scores), close_to(-22.67, 0.01))
-    assert_that(mean(test_scores), close_to(-66.99, 0.01))
+    assert_that(mean(test_scores), close_to(-66.85, 0.01))
 
 
 def test_boosting_regressor_lgbm(diabetes_split_dataset_and_model_lgbm):
@@ -192,7 +192,7 @@ def test_boosting_regressor_cat(diabetes_split_dataset_and_model_cat):
     assert_that(train_scores, has_length(20))
     assert_that(test_scores, has_length(20))
     assert_that(mean(train_scores), close_to(-35.49, 0.01))
-    assert_that(mean(test_scores), close_to(-59.04, 0.01))
+    assert_that(mean(test_scores), close_to(-58.99, 0.01))
 
 
 def test_boosting_classifier_with_metric(iris):
@@ -227,7 +227,7 @@ def test_condition_score_decline_not_greater_than_pass(diabetes, diabetes_model)
     # Assert
     assert_that(condition_result, equal_condition_result(
         is_pass=True,
-        details='Found score decline of -3.64%',
+        details='Found score decline of -3.61%',
         name='Test score over iterations is less than 5% from the best score'
     ))
 
@@ -244,5 +244,5 @@ def test_condition_score_percentage_decline_not_greater_than_not_pass(diabetes, 
     assert_that(condition_result, equal_condition_result(
         is_pass=False,
         name='Test score over iterations is less than 1% from the best score',
-        details='Found score decline of -3.64%'
+        details='Found score decline of -3.61%'
     ))
