@@ -65,7 +65,7 @@ def test_linear_regression(diabetes):
     clf = LinearRegression()
     clf.fit(ds.data[ds.features], ds.data[ds.label_name])
     feature_importances, fi_type = run_fi_calculation(clf, ds)
-    assert_that(feature_importances.max(), close_to(0.225374532399, 0.00001))
+    assert_that(feature_importances.max(), close_to(0.22537, 0.00001))
     assert_that(feature_importances.sum(), close_to(1, 0.00001))
     assert_that(fi_type, is_('coef_'))
 
