@@ -21,7 +21,7 @@ from packaging import version
 from sklearn import __version__ as scikit_version
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, log_loss, make_scorer, mean_absolute_error, mean_squared_error
-from sklearn.metrics._scorer import _BaseScorer, _ProbaScorer
+from sklearn.metrics._scorer import _BaseScorer
 from sklearn.preprocessing import OneHotEncoder
 
 try:
@@ -29,6 +29,11 @@ try:
 except ImportError:
     from sklearn.metrics import \
         f1_score, recall_score, precision_score, jaccard_score  # noqa: F401  pylint: disable=ungrouped-imports
+
+try:
+    from sklearn.metrics._scorer import _ProbaScorer
+except ImportError:
+    from sklearn.metrics._scorer import _Scorer as _ProbaScorer
 
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
