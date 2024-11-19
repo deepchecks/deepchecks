@@ -25,15 +25,16 @@ from sklearn.metrics._scorer import _BaseScorer
 from sklearn.preprocessing import OneHotEncoder
 
 try:
+    from sklearn.metrics._scorer import _ProbaScorer
+    has_proba_scorer_import = True
+except ImportError:
+    has_proba_scorer_import = False
+
+try:
     from deepchecks_metrics import f1_score, jaccard_score, precision_score, recall_score  # noqa: F401
 except ImportError:
     from sklearn.metrics import \
         f1_score, recall_score, precision_score, jaccard_score  # noqa: F401  pylint: disable=ungrouped-imports
-
-try:
-    from sklearn.metrics._scorer import _ProbaScorer
-except ImportError:
-    from sklearn.metrics._scorer import _Scorer as _ProbaScorer
 
 from deepchecks.core import errors
 from deepchecks.tabular.metric_utils.additional_classification_metrics import (false_negative_rate_metric,
@@ -245,10 +246,16 @@ class DeepcheckScorer:
         """Run sklearn scorer on the labels and the pred/proba according to scorer type."""
         # pylint: disable=protected-access
         if isinstance(self.scorer, _BaseScorer):
-            if y_proba is not None and isinstance(self.scorer, _ProbaScorer):
-                pred_to_use = y_proba
+            if has_proba_scorer_import:
+                if y_proba is not None and isinstance(self.scorer, _ProbaScorer):
+                    pred_to_use = y_proba
+                else:
+                    pred_to_use = y_pred
             else:
-                pred_to_use = y_pred
+                if y_proba is not None and 'predict_proba' in getattr(self.scorer, '_response_method', ''):
+                    pred_to_use = y_proba
+                else:
+                    pred_to_use = y_pred
             return self.scorer._score_func(y_true, pred_to_use, **self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
