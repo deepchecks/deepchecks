@@ -231,6 +231,10 @@ class DeepcheckScorer:
         self.name = name if name else get_scorer_name(scorer)
         self.model_classes = model_classes
         self.observed_classes = observed_classes
+        self._is_proba_scorer = (
+            (has_proba_scorer_import and isinstance(self.scorer, _ProbaScorer)) or
+            (not has_proba_scorer_import and 'predict_proba' in getattr(self.scorer, '_response_method', ''))
+        )
 
     @classmethod
     def filter_nulls(cls, dataset: 'tabular.Dataset') -> 'tabular.Dataset':
@@ -246,16 +250,10 @@ class DeepcheckScorer:
         """Run sklearn scorer on the labels and the pred/proba according to scorer type."""
         # pylint: disable=protected-access
         if isinstance(self.scorer, _BaseScorer):
-            if has_proba_scorer_import:
-                if y_proba is not None and isinstance(self.scorer, _ProbaScorer):
-                    pred_to_use = y_proba
-                else:
-                    pred_to_use = y_pred
+            if y_proba is not None and self._is_proba_scorer:
+                pred_to_use = y_proba
             else:
-                if y_proba is not None and 'predict_proba' in getattr(self.scorer, '_response_method', ''):
-                    pred_to_use = y_proba
-                else:
-                    pred_to_use = y_pred
+                pred_to_use = y_pred
             return self.scorer._score_func(y_true, pred_to_use, **self.scorer._kwargs) * self.scorer._sign
         raise errors.DeepchecksValueError('Only supports sklearn scorers')
 
@@ -312,8 +310,7 @@ class DeepcheckScorer:
 
     def _run_score(self, model, data: pd.DataFrame, label_col: pd.Series):
         # If scorer 'needs_threshold' or 'needs_proba' than the model has to have a predict_proba method.
-        if ('needs' in self.scorer._factory_args()) and not hasattr(model,  # pylint: disable=protected-access
-                                                                    'predict_proba'):
+        if self._is_proba_scorer and not hasattr(model, 'predict_proba'):  # pylint: disable=protected-access
             raise errors.DeepchecksValueError(
                 f'Can\'t compute scorer {self.scorer} when predicted probabilities are '
                 f'not provided. Please use a model with predict_proba method or '
@@ -351,7 +348,7 @@ class DeepcheckScorer:
             # In case of single label on binary model, there is problem with scorers per class, since scikit-learn
             # scorers will return score only for the seen label (and not for the unseen label)
             if model.is_binary and len(original_label_col.unique()) == 1 and len(model.predictions.unique()) == 1 and \
-                        original_label_col[0] == model.predictions[0]:
+                    original_label_col[0] == model.predictions[0]:
                 seen_class = original_label_col[0]
                 unseen_class = self.model_classes[0] if seen_class == self.model_classes[1] \
                     else self.model_classes[1]
