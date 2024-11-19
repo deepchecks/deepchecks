@@ -24,6 +24,7 @@ from deepchecks.core.errors import DeepchecksProcessError, DeepchecksValueError
 from deepchecks.nlp import Context, SingleDatasetCheck
 from deepchecks.nlp._shared_docs import docstrings
 from deepchecks.nlp.text_data import TextData
+from deepchecks.nlp.utils.text_properties_models import check_nltk_resource
 from deepchecks.utils.numbers import round_sig
 from deepchecks.utils.strings import format_list, format_percent, truncate_string
 
@@ -179,10 +180,10 @@ class UnknownTokens(SingleDatasetCheck):
             # Tokenization for each word
             # --------------------------
             # Choose tokenizer based on availability of nltk
-            if nltk.download('punkt', quiet=True) and nltk.download('punkt_tab', quiet=True):
+            if check_nltk_resource('punkt_tab'):
                 tokenize = nltk.word_tokenize
             else:
-                warnings.warn('nltk punkt is not available, using str.split instead to identify individual words. '
+                warnings.warn('nltk punkt_tab is not available, using str.split instead to identify individual words. '
                               'Please check your internet connection.')
                 tokenize = str.split
 
