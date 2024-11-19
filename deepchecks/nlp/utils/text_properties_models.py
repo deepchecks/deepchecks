@@ -18,7 +18,8 @@ from importlib import import_module
 from typing import Optional, Union
 
 import requests
-from nltk import corpus, data, download as nltk_download
+from nltk import corpus, data
+from nltk import download as nltk_download
 from transformers.utils import logging as transformers_logging
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'

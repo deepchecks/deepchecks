@@ -30,8 +30,8 @@ from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
-from deepchecks.nlp.utils.text_properties_models import (check_nltk_resource, get_cmudict_dict,
-                                                         get_fasttext_model, get_transformer_pipeline)
+from deepchecks.nlp.utils.text_properties_models import (check_nltk_resource, get_cmudict_dict, get_fasttext_model,
+                                                         get_transformer_pipeline)
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
