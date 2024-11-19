@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 import textblob
 import torch.cuda
-from nltk import corpus
+from nltk import corpus, data
 from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
 from tqdm import tqdm
@@ -30,7 +30,8 @@ from typing_extensions import TypedDict
 
 from deepchecks.core.errors import DeepchecksValueError
 from deepchecks.nlp.utils.text import cut_string, hash_text, normalize_text, remove_punctuation
-from deepchecks.nlp.utils.text_properties_models import get_cmudict_dict, get_fasttext_model, get_transformer_pipeline
+from deepchecks.nlp.utils.text_properties_models import (check_nltk_resource, get_cmudict_dict,
+                                                         get_fasttext_model, get_transformer_pipeline)
 from deepchecks.utils.function import run_available_kwargs
 from deepchecks.utils.strings import SPECIAL_CHARACTERS, format_list
 
@@ -64,10 +65,7 @@ def _split_to_sentences_with_cache(text: str) -> Union[List[str], None]:
     """Tokenize a text into sentences and cache the result."""
     hash_key = hash_text(text)
     if hash_key not in sentences_cache:
-        if not nltk_download('punkt_tab', quiet=True):
-            _warn_if_missing_nltk_dependencies('punkt_tab', 'property')
-            return None
-        if not nltk_download('punkt', quiet=True):
+        if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
             _warn_if_missing_nltk_dependencies('punkt', 'property')
             return None
         sentences_cache[hash_key] = sent_tokenize(text)
@@ -349,10 +347,7 @@ def lexical_density(text: str) -> float:
     """
     if pd.isna(text):
         return np.nan
-    if not nltk_download('punkt_tab', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt_tab', 'Lexical Density')
-        return np.nan
-    if not nltk_download('punkt', quiet=True):
+    if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
         _warn_if_missing_nltk_dependencies('punkt', 'Lexical Density')
         return np.nan
     all_words = _split_to_words_with_cache(text)
@@ -366,10 +361,8 @@ def unique_noun_count(text: Sequence[str]) -> int:
     """Return the number of unique noun words in the text."""
     if pd.isna(text):
         return np.nan
-    if not nltk_download('averaged_perceptron_tagger_eng', quiet=True):
-        _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
-        return np.nan
-    if not nltk_download('averaged_perceptron_tagger', quiet=True):
+    if not check_nltk_resource('averaged_perceptron_tagger_eng') or not \
+            check_nltk_resource('averaged_perceptron_tagger'):
         _warn_if_missing_nltk_dependencies('averaged_perceptron_tagger', 'Unique Noun Count')
         return np.nan
     unique_words_with_tags = set(textblob.TextBlob(text).tags)
@@ -386,10 +379,14 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
     if pd.isna(text):
         return np.nan
     if cmudict_dict is None:
-        if not nltk_download('cmudict', quiet=True):
-            _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
-            return np.nan
-        cmudict_dict = corpus.cmudict.dict()
+        try:
+            data.find('corpora/cmudict')
+            cmudict_dict = corpus.cmudict.dict()
+        except LookupError:
+            if not nltk_download('cmudict', quiet=True):
+                _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
+                return np.nan
+            cmudict_dict = corpus.cmudict.dict()
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
                                           return_as_list=True)
     sentence_count = len(text_sentences)
@@ -456,17 +453,18 @@ def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
     """Return the number of unique syllables in the text."""
     if pd.isna(text):
         return np.nan
-    if not nltk_download('punkt_tab', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt_tab', 'Unique Syllables Count')
-        return np.nan
-    if not nltk_download('punkt', quiet=True):
+    if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
         _warn_if_missing_nltk_dependencies('punkt', 'Unique Syllables Count')
         return np.nan
     if cmudict_dict is None:
-        if not nltk_download('cmudict', quiet=True):
-            _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
-            return np.nan
-        cmudict_dict = corpus.cmudict.dict()
+        try:
+            data.find('corpora/cmudict')
+            cmudict_dict = corpus.cmudict.dict()
+        except LookupError:
+            if not nltk_download('cmudict', quiet=True):
+                _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
+                return np.nan
+            cmudict_dict = corpus.cmudict.dict()
 
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
@@ -495,10 +493,7 @@ def sentences_count(text: str) -> int:
     """Return the number of sentences in the text."""
     if pd.isna(text):
         return np.nan
-    if not nltk_download('punkt_tab', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt_tab', 'Sentences Count')
-        return np.nan
-    if not nltk_download('punkt', quiet=True):
+    if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
         _warn_if_missing_nltk_dependencies('punkt', 'Sentences Count')
         return np.nan
     return len(_split_to_sentences_with_cache(text))
@@ -508,17 +503,18 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
     """Return a the average number of syllables per sentences per text sample."""
     if pd.isna(text):
         return np.nan
-    if not nltk_download('punkt_tab', quiet=True):
-        _warn_if_missing_nltk_dependencies('punkt_tab', 'Average Syllable Length')
-        return np.nan
-    if not nltk_download('punkt', quiet=True):
+    if not check_nltk_resource('punkt_tab') or not check_nltk_resource('punkt'):
         _warn_if_missing_nltk_dependencies('punkt', 'Average Syllable Length')
         return np.nan
     if cmudict_dict is None:
-        if not nltk_download('cmudict', quiet=True):
-            _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
-            return np.nan
-        cmudict_dict = corpus.cmudict.dict()
+        try:
+            data.find('corpora/cmudict')
+            cmudict_dict = corpus.cmudict.dict()
+        except LookupError:
+            if not nltk_download('cmudict', quiet=True):
+                _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
+                return np.nan
+            cmudict_dict = corpus.cmudict.dict()
     sentence_count = len(_split_to_sentences_with_cache(text))
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
@@ -767,10 +763,13 @@ def calculate_builtin_properties(
 
     properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(properties_types.keys()))
     if properties_requiring_cmudict:
-        if not nltk_download('cmudict', quiet=True):
-            _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
-            for prop in properties_requiring_cmudict:
-                calculated_properties[prop] = [np.nan] * len(raw_text)
+        try:
+            data.find('corpora/cmudict')
+        except LookupError:
+            if not nltk_download('cmudict', quiet=True):
+                _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
+                for prop in properties_requiring_cmudict:
+                    calculated_properties[prop] = [np.nan] * len(raw_text)
         kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
     if 'Toxicity' in properties_types and 'toxicity_classifier' not in kwargs:
