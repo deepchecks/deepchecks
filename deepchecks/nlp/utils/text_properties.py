@@ -766,12 +766,14 @@ def calculate_builtin_properties(
     if properties_requiring_cmudict:
         try:
             data.find('corpora/cmudict')
+            kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
         except LookupError:
             if not nltk_download('cmudict', quiet=True):
                 _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
                 for prop in properties_requiring_cmudict:
                     calculated_properties[prop] = [np.nan] * len(raw_text)
-        kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
+            else:
+                kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
     if 'Toxicity' in properties_types and 'toxicity_classifier' not in kwargs:
         model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
