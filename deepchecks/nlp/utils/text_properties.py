@@ -380,14 +380,11 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
     if pd.isna(text):
         return np.nan
     if cmudict_dict is None:
-        try:
-            data.find('corpora/cmudict')
-            cmudict_dict = corpus.cmudict.dict()
-        except LookupError:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
-                return np.nan
-            cmudict_dict = corpus.cmudict.dict()
+        if not check_nltk_resource('cmudict', 'corpora'):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
+            return np.nan
+        else:
+           cmudict_dict = get_cmudict_dict()
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
                                           return_as_list=True)
     sentence_count = len(text_sentences)
@@ -458,14 +455,11 @@ def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Unique Syllables Count')
         return np.nan
     if cmudict_dict is None:
-        try:
-            data.find('corpora/cmudict')
-            cmudict_dict = corpus.cmudict.dict()
-        except LookupError:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
-                return np.nan
-            cmudict_dict = corpus.cmudict.dict()
+        if not check_nltk_resource('cmudict', 'corpora'):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
+            return np.nan
+        else:
+           cmudict_dict = get_cmudict_dict()
 
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
@@ -508,14 +502,11 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Average Syllable Length')
         return np.nan
     if cmudict_dict is None:
-        try:
-            data.find('corpora/cmudict')
-            cmudict_dict = corpus.cmudict.dict()
-        except LookupError:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
-                return np.nan
-            cmudict_dict = corpus.cmudict.dict()
+        if not check_nltk_resource('cmudict', 'corpora'):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
+            return np.nan
+        else:
+           cmudict_dict = get_cmudict_dict()
     sentence_count = len(_split_to_sentences_with_cache(text))
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
