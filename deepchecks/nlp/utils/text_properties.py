@@ -562,7 +562,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
         {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
         {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-    )
+)
 
 ALL_PROPERTIES: Tuple[TextProperty, ...] = \
     (
@@ -575,7 +575,7 @@ ALL_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
         {'name': 'Sentences Count', 'method': sentences_count, 'output_type': 'numeric'},
         {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
-    ) + DEFAULT_PROPERTIES
+) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 
@@ -764,16 +764,12 @@ def calculate_builtin_properties(
 
     properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(properties_types.keys()))
     if properties_requiring_cmudict:
-        try:
-            data.find('corpora/cmudict')
+        if not check_nltk_resource('cmudict', 'corpora'):
+            _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
+            for prop in properties_requiring_cmudict:
+                calculated_properties[prop] = [np.nan] * len(raw_text)
+        else:
             kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
-        except LookupError:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
-                for prop in properties_requiring_cmudict:
-                    calculated_properties[prop] = [np.nan] * len(raw_text)
-            else:
-                kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
     if 'Toxicity' in properties_types and 'toxicity_classifier' not in kwargs:
         model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
