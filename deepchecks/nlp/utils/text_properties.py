@@ -380,7 +380,7 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
     if pd.isna(text):
         return np.nan
     if cmudict_dict is None:
-        if not check_nltk_resource('cmudict', 'corpora'):
+        if not check_nltk_resource('cmudict', 'corpora/cmudict'):
             _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
             return np.nan
         else:
@@ -455,7 +455,7 @@ def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Unique Syllables Count')
         return np.nan
     if cmudict_dict is None:
-        if not check_nltk_resource('cmudict', 'corpora'):
+        if not check_nltk_resource('cmudict', 'corpora/cmudict'):
             _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
             return np.nan
         else:
@@ -502,7 +502,7 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Average Syllable Length')
         return np.nan
     if cmudict_dict is None:
-        if not check_nltk_resource('cmudict', 'corpora'):
+        if not check_nltk_resource('cmudict', 'corpora/cmudict'):
             _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
             return np.nan
         else:
@@ -755,7 +755,7 @@ def calculate_builtin_properties(
 
     properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(properties_types.keys()))
     if properties_requiring_cmudict:
-        if not check_nltk_resource('cmudict', 'corpora'):
+        if not check_nltk_resource('cmudict', 'corpora/cmudict'):
             _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
             for prop in properties_requiring_cmudict:
                 calculated_properties[prop] = [np.nan] * len(raw_text)
