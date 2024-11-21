@@ -5,5 +5,5 @@ textblob>=0.17.1
 umap-learn
 transformers>=4.0.0
 huggingface_hub
-sentence_transformers
+sentence_transformers>=3.0.0
 tiktoken; python_version >= '3.8'
