@@ -18,10 +18,38 @@ from importlib import import_module
 from typing import Optional, Union
 
 import requests
-from nltk import corpus
+from nltk import corpus, data
+from nltk import download as nltk_download
 from transformers.utils import logging as transformers_logging
 
 MODELS_STORAGE = pathlib.Path(__file__).absolute().parent / '.nlp-models'
+
+
+def check_nltk_resource(resource_name: str, resource_path: Optional[str] = None) -> bool:
+    """Check if NLTK resource exists and download if it doesn't.
+
+    Parameters
+    ----------
+    resource_name : str
+        Name of the NLTK resource to check/download
+    resource_path : str, optional
+        Path to check for resource existence. If None, defaults to 'tokenizers/{resource_name}'
+
+    Returns
+    -------
+    bool
+        True if resource exists or was successfully downloaded, False otherwise
+    """
+    try:
+        # Default to tokenizers path if not specified
+        path_to_check = resource_path if resource_path else f'tokenizers/{resource_name}'
+        data.find(path_to_check)
+        return True
+    except LookupError:
+        try:
+            return nltk_download(resource_name, quiet=True)
+        except Exception:  # pylint: disable=broad-except
+            return False
 
 
 def get_create_model_storage(models_storage: Union[pathlib.Path, str, None] = None):
