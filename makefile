@@ -155,18 +155,20 @@ vision-torch-tf-setup: env
 
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
-		$(PIP) install -q\
-		 	"torch==1.10.2+cu111" "torchvision==0.11.3+cu111" \
-		 	 -f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
+		$(PIP) install -q \
+			"torch==2.4.1" "torchvision==0.19.1" \
+			--index-url https://download.pytorch.org/whl/cu118; \
 		$(PIP) install -q "tensorflow-gpu==2.11.0"; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
-		$(PIP) install -q\
-			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
-			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html; \
+		$(PIP) install -q \
+			"torch==2.4.1" "torchvision==0.19.1" \
+			--index-url https://download.pytorch.org/whl/cpu; \
 		$(PIP) install -q "tensorflow==2.11.0"; \
 	else \
-		$(PIP) install -q torch "torchvision==0.11.3"; \
+		$(PIP) install -q \
+			"torch==2.4.1" "torchvision==0.19.1" \
+			--index-url https://download.pytorch.org/whl/cpu; \
 		$(PIP) install -q "tensorflow==2.11.0"; \
 	fi;
 
@@ -204,6 +206,9 @@ dev-requirements: $(ENV)
 dev-nlp-requirements: $(ENV)
 	@echo "####  installing nlp development dependencies, it could take some time, please wait! ####"
 	@$(PIP) install -q -r $(REQUIRE_DIR)/dev-nlp-$(REQUIRE_FILE)
+	@$(PIP) install -q \
+			"torch==2.4.1" "torchvision==0.19.1" \
+			--index-url https://download.pytorch.org/whl/cpu;
 
 ### Static Analysis ######################################################
 
@@ -240,13 +245,12 @@ test: requirements dev-requirements dev-nlp-requirements
 vision-gpu-tests: vision-requirements dev-requirements
 	$(PYTEST) $(TESTDIR)/vision/gpu_tests
 
-
 test-win:
 	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	@$(WIN_ENV)\Scripts\activate.bat
-	$(PIP_WIN) install -q\
-			"torch==1.10.2+cpu" "torchvision==0.11.3+cpu" \
-			-f https://s3.amazonaws.com/pytorch/whl/torch_stable.html;
+	$(PIP_WIN) install -q \
+			"torch==2.4.1" "torchvision==0.19.1" \
+			--index-url https://download.pytorch.org/whl/cpu;
 	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
 	@$(PIP_WIN) install -q "tensorflow==2.11.0";
 	@$(PIP_WIN) install -U pip

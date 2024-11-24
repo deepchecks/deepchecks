@@ -22,8 +22,6 @@ import numpy as np
 import pandas as pd
 import textblob
 import torch.cuda
-from nltk import corpus, data
-from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
 from tqdm import tqdm
 from typing_extensions import TypedDict
@@ -380,14 +378,11 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
     if pd.isna(text):
         return np.nan
     if cmudict_dict is None:
-        try:
-            data.find('corpora/cmudict')
-            cmudict_dict = corpus.cmudict.dict()
-        except LookupError:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
-                return np.nan
-            cmudict_dict = corpus.cmudict.dict()
+        if not check_nltk_resource('cmudict', 'corpora/cmudict'):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
+            return np.nan
+        else:
+            cmudict_dict = get_cmudict_dict()
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
                                           return_as_list=True)
     sentence_count = len(text_sentences)
@@ -458,14 +453,11 @@ def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Unique Syllables Count')
         return np.nan
     if cmudict_dict is None:
-        try:
-            data.find('corpora/cmudict')
-            cmudict_dict = corpus.cmudict.dict()
-        except LookupError:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
-                return np.nan
-            cmudict_dict = corpus.cmudict.dict()
+        if not check_nltk_resource('cmudict', 'corpora/cmudict'):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
+            return np.nan
+        else:
+            cmudict_dict = get_cmudict_dict()
 
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
@@ -508,14 +500,11 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
         _warn_if_missing_nltk_dependencies('punkt_tab', 'Average Syllable Length')
         return np.nan
     if cmudict_dict is None:
-        try:
-            data.find('corpora/cmudict')
-            cmudict_dict = corpus.cmudict.dict()
-        except LookupError:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
-                return np.nan
-            cmudict_dict = corpus.cmudict.dict()
+        if not check_nltk_resource('cmudict', 'corpora/cmudict'):
+            _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
+            return np.nan
+        else:
+            cmudict_dict = get_cmudict_dict()
     sentence_count = len(_split_to_sentences_with_cache(text))
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
@@ -562,7 +551,7 @@ DEFAULT_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Fluency', 'method': fluency, 'output_type': 'numeric'},
         {'name': 'Formality', 'method': formality, 'output_type': 'numeric'},
         {'name': 'Unique Noun Count', 'method': unique_noun_count, 'output_type': 'numeric'},
-    )
+)
 
 ALL_PROPERTIES: Tuple[TextProperty, ...] = \
     (
@@ -575,7 +564,7 @@ ALL_PROPERTIES: Tuple[TextProperty, ...] = \
         {'name': 'Reading Time', 'method': reading_time, 'output_type': 'numeric'},
         {'name': 'Sentences Count', 'method': sentences_count, 'output_type': 'numeric'},
         {'name': 'Average Syllable Length', 'method': average_syllable_length, 'output_type': 'numeric'},
-    ) + DEFAULT_PROPERTIES
+) + DEFAULT_PROPERTIES
 
 LONG_RUN_PROPERTIES = ('Toxicity', 'Fluency', 'Formality', 'Unique Noun Count')
 
@@ -764,14 +753,12 @@ def calculate_builtin_properties(
 
     properties_requiring_cmudict = list(set(CMUDICT_PROPERTIES) & set(properties_types.keys()))
     if properties_requiring_cmudict:
-        try:
-            data.find('corpora/cmudict')
-        except LookupError:
-            if not nltk_download('cmudict', quiet=True):
-                _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
-                for prop in properties_requiring_cmudict:
-                    calculated_properties[prop] = [np.nan] * len(raw_text)
-        kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
+        if not check_nltk_resource('cmudict', 'corpora/cmudict'):
+            _warn_if_missing_nltk_dependencies('cmudict', format_list(properties_requiring_cmudict))
+            for prop in properties_requiring_cmudict:
+                calculated_properties[prop] = [np.nan] * len(raw_text)
+        else:
+            kwargs['cmudict_dict'] = get_cmudict_dict(use_cache=cache_models)
 
     if 'Toxicity' in properties_types and 'toxicity_classifier' not in kwargs:
         model_name = TOXICITY_MODEL_NAME_ONNX if use_onnx_models else TOXICITY_MODEL_NAME
