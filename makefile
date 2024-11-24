@@ -156,18 +156,18 @@ vision-torch-tf-setup: env
 	@if [ -x "$$(command -v nvidia-smi)" ]; \
 	then \
 		$(PIP) install -q \
-			"torch==2.4.1" "torchvision=0.19.1" \
+			"torch==2.4.1" "torchvision==0.19.1" \
 			--index-url https://download.pytorch.org/whl/cu118; \
 		$(PIP) install -q "tensorflow-gpu==2.11.0"; \
 	elif [ $(OS) = "Linux" ]; \
 	then \
 		$(PIP) install -q \
-			"torch==2.4.1" "torchvision=0.19.1" \
+			"torch==2.4.1" "torchvision==0.19.1" \
 			--index-url https://download.pytorch.org/whl/cpu; \
 		$(PIP) install -q "tensorflow==2.11.0"; \
 	else \
 		$(PIP) install -q \
-			"torch==2.4.1" "torchvision=0.19.1" \
+			"torch==2.4.1" "torchvision==0.19.1" \
 			--index-url https://download.pytorch.org/whl/cpu; \
 		$(PIP) install -q "tensorflow==2.11.0"; \
 	fi;
@@ -207,7 +207,7 @@ dev-nlp-requirements: $(ENV)
 	@echo "####  installing nlp development dependencies, it could take some time, please wait! ####"
 	@$(PIP) install -q -r $(REQUIRE_DIR)/dev-nlp-$(REQUIRE_FILE)
 	@$(PIP) install -q \
-			"torch==2.4.1" "torchvision=0.19.1" \
+			"torch==2.4.1" "torchvision==0.19.1" \
 			--index-url https://download.pytorch.org/whl/cpu;
 
 ### Static Analysis ######################################################
@@ -249,7 +249,7 @@ test-win:
 	@test -d $(WIN_ENV) || python -m venv $(WIN_ENV)
 	@$(WIN_ENV)\Scripts\activate.bat
 	$(PIP_WIN) install -q \
-			"torch==2.4.1" "torchvision=0.19.1" \
+			"torch==2.4.1" "torchvision==0.19.1" \
 			--index-url https://download.pytorch.org/whl/cpu;
 	@$(PIP_WIN) install -q "tensorflow-hub==0.12.0";
 	@$(PIP_WIN) install -q "tensorflow==2.11.0";
