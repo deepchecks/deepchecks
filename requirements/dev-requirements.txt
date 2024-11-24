@@ -35,7 +35,7 @@ kaleido  # optional dependency, used by plotly to transform figures into images
 matplotlib>=3.2.2
 numpy>=1.18.5
 opencv-python>=4.1.2; python_version > '3.6'
-opencv-python==4.6.0.66; python_version == '3.6'
+opencv-python<=4.6.0.66; python_version == '3.6'
 pillow>=7.1.2; python_version < '3.8'
 pillow>=10.0.1; python_version >= '3.8' # not directly required, pinned by Snyk to avoid a vulnerability
 PyYAML>=5.3.1
