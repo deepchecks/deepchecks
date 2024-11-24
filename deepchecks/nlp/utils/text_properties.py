@@ -22,8 +22,6 @@ import numpy as np
 import pandas as pd
 import textblob
 import torch.cuda
-from nltk import corpus, data
-from nltk import download as nltk_download
 from nltk import sent_tokenize, word_tokenize
 from tqdm import tqdm
 from typing_extensions import TypedDict
@@ -384,7 +382,7 @@ def readability_score(text: str, cmudict_dict: dict = None) -> float:
             _warn_if_missing_nltk_dependencies('cmudict', 'Reading Ease')
             return np.nan
         else:
-           cmudict_dict = get_cmudict_dict()
+            cmudict_dict = get_cmudict_dict()
     text_sentences = _sample_for_property(text, mode='sentences', limit=DEFAULT_SENTENCE_SAMPLE_SIZE,
                                           return_as_list=True)
     sentence_count = len(text_sentences)
@@ -459,7 +457,7 @@ def unique_syllables_count(text: str, cmudict_dict: dict = None) -> int:
             _warn_if_missing_nltk_dependencies('cmudict', 'Unique Syllables Count')
             return np.nan
         else:
-           cmudict_dict = get_cmudict_dict()
+            cmudict_dict = get_cmudict_dict()
 
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
@@ -506,7 +504,7 @@ def average_syllable_length(text: str, cmudict_dict: dict = None) -> float:
             _warn_if_missing_nltk_dependencies('cmudict', 'Average Syllable Length')
             return np.nan
         else:
-           cmudict_dict = get_cmudict_dict()
+            cmudict_dict = get_cmudict_dict()
     sentence_count = len(_split_to_sentences_with_cache(text))
     text = remove_punctuation(text.lower())
     words = word_tokenize(text)
