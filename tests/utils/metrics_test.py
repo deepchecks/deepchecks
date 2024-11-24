@@ -124,7 +124,7 @@ def test_cross_entropy_lending_club(lending_club_split_dataset_and_model):
 
     # Act
     score = calculate_neg_cross_entropy_per_sample(test_ds.label_col, probas, eps=eps)
-    score_sklearn = log_loss(test_ds.label_col, probas, eps=eps)
+    score_sklearn = log_loss(test_ds.label_col, probas)
 
     # Assert
     assert_that(score.mean(), close_to(-1 * 0.524, 0.01))
