@@ -36,7 +36,7 @@ warnings.filterwarnings('ignore', message='The least populated class in y has on
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import (is_bool_dtype, is_categorical_dtype, is_datetime64_any_dtype, is_numeric_dtype,
+from pandas.api.types import (is_bool_dtype, is_datetime64_any_dtype, is_numeric_dtype,
                               is_object_dtype, is_string_dtype, is_timedelta64_dtype)
 from sklearn import preprocessing, tree
 from sklearn.metrics import f1_score, mean_absolute_error
@@ -224,13 +224,13 @@ INVALID_CALCULATIONS = [
 ]
 
 
-def _dtype_represents_categories(series) -> bool:
+def _dtype_represents_categories(series: pd.Series) -> bool:
     """Determine if the dtype of the series represents categorical values."""
     return (
             is_bool_dtype(series)
             or is_object_dtype(series)
             or is_string_dtype(series)
-            or is_categorical_dtype(series)
+            or isinstance(series.dtype, pd.CategoricalDtype)
     )
 
 

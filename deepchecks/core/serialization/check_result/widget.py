@@ -245,21 +245,41 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return HTML(value=super().handle_callable(item, index, **kwargs))
 
     @classmethod
-    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> VBox:
-        """Handle display map instance item."""
+    def handle_display_map(cls, item, index, **kwargs):
+        """Handle DisplayMap instance.
+        
+        Parameters
+        ----------
+        item : DisplayMap
+            instance to handle
+        index : int
+            index of item in display list
+        **kwargs : dict
+            additional parameters
+        
+        Returns
+        -------
+        Tab
+            widget instance
+        """
         tab = Tab()
         children = []
-
-        for i, (name, display) in enumerate(item.items()):
-            tab.set_title(i, name)
+        titles = []  # Create a list to store titles
+        
+        # First collect all children and titles
+        for name, display in item.items():
+            titles.append(name)  # Add title to list
             children.append(VBox(children=cls.handle_display(
                 display,
                 include_header=False,
                 include_trailing_link=False,
                 **kwargs
             )))
-
+        
+        # Set all properties at once
         tab.children = children
+        tab.titles = tuple(titles)  # Set all titles at once
+
         style = '<style>.jupyter-widgets.widget-tab > .p-TabBar .p-TabBar-tab {min-width: fit-content;}</style>'
         return VBox(children=[
             HTML(value=style),

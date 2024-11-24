@@ -105,7 +105,7 @@ class MixedNulls(SingleDatasetCheck, ReduceFeatureMixin):
 
         for column_name in list(df.columns):
             column_data = df[column_name]
-            if is_categorical_dtype(column_data) is True:
+            if isinstance(column_data.dtype, pd.CategoricalDtype):
                 # NOTE:
                 # 'pandas.Series.value_counts' and 'pandas.Series.apply'
                 # work in an unusual way with categorical data types
