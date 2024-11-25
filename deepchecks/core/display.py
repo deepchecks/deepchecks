@@ -105,7 +105,7 @@ class DisplayableResult(abc.ABC):
         elif is_colab_env() and as_widget is False:
             display(*self.ipython_serializer.serialize(**kwargs))
         elif as_widget is True:
-            display_html(self.widget_serializer.serialize(
+            display(self.widget_serializer.serialize(
                 output_id=unique_id,
                 **kwargs
             ))
