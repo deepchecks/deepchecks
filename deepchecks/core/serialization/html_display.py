@@ -31,7 +31,6 @@ class HtmlDisplayableResult(DisplayableResult):
         """Return widget serializer."""
         class _WidgetSerializer(WidgetSerializer[t.Any]):
             def serialize(self, **kwargs) -> Widget:  # pylint: disable=unused-argument
-                print('ahhhh')
                 return normalize_widget_style(VBox(children=[HTML(self.value)]))
 
         return _WidgetSerializer(self.html)
