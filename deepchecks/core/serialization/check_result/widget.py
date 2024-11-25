@@ -250,7 +250,7 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         tab = Tab()
         children = []
         titles = []  # Create a list to store titles
-        
+
         # First collect all children and titles
         for name, display in item.items():
             titles.append(name)  # Add title to list
@@ -260,7 +260,7 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
                 include_trailing_link=False,
                 **kwargs
             )))
-        
+
         # Set all properties at once
         tab.children = children
         tab.titles = tuple(titles)  # Set all titles at once
