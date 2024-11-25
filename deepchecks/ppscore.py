@@ -36,8 +36,8 @@ warnings.filterwarnings('ignore', message='The least populated class in y has on
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import (is_bool_dtype, is_datetime64_any_dtype, is_numeric_dtype,
-                              is_object_dtype, is_string_dtype, is_timedelta64_dtype)
+from pandas.api.types import (is_bool_dtype, is_datetime64_any_dtype, is_numeric_dtype, is_object_dtype,
+                              is_string_dtype, is_timedelta64_dtype)
 from sklearn import preprocessing, tree
 from sklearn.metrics import f1_score, mean_absolute_error
 from sklearn.model_selection import cross_val_score
