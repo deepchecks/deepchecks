@@ -113,6 +113,7 @@ class CheckResultSerializer(HtmlSerializer['check_types.CheckResult']):
 
         if full_html is False:
             return ''.join([requirejs, plotlyjs, *sections])
+
         # TODO: use some style to make it pretty
         return textwrap.dedent(f"""
             <html>
