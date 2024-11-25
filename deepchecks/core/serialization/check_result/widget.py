@@ -245,23 +245,8 @@ class DisplayItemsHandler(html.DisplayItemsHandler):
         return HTML(value=super().handle_callable(item, index, **kwargs))
 
     @classmethod
-    def handle_display_map(cls, item, index, **kwargs):
-        """Handle DisplayMap instance.
-        
-        Parameters
-        ----------
-        item : DisplayMap
-            instance to handle
-        index : int
-            index of item in display list
-        **kwargs : dict
-            additional parameters
-        
-        Returns
-        -------
-        Tab
-            widget instance
-        """
+    def handle_display_map(cls, item: 'check_types.DisplayMap', index: int, **kwargs) -> VBox:
+        """Handle display map instance item."""
         tab = Tab()
         children = []
         titles = []  # Create a list to store titles
