@@ -19,7 +19,8 @@ import typing as t
 from multiprocessing import get_context, process
 from tempfile import NamedTemporaryFile
 
-from IPython.core.display import display, display_html
+from IPython.core.display import display_html
+from IPython.display import display
 from ipywidgets import Widget
 
 from deepchecks.core.serialization.abc import HTMLFormatter, HtmlSerializer, IPythonSerializer, WidgetSerializer
