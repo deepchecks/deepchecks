@@ -14,7 +14,6 @@ from typing import Dict, Iterable, List, Optional, Union
 
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_categorical_dtype
 
 from deepchecks.core import CheckResult, ConditionCategory, ConditionResult
 from deepchecks.core.errors import DeepchecksValueError
