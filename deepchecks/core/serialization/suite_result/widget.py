@@ -115,11 +115,12 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             self.prepare_summary(output_id=output_id, **kwargs),
             *accordions
         ])
-        return Accordion(
+        accordion = Accordion(
             children=[content],
-            _titles={'0': self.value.name},
             selected_index='0'
         )
+        accordion.set_title(0, self.value.name)
+        return accordion
 
     def prepare_summary(
         self,
@@ -159,9 +160,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             children = (table,)
         accordion = normalize_widget_style(Accordion(
             children=children,
-            _titles={'0': title},
             selected_index=None
         ))
+        accordion.set_title(0, title)
         return VBox(children=(
             # by putting `section_anchor` before the results accordion
             # we create a gap between them`s, failures section does not have
@@ -200,9 +201,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
             section_anchor = HTML(value='')
             accordion = normalize_widget_style(Accordion(
                 children=(HTML(value='<p>No outputs to show.</p>'),),
-                _titles={'0': title},
                 selected_index=None
             ))
+            accordion.set_title(0, title)
         else:
             section_id = f'{output_id}-section-{get_random_string()}'
             section_anchor = HTML(value=f'<span id="{form_output_anchor(section_id)}"></span>')
@@ -226,9 +227,9 @@ class SuiteResultSerializer(WidgetSerializer['suite.SuiteResult']):
 
             accordion = normalize_widget_style(Accordion(
                 children=(VBox(children=children),),
-                _titles={'0': title},
                 selected_index=None
             ))
+            accordion.set_title(0, title)
 
         return VBox(children=(
             # "go to top" link should bring the user a bit higher,

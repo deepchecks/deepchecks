@@ -33,7 +33,7 @@ from tests.common import DummyCheck, create_check_result, create_suite_result, i
 
 def test_check_result_display():
     # Arrange
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         result = create_check_result()
         assert_that(result.display_check(), is_(None))
         mock.assert_called_once()
@@ -164,7 +164,7 @@ def test_check_result_ipython_display():
     # Arrange
     result = create_check_result(value=[10, 20, 30])
     # Assert
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         result._ipython_display_()
         mock.assert_called_once()
 
@@ -280,7 +280,7 @@ def test_check_failure_display_with_enabled_widgets():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.display.display_html', Mock(return_value=True)) as mock:
+    with patch('deepchecks.core.display.display', Mock(return_value=True)) as mock:
         w = failure.display_check(as_widget=True)
         mock.assert_called_once()
 
@@ -298,7 +298,7 @@ def test_check_failure_show():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
 
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         # Assert
         assert_that(failure.show(), is_(None))
         mock.assert_called_once()
@@ -325,7 +325,7 @@ def test_check_failure_ipython_display():
     # Arrange
     failure = CheckFailure(DummyCheck(), Exception('error message'))
     # Assert
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         failure._ipython_display_()
         mock.assert_called_once()
 
@@ -420,7 +420,7 @@ def test_suite_result_show():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         suite_result.show()
         mock.assert_called_once()
 
@@ -438,7 +438,7 @@ def test_suite_result_ipython_display():
     # Arrange
     suite_result = create_suite_result()
     # Assert
-    with patch('deepchecks.core.display.display_html') as mock:
+    with patch('deepchecks.core.display.display') as mock:
         suite_result._ipython_display_()
         mock.assert_called_once()
 
