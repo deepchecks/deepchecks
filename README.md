@@ -15,7 +15,6 @@
 stars](https://img.shields.io/github/stars/deepchecks/deepchecks.svg?style=social&label=Star&maxAge=2592000)](https://GitHub.com/deepchecks/deepchecks/stargazers/)
 ![build](https://github.com/deepchecks/deepchecks/actions/workflows/build.yml/badge.svg)
 ![pkgVersion](https://img.shields.io/pypi/v/deepchecks)
-[![Maintainability](https://api.codeclimate.com/v1/badges/970b11794144139975fa/maintainability)](https://codeclimate.com/github/deepchecks/deepchecks/maintainability)
 [![Coverage
 Status](https://coveralls.io/repos/github/deepchecks/deepchecks/badge.svg?branch=main)](https://coveralls.io/github/deepchecks/deepchecks?branch=main) 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
