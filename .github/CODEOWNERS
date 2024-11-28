@@ -9,9 +9,9 @@
 /docs/ @shir22 @noamzbr
 /docs/source/examples/ @deepchecks/deepchecks-team
 
-.github @noamzbr
+.github @noamzbr @shir22
 
-README.rst @shir22
+README.md @shir22 @noambzr
 
 requirements/ @noamzbr
 deepchecks/core/ @deepchecks/algo-team
